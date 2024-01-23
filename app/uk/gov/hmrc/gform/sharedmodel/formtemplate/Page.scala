@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
 import uk.gov.hmrc.gform.models.{ Basic, PageMode, SectionHeader }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
+import com.softwaremill.quicklens._
 
 case class Page[A <: PageMode](
   title: SmartString,
@@ -116,6 +117,33 @@ case class Page[A <: PageMode](
   val isHideSaveAndComeBackButton: Boolean = hideSaveAndComeBackButton.getOrElse(false)
 
   def dataRetrieves(): List[DataRetrieve] = dataRetrieve.toList.flatMap(_.toList)
+
+  def updateExpr(f: Expr => Expr): Page[A] =
+    this
+      .modify(_.title)
+      .using(_.updateExpr(f))
+      .modify(_.noPIITitle.each)
+      .using(_.updateExpr(f))
+      .modify(_.description.each)
+      .using(_.updateExpr(f))
+      .modify(_.caption.each)
+      .using(_.updateExpr(f))
+      .modify(_.includeIf.each.booleanExpr)
+      .using(_.updateExpr(f))
+      .modify(_.validators.each)
+      .using(_.updateExpr(f))
+      .modify(_.fields.each)
+      .using(_.updateExpr(f))
+      .modify(_.continueLabel.each)
+      .using(_.updateExpr(f))
+      .modify(_.instruction.each.name.each)
+      .using(_.updateExpr(f))
+      .modify(_.confirmation.each.question)
+      .using(_.updateExpr(f))
+      .modify(_.removeItemIf.each.booleanExpr)
+      .using(_.updateExpr(f))
+      .copy(dataRetrieve = dataRetrieve.map(_.map(_.updateExpr(f))))
+      .copy(redirects = redirects.map(_.map(_.updateExpr(f))))
 }
 
 object Page {

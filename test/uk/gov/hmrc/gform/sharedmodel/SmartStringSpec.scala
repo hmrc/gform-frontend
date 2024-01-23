@@ -40,4 +40,15 @@ class SmartStringSpec extends Spec {
       if (c >= 32 && c <= 127 && c != '"' && c != '\\') Seq(c)
       else Seq.empty
     }.mkString
+
+  "SmartString updateExpr" should "correctly replace its expressions" in {
+    val smartString = SmartString(Helpers.toLocalisedString(""), Constant("a") :: Constant("b") :: Nil)
+    val updatedSmartString = SmartString(Helpers.toLocalisedString(""), Constant("c") :: Constant("d") :: Nil)
+
+    smartString.updateExpr {
+      case Constant(value) if value === "a" => Constant("c")
+      case Constant(value) if value === "b" => Constant("d")
+      case other                            => other
+    } shouldBe updatedSmartString
+  }
 }

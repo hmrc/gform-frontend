@@ -43,6 +43,25 @@ sealed trait BooleanExpr {
   }
 
   def prettyPrint: String = ExprPrettyPrint.prettyPrintBooleanExpr(this)
+  def updateExpr(f: Expr => Expr): BooleanExpr = this match {
+    case Equals(left, right)              => Equals(f(left), f(right))
+    case GreaterThan(left, right)         => GreaterThan(f(left), f(right))
+    case GreaterThanOrEquals(left, right) => GreaterThanOrEquals(f(left), f(right))
+    case LessThan(left, right)            => LessThan(f(left), f(right))
+    case LessThanOrEquals(left, right)    => LessThanOrEquals(f(left), f(right))
+    case Not(e)                           => Not(e.updateExpr(f))
+    case Or(left, right)                  => Or(left.updateExpr(f), right.updateExpr(f))
+    case And(left, right)                 => And(left.updateExpr(f), right.updateExpr(f))
+    case IsTrue                           => IsTrue
+    case IsFalse                          => IsFalse
+    case Contains(multiValueField, value) => Contains(multiValueField, f(value))
+    case In(formCtx, dataSource)          => In(f(formCtx), dataSource)
+    case MatchRegex(expr, regex)          => MatchRegex(f(expr), regex)
+    case FormPhase(value)                 => FormPhase(value)
+    case First(formCtx)                   => First(formCtx)
+    case IsLogin(value)                   => IsLogin(value)
+    case otherwise                        => otherwise
+  }
 }
 
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr

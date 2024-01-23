@@ -88,7 +88,7 @@ class FrontendFiltersModule(
     new DefaultCookieHeaderEncoding()
   )
 
-  private val frontendAuditFilter = new DefaultFrontendAuditFilter(
+  val frontendAuditFilter = new DefaultFrontendAuditFilter(
     configModule.playConfiguration,
     configModule.controllerConfigs,
     auditingModule.auditConnector,
@@ -187,13 +187,13 @@ class FrontendFiltersModule(
     cspFilter,
     corsFilter,
     securityHeadersFilter,
-    metricsModule.metricsFilter,
+    // metricsModule.metricsFilter,
     sessionCookieDispatcherFilter,
     emailAuthClearSessionFilter,
     headersFilter,
     deviceIdFilter,
     loggingFilter,
-    frontendAuditFilter,
+    // frontendAuditFilter,
     sessionTimeoutFilter,
     csrfComponents.csrfFilter,
     cacheControlFilter,

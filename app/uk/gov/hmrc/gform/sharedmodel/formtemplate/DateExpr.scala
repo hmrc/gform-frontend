@@ -67,6 +67,17 @@ sealed trait DateExpr {
     case DateExprWithOffset(dateExpr: DateExpr, offset) => DateExprWithOffset(dateExpr.expand(index), offset)
     case other                                          => other
   }
+
+  def updateExpr(f: Expr => Expr): DateExpr = this match {
+    case DateValueExpr(value)         => DateValueExpr(value)
+    case DateFormCtxVar(formCtx)      => DateFormCtxVar(formCtx)
+    case DateExprWithOffset(dExpr, o) => DateExprWithOffset(dExpr.updateExpr(f), o)
+    case HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo) =>
+      HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo)
+    case DateIfElse(ifElse, field1, field2) =>
+      DateIfElse(ifElse.updateExpr(f), field1.updateExpr(f), field2.updateExpr(f))
+    case DateOrElse(field1, field2) => DateOrElse(field1.updateExpr(f), field2.updateExpr(f))
+  }
 }
 
 sealed trait OffsetUnit

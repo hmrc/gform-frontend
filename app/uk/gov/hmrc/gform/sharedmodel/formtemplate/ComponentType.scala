@@ -38,6 +38,8 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import scala.annotation.tailrec
 import scala.collection.immutable.List
 
+import com.softwaremill.quicklens._
+
 sealed trait MultiField {
 
   def fields(indexedComponentId: IndexedComponentId): NonEmptyList[ModelComponentId.Atomic]
@@ -65,6 +67,64 @@ sealed trait ComponentType {
     case _: FileUpload         => "fileUpload"
     case _: MiniSummaryList    => "miniSummaryList"
     case _: TableComp          => "table"
+  }
+  def updateExpr(f: Expr => Expr): ComponentType = this match {
+    case t: Text =>
+      t.modify(_.value)
+        .using(_.updateExpr(f))
+        .modify(_.prefix.each)
+        .using(_.updateExpr(f))
+        .modify(_.suffix.each)
+        .using(_.updateExpr(f))
+    case t: TextArea           => t.modify(_.value).using(_.updateExpr(f))
+    case d: Date               => d
+    case c: CalendarDate.type  => c
+    case t: TaxPeriodDate.type => t
+    case p: PostcodeLookup =>
+      p.modify(_.chooseAddressLabel.each)
+        .using(_.updateExpr(f))
+        .modify(_.confirmAddressLabel.each)
+        .using(_.updateExpr(f))
+        .modify(_.enterAddressLabel.each)
+        .using(_.updateExpr(f))
+    case t: Time            => t
+    case a: Address         => a.modify(_.value.each).using(_.updateExpr(f))
+    case o: OverseasAddress => o.copy(value = o.value.map(f))
+    case c: Choice =>
+      c.copy(options =
+        c.options.map(
+          _.modify(_.label)
+            .using(_.updateExpr(f))
+            .modify(_.hint.each)
+            .using(_.updateExpr(f))
+        )
+      ).copy(hints = c.hints.map(_.map(_.updateExpr(f))))
+    case r: RevealingChoice =>
+      r.copy(options =
+        r.options.map(
+          _.modify(_.choice.label)
+            .using(_.updateExpr(f))
+            .modify(_.choice.hint.each)
+            .using(_.updateExpr(f))
+            .modify(_.revealingFields.each)
+            .using(_.updateExpr(f))
+        )
+      )
+    case h: HmrcTaxPeriod      => h.modify(_.idNumber).using(_.updateExpr(f))
+    case g: Group              => g.modify(_.fields.each).using(_.updateExpr(f)).modify(_.repeatLabel.each).using(_.updateExpr(f))
+    case i: InformationMessage => i.modify(_.infoText).using(_.updateExpr(f))
+    case f: FileUpload         => f
+    case m: MiniSummaryList    => m.modify(_.rows.each).using(_.updateExpr(f))
+    case t: TableComp =>
+      t.modify(_.header.each)
+        .using(_.updateExpr(f))
+        .modify(_.summaryValue)
+        .using(_.updateExpr(f))
+        .modify(_.rows.each.values.each.value)
+        .using(_.updateExpr(f))
+        .modify(_.rows.each.includeIf.each.booleanExpr)
+        .using(_.updateExpr(f))
+
   }
 }
 
@@ -417,6 +477,16 @@ case class Choice(
           .map(_ => option.label.value())
       }
       .collect { case Some(selection) => selection }
+  // override def updateExpr(f: Expr => Expr): Choice =
+  //   c.copy(options =
+  //   this.options.map(
+  //     _.modify(_.label)
+  //       .using(_.updateExpr(f))
+  //       .modify(_.hint.each)
+  //       .using(_.updateExpr(f))
+  //   )
+  // )
+  // .copy(hints = hints.map(_.map(_.updateExpr(f))))
 }
 
 sealed trait ChoiceType
@@ -578,31 +648,63 @@ object Time {
   implicit val format: OFormat[Time] = derived.oformat()
 }
 
-sealed trait MiniSummaryRow extends Product with Serializable
+sealed trait MiniSummaryRow extends Product with Serializable {
+  def updateExpr(f: Expr => Expr): MiniSummaryRow
+}
 object MiniSummaryRow {
   case class ValueRow(
     key: Option[SmartString],
     value: MiniSummaryListValue,
     includeIf: Option[IncludeIf],
     pageId: Option[PageId]
-  ) extends MiniSummaryRow
+  ) extends MiniSummaryRow {
+    override def updateExpr(f: Expr => Expr): MiniSummaryRow =
+      this
+        .modify(_.key.each)
+        .using(_.updateExpr(f))
+        .modify(_.includeIf.each.booleanExpr)
+        .using(_.updateExpr(f))
+        .modify(_.value)
+        .using {
+          case MiniSummaryListValue.AnyExpr(e) => MiniSummaryListValue.AnyExpr(f(e))
+          case otherwise                       => otherwise
+        }
+  }
 
   case class SmartStringRow(
     key: Option[SmartString],
     value: SmartString,
     includeIf: Option[IncludeIf],
     pageId: Option[PageId]
-  ) extends MiniSummaryRow
+  ) extends MiniSummaryRow {
+    override def updateExpr(f: Expr => Expr): MiniSummaryRow =
+      this
+        .modify(_.key.each)
+        .using(_.updateExpr(f))
+        .modify(_.includeIf.each.booleanExpr)
+        .using(_.updateExpr(f))
+        .modify(_.value)
+        .using(_.updateExpr(f))
+  }
 
   case class HeaderRow(
     header: SmartString
-  ) extends MiniSummaryRow
+  ) extends MiniSummaryRow {
+    override def updateExpr(f: Expr => Expr): MiniSummaryRow = this.modify(_.header).using(_.updateExpr(f))
+  }
 
   case class ATLRow(
     atlId: FormComponentId,
     includeIf: Option[IncludeIf],
     rows: List[MiniSummaryRow]
-  ) extends MiniSummaryRow
+  ) extends MiniSummaryRow {
+    override def updateExpr(f: Expr => Expr): MiniSummaryRow =
+      this
+        .modify(_.includeIf.each.booleanExpr)
+        .using(_.updateExpr(f))
+        .modify(_.rows.each)
+        .using(_.updateExpr(f))
+  }
 
   implicit val format: Format[MiniSummaryRow] = derived.oformat()
 }

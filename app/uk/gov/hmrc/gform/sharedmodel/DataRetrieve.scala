@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
+import com.softwaremill.quicklens._
 
 final case class Fetch(path: List[String]) extends AnyVal
 
@@ -156,6 +157,13 @@ case class DataRetrieve(
           )
         )
     }
+
+  def updateExpr(f: Expr => Expr): DataRetrieve =
+    this
+      .modify(_.params.each.expr)
+      .using(_.updateExpr(f))
+      .modify(_.`if`.each.booleanExpr)
+      .using(_.updateExpr(f))
 
 }
 

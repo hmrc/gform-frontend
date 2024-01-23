@@ -20,8 +20,11 @@ import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
+import com.softwaremill.quicklens._
+
 sealed trait Validator {
   def errorMessage: SmartString
+  def updateExpr(f: Expr => Expr): Validator
 }
 
 case object Validator {
@@ -36,6 +39,9 @@ case class HmrcRosmRegistrationCheckValidator(
 ) extends Validator {
   val utrFieldId = utr.formComponentId
   val postcodeFieldId = postcode.formComponentId
+
+  def updateExpr(f: Expr => Expr): Validator = this.modify(_.errorMessage).using(_.updateExpr(f))
+
 }
 
 object HmrcRosmRegistrationCheckValidator {

@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiVa
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.ops.FormComponentOps
+import com.softwaremill.quicklens._
 
 case class FormComponent(
   id: FormComponentId,
@@ -122,6 +123,31 @@ case class FormComponent(
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 
   val errorPlaceholder = errorShortName orElse shortName
+
+  def updateExpr(f: Expr => Expr): FormComponent =
+    this
+      .modify(_.`type`)
+      .using(_.updateExpr(f))
+      .modify(_.label)
+      .using(_.updateExpr(f))
+      .modify(_.helpText.each)
+      .using(_.updateExpr(f))
+      .modify(_.shortName.each)
+      .using(_.updateExpr(f))
+      .modify(_.validIf.each.booleanExpr)
+      .using(_.updateExpr(f))
+      .modify(_.errorMessage.each)
+      .using(_.updateExpr(f))
+      .modify(_.validators.each.validIf.booleanExpr)
+      .using(_.updateExpr(f))
+      .modify(_.instruction.each.name.each)
+      .using(_.updateExpr(f))
+      .modify(_.errorShortName.each)
+      .using(_.updateExpr(f))
+      .modify(_.errorShortNameStart.each)
+      .using(_.updateExpr(f))
+      .modify(_.errorExample.each)
+      .using(_.updateExpr(f))
 }
 
 object FormComponent {

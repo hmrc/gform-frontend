@@ -19,10 +19,17 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json.{ Json, OFormat }
 import cats.data.NonEmptyList
 
+import com.softwaremill.quicklens._
+
 final case class Confirmation(
   question: FormComponent,
   redirects: NonEmptyList[ConfirmationRedirect]
-)
+) {
+  def updateExpr(f: Expr => Expr): Confirmation = this
+    .modify(_.question)
+    .using(_.updateExpr(f))
+    .copy(redirects = redirects.map(_.modify(_.`if`.booleanExpr).using(_.updateExpr(f))))
+}
 
 object Confirmation {
   import JsonUtils._

@@ -24,12 +24,16 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import uk.gov.hmrc.gform.gform.ExprUpdater
+import uk.gov.hmrc.gform.eval.ExpressionResult._
+
 trait FormModelExpander[T <: PageMode] {
   def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[T]
   def liftRepeating(
     section: Section.RepeatingPage,
     data: VariadicFormData[SourceOrigin.OutOfDate]
   ): Option[BracketPlain.RepeatingPage[T]]
+
 }
 
 object FormModelExpander {
@@ -40,6 +44,44 @@ object FormModelExpander {
   implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D], messages: Messages) =
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
+
+        def addToListIndexes(
+          formComponentId: FormComponentId,
+          data: VariadicFormData[SourceOrigin.OutOfDate]
+        ): List[Int] = {
+          val firstQuestionFcId = formComponentId.withFirstIndex
+          val exprMap = fmvo.recalculationResult.evaluationResults.exprMap
+          val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+          if (isHidden.contains(Hidden)) {
+            List.empty[Int]
+          } else {
+            val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
+            allValues.map(_._1).map(_.toFormComponentId).map(_.modelComponentId.maybeIndex).flatMap(_.toList).toList
+          }
+
+        }
+
+        def f(expr: Expr): Expr = expr match {
+          case Sum(field) =>
+            val indexes = field
+              .leafs()
+              .flatMap {
+                case FormCtx(fcId) => addToListIndexes(fcId, data)
+                case _             => Nil
+              }
+              .distinct
+              .sorted
+            val fcs: List[FormComponentId] = field.leafs().flatMap {
+              case FormCtx(fcId) if addToListIndexes(fcId, data).size > 0 => Some(fcId)
+              case _                                                      => None
+            }
+            val newExpr = indexes.map(i => ExprUpdater(field, i, fcs)).foldLeft[Expr](Constant("0")) { case (acc, e) =>
+              Add(acc, e)
+            }
+            newExpr
+          case _ => expr
+        }
+
         val expanded = page.fields.flatMap {
           case fc @ IsChoice(choice)     => OptionDataUtils.expand(fc, choice) :: Nil
           case fc @ IsTableComp(table)   => TableUtils.expand(fc, table) :: Nil
@@ -47,7 +89,9 @@ object FormModelExpander {
           case fc @ IsGroup(group)       => ExpandUtils.expandGroup(fc, group, data)
           case otherwise                 => otherwise :: Nil
         }
-        page.copy(fields = expanded).asInstanceOf[Page[DataExpanded]]
+        val r = page.copy(fields = expanded).asInstanceOf[Page[DataExpanded]]
+        val updatedExpr = r.updateExpr(f)
+        updatedExpr
       }
 
       // Perfect we have access to FormModelVisibilityOptics, so we can evaluate 'section.repeats' expression
@@ -67,7 +111,9 @@ object FormModelExpander {
     }
 
   implicit val interim = new FormModelExpander[Interim] {
+
     def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[Interim] = {
+
       val expanded = page.fields.flatMap {
         case fc @ IsRevealingChoice(rc) =>
           fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
