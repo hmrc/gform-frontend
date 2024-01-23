@@ -234,16 +234,9 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
-      case Sum(_) => unsupportedOperation("Sum should be converted to Add during recalculation")(expr)
-      // case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
-      // case Sum(field1) =>
-      //   loop(field1) match {
-      //     case lrs: ListResult =>
-      //       lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
-      //     case _ => unsupportedOperation("Number")(expr)
-      //   }
-      case Count(formComponentId)   => addToListCount(formComponentId, recData)
-      case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
+      case Sum(_)                           => unsupportedOperation("Sum should be converted to Add during recalculation")(expr)
+      case Count(formComponentId)           => addToListCount(formComponentId, recData)
+      case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
         value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
           toNumberResult(

@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.Monoid
 import cats.data.NonEmptyList
 import play.api.libs.json.OFormat
 import cats.syntax.eq._
 import julienrf.json.derived
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
@@ -86,14 +85,6 @@ case class Page[A <: PageMode](
       }
       .foldLeft(Map.empty[BaseComponentId, RevealingChoiceData])(_ ++ _)
   }
-
-  val sumInfo: SumInfo = implicitly[Monoid[SumInfo]].combineAll(
-    (allFields ++ allFields
-      .flatMap(_.childrenFormComponents)).collect {
-      case fc @ HasValueExpr(expr) if expr.sums.nonEmpty =>
-        SumInfo(expr.sums.map(sum => (sum, Set(fc.id))).toMap)
-    }
-  )
 
   def renderUnits: List[RenderUnit] =
     allFields.foldRight(List.empty[RenderUnit]) {

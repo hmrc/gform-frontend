@@ -58,7 +58,6 @@ object FormModelExpander {
             val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
             allValues.map(_._1).map(_.toFormComponentId).map(_.modelComponentId.maybeIndex).flatMap(_.toList).toList
           }
-
         }
 
         def f(expr: Expr): Expr = expr match {
@@ -66,14 +65,18 @@ object FormModelExpander {
             val indexes = field
               .leafs()
               .flatMap {
-                case FormCtx(fcId) => addToListIndexes(fcId, data)
-                case _             => Nil
+                case FormCtx(fcId) =>
+                  val allIndexes = addToListIndexes(fcId, data)
+                  // if the component is inside ATL get only indexes up to the current index
+                  fcId.modelComponentId.maybeIndex.map(i => allIndexes.filter(_ <= i)).getOrElse(allIndexes)
+                case _ => Nil
               }
               .distinct
               .sorted
             val fcs: List[FormComponentId] = field.leafs().flatMap {
-              case FormCtx(fcId) if addToListIndexes(fcId, data).size > 0 => Some(fcId)
-              case _                                                      => None
+              case FormCtx(fcId) if addToListIndexes(fcId, data).size > 0 =>
+                Some(fcId.modelComponentId.removeIndex.toFormComponentId)
+              case _ => None
             }
             val newExpr = indexes.map(i => ExprUpdater(field, i, fcs)).foldLeft[Expr](Constant("0")) { case (acc, e) =>
               Add(acc, e)
