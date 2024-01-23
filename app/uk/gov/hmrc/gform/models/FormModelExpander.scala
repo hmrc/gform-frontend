@@ -66,9 +66,10 @@ object FormModelExpander {
               .leafs()
               .flatMap {
                 case FormCtx(fcId) =>
-                  val allIndexes = addToListIndexes(fcId, data)
-                  // if the component is inside ATL get only indexes up to the current index
-                  fcId.modelComponentId.maybeIndex.map(i => allIndexes.filter(_ <= i)).getOrElse(allIndexes)
+                  addToListIndexes(fcId, data)
+                // GFORMS-2480: find out if we need to get all or just up to the current index
+                // if the component is inside ATL get only indexes up to the current index
+                //fcId.modelComponentId.maybeIndex.map(i => allIndexes.filter(_ <= i)).getOrElse(allIndexes)
                 case _ => Nil
               }
               .distinct
@@ -78,10 +79,17 @@ object FormModelExpander {
                 Some(fcId.modelComponentId.removeIndex.toFormComponentId)
               case _ => None
             }
-            val newExpr = indexes.map(i => ExprUpdater(field, i, fcs)).foldLeft[Expr](Constant("0")) { case (acc, e) =>
-              Add(acc, e)
+            val updatedField = field.updateExpr {
+              case FormCtx(fcId) if fcId.modelComponentId.maybeIndex.isDefined =>
+                FormCtx(fcId.modelComponentId.removeIndex.toFormComponentId)
+              case otherwise => otherwise
             }
-            newExpr
+            indexes
+              .map(i => ExprUpdater(updatedField, i, fcs))
+              .foldLeft[Expr](Constant("0")) { case (acc, e) =>
+                Add(acc, e)
+              }
+
           case _ => expr
         }
 

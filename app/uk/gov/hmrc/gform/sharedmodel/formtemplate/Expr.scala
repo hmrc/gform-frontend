@@ -317,6 +317,7 @@ sealed trait Expr extends Product with Serializable {
     }
     f(updatedArgs)
   }
+ 
 }
 
 final case class Add(field1: Expr, field2: Expr) extends Expr
@@ -471,6 +472,10 @@ object AddressDetail {
 
 object FormCtx {
   implicit val format: OFormat[FormCtx] = derived.oformat()
+  def toFormCtx(formCtx: Expr): FormCtx = formCtx match {
+    case fc @ FormCtx(_) => fc
+    case _               => throw new IllegalArgumentException(s"Expected FormCtx, got: $formCtx")
+  }
 }
 
 object Expr {

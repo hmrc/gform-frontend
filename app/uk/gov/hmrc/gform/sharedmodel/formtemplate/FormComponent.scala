@@ -140,6 +140,8 @@ case class FormComponent(
       .using(_.updateExpr(f))
       .modify(_.validators.each.validIf.booleanExpr)
       .using(_.updateExpr(f))
+      .modify(_.validators.each.errorMessage)
+      .using(_.updateExpr(f))
       .modify(_.instruction.each.name.each)
       .using(_.updateExpr(f))
       .modify(_.errorShortName.each)
