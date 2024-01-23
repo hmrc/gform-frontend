@@ -53,7 +53,7 @@ class FileUploadService(fileUploadConnector: FileUploadConnector, gformConnector
   override def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(
     objectStore: Boolean
   )(implicit hc: HeaderCarrier): Future[Unit] =
-    if (objectStore: Boolean) {
+    if (objectStore) {
       val envelopeF = gformConnector.getMaybeEnvelope(envelopeId)
       Future
         .traverse(fileIds) { fileId =>

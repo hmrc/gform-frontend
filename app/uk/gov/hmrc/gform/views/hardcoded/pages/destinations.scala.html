@@ -96,6 +96,12 @@
         View <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/formtemplates/" + formTemplate._id.value + "/internal").path" class="govuk-link">internal</a> json template
         ('convertSingleQuotes' has been applied to 'includeIf' etc.)
       </div>
+      <div class="govuk-body">
+        View envelope <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/envelopes/" + envelopeId.value).path" class="govuk-link">files</a>
+      </div>
+      <div class="govuk-body">
+        View the uploaded files from <a href="https://admin.qa.tax.service.gov.uk/object-store-admin-frontend/objects/gform/envelopes/@envelopeId.value" class="govuk-link">bucket</a>
+      </div>
       <div class="govuk-inset-text">
         Embedded - payload is embedded into json template itself ('convertSingleQuotes' has been applied)
         <br>
