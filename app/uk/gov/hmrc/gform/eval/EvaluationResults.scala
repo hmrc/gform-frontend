@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -195,6 +195,7 @@ case class EvaluationResults(
         NumberResult.apply
       )
 
+    val sumUtil = new SummaryUtil(exprMap, recData.variadicFormData)
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
@@ -204,9 +205,10 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
-      case Sum(_)                           => unsupportedOperation("Sum should be converted to Add during model expansion")(expr)
-      case Count(formComponentId)           => addToListCount(formComponentId, recData)
-      case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
+      case Sum(_) =>
+        loop(expr.mapExpr(sumUtil.f))
+      case Count(formComponentId)   => addToListCount(formComponentId, recData)
+      case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
         value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
           toNumberResult(
@@ -879,4 +881,66 @@ object EvaluationResults {
       case _ => throw new Exception("Invalid expression results for combine")
     }
   }
+}
+
+import uk.gov.hmrc.gform.gform.ExprUpdater
+class SummaryUtil(
+  exprMap: Map[Expr, ExpressionResult],
+  data: VariadicFormData[SourceOrigin.OutOfDate]
+) {
+  def f(expr: Expr): Expr = {
+    def isFcHidden(formComponentId: FormComponentId): Boolean = {
+      val isHidden = exprMap.get(FormCtx(formComponentId))
+      isHidden.contains(ExpressionResult.Hidden)
+    }
+
+    def extractIndexedFcs(
+      formComponentId: FormComponentId
+    ): List[FormComponentId] = {
+      val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
+      allValues.map(_._1).map(_.toFormComponentId).toList.filter(_.modelComponentId.maybeIndex.isDefined)
+    }
+
+    expr match {
+      case Sum(sumExpr) =>
+        val baseSumExpr: Expr = sumExpr.mapExpr {
+          case FormCtx(fcId) => FormCtx(fcId.modelComponentId.removeIndex.toFormComponentId)
+          case otherwise     => otherwise
+        }
+        val allFcs = baseSumExpr.allFormComponentIds()
+        val visibleFcs = allFcs.filterNot(isFcHidden)
+        val allIndexedFcs = visibleFcs.flatMap(fcId => extractIndexedFcs(fcId))
+        // sum should works on the common indices
+        // ignore fields in a partially completed ATL iteration
+        val allIndices = {
+          val lss = allIndexedFcs
+            .groupBy(_.baseComponentId)
+            .toList
+            .map(_._2.flatMap(_.modelComponentId.maybeIndex).sorted)
+          if (lss.isEmpty)
+            List()
+          else
+            lss.reduce(_ intersect _)
+        }
+
+        val fcs = allIndexedFcs.map(_.modelComponentId.removeIndex.toFormComponentId).distinct
+
+        val max = sumExpr
+          .allFormComponentIds()
+          .filter(fc => fcs.headOption.map(_.baseComponentId).contains(fc.baseComponentId))
+          .flatMap(_.modelComponentId.maybeIndex)
+          .toList
+          .maxOption
+
+        allIndices
+          .filter(i => max.forall(m => i <= m))
+          .map(i => ExprUpdater(baseSumExpr, i, fcs))
+          .foldLeft[Expr](Constant("0")) { case (acc, e) =>
+            Add(acc, e)
+          }
+
+      case _ => expr
+    }
+  }
+
 }

@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.gform.{ ExprUpdater, FormComponentUpdater }
+import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
@@ -41,54 +40,6 @@ object FormModelExpander {
   implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D], messages: Messages) =
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
-
-        def f(expr: Expr): Expr = {
-          def isFcHidden(formComponentId: FormComponentId): Boolean = {
-            val exprMap = fmvo.recalculationResult.evaluationResults.exprMap
-            val isHidden = exprMap.get(FormCtx(formComponentId))
-            isHidden.contains(Hidden)
-          }
-
-          def extractIndexedFcs(
-            formComponentId: FormComponentId
-          ): List[FormComponentId] = {
-            val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
-            allValues.map(_._1).map(_.toFormComponentId).toList.filter(_.modelComponentId.maybeIndex.isDefined)
-          }
-
-          expr match {
-            case Sum(sumExpr) =>
-              val baseSumExpr: Expr = sumExpr.mapExpr {
-                case FormCtx(fcId) => FormCtx(fcId.modelComponentId.removeIndex.toFormComponentId)
-                case otherwise     => otherwise
-              }
-              val allFcs = baseSumExpr.allFormComponentIds()
-              val visibleFcs = allFcs.filterNot(isFcHidden)
-              val allIndexedFcs = visibleFcs.flatMap(fcId => extractIndexedFcs(fcId))
-              // sum should works on the common indices
-              // ignore fields in a partially completed ATL iteration
-              val allIndices = {
-                val lss = allIndexedFcs
-                  .groupBy(_.baseComponentId)
-                  .toList
-                  .map(_._2.flatMap(_.modelComponentId.maybeIndex).sorted)
-                if (lss.isEmpty)
-                  List()
-                else
-                  lss.reduce(_ intersect _)
-              }
-
-              val fcs = allIndexedFcs.map(_.modelComponentId.removeIndex.toFormComponentId).distinct
-              allIndices
-                .map(i => ExprUpdater(baseSumExpr, i, fcs))
-                .foldLeft[Expr](Constant("0")) { case (acc, e) =>
-                  Add(acc, e)
-                }
-
-            case _ => expr
-          }
-        }
-
         val expanded = page.fields.flatMap {
           case fc @ IsChoice(choice)     => OptionDataUtils.expand(fc, choice) :: Nil
           case fc @ IsTableComp(table)   => TableUtils.expand(fc, table) :: Nil
@@ -96,7 +47,7 @@ object FormModelExpander {
           case fc @ IsGroup(group)       => ExpandUtils.expandGroup(fc, group, data)
           case otherwise                 => otherwise :: Nil
         }
-        page.copy(fields = expanded).asInstanceOf[Page[DataExpanded]].mapExpr(f)
+        page.copy(fields = expanded).asInstanceOf[Page[DataExpanded]]
       }
 
       // Perfect we have access to FormModelVisibilityOptics, so we can evaluate 'section.repeats' expression
