@@ -42,52 +42,45 @@ object FormModelExpander {
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
 
-        def addToListIndexes(
-          formComponentId: FormComponentId,
-          data: VariadicFormData[SourceOrigin.OutOfDate]
-        ): List[Int] = {
-          val firstQuestionFcId = formComponentId.withFirstIndex
-          val exprMap = fmvo.recalculationResult.evaluationResults.exprMap
-          val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
-          if (isHidden.contains(Hidden)) {
-            List.empty[Int]
-          } else {
-            val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
-            allValues.map(_._1).map(_.toFormComponentId).map(_.modelComponentId.maybeIndex).flatMap(_.toList).toList
+        def f(expr: Expr): Expr = {
+          def isFcHidden(formComponentId: FormComponentId): Boolean = {
+            val exprMap = fmvo.recalculationResult.evaluationResults.exprMap
+            val isHidden = exprMap.get(FormCtx(formComponentId))
+            isHidden.contains(Hidden)
           }
-        }
 
-        def f(expr: Expr): Expr = expr match {
-          case Sum(field) =>
-            val indexes = field
-              .leafs()
-              .flatMap {
-                case FormCtx(fcId) =>
-                  addToListIndexes(fcId, data)
-                // GFORMS-2480: find out if we need to get all or just up to the current index
-                // if the component is inside ATL get only indexes up to the current index
-                //fcId.modelComponentId.maybeIndex.map(i => allIndexes.filter(_ <= i)).getOrElse(allIndexes)
-                case _ => Nil
-              }
-              .distinct
-              .sorted
-            val fcs: List[FormComponentId] = field.leafs().flatMap {
-              case FormCtx(fcId) if addToListIndexes(fcId, data).size > 0 =>
-                Some(fcId.modelComponentId.removeIndex.toFormComponentId)
-              case _ => None
-            }
-            val updatedField = field.mapExpr {
-              case FormCtx(fcId) if fcId.modelComponentId.maybeIndex.isDefined =>
-                FormCtx(fcId.modelComponentId.removeIndex.toFormComponentId)
-              case otherwise => otherwise
-            }
-            indexes
-              .map(i => ExprUpdater(updatedField, i, fcs))
-              .foldLeft[Expr](Constant("0")) { case (acc, e) =>
-                Add(acc, e)
-              }
+          def extractIndexedFcs(
+            formComponentId: FormComponentId
+          ): List[FormComponentId] = {
+            val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
+            allValues.map(_._1).map(_.toFormComponentId).toList.filter(_.modelComponentId.maybeIndex.isDefined)
+          }
 
-          case _ => expr
+          expr match {
+            case Sum(sumExpr) =>
+              val baseSumExpr: Expr = sumExpr.mapExpr {
+                case FormCtx(fcId) => FormCtx(fcId.modelComponentId.removeIndex.toFormComponentId)
+                case otherwise     => otherwise
+              }
+              val allFcs = baseSumExpr.allFormComponentIds()
+              val visibleFcs = allFcs.filterNot(isFcHidden)
+              val allIndexedFcs = visibleFcs.flatMap(fcId => extractIndexedFcs(fcId))
+              // sum should works on the common indices
+              // ignore fields in a partially completed ATL iteration
+              val allIndices = allIndexedFcs
+                .groupBy(_.baseComponentId)
+                .toList
+                .map(_._2.flatMap(_.modelComponentId.maybeIndex).sorted)
+                .reduce(_ intersect _)
+              val fcs = allIndexedFcs.map(_.modelComponentId.removeIndex.toFormComponentId).distinct
+              allIndices
+                .map(i => ExprUpdater(baseSumExpr, i, fcs))
+                .foldLeft[Expr](Constant("0")) { case (acc, e) =>
+                  Add(acc, e)
+                }
+
+            case _ => expr
+          }
         }
 
         val expanded = page.fields.flatMap {

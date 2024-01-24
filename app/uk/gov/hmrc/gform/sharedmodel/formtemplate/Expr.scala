@@ -172,6 +172,9 @@ sealed trait Expr extends Product with Serializable {
     }
     f(updatedArgs)
   }
+
+  def allFormComponentIds(): List[FormComponentId] =
+    this.leafs().collect { case FormCtx(formComponentId) => formComponentId }
 }
 
 final case class Add(field1: Expr, field2: Expr) extends Expr
