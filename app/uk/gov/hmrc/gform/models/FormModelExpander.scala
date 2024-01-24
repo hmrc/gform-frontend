@@ -67,11 +67,17 @@ object FormModelExpander {
               val allIndexedFcs = visibleFcs.flatMap(fcId => extractIndexedFcs(fcId))
               // sum should works on the common indices
               // ignore fields in a partially completed ATL iteration
-              val allIndices = allIndexedFcs
-                .groupBy(_.baseComponentId)
-                .toList
-                .map(_._2.flatMap(_.modelComponentId.maybeIndex).sorted)
-                .reduce(_ intersect _)
+              val allIndices = {
+                val lss = allIndexedFcs
+                  .groupBy(_.baseComponentId)
+                  .toList
+                  .map(_._2.flatMap(_.modelComponentId.maybeIndex).sorted)
+                if (lss.isEmpty)
+                  List()
+                else
+                  lss.reduce(_ intersect _)
+              }
+
               val fcs = allIndexedFcs.map(_.modelComponentId.removeIndex.toFormComponentId).distinct
               allIndices
                 .map(i => ExprUpdater(baseSumExpr, i, fcs))
