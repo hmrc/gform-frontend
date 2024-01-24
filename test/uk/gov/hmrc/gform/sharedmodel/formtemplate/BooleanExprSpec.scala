@@ -52,4 +52,10 @@ class BooleanExprSpec extends Spec with GraphSpec with TableDrivenPropertyChecks
       actual shouldBe expected
     }
   }
+
+  "BooleanExpr mapExpr" should "correctly replace its expressions" in {
+    val initialBooleanExpr = Equals(Constant("a"), Constant("b"))
+    val updatedBooleanExpr = Equals(Constant("c"), Constant("c"))
+    initialBooleanExpr.mapExpr(_ => Constant("c")) shouldBe updatedBooleanExpr
+  }
 }

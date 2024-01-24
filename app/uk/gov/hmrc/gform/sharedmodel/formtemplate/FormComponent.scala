@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiVa
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.ops.FormComponentOps
+import com.softwaremill.quicklens._
 
 case class FormComponent(
   id: FormComponentId,
@@ -122,6 +123,33 @@ case class FormComponent(
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 
   val errorPlaceholder = errorShortName orElse shortName
+
+  def mapExpr(f: Expr => Expr): FormComponent =
+    this
+      .modify(_.`type`)
+      .using(_.mapExpr(f))
+      .modify(_.label)
+      .using(_.mapExpr(f))
+      .modify(_.helpText.each)
+      .using(_.mapExpr(f))
+      .modify(_.shortName.each)
+      .using(_.mapExpr(f))
+      .modify(_.validIf.each.booleanExpr)
+      .using(_.mapExpr(f))
+      .modify(_.errorMessage.each)
+      .using(_.mapExpr(f))
+      .modify(_.validators.each.validIf.booleanExpr)
+      .using(_.mapExpr(f))
+      .modify(_.validators.each.errorMessage)
+      .using(_.mapExpr(f))
+      .modify(_.instruction.each.name.each)
+      .using(_.mapExpr(f))
+      .modify(_.errorShortName.each)
+      .using(_.mapExpr(f))
+      .modify(_.errorShortNameStart.each)
+      .using(_.mapExpr(f))
+      .modify(_.errorExample.each)
+      .using(_.mapExpr(f))
 }
 
 object FormComponent {

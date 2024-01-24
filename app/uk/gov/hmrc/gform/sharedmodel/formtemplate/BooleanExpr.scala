@@ -43,6 +43,26 @@ sealed trait BooleanExpr {
   }
 
   def prettyPrint: String = ExprPrettyPrint.prettyPrintBooleanExpr(this)
+  def mapExpr(f: Expr => Expr): BooleanExpr = this match {
+    case Equals(left, right)              => Equals(left.mapExpr(f), right.mapExpr(f))
+    case GreaterThan(left, right)         => GreaterThan(left.mapExpr(f), right.mapExpr(f))
+    case GreaterThanOrEquals(left, right) => GreaterThanOrEquals(left.mapExpr(f), right.mapExpr(f))
+    case LessThan(left, right)            => LessThan(left.mapExpr(f), right.mapExpr(f))
+    case LessThanOrEquals(left, right)    => LessThanOrEquals(left.mapExpr(f), right.mapExpr(f))
+    case Not(e)                           => Not(e.mapExpr(f))
+    case Or(left, right)                  => Or(left.mapExpr(f), right.mapExpr(f))
+    case And(left, right)                 => And(left.mapExpr(f), right.mapExpr(f))
+    case IsTrue                           => IsTrue
+    case IsFalse                          => IsFalse
+    case Contains(multiValueField, value) =>
+      Contains(FormCtx.toFormCtx(multiValueField.mapExpr(f)), value.mapExpr(f))
+    case In(formCtx, dataSource) => In(formCtx.mapExpr(f), dataSource)
+    case MatchRegex(expr, regex) => MatchRegex(expr.mapExpr(f), regex)
+    case FormPhase(value)        => FormPhase(value)
+    case First(formCtx)          => First(FormCtx.toFormCtx(formCtx.mapExpr(f)))
+    case IsLogin(value)          => IsLogin(value)
+    case otherwise               => otherwise
+  }
 }
 
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr

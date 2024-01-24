@@ -81,24 +81,17 @@ sealed trait Expr extends Product with Serializable {
 
   def prettyPrint: String = ExprPrettyPrint.prettyPrintExpr(this)
 
-  def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
-    case Add(field1: Expr, field2: Expr)         => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Multiply(field1: Expr, field2: Expr)    => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Subtraction(field1: Expr, field2: Expr) => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Divide(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
+  def leafs(): List[Expr] = this match {
+    case Add(field1: Expr, field2: Expr)         => field1.leafs() ++ field2.leafs()
+    case Multiply(field1: Expr, field2: Expr)    => field1.leafs() ++ field2.leafs()
+    case Subtraction(field1: Expr, field2: Expr) => field1.leafs() ++ field2.leafs()
+    case Divide(field1: Expr, field2: Expr)      => field1.leafs() ++ field2.leafs()
     case IfElse(cond, field1: Expr, field2: Expr) =>
-      cond.allExpressions.flatMap(_.leafs(formModel)) ++
-        field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Else(field1: Expr, field2: Expr)          => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case FormCtx(formComponentId: FormComponentId) => this :: Nil
-    case Sum(field1: Expr) =>
-      field1 match {
-        case FormCtx(formComponentId) =>
-          formModel.allFormComponents.collect {
-            case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
-          }
-        case _ => field1.leafs(formModel)
-      }
+      cond.allExpressions.flatMap(_.leafs()) ++
+        field1.leafs() ++ field2.leafs()
+    case Else(field1: Expr, field2: Expr)           => field1.leafs() ++ field2.leafs()
+    case FormCtx(formComponentId: FormComponentId)  => this :: Nil
+    case Sum(field1: Expr)                          => field1.leafs()
     case Count(formComponentId: FormComponentId)    => FormCtx(formComponentId.withFirstIndex) :: Nil
     case AuthCtx(value: AuthInfo)                   => this :: Nil
     case UserCtx(value: UserField)                  => this :: Nil
@@ -112,8 +105,8 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                                 => this :: Nil
     case DateCtx(dateExpr)                          => dateExpr.leafExprs
     case DateFunction(dateFunc)                     => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2)                 => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
-    case PeriodExt(periodFun, _)                    => periodFun.leafs(formModel)
+    case Period(dateCtx1, dateCtx2)                 => dateCtx1.leafs() ::: dateCtx2.leafs()
+    case PeriodExt(periodFun, _)                    => periodFun.leafs()
     case AddressLens(formComponentId, _)            => this :: Nil
     case DataRetrieveCtx(_, _)                      => this :: Nil
     case DataRetrieveCount(_)                       => this :: Nil
@@ -121,59 +114,63 @@ sealed trait Expr extends Product with Serializable {
     case CsvOverseasCountryCheck(_, _)              => this :: Nil
     case CsvCountryCountCheck(_, _, _)              => this :: Nil
     case Size(_, _)                                 => this :: Nil
-    case Typed(expr, _)                             => expr.leafs(formModel)
+    case Typed(expr, _)                             => expr.leafs()
     case IndexOf(formComponentId, _)                => FormCtx(formComponentId) :: Nil
     case IndexOfDataRetrieveCtx(_, _)               => this :: Nil
     case NumberedList(formComponentId)              => FormCtx(formComponentId) :: Nil
     case BulletedList(formComponentId)              => FormCtx(formComponentId) :: Nil
-    case StringOps(expr, _)                         => expr.leafs(formModel)
-    case Concat(exprs)                              => exprs.flatMap(_.leafs(formModel))
+    case StringOps(expr, _)                         => expr.leafs()
+    case Concat(exprs)                              => exprs.flatMap(_.leafs())
     case CountryOfItmpAddress                       => this :: Nil
     case ChoicesRevealedField(formComponentId)      => FormCtx(formComponentId) :: Nil
     case ChoiceLabel(formComponentId)               => FormCtx(formComponentId) :: Nil
   }
 
-  def sums: List[Sum] = this match {
-    case Add(field1: Expr, field2: Expr)            => field1.sums ++ field2.sums
-    case Multiply(field1: Expr, field2: Expr)       => field1.sums ++ field2.sums
-    case Subtraction(field1: Expr, field2: Expr)    => field1.sums ++ field2.sums
-    case Divide(field1: Expr, field2: Expr)         => field1.sums ++ field2.sums
-    case IfElse(cond, field1: Expr, field2: Expr)   => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
-    case Else(field1: Expr, field2: Expr)           => field1.sums ++ field2.sums
-    case FormCtx(formComponentId: FormComponentId)  => Nil
-    case sum @ Sum(field1: Expr)                    => sum :: Nil
-    case Count(field1: FormComponentId)             => Nil
-    case AuthCtx(value: AuthInfo)                   => Nil
-    case UserCtx(value: UserField)                  => Nil
-    case Constant(value: String)                    => Nil
-    case PeriodValue(value: String)                 => Nil
-    case HmrcRosmRegistrationCheck(value: RosmProp) => Nil
-    case Value                                      => Nil
-    case FormTemplateCtx(value: FormTemplateProp)   => Nil
-    case ParamCtx(_)                                => Nil
-    case LinkCtx(_)                                 => Nil
-    case LangCtx                                    => Nil
-    case DateCtx(_)                                 => Nil
-    case DateFunction(_)                            => Nil
-    case Period(_, _)                               => Nil
-    case PeriodExt(_, _)                            => Nil
-    case AddressLens(_, _)                          => Nil
-    case DataRetrieveCtx(_, _)                      => Nil
-    case DataRetrieveCount(_)                       => Nil
-    case CsvCountryCheck(_, _)                      => Nil
-    case CsvOverseasCountryCheck(_, _)              => Nil
-    case CsvCountryCountCheck(_, _, _)              => Nil
-    case Size(_, _)                                 => Nil
-    case Typed(expr, _)                             => expr.sums
-    case IndexOf(_, _)                              => Nil
-    case IndexOfDataRetrieveCtx(_, _)               => Nil
-    case NumberedList(_)                            => Nil
-    case BulletedList(_)                            => Nil
-    case StringOps(_, _)                            => Nil
-    case Concat(_)                                  => Nil
-    case CountryOfItmpAddress                       => Nil
-    case ChoicesRevealedField(_)                    => Nil
-    case ChoiceLabel(_)                             => Nil
+  def mapExpr(f: Expr => Expr): Expr = {
+    val updatedArgs = this match {
+      case Add(field1: Expr, field2: Expr)         => Add(field1.mapExpr(f), field2.mapExpr(f))
+      case Multiply(field1: Expr, field2: Expr)    => Multiply(field1.mapExpr(f), field2.mapExpr(f))
+      case Subtraction(field1: Expr, field2: Expr) => Subtraction(field1.mapExpr(f), field2.mapExpr(f))
+      case Divide(field1: Expr, field2: Expr)      => Divide(field1.mapExpr(f), field2.mapExpr(f))
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        IfElse(cond.mapExpr(f), field1.mapExpr(f), field2.mapExpr(f))
+      case Else(field1: Expr, field2: Expr) => Else(field1.mapExpr(f), field2.mapExpr(f))
+      case e: FormCtx                       => e
+      case Sum(field1: Expr)                => Sum(field1.mapExpr(f))
+      case DateCtx(dateExpr)                => DateCtx(dateExpr.mapExpr(f))
+      case e: Count                         => e
+      case e: AuthCtx                       => e
+      case e: UserCtx                       => e
+      case e: Constant                      => e
+      case e: PeriodValue                   => e
+      case e: HmrcRosmRegistrationCheck     => e
+      case Value                            => Value
+      case e: FormTemplateCtx               => e
+      case e: ParamCtx                      => e
+      case e: LinkCtx                       => e
+      case LangCtx                          => LangCtx
+      case DateFunction(dateProjection)     => DateFunction(dateProjection.mapExpr(f))
+      case Period(field1, field2)           => Period(field1.mapExpr(f), field2.mapExpr(f))
+      case PeriodExt(period, func)          => PeriodExt(period.mapExpr(f), func)
+      case e: AddressLens                   => e
+      case e: DataRetrieveCtx               => e
+      case e: DataRetrieveCount             => e
+      case e: CsvCountryCheck               => e
+      case e: CsvOverseasCountryCheck       => e
+      case e: CsvCountryCountCheck          => e
+      case e: Size                          => e
+      case Typed(e, tpe)                    => Typed(e.mapExpr(f), tpe)
+      case e: IndexOf                       => e
+      case e: IndexOfDataRetrieveCtx        => e
+      case e: NumberedList                  => e
+      case e: BulletedList                  => e
+      case StringOps(field1, stringFnc)     => StringOps(field1.mapExpr(f), stringFnc)
+      case Concat(exprs)                    => Concat(exprs.map(_.mapExpr(f)))
+      case CountryOfItmpAddress             => CountryOfItmpAddress
+      case e: ChoicesRevealedField          => e
+      case e: ChoiceLabel                   => e
+    }
+    f(updatedArgs)
   }
 }
 
@@ -226,6 +223,12 @@ sealed trait DateProjection extends Product with Serializable {
       case DateProjection.Month(_) => localDate.getMonthValue()
       case DateProjection.Year(_)  => localDate.getYear()
     }
+
+  def mapExpr(f: Expr => Expr): DateProjection = this match {
+    case DateProjection.Day(dateExpr)   => DateProjection.Day(dateExpr.mapExpr(f))
+    case DateProjection.Month(dateExpr) => DateProjection.Month(dateExpr.mapExpr(f))
+    case DateProjection.Year(dateExpr)  => DateProjection.Year(dateExpr.mapExpr(f))
+  }
 }
 
 object DateProjection {
@@ -323,6 +326,10 @@ object AddressDetail {
 
 object FormCtx {
   implicit val format: OFormat[FormCtx] = derived.oformat()
+  def toFormCtx(formCtx: Expr): FormCtx = formCtx match {
+    case fc @ FormCtx(_) => fc
+    case _               => throw new IllegalArgumentException(s"Expected FormCtx, got: $formCtx")
+  }
 }
 
 object Expr {

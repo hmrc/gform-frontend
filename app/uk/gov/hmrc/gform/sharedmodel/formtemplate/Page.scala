@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.Monoid
 import cats.data.NonEmptyList
 import play.api.libs.json.OFormat
 import cats.syntax.eq._
 import julienrf.json.derived
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
 import uk.gov.hmrc.gform.models.{ Basic, PageMode, SectionHeader }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
+import com.softwaremill.quicklens._
 
 case class Page[A <: PageMode](
   title: SmartString,
@@ -86,14 +86,6 @@ case class Page[A <: PageMode](
       .foldLeft(Map.empty[BaseComponentId, RevealingChoiceData])(_ ++ _)
   }
 
-  val sumInfo: SumInfo = implicitly[Monoid[SumInfo]].combineAll(
-    (allFields ++ allFields
-      .flatMap(_.childrenFormComponents)).collect {
-      case fc @ HasValueExpr(expr) if expr.sums.nonEmpty =>
-        SumInfo(expr.sums.map(sum => (sum, Set(fc.id))).toMap)
-    }
-  )
-
   def renderUnits: List[RenderUnit] =
     allFields.foldRight(List.empty[RenderUnit]) {
       case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
@@ -116,6 +108,33 @@ case class Page[A <: PageMode](
   val isHideSaveAndComeBackButton: Boolean = hideSaveAndComeBackButton.getOrElse(false)
 
   def dataRetrieves(): List[DataRetrieve] = dataRetrieve.toList.flatMap(_.toList)
+
+  def mapExpr(f: Expr => Expr): Page[A] =
+    this
+      .modify(_.title)
+      .using(_.mapExpr(f))
+      .modify(_.noPIITitle.each)
+      .using(_.mapExpr(f))
+      .modify(_.description.each)
+      .using(_.mapExpr(f))
+      .modify(_.caption.each)
+      .using(_.mapExpr(f))
+      .modify(_.includeIf.each.booleanExpr)
+      .using(_.mapExpr(f))
+      .modify(_.validators.each)
+      .using(_.mapExpr(f))
+      .modify(_.fields.each)
+      .using(_.mapExpr(f))
+      .modify(_.continueLabel.each)
+      .using(_.mapExpr(f))
+      .modify(_.instruction.each.name.each)
+      .using(_.mapExpr(f))
+      .modify(_.confirmation.each.question)
+      .using(_.mapExpr(f))
+      .modify(_.removeItemIf.each.booleanExpr)
+      .using(_.mapExpr(f))
+      .copy(dataRetrieve = dataRetrieve.map(_.map(_.mapExpr(f))))
+      .copy(redirects = redirects.map(_.map(_.mapExpr(f))))
 }
 
 object Page {

@@ -20,6 +20,8 @@ import play.api.libs.json.{ Format, Json }
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
+import com.softwaremill.quicklens._
+
 import java.text.MessageFormat
 
 case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
@@ -41,6 +43,8 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
 
   def transform(fEn: String => String, fCy: String => String): SmartString =
     copy(localised = localised.transform(fEn, fCy))
+
+  def mapExpr(f: Expr => Expr): SmartString = this.modify(_.interpolations.each).using(_.mapExpr(f))
 }
 
 object SmartString {

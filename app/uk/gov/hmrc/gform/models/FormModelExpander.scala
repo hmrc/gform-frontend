@@ -18,7 +18,8 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.gform.FormComponentUpdater
+import uk.gov.hmrc.gform.eval.ExpressionResult._
+import uk.gov.hmrc.gform.gform.{ ExprUpdater, FormComponentUpdater }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
@@ -40,6 +41,55 @@ object FormModelExpander {
   implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D], messages: Messages) =
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
+
+        def addToListIndexes(
+          formComponentId: FormComponentId,
+          data: VariadicFormData[SourceOrigin.OutOfDate]
+        ): List[Int] = {
+          val firstQuestionFcId = formComponentId.withFirstIndex
+          val exprMap = fmvo.recalculationResult.evaluationResults.exprMap
+          val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+          if (isHidden.contains(Hidden)) {
+            List.empty[Int]
+          } else {
+            val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
+            allValues.map(_._1).map(_.toFormComponentId).map(_.modelComponentId.maybeIndex).flatMap(_.toList).toList
+          }
+        }
+
+        def f(expr: Expr): Expr = expr match {
+          case Sum(field) =>
+            val indexes = field
+              .leafs()
+              .flatMap {
+                case FormCtx(fcId) =>
+                  addToListIndexes(fcId, data)
+                // GFORMS-2480: find out if we need to get all or just up to the current index
+                // if the component is inside ATL get only indexes up to the current index
+                //fcId.modelComponentId.maybeIndex.map(i => allIndexes.filter(_ <= i)).getOrElse(allIndexes)
+                case _ => Nil
+              }
+              .distinct
+              .sorted
+            val fcs: List[FormComponentId] = field.leafs().flatMap {
+              case FormCtx(fcId) if addToListIndexes(fcId, data).size > 0 =>
+                Some(fcId.modelComponentId.removeIndex.toFormComponentId)
+              case _ => None
+            }
+            val updatedField = field.mapExpr {
+              case FormCtx(fcId) if fcId.modelComponentId.maybeIndex.isDefined =>
+                FormCtx(fcId.modelComponentId.removeIndex.toFormComponentId)
+              case otherwise => otherwise
+            }
+            indexes
+              .map(i => ExprUpdater(updatedField, i, fcs))
+              .foldLeft[Expr](Constant("0")) { case (acc, e) =>
+                Add(acc, e)
+              }
+
+          case _ => expr
+        }
+
         val expanded = page.fields.flatMap {
           case fc @ IsChoice(choice)     => OptionDataUtils.expand(fc, choice) :: Nil
           case fc @ IsTableComp(table)   => TableUtils.expand(fc, table) :: Nil
@@ -47,7 +97,7 @@ object FormModelExpander {
           case fc @ IsGroup(group)       => ExpandUtils.expandGroup(fc, group, data)
           case otherwise                 => otherwise :: Nil
         }
-        page.copy(fields = expanded).asInstanceOf[Page[DataExpanded]]
+        page.copy(fields = expanded).asInstanceOf[Page[DataExpanded]].mapExpr(f)
       }
 
       // Perfect we have access to FormModelVisibilityOptics, so we can evaluate 'section.repeats' expression

@@ -20,10 +20,15 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
+import com.softwaremill.quicklens._
+
 final case class RedirectCtx(
   `if`: IncludeIf,
   redirectUrl: SmartString
-)
+) {
+  def mapExpr(f: Expr => Expr): RedirectCtx =
+    this.modify(_.redirectUrl).using(_.mapExpr(f)).modify(_.`if`.booleanExpr).using(_.mapExpr(f))
+}
 
 object RedirectCtx {
   implicit val format: OFormat[RedirectCtx] = derived.oformat()

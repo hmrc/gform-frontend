@@ -17,10 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.Monoid
-import cats.instances.either._
-import cats.instances.list._
 import cats.syntax.eq._
-import cats.syntax.traverse._
 import play.api.i18n.Messages
 
 import scala.util.Try
@@ -126,33 +123,6 @@ case class EvaluationResults(
     } else body
   }
 
-  // Sum field may be hidden by AddToList or by Revealing choice
-  private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
-    val expr = FormCtx(modelComponentId.toFormComponentId)
-    exprMap.get(expr).fold(true)(_ === Hidden)
-  }
-
-  private def calculateSum(
-    formComponentId: FormComponentId,
-    recData: RecData[SourceOrigin.OutOfDate],
-    invalidResult: ExpressionResult
-  ): ExpressionResult = {
-    val maybeListToSum: Either[ExpressionResult, List[BigDecimal]] =
-      recData.variadicFormData
-        .forBaseComponentIdLessThen(formComponentId.modelComponentId)
-        .toList
-        .collect {
-          case (k, v) if !isSumHidden(k) => v
-        }
-        .traverse {
-          case VariadicValue.One(v) =>
-            toBigDecimalSafe(v)
-              .fold[Either[ExpressionResult, BigDecimal]](Left(invalidResult))(Right(_))
-          case VariadicValue.Many(_) => Left(invalidResult)
-        }
-    maybeListToSum.map(listToSum => NumberResult(listToSum.sum)).merge
-  }
-
   private def addToListCount(formComponentId: FormComponentId, recData: RecData[SourceOrigin.OutOfDate]) = {
     val firstQuestionFcId = formComponentId.withFirstIndex
     val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
@@ -234,15 +204,9 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
-      case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
-      case Sum(field1) =>
-        loop(field1) match {
-          case lrs: ListResult =>
-            lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
-          case _ => unsupportedOperation("Number")(expr)
-        }
-      case Count(formComponentId)   => addToListCount(formComponentId, recData)
-      case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
+      case Sum(_)                           => unsupportedOperation("Sum should be converted to Add during model expansion")(expr)
+      case Count(formComponentId)           => addToListCount(formComponentId, recData)
+      case AuthCtx(value: AuthInfo)         => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
         value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
           toNumberResult(

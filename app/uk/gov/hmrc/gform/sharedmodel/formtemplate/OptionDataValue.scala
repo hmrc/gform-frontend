@@ -19,7 +19,14 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 
-sealed trait OptionDataValue
+sealed trait OptionDataValue {
+  def mapExpr(f: Expr => Expr): OptionDataValue = this match {
+    case OptionDataValue.StringBased(value)      => OptionDataValue.StringBased(value)
+    case OptionDataValue.ExprBased(prefix, expr) => OptionDataValue.ExprBased(prefix, f(expr))
+    case OptionDataValue.FormCtxBased(formCtx)   => OptionDataValue.FormCtxBased(FormCtx.toFormCtx(formCtx.mapExpr(f)))
+  }
+}
+
 object OptionDataValue {
   case class StringBased(value: String) extends OptionDataValue
   case class ExprBased(prefix: String, expr: Expr) extends OptionDataValue
