@@ -49,7 +49,7 @@ class IdentityVerificationController(
       import i18nSupport._
 
       formTemplate.authConfig match {
-        case hmrcVerified @ HmrcVerified(_, _, _) =>
+        case hmrcVerified @ HmrcVerified(_, _, _, _) =>
           Future.successful(
             Ok(
               pure(

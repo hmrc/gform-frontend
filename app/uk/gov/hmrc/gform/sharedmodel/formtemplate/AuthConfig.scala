@@ -94,7 +94,7 @@ sealed trait AuthConfig extends Product with Serializable {
   def authConfigName = this match {
     case Anonymous                          => anonymous
     case HmrcAny                            => hmrcAny
-    case HmrcVerified(_, _, _)              => hmrcVerified
+    case HmrcVerified(_, _, _, _)           => hmrcVerified
     case HmrcSimpleModule                   => hmrcSimpleModule
     case HmrcEnrolmentModule(_)             => hmrcEnrolmentModule
     case HmrcAgentModule(_)                 => hmrcAgentModule
@@ -107,7 +107,12 @@ sealed trait AuthConfig extends Product with Serializable {
 
 case object Anonymous extends AuthConfig
 case object HmrcAny extends AuthConfig
-case class HmrcVerified(ivFailure: LocalisedString, notAllowedIn: LocalisedString, minimumCL: String) extends AuthConfig
+case class HmrcVerified(
+  ivFailure: LocalisedString,
+  notAllowedIn: LocalisedString,
+  agentAccess: AgentAccess,
+  minimumCL: String
+) extends AuthConfig
 case object HmrcSimpleModule extends AuthConfig
 case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig

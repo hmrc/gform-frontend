@@ -23,7 +23,7 @@ import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, ExampleData, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -141,6 +141,19 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
 
   val authAWSALB: AuthConfig = AWSALBAuth
   val formTemplateAWSALB = buildFormTemplate.copy(authConfig = authAWSALB)
+
+  val authConfigHmrcVerifiedMTDAgent = HmrcVerified(
+    LocalisedString(Map(LangADT.En -> "test")),
+    LocalisedString(Map(LangADT.En -> "test")),
+    RequireMTDAgentEnrolment,
+    "200"
+  )
+  val authConfigHmrcVerifiedAnyAgent = HmrcVerified(
+    LocalisedString(Map(LangADT.En -> "test")),
+    LocalisedString(Map(LangADT.En -> "test")),
+    AllowAnyAgentAffinityUser,
+    "200"
+  )
 
   val authService = new AuthService(appConfig)
 
@@ -284,6 +297,42 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
           None
         )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsOfsted, Role.Customer))
+  }
+
+  it should "block authorization for GG-authenticated users with hmrcVerified and AgentAccess configured with RequireMTDAgentEnrolment only" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedMTDAgent), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulAgent,
+        None
+      )
+    result.futureValue should be(AuthBlocked("Agents cannot access this form"))
+  }
+
+  it should "authorize GG-authenticated users with hmrcVerified and AgentAccess configured with RequireMTDAgentEnrolment and valid enrolment" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulEnrolledAgent,
+        None
+      )
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
+  }
+
+  it should "authorize GG-authenticated users with hmrcVerified and AgentAccess configured with AllowAnyAgentAffinityUser" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulEnrolledAgent,
+        None
+      )
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
   }
 
   forAll(taxTypeTable) { (enrolment, serviceName, identifiers, value) =>
