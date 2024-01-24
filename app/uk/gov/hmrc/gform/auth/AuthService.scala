@@ -70,9 +70,9 @@ class AuthService(
           .pure[Future]
       case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
       case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
-      case HmrcVerified(_, _, minimumCL) =>
+      case HmrcVerified(_, _, agentAccess, minimumCL) =>
         performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult =>
-          isHmrcVerified(authResult, formTemplate, minimumCL)
+          isHmrcVerified(authResult, formTemplate, agentAccess, minimumCL)
         )
       case HmrcSimpleModule => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -324,7 +324,12 @@ class AuthService(
       }
       .flatMap(continuation)
 
-  private def isHmrcVerified(authResult: AuthResult, formTemplate: FormTemplate, minimumCL: String): AuthResult =
+  private def isHmrcVerified(
+    authResult: AuthResult,
+    formTemplate: FormTemplate,
+    agentAccess: AgentAccess,
+    minimumCL: String
+  ): AuthResult =
     authResult match {
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel), _)
           if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
@@ -340,9 +345,14 @@ class AuthService(
       case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Organisation, _, _, _, _), _) =>
         logger.info(s"Organisations cannot access this form - ${formTemplate._id.value}")
         AuthBlocked("Organisations cannot access this form")
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Agent, _, _, _, _), _) =>
-        logger.info(s"Agents cannot access this form - ${formTemplate._id.value}")
-        AuthBlocked("Agents cannot access this form")
+      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Agent, _, _, _, _), _) =>
+        agentAccess match {
+          case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined => authResult
+          case AllowAnyAgentAffinityUser                                                      => authResult
+          case _ =>
+            logger.info(s"Agents cannot access this form - ${formTemplate._id.value}")
+            AuthBlocked("Agents cannot access this form")
+        }
       case _ => authResult
     }
 
