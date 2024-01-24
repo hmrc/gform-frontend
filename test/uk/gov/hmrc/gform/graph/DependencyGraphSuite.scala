@@ -114,7 +114,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
       (0, Set(GraphNode.Simple("offset"))),
       (1, Set(GraphNode.Expr(FormCtx("2_offset")), GraphNode.Expr(FormCtx("1_offset")))),
       (2, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset"))),
-      (3, Set(GraphNode.Expr(Constant("1000")), GraphNode.Expr(Constant("0"))))
+      (3, Set(GraphNode.Expr(Constant("1000"))))
     )
 
     val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
@@ -149,8 +149,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val expected: List[(Int, Set[GraphNode])] = List(
       (0, Set(GraphNode.Simple("offset"))),
       (1, Set(GraphNode.Expr(FormCtx("2_offset")), GraphNode.Expr(FormCtx("1_offset")))),
-      (2, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset"))),
-      (3, Set(GraphNode.Expr(Constant("0"))))
+      (2, Set(GraphNode.Simple("2_offset"), GraphNode.Simple("1_offset")))
     )
 
     val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
