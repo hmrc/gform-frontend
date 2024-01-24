@@ -54,14 +54,15 @@ sealed trait BooleanExpr {
     case And(left, right)                 => And(left.updateExpr(f), right.updateExpr(f))
     case IsTrue                           => IsTrue
     case IsFalse                          => IsFalse
-    case Contains(multiValueField, value) => Contains(FormCtx.toFormCtx(multiValueField.updateExpr(f)), value.updateExpr(f))
+    case Contains(multiValueField, value) =>
+      Contains(FormCtx.toFormCtx(multiValueField.updateExpr(f)), value.updateExpr(f))
 
-    case In(formCtx, dataSource)          => In(formCtx.updateExpr(f), dataSource)
-    case MatchRegex(expr, regex)          => MatchRegex(expr.updateExpr(f), regex)
-    case FormPhase(value)                 => FormPhase(value)
-    case First(formCtx)                   => First(FormCtx.toFormCtx(formCtx.updateExpr(f)))
-    case IsLogin(value)                   => IsLogin(value)
-    case otherwise                        => otherwise
+    case In(formCtx, dataSource) => In(formCtx.updateExpr(f), dataSource)
+    case MatchRegex(expr, regex) => MatchRegex(expr.updateExpr(f), regex)
+    case FormPhase(value)        => FormPhase(value)
+    case First(formCtx)          => First(FormCtx.toFormCtx(formCtx.updateExpr(f)))
+    case IsLogin(value)          => IsLogin(value)
+    case otherwise               => otherwise
   }
 }
 

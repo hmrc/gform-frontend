@@ -40,7 +40,7 @@ class ExprUpdaterSpec extends ScalaCheckSuite with FormModelSupport with Variadi
     super.scalaCheckTestParameters
       .withMinSuccessfulTests(2000)
 
-  private def fetchBaseIds(expr: Expr) = expr.leafs(formModel).collect { case FormCtx(fcId) =>
+  private def fetchBaseIds(expr: Expr) = expr.leafs().collect { case FormCtx(fcId) =>
     fcId
   }
 
