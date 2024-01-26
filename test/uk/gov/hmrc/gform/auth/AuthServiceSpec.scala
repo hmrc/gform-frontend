@@ -308,7 +308,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
         ggAuthorisedSuccessfulAgent,
         None
       )
-    result.futureValue should be(AuthBlocked("Agents cannot access this form"))
+    result.futureValue should be(AuthRedirect(routes.AgentEnrolmentController.prologue(buildFormTemplate._id).url))
   }
 
   it should "authorize GG-authenticated users with hmrcVerified and AgentAccess configured with RequireMTDAgentEnrolment and valid enrolment" in {

@@ -309,7 +309,7 @@ class AuthService(
     formTemplate: FormTemplate,
     ggAuthorised: Predicate => Future[AuthResult],
     continuation: AuthResult => Future[AuthResult]
-  )(implicit l: LangADT): Future[AuthResult] =
+  ): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
         case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), _)
@@ -348,6 +348,7 @@ class AuthService(
       case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Agent, _, _, _, _), _) =>
         agentAccess match {
           case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined => authResult
+          case RequireMTDAgentEnrolment                                                       => AuthRedirect(routes.AgentEnrolmentController.prologue(formTemplate._id).url)
           case AllowAnyAgentAffinityUser                                                      => authResult
           case _ =>
             logger.info(s"Agents cannot access this form - ${formTemplate._id.value}")
@@ -356,18 +357,17 @@ class AuthService(
       case _ => authResult
     }
 
-  private def ggAgentAuthorise(agentAccess: AgentAccess, formTemplate: FormTemplate, enrolments: Enrolments)(implicit
-    l: LangADT
+  private def ggAgentAuthorise(
+    agentAccess: AgentAccess,
+    formTemplate: FormTemplate,
+    enrolments: Enrolments
   ): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
         HMRCAgentAuthorisationSuccessful
       case DenyAnyAgentAffinityUser  => HMRCAgentAuthorisationDenied
       case AllowAnyAgentAffinityUser => HMRCAgentAuthorisationSuccessful
-      case _ =>
-        HMRCAgentAuthorisationFailed(
-          routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName.value).url
-        )
+      case _                         => HMRCAgentAuthorisationFailed(routes.AgentEnrolmentController.prologue(formTemplate._id).url)
     }
 }
 
