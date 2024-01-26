@@ -508,10 +508,15 @@ case class EvaluationResults(
               uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
           }
         nonEmptyStringResult(StringResult(link))
-      case DateCtx(dateExpr)      => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
-      case DateFunction(dateFunc) => unsupportedOperation("String")(expr)
-      case Period(_, _)           => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodExt(_, _)        => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
+      case DateFunction(dateFunc) =>
+        evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
+          case ExpressionResult.DateResult(localDate) =>
+            ExpressionResult.StringResult(dateFunc.toValue(localDate).toString)
+          case otherwise => otherwise
+        }
+      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
