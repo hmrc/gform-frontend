@@ -213,6 +213,7 @@ case class FormModel[A <: PageMode](
     brackets.withSectionNumber(sectionNumber)
 
   def addToListBrackets: List[Bracket.AddToList[A]] = brackets.addToListBrackets
+  def addToListIds: Set[AddToListId] = addToListBrackets.map(_.source.id).toSet
   def nonRepeatingPageBrackets: List[Bracket.NonRepeatingPage[A]] = brackets.nonRepeatingPageBrackets
   def repeatingPageBrackets: List[Bracket.RepeatingPage[A]] = brackets.repeatingPageBrackets
 
