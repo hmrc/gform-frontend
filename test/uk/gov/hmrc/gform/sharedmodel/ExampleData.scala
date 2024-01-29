@@ -84,7 +84,8 @@ trait ExampleEvaluationContext {
       FileSizeLimit(1),
       LocalisedLookupOptions(Map()),
       DataRetrieveAll.empty,
-      Map.empty
+      Map.empty,
+      Set.empty
     )
 }
 

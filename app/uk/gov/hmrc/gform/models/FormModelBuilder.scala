@@ -226,7 +226,8 @@ class FormModelBuilder[E, F[_]: Functor](
         FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
         lookupOptions,
         formModel.dataRetrieveAll,
-        formModel.choiceLookup
+        formModel.choiceLookup,
+        formModel.addToListIds
       )
 
     recalculation

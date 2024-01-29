@@ -153,19 +153,32 @@ case class EvaluationResults(
     maybeListToSum.map(listToSum => NumberResult(listToSum.sum)).merge
   }
 
-  private def addToListCount(formComponentId: FormComponentId, recData: RecData[SourceOrigin.OutOfDate]) = {
-    val firstQuestionFcId = formComponentId.withFirstIndex
-    val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
-    if (isHidden.contains(Hidden)) {
-      NumberResult(0)
+  private def addToListCount(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext
+  ): NumberResult =
+    if (evaluationContext.addToListIds.contains(AddToListId(formComponentId))) {
+      val firstQuestionFcId = formComponentId.withFirstIndex
+      val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+      if (isHidden.contains(Hidden)) {
+        NumberResult(0)
+      } else {
+        val xs: Iterable[(ModelComponentId, VariadicValue)] =
+          recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+        val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
+        NumberResult(zeros + 1)
+      }
     } else {
       val xs: Iterable[(ModelComponentId, VariadicValue)] =
-        recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
-      val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
+        recData.variadicFormData
+          .forBaseComponentId(formComponentId.baseComponentId)
+          .filterNot { case (baseId, _) =>
+            exprMap.get(FormCtx(baseId.toFormComponentId)).contains(Hidden)
+          }
 
-      NumberResult(zeros + 1)
+      NumberResult(xs.size)
     }
-  }
 
   private def addToListValues(
     formComponentId: FormComponentId,
@@ -241,7 +254,7 @@ case class EvaluationResults(
             lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
           case _ => unsupportedOperation("Number")(expr)
         }
-      case Count(formComponentId)   => addToListCount(formComponentId, recData)
+      case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
         value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
@@ -429,7 +442,8 @@ case class EvaluationResults(
       case Count(formComponentId) =>
         nonEmptyStringResult(
           StringResult(
-            addToListCount(formComponentId, recData).stringRepresentation(typeInfo, evaluationContext.messages)
+            addToListCount(formComponentId, recData, evaluationContext)
+              .stringRepresentation(typeInfo, evaluationContext.messages)
           )
         )
       case AuthCtx(value: AuthInfo) =>
