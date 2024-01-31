@@ -296,12 +296,14 @@ case class FormModel[A <: PageMode](
     val pageIds = pageModel.allFormComponentIds.toSet
     allFormComponents.filterNot(fc => pageIds.contains(fc.id))
   }
-  def allOtherIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allOtherIncludeIfs)
+  def allChoiceIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allChoiceIncludeIfs)
+
+  def allMiniSummaryListIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allMiniSummaryListIncludeIfs)
 
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
     case pm @ HasIncludeIf(includeIf) =>
       (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
-  } ++ allOtherIncludeIfs.map(i => (i._1, List(i._2)))
+  } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
