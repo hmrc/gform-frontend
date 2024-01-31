@@ -214,6 +214,10 @@ object IsSummarySection {
   def unapply(fc: FormComponent): Option[SummarySection] = fc.`type`.cast[SummarySection]
 }
 
+object IsDeclarationSection {
+  def unapply(fc: FormComponent): Option[DeclarationSection] = fc.`type`.cast[DeclarationSection]
+}
+
 object IsHmrcTaxPeriod {
   def unapply(fc: FormComponent): Option[HmrcTaxPeriod] = fc.`type`.cast[HmrcTaxPeriod]
 }
@@ -305,6 +309,13 @@ object SummarySectionIncludeIf {
   def unapply(fc: FormComponent): Option[IncludeIf] = fc match {
     case IsSummarySection(ss) => ss.includeIf
     case _                    => None
+  }
+}
+
+object DeclarationSectionIncludeIf {
+  def unapply(fc: FormComponent): Option[IncludeIf] = fc match {
+    case IsDeclarationSection(ss) => ss.includeIf
+    case _                        => None
   }
 }
 

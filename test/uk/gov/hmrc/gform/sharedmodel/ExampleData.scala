@@ -158,7 +158,8 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       None,
       None,
       Some(toSmartString("ContinueLabel")),
-      decFormComponent
+      decFormComponent,
+      None
     )
 
   def mkDecSection(noPIITitle: Option[String] = None) =
@@ -168,7 +169,8 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       None,
       None,
       Some(toSmartString("ContinueLabel")),
-      decFormComponent
+      decFormComponent,
+      None
     )
 
   def destinationList = DestinationList(NonEmptyList.of(hmrcDms), ackSection, Some(decSection))
@@ -798,7 +800,8 @@ trait ExampleFormTemplate {
       None,
       None,
       Some(toSmartString("ContinueLabel")),
-      Nil
+      Nil,
+      None
     )
 
   def summarySection =

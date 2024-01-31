@@ -122,7 +122,8 @@ trait FormTemplateSample {
           description = None,
           shortName = None,
           continueLabel = None,
-          fields = List.empty
+          fields = List.empty,
+          includeIf = None
         )
       )
     ),

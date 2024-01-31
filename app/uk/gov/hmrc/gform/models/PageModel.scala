@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, PresentationHint, RedirectCtx, SummarySectionIncludeIf, ValidIf }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.RemoveItemIf
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, DeclarationSectionIncludeIf, FormComponent, FormComponentId, IncludeIf, Instruction, IsPostcodeLookup, IsUpscanInitiateFileUpload, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, SummarySectionIncludeIf, ValidIf }
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
@@ -58,20 +57,13 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
     fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
-  def allChoiceIncludeIfs: List[(IncludeIf, FormComponent)] =
-    fold(_.page.allFields.collect { case fc @ AllChoiceIncludeIfs(includeIfs) => includeIfs.map((_, fc)) }.flatten)(_ =>
-      Nil
-    )(_ => Nil)
-
-  def allMiniSummaryListIncludeIfs: List[(IncludeIf, FormComponent)] =
-    fold(_.page.allFields.collect { case fc @ AllMiniSummaryListIncludeIfs(includeIfs) =>
-      includeIfs.map((_, fc))
+  def allOtherIncludeIfs: List[(IncludeIf, FormComponent)] =
+    fold(_.page.allFields.collect {
+      case fc @ AllChoiceIncludeIfs(includeIfs)          => includeIfs.map((_, fc))
+      case fc @ AllMiniSummaryListIncludeIfs(includeIfs) => includeIfs.map((_, fc))
+      case fc @ SummarySectionIncludeIf(includeIf)       => List((includeIf, fc))
+      case fc @ DeclarationSectionIncludeIf(includeIf)   => List((includeIf, fc))
     }.flatten)(_ => Nil)(_ => Nil)
-
-  def allSummarySectionIncludeIfs: List[(IncludeIf, FormComponent)] =
-    fold(_.page.allFields.collect { case fc @ SummarySectionIncludeIf(includeIf) =>
-      includeIf -> fc
-    })(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
