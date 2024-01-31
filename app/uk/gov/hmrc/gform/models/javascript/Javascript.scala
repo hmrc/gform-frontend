@@ -42,7 +42,7 @@ object Javascript {
         maybeExpr
           .map { expr =>
             val leafs: Set[BaseComponentId] = expr
-              .leafs(formModelOptics.formModelRenderPageOptics.formModel)
+              .leafs()
               .collect { case FormCtx(fcId) =>
                 fcId.baseComponentId
               }
