@@ -866,7 +866,8 @@ class StructuredFormDataBuilderSpec
             None,
             None,
             None,
-            List(createNonGroupField("decField"))
+            List(createNonGroupField("decField")),
+            None
           )
         )
       ),

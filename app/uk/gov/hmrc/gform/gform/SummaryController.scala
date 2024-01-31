@@ -278,14 +278,23 @@ class SummaryController(
                 task.declarationSection.fold(
                   uk.gov.hmrc.gform.tasklist.routes.TaskListController
                     .landingPage(formTemplateId, maybeAccessCode)
-                ) { _ =>
-                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                    .showDeclaration(
-                      maybeAccessCode,
-                      cache.formTemplate._id,
-                      coordinates,
-                      taskCompleted
-                    )
+                ) { taskDeclaration =>
+                  val isTaskDeclarationVisible = taskDeclaration.includeIf.fold(true)(includeIf =>
+                    formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                  )
+
+                  if (isTaskDeclarationVisible) {
+                    uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                      .showDeclaration(
+                        maybeAccessCode,
+                        cache.formTemplate._id,
+                        coordinates,
+                        taskCompleted
+                      )
+                  } else {
+                    uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                      .landingPage(formTemplateId, maybeAccessCode)
+                  }
                 }
               ).pure[Future]
             }

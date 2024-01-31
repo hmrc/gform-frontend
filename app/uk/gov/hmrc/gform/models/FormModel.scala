@@ -300,14 +300,10 @@ case class FormModel[A <: PageMode](
 
   def allMiniSummaryListIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allMiniSummaryListIncludeIfs)
 
-  def allSummarySectionIncludeIfs: List[(IncludeIf, FormComponent)] = pages.flatMap(_.allSummarySectionIncludeIfs)
-
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
     case pm @ HasIncludeIf(includeIf) =>
       (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
-  } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i =>
-    (i._1, List(i._2))
-  ) ++ allSummarySectionIncludeIfs.map(i => (i._1, List(i._2)))
+  } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =

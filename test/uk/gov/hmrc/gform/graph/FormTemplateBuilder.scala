@@ -277,7 +277,9 @@ object FormTemplateBuilder {
         Log(DestinationId("TestHmrcDmsId"))
       ),
       ackSection,
-      declarationSection.orElse(Some(DeclarationSection(toSmartString("Declaration"), None, None, None, None, Nil)))
+      declarationSection.orElse(
+        Some(DeclarationSection(toSmartString("Declaration"), None, None, None, None, Nil, None))
+      )
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     Some(LocalisedEmailTemplateId("randd_confirmation_submission", None)),
