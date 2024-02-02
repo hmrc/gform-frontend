@@ -302,10 +302,17 @@ class SummaryController(
           case None =>
             cache.formTemplate.destinations match {
               case DestinationList(_, _, Some(declarationSection)) =>
-                Redirect(
-                  routes.DeclarationController
-                    .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
-                ).pure[Future]
+                val isDeclarationSectionVisible = declarationSection.includeIf.fold(true)(includeIf =>
+                  formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                )
+                if (isDeclarationSectionVisible) {
+                  Redirect(
+                    routes.DeclarationController
+                      .showDeclaration(maybeAccessCode, formTemplateId, SuppressErrors.Yes)
+                  ).pure[Future]
+                } else {
+                  processSubmission(maybeAccessCode, cache, formModelOptics)
+                }
               case DestinationList(_, _, None) =>
                 processSubmission(maybeAccessCode, cache, formModelOptics)
               case _: DestinationPrint =>
@@ -322,7 +329,6 @@ class SummaryController(
         routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates, None)
       )
     for {
-      valid <- isFormValidF
       result <- isFormValidF.ifM(
                   changeStateAndRedirectToDeclarationOrPrint,
                   redirectToSummary.pure[Future]
