@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, _ }
@@ -395,17 +394,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     */
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").void
-
-  /** ******Validators*****
-    */
-  def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[ServiceCallResponse[DesRegistrationResponse]] =
-    ws.POST[DesRegistrationRequest, ServiceCallResponse[DesRegistrationResponse]](
-      s"$baseUrl/des/organisation/$utr",
-      desRegistrationRequest
-    )
 
   private val desOrganisationWithPlaceholders = s"$baseUrl/des/organisation/{{utr}}"
   private val organisationB = new DataRetrieveConnectorBlueprint(ws, desOrganisationWithPlaceholders, "organisation")

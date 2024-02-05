@@ -53,8 +53,8 @@ import uk.gov.hmrc.auth.core.ConfidenceLevel
 object ExampleData extends ExampleData
 
 trait ExampleData
-    extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
-    with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
+    extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleSection
+    with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
     with ExampleSubmission with ExampleEvaluationContext with ExampleDestination
 
@@ -576,7 +576,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def nonRepeatingPageSection(
     title: String = "About you",
     noPIITitle: Option[String] = None,
-    validators: Option[Validator] = None,
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
     instruction: Option[Instruction] = None,
@@ -591,7 +590,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         includeIf,
-        validators,
         fields,
         None,
         None,
@@ -609,14 +607,12 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
   def `section - about you`: Section =
     nonRepeatingPageSection(
       fields =
-        List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`, `fieldValue - timeOfCall`),
-      validators = None
+        List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`, `fieldValue - timeOfCall`)
     )
 
   def `section - businessDetails` =
     nonRepeatingPageSection(
       title = "Business details",
-      validators = None,
       fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`)
     )
 
@@ -640,7 +636,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     Section.RepeatingPage(
       Page(
         toSmartString(title),
-        None,
         None,
         None,
         None,
@@ -720,7 +715,6 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     None,
     None,
-    None,
     formComponents,
     None,
     None,
@@ -741,17 +735,6 @@ trait ExampleSectionNumber {
   val sectionNumber1 = SectionNumber.Classic(1)
   val sectionNumber2 = SectionNumber.Classic(2)
   val sectionNumber3 = SectionNumber.Classic(3)
-}
-
-trait ExampleValidator {
-  def defaultValidator = hMRCUTRPostcodeCheckValidator
-  def hMRCUTRPostcodeCheckValidator =
-    HmrcRosmRegistrationCheckValidator(
-      toSmartString("The UTR could not be foundor the postcode did not match. | <Welsh...>"),
-      "ITSA",
-      FormCtx(FormComponentId("utrToCheck")),
-      FormCtx(FormComponentId("postcodeToCheck"))
-    )
 }
 
 trait ExampleFormTemplate {

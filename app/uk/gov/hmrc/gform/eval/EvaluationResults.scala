@@ -232,14 +232,13 @@ case class EvaluationResults(
               .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
           )
         )(_ => unsupportedOperation("Number")(expr))
-      case Constant(value: String)                    => toNumberResult(value)
-      case HmrcRosmRegistrationCheck(value: RosmProp) => unsupportedOperation("Number")(expr)
-      case Value                                      => Empty
-      case FormTemplateCtx(value: FormTemplateProp)   => unsupportedOperation("Number")(expr)
-      case ParamCtx(queryParam)                       => toNumberResult(evaluationContext.thirdPartyData.queryParams(queryParam))
-      case LinkCtx(_)                                 => unsupportedOperation("Number")(expr)
-      case LangCtx                                    => unsupportedOperation("Number")(expr)
-      case DateCtx(_)                                 => unsupportedOperation("Number")(expr)
+      case Constant(value: String)                  => toNumberResult(value)
+      case Value                                    => Empty
+      case FormTemplateCtx(value: FormTemplateProp) => unsupportedOperation("Number")(expr)
+      case ParamCtx(queryParam)                     => toNumberResult(evaluationContext.thirdPartyData.queryParams(queryParam))
+      case LinkCtx(_)                               => unsupportedOperation("Number")(expr)
+      case LangCtx                                  => unsupportedOperation("Number")(expr)
+      case DateCtx(_)                               => unsupportedOperation("Number")(expr)
       case DateFunction(dateFunc) =>
         evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
           case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
@@ -428,9 +427,7 @@ case class EvaluationResults(
           )
         )
       case Constant(value: String) => nonEmptyStringResult(StringResult(value))
-      case HmrcRosmRegistrationCheck(value: RosmProp) =>
-        nonEmptyStringResult(StringResult(UserCtxEvaluatorProcessor.evalRosm(evaluationContext.thirdPartyData, value)))
-      case Value => Empty
+      case Value                   => Empty
       case FormTemplateCtx(value: FormTemplateProp) =>
         nonEmptyStringResult {
           value match {

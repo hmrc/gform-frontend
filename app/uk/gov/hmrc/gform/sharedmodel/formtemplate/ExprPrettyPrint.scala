@@ -59,7 +59,6 @@ object ExprPrettyPrint {
     case UserCtx(userField)                      => ExprPrettyPrint.prettyPrintUserInfo(userField)
     case Constant(constant)                      => if (constant.isEmpty) "<empty>" else constant
     case PeriodValue(period)                     => "Period: " + period
-    case HmrcRosmRegistrationCheck(_)            => "Rosm check"
     case Value                                   => "Value"
     case FormTemplateCtx(_)                      => "Template"
     case ParamCtx(queryParam)                    => "Query param: " + queryParam.value

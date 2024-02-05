@@ -64,7 +64,6 @@ class FormDataHelpersSpec extends Spec {
       Accepted,
       VisitIndex.Classic(Set.empty),
       ThirdPartyData(
-        None,
         NotChecked,
         Map.empty,
         QueryParams.empty,

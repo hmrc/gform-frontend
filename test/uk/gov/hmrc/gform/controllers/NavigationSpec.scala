@@ -62,7 +62,6 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
         description = None,
         shortName = None,
         includeIf = includeIf,
-        validators = None,
         fields = formComponent :: Nil,
         continueLabel = None,
         continueIf = None,

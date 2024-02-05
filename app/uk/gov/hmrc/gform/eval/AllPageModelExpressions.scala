@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, HmrcRosmRegistrationCheckValidator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
 
 /*
  * Extracts metadata for all expressions of a Page.
@@ -36,16 +36,11 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         page.instruction.flatMap(_.name)
       )
 
-      val validatorExprs = page.validators.fold(List.empty[Expr]) {
-        case HmrcRosmRegistrationCheckValidator(errorMessage, _, utr, postCode) =>
-          utr :: postCode :: errorMessage.interpolations
-      }
-
       val dataRetrieveExpressions = page.dataRetrieves().foldRight(List.empty[Expr]) { case (dataRetrieve, acc) =>
         dataRetrieve.params.map(_.expr) ++ acc
       }
 
-      pageExprs ++ validatorExprs ++ dataRetrieveExpressions
+      pageExprs ++ dataRetrieveExpressions
     }
 
     def fromRepeater(repeater: Repeater[_]): List[Expr] =
