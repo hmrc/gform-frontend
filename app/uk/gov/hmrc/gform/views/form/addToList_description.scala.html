@@ -1,0 +1,60 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import cats.data.NonEmptyList
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{SectionNumber, AddToListId}
+@import uk.gov.hmrc.gform.controllers.EditAddToList
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
+
+@(
+    addToListId: AddToListId,
+    formTemplate: FormTemplate,
+    recordTable: NonEmptyList[AddToListSummaryRecord],
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    fastForward: List[FastForward]
+
+)(
+    implicit
+    request: Request[_],
+    messages: Messages,
+    l:LangADT,
+    evaluator: SmartStringEvaluator
+)
+
+<dl class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">
+  @for(record <- recordTable.toList) {
+    <div class="hmrc-add-to-a-list__contents">
+      <dt class="hmrc-add-to-a-list__identifier hmrc-add-to-a-list__identifier--light">
+        @record.summary
+      </dt>
+      <dd class="hmrc-add-to-a-list__change">
+        <a class="govuk-link edit-add-to-list" aria-label='@messages("addToList.change.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormController.addToListAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.Yes::FastForward.CYA(SectionOrSummary.Section(sectionNumber))::fastForward, EditAddToList(record.index, addToListId))}">
+          <span aria-hidden="true">@messages("addToList.change")</span>
+          <span class="govuk-visually-hidden">@messages("addToList.change.visually.hidden", record.summaryText)</span>
+        </a>
+      </dd>
+      <dd class="hmrc-add-to-a-list__remove">
+        <a class="govuk-link remove-add-to-list" aria-label='@messages("addToList.remove.visually.hidden", record.summaryText)' href="@{uk.gov.hmrc.gform.gform.routes.FormAddToListController.requestRemoval(formTemplate._id, maybeAccessCode, sectionNumber, record.index, addToListId)}">
+          <span aria-hidden="true">@messages("addToList.remove")</span>
+          <span class="govuk-visually-hidden">@messages("addToList.remove.visually.hidden", record.summaryText)</span>
+        </a>
+      </dd>
+    </div>
+  }
+</dl>
