@@ -534,12 +534,11 @@ class TestOnlyController(
         val formTemplateContext = request.attrs(FormTemplateKey)
         for {
           // create a brand new form with snapshot's template id
-          _                <- gformConnector.restoreSnapshotTemplate(snapshotId)
-          _                <- newFormController.continue(cache, formTemplateContext.formTemplate)
-          snapshotWithData <- gformConnector.snapshotData(snapshotId)
+          _ <- gformConnector.restoreSnapshotTemplate(snapshotId)
+          _ <- newFormController.continue(cache, formTemplateContext.formTemplate)
         } yield Redirect(
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreContinue(
-            FormTemplateId(snapshotWithData.snapshot.templateId),
+            formTemplateId,
             snapshotId,
             maybeAccessCode
           )
