@@ -229,7 +229,7 @@ class NewFormController(
         newForm(formTemplateId, cache, QueryParams.empty)
     }
 
-  private def continue(cache: AuthCacheWithoutForm, formTemplate: FormTemplate)(implicit
+  def continue(cache: AuthCacheWithoutForm, formTemplate: FormTemplate)(implicit
     request: Request[AnyContent],
     lang: LangADT
   ): Future[Result] = {

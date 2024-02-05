@@ -25,7 +25,10 @@ case class Snapshot(
   templateId: String,
   snapshotId: String,
   savedAt: Instant,
-  description: String
+  description: String,
+  gformVersion: String,
+  gformFrontendVersion: String,
+  hasTemplate: Boolean
 )
 
 object Snapshot {
@@ -42,7 +45,8 @@ object SnapshotWithData {
 
 case class SaveRequest(
   formId: String,
-  description: String
+  description: String,
+  gformFrontendVersion: String
 )
 
 object SaveRequest {

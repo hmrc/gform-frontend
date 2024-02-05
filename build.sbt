@@ -17,7 +17,8 @@ lazy val microservice = (project in file("."))
     SbtAutoBuildPlugin,
     SbtGitVersioning,
     SbtDistributablesPlugin,
-    SbtWeb
+    SbtWeb,
+    BuildInfoPlugin
   )
   .settings(
     SassKeys.cssStyle := Maxified,
@@ -98,4 +99,8 @@ lazy val microservice = (project in file("."))
       "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
       "bintray" at "https://dl.bintray.com/webjars/maven"
     )
+  )
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey](version),
+    buildInfoPackage := "uk.gov.hmrc.gform"
   )
