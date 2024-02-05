@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.graph.processor
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
-import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object UserCtxEvaluatorProcessor extends IdentifierExtractor {
@@ -57,15 +56,4 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
       case (EmailRetrievals(_), _)     => ""
       case (VerifyRetrievals(_, _), _) => ""
     }
-
-  def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): String = {
-    val f = thirdPartyData.desRegistrationResponse.fold("") _
-    rosmProp match {
-      case RosmSafeId           => f(_.safeId)
-      case RosmOrganisationName => f(_.orgOrInd.getOrganisationName)
-      case RosmOrganisationType => f(_.orgOrInd.getOrganisationType)
-      case RosmIsAGroup         => f(_.orgOrInd.getIsAGroup)
-    }
-  }
-
 }

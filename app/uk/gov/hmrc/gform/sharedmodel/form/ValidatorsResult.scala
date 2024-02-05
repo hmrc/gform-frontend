@@ -18,10 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.Monoid
 import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 
 case class ValidatorsResult(
-  desRegistrationResponse: Option[DesRegistrationResponse],
   emailVerification: Map[EmailFieldId, EmailAndCode]
 )
 
@@ -30,11 +28,9 @@ object ValidatorsResult {
   implicit val monoidIns: Monoid[ValidatorsResult] = new Monoid[ValidatorsResult] {
     def empty = ValidatorsResult.empty
     def combine(l: ValidatorsResult, r: ValidatorsResult): ValidatorsResult = (l, r) match {
-      case (ValidatorsResult(Some(drr), m1), ValidatorsResult(_, m2))    => ValidatorsResult(Some(drr), m1 ++ m2)
-      case (ValidatorsResult(None, m1), ValidatorsResult(Some(drr), m2)) => ValidatorsResult(Some(drr), m1 ++ m2)
-      case (ValidatorsResult(None, m1), ValidatorsResult(None, m2))      => ValidatorsResult(None, m1 ++ m2)
+      case (ValidatorsResult(m1), ValidatorsResult(m2)) => ValidatorsResult(m1 ++ m2)
     }
   }
 
-  val empty = ValidatorsResult(None, Map.empty)
+  val empty = ValidatorsResult(Map.empty)
 }

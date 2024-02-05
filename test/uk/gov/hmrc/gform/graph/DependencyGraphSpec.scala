@@ -46,7 +46,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None,
     None,
     None,
-    None,
     List.empty[FormComponent],
     None,
     None,
@@ -480,29 +479,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     }
   }
 
-  val nonRepeatedSectionValidators: TableFor2[String, Page[Basic]] = {
-    val ctx = FormCtx("a")
-    val stringExpr = toSmartStringExpression("", ctx)
-    val hmrcRosmRegistrationCheckValidator = HmrcRosmRegistrationCheckValidator(
-      toSmartString(""),
-      "",
-      FormCtx(""),
-      FormCtx("")
-    )
-
-    def hmrcRosm(rosm: HmrcRosmRegistrationCheckValidator): Page[Basic] =
-      emptyPage.copy(validators = Some(rosm))
-
-    Table(
-      // format: off
-      ("prop", "propSetter"),
-      ("validators.HmrcRosmRegistrationCheckValidator.errorMessage", hmrcRosm(hmrcRosmRegistrationCheckValidator.copy(errorMessage = stringExpr))),
-      ("validators.HmrcRosmRegistrationCheckValidator.utr",          hmrcRosm(hmrcRosmRegistrationCheckValidator.copy(utr = ctx))),
-      ("validators.HmrcRosmRegistrationCheckValidator.postcode",     hmrcRosm(hmrcRosmRegistrationCheckValidator.copy(postcode = ctx))),
-      // format: on
-    )
-  }
-
   val nonRepeatedSectionExpressionTable: TableFor2[String, Page[Basic]] = {
     val stringExpr = toSmartStringExpression("", FormCtx("a"))
     Table(
@@ -531,24 +507,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       res shouldBe List(
         (0, Set(Expr(FormCtx("a")))),
         (1, Set(Simple("a")))
-      )
-    }
-  }
-
-  forAll(nonRepeatedSectionValidators) { case (prop, page) =>
-    it should s"support NonRepeated section with expression in $prop" in {
-
-      val section: Section.NonRepeatingPage = Section.NonRepeatingPage(page)
-
-      val sections = List(
-        section
-      )
-
-      val res = layers(sections)
-
-      res shouldBe List(
-        (0, Set(Expr(FormCtx("a")), Expr(FormCtx("")))),
-        (1, Set(Simple("a"), Simple("")))
       )
     }
   }

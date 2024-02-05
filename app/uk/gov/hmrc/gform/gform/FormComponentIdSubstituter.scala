@@ -44,7 +44,6 @@ object FormComponentIdSubstituter {
         case e: UserCtx                    => e
         case e: Constant                   => e
         case e: PeriodValue                => e
-        case e: HmrcRosmRegistrationCheck  => e
         case Value                         => Value
         case e: FormTemplateCtx            => e
         case e: ParamCtx                   => e

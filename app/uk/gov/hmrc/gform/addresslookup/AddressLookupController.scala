@@ -729,7 +729,6 @@ class AddressLookupController(
       shortName = None,
       caption = None,
       includeIf = None,
-      validators = None,
       fields = fields,
       continueLabel = None,
       continueIf = None,

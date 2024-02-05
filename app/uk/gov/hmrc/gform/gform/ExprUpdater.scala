@@ -53,7 +53,6 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case UserCtx(_)                            => expr
     case Constant(_)                           => expr
     case PeriodValue(_)                        => expr
-    case HmrcRosmRegistrationCheck(_)          => expr
     case Value                                 => expr
     case FormTemplateCtx(_)                    => expr
     case ParamCtx(_)                           => expr

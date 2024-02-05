@@ -41,7 +41,7 @@ object DependencyGraph {
         case AllFormComponentExpressions(exprsMetadata) =>
           exprsMetadata.toSet[ExprMetadata].flatMap {
             case SelfReferenceProjection(
-                  IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_) | HmrcRosmRegistrationCheck(_))
+                  IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_))
                 ) =>
               (fc.id :: Nil).map(fcId => GraphNode.Simple(fc.id) ~> GraphNode.Simple(fcId))
             case SelfReferenceProjection(IsSelfReferring.No(expr)) =>

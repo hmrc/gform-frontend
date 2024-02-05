@@ -44,7 +44,6 @@ class ThirdPartyDataSuite extends FunSuite {
     )
 
     val thirdPartyData = ThirdPartyData(
-      desRegistrationResponse = None,
       obligations = NotChecked,
       emailVerification = Map.empty[EmailFieldId, EmailAndCode],
       queryParams = QueryParams.empty,
@@ -116,7 +115,6 @@ class ThirdPartyDataSuite extends FunSuite {
     )
 
     val thirdPartyData = ThirdPartyData(
-      desRegistrationResponse = None,
       obligations = NotChecked,
       emailVerification = Map.empty[EmailFieldId, EmailAndCode],
       queryParams = QueryParams.empty,

@@ -27,23 +27,13 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.CheckYourAnswers
 import uk.gov.hmrc.gform.models.PageModel
-import uk.gov.hmrc.gform.models.Repeater
-import uk.gov.hmrc.gform.models.Singleton
 import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.CannotRetrieveResponse
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.NotFound
-import uk.gov.hmrc.gform.sharedmodel.ServiceResponse
-import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationRequest
-import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
-import uk.gov.hmrc.gform.sharedmodel.des.InternationalAddress
-import uk.gov.hmrc.gform.sharedmodel.des.UkAddress
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -52,7 +42,6 @@ import uk.gov.hmrc.gform.typeclasses.Rnd
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.collection.mutable.LinkedHashSet
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -82,11 +71,10 @@ class ValidationService(
     // format: off
     val eT = for {
       _                     <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
-      valRes                <- lift(validateUsingValidators(pageModel, formModelVisibilityOptics))
       formTemplateId = cache.formTemplate._id
       emailsForVerification <- lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
     } yield {
-      valRes.copy(emailVerification = emailsForVerification)
+      ValidatorsResult(emailVerification = emailsForVerification)
     }
     // format: on
 
@@ -231,67 +219,6 @@ class ValidationService(
           .map(_ => (emailFieldId, eac))
       }
       .map(_.toMap.valid)
-  }
-
-  private def validateUsingValidators[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(implicit
-    messages: Messages,
-    hc: HeaderCarrier,
-    sse: SmartStringEvaluator
-  ): Future[ValidatedType[ValidatorsResult]] = {
-    val valid = ValidatorsResult.empty.valid.pure[Future]
-    pageModel match {
-      case s: Singleton[_] =>
-        s.page.validators.map(validateUsingSectionValidators(_, formModelVisibilityOptics)).getOrElse(valid)
-      case r: Repeater[_]         => valid
-      case c: CheckYourAnswers[_] => valid
-    }
-  }
-
-  private def validateUsingSectionValidators[D <: DataOrigin](
-    v: Validator,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  )(implicit
-    hc: HeaderCarrier,
-    messages: Messages,
-    sse: SmartStringEvaluator
-  ): Future[ValidatedType[ValidatorsResult]] = {
-
-    def compare(postCode: String)(drr: DesRegistrationResponse): Boolean = {
-      val maybePostalCode = drr.address match {
-        case UkAddress(_, _, _, _, postalCode)               => postalCode
-        case InternationalAddress(_, _, _, _, _, postalCode) => postalCode
-      }
-      maybePostalCode.fold(true)(_.replace(" ", "").equalsIgnoreCase(postCode.replace(" ", "")))
-    }
-
-    v match {
-      case HmrcRosmRegistrationCheckValidator(errorMessage, regime, utr, postcode) =>
-        val utrValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(utr).stringRepresentation
-        val postcodeValue = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(postcode).stringRepresentation
-
-        val errors =
-          Map(
-            utr.formComponentId.modelComponentId      -> LinkedHashSet(errorMessage.value()),
-            postcode.formComponentId.modelComponentId -> LinkedHashSet(errorMessage.value())
-          )
-
-        val desRegistrationRequest = DesRegistrationRequest(regime, false, false)
-
-        gformConnector
-          .validatePostCodeUtr(utrValue, desRegistrationRequest)
-          .flatMap {
-            case NotFound               => Future.successful(errors.invalid)
-            case CannotRetrieveResponse => Future.failed(new Exception("Call to des registration has failed"))
-            case ServiceResponse(drr) =>
-              Future.successful(
-                if (compare(postcodeValue)(drr)) ValidatorsResult(Some(drr), Map.empty).valid
-                else errors.invalid
-              )
-          }
-    }
   }
 }
 

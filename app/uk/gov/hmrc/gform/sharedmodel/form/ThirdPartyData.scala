@@ -22,13 +22,11 @@ import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveResult, NotChecked, Obligations }
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 
 case class ThirdPartyData(
-  desRegistrationResponse: Option[DesRegistrationResponse],
   obligations: Obligations,
   emailVerification: Map[EmailFieldId, EmailAndCode],
   queryParams: QueryParams,
@@ -185,12 +183,7 @@ case class ThirdPartyData(
 
   def updateFrom(vr: Option[ValidatorsResult]): ThirdPartyData =
     vr match {
-      case Some(ValidatorsResult(Some(desRegistrationResponse), m)) =>
-        this.copy(
-          desRegistrationResponse = Some(desRegistrationResponse),
-          emailVerification = emailVerification ++ m
-        )
-      case Some(ValidatorsResult(None, m)) =>
+      case Some(ValidatorsResult(m)) =>
         this.copy(
           emailVerification = emailVerification ++ m
         )
@@ -203,7 +196,6 @@ case class ThirdPartyData(
 object ThirdPartyData {
   val empty =
     ThirdPartyData(
-      None,
       NotChecked,
       Map.empty,
       QueryParams.empty,
