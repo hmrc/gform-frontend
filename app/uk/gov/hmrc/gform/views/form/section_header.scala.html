@@ -14,9 +14,8 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.views.html.page_heading
 @import uk.gov.hmrc.gform.models.SectionHeader
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 
 @(
   sectionHeader: SectionHeader,
@@ -29,16 +28,8 @@
   sse: SmartStringEvaluator
 )
 
-@hmrcPageHeading = @{new HmrcPageHeading()}
-
 @if(shouldDisplayHeading) {
-    @hmrcPageHeading(PageHeading(
-        text = sectionHeader.sectionTitle,
-        headingClasses = Some("govuk-heading-l"),
-        section = sectionHeader.caption,
-        captionClasses = Some("govuk-caption-l")
-    ))
-
+  @page_heading(sectionHeader.sectionTitle, sectionHeader.caption)
   @sectionHeader.sectionDescription.find(_.trim.nonEmpty).map { sectionDescription =>
     <p class="govuk-body">@sectionDescription</p>
   }

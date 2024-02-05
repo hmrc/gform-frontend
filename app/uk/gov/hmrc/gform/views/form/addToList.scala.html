@@ -21,16 +21,12 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
-@import uk.gov.hmrc.gform.views.html.{main_template, specimen}
-@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+@import uk.gov.hmrc.gform.views.html.{main_template, specimen, page_heading}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{SectionNumber, AddToListId}
-@import play.filters.csrf.CSRF
 @import uk.gov.hmrc.gform.controllers.{EditAddToList, SaveAndExit}
 @import uk.gov.hmrc.gform.controllers.Back
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 @import uk.gov.hmrc.gform.FormTemplateKey
 
@@ -63,8 +59,6 @@
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @govukNotificationBanner = @{new GovukNotificationBanner()}
-@heading = @{title}
-@hmrcPageHeading = @{new HmrcPageHeading()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 @backLink = @{
   new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)::fastForward).path,
@@ -93,12 +87,8 @@
             role=Some("alert"))
         )
     }
-    @hmrcPageHeading(PageHeading(
-        text = heading,
-        headingClasses = Some("govuk-heading-l"),
-        section = caption,
-        captionClasses = Some("govuk-caption-l")
-    ))
+
+    @page_heading(title, caption)
 
     <div class="govuk-form-group">
       <dl class="hmrc-add-to-a-list hmrc-add-to-a-list--wide">

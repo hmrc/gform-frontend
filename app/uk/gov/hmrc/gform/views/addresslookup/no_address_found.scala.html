@@ -16,8 +16,7 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 @import uk.gov.hmrc.gform.controllers.SaveAndExit
 @import uk.gov.hmrc.gform.models.FastForward
@@ -38,7 +37,6 @@
 )(implicit request: Request[_], messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
-@hmrcPageHeading = @{new HmrcPageHeading()}
 @govukButton = @{new GovukButton()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
@@ -46,7 +44,7 @@
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
 }
 
-@uk.gov.hmrc.gform.views.html.main_template(
+@main_template(
   title = messages("postcodeLookup.cannot.find.address.title"),
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
@@ -57,10 +55,7 @@
 
   @pageLevelError.render
 
-  @hmrcPageHeading(PageHeading(
-      text = messages("postcodeLookup.cannot.find.address.title", postcode),
-      headingClasses = Some("govuk-heading-l")
-  ))
+  @page_heading(messages("postcodeLookup.cannot.find.address.title", postcode), None)
 
   <p class="govuk-body">@messages("postcodeLookup.cannot.find.address", postcode)</p>
 

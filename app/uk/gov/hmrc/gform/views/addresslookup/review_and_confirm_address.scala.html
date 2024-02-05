@@ -16,8 +16,7 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
+@import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
 @import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
@@ -33,15 +32,13 @@
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
-@hmrcPageHeading = @{new HmrcPageHeading()}
-@heading = @{title}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
 }
 
-@uk.gov.hmrc.gform.views.html.main_template(
+@main_template(
   title = title,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
@@ -51,11 +48,7 @@
 
   @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
-  @hmrcPageHeading(PageHeading(
-        text = heading,
-        section = caption,
-        headingClasses = Some("govuk-heading-l")
-  ))
+  @page_heading(title, caption)
 
   @formWithCSRF(action = confirmAddressAndContinue, 'novalidate -> "novalidate") {
 

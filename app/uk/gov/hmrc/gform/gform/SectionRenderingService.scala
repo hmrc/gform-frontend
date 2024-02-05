@@ -1453,11 +1453,11 @@ class SectionRenderingService(
     maybeTaxPeriodOptions.fold(html.form.snippets.no_open_tax_period(labelContent, warningText))(renderOptions)
   }
 
-  private def htmlForInformationMessage(
+  def htmlForInformationMessage(
     formComponent: FormComponent,
     infoType: InfoType,
     infoText: SmartString
-  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
+  )(implicit messages: Messages, sse: SmartStringEvaluator) =
     html.form.snippets.field_template_info(
       formComponent,
       infoType,

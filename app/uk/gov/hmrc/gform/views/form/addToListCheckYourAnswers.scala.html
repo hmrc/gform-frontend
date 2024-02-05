@@ -20,11 +20,9 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList }
-@import uk.gov.hmrc.gform.views.html.main_template
+@import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
 @import uk.gov.hmrc.gform.controllers.{ SaveAndExit, SaveAndContinue }
 @import uk.gov.hmrc.gform.models.FastForward
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcPageHeading
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.pageheading.PageHeading
 @import uk.gov.hmrc.gform.FormTemplateKey
 
 @(
@@ -48,9 +46,7 @@
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @govukSummaryList = @{new GovukSummaryList()}
-@heading = @{ title }
 @formAction = @{ uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue) }
-@hmrcPageHeading = @{new HmrcPageHeading()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @backLink = @{
@@ -67,12 +63,7 @@
 ) {
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
-    @hmrcPageHeading(PageHeading(
-        text = heading,
-        headingClasses = Some("govuk-heading-l"),
-        section = caption,
-        captionClasses = Some("govuk-caption-l")
-    ))
+    @page_heading(title, caption)
 
     @header.map{ h =>
         <div class="govuk-body">

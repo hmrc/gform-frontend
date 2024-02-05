@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.builder
 
+import cats.data.NonEmptyList
 import cats.implicits._
 import io.circe.CursorOp._
 import io.circe._
@@ -24,7 +25,7 @@ import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.circe.Circe
 import play.api.libs.json.{ Json => PlayJson }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -34,10 +35,11 @@ import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartSt
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.{ PageModel, Repeater }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -64,7 +66,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    6; // This is managed manually. Increase it any time API used by builder extension is changed.
+    7; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -138,7 +140,6 @@ class BuilderController(
               }
             }
           }
-
           val hiddenComponentIds = hiddenComponentIdsBySection(formModelOptics, sectionNumber);
           json
             .map(
@@ -252,22 +253,38 @@ class BuilderController(
           formModel.pageModelLookup
             .get(sectionNumber)
             .flatMap { pageModel =>
-              pageModel.allFormComponentIds match {
-                case Nil => None
-                case head :: _ =>
-                  findFormComponentInAddToList(addToListJson, head.baseComponentId)
-                    .map { case (json, pageNumber) =>
-                      val history: List[CursorOp] =
-                        List.fill(pageNumber)(MoveRight) ::: List(DownArray, DownField("pages")) :::
-                          List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
-                          historySuffix
+              pageModel.fold { singleton =>
+                pageModel.allFormComponentIds match {
+                  case Nil => None
+                  case head :: _ =>
+                    findFormComponentInAddToList(addToListJson, head.baseComponentId)
+                      .map { case (json, pageNumber) =>
+                        val history: List[CursorOp] =
+                          List.fill(pageNumber)(MoveRight) ::: List(DownArray, DownField("pages")) :::
+                            List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
+                            historySuffix
 
-                      Json.obj(
-                        "atlIterationIndex" := head.modelComponentId.maybeIndex.getOrElse(0),
-                        "section" := json,
-                        "sectionPath" := CursorOp.opsToPath(history)
-                      )
-                    }
+                        Json.obj(
+                          "atlIterationIndex" := head.modelComponentId.maybeIndex.getOrElse(0),
+                          "section" := json,
+                          "sectionPath" := CursorOp.opsToPath(history)
+                        )
+                      }
+                }
+              }(checkYouAnswers => Option.empty[Json]) { repeater =>
+                val history: List[CursorOp] =
+                  List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
+                    historySuffix
+                Some(
+                  Json.obj(
+                    "atlIterationIndex" := repeater.index,
+                    "atlRepeater" := true,
+                    "section" := addToListJson,
+                    "sectionPath" := CursorOp.opsToPath(
+                      history
+                    ) // TODO sectionPath is not used, explore possibility of using this instead of using addToListId when updating mongo json
+                  )
+                )
               }
             }
         }
@@ -777,4 +794,74 @@ class BuilderController(
         }
     }
   }
+
+  def fetchAtlRepeaterHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
+    fetchAtlRepeater(formTemplateId, sectionNumber) { _ => implicit sse => repeater => bracket =>
+      val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
+
+      val recordTable: NonEmptyList[Html] = descriptions.zipWithIndex.map { case (description, index) =>
+        val html = markDownParser(description)
+        html
+      }
+
+      val pageHeading: Html = uk.gov.hmrc.gform.views.html
+        .page_heading(repeater.expandedTitle.value(), repeater.expandedCaption.map(_.value()))
+
+      Json.obj(
+        "pageHeading" := pageHeading,
+        "descriptions" := recordTable
+      )
+    }
+
+  def fetchAtlRepeaterAddAnotherQuestionHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
+    fetchAtlRepeater(formTemplateId, sectionNumber) { _ => implicit sse => repeater => _ =>
+      Json.obj(
+        "label" := repeater.addAnotherQuestion.label.value()
+      )
+    }
+
+  def fetchAtlRepeaterFormComponentHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    formComponentId: FormComponentId
+  ) =
+    fetchAtlRepeater(formTemplateId, sectionNumber) { implicit messages => implicit sse => repeater => _ =>
+      val infoHtml = repeater.fields.fold(HtmlFormat.empty) { fieldsNel =>
+        fieldsNel.toList
+          .collectFirst {
+            case fc @ IsInformationMessage(info) if fc.id === formComponentId =>
+              renderer.htmlForInformationMessage(fc, info.infoType, info.infoText)
+          }
+          .getOrElse(HtmlFormat.empty)
+      }
+      Json.obj(
+        "html" := sanitiseHtml(infoHtml)
+      )
+    }
+
+  private def fetchAtlRepeater(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)(
+    f: Messages => SmartStringEvaluator => Repeater[DataExpanded] => Bracket.AddToList[DataExpanded] => Json
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => lang => cache => sse => formModelOptics =>
+        import i18nSupport._
+        val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+        val pageModel: PageModel[DataExpanded] = formModel(sectionNumber)
+        val bracket: Bracket[DataExpanded] = formModel.bracket(sectionNumber)
+
+        bracket match {
+          case Bracket.NonRepeatingPage(_, _, _) =>
+            badRequest("Expected AddToList bracket, but got NonRepeatingPage").pure[Future]
+          case Bracket.RepeatingPage(_, _) =>
+            badRequest("Expected AddToList bracket, but got RepeatingPage").pure[Future]
+          case bracket @ Bracket.AddToList(_, _) =>
+            pageModel
+              .fold(singleton => badRequest("Invalid page model. Expected Repeater got Singleton"))(checkYourAnswers =>
+                badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")
+              ) { repeater =>
+                Ok(f(implicitly[Messages])(sse)(repeater)(bracket))
+              }
+              .pure[Future]
+        }
+    }
 }
