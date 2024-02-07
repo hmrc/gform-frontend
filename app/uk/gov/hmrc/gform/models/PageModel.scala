@@ -70,6 +70,9 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
 
+  def allATLRepeatsWhiles: List[IncludeIf] =
+    fold(_ => List.empty[IncludeIf])(_ => List.empty[IncludeIf])(repeater => repeater.repeatsWhile.toList)
+
   def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)
 
   def confirmationPage(confirmationLookup: Map[ModelPageId, ConfirmationPage.Confirmee]): ConfirmationPage =
