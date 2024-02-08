@@ -36,15 +36,17 @@ GET           /submissions/test-only/clear-session                     uk.gov.hm
 GET           /submissions/test-only/config                            uk.gov.hmrc.gform.testonly.TestOnlyController.config()
 
 POST          /submissions/test-only/restore-current-form/:formId                 uk.gov.hmrc.gform.testonly.TestOnlyController.restoreCurrentForm(formId: String)
+POST          /submissions/test-only/restore-all/:formTemplateId/:maybeAcccessCode                  uk.gov.hmrc.gform.testonly.TestOnlyController.restoreAll(formTemplateId: FormTemplateId, maybeAcccessCode: Option[AccessCode])
+GET          /submissions/test-only/restore-continue/:formTemplateId/:maybeAcccessCode              uk.gov.hmrc.gform.testonly.TestOnlyController.restoreContinue(formTemplateId: FormTemplateId, snapshotId:String, maybeAcccessCode: Option[AccessCode])
 GET           /submissions/test-only/restore-current/:snapshotId/:formId          uk.gov.hmrc.gform.testonly.TestOnlyController.restoreCurrent(snapshotId: String, formId: String)
 POST          /submissions/test-only/save-form/:formTemplateId/:accessCode        uk.gov.hmrc.gform.testonly.TestOnlyController.saveForm(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 POST          /submissions/test-only/update-snapshot/:formTemplateId/:accessCode  uk.gov.hmrc.gform.testonly.TestOnlyController.updateSnapshot(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 POST          /submissions/test-only/update-form-data/:formTemplateId/:accessCode  uk.gov.hmrc.gform.testonly.TestOnlyController.updateFormData(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/save-form-page/:formTemplateId/:accessCode   uk.gov.hmrc.gform.testonly.TestOnlyController.saveFormPage(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/snapshots/:formTemplateId/:accessCode        uk.gov.hmrc.gform.testonly.TestOnlyController.getSnapshots(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
-GET           /submissions/test-only/update-snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.updateSnapshotPage(formTemplateId: FormTemplateId, snapshotId: String, accessCode: Option[AccessCode])
+GET           /submissions/test-only/update-snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.updateSnapshotPage(formTemplateId: FormTemplateId, snapshotId: SnapshotId, accessCode: Option[AccessCode])
 
-GET           /submissions/test-only/snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotPage(formTemplateId: FormTemplateId, snapshotId: String, accessCode: Option[AccessCode])
+GET           /submissions/test-only/snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotPage(formTemplateId: FormTemplateId, snapshotId: SnapshotId, accessCode: Option[AccessCode], currentFormId: Option[FormId], targetTemplateId: FormTemplateId)
 
 GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)

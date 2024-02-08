@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
-import uk.gov.hmrc.gform.testonly.{ SaveReply, SaveRequest, Snapshot, SnapshotWithData, UpdateFormDataRequest, UpdateSnapshotRequest }
+import uk.gov.hmrc.gform.testonly.{ SaveReply, SaveRequest, SnapshotId, SnapshotOverview, UpdateFormDataRequest, UpdateSnapshotRequest }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -546,15 +546,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def restoreForm(
     savedId: String,
     restoreId: String
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Snapshot] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
     val url = s"$baseUrl/test-only/restore-form/$savedId/$restoreId"
-    ws.GET[Snapshot](url)
+    ws.GET[SnapshotOverview](url)
   }
 
   def getSnapshots(
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Snapshot]] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[SnapshotOverview]] = {
     val url = s"$baseUrl/test-only/snapshots"
-    ws.GET[List[Snapshot]](url)
+    ws.GET[List[SnapshotOverview]](url)
   }
 
   def saveFormPage(formId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsValue] = {
@@ -564,9 +564,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def saveForm(
     payload: SaveRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotWithData] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
     val url = s"$baseUrl/test-only/save-form"
-    ws.POST[SaveRequest, SnapshotWithData](
+    ws.POST[SaveRequest, SnapshotOverview](
       url,
       payload,
       Seq("Content-Type" -> ContentType.`application/json`.value)
@@ -574,18 +574,20 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
   def updateSnapshot(
     payload: UpdateSnapshotRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotWithData] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
     val url = s"$baseUrl/test-only/update-snapshot"
-    ws.POST[UpdateSnapshotRequest, SnapshotWithData](
+    ws.POST[UpdateSnapshotRequest, SnapshotOverview](
       url,
       payload,
       Seq("Content-Type" -> ContentType.`application/json`.value)
     )
   }
 
-  def snapshotData(snapshotId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotWithData] = {
-    val url = s"$baseUrl/test-only/snapshot-data/$snapshotId"
-    ws.GET[SnapshotWithData](url)
+  def snapshotOverview(
+    snapshotId: SnapshotId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
+    val url = s"$baseUrl/test-only/snapshot-data/${snapshotId.value}"
+    ws.GET[SnapshotOverview](url)
   }
 
   def updateFormData(
@@ -597,5 +599,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       payload,
       Seq("Content-Type" -> ContentType.`application/json`.value)
     )
+  }
+
+  def restoreSnapshotTemplate(
+    snapshotId: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/test-only/restore-snapshot-template"
+    ws.PUT[JsString, HttpResponse](url, JsString(snapshotId))
   }
 }

@@ -18,13 +18,14 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.testonly.{SnapshotId, Description}
 
 @(
   formTemplate: FormTemplate,
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
-  snapshotId: String,
-  description: String,
+  snapshotId: SnapshotId,
+  description: Description,
   formData: String
 )(implicit
   request: Request[_],
@@ -47,8 +48,8 @@
         <div id="description-hint" class="govuk-hint">
           Snapshot description
         </div>
-        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@snapshotId">
-        <input type="text" class="govuk-input" id="description" name="description" aria-describedby="description-hint" value="@description">
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@snapshotId.value">
+        <input type="text" class="govuk-input" id="description" name="description" aria-describedby="description-hint" value="@description.value">
 
         <p class="govuk-body govuk-!-margin-bottom-2"></p>
         <div id="form-data-hint" class="govuk-hint">

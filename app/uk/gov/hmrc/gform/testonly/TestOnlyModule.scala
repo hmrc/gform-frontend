@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.builder.BuilderController
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.SectionRenderingService
+import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -40,7 +41,8 @@ class TestOnlyModule(
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
   ahcWSComponents: AhcWSComponents,
-  fileUploadModule: FileUploadModule
+  fileUploadModule: FileUploadModule,
+  gformModule: GformModule
 )(implicit
   ec: ExecutionContext
 ) {
@@ -67,7 +69,8 @@ class TestOnlyModule(
     controllersModule.authenticatedRequestActions,
     configModule.serviceConfig,
     configModule.frontendAppConfig,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    gformModule.newFormController
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
     playBuiltInsModule.i18nSupport,

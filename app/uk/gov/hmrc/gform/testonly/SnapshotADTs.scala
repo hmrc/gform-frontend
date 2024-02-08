@@ -17,32 +17,30 @@
 package uk.gov.hmrc.gform.testonly
 
 import julienrf.json.derived
-import play.api.libs.json.{ JsObject, OFormat }
+import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
 
 import java.time.Instant
 
-case class Snapshot(
-  templateId: String,
-  snapshotId: String,
+case class SnapshotOverview(
+  templateId: FormTemplateId,
+  snapshotId: SnapshotId,
   savedAt: Instant,
-  description: String
+  description: Description,
+  gformVersion: GformVersion,
+  gformFrontendVersion: GformFrontendVersion,
+  formData: Option[JsObject]
 )
 
-object Snapshot {
-  implicit val format: OFormat[Snapshot] = derived.oformat()
-}
-
-case class SnapshotWithData(
-  snapshot: Snapshot,
-  formData: JsObject
-)
-object SnapshotWithData {
-  implicit val format: OFormat[SnapshotWithData] = derived.oformat()
+object SnapshotOverview {
+  implicit val format: OFormat[SnapshotOverview] = derived.oformat()
 }
 
 case class SaveRequest(
-  formId: String,
-  description: String
+  formId: FormId,
+  description: Description,
+  gformFrontendVersion: GformFrontendVersion
 )
 
 object SaveRequest {
@@ -50,7 +48,7 @@ object SaveRequest {
 }
 
 case class SaveReply(
-  snapshotId: String
+  formId: FormId
 )
 
 object SaveReply {
@@ -58,9 +56,9 @@ object SaveReply {
 }
 
 case class UpdateSnapshotRequest(
-  snapshotId: String,
+  snapshotId: SnapshotId,
   formData: JsObject,
-  description: String
+  description: Description
 )
 
 object UpdateSnapshotRequest {
@@ -68,10 +66,33 @@ object UpdateSnapshotRequest {
 }
 
 case class UpdateFormDataRequest(
-  formId: String,
+  formId: FormId,
   formData: JsObject
 )
 
 object UpdateFormDataRequest {
   implicit val format: OFormat[UpdateFormDataRequest] = derived.oformat()
+}
+
+case class SnapshotId(value: String) extends AnyVal
+
+object SnapshotId {
+  implicit val format: Format[SnapshotId] = Json.valueFormat
+}
+
+case class Description(value: String) extends AnyVal
+object Description {
+  implicit val format: Format[Description] = Json.valueFormat
+}
+
+case class GformVersion(value: String) extends AnyVal
+
+object GformVersion {
+  implicit val format: Format[GformVersion] = Json.valueFormat
+}
+
+case class GformFrontendVersion(value: String) extends AnyVal
+
+object GformFrontendVersion {
+  implicit val format: Format[GformFrontendVersion] = Json.valueFormat
 }

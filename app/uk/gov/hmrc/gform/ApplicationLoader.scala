@@ -215,7 +215,8 @@ class ApplicationModule(context: Context)
     graphModule,
     lookupRegistry,
     this,
-    fileUploadModule
+    fileUploadModule,
+    gformModule
   )
 
   private val requestHeaderService = new RequestHeaderService(gformBackendModule.gformConnector)

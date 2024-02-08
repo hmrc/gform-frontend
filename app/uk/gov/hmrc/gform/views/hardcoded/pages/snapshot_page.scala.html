@@ -17,17 +17,20 @@
 @import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.testonly.{SnapshotId, Description}
 
 @(
   formTemplate: FormTemplate,
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
-  snapshotId: String,
-  description: String,
+  snapshotId: SnapshotId,
+  description: Description,
+  versions: Html,
   formData: String,
-  formId: String,
-  isFullRestore: Boolean = false
+  isDataRestore: Boolean,
+  actionUrl: String
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -55,12 +58,19 @@
     </style>
 
     <div class="button-container">
-    <form action="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreCurrentForm(formId).path" method="post">
+    <form action="@actionUrl" method="post">
 
         <p class="govuk-body">Snapshot description:</p>
         <div id="description-hint" class="govuk-hint">
           <pre>
-@description
+@description.value
+          </pre>
+        </div>
+
+        <p class="govuk-body">gForm versions:</p>
+        <div id="description-hint" class="govuk-hint">
+          <pre>
+@versions
           </pre>
         </div>
 
@@ -74,13 +84,13 @@
         </div>
         <p class="govuk-body govuk-!-margin-bottom-2"></p>
 
-        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@snapshotId">
-        <button type="submit" class="govuk-button" @if(!isFullRestore) {disabled}>Restore all</button>
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@snapshotId.value">
+        <button type="submit" class="govuk-button">Restore all</button>
     </form>
 
     <form action="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplate._id, accessCode).path" method="post">
         <input type="hidden" class="govuk-input" id="formData" name="formData" value="@formData">
-        <button type="submit" class="govuk-button">Restore only data</button>
+        <button type="submit" class="govuk-button" @if(!isDataRestore) {disabled}>Restore only data</button>
     </form>
 
     </div>
