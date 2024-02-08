@@ -46,7 +46,7 @@ GET           /submissions/test-only/save-form-page/:formTemplateId/:accessCode 
 GET           /submissions/test-only/snapshots/:formTemplateId/:accessCode        uk.gov.hmrc.gform.testonly.TestOnlyController.getSnapshots(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/update-snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.updateSnapshotPage(formTemplateId: FormTemplateId, snapshotId: SnapshotId, accessCode: Option[AccessCode])
 
-GET           /submissions/test-only/snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotPage(formTemplateId: FormTemplateId, snapshotId: SnapshotId, accessCode: Option[AccessCode], currentFormId: Option[String], targetTemplateId: FormTemplateId)
+GET           /submissions/test-only/snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotPage(formTemplateId: FormTemplateId, snapshotId: SnapshotId, accessCode: Option[AccessCode], currentFormId: Option[FormId], targetTemplateId: FormTemplateId)
 
 GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)

@@ -23,25 +23,18 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormId
 
 import java.time.Instant
 
-case class Snapshot(
+case class SnapshotOverview(
   templateId: FormTemplateId,
   snapshotId: SnapshotId,
   savedAt: Instant,
   description: Description,
   gformVersion: GformVersion,
-  gformFrontendVersion: GformFrontendVersion
+  gformFrontendVersion: GformFrontendVersion,
+  formData: Option[JsObject]
 )
 
-object Snapshot {
-  implicit val format: OFormat[Snapshot] = derived.oformat()
-}
-
-case class SnapshotWithData(
-  snapshot: Snapshot,
-  formData: JsObject
-)
-object SnapshotWithData {
-  implicit val format: OFormat[SnapshotWithData] = derived.oformat()
+object SnapshotOverview {
+  implicit val format: OFormat[SnapshotOverview] = derived.oformat()
 }
 
 case class SaveRequest(
