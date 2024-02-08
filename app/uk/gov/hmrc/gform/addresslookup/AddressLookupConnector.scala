@@ -65,7 +65,9 @@ object AddressLookupConnector {
                   }
                 )
             case other =>
-              logger.error(s"Problem when calling address lookup. Http status: $other, body: ${httpResponse.body}")
+              logger.error(
+                s"Problem when calling address lookup with postcode '${postcodeLookupRequest.postcode}'. Http status: $other, body: ${httpResponse.body}"
+              )
               CannotRetrieveResponse
           }
         }.recover { case ex =>
