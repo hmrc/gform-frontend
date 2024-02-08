@@ -21,6 +21,7 @@ import cats.syntax.eq._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CacheData
@@ -30,11 +31,10 @@ import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, HMRCClaimForm, HMRCReturnForm, TaskSectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ HMRCClaimForm, HMRCReturnForm }
 
 class TaskListRenderingService(
   frontendAppConfig: FrontendAppConfig,
@@ -112,11 +112,15 @@ class TaskListRenderingService(
                 formModelOptics.formModelVisibilityOptics,
                 Some(coordinate)
               )
+            validatedATLs <- validationService.validateATLs(
+                               formModel.taskList.availablePages(coordinate),
+                               formModelOptics.formModelVisibilityOptics
+                             )
           } yield {
             val taskStatus =
               if (dataForCoordinate.isEmpty) {
                 TaskStatus.NotStarted
-              } else if (formHandlerResult.isFormValid && !hasTerminationPage) {
+              } else if (formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid) {
                 TaskStatus.Completed
               } else {
                 TaskStatus.InProgress
