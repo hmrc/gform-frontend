@@ -463,18 +463,18 @@ class TestOnlyController(
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
       // import i18nSupport._
-      val currentFormId = cache.form._id.value
+      val currentFormId = cache.form._id
       val description = request.body.asFormUrlEncoded.get("description").head
-      val saveRequest = SaveRequest(currentFormId, description, BuildInfo.version)
+      val saveRequest = SaveRequest(currentFormId, Description(description), GformFrontendVersion(BuildInfo.version))
       for {
         snapshotWithData <- gformConnector.saveForm(saveRequest)
       } yield Redirect(
         uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
-          FormTemplateId(snapshotWithData.snapshot.templateId),
+          snapshotWithData.snapshot.templateId,
           snapshotWithData.snapshot.snapshotId,
           maybeAccessCode,
           None,
-          FormTemplateId(snapshotWithData.snapshot.templateId)
+          snapshotWithData.snapshot.templateId
         )
       )
   }
@@ -487,17 +487,18 @@ class TestOnlyController(
       val snapshotId = request.body.asFormUrlEncoded.get("snapshotId").head
       val formData = request.body.asFormUrlEncoded.get("formData").head
       val description = request.body.asFormUrlEncoded.get("description").head
-      val updateRequest = UpdateSnapshotRequest(snapshotId, Json.parse(formData).as[JsObject], description)
+      val updateRequest =
+        UpdateSnapshotRequest(SnapshotId(snapshotId), Json.parse(formData).as[JsObject], Description(description))
       for {
         snapshotWithData <- gformConnector.updateSnapshot(updateRequest)
 
       } yield Redirect(
         uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
-          FormTemplateId(snapshotWithData.snapshot.templateId),
+          snapshotWithData.snapshot.templateId,
           snapshotWithData.snapshot.snapshotId,
           maybeAccessCode,
           None,
-          FormTemplateId(snapshotWithData.snapshot.templateId)
+          snapshotWithData.snapshot.templateId
         )
       )
   }
@@ -508,7 +509,7 @@ class TestOnlyController(
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
       val formData = request.body.asFormUrlEncoded.get("formData").head
-      val currentFormId = cache.form._id.value
+      val currentFormId = cache.form._id
       val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(formData).as[JsObject])
       for {
         saveReply <- gformConnector.updateFormData(updateRequest)
@@ -568,12 +569,12 @@ class TestOnlyController(
     for {
       snapshot <- gformConnector.restoreForm(snapshotId, formId)
     } yield Redirect(
-      uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(FormTemplateId(snapshot.templateId))
+      uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(snapshot.templateId)
     )
 
   def updateSnapshotPage(
     formTemplateId: FormTemplateId,
-    snapshotId: String,
+    snapshotId: SnapshotId,
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => implicit lang => cache => _ => formModelOptics =>
@@ -594,7 +595,7 @@ class TestOnlyController(
 
   def snapshotPage(
     formTemplateId: FormTemplateId,
-    snapshotId: String,
+    snapshotId: SnapshotId,
     maybeAccessCode: Option[AccessCode],
     currentFormId: Option[String],
     targetTemplateId: FormTemplateId
@@ -607,16 +608,13 @@ class TestOnlyController(
         val isDataRestore = currentFormId.isDefined
         val versions: Html = Html(
           s"""
-             |gform: ${snapshotFormData.snapshot.gformVersion}</br>
-             |gform-frontend: ${snapshotFormData.snapshot.gformFrontendVersion}
+             |gform: ${snapshotFormData.snapshot.gformVersion.value}</br>
+             |gform-frontend: ${snapshotFormData.snapshot.gformFrontendVersion.value}
              |""".stripMargin
         )
         val formId = currentFormId.getOrElse("")
-        val actionUrl = if (snapshotFormData.snapshot.hasTemplate) {
+        val actionUrl =
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAll(targetTemplateId, maybeAccessCode).path
-        } else {
-          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreCurrentForm(formId).path
-        }
         Ok(
           snapshot_page(
             cache.formTemplate,
@@ -628,7 +626,7 @@ class TestOnlyController(
             Json.prettyPrint(snapshotFormData.formData),
             formId,
             isDataRestore,
-            FormTemplateId(snapshotFormData.snapshot.templateId),
+            snapshotFormData.snapshot.templateId,
             actionUrl
           )
         )
@@ -676,10 +674,10 @@ class TestOnlyController(
     val tableRows: List[List[TableRow]] = snapshots.map { snapshot =>
       List(
         TableRow(
-          content = HtmlContent(Html(snapshot.templateId))
+          content = HtmlContent(Html(snapshot.templateId.value))
         ),
         TableRow(
-          content = HtmlContent(Html(snapshot.description))
+          content = HtmlContent(Html(snapshot.description.value))
         ),
         TableRow(
           content = Text(formatInstant(snapshot.savedAt))
@@ -692,7 +690,7 @@ class TestOnlyController(
                 snapshot.snapshotId,
                 accessCode,
                 Some(currentFormId),
-                FormTemplateId(snapshot.templateId)
+                snapshot.templateId
               )
               .url
             s"""<a class=govuk-link href='$url'>${snapshot.snapshotId}</a>"""
