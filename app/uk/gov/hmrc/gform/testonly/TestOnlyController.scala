@@ -666,7 +666,8 @@ class TestOnlyController(
           content = HtmlContent(Html(snapshot.templateId.value))
         ),
         TableRow(
-          content = HtmlContent(Html(snapshot.description.value))
+          content = HtmlContent(Html(snapshot.description.value)),
+          attributes = Map("style" -> "word-break: break-word")
         ),
         TableRow(
           content = Text(formatInstant(snapshot.savedAt))
