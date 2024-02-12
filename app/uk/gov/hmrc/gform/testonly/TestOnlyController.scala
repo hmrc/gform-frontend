@@ -529,18 +529,22 @@ class TestOnlyController(
 
   def restoreAll(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
-      val snapshotId = request.body.asFormUrlEncoded.get("snapshotId").head
+      val maybeSnapshotId = request.body.asFormUrlEncoded.get("snapshotId").headOption
       // composite auth config redirects to the original url
       // so we can't use authWithoutRetrievingForm in a POST request here
-      Future.successful(
-        Redirect(
-          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllGet(
-            formTemplateId,
-            maybeAccessCode,
-            SnapshotId(snapshotId)
+      maybeSnapshotId match {
+        case Some(snapshotId) =>
+          Future.successful(
+            Redirect(
+              uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllGet(
+                formTemplateId,
+                maybeAccessCode,
+                SnapshotId(snapshotId)
+              )
+            )
           )
-        )
-      )
+        case None => throw new IllegalArgumentException("snapshotId is required")
+      }
     }
 
   def restoreAllGet(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], snapshotId: SnapshotId) =
