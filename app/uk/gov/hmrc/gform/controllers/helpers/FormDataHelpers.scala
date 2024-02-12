@@ -227,7 +227,7 @@ object FormDataHelpers {
             .addressLookup(formComponentId.baseComponentId) && formComponentId.modelComponentId.fold(_ => false)({
             case ModelComponentId.Atomic(_, Address.postcode) => true
             case _                                            => false
-          }) =>
+          }) || formModel.postcodeLookup(formComponentId.baseComponentId) =>
         PostcodeLookupValidation.normalisePostcode(value)
       case _ => value
     }
