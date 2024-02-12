@@ -52,7 +52,7 @@ class HttpAuditingService(appName: String, auditConnector: AuditConnector)(impli
   private val httpAuditEvent = new HttpAuditEvent {
     //function dataEvent is protected, we need to access it this is why it's exposed in such way
     def dataEvent0(eventType: String, transactionName: String, request: RequestHeader)(implicit
-      hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+      hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
     ) =
       dataEvent(eventType, transactionName, request)
     override def appName = self.appName
