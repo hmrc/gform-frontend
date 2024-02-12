@@ -37,6 +37,7 @@ GET           /submissions/test-only/config                            uk.gov.hm
 
 POST          /submissions/test-only/restore-current-form/:formId                 uk.gov.hmrc.gform.testonly.TestOnlyController.restoreCurrentForm(formId: String)
 POST          /submissions/test-only/restore-all/:formTemplateId/:maybeAcccessCode                  uk.gov.hmrc.gform.testonly.TestOnlyController.restoreAll(formTemplateId: FormTemplateId, maybeAcccessCode: Option[AccessCode])
+GET           /submissions/test-only/restore-all/:formTemplateId/:maybeAcccessCode/:snapshotId      uk.gov.hmrc.gform.testonly.TestOnlyController.restoreAllGet(formTemplateId: FormTemplateId, maybeAcccessCode: Option[AccessCode], snapshotId: SnapshotId)
 GET          /submissions/test-only/restore-continue/:formTemplateId/:maybeAcccessCode              uk.gov.hmrc.gform.testonly.TestOnlyController.restoreContinue(formTemplateId: FormTemplateId, snapshotId:String, maybeAcccessCode: Option[AccessCode])
 GET           /submissions/test-only/restore-current/:snapshotId/:formId          uk.gov.hmrc.gform.testonly.TestOnlyController.restoreCurrent(snapshotId: String, formId: String)
 POST          /submissions/test-only/save-form/:formTemplateId/:accessCode        uk.gov.hmrc.gform.testonly.TestOnlyController.saveForm(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
