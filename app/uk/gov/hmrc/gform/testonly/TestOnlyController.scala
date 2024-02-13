@@ -461,21 +461,29 @@ class TestOnlyController(
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
-      // import i18nSupport._
-      val currentFormId = cache.form._id
-      val description = request.body.asFormUrlEncoded.get("description").head
-      val saveRequest = SaveRequest(currentFormId, Description(description), GformFrontendVersion(BuildInfo.version))
-      for {
-        snapshotOverview <- gformConnector.saveForm(saveRequest)
-      } yield Redirect(
-        uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
-          snapshotOverview.templateId,
-          snapshotOverview.snapshotId,
-          maybeAccessCode,
-          None,
-          snapshotOverview.templateId
+      import SnapshotForms._
+      saveFormUserData
+        .bindFromRequest()
+        .fold(
+          formWithErrors => BadRequest("can not bind updateSnapshot data").pure[Future],
+          userData => {
+            val currentFormId = cache.form._id
+            val description = userData.description
+            val saveRequest =
+              SaveRequest(currentFormId, Description(description), GformFrontendVersion(BuildInfo.version))
+            for {
+              snapshotOverview <- gformConnector.saveForm(saveRequest)
+            } yield Redirect(
+              uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
+                snapshotOverview.templateId,
+                snapshotOverview.snapshotId,
+                maybeAccessCode,
+                None,
+                snapshotOverview.templateId
+              )
+            )
+          }
         )
-      )
   }
 
   def updateSnapshot(
@@ -483,23 +491,32 @@ class TestOnlyController(
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
-      val snapshotId = request.body.asFormUrlEncoded.get("snapshotId").head
-      val formData = request.body.asFormUrlEncoded.get("formData").head
-      val description = request.body.asFormUrlEncoded.get("description").head
-      val updateRequest =
-        UpdateSnapshotRequest(SnapshotId(snapshotId), Json.parse(formData).as[JsObject], Description(description))
-      for {
-        snapshotOverview <- gformConnector.updateSnapshot(updateRequest)
+      import SnapshotForms._
+      updateSnapshotUserData
+        .bindFromRequest()
+        .fold(
+          formWithErrors => BadRequest("can not bind updateSnapshot data").pure[Future],
+          userData => {
+            val updateRequest =
+              UpdateSnapshotRequest(
+                SnapshotId(userData.snapshotId),
+                Json.parse(userData.formData).as[JsObject],
+                Description(userData.description)
+              )
+            for {
+              snapshotOverview <- gformConnector.updateSnapshot(updateRequest)
 
-      } yield Redirect(
-        uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
-          snapshotOverview.templateId,
-          snapshotOverview.snapshotId,
-          maybeAccessCode,
-          None,
-          snapshotOverview.templateId
+            } yield Redirect(
+              uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
+                snapshotOverview.templateId,
+                snapshotOverview.snapshotId,
+                maybeAccessCode,
+                None,
+                snapshotOverview.templateId
+              )
+            )
+          }
         )
-      )
   }
 
   def updateFormData(
@@ -507,12 +524,20 @@ class TestOnlyController(
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
-      val formData = request.body.asFormUrlEncoded.get("formData").head
-      val currentFormId = cache.form._id
-      val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(formData).as[JsObject])
-      for {
-        saveReply <- gformConnector.updateFormData(updateRequest)
-      } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+      import SnapshotForms._
+      updateFormUserData
+        .bindFromRequest()
+        .fold(
+          formWithErrors => BadRequest("can not bind updateForm data").pure[Future],
+          userData => {
+            val formData = userData.formData
+            val currentFormId = cache.form._id
+            val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(formData).as[JsObject])
+            for {
+              saveReply <- gformConnector.updateFormData(updateRequest)
+            } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+          }
+        )
 
   }
 
@@ -529,22 +554,22 @@ class TestOnlyController(
 
   def restoreAll(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
-      val maybeSnapshotId = request.body.asFormUrlEncoded.get("snapshotId").headOption
-      // composite auth config redirects to the original url
-      // so we can't use authWithoutRetrievingForm in a POST request here
-      maybeSnapshotId match {
-        case Some(snapshotId) =>
-          Future.successful(
-            Redirect(
-              uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllGet(
-                formTemplateId,
-                maybeAccessCode,
-                SnapshotId(snapshotId)
+      import SnapshotForms._
+      snapshotIdUserData
+        .bindFromRequest()
+        .fold(
+          formWithErrors => BadRequest("can not bind snapshot id data").pure[Future],
+          userData =>
+            Future.successful(
+              Redirect(
+                uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllGet(
+                  formTemplateId,
+                  maybeAccessCode,
+                  SnapshotId(userData.snapshotId)
+                )
               )
             )
-          )
-        case None => throw new IllegalArgumentException("snapshotId is required")
-      }
+        )
     }
 
   def restoreAllGet(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], snapshotId: SnapshotId) =
@@ -572,12 +597,6 @@ class TestOnlyController(
     implicit request => _ => cache => _ => formModelOptics =>
       restore(snapshotId, cache.form._id.value)
   }
-
-  def restoreCurrentForm(formId: String) =
-    Action.async { implicit request =>
-      val savedId = request.body.asFormUrlEncoded.get("snapshotId").head
-      restore(savedId, formId)
-    }
 
   def restoreCurrent(snapshotId: String, formId: String) =
     Action.async { implicit request =>
