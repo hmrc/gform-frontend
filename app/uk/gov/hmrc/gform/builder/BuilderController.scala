@@ -66,7 +66,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    7; // This is managed manually. Increase it any time API used by builder extension is changed.
+    8; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -270,6 +270,17 @@ class BuilderController(
                           "sectionPath" := CursorOp.opsToPath(history)
                         )
                       }
+                      .orElse(findFormComponentInDefaultPage(addToListJson, head.baseComponentId).map { addToListJson =>
+                        val history: List[CursorOp] =
+                          List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
+                            historySuffix
+                        Json.obj(
+                          "atlIterationIndex" := head.modelComponentId.maybeIndex.getOrElse(0),
+                          "atlDefaultPage" := true,
+                          "section" := addToListJson,
+                          "sectionPath" := CursorOp.opsToPath(history)
+                        )
+                      })
                 }
               }(checkYouAnswers => Option.empty[Json]) { repeater =>
                 val history: List[CursorOp] =
@@ -307,6 +318,22 @@ class BuilderController(
           }
         }
       }
+
+  private def findFormComponentInDefaultPage(addToListJson: Json, compName: BaseComponentId): Option[Json] =
+    addToListJson.hcursor
+      .downField("defaultPage")
+      .focus
+      .find { defaultPage =>
+        defaultPage.hcursor.downField("fields").values.exists { fields =>
+          fields.exists { field =>
+            field.hcursor
+              .downField("id")
+              .focus
+              .contains(Json.fromString(compName.value))
+          }
+        }
+      }
+      .map(_ => addToListJson)
 
   private def sanitiseHtml(html: Html): String =
     html.toString
@@ -795,6 +822,33 @@ class BuilderController(
     }
   }
 
+  def fetchAtlDefaultPageHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => lang => cache => implicit sse => formModelOptics =>
+        import i18nSupport._
+        val singleton =
+          formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+
+        val pageHeading: Html = uk.gov.hmrc.gform.views.html
+          .page_heading(singleton.title.value(), singleton.caption.map(_.value()))
+
+        val continueLabel = SectionRenderingService.determineContinueLabelKey(
+          cache.retrievals.continueLabelKey,
+          cache.formTemplate.draftRetrievalMethod.isNotPermitted,
+          singleton.page.continueLabel,
+          false
+        )
+
+        Ok(
+          Json
+            .obj(
+              "pageHeading" := pageHeading,
+              "continueLabel" := continueLabel
+            )
+        )
+          .pure[Future]
+    }
+
   def fetchAtlRepeaterHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
     fetchAtlRepeater(formTemplateId, sectionNumber) { _ => implicit sse => repeater => bracket =>
       val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
@@ -818,6 +872,26 @@ class BuilderController(
       Json.obj(
         "label" := repeater.addAnotherQuestion.label.value()
       )
+    }
+
+  def fetchAtlDefaultPageFormComponentHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    formComponentId: FormComponentId
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        import i18nSupport._
+
+        toComponentHtml(formModelOptics, formTemplateId, sectionNumber, formComponentId.withFirstIndex, cache) match {
+          case Left(error) => badRequest(error).pure[Future]
+          case Right(html) =>
+            Ok(
+              Json.obj(
+                "html" := sanitiseHtml(html)
+              )
+            ).pure[Future]
+        }
     }
 
   def fetchAtlRepeaterFormComponentHtml(

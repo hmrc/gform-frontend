@@ -196,7 +196,7 @@ class SectionRenderingService(
       sectionNumber,
       summaryListRecords.filterNot(_.rows.size === 0),
       frontendAppConfig,
-      determineContinueLabelKey(
+      SectionRenderingService.determineContinueLabelKey(
         cache.retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
         checkYourAnswers.expandedContinueLabel,
@@ -384,7 +384,7 @@ class SectionRenderingService(
       frontendAppConfig,
       actionForm,
       renderComeBackLater,
-      determineContinueLabelKey(
+      SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
         bracket.source.repeaterContinueLabel,
@@ -519,7 +519,7 @@ class SectionRenderingService(
         }
       },
       renderComeBackLater,
-      determineContinueLabelKey(
+      SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
         formTemplate.draftRetrievalMethod.isNotPermitted,
         page.continueLabel,
@@ -3162,7 +3162,16 @@ class SectionRenderingService(
       case _                     => ""
     }
 
-  private def determineContinueLabelKey(
+  private val govukErrorMessage: components.GovukErrorMessage = new components.GovukErrorMessage()
+  private val govukFieldset: components.GovukFieldset = new components.GovukFieldset()
+  private val govukHint: components.GovukHint = new components.GovukHint()
+  private val govukLabel: components.GovukLabel = new components.GovukLabel()
+  private val govukInput: components.GovukInput = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
+
+}
+
+object SectionRenderingService {
+  def determineContinueLabelKey(
     continueLabelKey: String,
     isNotPermitted: Boolean,
     continueLabel: Option[SmartString],
@@ -3174,16 +3183,6 @@ class SectionRenderingService(
       case (None, false, false) => messages(continueLabelKey)
       case (None, false, true)  => messages("file.upload")
     }
-
-  private val govukErrorMessage: components.GovukErrorMessage = new components.GovukErrorMessage()
-  private val govukFieldset: components.GovukFieldset = new components.GovukFieldset()
-  private val govukHint: components.GovukHint = new components.GovukHint()
-  private val govukLabel: components.GovukLabel = new components.GovukLabel()
-  private val govukInput: components.GovukInput = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
-
-}
-
-object SectionRenderingService {
   def normaliseTableComp(table: TableComp, isVisibleValueRow: TableValueRow => Boolean): TableComp = {
 
     def rowSpansIndexes(row: TableValueRow): List[(Int, TableValue)] = row.values.zipWithIndex.flatMap {
