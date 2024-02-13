@@ -20,6 +20,8 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import play.api.data.Forms._
+import play.api.data._
 
 import java.time.Instant
 
@@ -95,4 +97,41 @@ case class GformFrontendVersion(value: String) extends AnyVal
 
 object GformFrontendVersion {
   implicit val format: Format[GformFrontendVersion] = Json.valueFormat
+}
+
+object SnapshotForms {
+  case class UpdateSnapshotUserData(snapshotId: String, formData: String, description: String)
+
+  val updateSnapshotUserData: Form[UpdateSnapshotUserData] = Form(
+    mapping(
+      "snapshotId"  -> nonEmptyText,
+      "formData"    -> text,
+      "description" -> text
+    )(UpdateSnapshotUserData.apply)(UpdateSnapshotUserData.unapply)
+  )
+
+  case class UpdateFormUserData(formData: String)
+
+  val updateFormUserData: Form[UpdateFormUserData] = Form(
+    mapping(
+      "formData" -> text
+    )(UpdateFormUserData.apply)(UpdateFormUserData.unapply)
+  )
+
+  case class SnapshotIdUserData(snapshotId: String)
+
+  val snapshotIdUserData: Form[SnapshotIdUserData] = Form(
+    mapping(
+      "snapshotId" -> text
+    )(SnapshotIdUserData.apply)(SnapshotIdUserData.unapply)
+  )
+
+  case class SaveFormUserData(description: String)
+
+  val saveFormUserData: Form[SaveFormUserData] = Form(
+    mapping(
+      "description" -> text
+    )(SaveFormUserData.apply)(SaveFormUserData.unapply)
+  )
+
 }
