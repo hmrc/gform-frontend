@@ -265,7 +265,7 @@ class FormProcessor(
                                                                       validationSectionNumber,
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
-                                                                      validationService.validatePageModel,
+                                                                      validationService.validatePageModelWithoutCustomValidators,
                                                                       enteredVariadicFormData
                                                                     )
       dataRetrieveResult <- {
@@ -289,27 +289,30 @@ class FormProcessor(
           maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
         }
 
-        val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-        pageModel
-          .fold { singleton =>
-            singleton.page
-              .dataRetrieves()
-              .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) { case (acc, r) =>
-                acc.flatMap {
-                  case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
-                    retrieveWithState(r, optics).map {
-                      case (Some(result), updatedOptics) =>
-                        (results :+ result) -> updatedOptics
-                      case (None, _) =>
-                        results -> optics
+        if (isValid) {
+          val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+          pageModel
+            .fold { singleton =>
+              singleton.page
+                .dataRetrieves()
+                .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) {
+                  case (acc, r) =>
+                    acc.flatMap {
+                      case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
+                        retrieveWithState(r, optics).map {
+                          case (Some(result), updatedOptics) =>
+                            (results :+ result) -> updatedOptics
+                          case (None, _) =>
+                            results -> optics
+                        }
+                      case (results, optics) => Future.successful(results -> optics)
                     }
-                  case (results, optics) => Future.successful(results -> optics)
                 }
-              }
-          }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
-            Future.successful(List() -> initialVisibilityOptics)
-          )
-          .map(_._1)
+            }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
+              Future.successful(List() -> initialVisibilityOptics)
+            )
+            .map(_._1)
+        } else List.empty.pure[Future]
       }
 
       updatePostcodeLookup <-

@@ -67,16 +67,51 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
+  ): Future[ValidatedType[ValidatorsResult]] =
+    validatePageModelBase(pageModel, cache, envelope, formModelVisibilityOptics, getEmailCodeFieldMatcher, true)
+
+  def validatePageModelWithoutCustomValidators[D <: DataOrigin](
+    pageModel: PageModel[Visibility],
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[ValidatedType[ValidatorsResult]] =
+    validatePageModelBase(pageModel, cache, envelope, formModelVisibilityOptics, getEmailCodeFieldMatcher, false)
+
+  private def validatePageModelBase[D <: DataOrigin](
+    pageModel: PageModel[Visibility],
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
+    validateCustomValidators: Boolean
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
   ): Future[ValidatedType[ValidatorsResult]] = {
-    // format: off
     val eT = for {
-      _                     <- lift(validatePageModelComponents(pageModel, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
+      _ <- lift(
+             validatePageModelComponents(
+               pageModel,
+               formModelVisibilityOptics,
+               cache,
+               envelope,
+               getEmailCodeFieldMatcher,
+               validateCustomValidators
+             )
+           )
       formTemplateId = cache.formTemplate._id
-      emailsForVerification <- lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
-    } yield {
-      ValidatorsResult(emailVerification = emailsForVerification)
-    }
-    // format: on
+      emailsForVerification <-
+        lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
+    } yield ValidatorsResult(emailVerification = emailsForVerification)
 
     eT.value.map(Validated.fromEither)
   }
@@ -141,11 +176,21 @@ class ValidationService(
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
+    validateValidators: Boolean
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
     pageModel.allFormComponents
       .filterNot(_.onlyShowOnSummary)
-      .traverse(fv => validateFormComponent(fv, formModelVisibilityOptics, cache, envelope, getEmailCodeFieldMatcher))
+      .traverse(fv =>
+        validateFormComponent(
+          fv,
+          formModelVisibilityOptics,
+          cache,
+          envelope,
+          getEmailCodeFieldMatcher,
+          validateValidators
+        )
+      )
       .map(res => Monoid[ValidatedType[Unit]].combineAll(res))
 
   def validateAllSections[D <: DataOrigin](
@@ -165,7 +210,8 @@ class ValidationService(
           formModelVisibilityOptics,
           cache,
           envelope,
-          GetEmailCodeFieldMatcher.noop
+          GetEmailCodeFieldMatcher.noop,
+          true
         )
       )
       .map { res =>
@@ -180,7 +226,8 @@ class ValidationService(
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
+    validateValidators: Boolean
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -193,7 +240,8 @@ class ValidationService(
       envelope,
       lookupRegistry,
       booleanExprEval,
-      checkInterpreter
+      checkInterpreter,
+      validateValidators
     ).validate(getEmailCodeFieldMatcher)
 
   private def sendVerificationEmails[D <: DataOrigin](

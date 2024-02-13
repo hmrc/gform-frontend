@@ -76,7 +76,8 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
   booleanExprEval: BooleanExprEval[F],
-  interpreter: CheckInterpreter
+  interpreter: CheckInterpreter,
+  validateCustomValidators: Boolean
 )(implicit
   messages: Messages,
   l: LangADT,
@@ -90,7 +91,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
   ): F[ValidatedType[Unit]] =
     if (validationResult.isValid) {
       for {
-        firstCustomer <- findFirstCustomValidationError
+        firstCustomer <- if (validateCustomValidators) findFirstCustomValidationError else None.pure[F]
         res           <- produceCustomValidationErrorOrDefaultValidationResult(firstCustomer, validationResult)
       } yield res
     } else validationResult.pure[F]

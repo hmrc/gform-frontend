@@ -325,7 +325,8 @@ class TestOnlyErrorMessageController(
           EnvelopeWithMapping.empty,
           lookupRegistry,
           new BooleanExprEval(),
-          ComponentChecker.ErrorReportInterpreter
+          ComponentChecker.ErrorReportInterpreter,
+          true
         ).validate(GetEmailCodeFieldMatcher(formModel)).map {
           case Valid(a)                      => (formComponent, GformError.emptyGformError)
           case Validated.Invalid(gformError) => (formComponent, gformError)
