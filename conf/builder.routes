@@ -14,6 +14,8 @@ GET  /original-acknowledgement/:formTemplateId                                 u
 GET  /generate-acknowledgement-panel-html/:formTemplateId                      uk.gov.hmrc.gform.builder.BuilderController.generateAcknowledgementPanelHtml(formTemplateId: FormTemplateId)
 GET  /generate-component-html-acknowledgement-section/:formTemplateId/:formComponentId uk.gov.hmrc.gform.builder.BuilderController.htmlForAcknowledgementFormComponent(formTemplateId: FormTemplateId, formComponentId: FormComponentId)
 
+GET  /generate-atl-default-page/:formTemplateId/:sectionNumber                  uk.gov.hmrc.gform.builder.BuilderController.fetchAtlDefaultPageHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)
 GET  /generate-atl-repeater/:formTemplateId/:sectionNumber                      uk.gov.hmrc.gform.builder.BuilderController.fetchAtlRepeaterHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)
 GET  /generate-atl-repeater/add-another-question/:formTemplateId/:sectionNumber uk.gov.hmrc.gform.builder.BuilderController.fetchAtlRepeaterAddAnotherQuestionHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)
-GET  /generate-component-html-atl-repeater/:formTemplateId/:sectionNumber/:formComponentId     uk.gov.hmrc.gform.builder.BuilderController.fetchAtlRepeaterFormComponentHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, formComponentId: FormComponentId)
+GET  /generate-component-html-atl-repeater/:formTemplateId/:sectionNumber/:formComponentId      uk.gov.hmrc.gform.builder.BuilderController.fetchAtlRepeaterFormComponentHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, formComponentId: FormComponentId)
+GET  /generate-component-html-atl-default-page/:formTemplateId/:sectionNumber/:formComponentId  uk.gov.hmrc.gform.builder.BuilderController.fetchAtlDefaultPageFormComponentHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber, formComponentId: FormComponentId)
