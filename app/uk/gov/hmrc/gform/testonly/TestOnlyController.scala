@@ -528,18 +528,37 @@ class TestOnlyController(
   }
 
   def restoreAll(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
+    controllerComponents.actionBuilder.async { implicit request =>
+      val maybeSnapshotId = request.body.asFormUrlEncoded.get("snapshotId").headOption
+      // composite auth config redirects to the original url
+      // so we can't use authWithoutRetrievingForm in a POST request here
+      maybeSnapshotId match {
+        case Some(snapshotId) =>
+          Future.successful(
+            Redirect(
+              uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllGet(
+                formTemplateId,
+                maybeAccessCode,
+                SnapshotId(snapshotId)
+              )
+            )
+          )
+        case None => throw new IllegalArgumentException("snapshotId is required")
+      }
+    }
+
+  def restoreAllGet(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], snapshotId: SnapshotId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
       implicit request => implicit lang => cache =>
-        val snapshotId = request.body.asFormUrlEncoded.get("snapshotId").head
         val formTemplateContext = request.attrs(FormTemplateKey)
         for {
           // create a brand new form with snapshot's template id
-          _ <- gformConnector.restoreSnapshotTemplate(snapshotId)
+          _ <- gformConnector.restoreSnapshotTemplate(snapshotId.value)
           _ <- newFormController.continue(cache, formTemplateContext.formTemplate)
         } yield Redirect(
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreContinue(
             formTemplateId,
-            snapshotId,
+            snapshotId.value,
             maybeAccessCode
           )
         )
