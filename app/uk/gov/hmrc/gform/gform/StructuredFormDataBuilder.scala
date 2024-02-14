@@ -33,11 +33,10 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ RetrieveDataType, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
-import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormDataFieldNamePurpose
+import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormDataFieldNamePurpose, StructuredFormValue }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
-import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 import uk.gov.hmrc.gform.ops.FormComponentOps
 
@@ -155,11 +154,11 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     .map(_.modelComponentId)
     .toSet
 
-  private val sanitiseRequiredIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
+  private val sanitiseRequiredIds: Set[BaseComponentId] = formModelVisibilityOptics.formModel.allFormComponents
     .collect {
       case fc if fc.isSterling || fc.isPositiveNumber || fc.isNumber => fc.id
     }
-    .map(_.modelComponentId)
+    .map(_.baseComponentId)
     .toSet
 
   private val choicesWithDynamic: List[
@@ -264,23 +263,22 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     val fields =
       (addToListFields, revealingChoiceFields, restOfTheFields, expressionsOutputFields.pure[F]).mapN(_ ++ _ ++ _ ++ _)
 
-    fields.map(_.map(sanitiseFieldValue))
+    fields.map(_.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
   }
 
-  private def sanitiseFieldValue(field: Field): Field =
-    if (sanitiseRequiredIds(FormComponentId(field.name.name).modelComponentId)) {
-      field.copy(value = sanitiseStructuredFormValue(field.value))
-    } else {
-      field
-    }
-
-  private def sanitiseStructuredFormValue(structuredFormValue: StructuredFormValue): StructuredFormValue =
-    structuredFormValue match {
-      case TextNode(value) =>
-        val poundOrComma = "[£,]".r
-        TextNode(poundOrComma.replaceAllIn(value, ""))
-      case ArrayNode(elements)     => ArrayNode(elements.map(sanitiseStructuredFormValue))
-      case ObjectStructure(fields) => ObjectStructure(fields.map(sanitiseFieldValue))
+  private def sanitiseStructuredFormValue(field: Field): StructuredFormValue =
+    field.value match {
+      case ObjectStructure(fields) =>
+        ObjectStructure(fields.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
+      case t @ TextNode(_) =>
+        if (sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
+          val poundOrComma = "[£,]".r
+          TextNode(poundOrComma.replaceAllIn(t.value, ""))
+        } else {
+          t
+        }
+      case ArrayNode(elements) =>
+        ArrayNode(elements.map(element => sanitiseStructuredFormValue(field.copy(value = element))))
     }
 
   private def buildAddToList(implicit l: LangADT, m: Messages): (F[List[Field]], List[MultiValueId]) = {
