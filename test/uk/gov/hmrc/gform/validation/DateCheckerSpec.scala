@@ -103,7 +103,8 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       EnvelopeWithMapping.empty,
       lookupRegistry,
       booleanExprEval,
-      ComponentChecker.NonShortCircuitInterpreter
+      ComponentChecker.NonShortCircuitInterpreter,
+      true
     )
 
   private def componentsValidator(

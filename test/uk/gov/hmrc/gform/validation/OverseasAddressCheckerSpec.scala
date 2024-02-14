@@ -152,7 +152,8 @@ class OverseasAddressCheckerSpec
       EnvelopeWithMapping.empty,
       lookupRegistry,
       booleanExprEval,
-      ComponentChecker.NonShortCircuitInterpreter
+      ComponentChecker.NonShortCircuitInterpreter,
+      true
     )
 
   "OverseasAddress validation" should "accept line1, line2, line3, city,  postcode and country" in {
