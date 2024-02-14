@@ -465,7 +465,7 @@ class TestOnlyController(
       saveFormUserData
         .bindFromRequest()
         .fold(
-          formWithErrors => BadRequest("can not bind updateSnapshot data").pure[Future],
+          formWithErrors => BadRequest("save form errors ${formWithErrors.errorsAsJson}").pure[Future],
           userData => {
             val currentFormId = cache.form._id
             val description = userData.description
@@ -490,12 +490,24 @@ class TestOnlyController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
-    implicit request => _ => cache => _ => formModelOptics =>
+    implicit request => implicit lang => cache => _ => formModelOptics =>
       import SnapshotForms._
+      import i18nSupport._
       updateSnapshotUserData
         .bindFromRequest()
         .fold(
-          formWithErrors => BadRequest("can not bind updateSnapshot data").pure[Future],
+          formWithErrors =>
+            BadRequest(
+              update_snapshot(
+                cache.formTemplate,
+                maybeAccessCode,
+                frontendAppConfig,
+                SnapshotId(formWithErrors("snapshotId").value.getOrElse("")),
+                Description(formWithErrors("description").value.getOrElse("")),
+                formWithErrors("formData").value.getOrElse(""),
+                formWithErrors
+              )
+            ).pure[Future],
           userData => {
             val updateRequest =
               UpdateSnapshotRequest(
@@ -528,7 +540,7 @@ class TestOnlyController(
       updateFormUserData
         .bindFromRequest()
         .fold(
-          formWithErrors => BadRequest("can not bind updateForm data").pure[Future],
+          formWithErrors => BadRequest("update form Data errors ${formWithErrors.errorsAsJson}").pure[Future],
           userData => {
             val formData = userData.formData
             val currentFormId = cache.form._id
@@ -558,7 +570,7 @@ class TestOnlyController(
       snapshotIdUserData
         .bindFromRequest()
         .fold(
-          formWithErrors => BadRequest("can not bind snapshot id data").pure[Future],
+          formWithErrors => BadRequest("restore all errors ${formWithErrors.errorsAsJson}").pure[Future],
           userData =>
             Future.successful(
               Redirect(
@@ -616,6 +628,8 @@ class TestOnlyController(
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => implicit lang => cache => _ => formModelOptics =>
       import i18nSupport._
+
+      import uk.gov.hmrc.gform.testonly.SnapshotForms._
       for {
         snapshotOverivew <- gformConnector.snapshotOverview(snapshotId)
       } yield Ok(
@@ -625,7 +639,8 @@ class TestOnlyController(
           frontendAppConfig,
           snapshotId,
           snapshotOverivew.description,
-          snapshotOverivew.formData.map(_.toString()).getOrElse("")
+          snapshotOverivew.formData.map(_.toString()).getOrElse(""),
+          updateSnapshotUserData
         )
       )
   }

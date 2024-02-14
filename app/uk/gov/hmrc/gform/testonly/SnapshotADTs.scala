@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import play.api.data.Forms._
 import play.api.data._
+import play.api.data.validation._
 
 import java.time.Instant
 
@@ -101,11 +102,18 @@ object GformFrontendVersion {
 
 object SnapshotForms {
   case class UpdateSnapshotUserData(snapshotId: String, formData: String, description: String)
-
+  def validJson(errorMessage: String): Constraint[String] = Constraint("constraints.validJson") { text =>
+    try {
+      Json.parse(text)
+      Valid
+    } catch {
+      case _: Throwable => Invalid(ValidationError(errorMessage))
+    }
+  }
   val updateSnapshotUserData: Form[UpdateSnapshotUserData] = Form(
     mapping(
       "snapshotId"  -> nonEmptyText,
-      "formData"    -> text,
+      "formData"    -> text.verifying(validJson("Invalid JSON format")),
       "description" -> text
     )(UpdateSnapshotUserData.apply)(UpdateSnapshotUserData.unapply)
   )

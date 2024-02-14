@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.testonly.{SnapshotId, Description}
+@import uk.gov.hmrc.gform.testonly.SnapshotForms._
 
 @(
   formTemplate: FormTemplate,
@@ -26,7 +27,8 @@
   frontendAppConfig: FrontendAppConfig,
   snapshotId: SnapshotId,
   description: Description,
-  formData: String
+  formData: String,
+  updateSnapshotUserData: Form[UpdateSnapshotUserData]
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -55,7 +57,13 @@
         <div id="form-data-hint" class="govuk-hint">
           Form data
         </div>
-        <textarea class="govuk-textarea" id="formData" name="formData" rows="5" aria-describedby="form-data-hint" >@formData</textarea>
+
+        @defining(updateSnapshotUserData("formData")) { field: Field =>
+            @if(field.hasErrors) {
+                <span class="govuk-error-message">@field.errors.head.message</span>
+            }
+           <textarea class="govuk-textarea" id="formData" name="formData" rows="5" aria-describedby="form-data-hint" >@formData</textarea>
+        }
         <p class="govuk-body govuk-!-margin-bottom-2"></p>
         <button type="submit" class="govuk-button">Update snapshot</button>
     </form>
