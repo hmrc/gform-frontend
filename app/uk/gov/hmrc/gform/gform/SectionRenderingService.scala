@@ -1862,7 +1862,7 @@ class SectionRenderingService(
       else selections.map(_.toString).toSet
 
     val visibleOptionsWithIndex: NonEmptyList[(OptionData, Int)] = options.zipWithIndex
-      .filter(o => isVisibleOption(o._1, ei.formModelOptics))
+      .filter(o => ei.formTemplate.isSpecimen || isVisibleOption(o._1, ei.formModelOptics))
       .toNel
       .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
 

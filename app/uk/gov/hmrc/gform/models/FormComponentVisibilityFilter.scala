@@ -55,19 +55,20 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
           .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
       )
 
-  def stripHiddenFormComponents(formModel: FormModel[P]): FormModel[P] =
+  def stripHiddenFormComponents(formModel: FormModel[P], isSpecimen: Boolean): FormModel[P] =
     formModel.map[P] { singleton =>
       singleton
         .modify(_.page.fields)
         .using(_.filter(isVisible))
         .modify(_.page.fields.each.`type`)
         .using {
-          case rc: RevealingChoice => stripHiddenFormComponentsFromRevealingChoice(rc)
+          case rc: RevealingChoice =>
+            stripHiddenFormComponentsFromRevealingChoice(rc)
           case c: Choice =>
             val isPageVisible = singleton.page.includeIf.fold(true) { includeIf =>
               formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase)
             }
-            if (isPageVisible) stripHiddenFormComponentsFromChoice(c) else c
+            if (isPageVisible && !isSpecimen) stripHiddenFormComponentsFromChoice(c) else c
           case group: Group => stripHiddenFormComponentsFromGroup(group)
           case i            => i
         }

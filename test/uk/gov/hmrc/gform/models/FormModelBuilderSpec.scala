@@ -90,7 +90,7 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
         fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 
       val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
+        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None, false)
 
       val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
@@ -116,7 +116,8 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
     val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "2")
     val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
       fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](variadicData, None)
-    val formModelOptics = fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
+    val formModelOptics =
+      fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None, false)
 
     formModelOptics.formModelRenderPageOptics.formModel.allFormComponentIds shouldBe List(
       FormComponentId("a"),

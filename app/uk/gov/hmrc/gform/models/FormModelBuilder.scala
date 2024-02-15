@@ -239,7 +239,8 @@ class FormModelBuilder[E, F[_]: Functor](
 
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    isSpecimen: Boolean
   )(implicit messages: Messages): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
@@ -247,7 +248,8 @@ class FormModelBuilder[E, F[_]: Functor](
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
     val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] = getVisibilityModel(formModel, formModelVisibilityOptics, phase)
+    val formModelVisibility: FormModel[Visibility] =
+      getVisibilityModel(formModel, formModelVisibilityOptics, phase, isSpecimen)
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
@@ -266,12 +268,13 @@ class FormModelBuilder[E, F[_]: Functor](
   private def getVisibilityModel[D <: DataOrigin](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    isSpecimen: Boolean
   ): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
-      .stripHiddenFormComponents(formModel)
+      .stripHiddenFormComponents(formModel, isSpecimen)
       .filter { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>
           FormModelBuilder.evalIncludeIf(

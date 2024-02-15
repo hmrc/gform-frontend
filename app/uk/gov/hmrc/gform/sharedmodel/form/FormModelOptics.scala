@@ -109,7 +109,7 @@ object FormModelOptics {
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
       formModelBuilder.visibilityModel(data, phase)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
-      formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
+      formModelBuilder.renderPageModel(formModelVisibilityOptics, phase, cache.formTemplate.isSpecimen)
     }
   }
 

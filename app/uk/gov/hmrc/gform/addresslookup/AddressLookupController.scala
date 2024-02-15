@@ -798,7 +798,11 @@ class AddressLookupController(
     formModelVisibilityOpticsF
       .map { formModelVisibilityOptics =>
         formModelBuilder
-          .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](formModelVisibilityOptics, None)
+          .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+            formModelVisibilityOptics,
+            None,
+            cache.formTemplate.isSpecimen
+          )
       }
       .flatMap(f(syntheticFormComponent)(syntheticCache))
   }
