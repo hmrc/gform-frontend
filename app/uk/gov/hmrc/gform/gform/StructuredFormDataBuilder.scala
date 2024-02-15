@@ -20,6 +20,7 @@ import cats.{ Monad, MonadError }
 import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.i18n.Messages
+
 import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
@@ -32,12 +33,12 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ RetrieveDataType, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
-import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormDataFieldNamePurpose
+import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormDataFieldNamePurpose, StructuredFormValue }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
-import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.ops.FormComponentOps
 
 object StructuredFormDataBuilder {
   def apply[D <: DataOrigin, F[_]: Monad](
@@ -153,6 +154,13 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     .map(_.modelComponentId)
     .toSet
 
+  private val sanitiseRequiredIds: Set[BaseComponentId] = formModelVisibilityOptics.formModel.allFormComponents
+    .collect {
+      case fc if fc.isSterling || fc.isPositiveNumber || fc.isNumber => fc.id
+    }
+    .map(_.baseComponentId)
+    .toSet
+
   private val choicesWithDynamic: List[
     (ModelComponentId, Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]])
   ] =
@@ -252,9 +260,26 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
     val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNotProcessedYet, false)
 
-    (addToListFields, revealingChoiceFields, restOfTheFields, expressionsOutputFields.pure[F]).mapN(_ ++ _ ++ _ ++ _)
+    val fields =
+      (addToListFields, revealingChoiceFields, restOfTheFields, expressionsOutputFields.pure[F]).mapN(_ ++ _ ++ _ ++ _)
 
+    fields.map(_.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
   }
+
+  private def sanitiseStructuredFormValue(field: Field): StructuredFormValue =
+    field.value match {
+      case ObjectStructure(fields) =>
+        ObjectStructure(fields.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
+      case t @ TextNode(_) =>
+        if (sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
+          val poundOrComma = "[£,]".r
+          TextNode(poundOrComma.replaceAllIn(t.value, ""))
+        } else {
+          t
+        }
+      case ArrayNode(elements) =>
+        ArrayNode(elements.map(element => sanitiseStructuredFormValue(field.copy(value = element))))
+    }
 
   private def buildAddToList(implicit l: LangADT, m: Messages): (F[List[Field]], List[MultiValueId]) = {
     val addToLists: List[(AddToListId, List[MultiValueId])] =
