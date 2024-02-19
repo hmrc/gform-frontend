@@ -221,7 +221,7 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
       case Sum(_) =>
-        val substitutions = SummarySubstitutions(exprMap, recData.variadicFormData)
+        val substitutions = SummarySubstitutions(exprMap)
         loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
       case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)

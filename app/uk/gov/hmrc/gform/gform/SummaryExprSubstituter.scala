@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.gform.ExprUpdater
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 
 object SummarySubstituter {
   import Substituter._
@@ -124,53 +123,38 @@ object SummarySubstituter {
     }
 
   case class SummarySubstitutions(
-    exprMap: Map[Expr, ExpressionResult],
-    data: VariadicFormData[SourceOrigin.OutOfDate]
+    exprMap: Map[Expr, ExpressionResult]
   ) {
-    def replaceSumWithAdds(sumExpr: Expr): Expr = {
-      def isFcHidden(formComponentId: FormComponentId): Boolean = {
-        val isHidden = exprMap.get(FormCtx(formComponentId))
-        isHidden.contains(ExpressionResult.Hidden)
-      }
 
-      def extractIndexedFcs(
-        formComponentId: FormComponentId
-      ): List[FormComponentId] = {
-        val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
-        allValues.map(_._1).map(_.toFormComponentId).toList.filter(_.modelComponentId.maybeIndex.isDefined)
-      }
+    /** This method is used to replace the Sum expression with Adds
+      * It also substitutes the hidden FormCtx in the sumExpr with Constant(0)
+      */
+    def replaceSumWithAdds(sumExpr: Expr): Expr = {
+      val sumExprFcIds = sumExpr.allFormComponentIds()
+      val indexedSumFcIdMap = exprMap.collect {
+        case (FormCtx(fcId), evalResult)
+            if sumExprFcIds
+              .map(_.baseComponentId)
+              .contains(fcId.baseComponentId) && fcId.modelComponentId.indexedComponentId.isIndexed =>
+          fcId -> evalResult
+      }.toMap
+
+      val indexedSumExprFcIds = indexedSumFcIdMap.map(_._1)
+      val indices = indexedSumExprFcIds
+        .map(fcId => fcId.modelComponentId.indexedComponentId)
+        .collect { case IndexedComponentId.Indexed(_, index) =>
+          index
+        }
+        .toList
+        .sorted
+        .distinct
 
       import FormComponentIdSubstituter._
       val substitutions = new FormComponentIdSubstitutions()
       val baseSumExpr: Expr =
         implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
-      val allFcs = baseSumExpr.allFormComponentIds()
-      val visibleFcs = allFcs.filterNot(isFcHidden)
-      val allIndexedFcs = visibleFcs.flatMap(fcId => extractIndexedFcs(fcId))
-      // sum should works on the common indices
-      // ignore fields in a partially completed ATL iteration
-      val allIndices = {
-        val lss = allIndexedFcs
-          .groupBy(_.baseComponentId)
-          .toList
-          .map(_._2.flatMap(_.modelComponentId.maybeIndex).sorted)
-        if (lss.isEmpty)
-          List()
-        else
-          lss.reduce(_ intersect _)
-      }
-
-      val fcs = allIndexedFcs.map(_.modelComponentId.removeIndex.toFormComponentId).distinct
-
-      val max = sumExpr
-        .allFormComponentIds()
-        .filter(fc => fcs.headOption.map(_.baseComponentId).contains(fc.baseComponentId))
-        .flatMap(_.modelComponentId.maybeIndex)
-        .toList
-        .maxOption
-
-      allIndices
-        .filter(i => max.forall(m => i <= m))
+      val fcs = indexedSumExprFcIds.map(_.modelComponentId.removeIndex.toFormComponentId).toList.distinct
+      indices
         .map(i => ExprUpdater(baseSumExpr, i, fcs))
         .foldLeft[Expr](Constant("0")) { case (acc, e) =>
           Add(acc, e)
