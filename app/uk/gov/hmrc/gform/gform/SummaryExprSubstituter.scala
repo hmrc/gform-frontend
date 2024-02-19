@@ -154,17 +154,11 @@ object SummarySubstituter {
       val baseSumExpr: Expr =
         implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
       val fcs = indexedSumExprFcIds.map(_.modelComponentId.removeIndex.toFormComponentId).toList.distinct
-      val expr = indices
+      indices
         .map(i => ExprUpdater(baseSumExpr, i, fcs))
         .foldLeft[Expr](Constant("0")) { case (acc, e) =>
           Add(acc, e)
         }
-
-      import HiddenFormComponentSubstituter._
-      val hiddenInexedSumExprFcIds =
-        indexedSumExprFcIds.filter(fcId => exprMap.get(FormCtx(fcId)).contains(ExpressionResult.Hidden)).toList
-      val hiddenSubstitutions = new HiddenFormComponentSubstitutions(hiddenInexedSumExprFcIds)
-      implicitly[Substituter[HiddenFormComponentSubstitutions, Expr]].substitute(hiddenSubstitutions, expr)
     }
   }
 }
