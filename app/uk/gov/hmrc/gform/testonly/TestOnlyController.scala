@@ -29,6 +29,9 @@ import play.api.mvc._
 import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.auth.core.retrieve.v2._
+import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -55,6 +58,7 @@ import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_page, snapshots_page, update_snapshot }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
@@ -70,7 +74,8 @@ class TestOnlyController(
   servicesConfig: ServicesConfig,
   frontendAppConfig: FrontendAppConfig,
   controllerComponents: MessagesControllerComponents,
-  newFormController: NewFormController
+  newFormController: NewFormController,
+  authLoginStubService: AuthLoginStubService
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -456,35 +461,92 @@ class TestOnlyController(
 
   }
 
+  private val defaultRetrievals = Retrievals.credentials and
+    Retrievals.allEnrolments and
+    Retrievals.affinityGroup and
+    Retrievals.groupIdentifier and
+    Retrievals.nino and
+    Retrievals.email and
+    Retrievals.name and
+    Retrievals.confidenceLevel and
+    Retrievals.itmpName and
+    Retrievals.itmpDateOfBirth and
+    Retrievals.itmpAddress and
+    Retrievals.credentialRole and
+    Retrievals.credentialStrength and
+    Retrievals.gatewayInformation and
+    Retrievals.agentInformation
+
   def saveForm(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]
-  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
-    implicit request => _ => cache => _ => formModelOptics =>
-      import SnapshotForms._
-      saveFormUserData
-        .bindFromRequest()
-        .fold(
-          formWithErrors => BadRequest("save form errors ${formWithErrors.errorsAsJson}").pure[Future],
-          userData => {
-            val currentFormId = cache.form._id
-            val description = userData.description
-            val saveRequest =
-              SaveRequest(currentFormId, Description(description), GformFrontendVersion(BuildInfo.version))
-            for {
-              snapshotOverview <- gformConnector.saveForm(saveRequest)
-            } yield Redirect(
-              uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
-                snapshotOverview.templateId,
-                snapshotOverview.snapshotId,
-                maybeAccessCode,
-                None,
-                snapshotOverview.templateId
+  ) =
+    Action.async { implicit request =>
+      implicit val hc: HeaderCarrier =
+        HeaderCarrierConverter.fromRequestAndSession(request, request.session)
+      auth
+        .authorised(AuthProviders(AuthProvider.GovernmentGateway))
+        .retrieve(defaultRetrievals) {
+          case maybeCredentials ~
+              enrolments ~
+              maybeAffinityGroup ~
+              maybeGroupIdentifier ~
+              maybeNino ~
+              maybeEmail ~
+              maybeName ~
+              confidenceLevel ~
+              itmpName ~
+              itmpDateOfBirth ~
+              itmpAddress ~
+              maybeCredentialRole ~
+              credentialStrength ~
+              maybeGatewayInformation ~
+              agentInformation =>
+            val authWizardData = GovernmentGatewayFormData()
+              .withCredentials(maybeCredentials)
+              .withEnrolments(enrolments)
+              .withAffinityGroup(maybeAffinityGroup)
+              .withGroupIdentifier(maybeGroupIdentifier)
+              .withNino(maybeNino)
+              .withEmail(maybeEmail)
+              .withName(maybeName)
+              .withConfidenceLevel(confidenceLevel)
+              .withItmpData(itmpName, itmpDateOfBirth, itmpAddress)
+              .withAgent(agentInformation)
+              .withCredentialRole(maybeCredentialRole)
+              .withCredentialStrength(credentialStrength)
+              .withGatewayToken(maybeGatewayInformation)
+
+            import SnapshotForms._
+            saveFormUserData
+              .bindFromRequest()
+              .fold(
+                formWithErrors => BadRequest("save form errors ${formWithErrors.errorsAsJson}").pure[Future],
+                userData => {
+                  val currentFormId = FormId(userData.currentFormId)
+                  val description = userData.description
+                  val saveRequest =
+                    SaveRequest(
+                      currentFormId,
+                      Description(description),
+                      GformFrontendVersion(BuildInfo.version),
+                      Some(authWizardData)
+                    )
+                  for {
+                    snapshotOverview <- gformConnector.saveForm(saveRequest)
+                  } yield Redirect(
+                    uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
+                      snapshotOverview.templateId,
+                      snapshotOverview.snapshotId,
+                      maybeAccessCode,
+                      None,
+                      snapshotOverview.templateId
+                    )
+                  )
+                }
               )
-            )
-          }
-        )
-  }
+        }
+    }
 
   def updateSnapshot(
     formTemplateId: FormTemplateId,
@@ -571,16 +633,25 @@ class TestOnlyController(
         .bindFromRequest()
         .fold(
           formWithErrors => BadRequest("restore all errors ${formWithErrors.errorsAsJson}").pure[Future],
-          userData =>
-            Future.successful(
-              Redirect(
-                uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllGet(
-                  formTemplateId,
-                  maybeAccessCode,
-                  SnapshotId(userData.snapshotId)
-                )
+          userData => {
+            val redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .restoreAllGet(
+                formTemplateId,
+                maybeAccessCode,
+                SnapshotId(userData.snapshotId)
               )
-            )
+              .url
+            gformConnector
+              .snapshotOverview(SnapshotId(userData.snapshotId))
+              .map(_.ggFormData)
+              .flatMap {
+                case Some(ggFormData) =>
+                  authLoginStubService
+                    .getSession(ggFormData.withRedirectionUrl(redirectUrl))
+                    .map(Redirect(redirectUrl).withSession)
+                case None => Redirect(redirectUrl).pure[Future]
+              }
+          }
         )
     }
 
@@ -651,9 +722,10 @@ class TestOnlyController(
     maybeAccessCode: Option[AccessCode],
     currentFormId: Option[FormId],
     targetTemplateId: FormTemplateId
-  ) = auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
-    implicit request => implicit lang => cache =>
+  ) =
+    controllerComponents.actionBuilder.async { implicit request =>
       import i18nSupport._
+      implicit val lang: LangADT = LangADT.En
       for {
         snapshotOverivew <- gformConnector.snapshotOverview(snapshotId)
       } yield {
@@ -666,9 +738,10 @@ class TestOnlyController(
         )
         val actionUrl =
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAll(targetTemplateId, maybeAccessCode).path
+        val updateFormDataActionUrl =
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplateId, maybeAccessCode).path
         Ok(
           snapshot_page(
-            cache.formTemplate,
             maybeAccessCode,
             frontendAppConfig,
             snapshotId,
@@ -676,11 +749,13 @@ class TestOnlyController(
             versions,
             Json.prettyPrint(snapshotOverivew.formData.getOrElse(Json.obj())),
             isDataRestore,
-            actionUrl
+            actionUrl,
+            updateFormDataActionUrl,
+            Json.prettyPrint(snapshotOverivew.ggFormData.map(Json.toJson(_)).getOrElse(Json.obj()))
           )
         )
       }
-  }
+    }
 
   def getSnapshots(
     formTemplateId: FormTemplateId,

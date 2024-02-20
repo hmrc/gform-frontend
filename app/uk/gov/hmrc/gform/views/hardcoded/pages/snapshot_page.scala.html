@@ -16,13 +16,12 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.testonly.{SnapshotId, Description}
+@import uk.gov.hmrc.gform.views.html.govuk_wrapper
 
 @(
-  formTemplate: FormTemplate,
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
   snapshotId: SnapshotId,
@@ -30,23 +29,19 @@
   versions: Html,
   formData: String,
   isDataRestore: Boolean,
-  actionUrl: String
+  actionUrl: String,
+  updateFormDataActionUrl: String,
+  governmentGatewayCredentials: String
 )(implicit
   request: Request[_],
   messages: Messages,
-  l:LangADT,
+  l:LangADT
 )
 
 @heading = @{"Forms snapshots"}
 
-@uk.gov.hmrc.gform.views.html.main_template(
-  title = heading,
-  formTemplate = formTemplate,
-  frontendAppConfig = frontendAppConfig,
-  isMainContentFullWidth = true,
-  accessCode = None
-) {
-
+@{
+    val customContent = Html(s"""
     <style>
     .button-container {
         display: inline-block;
@@ -58,19 +53,19 @@
     </style>
 
     <div class="button-container">
-    <form action="@actionUrl" method="post">
+    <form action="$actionUrl" method="post">
 
         <p class="govuk-body">Snapshot description:</p>
         <div id="description-hint" class="govuk-hint">
           <pre>
-@description.value
+$description.value
           </pre>
         </div>
 
         <p class="govuk-body">gForm versions:</p>
         <div id="description-hint" class="govuk-hint">
           <pre>
-@versions
+$versions
           </pre>
         </div>
 
@@ -79,21 +74,45 @@
 
         <div id="description-hint" class="govuk-hint">
           <pre>
-@formData
+$formData
+          </pre>
+        </div>
+
+        <p class="govuk-body govuk-!-margin-bottom-2"></p>
+        <p class="govuk-body">Auth info:</p>
+
+        <div id="auth-info-hint" class="govuk-hint">
+          <pre>
+$governmentGatewayCredentials
           </pre>
         </div>
         <p class="govuk-body govuk-!-margin-bottom-2"></p>
 
-        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@snapshotId.value">
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="${snapshotId.value}">
         <button type="submit" class="govuk-button">Restore all</button>
     </form>
 
-    <form action="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplate._id, accessCode).path" method="post">
-        <input type="hidden" class="govuk-input" id="formData" name="formData" value="@formData">
-        <button type="submit" class="govuk-button" @if(!isDataRestore) {disabled}>Restore only data</button>
+    <form action="$updateFormDataActionUrl" method="post">
+        <input type="hidden" class="govuk-input" id="formData" name="formData" value="${HtmlFormat.escape(formData).body}">
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="${snapshotId.value}">
+        <button type="submit" class="govuk-button" ${if(!isDataRestore) "disabled"}>Restore only data</button>
     </form>
 
     </div>
     <p class="govuk-body govuk-!-margin-bottom-2" display="block"></p>
+    """)
 
+    govuk_wrapper(
+      appConfig = frontendAppConfig,
+      serviceTitle = "Snapshot details",
+      headTitle = "Snapshot details",
+      content = customContent,
+      maybeFormTemplate = None,
+      backLink = None,
+      displayTimeoutDialog = false,
+      displaySignOut = false,
+      displayLanguageSwitcher = false,
+      isMainContentFullWidth = false,
+      accessCode = None
+    )
 }
