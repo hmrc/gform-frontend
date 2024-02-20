@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
-import akka.actor.Scheduler
+import org.apache.pekko.actor.Scheduler
 import cats.instances.future._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }

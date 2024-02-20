@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.core
 
-import akka.actor.Scheduler
-import akka.pattern.after
+import org.apache.pekko.actor.Scheduler
+import org.apache.pekko.pattern.after
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.FiniteDuration
 

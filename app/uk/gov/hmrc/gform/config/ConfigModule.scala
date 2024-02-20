@@ -99,7 +99,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails")),
       accessibilityStatementConfig = accessibilityStatementConfig,
       refreshSessionUrl = typesafeConfig.getString("refresh-session-url"),
-      isProd = isProd
+      isProd = isProd,
+      configuration = playConfiguration
     )
   }
 }

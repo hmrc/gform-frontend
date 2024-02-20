@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.bars
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.typesafe.config.{ Config, ConfigFactory }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import cats.data.NonEmptyList
 import play.api.mvc.{ Filter, RequestHeader, Result }
 import uk.gov.hmrc.gform.FormTemplateKey

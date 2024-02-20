@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import _root_.akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.http.HeaderNames
 import play.api.mvc._
 import uk.gov.hmrc.crypto.{ Crypted, Decrypter, Encrypter, PlainText }

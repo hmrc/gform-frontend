@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import akka.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
