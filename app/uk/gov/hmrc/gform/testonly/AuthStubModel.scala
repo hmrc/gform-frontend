@@ -215,7 +215,6 @@ case class GovernmentGatewayFormData(
         ItmpData(
           givenName = itmpName.flatMap(_.givenName),
           middleName = itmpName.flatMap(_.middleName),
-          // how to covert LocalDate to String
           familyName = itmpName.flatMap(_.familyName),
           birthdate = itmpDateOfBirth.map(_.format(formatter)),
           address = authItmpAddress.map(ItmpAddress(_)).getOrElse(ItmpAddress())
