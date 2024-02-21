@@ -37,7 +37,7 @@ class AuthLoginStubService(
     loginData: GovernmentGatewayFormData
   ): Future[Session] =
     login(loginData).fold(
-      e => throw new Exception("can not authenticate user $e"),
+      e => throw new Exception(s"can not authenticate user ${e.error}"),
       identity
     )
 
