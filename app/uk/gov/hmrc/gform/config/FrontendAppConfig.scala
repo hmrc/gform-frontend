@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.config
 
 import cats.data.NonEmptyList
 import org.typelevel.ci.CIString
+import play.api.Configuration
 import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
@@ -40,7 +41,8 @@ case class FrontendAppConfig(
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
   accessibilityStatementConfig: AccessibilityStatementConfig,
   refreshSessionUrl: String,
-  isProd: Boolean
+  isProd: Boolean,
+  configuration: Configuration
 ) {
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
@@ -67,7 +69,7 @@ case class FrontendAppConfig(
           signOutButtonText = Some(messages("timeout.dialog.signOutButton")),
           title = Some(messages("timeout.dialog.title")),
           message = Some(messages("timeout.dialog.message")),
-          synchroniseTabs = true
+          synchroniseTabs = Some(true)
         )
       )
     } else {

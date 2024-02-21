@@ -18,13 +18,9 @@ package uk.gov.hmrc.gform
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
-import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer
-
 import scala.util.Random
 
 trait WiremockSupport {
   val wiremockPort: Int = 10000 + Random.nextInt(10000)
-  implicit val wireMockServer: WireMockServer = new WireMockServer(
-    options().port(wiremockPort).extensions(new ResponseTemplateTransformer(false))
-  )
+  implicit val wireMockServer: WireMockServer = new WireMockServer(options().port(wiremockPort))
 }

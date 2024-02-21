@@ -996,6 +996,7 @@ trait ExampleFrontendAppConfig {
     emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com")),
     accessibilityStatementConfig = new AccessibilityStatementConfig(context.initialConfiguration),
     refreshSessionUrl = "refreshSessionUrl",
-    isProd = true
+    isProd = true,
+    configuration = context.initialConfiguration
   )
 }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.wshttp
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.typesafe.config.{ Config, ConfigFactory }
 import play.api.libs.json.Writes
 import play.api.libs.ws.WSClient

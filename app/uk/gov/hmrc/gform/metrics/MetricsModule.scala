@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.metrics
 
-import com.kenshoo.play.metrics.{ DisabledMetrics, DisabledMetricsFilter, MetricsController, MetricsFilter, MetricsFilterImpl, MetricsImpl }
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.play.bootstrap.metrics.{ DisabledMetrics, DisabledMetricsFilter, MetricsFilter, MetricsFilterImpl, MetricsImpl }
 
 import scala.concurrent.ExecutionContext
 
@@ -45,7 +45,5 @@ class MetricsModule(
 
     (metrics, metricsFilter)
   }
-
-  val metricsController = new MetricsController(metrics, controllerComponents)
 
 }

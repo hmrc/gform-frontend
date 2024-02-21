@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
-import akka.stream.scaladsl.{ Source, StreamConverters }
-import akka.util.ByteString
+import org.apache.pekko.stream.scaladsl.{ Source, StreamConverters }
+import org.apache.pekko.util.ByteString
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import play.api.Environment
 import uk.gov.hmrc.gform.sharedmodel.PdfHtml

@@ -30,6 +30,7 @@
 @import views.html.helper.CSPNonce
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.testOnlyAdditionalFooterItems
+@import uk.gov.hmrc.hmrcfrontend.config.TudorCrownConfig
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -139,14 +140,15 @@
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@govukHeader = @{new GovukHeader()}
+@tudorCrownConfig = @{TudorCrownConfig(appConfig.configuration)}
+@govukHeader = @{new GovukHeader(tudorCrownConfig)}
 @govukFooter = @{new GovukFooter()}
 @govukBackLink = @{new GovukBackLink()}
 @govukSkipLink = @{new GovukSkipLink()}
-@hmrcBanner = @{new components.HmrcBanner()}
+@hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
 @hmrcUserResearchBanner = @{new components.HmrcUserResearchBanner()}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
-@hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner)}
+@hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
 @hmrcStandardHeader = @{new helpers.HmrcStandardHeader(hmrcHeader)}
 @hmrcFooter = @{new components.HmrcFooter()}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}

@@ -29,7 +29,7 @@ class CustomHttpRequestHandler(
 ) extends DefaultHttpRequestHandler(
       new DefaultWebCommands,
       None,
-      router,
+      () => router,
       httpErrorHandler,
       httpConfiguration,
       httpFilters

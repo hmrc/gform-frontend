@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import akka.actor.CoordinatedShutdown
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.ExecutionContext
@@ -43,8 +42,6 @@ class AuditingModule(
       applicationLifecycle,
       graphiteModule.datastreamMetrics
     )
-
-  val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(akkaModule.actorSystem)
 
   val auditConnector: AuditConnector =
     new DefaultAuditConnector(

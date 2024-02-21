@@ -107,8 +107,7 @@ class RoutingModule(
       configModule.playConfiguration,
       configModule.environment,
       controllersModule.messagesControllerComponents
-    ),
-    metricsModule.metricsController
+    )
   )
 
   private val builderRoutes: builder.Routes = new builder.Routes(
