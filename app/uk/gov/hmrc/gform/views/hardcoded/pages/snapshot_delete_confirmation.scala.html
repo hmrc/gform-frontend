@@ -1,0 +1,64 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.testonly.{SnapshotId}
+@import uk.gov.hmrc.gform.views.html.govuk_wrapper
+
+@(
+  frontendAppConfig: FrontendAppConfig,
+  snapshotId: SnapshotId,
+  actionUrl: String,
+  backUrl: String
+)(implicit
+  request: Request[_],
+  messages: Messages,
+  l:LangADT
+)
+
+@backLink = @{
+  new BackLink(href = backUrl, content = new Text(messages("linkText.back")))
+}
+
+@{
+    val customContent = Html(s"""
+    <p class="govuk-body govuk-!-margin-bottom-2">Are you sure you want to delete snapshot ${snapshotId.value} ?</p>
+
+    <div class="button-container">
+    <form action="$actionUrl" method="post">
+        <p class="govuk-body govuk-!-margin-bottom-2"></p>
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="${snapshotId.value}">
+        <input type="hidden" class="govuk-input" id="backUrl" name="backUrl" value="${backUrl}">
+        <button type="submit" class="govuk-button">Delete snapshot</button>
+    </form>
+
+    </div>
+    """)
+
+    govuk_wrapper(
+      appConfig = frontendAppConfig,
+      serviceTitle = "Snapshot delete confirmation",
+      headTitle = "Snapshot details",
+      content = customContent,
+      maybeFormTemplate = None,
+      backLink = Some(backLink),
+      displayTimeoutDialog = false,
+      displaySignOut = false,
+      displayLanguageSwitcher = false,
+      isMainContentFullWidth = true,
+      accessCode = None
+    )
+}

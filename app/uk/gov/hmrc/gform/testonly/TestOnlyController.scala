@@ -59,7 +59,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_page, snapshots_page, update_snapshot }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshots_page, update_snapshot }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
 
@@ -765,10 +765,11 @@ class TestOnlyController(
       implicit request => implicit lang => cache => _ => formModelOptics =>
         import i18nSupport._
         val currentFormId = cache.form._id
+        val currentUrl = request.uri
         for {
           snapshots <- gformConnector.getSnapshots().map(_.sortBy(_.savedAt)(Ordering[Instant].reverse))
         } yield {
-          val html = renderSnapshots(snapshots, currentFormId, formTemplateId.value, maybeAccessCode)
+          val html = renderSnapshots(snapshots, currentFormId, formTemplateId.value, maybeAccessCode, currentUrl)
           Ok(
             snapshots_page(
               cache.formTemplate,
@@ -785,7 +786,8 @@ class TestOnlyController(
     snapshots: List[SnapshotOverview],
     currentFormId: FormId,
     currentTemplateId: String,
-    accessCode: Option[AccessCode]
+    accessCode: Option[AccessCode],
+    currentUrl: String
   ): Html = {
 
     val tableRows: List[List[TableRow]] = snapshots.map { snapshot =>
@@ -821,6 +823,14 @@ class TestOnlyController(
               .url
             s"""<a class=govuk-link href='$url'>edit</a>"""
           }
+        ),
+        TableRow(
+          content = HtmlContent {
+            val url = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .snapshotDeleteConfirmation(snapshot.snapshotId, currentUrl)
+              .url
+            s"""<a class=govuk-link href='$url'>delete</a>"""
+          }
         )
       )
     }
@@ -840,6 +850,9 @@ class TestOnlyController(
       ),
       HeadCell(
         content = Text("")
+      ),
+      HeadCell(
+        content = Text("")
       )
     )
 
@@ -851,5 +864,38 @@ class TestOnlyController(
 
     new GovukTable()(table)
   }
+
+  def snapshotDeleteConfirmation(snapshotId: SnapshotId, backUrl: String) =
+    controllerComponents.actionBuilder.async { implicit request =>
+      import i18nSupport._
+      implicit val lang: LangADT = LangADT.En
+      val actionUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController.deleteSnapshot(snapshotId).url
+      Ok(
+        snapshot_delete_confirmation(
+          frontendAppConfig,
+          snapshotId,
+          actionUrl,
+          backUrl
+        )
+      ).pure[Future]
+    }
+
+  def deleteSnapshot(snapshotId: SnapshotId) =
+    controllerComponents.actionBuilder.async { implicit request =>
+      import SnapshotForms._
+      import i18nSupport._
+      implicit val lang: LangADT = LangADT.En
+      deleteSnapshotUserData
+        .bindFromRequest()
+        .fold(
+          formWithErrors => BadRequest("delete snapshot error: ${formWithErrors.errorsAsJson}").pure[Future],
+          userData =>
+            gformConnector
+              .deleteSnapshot(userData.snapshotId)
+              .map { _ =>
+                Ok(snapshot_delete_acknowledgement(frontendAppConfig, snapshotId, userData.backUrl))
+              }
+        )
+    }
 
 }
