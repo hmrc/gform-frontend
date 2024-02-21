@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.lookup._
 
-import scala.Predef.->
 
 class LookupLoader {
 
