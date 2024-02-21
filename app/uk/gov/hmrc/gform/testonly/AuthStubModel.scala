@@ -17,6 +17,8 @@
 package uk.gov.hmrc.gform.testonly
 
 import java.net.URLEncoder
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.auth.core._
@@ -202,8 +204,6 @@ case class GovernmentGatewayFormData(
 
   def withGroupIdentifier(groupIdentifier: Option[String]): GovernmentGatewayFormData =
     copy(groupIdentifier = groupIdentifier)
-  import java.time.LocalDate
-  import java.time.format.DateTimeFormatter
   val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
   def withItmpData(
     itmpName: Option[ItmpName],

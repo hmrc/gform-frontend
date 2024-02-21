@@ -37,7 +37,7 @@ class AuthLoginStubService(
     loginData: GovernmentGatewayFormData
   ): Future[Session] =
     login(loginData).fold(
-      e => throw new Exception("can not authenticate user"),
+      e => throw new Exception("can not authenticate user $e"),
       identity
     )
 
@@ -46,7 +46,7 @@ class AuthLoginStubService(
   ): EitherT[Future, UnexpectedState, Session] =
     connector.login(loginData).subflatMap { httpResponse =>
       val status = httpResponse.status
-      lazy val location = httpResponse.header("location")
+      val location = httpResponse.header("location")
       if (status =!= SEE_OTHER)
         Left(
           UnexpectedState(
