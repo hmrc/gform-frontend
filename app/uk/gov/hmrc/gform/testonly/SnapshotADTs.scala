@@ -17,12 +17,12 @@
 package uk.gov.hmrc.gform.testonly
 
 import julienrf.json.derived
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import play.api.data.Forms._
 import play.api.data._
 import play.api.data.validation._
+import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 import java.time.Instant
 
@@ -33,7 +33,8 @@ case class SnapshotOverview(
   description: Description,
   gformVersion: GformVersion,
   gformFrontendVersion: GformFrontendVersion,
-  formData: Option[JsObject]
+  formData: Option[JsObject],
+  ggFormData: Option[GovernmentGatewayFormData]
 )
 
 object SnapshotOverview {
@@ -43,7 +44,8 @@ object SnapshotOverview {
 case class SaveRequest(
   formId: FormId,
   description: Description,
-  gformFrontendVersion: GformFrontendVersion
+  gformFrontendVersion: GformFrontendVersion,
+  ggFormData: Option[GovernmentGatewayFormData]
 )
 
 object SaveRequest {
@@ -118,11 +120,12 @@ object SnapshotForms {
     )(UpdateSnapshotUserData.apply)(UpdateSnapshotUserData.unapply)
   )
 
-  case class UpdateFormUserData(formData: String)
+  case class UpdateFormUserData(formData: String, snapshotId: String)
 
   val updateFormUserData: Form[UpdateFormUserData] = Form(
     mapping(
-      "formData" -> text
+      "formData"   -> text,
+      "snapshotId" -> text
     )(UpdateFormUserData.apply)(UpdateFormUserData.unapply)
   )
 
@@ -134,12 +137,12 @@ object SnapshotForms {
     )(SnapshotIdUserData.apply)(SnapshotIdUserData.unapply)
   )
 
-  case class SaveFormUserData(description: String)
+  case class SaveFormUserData(description: String, currentFormId: String)
 
   val saveFormUserData: Form[SaveFormUserData] = Form(
     mapping(
-      "description" -> text
+      "description"   -> text,
+      "currentFormId" -> text
     )(SaveFormUserData.apply)(SaveFormUserData.unapply)
   )
-
 }

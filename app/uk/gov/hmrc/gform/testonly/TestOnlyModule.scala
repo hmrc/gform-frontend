@@ -17,9 +17,16 @@
 package uk.gov.hmrc.gform.testonly
 
 import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.mvc.SessionCookieBaker
+
 import uk.gov.hmrc.gform.config.ConfigModule
 
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
+import uk.gov.hmrc.crypto.ApplicationCrypto
+
 import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.gform.auth.AuthLoginStubConnector
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.builder.BuilderController
@@ -32,6 +39,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ComponentChecker
+import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class TestOnlyModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -42,7 +50,10 @@ class TestOnlyModule(
   lookupRegistry: LookupRegistry,
   ahcWSComponents: AhcWSComponents,
   fileUploadModule: FileUploadModule,
-  gformModule: GformModule
+  gformModule: GformModule,
+  wSHttpModule: WSHttpModule,
+  applicationCrypto: ApplicationCrypto,
+  sessionCookieBaker: SessionCookieBaker
 )(implicit
   ec: ExecutionContext
 ) {
@@ -61,6 +72,18 @@ class TestOnlyModule(
     ComponentChecker.ErrorReportInterpreter
   )
 
+  lazy val authLoginStubConnector: AuthLoginStubConnector = new AuthLoginStubConnector(
+    configModule.serviceConfig.baseUrl("auth-login-stub"),
+    wSHttpModule.wsClient
+  )
+
+  lazy val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
+  lazy val authLoginStubService = new AuthLoginStubService(
+    authLoginStubConnector,
+    sessionCookieCrypto,
+    sessionCookieBaker
+  )
+
   val testOnlyController = new TestOnlyController(
     playBuiltInsModule.i18nSupport,
     proxyActions,
@@ -70,7 +93,8 @@ class TestOnlyModule(
     configModule.serviceConfig,
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
-    gformModule.newFormController
+    gformModule.newFormController,
+    authLoginStubService
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
     playBuiltInsModule.i18nSupport,

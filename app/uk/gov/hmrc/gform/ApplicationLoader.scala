@@ -222,7 +222,10 @@ class ApplicationModule(context: Context)
     lookupRegistry,
     this,
     fileUploadModule,
-    gformModule
+    gformModule,
+    wSHttpModule,
+    applicationCrypto,
+    hmrcSessionCookieBaker
   )
 
   private val requestHeaderService = new RequestHeaderService(gformBackendModule.gformConnector)
