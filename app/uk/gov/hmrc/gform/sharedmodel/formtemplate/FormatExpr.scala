@@ -373,6 +373,7 @@ object CssClassSize {
 
 sealed trait Register {
   def asString: String = this match {
+    case Register.AgentComplaintCategories => "agentComplaintCategories"
     case Register.CashType                 => "cashType"
     case Register.Country                  => "country"
     case Register.Currency                 => "currency"
@@ -395,6 +396,7 @@ sealed trait Register {
 }
 
 object Register {
+  case object AgentComplaintsCategories extends Register
   case object CashType extends Register
   case object Country extends Register
   case object Currency extends Register
@@ -417,6 +419,7 @@ object Register {
   implicit val format: OFormat[Register] = derived.oformat()
 
   def fromString(str: String): Option[Register] = str match {
+    case "agentComplaintCategories" => Some(Register.AgentComplaintsCategories)
     case "cashType"                 => Some(Register.CashType)
     case "country"                  => Some(Register.Country)
     case "currency"                 => Some(Register.Currency)

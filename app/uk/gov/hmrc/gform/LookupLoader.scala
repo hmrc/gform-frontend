@@ -24,6 +24,8 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.lookup._
 
+import scala.Predef.->
+
 class LookupLoader {
 
   implicit private val lookupIdCellDecoder: CellDecoder[LookupId] =
@@ -251,6 +253,7 @@ class LookupLoader {
   private def mkRadioLookup(m: LocalisedLookupOptions): RadioLookup = RadioLookup(m)
 
   // format: off
+  private val agentComplaintCategories = read("BCD-AgentComplaintCategories.csv", "name",         "en",   "cy",   mkRadioLookup)
   private val cashType                 = read("BCD-CashType.csv",                 "ID",           "en",   "cy",   mkRadioLookup)
   private val intent                   = read("BCD-Intent.csv",                   "ID",           "en",   "cy",   mkRadioLookup)
   private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", "Name", mkRadioLookup)
@@ -273,6 +276,7 @@ class LookupLoader {
 
   val registerLookup: Map[Register, LookupType] =
     Map(
+      Register.AgentComplaintCategories -> agentComplaintCategories,
       Register.CashType                 -> cashType,
       Register.Country                  -> country,
       Register.Currency                 -> currency,
