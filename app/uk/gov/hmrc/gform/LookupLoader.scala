@@ -251,7 +251,6 @@ class LookupLoader {
   private def mkRadioLookup(m: LocalisedLookupOptions): RadioLookup = RadioLookup(m)
 
   // format: off
-  private val agentComplaintCategories = read("BCD-AgentComplaintCategories.csv", "name",         "en",   "cy",   mkRadioLookup)
   private val cashType                 = read("BCD-CashType.csv",                 "ID",           "en",   "cy",   mkRadioLookup)
   private val intent                   = read("BCD-Intent.csv",                   "ID",           "en",   "cy",   mkRadioLookup)
   private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", "Name", mkRadioLookup)
@@ -266,6 +265,7 @@ class LookupLoader {
   private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "en",   "cy",   mkRadioLookup)
   private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "en",   "cy",   mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
+  private val agentComplaintCategories = read("BCD-AgentComplaintCategories.csv", "name",         "en",   "cy",   mkAjaxLookup(ShowAll.Disabled))
   private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", "inGibraltarEuEeaEfta", mkAjaxLookup(ShowAll.Disabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy", "KeyWords", "Priority", "Region", "PortType", "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
