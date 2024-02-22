@@ -63,6 +63,8 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_pa
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
 
+import SnapshotForms._
+
 import java.time.Instant
 
 class TestOnlyController(
@@ -517,7 +519,6 @@ class TestOnlyController(
               .withCredentialStrength(credentialStrength)
               .withGatewayToken(maybeGatewayInformation)
 
-            import SnapshotForms._
             saveFormUserData
               .bindFromRequest()
               .fold(
@@ -553,7 +554,6 @@ class TestOnlyController(
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => implicit lang => cache => _ => formModelOptics =>
-      import SnapshotForms._
       import i18nSupport._
       updateSnapshotUserData
         .bindFromRequest()
@@ -598,7 +598,6 @@ class TestOnlyController(
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
-      import SnapshotForms._
       updateFormUserData
         .bindFromRequest()
         .fold(
@@ -628,7 +627,6 @@ class TestOnlyController(
 
   def restoreAll(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
-      import SnapshotForms._
       snapshotIdUserData
         .bindFromRequest()
         .fold(
@@ -700,7 +698,6 @@ class TestOnlyController(
     implicit request => implicit lang => cache => _ => formModelOptics =>
       import i18nSupport._
 
-      import uk.gov.hmrc.gform.testonly.SnapshotForms._
       for {
         snapshotOverivew <- gformConnector.snapshotOverview(snapshotId)
       } yield Ok(
@@ -882,7 +879,6 @@ class TestOnlyController(
 
   def deleteSnapshot(snapshotId: SnapshotId) =
     controllerComponents.actionBuilder.async { implicit request =>
-      import SnapshotForms._
       import i18nSupport._
       implicit val lang: LangADT = LangADT.En
       deleteSnapshotUserData
