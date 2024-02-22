@@ -157,7 +157,7 @@ object SummarySubstituter {
       val substitutions = new FormComponentIdSubstitutions()
       val baseSumExpr: Expr =
         implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
-      val fcs = indexedFormComponentIds.map(_.modelComponentId.removeIndex.toFormComponentId).toList.distinct
+      val fcs = indexedFormComponentIds.map(_.modelComponentId.removeIndex.toFormComponentId).distinct
       indices
         .map(i => ExprUpdater(baseSumExpr, i, fcs))
         .foldLeft[Expr](Constant("0")) { case (acc, e) =>
