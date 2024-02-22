@@ -32,28 +32,27 @@
   new BackLink(href = backUrl, content = new Text(messages("linkText.back")))
 }
 
-@{
-    val customContent = Html(s"""
-      <div class="govuk-panel govuk-panel--confirmation">
-        <h1 class="govuk-panel__title @classes">
-            Snapshot ${snapshotId.value} deleted.
-        </h1>
-        <div class="govuk-panel__body">
-        </div>
-      </div>
-    """)
-
-    govuk_wrapper(
-      appConfig = frontendAppConfig,
-      serviceTitle = "Snapshot delete acknowledgement",
-      headTitle = "Snapshot details",
-      content = customContent,
-      maybeFormTemplate = None,
-      backLink = Some(backLink),
-      displayTimeoutDialog = false,
-      displaySignOut = false,
-      displayLanguageSwitcher = false,
-      isMainContentFullWidth = true,
-      accessCode = None
-    )
+@customContent = {
+<div class="govuk-panel govuk-panel--confirmation">
+  <h1 class="govuk-panel__title ">
+      Snapshot @{snapshotId.value} deleted.
+  </h1>
+  <div class="govuk-panel__body">
+  </div>
+</div>
 }
+
+
+@govuk_wrapper(
+  appConfig = frontendAppConfig,
+  serviceTitle = "Snapshot delete acknowledgement",
+  headTitle = "Snapshot details",
+  content = customContent,
+  maybeFormTemplate = None,
+  backLink = Some(backLink),
+  displayTimeoutDialog = false,
+  displaySignOut = false,
+  displayLanguageSwitcher = false,
+  isMainContentFullWidth = true,
+  accessCode = None
+)
