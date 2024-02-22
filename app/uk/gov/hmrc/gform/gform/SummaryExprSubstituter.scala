@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.gform.ExprUpdater
+import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 
@@ -123,24 +125,48 @@ object SummarySubstituter {
     }
 
   case class SummarySubstitutions(
-    exprMap: Map[Expr, ExpressionResult]
+    exprMap: Map[Expr, ExpressionResult],
+    data: VariadicFormData[SourceOrigin.OutOfDate]
   ) {
 
-    /** This method is used to replace the Sum expression with Adds
-      * It also substitutes the hidden FormCtx in the sumExpr with Constant(0)
-      */
     def replaceSumWithAdds(sumExpr: Expr): Expr = {
-      val sumExprFcIds = sumExpr.allFormComponentIds()
-      val indexedSumFcIdMap = exprMap.collect {
-        case (FormCtx(fcId), evalResult)
-            if sumExprFcIds
-              .map(_.baseComponentId)
-              .contains(fcId.baseComponentId) && fcId.modelComponentId.indexedComponentId.isIndexed =>
-          fcId -> evalResult
-      }.toMap
+      val atlHelper = new ATLNestedAddHelper(exprMap, sumExpr)
+      val groupHelper = new GroupNestedAddHelper(data, sumExpr)
+      if (atlHelper.indexedFormComponentIds.nonEmpty) {
+        atlHelper.toNestedAdd()
+      } else if (groupHelper.indexedFormComponentIds.nonEmpty) {
+        groupHelper.toNestedAdd()
+      } else {
+        sumExpr
+      }
+    }
+  }
 
-      val indexedSumExprFcIds = indexedSumFcIdMap.map(_._1)
-      val indices = indexedSumExprFcIds
+  abstract class NestedAddHelper(sumExpr: Expr) {
+
+    val sumExprFcIds = sumExpr.allFormComponentIds()
+
+    def computeIndexedFormComponentIds(): List[FormComponentId]
+    def computeIndices(): List[Int]
+
+    lazy val indexedFormComponentIds: List[FormComponentId] = computeIndexedFormComponentIds()
+    lazy val indices: List[Int] = computeIndices()
+
+    def toNestedAdd(): Expr = {
+      import FormComponentIdSubstituter._
+      val substitutions = new FormComponentIdSubstitutions()
+      val baseSumExpr: Expr =
+        implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
+      val fcs = indexedFormComponentIds.map(_.modelComponentId.removeIndex.toFormComponentId).toList.distinct
+      indices
+        .map(i => ExprUpdater(baseSumExpr, i, fcs))
+        .foldLeft[Expr](Constant("0")) { case (acc, e) =>
+          Add(acc, e)
+        }
+    }
+
+    protected def extractIndices(fcIds: List[FormComponentId]): List[Int] =
+      fcIds
         .map(fcId => fcId.modelComponentId.indexedComponentId)
         .collect { case IndexedComponentId.Indexed(_, index) =>
           index
@@ -148,17 +174,39 @@ object SummarySubstituter {
         .toList
         .sorted
         .distinct
+  }
 
-      import FormComponentIdSubstituter._
-      val substitutions = new FormComponentIdSubstitutions()
-      val baseSumExpr: Expr =
-        implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
-      val fcs = indexedSumExprFcIds.map(_.modelComponentId.removeIndex.toFormComponentId).toList.distinct
-      indices
-        .map(i => ExprUpdater(baseSumExpr, i, fcs))
-        .foldLeft[Expr](Constant("0")) { case (acc, e) =>
-          Add(acc, e)
+  class ATLNestedAddHelper(exprMap: Map[Expr, ExpressionResult], sumExpr: Expr) extends NestedAddHelper(sumExpr) {
+    override def computeIndexedFormComponentIds(): List[FormComponentId] =
+      exprMap
+        .collect {
+          case (FormCtx(fcId), evalResult)
+              if sumExprFcIds
+                .map(_.baseComponentId)
+                .contains(fcId.baseComponentId) && fcId.modelComponentId.indexedComponentId.isIndexed =>
+            fcId -> evalResult
         }
+        .toMap
+        .map(_._1)
+        .toList
+    override def computeIndices(): List[Int] = {
+      val maybeMaxIndex = extractIndices(sumExprFcIds).maxOption
+      extractIndices(indexedFormComponentIds).filter(i => maybeMaxIndex.map(_ >= i).getOrElse(true))
     }
+  }
+
+  class GroupNestedAddHelper(data: VariadicFormData[SourceOrigin.OutOfDate], sumExpr: Expr)
+      extends NestedAddHelper(sumExpr) {
+    override def computeIndexedFormComponentIds(): List[FormComponentId] = {
+      def indicesFromData(
+        formComponentId: FormComponentId
+      ): List[FormComponentId] = {
+        val allValues = data.forBaseComponentId(formComponentId.baseComponentId)
+        allValues.map(_._1).map(_.toFormComponentId).toList.filter(_.modelComponentId.maybeIndex.isDefined)
+      }
+      sumExpr.allFormComponentIds().flatMap(indicesFromData(_))
+    }
+    override def computeIndices(): List[Int] = extractIndices(indexedFormComponentIds)
+
   }
 }
