@@ -40,8 +40,7 @@
 
 @heading = @{"Forms snapshots"}
 
-@{
-    val customContent = Html(s"""
+@customContent = {
     <style>
     .button-container {
         display: inline-block;
@@ -53,19 +52,19 @@
     </style>
 
     <div class="button-container">
-    <form action="$actionUrl" method="post">
+    <form action="@actionUrl" method="post">
 
         <p class="govuk-body">Snapshot description:</p>
         <div id="description-hint" class="govuk-hint">
           <pre>
-$description.value
+@description.value
           </pre>
         </div>
 
         <p class="govuk-body">gForm versions:</p>
         <div id="description-hint" class="govuk-hint">
           <pre>
-$versions
+@versions
           </pre>
         </div>
 
@@ -74,7 +73,7 @@ $versions
 
         <div id="description-hint" class="govuk-hint">
           <pre>
-$formData
+@formData
           </pre>
         </div>
 
@@ -83,36 +82,35 @@ $formData
 
         <div id="auth-info-hint" class="govuk-hint">
           <pre>
-$governmentGatewayCredentials
+@governmentGatewayCredentials
           </pre>
         </div>
         <p class="govuk-body govuk-!-margin-bottom-2"></p>
 
-        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="${snapshotId.value}">
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
         <button type="submit" class="govuk-button">Restore all</button>
     </form>
 
-    <form action="$updateFormDataActionUrl" method="post">
-        <input type="hidden" class="govuk-input" id="formData" name="formData" value="${HtmlFormat.escape(formData).body}">
-        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="${snapshotId.value}">
-        <button type="submit" class="govuk-button" ${if(!isDataRestore) "disabled"}>Restore only data</button>
+    <form action="@updateFormDataActionUrl" method="post">
+        <input type="hidden" class="govuk-input" id="formData" name="formData" value="@{HtmlFormat.escape(formData).body}">
+        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
+        <button type="submit" class="govuk-button" @{if(!isDataRestore) "disabled"}>Restore only data</button>
     </form>
 
     </div>
     <p class="govuk-body govuk-!-margin-bottom-2" display="block"></p>
-    """)
-
-    govuk_wrapper(
-      appConfig = frontendAppConfig,
-      serviceTitle = "Snapshot details",
-      headTitle = "Snapshot details",
-      content = customContent,
-      maybeFormTemplate = None,
-      backLink = None,
-      displayTimeoutDialog = false,
-      displaySignOut = false,
-      displayLanguageSwitcher = false,
-      isMainContentFullWidth = false,
-      accessCode = None
-    )
 }
+
+@govuk_wrapper(
+  appConfig = frontendAppConfig,
+  serviceTitle = "Snapshot details",
+  headTitle = "Snapshot details",
+  content = customContent,
+  maybeFormTemplate = None,
+  backLink = None,
+  displayTimeoutDialog = false,
+  displaySignOut = false,
+  displayLanguageSwitcher = false,
+  isMainContentFullWidth = false,
+  accessCode = None
+)
