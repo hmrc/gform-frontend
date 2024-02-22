@@ -34,19 +34,20 @@
 }
 
 @customContent = {
-    <p class="govuk-body govuk-!-margin-bottom-2">Are you sure you want to delete snapshot @{snapshotId.value} ?</p>
+  <p class="govuk-body govuk-!-margin-bottom-2">
+    Are you sure you want to delete snapshot @{snapshotId.value} ?
+  </p>
 
-    <div class="button-container">
-    <form action="@actionUrl" method="post">
-        <p class="govuk-body govuk-!-margin-bottom-2"></p>
-        <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
-        <input type="hidden" class="govuk-input" id="backUrl" name="backUrl" value="@{backUrl}">
-        <button type="submit" class="govuk-button">Delete snapshot</button>
-    </form>
-
-    </div>
-
+  <div class="button-container">
+  <form action="@actionUrl" method="post">
+    <p class="govuk-body govuk-!-margin-bottom-2"></p>
+    <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
+    <input type="hidden" class="govuk-input" id="backUrl" name="backUrl" value="@{backUrl}">
+    <button type="submit" class="govuk-button">Delete snapshot</button>
+  </form>
+  </div>
 }
+
 @govuk_wrapper(
   appConfig = frontendAppConfig,
   serviceTitle = "Snapshot delete confirmation",
