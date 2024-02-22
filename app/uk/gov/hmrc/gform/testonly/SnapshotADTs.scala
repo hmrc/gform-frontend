@@ -145,4 +145,14 @@ object SnapshotForms {
       "currentFormId" -> text
     )(SaveFormUserData.apply)(SaveFormUserData.unapply)
   )
+
+  val deleteSnapshotUserData: Form[DeleteSnapshotUserData] = Form(
+    mapping(
+      "snapshotId" -> nonEmptyText,
+      "backUrl"    -> nonEmptyText
+    )(DeleteSnapshotUserData.apply)(DeleteSnapshotUserData.unapply)
+  )
+
+  case class DeleteSnapshotUserData(snapshotId: String, backUrl: String)
+
 }

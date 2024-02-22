@@ -1,0 +1,58 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.testonly.SnapshotId
+@import uk.gov.hmrc.gform.views.html.govuk_wrapper
+
+@(
+  frontendAppConfig: FrontendAppConfig,
+  snapshotId: SnapshotId,
+  backUrl: String
+)(implicit
+  request: Request[_],
+  messages: Messages,
+  l:LangADT
+)
+
+@backLink = @{
+  new BackLink(href = backUrl, content = new Text(messages("linkText.back")))
+}
+
+@customContent = {
+<div class="govuk-panel govuk-panel--confirmation">
+  <h1 class="govuk-panel__title ">
+    Snapshot @{snapshotId.value} deleted.
+  </h1>
+  <div class="govuk-panel__body">
+  </div>
+</div>
+}
+
+
+@govuk_wrapper(
+  appConfig = frontendAppConfig,
+  serviceTitle = "Snapshot delete acknowledgement",
+  headTitle = "Snapshot details",
+  content = customContent,
+  maybeFormTemplate = None,
+  backLink = Some(backLink),
+  displayTimeoutDialog = false,
+  displaySignOut = false,
+  displayLanguageSwitcher = false,
+  isMainContentFullWidth = true,
+  accessCode = None
+)

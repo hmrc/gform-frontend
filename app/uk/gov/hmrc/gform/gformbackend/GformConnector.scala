@@ -607,4 +607,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val url = s"$baseUrl/test-only/restore-snapshot-template"
     ws.PUT[JsString, HttpResponse](url, JsString(snapshotId))
   }
+
+  def deleteSnapshot(
+    snapshotId: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/test-only/snapshot/$snapshotId"
+    ws.DELETE[HttpResponse](url)
+  }
 }
