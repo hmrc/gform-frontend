@@ -25,13 +25,16 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.testonly._
+import org.slf4j.{ Logger, LoggerFactory }
 
 class AuthLoginStubConnector(baseUrl: String, wsClient: WSClient) {
   val serviceUrl = baseUrl
 
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
   private val authLoginStubUrl: String =
     s"$baseUrl/auth-login-stub/gg-sign-in"
 
+  logger.info(s"AuthLoginStubUrl: $authLoginStubUrl ")
   def login(
     loginData: GovernmentGatewayFormData
   )(implicit ec: ExecutionContext): EitherT[Future, UnexpectedState, WSResponse] = {
@@ -39,6 +42,7 @@ class AuthLoginStubConnector(baseUrl: String, wsClient: WSClient) {
     val formData =
       GovernmentGatewayFormData.toUrlEncoded(loginData)
 
+    logger.info(s"AuthLoginStubUrl: $authLoginStubUrl ")
     EitherT[Future, UnexpectedState, WSResponse](
       wsClient
         .url(authLoginStubUrl)
