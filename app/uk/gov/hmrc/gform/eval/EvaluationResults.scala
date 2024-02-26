@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
-import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter }
+import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import SummarySubstituter._
 
 case class EvaluationResults(
