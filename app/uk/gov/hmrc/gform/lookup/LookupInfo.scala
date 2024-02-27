@@ -60,3 +60,10 @@ final case class SicCodeLookupInfo(
   index: Int,
   section: LookupSicCodeSection
 ) extends LookupInfo
+
+final case class AgentComplaintCategoriesLookupInfo(
+  id: LookupId,
+  index: Int,
+  keywords: LookupKeywords,
+  columns: Map[String, String]
+) extends LookupInfo

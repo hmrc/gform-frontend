@@ -1,32 +1,35 @@
-name, en, cy
-Agent Services Account (any service accessed through this account), Agent Services Account (any service accessed through this account)
-Charities and Community Amateur Sports Clubs, Charities and Community Amateur Sports Clubs
-Corporation Tax, Corporation Tax
-Gambling Tax Online, Gambling Tax Online
-Machine Games Duty, Machine Games Duty
-Non-VAT Registered Agents, Non-VAT Registered Agents
-Stamp Duty Land Tax Online, Stamp Duty Land Tax Online
-PAYE & Construction Industry Scheme, PAYE & Construction Industry Scheme
-Self Assessment, Self Assessment
-VAT for Agents, VAT for Agents
-Delay receiving an agent reference code, Delay receiving an agent reference code
-Coronavirus Job Retention Scheme, Coronavirus Job Retention Scheme
-Eat Out to Help Out, Eat Out to Help Out
-Statutory Sick Pay Rebate Scheme, Statutory Sick Pay Rebate Scheme
-Charities and Gift Aid, Charities and Gift Aid
-Customs Duties, Customs Duties
-Environmental Taxes, Environmental Taxes
-Excise Duties, Excise Duties
-Insurance Premium Tax, Insurance Premium Tax
-Petroleum Revenue Tax, Petroleum Revenue Tax
-Construction Industry Scheme, Construction Industry Scheme
-Personal pensions, Personal pensions
-Stamp Duty Land Tax, Stamp Duty Land Tax
-Stamp Duty Reserve Tax, Stamp Duty Reserve Tax
-Trusts, Trusts
-Value Added Tax, Value Added Tax
-Tax-Free Childcare, Tax-Free Childcare
-30 hours free childcare, 30 hours free childcare
-Pay As You Earn/Real Time Information, Pay As You Earn/Real Time Information
-National Insurance, National Insurance
-National Minimum Wage, National Minimum Wage
+Code,Name,Name-cy,KeyWords
+ASA,Agent services account,Agent services account,Online ASA
+OS,Online services,Online services,Agent services account
+CT,Corporation Tax,Treth Gorfforaeth,Business CT
+ET,Environmental Taxes,Trethi Amgylcheddol,Business ET
+IPT,Insurance Premium Tax,Treth Premiwm Yswiriant,Business IPT
+PRT,Petroleum Revenue Tax,Treth Refeniw Petrolewm,Business PRT
+CGT,Capital Gains Tax,Treth Enillion Cyfalaf,Capital Gains CGT
+CH,Charities,Elusennau,Charities Gift Aid
+GA,Gift Aid,Cymorth Rhodd,
+30HFC,30 hours free childcare,30 awr o ofal plant am ddim,
+CB,Child Benefit,Budd-dal Plant,
+CTC,Child Tax Credits,Credydau Treth Plant,CTC
+CTF,Child Trust Fund,Cronfa Ymddiriedolaeth Plant,CTF
+GALL,Guardians Allowance,Lwfans Gwarcheidwaid,child
+TFC,Tax-Free Childcare,Gofal Plant Di-dreth,TFC
+CIS,Construction Industry Scheme,Cynllun y Diwydiant Adeiladu,CIS
+CJRS,Coronavirus Job Retentions Scheme,Cynllun Cadw Swyddi Coronafeirws,CJRS
+SEISS,Self Employment Income Support Scheme,Cynllun Cymhorthdal ​​Incwm Hunangyflogaeth,SEISS
+CD,Customs Duties,Tollau,Excise
+ED,Excise Duties,Trethi,Customs
+PAYE,Pay As You Earn,Talu Wrth Ennill,Income PAYE RTI
+RTI,Real Time Information,Gwybodaeth Amser Real,
+IT,Inheritance Tax,Treth Etifeddiant,estate trusts
+TRUST,Trusts,Ymddiriedolaethau,Inheritance estates
+NI,National Insurance,Yswiriant Gwladol,National Insurance NI
+NMW,National Minimum Wage,Isafswm Cyflog Cenedlaethol,
+PP,Personal Pensions,Pensiynau Personol,
+SA,Self assessment,Hunan asesiad,SA
+SD,Stamp Duty,Treth Stamp,SD
+SDLT,Stamp Duty Land Tax,Treth Dir Toll Stamp,SDLT
+SDRT,Stamp Duty Reserve Tax,Treth Wrth Gefn Treth Stamp,SDRT
+WTC,Working Tax Credits,Credydau Treth Gwaith,WTC
+HTS,Help to Save,Cymorth i Arbed,Tax credits
+VAT,Value Added Tax,Treth ar Werth,VAT

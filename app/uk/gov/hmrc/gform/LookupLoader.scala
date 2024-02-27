@@ -246,6 +246,40 @@ class LookupLoader {
     mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
+  private def readAgentComplaintCategories(
+    filename: String,
+    idColumnName: String,
+    englishLabel: String,
+    welshLabel: String,
+    keywords: String,
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
+
+    type ColumnData =
+      (LookupLabel, LookupLabel, LookupId, LookupKeywords)
+
+    val headerDecoder: HeaderDecoder[ColumnData] =
+      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords)(
+        (
+          _: LookupLabel,
+          _: LookupLabel,
+          _: LookupId,
+          _: LookupKeywords
+        )
+      )
+
+    val csvWithColumns = readCsvWithColumns(filename)
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (enLabel, cyLabel, id, keywords) = columnData
+
+      val columns = csvWithColumns.find(_.get(idColumnName).get == id.id).get
+      val li = AgentComplaintCategoriesLookupInfo(id, index, keywords, columns)
+      ((enLabel, li), (cyLabel, li))
+    }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
+  }
+
   private def mkAjaxLookup(showAll: ShowAll)(m: LocalisedLookupOptions): AjaxLookup =
     AjaxLookup(m, LookupLoader.mkAutocomplete(m), showAll)
   private def mkRadioLookup(m: LocalisedLookupOptions): RadioLookup = RadioLookup(m)
@@ -265,7 +299,7 @@ class LookupLoader {
   private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "en",   "cy",   mkRadioLookup)
   private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "en",   "cy",   mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
-  private val agentComplaintCategories = read("BCD-AgentComplaintCategories.csv", "name",         "en",   "cy",   mkAjaxLookup(ShowAll.Disabled))
+  private val agentComplaintCategories = readAgentComplaintCategories("BCD-AgentComplaintCategories.csv", "Code",         "Name", "Name-cy", "KeyWords",   mkAjaxLookup(ShowAll.Disabled))
   private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "Region", "inGibraltarEuEeaEfta", mkAjaxLookup(ShowAll.Disabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy", "KeyWords", "Priority", "Region", "PortType", "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
@@ -310,6 +344,8 @@ object LookupLoader {
         case (ll, CountryLookupInfo(_, _, k, p, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, CurrencyLookupInfo(_, _, k, p, _))      => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, PortLookupInfo(_, _, k, p, _, _, _, _)) => engine.add(new LookupRecord(ll.label, p, k))
+        case (ll, AgentComplaintCategoriesLookupInfo(_, _, k, _)) =>
+          engine.add(new LookupRecord(ll.label, LookupPriority(1), k))
         case (ll, SicCodeLookupInfo(_, _, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
       }

@@ -36,11 +36,12 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
   def sortLookupByPriorityAndLabel: List[LookupLabel] =
     options.toList
       .sortBy {
-        case (label, DefaultLookupInfo(_, _))                       => (LookupPriority(1), label)
-        case (label, CountryLookupInfo(_, _, _, priority, _, _, _)) => (priority, label)
-        case (label, CurrencyLookupInfo(_, _, _, priority, _))      => (priority, label)
-        case (label, PortLookupInfo(_, _, _, priority, _, _, _, _)) => (priority, label)
-        case (label, SicCodeLookupInfo(_, _, _))                    => (LookupPriority(1), label)
+        case (label, DefaultLookupInfo(_, _))                        => (LookupPriority(1), label)
+        case (label, CountryLookupInfo(_, _, _, priority, _, _, _))  => (priority, label)
+        case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)
+        case (label, PortLookupInfo(_, _, _, priority, _, _, _, _))  => (priority, label)
+        case (label, SicCodeLookupInfo(_, _, _))                     => (LookupPriority(1), label)
+        case (label, AgentComplaintCategoriesLookupInfo(_, _, _, _)) => (LookupPriority(1), label)
       }
       .map(_._1)
 }
