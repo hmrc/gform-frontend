@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.testonly
 
 import cats.implicits.catsSyntaxEq
+import org.apache.commons.text.StringEscapeUtils
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
 import cats.data.EitherT
@@ -605,7 +606,9 @@ class TestOnlyController(
           userData => {
             val formData = userData.formData
             val currentFormId = cache.form._id
-            val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(formData).as[JsObject])
+            val unescapedFormData = StringEscapeUtils.unescapeHtml4(formData)
+            val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(unescapedFormData).as[JsObject])
+
             for {
               saveReply <- gformConnector.updateFormData(updateRequest)
             } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
