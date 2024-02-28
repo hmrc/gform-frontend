@@ -127,59 +127,22 @@ class SectionRenderingService(
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
       cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
-    val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber)
 
-    val hidePageTitleByCya = checkYourAnswers.presentationHint.filter(_ === InvisiblePageTitle).fold(false)(_ => true)
+    val summaryListRecords: List[SummaryList] = SectionRenderingService.summaryList(
+      formTemplate._id,
+      checkYourAnswers,
+      addToListIteration,
+      formModelOptics.formModelVisibilityOptics,
+      maybeAccessCode,
+      cache,
+      validationResult,
+      envelope,
+      addressRecordLookup,
+      sectionNumber,
+      fastForward
+    )
 
-    val summaryListRecords: List[SummaryList] = addToListIteration.singletons.toList.map { singletonWithNumber =>
-      val sectionTitle4Ga = sectionTitle4GaFactory(
-        formModelOptics.formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber),
-        singletonWithNumber.sectionNumber
-      )
-      val page = singletonWithNumber.singleton.page
-
-      val hidePageTitle = page.presentationHint.filter(_ === InvisiblePageTitle).fold(hidePageTitleByCya)(_ => true)
-
-      SummaryList(
-        rows = page.fields
-          .filterNot(_.hideOnSummary)
-          .flatMap { fc =>
-            FormComponentSummaryRenderer
-              .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
-                fc,
-                page.id.map(_.modelPageId),
-                formTemplate._id,
-                formModelOptics.formModelVisibilityOptics,
-                maybeAccessCode,
-                singletonWithNumber.sectionNumber,
-                sectionTitle4Ga,
-                cache.form.thirdPartyData.obligations,
-                validationResult,
-                envelope,
-                addressRecordLookup,
-                None,
-                Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
-              )
-          },
-        classes = "govuk-!-margin-bottom-0",
-        attributes =
-          if (hidePageTitle) Map.empty[String, String] else Map("title" -> page.shortName.getOrElse(page.title).value())
-      )
-    }
-
-    val title =
-      if (isFirstVisit)
-        checkYourAnswers.expandedTitle.fold(messages("summary.checkYourAnswers"))(_.value())
-      else checkYourAnswers.expandedUpdateTitle.value()
-
-    val noPIITitle =
-      if (isFirstVisit)
-        checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value())
-      else
-        checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
-          case Some(value) => value.valueWithoutInterpolations
-          case None        => messages("summary.checkYourAnswers")
-        })(_.value())
+    val (title, noPIITitle) = SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers)
 
     val ff = fastForward match {
       case Nil                                     => Nil
@@ -194,7 +157,7 @@ class SectionRenderingService(
       formTemplate,
       maybeAccessCode,
       sectionNumber,
-      summaryListRecords.filterNot(_.rows.size === 0),
+      summaryListRecords,
       frontendAppConfig,
       SectionRenderingService.determineContinueLabelKey(
         cache.retrievals.continueLabelKey,
@@ -3171,6 +3134,94 @@ class SectionRenderingService(
 }
 
 object SectionRenderingService {
+
+  def atlCyaTitles[T <: PageMode](
+    cache: AuthCacheWithForm,
+    sectionNumber: SectionNumber,
+    checkYourAnswers: CheckYourAnswers[T]
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): (String, String) = {
+
+    val isFirstVisit = !cache.form.visitsIndex.contains(sectionNumber)
+    val title =
+      if (isFirstVisit)
+        checkYourAnswers.expandedTitle.fold(messages("summary.checkYourAnswers"))(_.value())
+      else checkYourAnswers.expandedUpdateTitle.value()
+
+    val noPIITitle =
+      if (isFirstVisit)
+        checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value())
+      else
+        checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
+          case Some(value) => value.valueWithoutInterpolations
+          case None        => messages("summary.checkYourAnswers")
+        })(_.value())
+
+    (title, noPIITitle)
+
+  }
+
+  def summaryList[T <: PageMode](
+    formTemplateId: FormTemplateId,
+    checkYourAnswers: CheckYourAnswers[T],
+    addToListIteration: Bracket.AddToListIteration[Visibility],
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    validationResult: ValidationResult,
+    envelope: EnvelopeWithMapping,
+    addressRecordLookup: AddressRecordLookup,
+    sectionNumber: SectionNumber,
+    fastForward: List[FastForward]
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): List[SummaryList] = {
+    val hidePageTitleByCya = checkYourAnswers.presentationHint.filter(_ === InvisiblePageTitle).fold(false)(_ => true)
+    addToListIteration.singletons.toList
+      .map { singletonWithNumber =>
+        val sectionTitle4Ga = sectionTitle4GaFactory(
+          formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber),
+          singletonWithNumber.sectionNumber
+        )
+        val page = singletonWithNumber.singleton.page
+
+        val hidePageTitle = page.presentationHint.filter(_ === InvisiblePageTitle).fold(hidePageTitleByCya)(_ => true)
+
+        SummaryList(
+          rows = page.fields
+            .filterNot(_.hideOnSummary)
+            .flatMap { fc =>
+              FormComponentSummaryRenderer
+                .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
+                  fc,
+                  page.id.map(_.modelPageId),
+                  formTemplateId,
+                  formModelVisibilityOptics,
+                  maybeAccessCode,
+                  singletonWithNumber.sectionNumber,
+                  sectionTitle4Ga,
+                  cache.form.thirdPartyData.obligations,
+                  validationResult,
+                  envelope,
+                  addressRecordLookup,
+                  None,
+                  Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
+                )
+            },
+          classes = "govuk-!-margin-bottom-0",
+          attributes =
+            if (hidePageTitle) Map.empty[String, String]
+            else Map("title" -> page.shortName.getOrElse(page.title).value())
+        )
+      }
+      .filterNot(_.rows.size === 0)
+  }
+
   def determineContinueLabelKey(
     continueLabelKey: String,
     isNotPermitted: Boolean,
