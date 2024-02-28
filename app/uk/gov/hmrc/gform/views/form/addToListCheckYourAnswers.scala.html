@@ -72,12 +72,7 @@
     }
 
     <div class="govuk-body">
-        @summaryListRows.map { l =>
-            @l.attributes.find(_._1 == "title").map{attribute =>
-              <h2 class="govuk-heading-m govuk-!-margin-top-5">@attribute._2</h2>
-            }
-            @govukSummaryList(l)
-        }
+        @addToListCheckYourAnswersTable(summaryListRows)
     </div>
 
     @footer.map{ f =>

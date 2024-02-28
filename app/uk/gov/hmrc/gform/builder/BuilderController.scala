@@ -35,10 +35,11 @@ import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartSt
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ PageModel, Repeater }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, FastForward, PageModel, Repeater, Visibility }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -49,6 +50,7 @@ import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class BuilderController(
@@ -66,7 +68,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    8; // This is managed manually. Increase it any time API used by builder extension is changed.
+    9; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -281,8 +283,22 @@ class BuilderController(
                           "sectionPath" := CursorOp.opsToPath(history)
                         )
                       })
+
                 }
-              }(checkYouAnswers => Option.empty[Json]) { repeater =>
+              } { checkYouAnswers =>
+                val history: List[CursorOp] =
+                  List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
+                    historySuffix
+
+                Some(
+                  Json.obj(
+                    "atlIterationIndex" := checkYouAnswers.index,
+                    "atlCyaPage" := true,
+                    "section" := addToListJson,
+                    "sectionPath" := CursorOp.opsToPath(history)
+                  )
+                )
+              } { repeater =>
                 val history: List[CursorOp] =
                   List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
                     historySuffix
@@ -847,6 +863,83 @@ class BuilderController(
             )
         )
           .pure[Future]
+    }
+
+  def fetchAtlCyaPageHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        import i18nSupport._
+
+        val visibleIteration: Bracket.AddToListIteration[Visibility] =
+          formModelOptics.formModelVisibilityOptics.formModel
+            .bracket(sectionNumber)
+            .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
+
+        val checkYourAnswers =
+          formModelOptics.formModelRenderPageOptics
+            .formModel(sectionNumber)
+            .asInstanceOf[CheckYourAnswers[DataExpanded]]
+
+        val (title, noPIITitle) = SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers)
+
+        val pageHeading: Html = uk.gov.hmrc.gform.views.html
+          .page_heading(
+            title,
+            checkYourAnswers.expandedCaption.map(_.value())
+          )
+
+        val continueLabel = SectionRenderingService.determineContinueLabelKey(
+          cache.retrievals.continueLabelKey,
+          cache.formTemplate.draftRetrievalMethod.isNotPermitted,
+          checkYourAnswers.expandedContinueLabel,
+          false
+        )
+
+        val header = checkYourAnswers.expandedHeader.map(_.value()).map(markDownParser)
+        val footer = checkYourAnswers.expandedFooter.map(_.value()).map(markDownParser)
+
+        // This is hack to avoid whole validation machinery
+        val lookup: Map[FormComponentId, FormFieldValidationResult] =
+          formModelOptics.formModelVisibilityOptics.data.all
+            .map { case (modelComponentId, variadicValue) =>
+              formModelOptics.formModelRenderPageOptics
+                .find(modelComponentId)
+                .map(fc => fc.id -> FieldOk(fc, variadicValue.toSeq.mkString("")))
+            }
+            .flatten
+            .toMap
+
+        val validationResult = ValidationResult.empty.copy(lookup = lookup)
+
+        val summaryListRows: List[SummaryList] = SectionRenderingService.summaryList(
+          formTemplateId,
+          checkYourAnswers,
+          visibleIteration,
+          formModelOptics.formModelVisibilityOptics,
+          Option.empty[AccessCode],
+          cache,
+          validationResult,
+          EnvelopeWithMapping.empty,
+          AddressRecordLookup.from(cache.form.thirdPartyData),
+          sectionNumber,
+          List.empty[FastForward]
+        )
+
+        val summaryTable = html.form.addToListCheckYourAnswersTable(summaryListRows)
+
+        Ok(
+          Json
+            .obj(
+              "pageHeading" := pageHeading,
+              "continueLabel" := continueLabel,
+              "header" := header,
+              "footer" := footer,
+              "noPIITitle" := noPIITitle + " - " + cache.formTemplate.formName.value + " - GOV.UK",
+              "summaryTable" := sanitiseHtml(summaryTable)
+            )
+        )
+          .pure[Future]
+
     }
 
   def fetchAtlRepeaterHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
