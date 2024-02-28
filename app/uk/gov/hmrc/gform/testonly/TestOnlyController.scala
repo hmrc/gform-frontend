@@ -628,32 +628,25 @@ class TestOnlyController(
       )
   }
 
-  def restoreAll(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
+  def restoreAll(snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
-      snapshotIdUserData
-        .bindFromRequest()
-        .fold(
-          formWithErrors => BadRequest("restore all errors ${formWithErrors.errorsAsJson}").pure[Future],
-          userData => {
-            val redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .restoreAllGet(
-                formTemplateId,
-                maybeAccessCode,
-                SnapshotId(userData.snapshotId)
-              )
-              .url
-            gformConnector
-              .snapshotOverview(SnapshotId(userData.snapshotId))
-              .map(_.ggFormData)
-              .flatMap {
-                case Some(ggFormData) =>
-                  authLoginStubService
-                    .getSession(ggFormData.withRedirectionUrl(redirectUrl))
-                    .map(Redirect(redirectUrl).withSession)
-                case None => Redirect(redirectUrl).pure[Future]
-              }
-          }
-        )
+      for {
+        s <- gformConnector.snapshotOverview(snapshotId)
+        redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+                        .restoreAllGet(
+                          s.templateId,
+                          maybeAccessCode,
+                          snapshotId
+                        )
+                        .url
+        result <- s.ggFormData match {
+                    case Some(ggFormData) =>
+                      authLoginStubService
+                        .getSession(ggFormData.withRedirectionUrl(redirectUrl))
+                        .map(Redirect(redirectUrl).withSession)
+                    case None => Redirect(redirectUrl).pure[Future]
+                  }
+      } yield result
     }
 
   def restoreAllGet(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], snapshotId: SnapshotId) =
@@ -736,8 +729,10 @@ class TestOnlyController(
              |gform-frontend: ${snapshotOverivew.gformFrontendVersion.value}
              |""".stripMargin
         )
-        val actionUrl =
-          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAll(targetTemplateId, maybeAccessCode).path
+        val shareUrl =
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+            .restoreAll(snapshotId, maybeAccessCode)
+            .path
         val updateFormDataActionUrl =
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplateId, maybeAccessCode).path
         Ok(
@@ -749,7 +744,7 @@ class TestOnlyController(
             versions,
             Json.prettyPrint(snapshotOverivew.formData.getOrElse(Json.obj())),
             isDataRestore,
-            actionUrl,
+            shareUrl,
             updateFormDataActionUrl,
             Json.prettyPrint(snapshotOverivew.ggFormData.map(Json.toJson(_)).getOrElse(Json.obj()))
           )

@@ -29,7 +29,7 @@
   versions: Html,
   formData: String,
   isDataRestore: Boolean,
-  actionUrl: String,
+  shareUrl: String,
   updateFormDataActionUrl: String,
   governmentGatewayCredentials: String
 )(implicit
@@ -52,37 +52,41 @@
   </style>
 
   <div class="button-container">
-  <form action="@actionUrl" method="post">
-    <p class="govuk-body">Snapshot description:</p>
-    <div id="description-hint" class="govuk-hint">
-      <pre>@{description.value}</pre>
-    </div>
+  <p class="govuk-body">Snapshot description:</p>
+  <div id="description-hint" class="govuk-hint">
+    <pre>@{description.value}</pre>
+  </div>
 
-    <p class="govuk-body">gForm versions:</p>
-    <div id="description-hint" class="govuk-hint">
-      <pre>
-        @versions
-      </pre>
-    </div>
+  <div class="button-container">
+  <p class="govuk-body">Snapshot share Url:</p>
 
-    <p class="govuk-body govuk-!-margin-bottom-2"></p>
-    <p class="govuk-body">Form data:</p>
+  <div id="share-url-hint" class="govuk-hint">
+     <a href=@{shareUrl} class="govuk-link">@{shareUrl}</a>
+  </div>
 
-    <div id="description-hint" class="govuk-hint">
-      <pre>@formData</pre>
-    </div>
 
-    <p class="govuk-body govuk-!-margin-bottom-2"></p>
-    <p class="govuk-body">Auth info:</p>
+  <p class="govuk-body">gForm versions:</p>
+  <div id="description-hint" class="govuk-hint">
+    <pre>
+      @versions
+    </pre>
+  </div>
 
-    <div id="auth-info-hint" class="govuk-hint">
-      <pre>@governmentGatewayCredentials</pre>
-    </div>
-    <p class="govuk-body govuk-!-margin-bottom-2"></p>
+  <p class="govuk-body govuk-!-margin-bottom-2"></p>
+  <p class="govuk-body">Form data:</p>
 
-    <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
-    <button type="submit" class="govuk-button">Restore all</button>
-  </form>
+  <div id="data-hint" class="govuk-hint">
+    <pre>@formData</pre>
+  </div>
+
+  <p class="govuk-body govuk-!-margin-bottom-2"></p>
+  <p class="govuk-body">Auth info:</p>
+
+  <div id="auth-info-hint" class="govuk-hint">
+    <pre>@governmentGatewayCredentials</pre>
+  </div>
+  <p class="govuk-body govuk-!-margin-bottom-2"></p>
+
 
   <form action="@updateFormDataActionUrl" method="post">
     <input type="hidden" class="govuk-input" id="formData" name="formData" value="@{HtmlFormat.escape(formData).body}">
