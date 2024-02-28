@@ -628,25 +628,25 @@ class TestOnlyController(
       )
   }
 
-  def restoreAll(formTemplateId: FormTemplateId, snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
+  def restoreAll(snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
-      val redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-        .restoreAllGet(
-          formTemplateId,
-          maybeAccessCode,
-          snapshotId
-        )
-        .url
-      gformConnector
-        .snapshotOverview(snapshotId)
-        .map(_.ggFormData)
-        .flatMap {
-          case Some(ggFormData) =>
-            authLoginStubService
-              .getSession(ggFormData.withRedirectionUrl(redirectUrl))
-              .map(Redirect(redirectUrl).withSession)
-          case None => Redirect(redirectUrl).pure[Future]
-        }
+      for {
+        s <- gformConnector.snapshotOverview(snapshotId)
+        redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+                        .restoreAllGet(
+                          s.templateId,
+                          maybeAccessCode,
+                          snapshotId
+                        )
+                        .url
+        result <- s.ggFormData match {
+                    case Some(ggFormData) =>
+                      authLoginStubService
+                        .getSession(ggFormData.withRedirectionUrl(redirectUrl))
+                        .map(Redirect(redirectUrl).withSession)
+                    case None => Redirect(redirectUrl).pure[Future]
+                  }
+      } yield result
     }
 
   def restoreAllGet(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], snapshotId: SnapshotId) =
@@ -731,7 +731,7 @@ class TestOnlyController(
         )
         val shareUrl =
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-            .restoreAll(targetTemplateId, snapshotId, maybeAccessCode)
+            .restoreAll(snapshotId, maybeAccessCode)
             .path
         val updateFormDataActionUrl =
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplateId, maybeAccessCode).path
