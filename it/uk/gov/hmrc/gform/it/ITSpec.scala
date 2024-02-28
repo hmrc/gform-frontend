@@ -1,8 +1,7 @@
 package uk.gov.hmrc.gform.it
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.`extension`.responsetemplating.ResponseTemplateTransformer
 import com.github.tomakehurst.wiremock.client.WireMock.configureFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import com.typesafe.config.ConfigFactory
@@ -29,9 +28,7 @@ trait ITSpec
   implicit val system: ActorSystem = ActorSystem()
 
   val wiremockPort: Int = 10000 + Random.nextInt(10000)
-  implicit val wireMockServer: WireMockServer = new WireMockServer(
-    options().port(wiremockPort).extensions(new ResponseTemplateTransformer(false))
-  )
+  implicit val wireMockServer: WireMockServer = new WireMockServer(options().port(wiremockPort))
 
   val settingsOverride: Map[String, String] = Map(
     "auditing.enabled"                                 -> "false",

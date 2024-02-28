@@ -33,6 +33,8 @@ import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ CSRFErrorHandler, ControllersModule, ErrResponder, ErrorHandler }
 import _root_.controllers.AssetsComponents
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
@@ -73,7 +75,11 @@ class ApplicationModule(context: Context)
 
   logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
 
-  protected val akkaModule = new AkkaModule(materializer, actorSystem)
+  override lazy val actorSystem: ActorSystem = ActorSystem()
+
+  protected val akkaModule =
+    new AkkaModule(Materializer.matFromSystem(actorSystem), actorSystem)
+
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
   protected val configModule = new ConfigModule(context, playBuiltInsModule)

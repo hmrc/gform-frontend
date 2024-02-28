@@ -18,24 +18,15 @@ package uk.gov.hmrc.gform.it
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.RequestMethod
-import com.github.tomakehurst.wiremock.matching.{ RequestPattern, UrlPattern }
+import com.github.tomakehurst.wiremock.matching.{ RequestPatternBuilder, UrlPattern }
 import play.api.libs.json.{ Json, Reads }
 
 trait WiremockAdminSupport {
   def getRequestBody[T: Reads](urlPatten: String)(implicit wireMockServer: WireMockServer): T = {
     val findResult = wireMockServer.findRequestsMatching(
-      new RequestPattern(
-        new UrlPattern(WireMock.equalTo(urlPatten), false),
-        RequestMethod.ANY,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      )
+      RequestPatternBuilder
+        .newRequestPattern(RequestMethod.ANY, new UrlPattern(WireMock.equalTo(urlPatten), false))
+        .build()
     )
 
     Json

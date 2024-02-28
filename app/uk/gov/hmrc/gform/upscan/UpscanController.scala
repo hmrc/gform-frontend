@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import akka.actor.Scheduler
+import org.apache.pekko.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }

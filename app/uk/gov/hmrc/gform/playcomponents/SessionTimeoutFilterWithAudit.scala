@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import uk.gov.hmrc.play.bootstrap.frontend.filters.{ SessionTimeoutFilter, SessionTimeoutFilterConfig }
 
 import uk.gov.hmrc.gform.FormTemplateKey
@@ -48,7 +48,7 @@ class SessionTimeoutFilterWithAudit(
 
   private def hasExpired(timestamp: Instant): Boolean = {
     val timeOfExpiry = timestamp.plus(config.timeoutDuration)
-    clock().isAfter(timeOfExpiry)
+    Instant.now().isAfter(timeOfExpiry)
   }
 
   override def apply(f: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {

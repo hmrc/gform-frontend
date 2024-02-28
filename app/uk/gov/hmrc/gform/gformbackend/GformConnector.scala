@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import akka.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.model.StatusCodes
 import cats.data.NonEmptyList
 import cats.implicits.none
 import cats.instances.future._

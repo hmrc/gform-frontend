@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.mvc.{ CookieHeaderEncoding, DefaultCookieHeaderEncoding, EssentialFilter, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.DefaultSessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
@@ -41,6 +40,7 @@ import uk.gov.hmrc.crypto._
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
 import play.filters.components.CSPComponents
+import uk.gov.hmrc.gform.metrics.MetricsModule
 
 class AnonoymousSessionCookieCryptoFilter(
   sessionCookieCrypto: SessionCookieCrypto,
