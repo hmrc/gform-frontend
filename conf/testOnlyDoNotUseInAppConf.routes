@@ -35,7 +35,7 @@ GET           /submissions/test-only/whats-in-session                  uk.gov.hm
 GET           /submissions/test-only/clear-session                     uk.gov.hmrc.gform.testonly.TestOnlyController.clearSession()
 GET           /submissions/test-only/config                            uk.gov.hmrc.gform.testonly.TestOnlyController.config()
 
-GET           /submissions/test-only/snapshot-share/:snapshotId                                     uk.gov.hmrc.gform.testonly.TestOnlyController.restoreAll(snapshotId: SnapshotId, maybAccessCode: Option[AccessCode])
+GET           /submissions/test-only/snapshot/:snapshotId                                           uk.gov.hmrc.gform.testonly.TestOnlyController.restoreAll(snapshotId: SnapshotId, maybAccessCode: Option[AccessCode])
 GET           /submissions/test-only/restore-all/:formTemplateId/:maybAccessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.restoreAllGet(formTemplateId: FormTemplateId, maybAccessCode: Option[AccessCode], snapshotId: SnapshotId)
 GET           /submissions/test-only/restore-continue/:formTemplateId/:maybAccessCode               uk.gov.hmrc.gform.testonly.TestOnlyController.restoreContinue(formTemplateId: FormTemplateId, snapshotId:String, maybAccessCode: Option[AccessCode])
 GET           /submissions/test-only/restore-current/:snapshotId/:formId          uk.gov.hmrc.gform.testonly.TestOnlyController.restoreCurrent(snapshotId: String, formId: String)
