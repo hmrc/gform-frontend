@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gform
+package uk.gov.hmrc.gform.eval
 
-trait Substituter[A, T] {
-  def substitute(substitutions: A, t: T): T
-}
+import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Sum
 
-object Substituter {
-
-  implicit class SubstituterSyntax[A, T](t: T)(implicit ev: Substituter[A, T]) {
-    def apply(substitutions: A): T = Substituter[A, T].substitute(substitutions, t)
+object AllPageModelSums {
+  def unapply[A <: PageMode](bracket: BracketPlain[A]): Option[Set[Sum]] = bracket match {
+    case AllPageModelExpressions(exprMetadatas) => Some(exprMetadatas.flatMap(_.expr.sums).toSet).filter(_.nonEmpty)
+    case _                                      => None
   }
-
-  def apply[A, T](implicit substituter: Substituter[A, T]): Substituter[A, T] = substituter
-
 }

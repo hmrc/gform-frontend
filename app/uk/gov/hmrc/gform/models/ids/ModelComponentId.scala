@@ -68,12 +68,6 @@ sealed trait ModelComponentId extends Product with Serializable {
     case ModelComponentId.Atomic(_, Atom(v)) if v == atomValue => true
     case _                                                     => false
   }
-
-  def removeIndex: ModelComponentId = fold[ModelComponentId] { case ModelComponentId.Pure(indexedComponentId) =>
-    ModelComponentId.Pure(indexedComponentId.toPure)
-  } { case ModelComponentId.Atomic(indexedComponentId, atom) =>
-    ModelComponentId.Atomic(indexedComponentId.toPure, atom)
-  }
 }
 
 object ModelComponentId {

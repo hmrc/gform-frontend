@@ -25,7 +25,7 @@ import play.api.test.Helpers
 
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
-import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceData, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo }
+import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceData, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
@@ -108,6 +108,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
         ),
         expectedStaticTypeInfo,
         expectedRevealinChoiceInfo,
+        SumInfo.empty,
         None
       )
 
