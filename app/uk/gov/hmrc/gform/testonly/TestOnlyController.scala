@@ -519,34 +519,38 @@ class TestOnlyController(
               .withCredentialRole(maybeCredentialRole)
               .withCredentialStrength(credentialStrength)
               .withGatewayToken(maybeGatewayInformation)
-
-            saveFormUserData
-              .bindFromRequest()
-              .fold(
-                formWithErrors => BadRequest("save form errors ${formWithErrors.errorsAsJson}").pure[Future],
-                userData => {
-                  val currentFormId = FormId(userData.currentFormId)
-                  val description = userData.description
-                  val saveRequest =
-                    SaveRequest(
-                      currentFormId,
-                      Description(description),
-                      GformFrontendVersion(BuildInfo.version),
-                      Some(authWizardData)
-                    )
-                  for {
-                    snapshotOverview <- gformConnector.saveForm(saveRequest)
-                  } yield Redirect(
-                    uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
-                      snapshotOverview.templateId,
-                      snapshotOverview.snapshotId,
-                      maybeAccessCode,
-                      None,
-                      snapshotOverview.templateId
-                    )
+            Some(authWizardData).pure[Future]
+        }
+        .recover(_ => None)
+        .flatMap { authWizardData =>
+          saveFormUserData
+            .bindFromRequest()
+            .fold(
+              formWithErrors => BadRequest("save form errors ${formWithErrors.errorsAsJson}").pure[Future],
+              userData => {
+                val currentFormId = FormId(userData.currentFormId)
+                val description = userData.description
+                val saveRequest =
+                  SaveRequest(
+                    currentFormId,
+                    Description(description),
+                    GformFrontendVersion(BuildInfo.version),
+                    authWizardData
                   )
-                }
-              )
+                for {
+                  snapshotOverview <- gformConnector.saveForm(saveRequest)
+                } yield Redirect(
+                  uk.gov.hmrc.gform.testonly.routes.TestOnlyController.snapshotPage(
+                    snapshotOverview.templateId,
+                    snapshotOverview.snapshotId,
+                    maybeAccessCode,
+                    None,
+                    snapshotOverview.templateId
+                  )
+                )
+              }
+            )
+
         }
     }
 
