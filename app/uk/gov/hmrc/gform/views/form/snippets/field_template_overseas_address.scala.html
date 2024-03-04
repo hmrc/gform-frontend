@@ -33,7 +33,8 @@
     validationResultCountry: FormFieldValidationResult,
     formLevelHeading: Boolean,
     classes: String,
-    fetchValue: (HtmlFieldId, Atom) => String
+    fetchValue: (HtmlFieldId, Atom) => String,
+    showAll: ShowAll
 )(
     implicit
     messages: Messages,
@@ -142,7 +143,7 @@
         ),
         formComponent.atomicFormComponentId(OverseasAddress.country).toFormComponentId,
         true,
-        ShowAll.Disabled,
+        showAll,
         Register.Country,
         formTemplateId,
         maybeAccessCode,

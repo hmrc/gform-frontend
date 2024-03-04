@@ -2479,6 +2479,14 @@ class SectionRenderingService(
       case RadioLookup(options)                       => options
     }
 
+    val showAll = lookupRegistry
+      .get(Register.Country)
+      .map {
+        case AjaxLookup(_, _, showAll) => showAll
+        case _                         => ShowAll.Disabled
+      }
+      .getOrElse(ShowAll.Disabled)
+
     val countryHtmlFieldId: HtmlFieldId = HtmlFieldId.Pure(formComponent.atomicFormComponentId(OverseasAddress.country))
     val formFieldValidationResultCountry = formFieldValidationResult.forHtmlFieldId(countryHtmlFieldId)
 
@@ -2499,7 +2507,8 @@ class SectionRenderingService(
         formFieldValidationResultCountry,
         isPageHeading,
         getLabelClasses(isPageHeading, formComponent.labelSize),
-        fetchValue
+        fetchValue,
+        showAll
       )
   }
 
