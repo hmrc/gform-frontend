@@ -125,8 +125,16 @@ class TestOnlyController(
 
         withHandlebarPayload {
           for {
+            userSession <- fromFutureA(UserSessionBuilder[Future](cache))
             res <-
-              fetchHandlebarModel(form, formTemplate, formModelOptics.formModelVisibilityOptics, customerId, retrievals)
+              fetchHandlebarModel(
+                form,
+                formTemplate,
+                formModelOptics.formModelVisibilityOptics,
+                customerId,
+                retrievals,
+                userSession
+              )
           } yield res
         }
     }
@@ -136,7 +144,8 @@ class TestOnlyController(
     formTemplate: FormTemplate,
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     customerId: CustomerId,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    userSession: UserSession
   )(implicit
     l: LangADT,
     m: Messages,
@@ -171,7 +180,7 @@ class TestOnlyController(
                          l,
                          None,
                          DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-                         UserSession.empty
+                         userSession
                        )
 
       httpResponse <- recov(
