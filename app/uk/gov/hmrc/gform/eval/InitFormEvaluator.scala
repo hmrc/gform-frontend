@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -59,7 +60,7 @@ case class InitFormEvaluator(
       case _                                              => false
     }
 
-  private def evalExpr(e: Expr)(implicit
+  def evalExpr(e: Expr)(implicit
     messages: Messages
   ): String = e match {
     case UserCtx(userField) =>
@@ -81,7 +82,29 @@ case class InitFormEvaluator(
         }
       }
     case Constant(c) => c
-    case _           => ""
+    case LinkCtx(internalLink) =>
+      internalLink match {
+        case InternalLink.NewFormForTemplate(formTemplateId) =>
+          uk.gov.hmrc.gform.gform.routes.NewFormController
+            .dashboardClean(formTemplateId)
+            .url
+        case InternalLink.NewForm =>
+          uk.gov.hmrc.gform.gform.routes.NewFormController
+            .dashboardClean(cache.formTemplate._id)
+            .url
+        case InternalLink.NewSession =>
+          uk.gov.hmrc.gform.gform.routes.NewFormController
+            .dashboardWithNewSession(cache.formTemplate._id)
+            .url
+        case InternalLink.SignOut =>
+          uk.gov.hmrc.gform.gform.routes.SignOutController
+            .signOut(cache.formTemplate._id)
+            .url
+        case InternalLink.UrlLink(url) =>
+          uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
+        case _ => ""
+      }
+    case _ => ""
   }
 
   private def prepareRequest(dataRetrieve: DataRetrieve)(implicit

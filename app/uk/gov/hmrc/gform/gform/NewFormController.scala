@@ -514,7 +514,9 @@ class NewFormController(
         }
 
         maybeExitPage.fold(continue(newCache, formTemplate)) { exitPage =>
-          implicit val sse = (new RealSmartStringEvaluatorFactory(englishMessages)).noForm
+          implicit val sse = (new RealSmartStringEvaluatorFactory(englishMessages)).noForm(
+            initFormEvaluator.evalExpr
+          )
           Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
         }
       }

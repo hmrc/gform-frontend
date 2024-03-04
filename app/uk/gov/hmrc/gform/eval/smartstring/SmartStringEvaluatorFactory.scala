@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
+import scala.jdk.CollectionConverters._
 
 import java.text.MessageFormat
 
@@ -50,13 +51,22 @@ class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartSt
       override def evalEnglish(s: SmartString, markDown: Boolean): String = englishOnlyExecutor(s, markDown)
     }
 
-  def noForm(implicit l: LangADT): SmartStringEvaluator =
+  def noForm(evalExpr: Expr => String)(implicit l: LangADT): SmartStringEvaluator =
     new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String =
-        s.rawValue(l)
+        evalSmartString(s.rawValue(l), s.interpolations)
 
       override def evalEnglish(s: SmartString, markDown: Boolean): String =
-        s.rawValue(LangADT.En)
+        evalSmartString(s.rawValue(LangADT.En), s.interpolations)
+
+      private def evalSmartString(rawValue: String, interpolations: List[Expr]) =
+        new MessageFormat(rawValue)
+          .format(
+            interpolations
+              .map(evalExpr)
+              .asJava
+              .toArray
+          )
     }
 }
 
@@ -65,8 +75,7 @@ private class Executor(
   messages: Messages,
   l: LangADT
 ) {
-  def apply(s: SmartString, markDown: Boolean): String = {
-    import scala.jdk.CollectionConverters._
+  def apply(s: SmartString, markDown: Boolean): String =
     new MessageFormat(s.rawValue(l))
       .format(
         s.interpolations
@@ -77,8 +86,6 @@ private class Executor(
           .asJava
           .toArray
       )
-
-  }
 
   private def formatExpr(expr: Expr, markDown: Boolean): String = {
 
