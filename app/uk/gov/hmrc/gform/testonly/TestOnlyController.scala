@@ -746,6 +746,7 @@ class TestOnlyController(
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController
             .restoreAll(snapshotId, maybeAccessCode)
             .path
+        val shareUrlText = frontendAppConfig.gformFrontendBaseUrl + shareUrl
         val updateFormDataActionUrl =
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplateId, maybeAccessCode).path
         Ok(
@@ -758,6 +759,7 @@ class TestOnlyController(
             Json.prettyPrint(snapshotOverivew.formData.getOrElse(Json.obj())),
             isDataRestore,
             shareUrl,
+            shareUrlText,
             updateFormDataActionUrl,
             Json.prettyPrint(snapshotOverivew.ggFormData.map(Json.toJson(_)).getOrElse(Json.obj()))
           )

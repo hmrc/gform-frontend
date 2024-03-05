@@ -30,6 +30,7 @@
   formData: String,
   isDataRestore: Boolean,
   shareUrl: String,
+  shareUrlText: String,
   updateFormDataActionUrl: String,
   governmentGatewayCredentials: String
 )(implicit
@@ -61,7 +62,7 @@
   <p class="govuk-body">Snapshot share Url:</p>
 
   <div id="share-url-hint" class="govuk-hint">
-     <a href=@{shareUrl} class="govuk-link">@{shareUrl}</a>
+     <a href=@{shareUrl} class="govuk-link">@{shareUrlText}</a>
   </div>
 
 
