@@ -27,6 +27,7 @@ import org.scalactic.source.Position
 import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
@@ -47,17 +48,254 @@ class StructuredFormDataBuilderSpec
 
   type EitherEffect[A] = Either[Throwable, A]
 
-  /* |                                      | text | hmrc tax period | file | sort code | address | date | choice | lookup |
-   * |--------------------------------------+------+-----------------+------+-----------+---------+------+--------+--------|
-   * | standard                             | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * | group                                | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * | repeated section                     | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * | add to list                          | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * | revealing choice in group            | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * | revealing choice in repeated section | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * | revealing choice in add to list      | x    | todo            | todo | todo      | todo    | todo | todo   | x      |
-   * |--------------------------------------+------+-----------------+------+-----------+---------+------+--------+--------|
-   */
+// |                                      | text | hmrc tax period | file | sort code | address | date | choice | lookup | postcodeLookup |
+// |--------------------------------------+------+-----------------+------+-----------+---------+------+--------+--------+----------------|
+// | standard                             | x    | todo            | todo | todo      | todo    | todo | todo   | x      | x              |
+// | group                                | x    | todo            | todo | todo      | todo    | todo | todo   | x      | N/A            |
+// | repeated section                     | x    | todo            | todo | todo      | todo    | todo | todo   | x      | x              |
+// | add to list                          | x    | todo            | todo | todo      | todo    | todo | todo   | x      | x              |
+// | revealing choice in group            | x    | todo            | todo | todo      | todo    | todo | todo   | x      | N/A            |
+// | revealing choice in repeated section | x    | todo            | todo | todo      | todo    | todo | todo   | x      | N/A            |
+// | revealing choice in add to list      | x    | todo            | todo | todo      | todo    | todo | todo   | x      | N/A            |
+// |--------------------------------------+------+-----------------+------+-----------+---------+------+--------+--------+----------------|
+
+  "postcodeLookup" must "create correct JSON in a non repeated section for selected address" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createNonRepeatingSection(
+          createPostcodeLookupField("postcodeLookupField")
+        ) :: Nil,
+        variadicFormData(
+          "postcodeLookupField-postcode" -> "irrelevant",
+          "postcodeLookupField-filter"   -> ""
+        )
+      ),
+      objectStructure(
+        field(
+          "postcodeLookupField",
+          objectStructure(
+            field("line1", textNode("First Address Line")),
+            field("line2", textNode("Second Address Line")),
+            field("line3", textNode("Third Address Line")),
+            field("line4", textNode("Fourth Address Line")),
+            field("town", textNode("Anytown")),
+            field("postcode", textNode("FX1A 7GA"))
+          )
+        )
+      ).asRight
+    )
+  }
+
+  it must "create correct JSON in a non repeated section for entered address" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createNonRepeatingSection(
+          createPostcodeLookupField("postcodeLookupFieldEntered")
+        ) :: Nil,
+        variadicFormData(
+          "postcodeLookupField-postcode" -> "irrelevant",
+          "postcodeLookupField-filter"   -> ""
+        )
+      ),
+      objectStructure(
+        field(
+          "postcodeLookupFieldEntered",
+          objectStructure(
+            field("line1", textNode("My lane 1")),
+            field("line2", textNode("My street 2")),
+            field("town", textNode("MADEUPTOWN")),
+            field("postcode", textNode("FX0 0PG"))
+          )
+        )
+      ).asRight
+    )
+  }
+
+  it must "create the correct JSON in a repeated section for selected address" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createRepeatingSection(2)(
+          createPostcodeLookupField("postcodeLookupField")
+        ) :: Nil,
+        variadicFormData(
+          "1_postcodeLookupField-postcode" -> "irrelevant",
+          "1_postcodeLookupField-filter"   -> "",
+          "2_postcodeLookupField-postcode" -> "irrelevant",
+          "2_postcodeLookupField-filter"   -> ""
+        )
+      ),
+      objectStructure(
+        Field(
+          FieldName("postcodeLookupField"),
+          arrayNode(
+            objectStructure(
+              field("line1", textNode("1 First Address Line")),
+              field("line2", textNode("Second Address Line")),
+              field("line3", textNode("Third Address Line")),
+              field("line4", textNode("Fourth Address Line")),
+              field("town", textNode("Anytown1")),
+              field("postcode", textNode("FX1A 7GA"))
+            ),
+            objectStructure(
+              field("line1", textNode("2 First Address Line")),
+              field("line2", textNode("Second Address Line")),
+              field("line3", textNode("Third Address Line")),
+              field("line4", textNode("Fourth Address Line")),
+              field("town", textNode("Anytown2")),
+              field("postcode", textNode("FX1A 7GA"))
+            )
+          )
+        )
+      ).asRight
+    )
+  }
+
+  it must "create the correct JSON in a repeated section for entered address" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createRepeatingSection(2)(
+          createPostcodeLookupField("postcodeLookupFieldEntered")
+        ) :: Nil,
+        variadicFormData(
+          "1_postcodeLookupField-postcode" -> "irrelevant",
+          "1_postcodeLookupField-filter"   -> "",
+          "2_postcodeLookupField-postcode" -> "irrelevant",
+          "2_postcodeLookupField-filter"   -> ""
+        )
+      ),
+      objectStructure(
+        field(
+          "postcodeLookupFieldEntered",
+          arrayNode(
+            objectStructure(
+              field("line1", textNode("1 My lane 1")),
+              field("line2", textNode("1 My street 2")),
+              field("town", textNode("1 MADEUPTOWN")),
+              field("postcode", textNode("FX1 1PG"))
+            ),
+            objectStructure(
+              field("line1", textNode("2 My lane 1")),
+              field("line2", textNode("2 My street 2")),
+              field("town", textNode("2 MADEUPTOWN")),
+              field("postcode", textNode("FX2 2PG"))
+            )
+          )
+        )
+      ).asRight
+    )
+  }
+
+  it must "create the correct JSON in an add to list for selected address" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createAddToListSection(
+          "addAnotherPostcodeLookup",
+          List(
+            createPostcodeLookupField("postcodeLookupField")
+          )
+        ) :: Nil,
+        variadicFormDataMany(
+          "1_addAnotherPostcodeLookup" -> List("0"),
+          "2_addAnotherPostcodeLookup" -> List("1")
+        ) ++
+          variadicFormData(
+            "1_postcodeLookupField-postcode" -> "irrelevant",
+            "1_postcodeLookupField-filter"   -> "",
+            "2_postcodeLookupField-postcode" -> "irrelevant",
+            "2_postcodeLookupField-filter"   -> ""
+          )
+      ),
+      objectStructure(
+        field(
+          "addAnotherPostcodeLookup",
+          arrayNode(
+            objectStructure(
+              field("addAnotherPostcodeLookup", textNode("0")),
+              field(
+                "postcodeLookupField",
+                objectStructure(
+                  field("line1", textNode("1 First Address Line")),
+                  field("line2", textNode("Second Address Line")),
+                  field("line3", textNode("Third Address Line")),
+                  field("line4", textNode("Fourth Address Line")),
+                  field("town", textNode("Anytown1")),
+                  field("postcode", textNode("FX1A 7GA"))
+                )
+              )
+            ),
+            objectStructure(
+              field("addAnotherPostcodeLookup", textNode("1")),
+              field(
+                "postcodeLookupField",
+                objectStructure(
+                  field("line1", textNode("2 First Address Line")),
+                  field("line2", textNode("Second Address Line")),
+                  field("line3", textNode("Third Address Line")),
+                  field("line4", textNode("Fourth Address Line")),
+                  field("town", textNode("Anytown2")),
+                  field("postcode", textNode("FX1A 7GA"))
+                )
+              )
+            )
+          )
+        )
+      ).asRight
+    )
+  }
+
+  it must "create the correct JSON in an add to list for entered address" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createAddToListSection(
+          "addAnotherPostcodeLookup",
+          List(
+            createPostcodeLookupField("postcodeLookupFieldEntered")
+          )
+        ) :: Nil,
+        variadicFormDataMany(
+          "1_addAnotherPostcodeLookup" -> List("0"),
+          "2_addAnotherPostcodeLookup" -> List("1")
+        ) ++
+          variadicFormData(
+            "1_postcodeLookupFieldEntered-postcode" -> "irrelevant",
+            "1_postcodeLookupFieldEntered-filter"   -> "",
+            "2_postcodeLookupFieldEntered-postcode" -> "irrelevant",
+            "2_postcodeLookupFieldEntered-filter"   -> ""
+          )
+      ),
+      objectStructure(
+        field(
+          "addAnotherPostcodeLookup",
+          arrayNode(
+            objectStructure(
+              field("addAnotherPostcodeLookup", textNode("0")),
+              field(
+                "postcodeLookupFieldEntered",
+                objectStructure(
+                  field("line1", textNode("1 My lane 1")),
+                  field("line2", textNode("1 My street 2")),
+                  field("town", textNode("1 MADEUPTOWN")),
+                  field("postcode", textNode("FX1 1PG"))
+                )
+              )
+            ),
+            objectStructure(
+              field("addAnotherPostcodeLookup", textNode("1")),
+              field(
+                "postcodeLookupFieldEntered",
+                objectStructure(
+                  field("line1", textNode("2 My lane 1")),
+                  field("line2", textNode("2 My street 2")),
+                  field("town", textNode("2 MADEUPTOWN")),
+                  field("postcode", textNode("FX2 2PG"))
+                )
+              )
+            )
+          )
+        )
+      ).asRight
+    )
+  }
 
   "lookup" must "create the correct JSON in all possible contexts" in {
     validate(
@@ -1036,6 +1274,77 @@ class StructuredFormDataBuilderSpec
     objectStructure shouldBe expected
   }
 
+  override val thirdPartyData: ThirdPartyData = ThirdPartyData.empty
+    .updateEnteredAddresses(
+      FormComponentId("postcodeLookupFieldEntered"),
+      mkFormData(
+        ("postcodeLookupFieldEntered-street1", "My lane 1"),
+        ("postcodeLookupFieldEntered-street2", "My street 2"),
+        ("postcodeLookupFieldEntered-street3", "MADEUPTOWN"),
+        ("postcodeLookupFieldEntered-postcode", "FX0 0PG")
+      )
+    )
+    .updateEnteredAddresses(
+      FormComponentId("1_postcodeLookupFieldEntered"),
+      mkFormData(
+        ("1_postcodeLookupFieldEntered-street1", "1 My lane 1"),
+        ("1_postcodeLookupFieldEntered-street2", "1 My street 2"),
+        ("1_postcodeLookupFieldEntered-street3", "1 MADEUPTOWN"),
+        ("1_postcodeLookupFieldEntered-postcode", "FX1 1PG")
+      )
+    )
+    .updateEnteredAddresses(
+      FormComponentId("2_postcodeLookupFieldEntered"),
+      mkFormData(
+        ("2_postcodeLookupFieldEntered-street1", "2 My lane 1"),
+        ("2_postcodeLookupFieldEntered-street2", "2 My street 2"),
+        ("2_postcodeLookupFieldEntered-street3", "2 MADEUPTOWN"),
+        ("2_postcodeLookupFieldEntered-postcode", "FX2 2PG")
+      )
+    )
+    .updateSelectedAddresses(FormComponentId("postcodeLookupField"), "ANY_TOWN_ID")
+    .updateSelectedAddresses(FormComponentId("1_postcodeLookupField"), "1_ANY_TOWN_ID")
+    .updateSelectedAddresses(FormComponentId("2_postcodeLookupField"), "2_ANY_TOWN_ID")
+    .updatePostcodeLookup(
+      Some(
+        (
+          FormComponentId("postcodeLookupField"),
+          createPostcodeLookup(
+            "ANY_TOWN_ID",
+            List("First Address Line", "Second Address Line", "Third Address Line", "Fourth Address Line"),
+            "Anytown",
+            "FX1A 7GA"
+          )
+        )
+      )
+    )
+    .updatePostcodeLookup(
+      Some(
+        (
+          FormComponentId("1_postcodeLookupField"),
+          createPostcodeLookup(
+            "1_ANY_TOWN_ID",
+            List("1 First Address Line", "Second Address Line", "Third Address Line", "Fourth Address Line"),
+            "Anytown1",
+            "FX1A 7GA"
+          )
+        )
+      )
+    )
+    .updatePostcodeLookup(
+      Some(
+        (
+          FormComponentId("2_postcodeLookupField"),
+          createPostcodeLookup(
+            "2_ANY_TOWN_ID",
+            List("2 First Address Line", "Second Address Line", "Third Address Line", "Fourth Address Line"),
+            "Anytown2",
+            "FX1A 7GA"
+          )
+        )
+      )
+    )
+
   def createFormModelVisibilityOptics(
     sections: List[Section],
     data: VariadicFormData[SourceOrigin.OutOfDate],
@@ -1116,6 +1425,9 @@ class StructuredFormDataBuilderSpec
   def createLookupField(id: String): FormComponent =
     createFormComponent(id, Text(Lookup(Register.Origin, None), Value))
 
+  def createPostcodeLookupField(id: String): FormComponent =
+    createFormComponent(id, PostcodeLookup(None, None, None))
+
   def createGroup(fields: FormComponent*): FormComponent =
     createFormComponent("a_group", Group(fields.toList, Some(5)))
 
@@ -1192,6 +1504,35 @@ class StructuredFormDataBuilderSpec
     fieldNames: FieldName*
   ): Map[StructuredFormDataFieldNamePurpose, FieldName] = fieldNames.map(purpose -> _).toMap
 
+  def createPostcodeLookup(addressId: String, lines: List[String], town: String, postcode: String) =
+    AddressLookupResult(
+      PostcodeLookupRetrieve.Request("not-needed", None),
+      PostcodeLookupRetrieve.Response(
+        false,
+        Some(
+          NonEmptyList.one(
+            PostcodeLookupRetrieve.AddressRecord(
+              addressId,
+              None,
+              PostcodeLookupRetrieve.Address(
+                lines,
+                town,
+                postcode,
+                Some(PostcodeLookupRetrieve.Country("UK", "United Kingdom")),
+                PostcodeLookupRetrieve.Country("UK", "United Kingdom")
+              ),
+              "en",
+              None,
+              None,
+              None,
+              None,
+              None
+            )
+          )
+        )
+      )
+    )
+
   private def objectStructure(fields: Field*): StructuredFormValue =
     StructuredFormValue.ObjectStructure(fields.map { case Field(n, v, a) => Field(n, v, a) }.toList)
 
@@ -1207,4 +1548,10 @@ class StructuredFormDataBuilderSpec
     alternateFieldNames: Map[StructuredFormDataFieldNamePurpose, FieldName] = Map.empty
   ) =
     Field(FieldName(name), value, alternateFieldNames)
+
+  private def mkFormData(entries: (String, String)*) =
+    FormData(
+      entries.toList
+        .map { case (field, value) => FormField(FormComponentId(field).modelComponentId, value) }
+    )
 }

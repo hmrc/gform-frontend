@@ -115,7 +115,7 @@ case class ThirdPartyData(
     address        <- addresses.find(_.id === addressId)
   } yield address
 
-  private def addressFor(
+  def addressFor(
     formComponentId: FormComponentId
   ): Option[Either[FormData, PostcodeLookupRetrieve.AddressRecord]] =
     enteredAddressFor(formComponentId).map(Left(_)).orElse(addressRecordFor(formComponentId).map(Right(_)))

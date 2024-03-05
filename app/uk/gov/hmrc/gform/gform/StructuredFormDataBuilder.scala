@@ -230,6 +230,11 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
 
   private def buildSections(implicit l: LangADT, m: Messages): F[List[Field]] = {
 
+    val postcodeLookupsIds: Set[BaseComponentId] = formModelVisibilityOptics.formModel.allFormComponents.collect {
+      case fc @ IsPostcodeLookup(_) =>
+        fc.id.baseComponentId
+    }.toSet
+
     /*
      * What follows is a mess. Implementation was written before Bracket model
      * was introduced.
@@ -246,7 +251,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
      *    }
      *  }
      */
-    val (addToListFields, addToListMultiValueIds) = buildAddToList
+    val (addToListFields, addToListMultiValueIds) = buildAddToList(postcodeLookupsIds)
     val (revealingChoiceFields, rcMultiValueIds) = buildRevealingChoice
 
     val addToListAndRcMultivalues = addToListMultiValueIds ++ rcMultiValueIds
@@ -258,7 +263,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         .filterNot(addToListAndRcMultivalues.contains)
         .filterNot(multiValueId => ignoredComponentIds(multiValueId.modelComponentId))
 
-    val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNotProcessedYet, false)
+    val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNotProcessedYet, false, postcodeLookupsIds)
 
     val fields =
       (addToListFields, revealingChoiceFields, restOfTheFields, expressionsOutputFields.pure[F]).mapN(_ ++ _ ++ _ ++ _)
@@ -281,7 +286,9 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         ArrayNode(elements.map(element => sanitiseStructuredFormValue(field.copy(value = element))))
     }
 
-  private def buildAddToList(implicit l: LangADT, m: Messages): (F[List[Field]], List[MultiValueId]) = {
+  private def buildAddToList(
+    postcodeLookupsIds: Set[BaseComponentId]
+  )(implicit l: LangADT, m: Messages): (F[List[Field]], List[MultiValueId]) = {
     val addToLists: List[(AddToListId, List[MultiValueId])] =
       formModelVisibilityOptics.formModel.addToListBrackets
         .flatMap(bracket =>
@@ -309,6 +316,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
       val rcModelComponentIds: List[(ModelComponentId, (FormComponent, RevealingChoice))] = allRevealingChoicesIds.map {
         case (fc, rc) => (fc.modelComponentId, (fc, rc))
       }
+
       multiValueIdByIndex.toList.traverse { case (addToListId, indexWithMultiValues) =>
         val objectStructuresF: F[List[ObjectStructure]] =
           indexWithMultiValues.toList.sortBy { case (index, _) => index }.traverse { case (_, multiValues) =>
@@ -356,7 +364,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
               }
               .filterNot(multiValue => ignoredComponentIds(multiValue.modelComponentId))
 
-            val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNoRc, true)
+            val restOfTheFields: F[List[Field]] = buildMultiField(multiValuesNoRc, true, postcodeLookupsIds)
 
             (restOfTheFields, revealingChoiceFields).mapN(_ ++ _).map(ObjectStructure(_))
           }
@@ -432,7 +440,11 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
           .map(sortMany)
           .getOrElse(Seq.empty)
       val fieldsF: F[List[Field]] =
-        buildMultiField(revealedChoice.options.flatMap(_.revealingFields.map(_.multiValueId)), indexedIsPure)
+        buildMultiField(
+          revealedChoice.options.flatMap(_.revealingFields.map(_.multiValueId)),
+          indexedIsPure,
+          Set.empty
+        )
       fieldsF.map { field =>
         val choiceField =
           if (revealedChoice.multiValue) {
@@ -685,47 +697,97 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     }
 
   private def processMultiPure(
-    xs: List[(IndexedComponentId.Pure, ModelComponentId.Pure, NonEmptyList[ModelComponentId.Atomic])]
+    xs: List[(IndexedComponentId.Pure, ModelComponentId.Pure, NonEmptyList[ModelComponentId.Atomic])],
+    postcodeLookupsIds: Set[BaseComponentId]
   ): List[Field] =
     xs.map { case (indexedComponentId, modelComponentId, atomics) =>
-      val atoms: List[Field] = atomics.toList
-        .map { atomic =>
-          val atom = atomic.atom
-          val alternatives = alternativeNames(modelComponentId, atom)
+      val atoms: List[Field] = if (postcodeLookupsIds(indexedComponentId.baseComponentId)) {
+        atomsForPostcodeLookup(indexedComponentId)
+      } else {
+        atomsForModelComponentId(atomics, modelComponentId)
+      }
 
-          formModelVisibilityOptics.data
-            .one(atomic)
-            .map(answer => Field(FieldName(atom.value), TextNode(answer), alternatives))
-        }
-        .collect { case Some(x) =>
-          x
-        }
       Field(FieldName(indexedComponentId.baseComponentId.value), ObjectStructure(atoms), Map.empty)
     }
+
+  private def alternativeNamesForPostCodeLookupManualAddress(atom: Atom): String =
+    atom match {
+      case Atom("street1") => "line1" // Address line 1
+      case Atom("street2") => "line2" // Address line 2 (optional)
+      case Atom("street3") => "town" // Town or city (optional)
+      case Atom(otherwise) => otherwise
+    }
+
+  private def atomsForPostcodeLookup(indexedComponentId: IndexedComponentId): List[Field] = {
+    val baseFcId = FormComponentId(indexedComponentId.baseComponentId.value)
+    val fcId = indexedComponentId.fold(_ => baseFcId)(index => baseFcId.withIndex(index.index))
+    val postcodeLookupAddress =
+      formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.addressFor(fcId)
+    postcodeLookupAddress match {
+      case Some(Left(formData)) =>
+        val lookup = formData.toData
+        val lines: NonEmptyList[(Atom, String)] =
+          Address.summaryPageFields(fcId.modelComponentId.indexedComponentId).map { modelCompoentIdAtomic =>
+            modelCompoentIdAtomic.atom -> lookup.get(modelCompoentIdAtomic).getOrElse("")
+          }
+        lines.toList
+          .filter(_._2.nonEmpty)
+          .map { case (atom, answer) =>
+            Field(
+              FieldName(alternativeNamesForPostCodeLookupManualAddress(atom)),
+              TextNode(answer)
+            )
+          }
+
+      case Some(Right(addressLookupResult)) =>
+        import addressLookupResult.address._
+        List(
+          "line1"    -> line1,
+          "line2"    -> line2,
+          "line3"    -> line3,
+          "line4"    -> line4,
+          "town"     -> town,
+          "postcode" -> postcode
+        )
+          .filter(_._2.nonEmpty)
+          .map { case (fieldName, answer) => Field(FieldName(fieldName), TextNode(answer)) }
+      case None => List.empty[Field]
+    }
+  }
+
+  private def atomsForModelComponentId(
+    atomics: NonEmptyList[ModelComponentId.Atomic],
+    modelComponentId: ModelComponentId.Pure
+  ): List[Field] =
+    atomics.toList
+      .map { atomic =>
+        val atom = atomic.atom
+        val alternatives = alternativeNames(modelComponentId, atom)
+
+        formModelVisibilityOptics.data
+          .one(atomic)
+          .map(answer => Field(FieldName(atom.value), TextNode(answer), alternatives))
+      }
+      .collect { case Some(x) =>
+        x
+      }
 
   private def processMultiIndexed(
     multiIndexedMap: Map[BaseComponentId, List[
       (IndexedComponentId.Indexed, ModelComponentId.Pure, NonEmptyList[ModelComponentId.Atomic])
     ]],
-    indexedIsPure: Boolean
+    indexedIsPure: Boolean,
+    postcodeLookupsIds: Set[BaseComponentId]
   ): List[Field] =
     multiIndexedMap.toList
       .map { case (baseComponentId, xs) =>
         val structures: List[ObjectStructure] = xs.map { case (indexedComponentId, modelComponentId, atomics) =>
-          val atoms: List[Field] = atomics.toList
-            .map { atomic =>
-              val atom = atomic.atom
-              val alternatives = alternativeNames(modelComponentId, atom)
-
-              formModelVisibilityOptics.data
-                .one(atomic)
-                .map(answer => Field(FieldName(atom.value), TextNode(answer), alternatives))
-            }
-            .collect { case Some(x) =>
-              x
-            }
+          val atoms = if (postcodeLookupsIds(baseComponentId)) {
+            atomsForPostcodeLookup(indexedComponentId)
+          } else {
+            atomsForModelComponentId(atomics, modelComponentId)
+          }
           ObjectStructure(atoms)
-
         }
         if (indexedIsPure) {
           structures.headOption.map(textNode => Field(FieldName(baseComponentId.value), textNode, Map.empty))
@@ -737,7 +799,11 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         x
       }
 
-  private def buildMultiField(multiValueIds: List[MultiValueId], indexedIsPure: Boolean)(implicit
+  private def buildMultiField(
+    multiValueIds: List[MultiValueId],
+    indexedIsPure: Boolean,
+    postcodeLookupsIds: Set[BaseComponentId]
+  )(implicit
     l: LangADT,
     m: Messages
   ): F[List[Field]] = {
@@ -776,7 +842,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
           (p, mc, atoms)
       }
 
-    val pmp = processMultiPure(multiPure)
+    val pmp = processMultiPure(multiPure, postcodeLookupsIds)
 
     val multiIndexed: List[(IndexedComponentId.Indexed, ModelComponentId.Pure, NonEmptyList[ModelComponentId.Atomic])] =
       multiValues.collect {
@@ -789,7 +855,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     ]] =
       multiIndexed.groupBy(_._1.baseComponentId).toMap
 
-    val pmi = processMultiIndexed(multiIndexedMap, indexedIsPure)
+    val pmi = processMultiIndexed(multiIndexedMap, indexedIsPure, postcodeLookupsIds)
 
     for {
       ppp <- pppF
