@@ -28,7 +28,7 @@ case class DmsMetaData(
 )
 
 object DmsMetaData {
-  implicit val format = Json.format[DmsMetaData]
+  implicit val format: OFormat[DmsMetaData] = Json.format[DmsMetaData]
 }
 
 case class SubmissionId(formId: FormId, envelopeId: EnvelopeId) {

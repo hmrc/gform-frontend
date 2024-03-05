@@ -159,7 +159,7 @@ class GformConnectorSpec extends Spec {
 
   it should "create submission and return the Submission entity" in new Fixture {
     val status = 200
-    implicit val localDateTime = LocalDateTime.now()
+    implicit val localDateTime: LocalDateTime = LocalDateTime.now()
     val responseJson = Some(Json.toJson(submission))
     connector
       .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1)

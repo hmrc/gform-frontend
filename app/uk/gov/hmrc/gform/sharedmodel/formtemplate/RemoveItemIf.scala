@@ -25,7 +25,7 @@ object RemoveItemIf {
 
   implicit val catsEq: Eq[RemoveItemIf] = Eq.fromUniversalEquals
 
-  implicit val writes = Json.writes[RemoveItemIf]
+  implicit val writes: OWrites[RemoveItemIf] = Json.writes[RemoveItemIf]
 
   implicit val reads: Reads[RemoveItemIf] = Json.reads[RemoveItemIf]
 

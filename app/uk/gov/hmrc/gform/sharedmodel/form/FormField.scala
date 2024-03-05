@@ -33,7 +33,7 @@ object FormField {
     .map(ExpandUtils.toModelComponentId) and
     (JsPath \ "value").read[String])(FormField.apply _)
 
-  implicit val writes = OWrites[FormField] { formField =>
+  implicit val writes: OWrites[FormField] = OWrites[FormField] { formField =>
     Json.obj(
       "id"    -> formField.id.toMongoIdentifier,
       "value" -> formField.value

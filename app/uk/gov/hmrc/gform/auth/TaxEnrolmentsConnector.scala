@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.auth
 
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
@@ -25,17 +25,18 @@ import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class TaxEnrolment(identifiers: List[Identifier], verifiers: List[Verifier])
 case class TaxEnrolmentPayload(verifiers: List[Verifier], `type`: String, userId: String, friendlyName: String)
 
 object TaxEnrolmentPayload {
-  implicit val format = Json.format[TaxEnrolmentPayload]
+  implicit val format: OFormat[TaxEnrolmentPayload] = Json.format[TaxEnrolmentPayload]
 }
 
 object TaxEnrolment {
-  implicit val format = Json.format[TaxEnrolment]
+  implicit val format: OFormat[TaxEnrolment] = Json.format[TaxEnrolment]
 }
 
 class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {

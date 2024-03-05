@@ -38,7 +38,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   behavior of "Authentication and authorisation Service"
 
   implicit val l: LangADT = LangADT.En
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val appConfig = AppConfig(
     appName = "appName",

@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.auth
 import cats.Functor
 import cats.data.NonEmptyList
 import cats.syntax.functor._
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
@@ -86,11 +86,11 @@ class EnrolmentService(
 case class Identifier(key: String, value: String)
 
 object Identifier {
-  implicit val format = Json.format[Identifier]
+  implicit val format: OFormat[Identifier] = Json.format[Identifier]
 }
 
 case class Verifier(key: String, value: String)
 
 object Verifier {
-  implicit val format = Json.format[Verifier]
+  implicit val format: OFormat[Verifier] = Json.format[Verifier]
 }

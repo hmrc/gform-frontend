@@ -48,7 +48,7 @@ class PostcodeLookupCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Fo
   sse: SmartStringEvaluator
 ) {
 
-  implicit val stringValueForReport = new ValueForReport[String] {
+  implicit val stringValueForReport: ValueForReport[String] = new ValueForReport[String] {
     def valueForReport(): String = ""
   }
   def validate(formComponent: FormComponent): CheckProgram[Unit] = {

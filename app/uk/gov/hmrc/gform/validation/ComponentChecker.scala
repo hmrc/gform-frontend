@@ -322,7 +322,7 @@ object ComponentChecker {
     def valueForReport(): A
   }
 
-  implicit val unitValueForReport = new ValueForReport[Unit] {
+  implicit val unitValueForReport: ValueForReport[Unit] = new ValueForReport[Unit] {
     def valueForReport(): Unit = ()
   }
 

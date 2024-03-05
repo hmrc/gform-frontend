@@ -19,5 +19,5 @@ package uk.gov.hmrc.gform.lookup
 case class LookupPriority(priority: Int) extends AnyVal
 
 object LookupPriority {
-  implicit val ord = Ordering.by(unapply).reverse
+  implicit val ord: Ordering[LookupPriority] = Ordering.by(unapply).reverse
 }

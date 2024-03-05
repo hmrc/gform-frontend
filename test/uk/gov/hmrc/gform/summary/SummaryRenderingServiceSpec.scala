@@ -26,10 +26,10 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
+import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.{ FakeRequest, Helpers }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.FormTemplateKey
-
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
@@ -63,20 +63,20 @@ class SummaryRenderingServiceSpec
     extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
     with IdiomaticMockito with HtmlSupport {
 
-  override implicit val patienceConfig =
+  override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
 
   trait TestFixture {
 
-    implicit val headerCarrier = HeaderCarrier()
-    implicit val langADT = LangADT.En
+    implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
+    implicit val langADT: LangADT = LangADT.En
     lazy val i18nSupport: I18nSupport = new I18nSupport {
       override def messagesApi: MessagesApi =
         Helpers.stubMessagesApi(Map("en" -> Map("summary.acknowledgement.pdf" -> "Acknowledgement PDF")))
     }
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
-    implicit val request =
+    implicit val request: Request[AnyContentAsEmpty.type] =
       FakeRequest().addAttr(FormTemplateKey, FormTemplateContext(formTemplate, None, None, None, None))
     implicit val messages: Messages = i18nSupport.request2Messages
     lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")

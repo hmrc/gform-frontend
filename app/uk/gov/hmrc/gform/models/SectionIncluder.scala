@@ -32,40 +32,43 @@ trait SectionSelector[T <: SectionSelectorType] {
 }
 
 object SectionSelector {
-  implicit val normal = new SectionSelector[SectionSelectorType.Normal] {
+  implicit val normal: SectionSelector[SectionSelectorType.Normal] = new SectionSelector[SectionSelectorType.Normal] {
     def getSections(formTemplate: FormTemplate): AllSections = formTemplate.formKind.allSections
   }
 
-  implicit val withDeclaration = new SectionSelector[SectionSelectorType.WithDeclaration] {
+  implicit val withDeclaration: SectionSelector[SectionSelectorType.WithDeclaration] =
+    new SectionSelector[SectionSelectorType.WithDeclaration] {
 
-    def getSections(formTemplate: FormTemplate): AllSections = {
-      val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
-        destinationList.declarationSection.toList.map(_.toSection)
-      )(destinationPrint => Nil)
+      def getSections(formTemplate: FormTemplate): AllSections = {
+        val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
+          destinationList.declarationSection.toList.map(_.toSection)
+        )(destinationPrint => Nil)
 
-      formTemplate.formKind.allSections + destinationSections
-    }
-  }
-
-  implicit val enrolmentOnly = new SectionSelector[SectionSelectorType.EnrolmentOnly] {
-
-    def getSections(formTemplate: FormTemplate): AllSections =
-      formTemplate.authConfig match {
-        case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
-          AllSections.Classic(Nil, enrolmentSection.toSection :: Nil)
-        case _ => AllSections.Classic(Nil, Nil)
+        formTemplate.formKind.allSections + destinationSections
       }
-  }
-
-  implicit val withAcknowledgement = new SectionSelector[SectionSelectorType.WithAcknowledgement] {
-
-    def getSections(formTemplate: FormTemplate): AllSections = {
-      val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
-        destinationList.declarationSection.toList.map(_.toSection) ++ List(
-          destinationList.acknowledgementSection.toSection
-        )
-      )(destinationPrint => Nil)
-      formTemplate.formKind.allSections + destinationSections
     }
-  }
+
+  implicit val enrolmentOnly: SectionSelector[SectionSelectorType.EnrolmentOnly] =
+    new SectionSelector[SectionSelectorType.EnrolmentOnly] {
+
+      def getSections(formTemplate: FormTemplate): AllSections =
+        formTemplate.authConfig match {
+          case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
+            AllSections.Classic(Nil, enrolmentSection.toSection :: Nil)
+          case _ => AllSections.Classic(Nil, Nil)
+        }
+    }
+
+  implicit val withAcknowledgement: SectionSelector[SectionSelectorType.WithAcknowledgement] =
+    new SectionSelector[SectionSelectorType.WithAcknowledgement] {
+
+      def getSections(formTemplate: FormTemplate): AllSections = {
+        val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
+          destinationList.declarationSection.toList.map(_.toSection) ++ List(
+            destinationList.acknowledgementSection.toSection
+          )
+        )(destinationPrint => Nil)
+        formTemplate.formKind.allSections + destinationSections
+      }
+    }
 }

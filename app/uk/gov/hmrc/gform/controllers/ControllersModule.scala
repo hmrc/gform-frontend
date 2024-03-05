@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.controllers
 
 import play.api.BuiltInComponents
+import play.api.i18n.MessagesApi
 import play.api.mvc.{ DefaultMessagesActionBuilderImpl, DefaultMessagesControllerComponents, MessagesControllerComponents, SessionCookieBaker }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
@@ -47,7 +48,7 @@ class ControllersModule(
   ec: ExecutionContext
 ) {
 
-  private implicit val messagesApi = builtInComponents.messagesApi
+  private implicit val messagesApi: MessagesApi = builtInComponents.messagesApi
 
   val nonAuthenticatedRequestActions: NonAuthenticatedRequestActions = new NonAuthenticatedRequestActions(
     playBuiltInsModule.langs,

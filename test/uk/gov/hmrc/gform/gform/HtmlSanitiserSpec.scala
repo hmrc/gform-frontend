@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.PdfCxt
 
 class HtmlSanitiserSpec extends Spec {
 
-  private implicit val l = LangADT.En
+  private implicit val l: LangADT = LangADT.En
 
   val input =
     """

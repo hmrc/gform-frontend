@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 /*
   These set of fields are common to the JWT coming from the public LB and the admin LB
@@ -29,5 +29,5 @@ case class JwtPayload(
 )
 
 object JwtPayload {
-  implicit val format = Json.format[JwtPayload]
+  implicit val format: OFormat[JwtPayload] = Json.format[JwtPayload]
 }

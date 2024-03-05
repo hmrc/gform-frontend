@@ -50,7 +50,7 @@ class LookupControllerSpec
     extends AnyFlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with ScalaFutures
     with FormModelSupport with VariadicFormDataSupport with PlayStubSupport {
 
-  implicit val sys = ActorSystem("LookupControllerSpec")
+  implicit val sys: ActorSystem = ActorSystem("LookupControllerSpec")
 
   "lookupWithSelectionCriteria - showAll enabled" should "lookup options when no query provided and no selection criteria provided" in new TestFixture {
     override lazy val showAll: ShowAll = ShowAll.Enabled

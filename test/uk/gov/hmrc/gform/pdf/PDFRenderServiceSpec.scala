@@ -24,6 +24,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
 import play.api.i18n.Messages
 import play.api.libs.typedmap.TypedMap
+import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.request.RequestAttrKey
 import play.api.test.{ FakeRequest, Helpers }
 import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
@@ -55,11 +56,12 @@ class PDFRenderServiceSpec
     extends AnyFlatSpec with Matchers with ArgumentMatchersSugar with IdiomaticMockito with FormModelSupport
     with ScalaFutures with PdfRenderServiceExpectations {
 
-  override implicit val patienceConfig =
+  override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(100, Millis)))
 
-  implicit val request = FakeRequest().withAttrs(TypedMap(RequestAttrKey.CSPNonce -> "a-nonce"))
-  implicit val headerCarrier = HeaderCarrier()
+  implicit val request: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest().withAttrs(TypedMap(RequestAttrKey.CSPNonce -> "a-nonce"))
+  implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages =
     Helpers.stubMessages(

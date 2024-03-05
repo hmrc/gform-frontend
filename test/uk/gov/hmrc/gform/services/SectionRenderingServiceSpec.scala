@@ -69,11 +69,11 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       override def messagesApi: MessagesApi = mssgApi
     }
 
-    implicit val langADT = LangADT.En
+    implicit val langADT: LangADT = LangADT.En
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    lazy val addToListQuestionComponent = addToListQuestion("addToListQuestion")
+    lazy val addToListQuestionComponent: FormComponent = addToListQuestion("addToListQuestion")
 
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate

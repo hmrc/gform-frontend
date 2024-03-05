@@ -17,16 +17,17 @@
 package uk.gov.hmrc.gform.auth
 
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class UtrEligibilityRequest(utr: String) extends AnyVal
 
 object UtrEligibilityRequest {
-  implicit val format = Json.format[UtrEligibilityRequest]
+  implicit val format: OFormat[UtrEligibilityRequest] = Json.format[UtrEligibilityRequest]
 }
 
 class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHttp) {

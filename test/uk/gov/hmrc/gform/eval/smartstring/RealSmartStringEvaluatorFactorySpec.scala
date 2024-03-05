@@ -50,7 +50,7 @@ class RealSmartStringEvaluatorFactorySpec
     extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
     with Matchers {
 
-  override implicit val patienceConfig =
+  override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
   private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =

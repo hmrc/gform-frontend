@@ -55,7 +55,7 @@ class AddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
 class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: SmartStringEvaluator) {
 
-  implicit val atomicValueForReport = new ValueForReport[Atomic] {
+  implicit val atomicValueForReport: ValueForReport[Atomic] = new ValueForReport[Atomic] {
     def valueForReport(): Atomic =
       Atomic(IndexedComponentId.Pure(BaseComponentId("reportBaseComponentIdValue")), Atom("reportAtomLabel"))
   }

@@ -30,7 +30,7 @@ case class Attachments(files: List[FormComponentId]) {
 
 object Attachments {
   val empty = Attachments(Nil)
-  implicit val format = Json.format[Attachments]
+  implicit val format: OFormat[Attachments] = Json.format[Attachments]
 }
 
 case class Envelope(

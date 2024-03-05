@@ -53,11 +53,11 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
   sse: SmartStringEvaluator
 ) {
 
-  implicit val stringValueForReport = new ValueForReport[String] {
+  implicit val stringValueForReport: ValueForReport[String] = new ValueForReport[String] {
     def valueForReport(): String = ""
   }
 
-  implicit val stringPairValueForReport = new ValueForReport[(String, String)] {
+  implicit val stringPairValueForReport: ValueForReport[(String, String)] = new ValueForReport[(String, String)] {
     def valueForReport(): (String, String) = ("1", "1970")
   }
 

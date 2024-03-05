@@ -25,7 +25,7 @@ object IncludeIf {
 
   implicit val catsEq: Eq[IncludeIf] = Eq.fromUniversalEquals
 
-  implicit val writes = Json.writes[IncludeIf]
+  implicit val writes: OWrites[IncludeIf] = Json.writes[IncludeIf]
 
   implicit val reads: Reads[IncludeIf] = Json.reads[IncludeIf]
 
