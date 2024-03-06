@@ -545,9 +545,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def restoreForm(
     savedId: String,
-    restoreId: String
+    restoreId: String,
+    useOriginalTemplate: Boolean
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
-    val url = s"$baseUrl/test-only/restore-form/$savedId/$restoreId"
+    val url = s"$baseUrl/test-only/restore-form/$savedId/$restoreId?useOriginalTemplate=$useOriginalTemplate"
     ws.GET[SnapshotOverview](url)
   }
 

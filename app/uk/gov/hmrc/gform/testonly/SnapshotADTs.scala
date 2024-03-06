@@ -28,6 +28,7 @@ import java.time.Instant
 
 case class SnapshotOverview(
   templateId: FormTemplateId,
+  originalTemplateId: FormTemplateId,
   snapshotId: SnapshotId,
   savedAt: Instant,
   description: Description,
@@ -154,5 +155,13 @@ object SnapshotForms {
   )
 
   case class DeleteSnapshotUserData(snapshotId: String, backUrl: String)
+
+  case class RestoreOption(restoreType: String)
+
+  val restoreOptionUserData = Form(
+    mapping(
+      "restoreType" -> nonEmptyText
+    )(RestoreOption.apply)(RestoreOption.unapply)
+  )
 
 }

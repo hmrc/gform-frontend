@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.testonly
 
 import cats.implicits.catsSyntaxEq
-import org.apache.commons.text.StringEscapeUtils
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
 import cats.data.EitherT
@@ -52,15 +51,15 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
-import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
+import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshots_page, update_snapshot }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
 
@@ -609,22 +608,30 @@ class TestOnlyController(
 
   def updateFormData(
     formTemplateId: FormTemplateId,
+    snapshotId: SnapshotId,
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
-      updateFormUserData
+      restoreOptionUserData
         .bindFromRequest()
         .fold(
           formWithErrors => BadRequest("update form Data errors ${formWithErrors.errorsAsJson}").pure[Future],
           userData => {
-            val formData = userData.formData
             val currentFormId = cache.form._id
-            val unescapedFormData = StringEscapeUtils.unescapeHtml4(formData)
-            val updateRequest = UpdateFormDataRequest(currentFormId, Json.parse(unescapedFormData).as[JsObject])
-
-            for {
-              saveReply <- gformConnector.updateFormData(updateRequest)
-            } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+            if (userData.restoreType === restoreOption1) {
+              for {
+                overview <- gformConnector.snapshotOverview(snapshotId)
+                formData = overview.formData.getOrElse(Json.obj())
+                updateRequest = UpdateFormDataRequest(currentFormId, formData)
+                saveReply <- gformConnector.updateFormData(updateRequest)
+              } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+            } else {
+              for {
+                overview <- gformConnector.snapshotOverview(snapshotId)
+              } yield Redirect(
+                uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreAllToOriginal(snapshotId, maybeAccessCode)
+              )
+            }
           }
         )
 
@@ -641,39 +648,57 @@ class TestOnlyController(
       )
   }
 
-  def restoreAll(snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
+  def restoreAllToOriginal(snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
-      for {
-        s <- gformConnector.snapshotOverview(snapshotId)
-        redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-                        .restoreAllGet(
-                          s.templateId,
-                          maybeAccessCode,
-                          snapshotId
-                        )
-                        .url
-        result <- s.ggFormData match {
-                    case Some(ggFormData) =>
-                      authLoginStubService
-                        .getSession(ggFormData.withRedirectionUrl(redirectUrl))
-                        .map(Redirect(redirectUrl).withSession)
-                    case None => Redirect(redirectUrl).pure[Future]
-                  }
-      } yield result
+      doRestoreAll(snapshotId, maybeAccessCode, useOriginalTemplate = true)
     }
 
-  def restoreAllGet(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], snapshotId: SnapshotId) =
+  def restoreAll(snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
+    controllerComponents.actionBuilder.async { implicit request =>
+      doRestoreAll(snapshotId, maybeAccessCode, useOriginalTemplate = false)
+    }
+
+  private def doRestoreAll(snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode], useOriginalTemplate: Boolean)(
+    implicit request: Request[AnyContent]
+  ) =
+    for {
+      s <- gformConnector.snapshotOverview(snapshotId)
+      redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+                      .restoreAllGet(
+                        if (useOriginalTemplate) s.originalTemplateId else s.templateId,
+                        maybeAccessCode,
+                        snapshotId,
+                        useOriginalTemplate
+                      )
+                      .url
+      result <- s.ggFormData match {
+                  case Some(ggFormData) =>
+                    authLoginStubService
+                      .getSession(ggFormData.withRedirectionUrl(redirectUrl))
+                      .map(Redirect(redirectUrl).withSession)
+                  case None => Redirect(redirectUrl).pure[Future]
+                }
+    } yield result
+
+  def restoreAllGet(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    snapshotId: SnapshotId,
+    useOriginalTemplate: Boolean
+  ) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
       implicit request => implicit lang => cache =>
         val formTemplateContext = request.attrs(FormTemplateKey)
         for {
-          // create a brand new form with snapshot's template id
-          _ <- gformConnector.restoreSnapshotTemplate(snapshotId.value)
+          _ <- if (useOriginalTemplate) {
+                 ().pure[Future]
+               } else gformConnector.restoreSnapshotTemplate(snapshotId.value)
           _ <- newFormController.continue(cache, formTemplateContext.formTemplate)
         } yield Redirect(
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreContinue(
             formTemplateId,
             snapshotId.value,
+            useOriginalTemplate,
             maybeAccessCode
           )
         )
@@ -682,21 +707,19 @@ class TestOnlyController(
   def restoreContinue(
     formTemplateId: FormTemplateId,
     snapshotId: String,
+    useOriginalTemplate: Boolean,
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => cache => _ => formModelOptics =>
-      restore(snapshotId, cache.form._id.value)
+      restore(snapshotId, cache.form._id.value, useOriginalTemplate)
   }
 
-  def restoreCurrent(snapshotId: String, formId: String) =
-    Action.async { implicit request =>
-      restore(snapshotId, formId)
-    }
-  private def restore(snapshotId: String, formId: String)(implicit hc: HeaderCarrier) =
+  private def restore(snapshotId: String, formId: String, useOriginalTemplate: Boolean)(implicit hc: HeaderCarrier) =
     for {
-      snapshot <- gformConnector.restoreForm(snapshotId, formId)
+      snapshot <- gformConnector.restoreForm(snapshotId, formId, useOriginalTemplate)
+      restoreTemplateId = if (useOriginalTemplate) snapshot.originalTemplateId else snapshot.templateId
     } yield Redirect(
-      uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(snapshot.templateId)
+      uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(restoreTemplateId)
     )
 
   def updateSnapshotPage(
@@ -747,8 +770,10 @@ class TestOnlyController(
             .restoreAll(snapshotId, maybeAccessCode)
             .path
         val shareUrlText = frontendAppConfig.gformFrontendBaseUrl + shareUrl
-        val updateFormDataActionUrl =
-          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.updateFormData(formTemplateId, maybeAccessCode).path
+        val restoreOptionsUrl =
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+            .selectRestoreOptions(snapshotId, formTemplateId, maybeAccessCode)
+            .path
         Ok(
           snapshot_page(
             maybeAccessCode,
@@ -760,7 +785,7 @@ class TestOnlyController(
             isDataRestore,
             shareUrl,
             shareUrlText,
-            updateFormDataActionUrl,
+            restoreOptionsUrl,
             Json.prettyPrint(snapshotOverivew.ggFormData.map(Json.toJson(_)).getOrElse(Json.obj()))
           )
         )
@@ -905,6 +930,55 @@ class TestOnlyController(
                 Ok(snapshot_delete_acknowledgement(frontendAppConfig, snapshotId, userData.backUrl))
               }
         )
+    }
+
+  private val restoreOption1 = "restoreOption1"
+  private val restoreOption2 = "restoreOption2"
+  def selectRestoreOptions(snapshotId: SnapshotId, currentTemplateId: FormTemplateId, accessCode: Option[AccessCode]) =
+    controllerComponents.actionBuilder.async { implicit request =>
+      import i18nSupport._
+      implicit val lang: LangADT = LangADT.En
+
+      val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
+      val govukLabel: GovukLabel = new GovukLabel()
+      val govukFieldset: GovukFieldset = new GovukFieldset()
+      val govukHint: GovukHint = new GovukHint()
+      val fieldset = Some(
+        Fieldset(
+          legend = Some(
+            Legend(
+              content = Text("Select restore options:"),
+              isPageHeading = true,
+              classes = "govuk-label--l"
+            )
+          )
+        )
+      )
+
+      val option1 = RadioItem(
+        value = Some(restoreOption1),
+        content = Text(
+          "Load form data into current user session/form (sharing data between 2 different form templates/sessions)"
+        ),
+        checked = true
+      )
+
+      val option2 = RadioItem(
+        value = Some(restoreOption2),
+        content = Text("Load form where the snapshot was taken (recreate a new sessions with snapshot form and data)")
+      )
+
+      val radios = Radios(
+        fieldset = fieldset,
+        name = "restoreType",
+        items = List(option1, option2)
+      )
+
+      val govukRadios = new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      val actionUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .updateFormData(currentTemplateId, snapshotId, accessCode)
+        .url
+      Ok(snapshot_restore_options(frontendAppConfig, snapshotId, govukRadios, actionUrl)).pure[Future]
     }
 
 }
