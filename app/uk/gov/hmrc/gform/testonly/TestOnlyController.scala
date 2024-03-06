@@ -618,7 +618,7 @@ class TestOnlyController(
           formWithErrors => BadRequest("update form Data errors ${formWithErrors.errorsAsJson}").pure[Future],
           userData => {
             val currentFormId = cache.form._id
-            if (userData.restoreType === restoreOption1) {
+            if (userData.restoreType === restoreOptionCurrentSession) {
               for {
                 overview <- gformConnector.snapshotOverview(snapshotId)
                 formData = overview.formData.getOrElse(Json.obj())
@@ -932,8 +932,8 @@ class TestOnlyController(
         )
     }
 
-  private val restoreOption1 = "restoreOption1"
-  private val restoreOption2 = "restoreOption2"
+  private val restoreOptionCurrentSession = "restoreOptionCurrentSession"
+  private val restoreOptionOriginalTemplate = "restoreOptionOriginalTemplate"
   def selectRestoreOptions(snapshotId: SnapshotId, currentTemplateId: FormTemplateId, accessCode: Option[AccessCode]) =
     controllerComponents.actionBuilder.async { implicit request =>
       import i18nSupport._
@@ -956,7 +956,7 @@ class TestOnlyController(
       )
 
       val option1 = RadioItem(
-        value = Some(restoreOption1),
+        value = Some(restoreOptionCurrentSession),
         content = Text(
           "Load form data into current user session/form (sharing data between 2 different form templates/sessions)"
         ),
@@ -964,7 +964,7 @@ class TestOnlyController(
       )
 
       val option2 = RadioItem(
-        value = Some(restoreOption2),
+        value = Some(restoreOptionOriginalTemplate),
         content = Text("Load form where the snapshot was taken (recreate a new sessions with snapshot form and data)")
       )
 
