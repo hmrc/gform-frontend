@@ -34,11 +34,10 @@ import uk.gov.hmrc.auth.core.{ InsufficientEnrolments, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.commons.MarkDownUtil
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.REFERRER_CHECK_DETAILS
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
@@ -79,16 +78,13 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
 
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
-  fileUploadService: FileUploadService,
   authService: AuthService,
   appConfig: AppConfig,
-  frontendAppConfig: FrontendAppConfig,
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
   langs: Langs,
   actionBuilder: ActionBuilder[Request, AnyContent],
   errResponder: ErrResponder,
-  sessionCookieBaker: SessionCookieBaker,
   recalculation: Recalculation[Future, Throwable],
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
   lookupOptions: LocalisedLookupOptions
@@ -220,8 +216,10 @@ class AuthenticatedRequestActions(
               "Restricted by referrer config",
               Some(formTemplate),
               Some(
-                views.html.form.snippets.markdown_wrapper(MarkDownUtil.markDownParser(referrerConfig.exitMessage.value))
-              )
+                views.html.form.snippets
+                  .markdown_wrapper(MarkDownUtil.markDownParser(referrerConfig.exitMessage.rawValue))
+              ),
+              pageTitle = referrerConfig.title.map(_.rawValue)
             )
           }
         case None =>

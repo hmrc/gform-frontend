@@ -72,7 +72,8 @@ class ErrResponder(
     message: String,
     maybeFormTemplate: Option[FormTemplate],
     messageHtml: Option[Html] = None,
-    smartLogger: SmartLogger = smartLocalLogger
+    smartLogger: SmartLogger = smartLocalLogger,
+    pageTitle: Option[String] = None
   )(implicit request: RequestHeader): Future[Result] = {
     implicit val l: LangADT = LangADT.fromRequest(request, langs)
     forbiddenReason(
@@ -80,7 +81,8 @@ class ErrResponder(
       "generic.error.pageRestricted",
       smartLogger,
       maybeFormTemplate,
-      messageHtml
+      messageHtml,
+      pageTitle
     )
   }
 
@@ -100,7 +102,8 @@ class ErrResponder(
     reason: String,
     smartLogger: SmartLogger,
     maybeFormTemplate: Option[FormTemplate],
-    reasonHtml: Option[Html] = None
+    reasonHtml: Option[Html] = None,
+    pageTitle: Option[String] = None
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -111,7 +114,7 @@ class ErrResponder(
     Future.successful(
       Forbidden(
         renderErrorPage(
-          messages("generic.error.accessForbidden"),
+          pageTitle.getOrElse(messages("generic.error.accessForbidden")),
           messages("generic.error.pageRestricted"),
           messages(reason) :: Nil,
           maybeFormTemplate,
