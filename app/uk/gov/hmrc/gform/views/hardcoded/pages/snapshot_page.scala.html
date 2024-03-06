@@ -31,7 +31,7 @@
   isDataRestore: Boolean,
   shareUrl: String,
   shareUrlText: String,
-  updateFormDataActionUrl: String,
+  restoreOptionsUrl: String,
   governmentGatewayCredentials: String
 )(implicit
   request: Request[_],
@@ -89,10 +89,9 @@
   <p class="govuk-body govuk-!-margin-bottom-2"></p>
 
 
-  <form action="@updateFormDataActionUrl" method="post">
-    <input type="hidden" class="govuk-input" id="formData" name="formData" value="@{HtmlFormat.escape(formData).body}">
+  <form action="@restoreOptionsUrl" method="get">
     <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
-    <button type="submit" class="govuk-button" @{if(!isDataRestore) "disabled"}>Restore only data</button>
+    <button type="submit" class="govuk-button">Restore</button>
   </form>
 
   </div>
