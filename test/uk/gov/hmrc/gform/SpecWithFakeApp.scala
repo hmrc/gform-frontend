@@ -38,7 +38,7 @@ trait SpecWithFakeApp extends Spec with BaseOneServerPerSuite with FakeApplicati
     }
   }
 
-  implicit lazy val hc = HeaderCarrier()
+  implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
   override def fakeApplication(): Application = applicationModule.application
 }

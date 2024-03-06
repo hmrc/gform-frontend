@@ -19,5 +19,5 @@ package uk.gov.hmrc.gform.lookup
 case class LookupInGibraltarEuEeaEfta(inGibraltarEuEeaEfta: String) extends AnyVal
 
 object LookupInGibraltarEuEeaEfta {
-  implicit val ord = Ordering.by(unapply)
+  implicit val ord: Ordering[LookupInGibraltarEuEeaEfta] = Ordering.by(unapply)
 }

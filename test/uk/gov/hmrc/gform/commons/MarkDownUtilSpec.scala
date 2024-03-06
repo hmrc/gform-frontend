@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
-  implicit val l = LangADT.En
+  implicit val l: LangADT = LangADT.En
   "addTargetToLinks" should "add target link" in {
 
     val dataAndExpectations = Table(

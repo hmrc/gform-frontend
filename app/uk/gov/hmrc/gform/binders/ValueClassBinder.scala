@@ -139,7 +139,7 @@ object ValueClassBinder {
     override def unbind(key: String, value: FormStatus): String = value.toString
   }
 
-  implicit val jLiteralAffinityGroup = new JavascriptLiteral[AccessCode] {
+  implicit val jLiteralAffinityGroup: JavascriptLiteral[AccessCode] = new JavascriptLiteral[AccessCode] {
     def to(value: AccessCode): String = value.value
   }
 
@@ -235,13 +235,12 @@ object ValueClassBinder {
             for {
               sn2 <- toSectionNumber(key, from)
             } yield FastForward.CYA(SectionOrSummary.Section(sn2))
-          case value => toSectionNumber(key, value).map(FastForward.StopAt(_))
+          case value => toSectionNumber(key, value).map(FastForward.StopAt)
         }
 
       override def unbind(key: String, fastForward: FastForward): String =
         s"""$key=${fastForward.asString}"""
     }
-  implicit val fastForwardListBinder = implicitly[QueryStringBindable[List[FastForward]]]
 
   implicit val optionAccessCodeBinder: QueryStringBindable[Option[AccessCode]] =
     new QueryStringBindable[Option[AccessCode]] {

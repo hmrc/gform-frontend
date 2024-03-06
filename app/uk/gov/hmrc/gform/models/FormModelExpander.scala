@@ -37,7 +37,10 @@ object FormModelExpander {
   private val repeatsLimit =
     99 // Repeated section must be limited since repeatsMax expression has not been validated at this point
 
-  implicit def dataExpanded[D <: DataOrigin](implicit fmvo: FormModelVisibilityOptics[D], messages: Messages) =
+  implicit def dataExpanded[D <: DataOrigin](implicit
+    fmvo: FormModelVisibilityOptics[D],
+    messages: Messages
+  ): FormModelExpander[DataExpanded] =
     new FormModelExpander[DataExpanded] {
       def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DataExpanded] = {
         val expanded = page.fields.flatMap {
@@ -66,7 +69,7 @@ object FormModelExpander {
       }
     }
 
-  implicit val interim = new FormModelExpander[Interim] {
+  implicit val interim: FormModelExpander[Interim] = new FormModelExpander[Interim] {
     def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[Interim] = {
       val expanded = page.fields.flatMap {
         case fc @ IsRevealingChoice(rc) =>
@@ -105,25 +108,27 @@ object FormModelExpander {
     }
   }
 
-  implicit val dependencyGraphVerification = new FormModelExpander[DependencyGraphVerification] {
-    def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DependencyGraphVerification] = {
-      val expanded = page.fields.flatMap {
-        case fc @ IsRevealingChoice(revealingChoice) => fc :: revealingChoice.options.toList.flatMap(_.revealingFields)
-        case fc @ IsGroup(group)                     => fc :: group.fields
-        case otherwise                               => otherwise :: Nil
+  implicit val dependencyGraphVerification: FormModelExpander[DependencyGraphVerification] =
+    new FormModelExpander[DependencyGraphVerification] {
+      def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DependencyGraphVerification] = {
+        val expanded = page.fields.flatMap {
+          case fc @ IsRevealingChoice(revealingChoice) =>
+            fc :: revealingChoice.options.flatMap(_.revealingFields)
+          case fc @ IsGroup(group) => fc :: group.fields
+          case otherwise           => otherwise :: Nil
+        }
+        page.copy(fields = expanded).asInstanceOf[Page[DependencyGraphVerification]]
       }
-      page.copy(fields = expanded).asInstanceOf[Page[DependencyGraphVerification]]
-    }
-    def liftRepeating(
-      section: Section.RepeatingPage,
-      data: VariadicFormData[SourceOrigin.OutOfDate]
-    ): Option[BracketPlain.RepeatingPage[DependencyGraphVerification]] = {
-      val pageBasic = mkSingleton(section.page, 1)(section)
-      val singletons = NonEmptyList.one(Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]]))
-      Some(BracketPlain.RepeatingPage(singletons, section))
-    }
+      def liftRepeating(
+        section: Section.RepeatingPage,
+        data: VariadicFormData[SourceOrigin.OutOfDate]
+      ): Option[BracketPlain.RepeatingPage[DependencyGraphVerification]] = {
+        val pageBasic = mkSingleton(section.page, 1)(section)
+        val singletons = NonEmptyList.one(Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]]))
+        Some(BracketPlain.RepeatingPage(singletons, section))
+      }
 
-  }
+    }
 
   private def mkSingleton(page: Page[Basic], index: Int): Section.RepeatingPage => Page[Basic] =
     source => {

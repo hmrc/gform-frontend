@@ -34,7 +34,7 @@ trait Spec
     with OptionValues with AppendedClues with ScalaFutures with StreamlinedXml with JsResultMatcher with Inside
     with Eventually with ExampleData with ScalaCheckDrivenPropertyChecks with FormComponentMatcher {
 
-  override implicit val patienceConfig =
+  override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global

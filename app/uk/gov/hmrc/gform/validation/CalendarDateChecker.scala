@@ -54,13 +54,13 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
   sse: SmartStringEvaluator
 ) {
 
-  implicit val stringValueForReport = new ValueForReport[String] {
+  implicit val stringValueForReport: ValueForReport[String] = new ValueForReport[String] {
     def valueForReport(): String = ""
   }
-  implicit val intValueForReport = new ValueForReport[Int] {
+  implicit val intValueForReport: ValueForReport[Int] = new ValueForReport[Int] {
     def valueForReport(): Int = 1
   }
-  implicit val stringPairValueForReport = new ValueForReport[(String, String)] {
+  implicit val stringPairValueForReport: ValueForReport[(String, String)] = new ValueForReport[(String, String)] {
     def valueForReport(): (String, String) = ("1", "1")
   }
 

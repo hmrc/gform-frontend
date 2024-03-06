@@ -395,7 +395,7 @@ case class UploadableEmailDestination(
 }
 
 object UploadableEmailDestination {
-  private implicit val personalisationReads =
+  private implicit val personalisationReads: Format[Map[NotifierPersonalisationFieldId, FormComponentId]] =
     JsonUtils.formatMap[NotifierPersonalisationFieldId, FormComponentId](NotifierPersonalisationFieldId(_), _.value)
 
   implicit val reads: Reads[Destination.Email] = new Reads[Destination.Email] {

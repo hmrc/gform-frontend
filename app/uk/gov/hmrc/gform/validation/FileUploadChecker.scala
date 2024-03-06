@@ -40,7 +40,7 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   ): CheckProgram[Unit] =
     validate(context.formComponent, context.envelope)
 
-  implicit val fileValueForReport = new ValueForReport[File] {
+  implicit val fileValueForReport: ValueForReport[File] = new ValueForReport[File] {
     def valueForReport(): File =
       File(
         FileId("report-file-id"),

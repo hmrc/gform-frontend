@@ -19,5 +19,5 @@ package uk.gov.hmrc.gform.lookup
 case class LookupSicCodeSection(section: String) extends AnyVal
 
 object LookupSicCodeSection {
-  implicit val ord = Ordering.by(unapply)
+  implicit val ord: Ordering[LookupSicCodeSection] = Ordering.by(unapply)
 }

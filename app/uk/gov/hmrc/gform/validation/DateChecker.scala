@@ -57,23 +57,25 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     }
   }
 
-  implicit val concreteDateValueForReport = new ValueForReport[ConcreteDate] {
+  implicit val concreteDateValueForReport: ValueForReport[ConcreteDate] = new ValueForReport[ConcreteDate] {
     def valueForReport(): ConcreteDate = localDateToConcreteDate(LocalDate.now())
   }
 
-  implicit val someDateValueForReport = new ValueForReport[SomeDate] {
+  implicit val someDateValueForReport: ValueForReport[SomeDate] = new ValueForReport[SomeDate] {
     def valueForReport(): SomeDate = SomeDate(1, 1, 1970)
   }
-  implicit val localDateValueForReport = new ValueForReport[LocalDate] {
+  implicit val localDateValueForReport: ValueForReport[LocalDate] = new ValueForReport[LocalDate] {
     def valueForReport(): LocalDate = LocalDate.now()
   }
 
-  implicit val stringValueForReport = new ValueForReport[(String, String, String)] {
-    def valueForReport(): (String, String, String) = ("1", "1", "1970")
-  }
-  implicit val ListDateconstraintValueForReport = new ValueForReport[List[DateConstraint]] {
-    def valueForReport(): List[DateConstraint] = List()
-  }
+  implicit val stringValueForReport: ValueForReport[(String, String, String)] =
+    new ValueForReport[(String, String, String)] {
+      def valueForReport(): (String, String, String) = ("1", "1", "1970")
+    }
+  implicit val ListDateconstraintValueForReport: ValueForReport[List[DateConstraint]] =
+    new ValueForReport[List[DateConstraint]] {
+      def valueForReport(): List[DateConstraint] = List()
+    }
 
   def validateDate(
     fieldValue: FormComponent,

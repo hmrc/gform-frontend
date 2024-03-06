@@ -53,7 +53,7 @@ class ComponentCheckerAndThenOpSpec extends AnyFunSpec with Matchers {
   val failedOp2 = errorProgram[Unit](gformError2)
   val failedOp3 = errorProgram[Unit](gformError3)
 
-  implicit val intValueForReport = new ValueForReport[Int] {
+  implicit val intValueForReport: ValueForReport[Int] = new ValueForReport[Int] {
     def valueForReport(): Int = 576
   }
   describe("andThen on successful operation followed by successful operation") {

@@ -19,5 +19,5 @@ package uk.gov.hmrc.gform.lookup
 case class LookupId(id: String) extends AnyVal
 
 object LookupId {
-  implicit val ord = Ordering.by(unapply)
+  implicit val ord: Ordering[LookupId] = Ordering.by(unapply)
 }
