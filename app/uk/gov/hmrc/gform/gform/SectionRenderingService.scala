@@ -56,7 +56,7 @@ import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
-import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentSummaryRenderer }
+import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentRenderDetails, FormComponentSummaryRenderer, SummaryRender }
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
@@ -90,7 +90,6 @@ import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
 import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcCharacterCount
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukInput, GovukSummaryList, GovukTable }
-import uk.gov.hmrc.gform.summary.{ FormComponentRenderDetails, SummaryRender }
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
@@ -292,6 +291,45 @@ class SectionRenderingService(
               htmlForInformationMessage(info, infoType, infoText)
             case fc @ IsTableComp(table) =>
               htmlForTableComp(fc, table, formModelOptics)
+            case fc @ IsMiniSummaryList(miniSummaryList) =>
+              val repeaterPage: Page[Basic] =
+                Page(
+                  title = repeater.title,
+                  id = repeater.id,
+                  noPIITitle = repeater.noPIITitle,
+                  description = None,
+                  shortName = None,
+                  caption = None,
+                  includeIf = None,
+                  fields = List(fc),
+                  continueLabel = None,
+                  continueIf = None,
+                  instruction = None,
+                  presentationHint = None,
+                  dataRetrieve = None,
+                  confirmation = None,
+                  redirects = None,
+                  hideSaveAndComeBackButton = None,
+                  removeItemIf = None,
+                  displayWidth = None
+                )
+              val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
+
+              val ei: ExtraInfo = ExtraInfo(
+                singleton = singleton,
+                maybeAccessCode = None,
+                sectionNumber = formTemplate.sectionNumberZero,
+                formModelOptics = formModelOptics,
+                formTemplate = formTemplate,
+                envelopeId = form.envelopeId,
+                envelope = EnvelopeWithMapping.empty,
+                formMaxAttachmentSizeMB = 0,
+                retrievals = retrievals,
+                formLevelHeading = false,
+                specialAttributes = Map.empty[String, String],
+                addressRecordLookup = AddressRecordLookup.from(form.thirdPartyData)
+              )
+              htmlForMiniSummaryList(fc, formTemplate._id, miniSummaryList.rows, ei, validationResult, NotChecked)
             case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
           }
       }
