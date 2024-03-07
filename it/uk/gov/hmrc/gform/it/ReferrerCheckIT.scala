@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.it
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.it.stubs.{ FileUploadStubs, GFormStubs }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ReferrerConfig, ReferrerUrlPattern }
 
@@ -33,7 +33,8 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         Some(
           ReferrerConfig(
             NonEmptyList.one(ReferrerUrlPattern("http://example.com")),
-            toLocalisedString("Access denied")
+            Some(toSmartString("Cannot access")),
+            toSmartString("Access denied")
           )
         )
       )
@@ -56,7 +57,8 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         Some(
           ReferrerConfig(
             NonEmptyList.one(ReferrerUrlPattern("http://example.com")),
-            toLocalisedString("Access denied")
+            None,
+            toSmartString("Access denied")
           )
         )
       )
@@ -80,7 +82,8 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         Some(
           ReferrerConfig(
             NonEmptyList.one(ReferrerUrlPattern("http://example.com")),
-            toLocalisedString("Access denied")
+            None,
+            toSmartString("Access denied")
           )
         )
       )
@@ -108,7 +111,8 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
         Some(
           ReferrerConfig(
             NonEmptyList.one(ReferrerUrlPattern("http://*.com")),
-            toLocalisedString("Access denied")
+            None,
+            toSmartString("Access denied")
           )
         )
       )

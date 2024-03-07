@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
 import munit.{ FunSuite, Location }
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 
 class ReferrerConfigSpec extends FunSuite {
 
@@ -27,7 +27,11 @@ class ReferrerConfigSpec extends FunSuite {
   ) =
     test("isAllowed should" + description) {
       assertEquals(
-        ReferrerConfig(referrerUrlPatterns.map(ReferrerUrlPattern(_)), toLocalisedString(""))
+        ReferrerConfig(
+          referrerUrlPatterns.map(ReferrerUrlPattern(_)),
+          Some(toSmartString("")),
+          toSmartString("")
+        )
           .isAllowed(referrer),
         expectedResult
       )

@@ -57,16 +57,13 @@ class ControllersModule(
 
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
     gformBackendModule.gformConnector,
-    fileUploadModule.fileUploadService,
     authModule.authService,
     configModule.appConfig,
-    configModule.frontendAppConfig,
     authModule.authConnector,
     playBuiltInsModule.i18nSupport,
     playBuiltInsModule.langs,
     builtInComponents.defaultActionBuilder,
     errResponder,
-    sessionCookieBaker,
     graphModule.recalculation,
     graphModule.smartStringEvaluatorFactory,
     lookupOptions

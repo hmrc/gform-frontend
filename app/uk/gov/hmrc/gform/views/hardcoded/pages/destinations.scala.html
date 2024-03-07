@@ -102,6 +102,9 @@
       <div class="govuk-body">
         View the uploaded files from <a href="https://admin.qa.tax.service.gov.uk/object-store-admin-frontend/objects/gform/envelopes/@envelopeId.value" class="govuk-link">bucket</a>
       </div>
+      <div class="govuk-body">
+        View translation <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/translation/" + formTemplate._id.value + "/debug").path" class="govuk-link">source</a>
+      </div>
       <div class="govuk-inset-text">
         Embedded - payload is embedded into json template itself ('convertSingleQuotes' has been applied)
         <br>
