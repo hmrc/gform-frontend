@@ -1259,7 +1259,7 @@ object FormComponentSummaryRenderer {
 
     val selectionsWithRevealings: List[(SummaryListRow, List[SummaryListRow])] = rc.options
       .zip(indices)
-      .map { case (element, index) =>
+      .flatMap { case (element, index) =>
         val hasErrors = formFieldValidationResult.isNotOk
 
         val errors: List[Html] = formFieldValidationResult.fieldErrors.toList.map { e =>
@@ -1332,9 +1332,8 @@ object FormComponentSummaryRenderer {
             ) -> revealingFields
           }
       }
-      .flatten
 
-    val isSeparate = fieldValue.presentationHint.map(hints => hints.contains(SeparateInSummary)).getOrElse(false)
+    val isSeparate = fieldValue.presentationHint.exists(hints => hints.contains(SeparateInSummary))
 
     val selectionsContent = if (isSeparate) {
       val (optionsSelectionsRows, revealingSelections) = selectionsWithRevealings.reverse
@@ -1344,7 +1343,12 @@ object FormComponentSummaryRenderer {
         }
 
       val squashedOptionsContent =
-        HtmlFormat.fill(optionsSelectionsRows.flatMap(row => List(row.value.content.asHtml, Html("<br>"))).dropRight(1))
+        HtmlFormat.fill(
+          optionsSelectionsRows.map(row =>
+            uk.gov.hmrc.gform.views.html.hardcoded.pages
+              .pWrapper(HtmlFormat.escape(row.value.content.asHtml.toString()))
+          )
+        )
 
       optionsSelectionsRows.headOption
         .map(row => row.copy(value = row.value.copy(content = HtmlContent(squashedOptionsContent))))
