@@ -18,20 +18,48 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+@import uk.gov.hmrc.gform.testonly.filter.UserInputs
 
 @(
   formTemplate: FormTemplate,
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
   snapshotTable: Html,
-  formId: String
+  formId: String,
+  fromInput: Html,
+  toInput: Html,
+  snapshotIdFilter: Option[String],
+  descriptionFilter: Option[String],
+  select: Html
 )(implicit
   request: Request[_],
   messages: Messages,
   l:LangADT,
 )
+<style>
+  .row {
+    display: flex;
+    justify-content: space-start; /* Pushes children to the left and right ends */
+    margin-bottom: 10px; /* Adds space between the rows */
+  }
+  .input-container:not(:last-child) {
+    margin-right: 100px;
+  }
+  #snIdFilter, #descFilter {
+    width: 370px;
+    margin-left: auto;
+  }
+</style>
 
 @heading = @{"Forms snapshots"}
+
+@formWithCSRF = @{new FormWithCSRF()}
+
+@govukErrorMessage = @{new GovukErrorMessage()}
+@govukHint = @{new GovukHint()}
+@govukLabel = @{new GovukLabel()}
+@govukInput = @{new GovukInput(govukErrorMessage, govukHint, govukLabel)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -40,6 +68,55 @@
   isMainContentFullWidth = true,
   accessCode = None
 ) {
+
+  @formWithCSRF(action = uk.gov.hmrc.gform.testonly.routes.TestOnlyController.filterSnapshotsPost(formTemplate._id, accessCode)) {
+    <h2 class="govuk-heading-m">Snapshots</h2>
+    <div class="row">
+      <div class="input-container">
+        @fromInput
+      </div>
+      <div class="input-container">
+        @govukInput(Input(id = "snIdFilter",
+            name = "snIdFilter",
+            label = Label(content = content.Text("Snapshot id filter")),
+            errorMessage = None,
+            value = snapshotIdFilter,
+            hint = Some(Hint(content = content.Text("Enter the snapshot id"))),
+            classes = "govuk-input--width-60"
+        ))
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="input-container">
+        @toInput
+      </div>
+      <div class="input-container">
+          @govukInput(Input(id = "descFilter",
+              name = "descFilter",
+              label = Label(content = content.Text("Description filter")),
+              errorMessage = None,
+              value = descriptionFilter,
+              hint = Some(Hint(content = content.Text("Enter part or all of the description"))),
+              classes = "govuk-input--width-60"
+          ))
+      </div>
+    </div>
+
+    <div class="row">
+        @select
+        <div class="govuk-checkboxes__item" style="margin-left: 40px; margin-top: 30px">
+          <input class="govuk-checkboxes__input" id="currentTemplateId" name="currentTemplateId" type="checkbox" unchecked   >
+          <label class="govuk-label govuk-checkboxes__label" for="currentTemplateId">
+            Current form template
+          </label>
+        </div>
+    </div>
+
+    <button type="submit" class="govuk-button">Filter</button>
+
+    <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(formTemplate._id, accessCode, UserInputs(None, None, None, None, None))" class="govuk-button" style="margin-left: 50px">Reset filter</a>
+  }
 
    @snapshotTable
 }
