@@ -150,7 +150,10 @@ private class Executor(
   }
 
   private def formatConcatExpr(concatExpr: Concat, markDown: Boolean): String = {
-    val exprsFormatted = concatExpr.exprs.map(expr => Constant(formatExpr(expr, markDown)))
+    val exprsFormatted = concatExpr.exprs.map {
+      case c @ Constant(_) => c
+      case expr            => Constant(formatExpr(expr, markDown))
+    }
     val concatUpdated = Concat(exprsFormatted)
     formatExpr(concatUpdated, markDown)
   }
