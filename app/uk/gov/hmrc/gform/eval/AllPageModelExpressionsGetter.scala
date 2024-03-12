@@ -37,7 +37,7 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
   private def fromBooleanExprExprs(formModel: FormModel[DataExpanded])(
     booleanExpr: BooleanExpr
   ): List[Expr] =
-    booleanExpr.allExpressions.flatMap(_.leafs(formModel))
+    booleanExpr.allExpressions.flatMap(_.leafs())
 
   private def fromSingleton[A <: PageMode](
     formModel: FormModel[DataExpanded]

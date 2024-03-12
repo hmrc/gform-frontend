@@ -42,10 +42,8 @@ object OptionDataUtils {
     formComponent.copy(`type` = updChoice)
   }
 
-  def determineBaseIds[D <: DataOrigin](optionData: OptionData)(implicit
-    fmvo: FormModelVisibilityOptics[D]
-  ): List[FormComponentId] =
-    (optionData.label :: optionData.hint.toList).flatMap(_.interpolations.flatMap(_.leafs(fmvo.formModel)).collect {
+  def determineBaseIds[D <: DataOrigin](optionData: OptionData): List[FormComponentId] =
+    (optionData.label :: optionData.hint.toList).flatMap(_.interpolations.flatMap(_.leafs()).collect {
       case FormCtx(fcId) =>
         fcId
     })
