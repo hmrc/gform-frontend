@@ -1187,16 +1187,24 @@ object FormComponentSummaryRenderer {
 
     val value =
       if (hasErrors)
-        errors
-      else
-        choice
+        HtmlFormat.fill(errors)
+      else {
+        val renderedValues = choice
           .renderToString(formComponent, formFieldValidationResult, formModelVisibilityOptics)
-          .map(s => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(s)))
+
+        if (renderedValues.size > 1) {
+          uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list(renderedValues.map(v => HtmlFormat.escape(v)))
+        } else {
+          HtmlFormat.fill(
+            renderedValues.map(v => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(v)))
+          )
+        }
+      }
 
     List(
       summaryListRow(
         label,
-        HtmlFormat.fill(value),
+        value,
         visuallyHiddenText,
         keyClasses,
         "",
@@ -1342,13 +1350,19 @@ object FormComponentSummaryRenderer {
             (choiceRow :: accChoiceRows, revealingRows ++ accRevealingRows)
         }
 
-      val squashedOptionsContent =
+      val optionsSelectionsRowsHtml =
+        optionsSelectionsRows.map(row => HtmlFormat.escape(row.value.content.asHtml.toString()))
+
+      val squashedOptionsContent = if (optionsSelectionsRows.size > 1) {
+        uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list(optionsSelectionsRowsHtml)
+      } else {
         HtmlFormat.fill(
           optionsSelectionsRows.map(row =>
             uk.gov.hmrc.gform.views.html.hardcoded.pages
-              .pWrapper(HtmlFormat.escape(row.value.content.asHtml.toString()))
+              .pWrapper(HtmlFormat.fill(optionsSelectionsRowsHtml))
           )
         )
+      }
 
       optionsSelectionsRows.headOption
         .map(row => row.copy(value = row.value.copy(content = HtmlContent(squashedOptionsContent))))
