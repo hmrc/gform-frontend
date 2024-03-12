@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
-import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -41,6 +40,7 @@ import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
+import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter }
 import SummarySubstituter._
 
 case class EvaluationResults(
@@ -221,7 +221,7 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
       case Sum(_) =>
-        val substitutions = SummarySubstitutions(exprMap, recData.variadicFormData)
+        val substitutions = SummarySubstitutions(exprMap)
         loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
       case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)

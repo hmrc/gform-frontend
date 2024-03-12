@@ -18,43 +18,9 @@ package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.gform.ExprUpdater
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.ExpressionResult.Hidden
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 
-/*
- The SummarySubstituter is designed to expand Sum expressions.
- It operates by unfolding expressions of the form `fc1 + if (fc2 > 10) then 1 else fc3`,
- where `fc2` and `fc3` are fields within the same AddToList component or a group component,
- and `fc1` represents an external, non-indexed component.
-
- Given an expression and a mapping (Map[Expr, ExpressionResult]) for ATL (e.g., `fc2` and `fc3`)
- or VariadicFormData for a group, the substituter expands the expression accordingly.
-
- For instance, consider the expression map:
- Map[Expr, ExpressionResult](
-   FormCtx("1_fc2") -> NumberResult(10.00),
-   FormCtx("2_fc2") -> NumberResult(20.00),
-   FormCtx("1_fc3") -> NumberResult(10.00),
-   FormCtx("2_fc3") -> NumberResult(20.00),
- )
- and variadicFormData:
-  "1_fc2" -> "10",
-  "2_fc2" -> "20",
-  "1_fc3" -> "10",
-  "2_fc3" -> "20"
-
- The substituter expands the expression to:
- (fc1 + if(fc2(1) > 10) then 1 else fc3(1)) + (fc1 + if(fc2(2) > 10) then 1 else fc3(2))
-
- If both the exprMap and variadicFormData are empty, the substituter does not expand the expression.
- This indicates that there is only a single element to sum, and thus, the sum of it is equivalent to the element itself.
-
- Note: Currently, the Sum expression supports only one indexed form component in the expression.
- Keep this in mind when putting together your expressions to make sure everything works as expected.
- */
 object SummarySubstituter {
   import Substituter._
 
@@ -156,99 +122,43 @@ object SummarySubstituter {
 
     }
 
-}
+  case class SummarySubstitutions(
+    exprMap: Map[Expr, ExpressionResult]
+  ) {
 
-case class SummarySubstitutions(
-  exprMap: Map[Expr, ExpressionResult],
-  data: VariadicFormData[SourceOrigin.OutOfDate]
-) {
+    /** This method is used to replace the Sum expression with Adds
+      * It also substitutes the hidden FormCtx in the sumExpr with Constant(0)
+      */
+    def replaceSumWithAdds(sumExpr: Expr): Expr = {
+      val sumExprFcIds = sumExpr.allFormComponentIds()
+      val indexedSumFcIdMap = exprMap.collect {
+        case (FormCtx(fcId), evalResult)
+            if sumExprFcIds
+              .map(_.baseComponentId)
+              .contains(fcId.baseComponentId) && fcId.modelComponentId.indexedComponentId.isIndexed =>
+          fcId -> evalResult
+      }.toMap
 
-  def replaceSumWithAdds(sumExpr: Expr): Expr = {
-    val helper = new NestedAddHelper(sumExpr, exprMap, data)
-    if (helper.variadicIndexedIds.nonEmpty) {
-      helper.toNestedAdd()
-    } else {
-      sumExpr
+      val indexedSumExprFcIds = indexedSumFcIdMap.map(_._1)
+      val indices = indexedSumExprFcIds
+        .map(fcId => fcId.modelComponentId.indexedComponentId)
+        .collect { case IndexedComponentId.Indexed(_, index) =>
+          index
+        }
+        .toList
+        .sorted
+        .distinct
+
+      import FormComponentIdSubstituter._
+      val substitutions = new FormComponentIdSubstitutions()
+      val baseSumExpr: Expr =
+        implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
+      val fcs = indexedSumExprFcIds.map(_.modelComponentId.removeIndex.toFormComponentId).toList.distinct
+      indices
+        .map(i => ExprUpdater(baseSumExpr, i, fcs))
+        .foldLeft[Expr](Constant("0")) { case (acc, e) =>
+          Add(acc, e)
+        }
     }
   }
-}
-
-case class NestedAddHelper(
-  sumExpr: Expr,
-  exprMap: Map[Expr, ExpressionResult],
-  data: VariadicFormData[SourceOrigin.OutOfDate]
-) {
-
-  private val sumExprIds: List[ModelComponentId] = sumExpr.allFormComponentIds().map(_.modelComponentId)
-
-  val variadicIndexedIds: List[ModelComponentId] =
-    sumExprIds.flatMap(modelId => data.distinctIndexedModelIds(modelId))
-
-  private val exprMapIndexed: Map[Expr, ExpressionResult] =
-    exprMap.collect {
-      case s @ (FormCtx(fcId), r)
-          if sumExprIds
-            .map(_.baseComponentId)
-            .contains(fcId.baseComponentId) && fcId.modelComponentId.indexedComponentId.isIndexed =>
-        s
-    }.toMap
-
-  private val exprMapIndexedIds: List[ModelComponentId] =
-    exprMapIndexed.collect { case (FormCtx(fcId), _) =>
-      fcId.modelComponentId
-    }.toList
-
-  private val exprMapVisibleIndexedIds: List[ModelComponentId] =
-    exprMapIndexed.collect {
-      case (FormCtx(fcId), result) if result != Hidden =>
-        fcId.modelComponentId
-    }.toList
-
-  private def limitByMax(indices: List[Int]): List[Int] = {
-    val maybeMaxIndex = extractIndices(sumExprIds).maxOption
-    indices.filter(i => maybeMaxIndex.map(_ >= i).getOrElse(true))
-  }
-
-  private def limitByVisibility(indices: List[Int]): List[Int] =
-    indices.filter(isVisibleIndex(_)).distinct.sorted
-
-  private def extractIndices(ids: List[ModelComponentId]): List[Int] = ids.flatMap(_.maybeIndex).distinct.sorted
-
-  private def isVisibleIndex(index: Int): Boolean =
-    exprMapIndexedIds.isEmpty ||
-      variadicIndexedIds.filter(_.maybeIndex.contains(index)).exists { modelComponentId =>
-        exprMapVisibleIndexedIds.contains(modelComponentId)
-      }
-
-  /** Initial indexes are derived from variadic user data.
-    * These are then constrained by the maximum index present in sumExpr, if it exists. This
-    * scenario occurs when a sum expression is used within an indexed component that is
-    * being summed.
-    * For each potential index (iteration), we perform checks:
-    *   - Retain the index if exprMap lacks any entries for the modelComponentId from sumExpr.
-    *     This case applies to groups without stale data.
-    *   - Retain the index if at least one visible modelComponent from sumExpr exists, implying
-    *     there is at least one non-hidden modelComponentId in exprMap for that index.
-    *   - Otherwise, the index is removed.
-    */
-  private val indices: List[Int] = {
-    val initialIndices = variadicIndexedIds.flatMap(_.maybeIndex).distinct.sorted
-    limitByVisibility(
-      limitByMax(initialIndices)
-    )
-  }
-
-  def toNestedAdd(): Expr = {
-    import FormComponentIdSubstituter._
-    val substitutions = new FormComponentIdSubstitutions()
-    val baseSumExpr: Expr =
-      implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
-    val fcIds = sumExprIds.map(_.removeIndex.toFormComponentId).distinct
-    indices
-      .map(i => ExprUpdater(baseSumExpr, i, fcIds))
-      .foldLeft[Expr](Constant("0")) { case (acc, e) =>
-        Add(acc, e)
-      }
-  }
-
 }

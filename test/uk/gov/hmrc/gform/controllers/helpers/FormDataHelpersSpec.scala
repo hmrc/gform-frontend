@@ -22,7 +22,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StaticTypeInfo }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
@@ -384,8 +384,6 @@ class FormDataHelpersSpec extends Spec {
       ),
       StaticTypeInfo.empty,
       RevealingChoiceInfo.empty,
-      SumInfo.empty,
-      StandaloneSumInfo.empty,
       None
     )
     lazy val requestBodyParams = Map("formField1" -> Seq("value1"), "actionField" -> Seq("save"))
