@@ -217,9 +217,9 @@ class AuthenticatedRequestActions(
               Some(formTemplate),
               Some(
                 views.html.form.snippets
-                  .markdown_wrapper(MarkDownUtil.markDownParser(referrerConfig.exitMessage.rawValue))
+                  .markdown_wrapper(MarkDownUtil.markDownParser(referrerConfig.exitMessage.valueWithoutInterpolations))
               ),
-              pageTitle = referrerConfig.title.map(_.rawValue)
+              pageTitle = referrerConfig.title.map(_.valueWithoutInterpolations)
             )
           }
         case None =>
