@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.graph
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
+import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StaticTypeInfo }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
@@ -382,8 +382,6 @@ object FormTemplateBuilder {
       BracketsWithSectionNumber.Classic(brackets),
       staticTypeInfo,
       RevealingChoiceInfo.empty,
-      SumInfo.empty,
-      StandaloneSumInfo.empty,
       None
     )
 
