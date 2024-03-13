@@ -111,7 +111,8 @@ case class CheckYourAnswers[A <: PageMode](
   formComponent: FormComponent,
   index: Int,
   presentationHint: Option[PresentationHint],
-  expandedRemoveItemIf: Option[RemoveItemIf]
+  expandedRemoveItemIf: Option[RemoveItemIf],
+  fields: Option[NonEmptyList[FormComponent]]
 ) extends PageModel[A]
 case class Repeater[A <: PageMode](
   expandedTitle: SmartString,
