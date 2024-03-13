@@ -20,6 +20,7 @@ import cats.implicits.catsSyntaxEq
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
 import cats.data.EitherT
+import cats.data.Validated.Valid
 import cats.implicits._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
 import play.api.i18n.{ I18nSupport, Messages }
@@ -62,6 +63,8 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
+
+import snapshot._
 
 import SnapshotForms._
 
@@ -794,24 +797,73 @@ class TestOnlyController(
 
   def getSnapshots(
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    userInputs: UserInputs
   ) =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
         import i18nSupport._
         val currentFormId = cache.form._id
         val currentUrl = request.uri
+        val validatedFrom = for {
+          from <- userInputs.from
+        } yield DateTimeValidator.validateUserInput("from", from)
+        val validatedTo = for {
+          to <- userInputs.to
+        } yield DateTimeValidator.validateUserInput("to", to)
+        val (from, to) = (validatedFrom, validatedTo) match {
+          case (Some(Valid(from)), Some(Valid(to))) => (from, to)
+          case (Some(Valid(from)), _)               => (from, None)
+          case (_, Some(Valid(to)))                 => (None, to)
+          case _                                    => (None, None)
+        }
+        val filter = SnapshotFilter(
+          from,
+          to,
+          userInputs.snapshotIdFilter,
+          userInputs.descriptionFilter,
+          userInputs.templateIdFilter
+        )
         for {
-          snapshots <- gformConnector.getSnapshots().map(_.sortBy(_.savedAt)(Ordering[Instant].reverse))
+          snapshots <- gformConnector.getSnapshots(filter).map(_.sortBy(_.savedAt)(Ordering[Instant].reverse))
         } yield {
           val html = renderSnapshots(snapshots, currentFormId, formTemplateId.value, maybeAccessCode, currentUrl)
+
+          val templateItems = SelectItem(
+            value = userInputs.templateIdFilter,
+            text = userInputs.templateIdFilter.getOrElse("")
+          ) :: snapshots.map(_.originalTemplateId.value).distinct.sorted.map { v =>
+            SelectItem(
+              value = Some(v),
+              text = v
+            )
+          }
+          val govukLabel = new GovukLabel()
+          val govukHint = new GovukHint()
+          val govukErrorMessage = new GovukErrorMessage()
+          val govukSelect = new GovukSelect(govukErrorMessage, govukHint, govukLabel)
+          val select = govukSelect(
+            Select(
+              id = "templateIdFilter",
+              name = "templateIdFilter",
+              items = templateItems,
+              label = Label(
+                content = Text("Filter by template id")
+              )
+            )
+          )
           Ok(
             snapshots_page(
               cache.formTemplate,
               maybeAccessCode,
               frontendAppConfig,
               html,
-              cache.form._id.value
+              cache.form._id.value,
+              UserInputs.fromDateInput(userInputs, DateTimeValidator.mayBeErrors(validatedFrom)),
+              UserInputs.toDateInput(userInputs, DateTimeValidator.mayBeErrors(validatedTo)),
+              userInputs.snapshotIdFilter,
+              userInputs.descriptionFilter,
+              select
             )
           )
         }
@@ -828,7 +880,7 @@ class TestOnlyController(
     val tableRows: List[List[TableRow]] = snapshots.map { snapshot =>
       List(
         TableRow(
-          content = HtmlContent(Html(snapshot.templateId.value))
+          content = HtmlContent(Html(snapshot.originalTemplateId.value))
         ),
         TableRow(
           content = HtmlContent(Html(snapshot.description.value)),
@@ -979,6 +1031,43 @@ class TestOnlyController(
         .updateFormData(currentTemplateId, snapshotId, accessCode)
         .url
       Ok(snapshot_restore_options(frontendAppConfig, snapshotId, govukRadios, actionUrl)).pure[Future]
+    }
+
+  def filterSnapshotsPost(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    controllerComponents.actionBuilder.async { implicit request =>
+      val answers: Map[String, String] = request.body.asFormUrlEncoded
+        .map(_.collect {
+          case (field, value :: _) if value.trim.nonEmpty =>
+            (field, value.trim)
+        })
+        .getOrElse(Map.empty[String, String])
+
+      val fromUserInputs = DateTimeUserInput("from", answers)
+      val toUserInputs = DateTimeUserInput("to", answers)
+      val templateIdFilter =
+        if (answers.get("currentTemplateId").contains("on")) Some(formTemplateId.value)
+        else answers.get("templateIdFilter")
+      val userInputs =
+        UserInputs(
+          Some(fromUserInputs),
+          Some(toUserInputs),
+          answers.get("snapshotIdFilter"),
+          answers.get("descFilter"),
+          templateIdFilter
+        )
+
+      Future.successful(
+        Redirect(
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(
+            formTemplateId,
+            maybeAccessCode,
+            userInputs
+          )
+        )
+      )
     }
 
 }

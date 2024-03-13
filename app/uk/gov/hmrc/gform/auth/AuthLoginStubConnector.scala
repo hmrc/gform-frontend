@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
-import uk.gov.hmrc.gform.testonly._
+import uk.gov.hmrc.gform.testonly.snapshot._
 
 class AuthLoginStubConnector(baseUrl: String, wsClient: WSClient) {
   val serviceUrl = baseUrl

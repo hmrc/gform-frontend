@@ -43,8 +43,7 @@ import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
-
-import uk.gov.hmrc.gform.testonly.{ SaveReply, SaveRequest, SnapshotId, SnapshotOverview, UpdateFormDataRequest, UpdateSnapshotRequest }
+import uk.gov.hmrc.gform.testonly.snapshot._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -553,9 +552,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
 
   def getSnapshots(
+    payload: SnapshotFilter
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[SnapshotOverview]] = {
     val url = s"$baseUrl/test-only/snapshots"
-    ws.GET[List[SnapshotOverview]](url)
+    ws.POST[SnapshotFilter, List[SnapshotOverview]](
+      url,
+      payload,
+      Seq("Content-Type" -> ContentType.`application/json`.value)
+    )
   }
 
   def saveFormPage(formId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsValue] = {
