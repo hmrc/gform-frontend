@@ -154,6 +154,14 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
       .distinct
       .sortBy(_.maybeIndex)
 
+  def distinctIndexedModelIds(modelComponentId: ModelComponentId): List[ModelComponentId] =
+    forBaseComponentId(modelComponentId.indexedComponentId.baseComponentId)
+      .map(_._1)
+      .filter(_.indexedComponentId.isIndexed)
+      .toList
+      .distinct
+      .sortBy(_.indexedComponentId.maybeIndex)
+
   def keySet(): Set[ModelComponentId] = data.keySet
 
   def ++[R <: SourceOrigin](addend: VariadicFormData[R]): VariadicFormData[R] = VariadicFormData[R](data ++ addend.data)

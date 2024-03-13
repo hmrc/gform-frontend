@@ -92,7 +92,7 @@ object CannotStartYetResolver {
           brackets.toBracketsList.flatMap(_.toPlainBracket.allExprs(formModel))
 
         val baseComponentIds: List[BaseComponentId] =
-          allExprs.flatMap(_.leafs()).collect {
+          allExprs.flatMap(_.leafs(formModel)).collect {
             case FormCtx(fcId)        => fcId.baseComponentId
             case AddressLens(fcId, _) => fcId.baseComponentId
           }

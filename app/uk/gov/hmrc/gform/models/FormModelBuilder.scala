@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.{ BooleanExprEval, BooleanExprResolver, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ BooleanExprEval, BooleanExprResolver, DateExprEval, EvaluationContext, ExpressionResult, FileIdsWithMapping, RevealingChoiceInfo, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
@@ -488,7 +488,9 @@ class FormModelBuilder[E, F[_]: Functor](
         basicAddToList(s, 1, data).map(atl => BracketPlain.AddToList(NonEmptyList.one(atl), s))
     }
 
-    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, formTemplate.dataRetrieve)
+    val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
+
+    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo, formTemplate.dataRetrieve)
   }
 
   private def repeaterIsYes(
