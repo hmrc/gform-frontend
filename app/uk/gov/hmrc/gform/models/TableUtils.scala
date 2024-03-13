@@ -37,9 +37,11 @@ object TableUtils {
     formComponent.copy(`type` = updTable)
   }
 
-  def determineBaseIds[D <: DataOrigin](tableValueRow: TableValueRow): List[FormComponentId] =
+  def determineBaseIds[D <: DataOrigin](tableValueRow: TableValueRow)(implicit
+    fmvo: FormModelVisibilityOptics[D]
+  ): List[FormComponentId] =
     tableValueRow.values.flatMap { tableValue =>
-      tableValue.value.interpolations.flatMap(_.leafs()).collect { case FormCtx(fcId) =>
+      tableValue.value.interpolations.flatMap(_.leafs(fmvo.formModel)).collect { case FormCtx(fcId) =>
         fcId
       }
     }
