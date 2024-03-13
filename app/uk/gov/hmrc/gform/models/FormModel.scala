@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -27,6 +27,8 @@ case class FormModel[A <: PageMode](
   brackets: BracketsWithSectionNumber[A],
   staticTypeInfo: StaticTypeInfo,
   revealingChoiceInfo: RevealingChoiceInfo,
+  sumInfo: SumInfo,
+  standaloneSumInfo: StandaloneSumInfo, // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
   dataRetrieve: Option[NonEmptyList[DataRetrieve]]
 ) {
 
@@ -175,6 +177,8 @@ case class FormModel[A <: PageMode](
     brackets.map(e)(f)(g),
     staticTypeInfo,
     revealingChoiceInfo,
+    sumInfo,
+    standaloneSumInfo,
     dataRetrieve
   )
 
@@ -200,7 +204,7 @@ case class FormModel[A <: PageMode](
         })
       }
 
-    FormModel.fromPages(bracketPlainCoordinated, staticTypeInfo, revealingChoiceInfo, dataRetrieve)
+    FormModel.fromPages(bracketPlainCoordinated, staticTypeInfo, revealingChoiceInfo, sumInfo, dataRetrieve)
   }
 
   def apply(sectionNumber: SectionNumber): PageModel[A] = pageModelLookup(sectionNumber)
@@ -243,6 +247,8 @@ case class FormModel[A <: PageMode](
       bracketsWithSectionNumber,
       staticTypeInfo,
       revealingChoiceInfo,
+      sumInfo,
+      standaloneSumInfo,
       dataRetrieve
     ).asInstanceOf[FormModel[B]]
   }
@@ -339,6 +345,7 @@ object FormModel {
       ),
       StaticTypeInfo.empty,
       RevealingChoiceInfo.empty,
+      SumInfo.empty,
       None
     )
   }
@@ -347,8 +354,11 @@ object FormModel {
     bracketPlains: BracketPlainCoordinated[A],
     staticTypeInfo: StaticTypeInfo,
     revealingChoiceInfo: RevealingChoiceInfo,
+    sumInfo: SumInfo,
     dataRetrieve: Option[NonEmptyList[DataRetrieve]]
   ): FormModel[A] = {
+
+    def standaloneSumInfo: StandaloneSumInfo = StandaloneSumInfo.from(bracketPlains, sumInfo)
 
     val bracketsWithSectionNumber = BracketsWithSectionNumber.fromBracketsPlains(bracketPlains)
 
@@ -356,6 +366,8 @@ object FormModel {
       bracketsWithSectionNumber,
       staticTypeInfo,
       revealingChoiceInfo,
+      sumInfo,
+      standaloneSumInfo,
       dataRetrieve
     )
   }

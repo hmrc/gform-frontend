@@ -593,6 +593,29 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         "Ref to AddToList number field from outside ATL"
       ),
       (
+        TypeInfo(Sum(FormCtx(FormComponentId("addToListNumField"))), StaticTypeData(ExprType.number, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
+            (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListNumField"), VariadicValue.One("1")),
+            (toModelComponentId("2_addToListNumField"), VariadicValue.One("2"))
+          )
+        ),
+        buildEvaluationContext(indexedComponentIds =
+          List(
+            FormComponentId("1_addToListNumField").modelComponentId,
+            FormComponentId("2_addToListNumField").modelComponentId
+          )
+        ),
+        NumberResult(3),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListNumField")) -> NumberResult(1),
+          FormCtx(FormComponentId("2_addToListNumField")) -> NumberResult(2)
+        ),
+        "Ref to Sum of AddToList number field from outside ATL"
+      ),
+      (
         TypeInfo(FormCtx(FormComponentId("addToListStrField")), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
           VariadicFormData.create(
@@ -672,6 +695,17 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         NumberResult(2),
         Map.empty[Expr, ExpressionResult],
         "Ref to AddToList count in number field"
+      ),
+      (
+        TypeInfo(Sum(FormCtx(FormComponentId("addToListQuestion"))), StaticTypeData(ExprType.number, None)),
+        recData,
+        evaluationContext.copy(indexedComponentIds = List(toModelComponentId("1_addToListQuestion"))),
+        NumberResult(1),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListQuestion")) -> NumberResult(0),
+          FormCtx(FormComponentId("2_addToListQuestion")) -> NumberResult(1)
+        ),
+        "Ref to AddToList sum in number field"
       ),
       (
         TypeInfo(
