@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ComponentChecker
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import snapshot.AuthLoginStubService
 
 class TestOnlyModule(
   playBuiltInsModule: PlayBuiltInsModule,

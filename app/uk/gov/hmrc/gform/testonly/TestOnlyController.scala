@@ -64,7 +64,7 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_pa
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
 
-import filter._
+import snapshot._
 
 import SnapshotForms._
 
@@ -1054,7 +1054,7 @@ class TestOnlyController(
         UserInputs(
           Some(fromUserInputs),
           Some(toUserInputs),
-          answers.get("snIdFilter"),
+          answers.get("snapshotIdFilter"),
           answers.get("descFilter"),
           templateIdFilter
         )

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.testonly
+package uk.gov.hmrc.gform.testonly.snapshot
 
 import julienrf.json.derived
 import play.api.data.Forms._

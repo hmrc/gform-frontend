@@ -43,9 +43,7 @@ import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
-
-import uk.gov.hmrc.gform.testonly.{ SaveReply, SaveRequest, SnapshotId, SnapshotOverview, UpdateFormDataRequest, UpdateSnapshotRequest }
-import uk.gov.hmrc.gform.testonly.filter.SnapshotFilter
+import uk.gov.hmrc.gform.testonly.snapshot._
 
 import scala.concurrent.{ ExecutionContext, Future }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.testonly.filter
+package uk.gov.hmrc.gform.testonly.snapshot
 
 import java.time.LocalDateTime
 import play.api.libs.json.{ Format, Json }

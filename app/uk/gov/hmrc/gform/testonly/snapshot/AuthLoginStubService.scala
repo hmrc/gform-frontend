@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.testonly
+package uk.gov.hmrc.gform.testonly.snapshot
 
 import cats.data.EitherT
 import cats.syntax.either._

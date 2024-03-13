@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.testonly.filter
+package uk.gov.hmrc.gform.testonly.snapshot
 
 import cats.implicits._
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ ErrorMessage, Fieldset, HtmlContent, InputItem, Legend }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import play.api.mvc.QueryStringBindable
-// import uk.gov.hmrc.govukfrontend.views.html.components._
-import uk.gov.hmrc.govukfrontend.views.html.components._
-import play.twirl.api.Html
 
 case class DateTimeUserInput(
   day: Option[String],
@@ -34,18 +31,6 @@ case class DateTimeUserInput(
 )
 
 object DateTimeUserInput {
-
-  private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
-  private val govukHint: GovukHint = new GovukHint()
-  private val govukLabel: GovukLabel = new GovukLabel()
-  private val govukFieldset: GovukFieldset = new GovukFieldset()
-  private val govukInput: GovukInput = new GovukInput(govukErrorMessage, govukHint, govukLabel)
-  private val govukDateInput: GovukDateInput = new GovukDateInput(
-    govukErrorMessage,
-    govukHint,
-    govukFieldset,
-    govukInput
-  )
 
   def apply(): DateTimeUserInput = DateTimeUserInput(None, None, None, None, None)
 
@@ -62,7 +47,7 @@ object DateTimeUserInput {
     legend: String,
     dateTimeUserInput: DateTimeUserInput,
     errors: Map[String, String]
-  ): Html = {
+  ): DateInput = {
     val dayInput = createInputItem(s"$prefix-day", "Day", 2, dateTimeUserInput.day, errors)
     val monthInput = createInputItem(s"$prefix-month", "Month", 2, dateTimeUserInput.month, errors)
     val yearInput = createInputItem(s"$prefix-year", "Year", 4, dateTimeUserInput.year, errors)
@@ -72,8 +57,7 @@ object DateTimeUserInput {
     val items = List(dayInput, monthInput, yearInput, hourInput, minuteInput)
     val fieldSet = Fieldset(legend = Some(Legend(content = content.Text(legend))))
     val errorMessage = createErrorMessage(errors)
-    val dateInput = DateInput(id = prefix, items = items, errorMessage = errorMessage, fieldset = Some(fieldSet))
-    govukDateInput(dateInput)
+    DateInput(id = prefix, items = items, errorMessage = errorMessage, fieldset = Some(fieldSet))
   }
 
   private def createInputItem(
@@ -133,7 +117,7 @@ case class UserInputs(
 )
 object UserInputs {
   def apply(): UserInputs = UserInputs(None, None, None, None, None)
-  def fromDateInput(userInput: UserInputs, errors: Map[String, String]): Html =
+  def fromDateInput(userInput: UserInputs, errors: Map[String, String]): DateInput =
     DateTimeUserInput.createDateInput(
       "from",
       "Snapshot created after date",
@@ -141,7 +125,7 @@ object UserInputs {
       errors
     )
 
-  def toDateInput(userInput: UserInputs, errors: Map[String, String]): Html =
+  def toDateInput(userInput: UserInputs, errors: Map[String, String]): DateInput =
     DateTimeUserInput.createDateInput(
       "to",
       "Snapshot created before date",

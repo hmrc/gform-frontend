@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
-@import uk.gov.hmrc.gform.testonly.filter.UserInputs
+@import uk.gov.hmrc.gform.testonly.snapshot.UserInputs
 
 @(
   formTemplate: FormTemplate,
@@ -27,8 +27,8 @@
   frontendAppConfig: FrontendAppConfig,
   snapshotTable: Html,
   formId: String,
-  fromInput: Html,
-  toInput: Html,
+  fromInput: DateInput,
+  toInput: DateInput,
   snapshotIdFilter: Option[String],
   descriptionFilter: Option[String],
   select: Html
@@ -46,7 +46,7 @@
   .input-container:not(:last-child) {
     margin-right: 100px;
   }
-  #snIdFilter, #descFilter {
+  #snapshotIdFilter, #descFilter {
     width: 370px;
     margin-left: auto;
   }
@@ -60,6 +60,13 @@
 @govukHint = @{new GovukHint()}
 @govukLabel = @{new GovukLabel()}
 @govukInput = @{new GovukInput(govukErrorMessage, govukHint, govukLabel)}
+@govukFieldset = @{new GovukFieldset()}
+@govukDateInput = @{new GovukDateInput(
+    govukErrorMessage,
+    govukHint,
+    govukFieldset,
+    govukInput
+  )}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -73,11 +80,11 @@
     <h2 class="govuk-heading-m">Snapshots</h2>
     <div class="row">
       <div class="input-container">
-        @fromInput
+        @govukDateInput(fromInput)
       </div>
       <div class="input-container">
-        @govukInput(Input(id = "snIdFilter",
-            name = "snIdFilter",
+        @govukInput(Input(id = "snapshotIdFilter",
+            name = "snapshotIdFilter",
             label = Label(content = content.Text("Snapshot id filter")),
             errorMessage = None,
             value = snapshotIdFilter,
@@ -89,7 +96,7 @@
 
     <div class="row">
       <div class="input-container">
-        @toInput
+        @govukDateInput(toInput)
       </div>
       <div class="input-container">
           @govukInput(Input(id = "descFilter",
