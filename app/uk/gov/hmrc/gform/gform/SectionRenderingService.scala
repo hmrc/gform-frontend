@@ -141,6 +141,65 @@ class SectionRenderingService(
       fastForward
     )
 
+    val infoFields = checkYourAnswers.fields
+      .map { fields =>
+        fields.toList
+          .filter { field =>
+            field.includeIf.fold(true) { includeIf =>
+              formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+            }
+          }
+          .map {
+            case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
+              htmlForInformationMessage(info, infoType, infoText)
+            case fc @ IsTableComp(table) =>
+              htmlForTableComp(fc, table, formModelOptics)
+            case fc @ IsMiniSummaryList(miniSummaryList) =>
+              val repeaterPage: Page[Basic] =
+                Page(
+                  title = checkYourAnswers.title,
+                  id = checkYourAnswers.id,
+                  noPIITitle = checkYourAnswers.noPIITitle,
+                  description = None,
+                  shortName = None,
+                  caption = None,
+                  includeIf = None,
+                  fields = List(fc),
+                  continueLabel = None,
+                  continueIf = None,
+                  instruction = None,
+                  presentationHint = None,
+                  dataRetrieve = None,
+                  confirmation = None,
+                  redirects = None,
+                  hideSaveAndComeBackButton = None,
+                  removeItemIf = None,
+                  displayWidth = None
+                )
+
+              val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
+
+              val ei: ExtraInfo = ExtraInfo(
+                singleton = singleton,
+                maybeAccessCode = None,
+                sectionNumber = formTemplate.sectionNumberZero,
+                formModelOptics = formModelOptics,
+                formTemplate = formTemplate,
+                envelopeId = cache.form.envelopeId,
+                envelope = EnvelopeWithMapping.empty,
+                formMaxAttachmentSizeMB = 0,
+                retrievals = cache.retrievals,
+                formLevelHeading = false,
+                specialAttributes = Map.empty[String, String],
+                addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+              )
+              htmlForMiniSummaryList(fc, formTemplate._id, miniSummaryList.rows, ei, validationResult, NotChecked)
+            case unsupported =>
+              throw new Exception("AddToList.CheckYourAnswers.fields contains a non-Info component: " + unsupported)
+          }
+      }
+      .getOrElse(List(HtmlFormat.empty))
+
     val (title, noPIITitle) = SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers)
 
     val ff = fastForward match {
@@ -169,7 +228,8 @@ class SectionRenderingService(
       checkYourAnswers.expandedHeader.map(markDownParser),
       checkYourAnswers.expandedFooter.map(markDownParser),
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
-      ff
+      ff,
+      infoFields
     )
 
   }

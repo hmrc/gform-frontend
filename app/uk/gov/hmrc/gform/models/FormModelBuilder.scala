@@ -399,7 +399,8 @@ class FormModelBuilder[E, F[_]: Functor](
       fc,
       index,
       c.presentationHint,
-      c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds)))
+      c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
+      c.fields
     )
   }
 

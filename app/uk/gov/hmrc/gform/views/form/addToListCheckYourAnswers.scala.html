@@ -40,7 +40,8 @@
     header: Option[Html],
     footer: Option[Html],
     specimenNavigation: Html,
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    snippets: List[Html],
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -80,6 +81,10 @@
             @f
         </div>
     }
+
+    <div class="govuk-body">
+        @snippets
+    </div>
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
