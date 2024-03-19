@@ -45,7 +45,8 @@ import SummarySubstituter._
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
-  recData: RecData[SourceOrigin.Current]
+  recData: RecData[SourceOrigin.Current],
+  repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
 
   def +(expr: Expr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
@@ -221,7 +222,7 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
       case Sum(_) =>
-        val substitutions = SummarySubstitutions(exprMap, recData.variadicFormData)
+        val substitutions = SummarySubstitutions(exprMap, repeatedComponentsDetails)
         loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
       case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
@@ -885,18 +886,27 @@ case class EvaluationResults(
 }
 
 object EvaluationResults {
-  val empty = EvaluationResults(Map.empty, RecData.empty)
+  val empty = EvaluationResults(Map.empty, RecData.empty, RepeatedComponentsDetails.empty)
 
   def one(expr: Expr, result: ExpressionResult): EvaluationResults = empty.+(expr, result)
 
-  def unapply(a: EvaluationResults): Option[(Map[Expr, ExpressionResult], RecData[SourceOrigin.Current])] =
-    Some((a.exprMap, a.recData))
+  def unapply(
+    a: EvaluationResults
+  ): Option[(Map[Expr, ExpressionResult], RecData[SourceOrigin.Current], RepeatedComponentsDetails)] =
+    Some((a.exprMap, a.recData, a.repeatedComponentsDetails))
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
     def empty = EvaluationResults.empty
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
-      case (EvaluationResults(em1, rd1), EvaluationResults(em2, rd2)) =>
-        EvaluationResults(em1 ++ em2, RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData))
+      case (
+            EvaluationResults(em1, rd1, RepeatedComponentsDetails(m1)),
+            EvaluationResults(em2, rd2, RepeatedComponentsDetails(m2))
+          ) =>
+        EvaluationResults(
+          em1 ++ em2,
+          RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData),
+          RepeatedComponentsDetails(m1 ++ m2)
+        )
       case _ => throw new Exception("Invalid expression results for combine")
     }
   }

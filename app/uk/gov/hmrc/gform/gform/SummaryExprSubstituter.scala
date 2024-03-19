@@ -19,8 +19,6 @@ package uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.ExpressionResult.Hidden
 
@@ -160,95 +158,83 @@ object SummarySubstituter {
 
 case class SummarySubstitutions(
   exprMap: Map[Expr, ExpressionResult],
-  data: VariadicFormData[SourceOrigin.OutOfDate]
+  repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
-
   def replaceSumWithAdds(sumExpr: Expr): Expr = {
-    val helper = new NestedAddHelper(sumExpr, exprMap, data)
-    if (helper.variadicIndexedIds.nonEmpty) {
-      helper.toNestedAdd()
-    } else {
-      sumExpr
-    }
+    val nestedAddHelper = NestedAddHelper(sumExpr, exprMap, repeatedComponentsDetails)
+    nestedAddHelper.resolveSumExpression()
   }
 }
 
 case class NestedAddHelper(
   sumExpr: Expr,
   exprMap: Map[Expr, ExpressionResult],
-  data: VariadicFormData[SourceOrigin.OutOfDate]
+  repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
+  private val sumFormComponentIds = sumExpr.allFormComponentIds().filter(repeatedComponentsDetails.isRepeated)
+  private val sumModelComponentIds = sumFormComponentIds.map(_.modelComponentId)
+  private val sumsParents = repeatedComponentsDetails.getParentIdsFor(sumFormComponentIds)
+  private val isParentHidden = isAnyParentHidden(sumFormComponentIds)
+  private val indices = calculateIndices()
 
-  private val sumExprIds: List[ModelComponentId] = sumExpr.allFormComponentIds().map(_.modelComponentId)
+  def resolveSumExpression(): Expr =
+    if (isParentHidden) {
+      Constant("0") // the whole repeated component is hidden
+    } else if (sumsParents.isEmpty) {
+      sumExpr // there is no repeated component in the sumExpr
+    } else {
+      constructNestedAddExpression()
+    }
 
-  val variadicIndexedIds: List[ModelComponentId] =
-    sumExprIds.flatMap(modelId => data.distinctIndexedModelIds(modelId))
-
-  private val exprMapIndexed: Map[Expr, ExpressionResult] =
-    exprMap.collect {
-      case s @ (FormCtx(fcId), r)
-          if sumExprIds
-            .map(_.baseComponentId)
-            .contains(fcId.baseComponentId) && fcId.modelComponentId.indexedComponentId.isIndexed =>
-        s
-    }.toMap
-
-  private val exprMapIndexedIds: List[ModelComponentId] =
-    exprMapIndexed.collect { case (FormCtx(fcId), _) =>
-      fcId.modelComponentId
-    }.toList
-
-  private val exprMapVisibleIndexedIds: List[ModelComponentId] =
-    exprMapIndexed.collect {
-      case (FormCtx(fcId), result) if result != Hidden =>
-        fcId.modelComponentId
-    }.toList
-
-  private def limitByMax(indices: List[Int]): List[Int] = {
-    val maybeMaxIndex = extractIndices(sumExprIds).maxOption
-    indices.filter(i => maybeMaxIndex.map(_ >= i).getOrElse(true))
+  private def isAnyParentHidden(formComponentIds: List[FormComponentId]): Boolean = {
+    val hiddenComponents = exprMap
+      .collect { case (FormCtx(fcId), Hidden) => fcId }
+      .toList
+      .distinct
+    repeatedComponentsDetails.hasParent(hiddenComponents, formComponentIds)
   }
 
-  private def limitByVisibility(indices: List[Int]): List[Int] =
-    indices.filter(isVisibleIndex(_)).distinct.sorted
-
-  private def extractIndices(ids: List[ModelComponentId]): List[Int] = ids.flatMap(_.maybeIndex).distinct.sorted
-
-  private def isVisibleIndex(index: Int): Boolean =
-    exprMapIndexedIds.isEmpty ||
-      variadicIndexedIds.filter(_.maybeIndex.contains(index)).exists { modelComponentId =>
-        exprMapVisibleIndexedIds.contains(modelComponentId)
-      }
-
-  /** Initial indexes are derived from variadic user data.
+  /** Initial indexes are derived from exprMap
     * These are then constrained by the maximum index present in sumExpr, if it exists. This
     * scenario occurs when a sum expression is used within an indexed component that is
     * being summed.
-    * For each potential index (iteration), we perform checks:
-    *   - Retain the index if exprMap lacks any entries for the modelComponentId from sumExpr.
-    *     This case applies to groups without stale data.
-    *   - Retain the index if at least one visible modelComponent from sumExpr exists, implying
-    *     there is at least one non-hidden modelComponentId in exprMap for that index.
-    *   - Otherwise, the index is removed.
     */
-  private val indices: List[Int] = {
-    val initialIndices = variadicIndexedIds.flatMap(_.maybeIndex).distinct.sorted
-    limitByVisibility(
-      limitByMax(initialIndices)
-    )
+  private def calculateIndices(): List[Int] = {
+    val initialIndices = exprMap
+      .collect {
+        case (FormCtx(fcId), _) if shouldBeIndexed(fcId) => fcId.modelComponentId.maybeIndex
+      }
+      .flatten
+      .toList
+      .distinct
+      .sorted
+    limitIndicesByMax(initialIndices)
   }
 
-  def toNestedAdd(): Expr = {
+  private def shouldBeIndexed(fcId: FormComponentId): Boolean =
+    sumModelComponentIds.exists { modelComponentId =>
+      modelComponentId.baseComponentId == fcId.baseComponentId && fcId.modelComponentId.indexedComponentId.isIndexed
+    }
+
+  private def limitIndicesByMax(indices: List[Int]): List[Int] =
+    extractIndices(sumModelComponentIds).maxOption match {
+      case Some(maxIndex) => indices.filter(_ <= maxIndex)
+      case None           => indices
+    }
+
+  private def extractIndices(ids: List[ModelComponentId]): List[Int] =
+    ids.flatMap(_.maybeIndex).distinct.sorted
+
+  private def constructNestedAddExpression(): Expr = {
     import FormComponentIdSubstituter._
     val substitutions = new FormComponentIdSubstitutions()
-    val baseSumExpr: Expr =
-      implicitly[Substituter[FormComponentIdSubstitutions, Expr]].substitute(substitutions, sumExpr)
-    val fcIds = sumExprIds.map(_.removeIndex.toFormComponentId).distinct
-    indices
-      .map(i => ExprUpdater(baseSumExpr, i, fcIds))
-      .foldLeft[Expr](Constant("0")) { case (acc, e) =>
-        Add(acc, e)
-      }
-  }
+    val baseSumExpr = implicitly[Substituter[FormComponentIdSubstitutions, Expr]]
+      .substitute(substitutions, sumExpr)
+    val fcIdsWithoutIndices = sumModelComponentIds.map(_.removeIndex.toFormComponentId).distinct
 
+    indices.foldLeft[Expr](Constant("0")) { (acc, index) =>
+      val updatedExpr = ExprUpdater(baseSumExpr, index, fcIdsWithoutIndices)
+      Add(acc, updatedExpr)
+    }
+  }
 }

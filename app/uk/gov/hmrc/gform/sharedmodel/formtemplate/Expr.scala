@@ -38,8 +38,15 @@ sealed trait Expr extends Product with Serializable {
       case Sum(field1: Expr) =>
         field1 match {
           case FormCtx(formComponentId) =>
-            formModel.allFormComponents.collect {
+            val exprs = formModel.allFormComponents.collect {
               case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
+            }
+            if (exprs.isEmpty) {
+              // Indicates that the specified formComponentId does not exist within the form model, implying no instances across iterations.
+              // Therefore, the original formComponentId is utilized for type resolution.
+              FormCtx(formComponentId) :: Nil
+            } else {
+              exprs
             }
           case _ => loop(field1)
         }
