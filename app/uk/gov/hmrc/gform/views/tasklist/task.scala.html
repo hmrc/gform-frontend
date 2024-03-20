@@ -1,0 +1,62 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import cats.implicits._
+@import uk.gov.hmrc.gform.tasklist.routes.TaskListController
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Coordinates, FormTemplateId, Task, TaskSectionNumber, TaskNumber}
+@import uk.gov.hmrc.gform.tasklist.TaskStatus
+
+@(
+  formTemplateId: FormTemplateId,
+  maybeAccessCode: Option[AccessCode],
+  taskSectionNumber: TaskSectionNumber,
+  taskNumber: TaskNumber,
+  task: Task,
+  statusesLookup: Map[Coordinates, TaskStatus]
+)(
+  implicit
+  request: Request[_],
+  messages: Messages,
+  l: LangADT,
+  sse: SmartStringEvaluator
+)
+
+@statusClass(taskTatus: TaskStatus) = @{
+  taskTatus match {
+    case TaskStatus.NotStarted => "govuk-tag--grey"
+    case TaskStatus.InProgress => "govuk-tag--blue"
+    case TaskStatus.Completed => ""
+    case TaskStatus.CannotStartYet => "govuk-tag--grey"
+    case TaskStatus.NotRequired    => "govuk-tag--grey"
+  }
+}
+
+@defining(statusesLookup.get(Coordinates(taskSectionNumber, taskNumber)).getOrElse(TaskStatus.NotStarted)) { status =>
+  @defining(s"task-${taskSectionNumber.value}-${taskNumber.value}") { elementId =>
+    <li class="app-task-list__item">
+      <span class="app-task-list__task-name">
+        @if(status === TaskStatus.CannotStartYet || status === TaskStatus.NotRequired) {
+           @{task.title.value}
+        } else {
+          <a href="@TaskListController.newTask(formTemplateId, maybeAccessCode, taskSectionNumber, taskNumber, status == TaskStatus.Completed)" aria-describedby="@elementId">
+            @{task.title.value}
+          </a>
+        }
+      </span>
+      <strong class="govuk-tag app-task-list__tag @{statusClass(status)}" id="@elementId">@{messages(s"taskList.$status")}</strong>
+    </li>
+  }
+}

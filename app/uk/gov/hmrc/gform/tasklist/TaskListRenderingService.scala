@@ -21,23 +21,19 @@ import cats.syntax.eq._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
-import scala.concurrent.{ ExecutionContext, Future }
 
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, HMRCClaimForm, HMRCReturnForm, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, HMRCClaimForm, HMRCReturnForm, TaskSectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.tag.Tag
-import uk.gov.hmrc.govukfrontend.views.viewmodels.tasklist.{ TaskListItem, TaskListItemStatus }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class TaskListRenderingService(
@@ -60,97 +56,28 @@ class TaskListRenderingService(
     for {
       statusesLookup <- statuses(cache, envelope, formModelOptics)
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
-      val completedTasks = completedTasksCount(statusesLookup)
+      val completedSection = completedTaskSection(statusesLookup)
       val taskListH2key = formTemplate.formCategory match {
         case HMRCReturnForm => "taskList.h2.formCategory.return"
         case HMRCClaimForm  => "taskList.h2.formCategory.claim"
         case _              => "taskList.h2"
+
       }
-
-      def taskUrl(taskSectionNumber: TaskSectionNumber, taskNumber: TaskNumber, taskStatus: TaskStatus) =
-        if (taskStatus === TaskStatus.CannotStartYet) None
-        else
-          Some(
-            routes.TaskListController
-              .newTask(
-                formTemplate._id,
-                maybeAccessCode,
-                taskSectionNumber,
-                taskNumber,
-                taskStatus == TaskStatus.Completed
-              )
-              .url
-          )
-
-      val taskLists: List[TaskListView] = taskList.sections.toList.zipWithIndex.map {
-        case (taskSection, taskSectionIndex) =>
-          val taskListItems = taskSection.tasks.toList.zipWithIndex.collect {
-            case (task, taskIndex)
-                if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
-              val taskSectionNumber = TaskSectionNumber(taskSectionIndex)
-              val taskNumber = TaskNumber(taskIndex)
-              val status: TaskStatus = statusesLookup.toList.toMap.getOrElse(
-                Coordinates(taskSectionNumber, taskNumber),
-                TaskStatus.NotStarted
-              )
-              new TaskListItem(
-                title = new TaskListItemTitle(content = content.Text(task.title.value())),
-                hint = None,
-                status = taskListStatus(status),
-                href = taskUrl(taskSectionNumber, taskNumber, status)
-              )
-          }
-          TaskListView(taskSection.title, new TaskList(taskListItems))
-      }
-
-      val submitSection = formTemplate.submitSection.map { submitSection =>
-        val status =
-          if (completedTasks === taskList.sections.flatMap(_.tasks).size || formTemplate.isSpecimen)
-            TaskStatus.NotStarted
-          else TaskStatus.CannotStartYet
-        val href =
-          if (status === TaskStatus.CannotStartYet) None
-          else
-            Some(
-              routes.TaskListController.summaryPage(formTemplate._id, maybeAccessCode).url
-            )
-        val taskListItem = new TaskListItem(
-          title = new TaskListItemTitle(content = content.Text(submitSection.taskLabel.value())),
-          hint = None,
-          status = taskListStatus(status),
-          href = href
-        )
-        TaskListView(submitSection.label, new TaskList(List(taskListItem)))
-      }
-
-      val taskListViews = taskLists ++ submitSection
-
       uk.gov.hmrc.gform.views.html.tasklist
         .task_list(
           formTemplate,
           maybeAccessCode,
-          taskListViews,
-          completedTasks,
+          taskList,
+          statusesLookup.toList.toMap,
+          completedSection,
           frontendAppConfig,
-          taskListH2key
+          taskListH2key,
+          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)
         )
     }
 
-  private def taskListStatus(taskStatus: TaskStatus)(implicit messages: Messages): TaskListItemStatus = {
-    val statusContent = content.Text(messages(s"taskList.$taskStatus"))
-    val statusTag = taskStatus match {
-      case TaskStatus.NotStarted => Some(new Tag(content = statusContent, classes = "govuk-tag--blue"))
-      case TaskStatus.InProgress => Some(new Tag(content = statusContent, classes = "govuk-tag--light-blue"))
-      case _                     => None
-    }
-
-    val statusClasses = taskStatus match {
-      case TaskStatus.CannotStartYet => "govuk-task-list__status--cannot-start-yet"
-      case _                         => ""
-    }
-
-    new TaskListItemStatus(tag = statusTag, content = statusContent, classes = statusClasses)
-  }
+  def availableCoordinates(formModelOptics: FormModelOptics[DataOrigin.Mongo]): NonEmptyList[Coordinates] =
+    formModelOptics.formModelVisibilityOptics.formModel.brackets.unsafeToTaskList.brackets.map(_._1)
 
   private def statuses(
     cache: CacheData,
@@ -208,8 +135,12 @@ class TaskListRenderingService(
 
   }
 
-  private def completedTasksCount(statuses: NonEmptyList[(Coordinates, TaskStatus)]): Int =
-    statuses.toList.count({ case (_, taskStatus) =>
+  private def completedTaskSection(statuses: NonEmptyList[(Coordinates, TaskStatus)]): Int = {
+    val taskSections: Map[TaskSectionNumber, List[(Coordinates, TaskStatus)]] = statuses.toList.groupBy {
+      case (coordinates, _) => coordinates.taskSectionNumber
+    }
+    taskSections.values.count(_.forall { case (_, taskStatus) =>
       taskStatus === TaskStatus.Completed || taskStatus === TaskStatus.NotRequired
     })
+  }
 }

@@ -16,30 +16,31 @@
 
 @import cats.implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-@import uk.gov.hmrc.gform.views.html.main_template
+@import uk.gov.hmrc.gform.controllers.{ SaveAndExit, Back }
+@import uk.gov.hmrc.gform.gform.HasErrors
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Coordinates, FormKind, FormTemplate, TaskSectionNumber}
+@import uk.gov.hmrc.gform.tasklist.TaskStatus
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
+@import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth
 @import uk.gov.hmrc.gform.FormTemplateKey
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukTaskList
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
-@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukNotificationBanner
-@import uk.gov.hmrc.govukfrontend.views.html.components.TwoThirdsMainContent
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukTag
-@import uk.gov.hmrc.gform.tasklist.TaskListView
-@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.IncludeIf
+
 
 @(
   formTemplate: FormTemplate,
   maybeAccessCode: Option[AccessCode],
-  taskListViews: List[TaskListView],
-  completedTasks: Int,
+  taskList: FormKind.TaskList,
+  statusesLookup: Map[Coordinates, TaskStatus],
+  completedSection: Int,
   frontendAppConfig: FrontendAppConfig,
-  taskListH2key: String
+  taskListH2key: String,
+  evalIncludeIf: IncludeIf => Boolean
 )(
   implicit
   request: Request[_],
@@ -51,8 +52,6 @@
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
-@govukTag = @{new GovukTag()}
-@govukTaskList = @{new GovukTaskList(govukTag)}
 
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
@@ -85,11 +84,17 @@
         </h1>
 
         <h2 class="govuk-heading-s govuk-!-margin-bottom-2">@{messages(taskListH2key)}</h2>
-        <p class="govuk-body govuk-!-margin-bottom-7">@{messages("taskList.p", completedTasks, taskListViews.map(_.taskList).size)}</p>
+        <p class="govuk-body govuk-!-margin-bottom-7">@{messages("taskList.p", completedSection, taskList.sections.size + 1)}</p>
 
-        @taskListViews.map { taskListView =>
-            <h2 class="govuk-heading-m">@taskListView.sectionTitle.value()</h2>
-            @govukTaskList(taskListView.taskList)
-        }
+        <ol class="app-task-list">
+            @{taskList.sections.toList.zipWithIndex.map { case (taskSection, index) =>
+                task_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(index), taskSection, statusesLookup, evalIncludeIf)
+            }
+            }
+            @formTemplate.submitSection.map{ submitSection =>
+                @{task_submit_section(formTemplate._id, maybeAccessCode, TaskSectionNumber(taskList.sections.size +1 ), submitSection,
+                    completedSection === taskList.sections.size || formTemplate.isSpecimen)}
+            }
+        </ol>
     }
 }
