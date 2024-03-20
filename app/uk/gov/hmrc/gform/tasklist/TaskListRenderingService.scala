@@ -60,25 +60,14 @@ class TaskListRenderingService(
     for {
       statusesLookup <- statuses(cache, envelope, formModelOptics)
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
-      val visibleTaskCoordinates: List[Coordinates] = taskList.sections.toList.zipWithIndex.flatMap {
-        case (taskSection, taskSectionIndex) =>
-          taskSection.tasks.toList.zipWithIndex.collect {
-            case (task, taskIndex)
-                if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
-              evalCoordinates(taskSectionIndex, taskIndex)
-          }
-      }
-      val visibleTaskStatusesLookup = statusesLookup.filter { case (coord, _) =>
-        visibleTaskCoordinates.contains(coord)
-      }
-      val completedTasks = completedTasksCount(visibleTaskStatusesLookup)
+      val completedTasks = completedTasksCount(statusesLookup)
       val taskListH2key = formTemplate.formCategory match {
         case HMRCReturnForm => "taskList.h2.formCategory.return"
         case HMRCClaimForm  => "taskList.h2.formCategory.claim"
         case _              => "taskList.h2"
       }
 
-      def taskUrl(coordinates: Coordinates, taskStatus: TaskStatus) =
+      def taskUrl(taskSectionNumber: TaskSectionNumber, taskNumber: TaskNumber, taskStatus: TaskStatus) =
         taskStatus match {
           case TaskStatus.CannotStartYet | TaskStatus.NotRequired => None
           case _ =>
@@ -87,8 +76,8 @@ class TaskListRenderingService(
                 .newTask(
                   formTemplate._id,
                   maybeAccessCode,
-                  coordinates.taskSectionNumber,
-                  coordinates.taskNumber,
+                  taskSectionNumber,
+                  taskNumber,
                   taskStatus == TaskStatus.Completed
                 )
                 .url
@@ -98,25 +87,27 @@ class TaskListRenderingService(
       val taskLists: List[TaskListView] = taskList.sections.toList.zipWithIndex.map {
         case (taskSection, taskSectionIndex) =>
           val taskListItems = taskSection.tasks.toList.zipWithIndex.collect {
-            case (task, taskIndex) if visibleTaskCoordinates.contains(evalCoordinates(taskSectionIndex, taskIndex)) =>
-              val coordinates = evalCoordinates(taskSectionIndex, taskIndex)
+            case (task, taskIndex)
+                if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
+              val taskSectionNumber = TaskSectionNumber(taskSectionIndex)
+              val taskNumber = TaskNumber(taskIndex)
               val status: TaskStatus = statusesLookup.toList.toMap.getOrElse(
-                coordinates,
+                Coordinates(taskSectionNumber, taskNumber),
                 TaskStatus.NotStarted
               )
               new TaskListItem(
                 title = new TaskListItemTitle(content = content.Text(task.title.value())),
                 hint = None,
                 status = taskListStatus(status),
-                href = taskUrl(coordinates, status)
+                href = taskUrl(taskSectionNumber, taskNumber, status)
               )
           }
-          TaskListView(taskSection.title, TaskList(taskListItems))
+          TaskListView(taskSection.title, new TaskList(taskListItems))
       }
 
       val submitSection = formTemplate.submitSection.map { submitSection =>
         val status =
-          if (completedTasks === visibleTaskCoordinates.size || formTemplate.isSpecimen)
+          if (completedTasks === taskList.sections.flatMap(_.tasks).size || formTemplate.isSpecimen)
             TaskStatus.NotStarted
           else TaskStatus.CannotStartYet
         val href =
@@ -146,9 +137,6 @@ class TaskListRenderingService(
           taskListH2key
         )
     }
-
-  private def evalCoordinates(taskSectionIndex: Int, taskIndex: Int) =
-    Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex))
 
   private def taskListStatus(taskStatus: TaskStatus)(implicit messages: Messages): TaskListItemStatus = {
     val statusContent = content.Text(messages(s"taskList.$taskStatus"))
@@ -222,8 +210,8 @@ class TaskListRenderingService(
 
   }
 
-  private def completedTasksCount(statuses: List[(Coordinates, TaskStatus)]): Int =
-    statuses.count({ case (_, taskStatus) =>
+  private def completedTasksCount(statuses: NonEmptyList[(Coordinates, TaskStatus)]): Int =
+    statuses.toList.count({ case (_, taskStatus) =>
       taskStatus === TaskStatus.Completed || taskStatus === TaskStatus.NotRequired
     })
 }
