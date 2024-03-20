@@ -293,8 +293,7 @@ class GformModule(
     gformBackendModule.gformConnector,
     nonRepudiationHelpers,
     controllersModule.messagesControllerComponents,
-    auditingModule.auditService,
-    configModule.isProd
+    auditingModule.auditService
   )
 
   val errorController = new ErrorController(

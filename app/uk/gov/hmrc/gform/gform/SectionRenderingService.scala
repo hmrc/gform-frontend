@@ -1000,8 +1000,7 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     destinationList: DestinationList,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    isProduction: Boolean = true
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -1052,32 +1051,13 @@ class SectionRenderingService(
       )
     )
 
-    val renderingInfo = SectionRenderingInformation(
-      formTemplateId,
-      maybeAccessCode,
-      formTemplate.sectionNumberZero,
-      destinationList.acknowledgementSection.toPage.sectionHeader(),
-      "",
-      snippets,
-      "",
-      envelopeId,
-      uk.gov.hmrc.gform.gform.routes.DeclarationController
-        .submitDeclaration(formTemplateId, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
-      false,
-      messages("button.confirmAndSend"),
-      0,
-      FileInfoConfig.allAllowedFileTypes,
-      Nil
-    )
-
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
       .acknowledgement(
         formTemplateId,
-        renderingInfo,
+        snippets,
         acknowledgementPanel,
         heading,
         formTemplate,
-        panelTitle,
         frontendAppConfig,
         maybeAccessCode
       )
