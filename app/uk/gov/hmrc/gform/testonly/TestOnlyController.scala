@@ -622,10 +622,8 @@ class TestOnlyController(
           userData => {
             val currentFormId = cache.form._id
             if (userData.restoreType === restoreOptionCurrentSession) {
+              val updateRequest = UpdateFormDataRequest(snapshotId, currentFormId)
               for {
-                overview <- gformConnector.snapshotOverview(snapshotId)
-                formData = overview.formData.getOrElse(Json.obj())
-                updateRequest = UpdateFormDataRequest(currentFormId, formData)
                 saveReply <- gformConnector.updateFormData(updateRequest)
               } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
             } else {
