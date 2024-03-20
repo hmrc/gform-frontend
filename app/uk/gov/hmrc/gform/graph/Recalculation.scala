@@ -73,7 +73,15 @@ class Recalculation[F[_]: Monad, E](
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
     val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
-      (s, EvaluationResults(Map.empty, SourceOrigin.changeSource(RecData.fromData(data)))).pure[F]
+      (
+        s,
+        EvaluationResults(
+          Map.empty,
+          SourceOrigin.changeSource(RecData.fromData(data)),
+          formTemplate.formKind.repeatedComponentsDetails
+        )
+      )
+        .pure[F]
     }
 
     val res: Either[GraphException, StateT[

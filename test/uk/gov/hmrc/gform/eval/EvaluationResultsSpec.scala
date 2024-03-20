@@ -560,7 +560,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         expectedResult: ExpressionResult,
         _
       ) =>
-        EvaluationResults(Map.empty, SourceOrigin.changeSource(recData))
+        EvaluationResults(Map.empty, SourceOrigin.changeSource(recData), RepeatedComponentsDetails.empty)
           .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
@@ -568,7 +568,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
   it should "evaluate form component reference from outside, when they are in indexed pages (repeating page, ATL)" in {
 
     val table = Table(
-      ("typeInfo", "recData", "evaluationContext", "expectedResult", "exprMap", "scenario"),
+      ("typeInfo", "recData", "evaluationContext", "expectedResult", "exprMap", "repeatedDetails", "scenario"),
       (
         TypeInfo(FormCtx(FormComponentId("addToListNumField")), StaticTypeData(ExprType.number, None)),
         RecData[OutOfDate](
@@ -590,6 +590,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           FormCtx(FormComponentId("1_addToListNumField")) -> NumberResult(1),
           FormCtx(FormComponentId("2_addToListNumField")) -> NumberResult(2)
         ),
+        RepeatedComponentsDetails.empty,
         "Ref to AddToList number field from outside ATL"
       ),
       (
@@ -612,6 +613,11 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         Map[Expr, ExpressionResult](
           FormCtx(FormComponentId("1_addToListNumField")) -> NumberResult(1),
           FormCtx(FormComponentId("2_addToListNumField")) -> NumberResult(2)
+        ),
+        RepeatedComponentsDetails(
+          Map[FormComponentId, FormComponentId](
+            FormComponentId("addToListNumField") -> FormComponentId("atlParent")
+          )
         ),
         "Ref to Sum of AddToList number field from outside ATL"
       ),
@@ -636,6 +642,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           FormCtx(FormComponentId("1_addToListStrField")) -> StringResult("AAA"),
           FormCtx(FormComponentId("2_addToListStrField")) -> StringResult("BBB")
         ),
+        RepeatedComponentsDetails.empty,
         "Ref to AddToList string field from outside ATL"
       ),
       (
@@ -659,6 +666,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           FormCtx(FormComponentId("1_addToListChoiceField")) -> OptionResult(Seq("1")),
           FormCtx(FormComponentId("2_addToListChoiceField")) -> OptionResult(Seq("0"))
         ),
+        RepeatedComponentsDetails.empty,
         "Ref to AddToList string field from outside ATL"
       )
     )
@@ -669,9 +677,10 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext: EvaluationContext,
         expectedResult: ExpressionResult,
         exprMap: Map[Expr, ExpressionResult],
+        repeatedDetails: RepeatedComponentsDetails,
         _
       ) =>
-        EvaluationResults(exprMap, SourceOrigin.changeSource(recData))
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData), repeatedDetails)
           .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
@@ -687,13 +696,14 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     val table = Table(
-      ("typeInfo", "recData", "evaluationContext", "expectedResult", "exprMap", "scenario"),
+      ("typeInfo", "recData", "evaluationContext", "expectedResult", "exprMap", "repeatedDetails", "scenario"),
       (
         TypeInfo(Count(FormComponentId("addToListQuestion")), StaticTypeData(ExprType.number, None)),
         recData,
         evaluationContext,
         NumberResult(2),
         Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
         "Ref to AddToList count in number field"
       ),
       (
@@ -704,6 +714,11 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         Map[Expr, ExpressionResult](
           FormCtx(FormComponentId("1_addToListQuestion")) -> NumberResult(0),
           FormCtx(FormComponentId("2_addToListQuestion")) -> NumberResult(1)
+        ),
+        RepeatedComponentsDetails(
+          Map[FormComponentId, FormComponentId](
+            FormComponentId("addToListQuestion") -> FormComponentId("atlParent")
+          )
         ),
         "Ref to AddToList sum in number field"
       ),
@@ -720,6 +735,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         NumberResult(1),
         Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
         "user enrolments count for service a and identifier b"
       ),
       (
@@ -731,6 +747,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         NumberResult(123),
         Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
         "convert param to Sterling"
       ),
       (
@@ -742,6 +759,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         ExpressionResult.Invalid("Number - cannot convert 'foo' to number"),
         Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
         "convert param to Sterling (fail when param is not a convertible to number)"
       )
     )
@@ -752,9 +770,10 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         expectedResult: ExpressionResult,
         exprMap: Map[Expr, ExpressionResult],
+        repeatedDetails: RepeatedComponentsDetails,
         _
       ) =>
-        EvaluationResults(exprMap, SourceOrigin.changeSource(recData))
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData), repeatedDetails)
           .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }

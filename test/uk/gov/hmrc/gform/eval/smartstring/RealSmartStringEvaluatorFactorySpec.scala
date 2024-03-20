@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, Horizontal, OptionData, Radio, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, Horizontal, OptionData, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -421,7 +421,11 @@ class RealSmartStringEvaluatorFactorySpec
       *[Messages]
     )(*[MonadError[Future, Throwable]]) returns Future.successful(
       RecalculationResult(
-        EvaluationResults(exprMap, SourceOrigin.changeSource(RecData.fromData(cache.variadicFormData))),
+        EvaluationResults(
+          exprMap,
+          SourceOrigin.changeSource(RecData.fromData(cache.variadicFormData)),
+          RepeatedComponentsDetails.empty
+        ),
         GraphData.empty,
         BooleanExprCache.empty,
         EvaluationContext(

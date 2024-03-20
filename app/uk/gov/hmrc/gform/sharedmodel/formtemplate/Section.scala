@@ -76,9 +76,12 @@ object Section {
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
+    val allPagesIds: List[FormComponentId] = pages.toList.flatMap(_.allIds)
     val allIds: List[FormComponentId] = {
-      addAnotherQuestion.id :: pages.toList.flatMap(_.allIds)
+      addAnotherQuestion.id :: allPagesIds
     }
+    val atlMap: Map[FormComponentId, FormComponentId] =
+      allPagesIds.map(fcId => (fcId, addAnotherQuestion.id)).toMap
 
     val addToListTypeInfo = StaticTypeInfo(
       Map(addAnotherQuestion.baseComponentId -> StaticTypeData(ExprType.number, None))
@@ -94,6 +97,9 @@ object Section {
 
     val allSumInfo: SumInfo =
       pages.toList.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
+
+    def isInATL(addAnotherQuestionId: FormComponentId, fcId: FormComponentId): Boolean =
+      addAnotherQuestionId == addAnotherQuestion.id && pages.toList.flatMap(_.allIds).exists(_ == fcId)
 
   }
 

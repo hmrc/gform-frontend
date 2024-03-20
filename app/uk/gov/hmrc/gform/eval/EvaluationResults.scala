@@ -17,10 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.Monoid
-import cats.instances.either._
-import cats.instances.list._
 import cats.syntax.eq._
-import cats.syntax.traverse._
 import play.api.i18n.Messages
 
 import scala.util.Try
@@ -28,6 +25,7 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
+import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -43,9 +41,12 @@ import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
+import SummarySubstituter._
+
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
-  recData: RecData[SourceOrigin.Current]
+  recData: RecData[SourceOrigin.Current],
+  repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
 
   def +(expr: Expr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
@@ -124,33 +125,6 @@ case class EvaluationResults(
     if (isHidden) {
       ExpressionResult.Hidden
     } else body
-  }
-
-  // Sum field may be hidden by AddToList or by Revealing choice
-  private def isSumHidden(modelComponentId: ModelComponentId): Boolean = {
-    val expr = FormCtx(modelComponentId.toFormComponentId)
-    exprMap.get(expr).fold(true)(_ === Hidden)
-  }
-
-  private def calculateSum(
-    formComponentId: FormComponentId,
-    recData: RecData[SourceOrigin.OutOfDate],
-    invalidResult: ExpressionResult
-  ): ExpressionResult = {
-    val maybeListToSum: Either[ExpressionResult, List[BigDecimal]] =
-      recData.variadicFormData
-        .forBaseComponentIdLessThen(formComponentId.modelComponentId)
-        .toList
-        .collect {
-          case (k, v) if !isSumHidden(k) => v
-        }
-        .traverse {
-          case VariadicValue.One(v) =>
-            toBigDecimalSafe(v)
-              .fold[Either[ExpressionResult, BigDecimal]](Left(invalidResult))(Right(_))
-          case VariadicValue.Many(_) => Left(invalidResult)
-        }
-    maybeListToSum.map(listToSum => NumberResult(listToSum.sum)).merge
   }
 
   private def addToListCount(
@@ -247,13 +221,9 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
-      case Sum(FormCtx(formComponentId))    => calculateSum(formComponentId, recData, unsupportedOperation("Number")(expr))
-      case Sum(field1) =>
-        loop(field1) match {
-          case lrs: ListResult =>
-            lrs.list.fold(NumberResult(0)) { case (a, b) => a + b }
-          case _ => unsupportedOperation("Number")(expr)
-        }
+      case Sum(_) =>
+        val substitutions = SummarySubstitutions(exprMap, repeatedComponentsDetails)
+        loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
       case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
@@ -916,18 +886,27 @@ case class EvaluationResults(
 }
 
 object EvaluationResults {
-  val empty = EvaluationResults(Map.empty, RecData.empty)
+  val empty = EvaluationResults(Map.empty, RecData.empty, RepeatedComponentsDetails.empty)
 
   def one(expr: Expr, result: ExpressionResult): EvaluationResults = empty.+(expr, result)
 
-  def unapply(a: EvaluationResults): Option[(Map[Expr, ExpressionResult], RecData[SourceOrigin.Current])] =
-    Some((a.exprMap, a.recData))
+  def unapply(
+    a: EvaluationResults
+  ): Option[(Map[Expr, ExpressionResult], RecData[SourceOrigin.Current], RepeatedComponentsDetails)] =
+    Some((a.exprMap, a.recData, a.repeatedComponentsDetails))
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
     def empty = EvaluationResults.empty
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
-      case (EvaluationResults(em1, rd1), EvaluationResults(em2, rd2)) =>
-        EvaluationResults(em1 ++ em2, RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData))
+      case (
+            EvaluationResults(em1, rd1, RepeatedComponentsDetails(m1)),
+            EvaluationResults(em2, rd2, RepeatedComponentsDetails(m2))
+          ) =>
+        EvaluationResults(
+          em1 ++ em2,
+          RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData),
+          RepeatedComponentsDetails(m1 ++ m2)
+        )
       case _ => throw new Exception("Invalid expression results for combine")
     }
   }
