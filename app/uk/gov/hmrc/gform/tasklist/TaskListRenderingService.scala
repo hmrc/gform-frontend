@@ -68,21 +68,19 @@ class TaskListRenderingService(
       }
 
       def taskUrl(taskSectionNumber: TaskSectionNumber, taskNumber: TaskNumber, taskStatus: TaskStatus) =
-        taskStatus match {
-          case TaskStatus.CannotStartYet | TaskStatus.NotRequired => None
-          case _ =>
-            Some(
-              routes.TaskListController
-                .newTask(
-                  formTemplate._id,
-                  maybeAccessCode,
-                  taskSectionNumber,
-                  taskNumber,
-                  taskStatus == TaskStatus.Completed
-                )
-                .url
-            )
-        }
+        if (taskStatus === TaskStatus.CannotStartYet) None
+        else
+          Some(
+            routes.TaskListController
+              .newTask(
+                formTemplate._id,
+                maybeAccessCode,
+                taskSectionNumber,
+                taskNumber,
+                taskStatus == TaskStatus.Completed
+              )
+              .url
+          )
 
       val taskLists: List[TaskListView] = taskList.sections.toList.zipWithIndex.map {
         case (taskSection, taskSectionIndex) =>
