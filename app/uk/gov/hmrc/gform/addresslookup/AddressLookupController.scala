@@ -564,7 +564,7 @@ class AddressLookupController(
             formControllerRequestHandler
               .handleSuppressErrors(
                 formModelOptics,
-                List(cache.formTemplate.sectionNumberZero),
+                formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers,
                 cacheData,
                 envelopeWithMapping,
                 validationService.validatePageModel,
