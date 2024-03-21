@@ -12,7 +12,7 @@ object Dependencies {
 
   val compile = Seq(
     "uk.gov.hmrc"                 %% "bootstrap-frontend-play-30" % bootstrapVersion,
-    "uk.gov.hmrc"                 %% "play-frontend-hmrc-play-30" % "8.5.0",
+    "uk.gov.hmrc"                 %% "play-frontend-hmrc-play-30" % "9.1.0",
     "uk.gov.hmrc"                 %% "play-partials-play-30"      % "9.1.0",
     "uk.gov.hmrc"                 %% "domain-play-30"             % "9.0.0",
     "org.playframework"           %% "play-json-joda"             % "3.0.2",
@@ -30,7 +30,7 @@ object Dependencies {
     "com.nrinaudo"                %% "kantan.csv"                 % "0.7.0",
     "com.miguelfonseca.completely" % "completely-core"            % "0.9.0",
     "org.jsoup"                    % "jsoup"                      % "1.15.4",
-    "org.webjars.npm"              % "govuk-frontend"             % "4.8.0",
+    "org.webjars.npm"              % "govuk-frontend"             % "5.2.0",
     "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
     "ai.x"                        %% "play-json-extensions"       % "0.42.0",
     "org.apache.commons"           % "commons-text"               % "1.10.0",

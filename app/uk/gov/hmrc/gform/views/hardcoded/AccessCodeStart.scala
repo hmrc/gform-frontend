@@ -69,7 +69,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
           Legend(
             content = Text(messages("accessCode.p3", formCat)),
             isPageHeading = false,
-            classes = "govuk-label--m"
+            classes = "govuk-fieldset__legend--m"
           )
         )
       )

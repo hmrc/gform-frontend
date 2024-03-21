@@ -1,10 +1,10 @@
-$govuk-assets-path: "/submissions/assets/lib/govuk-frontend/govuk/assets/";
+$govuk-assets-path: "/submissions/assets/lib/govuk-frontend/dist/govuk/assets/";
 $hmrc-assets-path: "/submissions/assets/lib/hmrc-frontend/hmrc/";
 $govuk-new-link-styles: true;
+$govuk-new-typography-scale: true;
 
-@import "lib/govuk-frontend/govuk/all";
+@import "lib/govuk-frontend/dist/govuk/all";
 @import "lib/hmrc-frontend/hmrc/all";
-@import "tasklist";
 
 .app-reference-number {
   display: block;

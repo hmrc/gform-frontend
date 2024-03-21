@@ -608,13 +608,13 @@ browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newy
 taskList.h2=Cais yn anghyflawn
 taskList.h2.formCategory.return=Datganiad yn anghyflawn
 taskList.h2.formCategory.claim=Hawlio yn anghyflawn
-taskList.p=Rydych wedi llenwi {0} allan o {1} adran
+taskList.p=Rydych wedi llenwi {0} allan o {1} tasgau
 
-taskList.NotStarted=HEB DDECHRAU
-taskList.InProgress=AR WAITH
-taskList.Completed=WEDI’I GWBLHAU
-taskList.CannotStartYet=METHU DECHRAU ETO
-taskList.NotRequired=NID YW’N OFYNNOL
+taskList.NotStarted=Heb ddechrau
+taskList.InProgress=Ar waith
+taskList.Completed=Wedi’i gwblhau
+taskList.CannotStartYet=Methu dechrau eto
+taskList.NotRequired=Nid yw’n ofynnol
 
 #Default help text
 telephoneNumber.default.helpText=Ar gyfer rhifau rhyngwladol, cofiwch gynnwys cod y wlad.
