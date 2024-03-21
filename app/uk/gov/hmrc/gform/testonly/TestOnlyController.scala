@@ -999,7 +999,7 @@ class TestOnlyController(
             Legend(
               content = Text("Select restore options:"),
               isPageHeading = true,
-              classes = "govuk-label--l"
+              classes = "govuk-fieldset__legend--l"
             )
           )
         )

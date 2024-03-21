@@ -283,7 +283,7 @@ class SectionRenderingService(
       Fieldset(
         legend = Some(
           Legend(
-            classes = getLabelClasses(false, formComponent.labelSize),
+            classes = getLegendClasses(false, formComponent.labelSize),
             content = content.Text(formComponent.label.value())
           )
         )
@@ -294,7 +294,7 @@ class SectionRenderingService(
       Fieldset(
         legend = Some(
           Legend(
-            classes = getLabelClasses(false, formComponent.labelSize),
+            classes = getLegendClasses(false, formComponent.labelSize),
             content = content.Text(formComponent.label.value())
           )
         ),
@@ -1444,7 +1444,7 @@ class SectionRenderingService(
           Legend(
             content = content.Text(label),
             isPageHeading = isPageHeading,
-            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
+            classes = getLegendClasses(isPageHeading, formComponent.labelSize)
           )
         )
       )
@@ -1947,7 +1947,7 @@ class SectionRenderingService(
           Legend(
             content = content.Text(formComponent.label.value()),
             isPageHeading = isPageHeading,
-            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
+            classes = getLegendClasses(isPageHeading, formComponent.labelSize)
           )
         )
       )
@@ -2131,7 +2131,7 @@ class SectionRenderingService(
           Legend(
             content = content.Text(formComponent.label.value()),
             isPageHeading = isPageHeading,
-            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
+            classes = getLegendClasses(isPageHeading, formComponent.labelSize)
           )
         )
       )
@@ -2251,7 +2251,7 @@ class SectionRenderingService(
               Legend(
                 content = content.Text(formComponent.label.value()),
                 isPageHeading = isPageHeading,
-                classes = getLabelClasses(isPageHeading, formComponent.labelSize)
+                classes = getLegendClasses(isPageHeading, formComponent.labelSize)
               )
             )
           )
@@ -2531,7 +2531,7 @@ class SectionRenderingService(
         formComponent,
         formFieldValidationResult,
         isPageHeading,
-        getLabelClasses(isPageHeading, formComponent.labelSize),
+        getLegendClasses(isPageHeading, formComponent.labelSize),
         countyDisplayed
       )
   }
@@ -2584,7 +2584,7 @@ class SectionRenderingService(
         formFieldValidationResult,
         formFieldValidationResultCountry,
         isPageHeading,
-        getLabelClasses(isPageHeading, formComponent.labelSize),
+        getLegendClasses(isPageHeading, formComponent.labelSize),
         fetchValue,
         showAll
       )
@@ -2641,7 +2641,7 @@ class SectionRenderingService(
       legend = Some(
         Legend(
           content = content.Text(formComponent.label.value()),
-          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+          classes = getLegendClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
       )
@@ -2796,7 +2796,7 @@ class SectionRenderingService(
       legend = Some(
         Legend(
           content = content.Text(formComponent.label.value()),
-          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+          classes = getLegendClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
       )
@@ -2876,7 +2876,7 @@ class SectionRenderingService(
       legend = Some(
         Legend(
           content = content.Text(formComponent.label.value()),
-          classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+          classes = getLegendClasses(isPageHeading, formComponent.labelSize),
           isPageHeading = isPageHeading
         )
       )
@@ -3099,7 +3099,7 @@ class SectionRenderingService(
         legend = Some(
           Legend(
             content = content.Text(label),
-            classes = "govuk-label--m"
+            classes = "govuk-fieldset__legend--m"
           )
         ),
         html = HtmlFormat.fill(lhtml ++ List(removeButtonHtml, dividerHtml))
@@ -3209,6 +3209,17 @@ class SectionRenderingService(
       case (_, Some(Medium))     => "govuk-label--m"
       case (_, Some(Small))      => "govuk-label--s"
       case (_, Some(ExtraSmall)) => "govuk-label--xs"
+      case _                     => ""
+    }
+
+  private def getLegendClasses(isPageHeading: Boolean, labelSize: Option[LabelSize]): String =
+    (isPageHeading, labelSize) match {
+      case (true, _)             => "govuk-fieldset__legend--l"
+      case (_, Some(ExtraLarge)) => "govuk-fieldset__legend--xl"
+      case (_, Some(Large))      => "govuk-fieldset__legend--l"
+      case (_, Some(Medium))     => "govuk-fieldset__legend--m"
+      case (_, Some(Small))      => "govuk-fieldset__legend--s"
+      case (_, Some(ExtraSmall)) => "govuk-fieldset__legend--xs"
       case _                     => ""
     }
 

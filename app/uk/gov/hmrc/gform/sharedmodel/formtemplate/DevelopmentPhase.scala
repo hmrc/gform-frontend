@@ -33,16 +33,16 @@ sealed trait DevelopmentPhase {
 
 }
 case object AlphaBanner extends DevelopmentPhase {
-  override val banner: String = "alpha"
+  override val banner: String = "Alpha"
 }
 case object BetaBanner extends DevelopmentPhase {
-  override val banner: String = "beta"
+  override val banner: String = "Beta"
 }
 case object ResearchBanner extends DevelopmentPhase {
-  override val banner: String = "research"
+  override val banner: String = "Research"
 }
 case object LiveBanner extends DevelopmentPhase {
-  override val banner: String = "live"
+  override val banner: String = "Live"
 }
 object DevelopmentPhase {
   implicit val format: Format[DevelopmentPhase] = new Format[DevelopmentPhase] {
@@ -55,10 +55,10 @@ object DevelopmentPhase {
 
     override def reads(json: JsValue): JsResult[DevelopmentPhase] =
       json match {
-        case JsString("alpha")    => JsSuccess(AlphaBanner)
-        case JsString("beta")     => JsSuccess(BetaBanner)
-        case JsString("research") => JsSuccess(ResearchBanner)
-        case JsString("live")     => JsSuccess(LiveBanner)
+        case JsString("Alpha")    => JsSuccess(AlphaBanner)
+        case JsString("Beta")     => JsSuccess(BetaBanner)
+        case JsString("Research") => JsSuccess(ResearchBanner)
+        case JsString("Live")     => JsSuccess(LiveBanner)
         case JsString(err) =>
           JsError(s"only folr valid DevelopmentPhase, alpha, beta, research or live.$err is not allowed")
         case _ => JsError("Failure")

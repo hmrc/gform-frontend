@@ -166,11 +166,13 @@ class HtmlSanitiserSpec extends Spec {
   <script src="/submissions/assets/javascripts/gformAutoComplete.js"></script>
   <script src="/submissions/assets/javascripts/gform.js"></script>
   <script src="/submissions/assets/javascripts/bignumber.min.js"></script>
-  <script src="/submissions/assets/lib/govuk-frontend/govuk/all.js"></script>
   <script src="/submissions/assets/lib/hmrc-frontend/hmrc/all.js"></script>
   <meta name="hmrc-timeout-dialog" data-language="en" , data-timeout="900" data-countdown="120" data-keep-alive-url="/submissions/keep-alive" data-sign-out-url="/submissions/sign-out/minimal-declaration" data-title="You’re about to be signed out" data-message="For security reasons, you will be signed out of this service in" data-keep-alive-button-text="Stay signed in" data-sign-out-button-text="Sign out">
-  <script>window.GOVUKFrontend.initAll();</script>
-  <script>window.HMRCFrontend.initAll();</script>
+  <script type="module">
+          import { initAll } from '/submissions/assets/lib/govuk-frontend/dist/govuk/govuk-frontend.min.js'
+          initAll()
+        </script>
+  <script >window.HMRCFrontend.initAll();</script>
  </body>
 </html>
 """
