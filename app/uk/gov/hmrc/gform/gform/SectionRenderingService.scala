@@ -1486,7 +1486,7 @@ class SectionRenderingService(
 
     val labelContent =
       if (isPageHeading) {
-        content.HtmlContent(s"""<h1 class="govuk-label--l">$label</h1>""")
+        content.HtmlContent(s"""<h1 class="govuk-heading-l">$label</h1>""")
       } else {
         content.HtmlContent(s"""<p class="govuk-body">$label</p>""")
       }
