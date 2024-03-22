@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.footer.FooterItem
@@ -57,12 +58,9 @@ package object html {
     accessCode: Option[AccessCode]
   ): Seq[FooterItem] =
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
-      accessCode.fold(Seq(toolboxFooterItem(formTemplate), startNewFormFooterItem(formTemplate))) { accessCode =>
-        Seq(
-          toolboxFooterItemWithAccessCode(formTemplate, accessCode),
-          startNewFormFooterItemWithAccessCode(formTemplate, accessCode)
-        )
-      }
+      accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
+        Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
+      } :+ startNewFormFooterItem(formTemplate)
     }
 
   private def toolboxFooterItem(formTemplate: FormTemplate) =
@@ -78,18 +76,13 @@ package object html {
       href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}/${accessCode.value}"),
       attributes = Map.empty
     )
-
-  private def startNewFormFooterItem(formTemplate: FormTemplate) =
+  private def startNewFormFooterItem(formTemplate: FormTemplate) = {
+    val newFormUrl = routes.NewFormController.dashboard(formTemplate._id).url
     new FooterItem(
       text = Some("Start new form"),
-      href = Some(s"/submissions/new-form/${formTemplate._id.value}"),
+      href = Some(newFormUrl),
       attributes = Map.empty
     )
+  }
 
-  private def startNewFormFooterItemWithAccessCode(formTemplate: FormTemplate, accessCode: AccessCode) =
-    new FooterItem(
-      text = Some("Start new form"),
-      href = Some(s"/submissions/new-form/${formTemplate._id.value}/${accessCode.value}"),
-      attributes = Map.empty
-    )
 }
