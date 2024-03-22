@@ -58,9 +58,9 @@ package object html {
     accessCode: Option[AccessCode]
   ): Seq[FooterItem] =
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
-      accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
+      startNewFormFooterItem(formTemplate) +: accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
         Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
-      } :+ startNewFormFooterItem(formTemplate)
+      }
     }
 
   private def toolboxFooterItem(formTemplate: FormTemplate) =
@@ -79,7 +79,7 @@ package object html {
   private def startNewFormFooterItem(formTemplate: FormTemplate) = {
     val newFormUrl = routes.NewFormController.dashboard(formTemplate._id).url
     new FooterItem(
-      text = Some("Start new form"),
+      text = Some("New form"),
       href = Some(newFormUrl),
       attributes = Map.empty
     )
