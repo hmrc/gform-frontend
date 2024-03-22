@@ -629,9 +629,6 @@ browser.forbidden.p2=You need to use another web browser, such as Microsoft Edge
 browser.forbidden.link=Find out how to switch to a new browser (opens in new tab)
 
 #Task List
-taskList.h2=Application incomplete
-taskList.h2.formCategory.return=Return incomplete
-taskList.h2.formCategory.claim=Claim incomplete
 taskList.p=You have completed {0} of {1} tasks
 
 taskList.NotStarted=Not yet started
