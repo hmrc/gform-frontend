@@ -57,8 +57,11 @@ package object html {
     accessCode: Option[AccessCode]
   ): Seq[FooterItem] =
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
-      accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
-        Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
+      accessCode.fold(Seq(toolboxFooterItem(formTemplate), startNewFormFooterItem(formTemplate))) { accessCode =>
+        Seq(
+          toolboxFooterItemWithAccessCode(formTemplate, accessCode),
+          startNewFormFooterItemWithAccessCode(formTemplate, accessCode)
+        )
       }
     }
 
@@ -73,6 +76,20 @@ package object html {
     new FooterItem(
       text = Some("Toolbox"),
       href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}/${accessCode.value}"),
+      attributes = Map.empty
+    )
+
+  private def startNewFormFooterItem(formTemplate: FormTemplate) =
+    new FooterItem(
+      text = Some("Start new form"),
+      href = Some(s"/submissions/new-form/${formTemplate._id.value}"),
+      attributes = Map.empty
+    )
+
+  private def startNewFormFooterItemWithAccessCode(formTemplate: FormTemplate, accessCode: AccessCode) =
+    new FooterItem(
+      text = Some("Start new form"),
+      href = Some(s"/submissions/new-form/${formTemplate._id.value}/${accessCode.value}"),
       attributes = Map.empty
     )
 }
