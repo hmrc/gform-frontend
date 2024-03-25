@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.footer.FooterItem
 
 package object html {
@@ -58,9 +58,7 @@ package object html {
     accessCode: Option[AccessCode]
   ): Seq[FooterItem] =
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
-      viewFormDataItem(formTemplate._id, accessCode) +: startNewFormFooterItem(formTemplate) +: accessCode.fold(
-        Seq(toolboxFooterItem(formTemplate))
-      ) { accessCode =>
+      startNewFormFooterItem(formTemplate) +: accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
         Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
       }
     }
@@ -86,14 +84,5 @@ package object html {
       attributes = Map.empty
     )
   }
-  private def viewFormDataItem(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) = {
-    val formDataUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-      .getFormData(formTemplateId, maybeAccessCode: Option[AccessCode])
-      .url
-    new FooterItem(
-      text = Some("View form data"),
-      href = Some(formDataUrl),
-      attributes = Map.empty
-    )
-  }
+
 }
