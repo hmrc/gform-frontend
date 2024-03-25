@@ -1068,4 +1068,14 @@ class TestOnlyController(
       )
     }
 
+  def getFormData(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    _ => _ => cache => _ => formModelOptics =>
+      Future.successful(
+        Ok(Json.toJson(cache.form))
+      )
+  }
+
 }

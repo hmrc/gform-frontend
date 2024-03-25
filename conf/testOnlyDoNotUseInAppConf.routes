@@ -50,6 +50,7 @@ GET           /submissions/test-only/update-snapshot-page/:formTemplateId/:acces
 GET           /submissions/test-only/snapshot-page/:formTemplateId/:accessCode/:snapshotId        uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotPage(formTemplateId: FormTemplateId, snapshotId: SnapshotId, accessCode: Option[AccessCode], currentFormId: Option[FormId], targetTemplateId: FormTemplateId)
 GET           /submissions/test-only/snapshot-delete-confirmation/:snapshotId                     uk.gov.hmrc.gform.testonly.TestOnlyController.snapshotDeleteConfirmation(snapshotId: SnapshotId, backlinkUrl: String)
 POST          /submissions/test-only/snapshot-delete/:snapshotId                                  uk.gov.hmrc.gform.testonly.TestOnlyController.deleteSnapshot(snapshotId: SnapshotId)
+GET           /submissions/test-only/form-data/:formTemplateId/:accessCode          uk.gov.hmrc.gform.testonly.TestOnlyController.getFormData(formTemplateId: FormTemplateId,  accessCode: Option[AccessCode])
 GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/model/:formTemplateId             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/verify/:formTemplateId            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
