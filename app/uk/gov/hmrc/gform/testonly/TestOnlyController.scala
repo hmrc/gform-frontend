@@ -1068,4 +1068,17 @@ class TestOnlyController(
       )
     }
 
+  def getFormData(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    _ => _ => cache => _ => formModelOptics =>
+      Future.successful(
+        Redirect(
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+            .proxyToGform("/gform/test-only/form-data/" + cache.form._id.value)
+        )
+      )
+  }
+
 }
