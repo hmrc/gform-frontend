@@ -38,8 +38,7 @@
   maybeAccessCode: Option[AccessCode],
   taskListViews: List[TaskListView],
   completedTasks: Int,
-  frontendAppConfig: FrontendAppConfig,
-  taskListH2key: String
+  frontendAppConfig: FrontendAppConfig
 )(
   implicit
   request: Request[_],
@@ -84,7 +83,6 @@
         @{formTemplate.formName.value}
         </h1>
 
-        <h2 class="govuk-heading-s govuk-!-margin-bottom-2">@{messages(taskListH2key)}</h2>
         <p class="govuk-body govuk-!-margin-bottom-7">@{messages("taskList.p", completedTasks, taskListViews.flatMap(_.taskList.items).size)}</p>
 
         @taskListViews.map { taskListView =>

@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, HMRCClaimForm, HMRCReturnForm, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, TaskNumber, TaskSectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle }
@@ -72,11 +72,6 @@ class TaskListRenderingService(
         visibleTaskCoordinates.contains(coord)
       }
       val completedTasks = completedTasksCount(visibleTaskStatusesLookup)
-      val taskListH2key = formTemplate.formCategory match {
-        case HMRCReturnForm => "taskList.h2.formCategory.return"
-        case HMRCClaimForm  => "taskList.h2.formCategory.claim"
-        case _              => "taskList.h2"
-      }
 
       def taskUrl(coordinates: Coordinates, taskStatus: TaskStatus) =
         taskStatus match {
@@ -142,8 +137,7 @@ class TaskListRenderingService(
           maybeAccessCode,
           taskListViews,
           completedTasks,
-          frontendAppConfig,
-          taskListH2key
+          frontendAppConfig
         )
     }
 

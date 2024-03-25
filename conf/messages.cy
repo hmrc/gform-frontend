@@ -605,9 +605,6 @@ browser.forbidden.p2=Mae angen i chi ddefnyddio porwr gwe arall, fel Microsoft E
 browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newydd)
 
 #Task List
-taskList.h2=Cais yn anghyflawn
-taskList.h2.formCategory.return=Datganiad yn anghyflawn
-taskList.h2.formCategory.claim=Hawlio yn anghyflawn
 taskList.p=Rydych wedi llenwi {0} allan o {1} tasgau
 
 taskList.NotStarted=Heb ddechrau
