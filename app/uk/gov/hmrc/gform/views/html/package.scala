@@ -77,7 +77,7 @@ package object html {
       attributes = Map.empty
     )
   private def startNewFormFooterItem(formTemplate: FormTemplate) = {
-    val newFormUrl = routes.NewFormController.dashboard(formTemplate._id).url
+    val newFormUrl = routes.NewFormController.dashboardClean(formTemplate._id).url
     new FooterItem(
       text = Some("New form"),
       href = Some(newFormUrl),
