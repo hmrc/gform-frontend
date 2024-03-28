@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.footer.FooterItem
@@ -57,7 +58,7 @@ package object html {
     accessCode: Option[AccessCode]
   ): Seq[FooterItem] =
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
-      accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
+      startNewFormFooterItem(formTemplate) +: accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
         Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
       }
     }
@@ -75,4 +76,13 @@ package object html {
       href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}/${accessCode.value}"),
       attributes = Map.empty
     )
+  private def startNewFormFooterItem(formTemplate: FormTemplate) = {
+    val newFormUrl = routes.NewFormController.dashboardClean(formTemplate._id).url
+    new FooterItem(
+      text = Some("New form"),
+      href = Some(newFormUrl),
+      attributes = Map.empty
+    )
+  }
+
 }

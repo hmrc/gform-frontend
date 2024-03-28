@@ -68,7 +68,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    9; // This is managed manually. Increase it any time API used by builder extension is changed.
+    10; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -417,18 +417,17 @@ class BuilderController(
         }
     }
 
-  def fetchSubmitSectionLabel(formTemplateId: FormTemplateId): Action[AnyContent] =
+  def fetchSubmitSection(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       _ => _ => cache => implicit sse => _ =>
-        val label = cache.formTemplate.submitSection.map(_.label.value()).getOrElse("")
-        Ok(Json.obj("html" := label)).pure[Future]
-    }
-
-  def fetchSubmitSectionTaskLabel(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
-      _ => _ => cache => implicit sse => _ =>
-        val taskLabel = cache.formTemplate.submitSection.map(_.taskLabel.value()).getOrElse("")
-        Ok(Json.obj("html" := taskLabel)).pure[Future]
+        val submitSectionJson = cache.formTemplate.submitSection
+          .map { submitSection =>
+            val label = submitSection.label.value()
+            val taskLabel = submitSection.taskLabel.value()
+            Json.obj("label" := label, "taskLabel" := taskLabel)
+          }
+          .getOrElse(Json.obj())
+        Ok(submitSectionJson).pure[Future]
     }
 
   def fetchSectionHeaderHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =

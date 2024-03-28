@@ -166,6 +166,22 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
 
+    def findLastATLSectionNumber(sn: SectionNumber): SectionNumber = {
+      val isAtlSection = atlHasSectionNumber(sn)
+      if (isAtlSection) {
+        availableSectionNumbers
+          .filter(_ >= sn)
+          .sliding(2)
+          .toList
+          .find {
+            case List(a, b) => atlHasSectionNumber(a) && !atlHasSectionNumber(b)
+            case List(a)    => atlHasSectionNumber(a)
+            case _          => false
+          }
+          .flatMap(_.headOption)
+          .getOrElse(availableSectionNumbers.lastOption.getOrElse(sn))
+      } else sn
+    }
     val ffYesSnF = mustBeVisitedSectionNumber(
       processData,
       cache,
@@ -219,8 +235,13 @@ class FormValidator(implicit ec: ExecutionContext) {
               } else {
                 if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
               }
-            case (Some(r), None)     => SectionOrSummary.Section(r)
-            case (Some(r), Some(sn)) => if (r < sn) SectionOrSummary.Section(r) else SectionOrSummary.Section(sn)
+            case (Some(r), None) => SectionOrSummary.Section(r)
+            case (Some(r), Some(sn)) =>
+              val lsn =
+                if (fastForward == List(FastForward.Yes))
+                  findLastATLSectionNumber(sn)
+                else sn
+              if (r < lsn) SectionOrSummary.Section(r) else SectionOrSummary.Section(lsn)
           }
         }
     }

@@ -33,24 +33,24 @@ sealed trait DevelopmentPhase {
 
 }
 case object AlphaBanner extends DevelopmentPhase {
-  override val banner: String = "alpha"
+  override val banner: String = "Alpha"
 }
 case object BetaBanner extends DevelopmentPhase {
-  override val banner: String = "beta"
+  override val banner: String = "Beta"
 }
 case object ResearchBanner extends DevelopmentPhase {
-  override val banner: String = "research"
+  override val banner: String = "Research"
 }
 case object LiveBanner extends DevelopmentPhase {
-  override val banner: String = "live"
+  override val banner: String = "Live"
 }
 object DevelopmentPhase {
   implicit val format: Format[DevelopmentPhase] = new Format[DevelopmentPhase] {
     override def writes(o: DevelopmentPhase): JsValue = o match {
-      case AlphaBanner    => JsString(AlphaBanner.banner)
-      case BetaBanner     => JsString(BetaBanner.banner)
-      case ResearchBanner => JsString(ResearchBanner.banner)
-      case LiveBanner     => JsString(LiveBanner.banner)
+      case AlphaBanner    => JsString(AlphaBanner.banner.toLowerCase)
+      case BetaBanner     => JsString(BetaBanner.banner.toLowerCase)
+      case ResearchBanner => JsString(ResearchBanner.banner.toLowerCase)
+      case LiveBanner     => JsString(LiveBanner.banner.toLowerCase)
     }
 
     override def reads(json: JsValue): JsResult[DevelopmentPhase] =

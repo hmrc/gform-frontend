@@ -62,7 +62,7 @@ class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(impli
           Legend(
             content = Text(messages("continueDelete.title")),
             isPageHeading = true,
-            classes = "govuk-label--l"
+            classes = "govuk-fieldset__legend--l"
           )
         )
       )

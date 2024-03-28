@@ -23,11 +23,10 @@
 @* NOTE!!!! formTemplateId may not be the same as formTemplate._id due to versioning *@
 @(
   formTemplateId: FormTemplateId,
-  supportContents: SectionRenderingInformation,
+  snippets: List[Html],
   acknowledgementPanel: Html,
   heading: String,
   formTemplate: FormTemplate,
-  panelTitle: Option[String],
   frontendAppConfig: FrontendAppConfig,
   accessCode: Option[AccessCode]
 )(implicit
@@ -46,7 +45,7 @@
 
   @{acknowledgementPanel}
 
-  @{supportContents.snippets}
+  @{snippets}
 
   @if(formTemplate.destinations.displayFeedbackLink) {
     <h2 class="govuk-heading-m">
@@ -56,7 +55,7 @@
     <p class="govuk-body">
       @messages("ack.feedbackText1")
       <a
-        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplateId, supportContents.maybeAccessCode).url"
+        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplateId, accessCode).url"
 	class="govuk-link">@messages("ack.feedbackLink")</a>
       @messages("ack.feedbackText2").
     </p>

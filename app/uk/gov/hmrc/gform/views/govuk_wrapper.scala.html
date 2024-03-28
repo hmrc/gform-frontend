@@ -89,10 +89,13 @@
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gform.js")'></script>
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
-    <script @{CSPNonce.attr} src='@controllers.routes.Assets.versioned("lib/govuk-frontend/govuk/all.js")'></script>
-    <script @{CSPNonce.attr} src='@controllers.routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
+    <script @{CSPNonce.attr} src='@routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
+    <script @{CSPNonce.attr} type="module" src='@routes.Assets.versioned("lib/govuk-frontend/dist/govuk/govuk-frontend.min.js")'></script>
 
-    <script @{CSPNonce.attr}>window.GOVUKFrontend.initAll();</script>
+    <script @{CSPNonce.attr} type="module">
+      import { initAll } from '@routes.Assets.versioned("lib/govuk-frontend/dist/govuk/govuk-frontend.min.js")'
+      initAll()
+    </script>
     <script @{CSPNonce.attr}>window.HMRCFrontend.initAll();</script>
 }
 
@@ -150,7 +153,7 @@
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
 @hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
 @hmrcStandardHeader = @{new helpers.HmrcStandardHeader(hmrcHeader)}
-@hmrcFooter = @{new components.HmrcFooter()}
+@hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
 @twoThirdsMainContent = @{new TwoThirdsMainContent}

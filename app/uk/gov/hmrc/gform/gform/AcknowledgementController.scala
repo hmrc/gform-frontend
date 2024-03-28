@@ -53,8 +53,7 @@ class AcknowledgementController(
   gformConnector: GformConnector,
   nonRepudiationHelpers: NonRepudiationHelpers,
   messagesControllerComponents: MessagesControllerComponents,
-  auditService: AuditService,
-  isProduction: Boolean
+  auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -99,8 +98,7 @@ class AcknowledgementController(
                   maybeAccessCode,
                   cache,
                   destinationList,
-                  formModelOptics,
-                  isProduction
+                  formModelOptics
                 )
             )
           )

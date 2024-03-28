@@ -122,6 +122,12 @@
         <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(formTemplate._id, accessCode, UserInputs()).path" class="govuk-link">Restore a form</a>
       </div>
 
+      <h1 class="govuk-heading-l">Current form tools.</h1>
+
+      <div class="govuk-body">
+        <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getFormData(formTemplate._id, accessCode).path" class="govuk-link">View form data</a>
+      </div>
+
     @otherContent.map { content =>
       <div class="govuk-body">
           @content
