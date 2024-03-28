@@ -40,6 +40,7 @@
         dropdownArrow: function(config) {
            return ''
          },
+
       });
 
       function getMaxWidth(displayWidth) {
