@@ -980,6 +980,11 @@ class FormController(
         case FastForward.StopAt(sn)                        => sectionNumber >= sn
         case _                                             => false
       }
+      .filter {
+        case FastForward.CYA(SectionOrSummary.Section(sn)) => formModel.availableSectionNumbers.contains(sn)
+        case FastForward.StopAt(sn)                        => formModel.availableSectionNumbers.contains(sn)
+        case _                                             => true
+      }
     removeDuplications(ff)
   }
 

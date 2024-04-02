@@ -658,7 +658,8 @@ class AddressLookupController(
                     formControllerRequestHandler
                       .handleFormValidation(
                         browserFormModelOptics,
-                        cache.formTemplate.sectionNumberZero,
+                        browserFormModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.headOption
+                          .getOrElse(cache.formTemplate.sectionNumberZero),
                         cacheData,
                         envelopeWithMapping,
                         validationService.validatePageModel,

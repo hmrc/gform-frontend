@@ -622,10 +622,8 @@ class TestOnlyController(
           userData => {
             val currentFormId = cache.form._id
             if (userData.restoreType === restoreOptionCurrentSession) {
+              val updateRequest = UpdateFormDataRequest(snapshotId, currentFormId)
               for {
-                overview <- gformConnector.snapshotOverview(snapshotId)
-                formData = overview.formData.getOrElse(Json.obj())
-                updateRequest = UpdateFormDataRequest(currentFormId, formData)
                 saveReply <- gformConnector.updateFormData(updateRequest)
               } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
             } else {
@@ -1001,7 +999,7 @@ class TestOnlyController(
             Legend(
               content = Text("Select restore options:"),
               isPageHeading = true,
-              classes = "govuk-label--l"
+              classes = "govuk-fieldset__legend--l"
             )
           )
         )
@@ -1069,5 +1067,15 @@ class TestOnlyController(
         )
       )
     }
+
+  def getFormData(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    _ => _ => cache => _ => formModelOptics =>
+      Future.successful(
+        Ok(Json.toJson(cache.form))
+      )
+  }
 
 }
