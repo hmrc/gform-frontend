@@ -68,7 +68,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    10; // This is managed manually. Increase it any time API used by builder extension is changed.
+    11; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
@@ -385,31 +385,20 @@ class BuilderController(
         }
     }
 
-  def fetchTaskListSectionTitle(formTemplateId: FormTemplateId, sectionNumber: SectionNumber): Action[AnyContent] =
+  def fetchTaskList(formTemplateId: FormTemplateId, sectionNumber: SectionNumber): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
       _ => _ => cache => implicit sse => _ =>
         sectionNumber match {
           case SectionNumber.TaskList(Coordinates(taskSectionNumber, _), _) =>
             TaskListUtils.withTaskSection(cache.formTemplate, taskSectionNumber) { taskListSection =>
-              Ok(
-                Json.obj(
-                  "html" := taskListSection.title.value()
-                )
-              ).pure[Future]
-            }
-          case _ => badRequest("Task section number not found").pure[Future]
-        }
-    }
+              val taskTitles = taskListSection.tasks.map { task =>
+                task.title.value()
+              }
 
-  def fetchTaskTitle(formTemplateId: FormTemplateId, sectionNumber: SectionNumber): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
-      _ => _ => cache => implicit sse => _ =>
-        sectionNumber match {
-          case SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), _) =>
-            TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
               Ok(
                 Json.obj(
-                  "html" := task.title.value()
+                  "taskSectionTitle" := taskListSection.title.value(),
+                  "taskTitles" := taskTitles
                 )
               ).pure[Future]
             }
