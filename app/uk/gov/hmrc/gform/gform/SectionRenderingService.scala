@@ -1866,6 +1866,11 @@ class SectionRenderingService(
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     }
 
+  private def optionHasContent(
+    optionData: OptionData
+  )(implicit sse: SmartStringEvaluator): Boolean =
+    optionData.label.value().trim().nonEmpty
+
   private def isVisibleMiniSummaryListRow(
     row: MiniSummaryRow,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
@@ -1903,7 +1908,7 @@ class SectionRenderingService(
       else selections.map(_.toString).toSet
 
     val visibleOptionsWithIndex: NonEmptyList[(OptionData, Int)] = options.zipWithIndex
-      .filter(o => isVisibleOption(o._1, ei.formModelOptics))
+      .filter { case (o, _) => isVisibleOption(o, ei.formModelOptics) && optionHasContent(o) }
       .toNel
       .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
 
@@ -2075,7 +2080,8 @@ class SectionRenderingService(
               Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
           )
 
-    val visibleOptions = options.filter(o => isVisibleOption(o.choice, extraInfo.formModelOptics))
+    val visibleOptions =
+      options.filter(o => isVisibleOption(o.choice, extraInfo.formModelOptics) && optionHasContent(o.choice))
     if (visibleOptions.length === 0)
       throw new IllegalArgumentException(
         s"All options of the revealing choice component are invisible for${formComponent.id}"
