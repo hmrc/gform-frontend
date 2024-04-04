@@ -29,9 +29,14 @@ trait PDFModel {
   sealed trait PageField
 
   case class SimpleField(label: Option[String], values: List[Html]) extends PageField
+  case class ChoiceField(label: Option[String], values: List[Html]) extends PageField
   case class GroupField(label: Option[String], fields: List[PageField]) extends PageField
   case class ChoiceElement(label: String, fields: List[PageField])
-  case class RevealingChoiceField(label: Option[String], choiceElements: List[ChoiceElement]) extends PageField
+  case class RevealingChoiceField(
+    label: Option[String],
+    choiceElements: List[ChoiceElement],
+    isSeparate: Boolean
+  ) extends PageField
 
   case class PageData(title: Option[String], fields: List[PageField], id: String) extends SummaryData
 
@@ -42,9 +47,10 @@ trait PDFModel {
 
   object IsGroupField {
     def unapply(pageField: PageField): Option[GroupField] = pageField match {
-      case SimpleField(_, _)          => None
-      case g @ GroupField(_, _)       => Some(g)
-      case RevealingChoiceField(_, _) => None
+      case SimpleField(_, _)             => None
+      case ChoiceField(_, _)             => None
+      case g @ GroupField(_, _)          => Some(g)
+      case RevealingChoiceField(_, _, _) => None
     }
   }
 

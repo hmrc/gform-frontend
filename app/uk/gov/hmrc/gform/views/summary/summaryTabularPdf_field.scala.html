@@ -14,16 +14,45 @@
  * limitations under the License.
  *@
 
-@import play.twirl.api.Html
 @import uk.gov.hmrc.gform.pdf.model.PDFModel._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.views.html.summary.snippets.choice_field
 
 @(field: PageField)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @renderValues(values: List[Html]) = {
     @for(value <- values) {
         @value<br/>
+    }
+}
+
+@renderRevealingChoice(r: RevealingChoiceField) = {
+    @for(choiceElement <- r.choiceElements) {
+        <div class="row">
+            <div class="col-lg-4 label">
+                @for(l <- r.label) {
+                    @l
+                }
+            </div>
+            <div class="col-lg-8">@{choiceElement.label}</div>
+        </div>
+        @for(choiceElementField <- choiceElement.fields) {
+            @summaryTabularPdf_field(choiceElementField)
+        }
+    }
+}
+
+@renderRevealingChoiceAsBulletedList(r: RevealingChoiceField) = {
+    <div class="row">
+        <div class="col-lg-4 label">
+            @for(l <- r.label) {
+                @l
+            }
+        </div>
+        <div class="col-lg-8">@choice_field(r.choiceElements.map(_.label).map(Html(_)))</div>
+    </div>
+    @for(choiceElementField <- r.choiceElements.flatMap(_.fields)) {
+        @summaryTabularPdf_field(choiceElementField)
     }
 }
 
@@ -40,6 +69,18 @@
             </div>
         }
     }
+    case ChoiceField(label, values) => {
+        @if(values.nonEmpty) {
+            <div class="row">
+                <div class="col-lg-4 label">
+                @for(l <- label) {
+                    @l
+                }
+                </div>
+                <div class="col-lg-8">@choice_field(values)</div>
+            </div>
+        }
+    }
     case GroupField(label, groupFields) => {
         @for(l <- label) {
             <div class="row">
@@ -52,19 +93,11 @@
             @summaryTabularPdf_field(groupField)
         }
     }
-    case RevealingChoiceField(label, choiceElements) => {
-         @for(choiceElement <- choiceElements) {
-            <div class="row">
-                <div class="col-lg-4 label">
-                    @for(l <- label) {
-                        @l
-                    }
-                </div>
-                <div class="col-lg-8">@{choiceElement.label}</div>
-            </div>
-            @for(choiceElementField <- choiceElement.fields) {
-                @summaryTabularPdf_field(choiceElementField)
-            }
-        }
+    case rc: RevealingChoiceField => {
+         @if(rc.isSeparate){
+             @renderRevealingChoiceAsBulletedList(rc)
+         } else {
+             @renderRevealingChoice(rc)
+         }
     }
 }
