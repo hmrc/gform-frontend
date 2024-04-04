@@ -53,6 +53,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.views.html.formatInstant
@@ -1008,14 +1009,26 @@ class TestOnlyController(
       val option1 = RadioItem(
         value = Some(restoreOptionCurrentSession),
         content = Text(
-          "Load form data into current user session/form (sharing data between 2 different form templates/sessions)"
+          "Load restored data into current form"
+        ),
+        hint = Some(
+          Hint(
+            content = HtmlContent(
+              "Load form data into current user session/form (sharing data between 2 different form templates/sessions)"
+            )
+          )
         ),
         checked = true
       )
 
       val option2 = RadioItem(
         value = Some(restoreOptionOriginalTemplate),
-        content = Text("Load form where the snapshot was taken (recreate a new sessions with snapshot form and data)")
+        content = Text("Close current form and load restored data in its original form"),
+        hint = Some(
+          Hint(content =
+            HtmlContent("Load form where the snapshot was taken (recreate a new sessions with snapshot form and data)")
+          )
+        )
       )
 
       val radios = Radios(
