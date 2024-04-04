@@ -73,6 +73,11 @@
     </pre>
   </div>
 
+  <form action="@restoreOptionsUrl" method="get">
+    <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
+    <button type="submit" class="govuk-button">Restore</button>
+  </form>
+
   <p class="govuk-body govuk-!-margin-bottom-2"></p>
   <p class="govuk-body">Form data:</p>
 
@@ -89,10 +94,6 @@
   <p class="govuk-body govuk-!-margin-bottom-2"></p>
 
 
-  <form action="@restoreOptionsUrl" method="get">
-    <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
-    <button type="submit" class="govuk-button">Restore</button>
-  </form>
 
   </div>
   <p class="govuk-body govuk-!-margin-bottom-2" display="block"></p>
