@@ -40,14 +40,14 @@
     }
     case ChoiceField(label, values) => {
         @if(label.nonEmpty) {
-        <h3>
-            @for(l <- label) {
-            @l
-            }
-        </h3>
+            <h3>
+                @for(l <- label) {
+                    @l
+                }
+            </h3>
         }
         @if(values.nonEmpty) {
-        <p>@choice_field(values)</p>
+            <p>@choice_field(values)</p>
         }
     }
     case GroupField(label, groupFields) => {
