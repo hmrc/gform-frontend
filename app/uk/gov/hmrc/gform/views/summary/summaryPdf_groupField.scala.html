@@ -15,9 +15,10 @@
  *@
 
 @import uk.gov.hmrc.gform.pdf.model.PDFModel._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.views.html.summary.snippets.choice_field
 
+@import uk.gov.hmrc.gform.views.html.summary.snippets.revealing_choice
 @(field: PageField)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @renderValues(values: List[Html]) = {
@@ -37,6 +38,18 @@
             <p>@renderValues(values)</p>
         }
     }
+    case ChoiceField(label, values) => {
+        @if(label.nonEmpty) {
+        <h3>
+            @for(l <- label) {
+            @l
+            }
+        </h3>
+        }
+        @if(values.nonEmpty) {
+        <p>@choice_field(values)</p>
+        }
+    }
     case GroupField(label, groupFields) => {
         @for(l <- label) {
             <h4>
@@ -47,18 +60,7 @@
             @summaryPdf_groupField(groupField)
         }
     }
-    case RevealingChoiceField(label, choiceElements) => {
-         @for(choiceElement <- choiceElements) {
-            <h4>
-                @for(l <- label) {
-                    @l
-                }
-            </h4>
-            <p>@{choiceElement.label}</p>
-            @for(choiceElementField <- choiceElement.fields) {
-                @summaryPdf_groupField(choiceElementField)
-            }
-            <br />
-        }
+    case rc: RevealingChoiceField => {
+         @revealing_choice(rc)
     }
 }

@@ -175,19 +175,20 @@ object PDFPageFieldBuilder {
         )
 
       case IsChoice(choice) =>
-        SimpleField(
+        ChoiceField(
           getFormComponentLabel(formComponent),
           choice
             .renderToString(formComponent, validationResult(formComponent), formModelVisibilityOptics)
-            .map(HtmlFormat.escape(_))
+            .map(HtmlFormat.escape)
         )
 
       case IsRevealingChoice(rc) =>
+        val isSeparate = formComponent.presentationHint.exists(hints => hints.contains(SeparateInSummary))
         val selections: List[ChoiceElement] = rc.options
           .zip(validationResult(formComponent).getComponentFieldIndices(formComponent.id))
           .flatMap { case (element, index) =>
             validationResult(formComponent)
-              .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index.toString))
+              .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
               .map { _ =>
                 val filteredFields = doFilter(element.revealingFields)
                 val revealingFields = formComponentOrdering
@@ -200,7 +201,8 @@ object PDFPageFieldBuilder {
           }
         RevealingChoiceField(
           getFormComponentLabel(formComponent),
-          selections
+          selections,
+          isSeparate
         )
 
       case IsGroup(group) =>
