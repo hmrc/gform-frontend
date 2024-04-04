@@ -26,11 +26,13 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform.{ FastForwardService, SectionRenderingService }
 import uk.gov.hmrc.gform.gform.routes.SummaryController
-import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ Basic, DataExpanded, FastForward, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.models.FormModelExpander
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -166,9 +168,14 @@ class TaskListController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       val maybeDeclarationPage: Option[Singleton[DataExpanded]] =
         TaskListUtils.withTask(cache.formTemplate, coordinates.taskSectionNumber, coordinates.taskNumber) { task =>
-          for {
-            declarationPage <- task.declarationSection.map(_.toPage)
-          } yield Singleton(declarationPage).asInstanceOf[Singleton[DataExpanded]]
+          implicit val fmvo: FormModelVisibilityOptics[DataOrigin.Mongo] = formModelOptics.formModelVisibilityOptics
+          task.declarationSection
+            .map { ds =>
+              val pageBasic: Page[Basic] = ds.toPage
+              val data = SourceOrigin.changeSourceToOutOfDate(fmvo.recData.variadicFormData)
+              val page = implicitly[FormModelExpander[DataExpanded]].lift(pageBasic, data)
+              Singleton(page)
+            }
         }
       maybeDeclarationPage.fold[Future[Result]](
         Future.failed(
