@@ -51,6 +51,8 @@ object ExprPrettyPrint {
     case Divide(field1: Expr, field2: Expr)      => field1.prettyPrint + " / " + field2.prettyPrint
     case IfElse(cond, field1: Expr, field2: Expr) =>
       "if(" + cond.prettyPrint + ") then " + field1.prettyPrint + " else " + field2.prettyPrint
+    case SmartStringIf(cond, field1: Expr, field2: Expr) =>
+      "smartStringIf(" + cond.prettyPrint + ") then " + field1.prettyPrint + " else " + field2.prettyPrint
     case Else(field1: Expr, field2: Expr)        => field1.prettyPrint + " else " + field2.prettyPrint
     case FormCtx(fcId)                           => fcId.value
     case Sum(field1: Expr)                       => "sum(" + field1.prettyPrint + ")"

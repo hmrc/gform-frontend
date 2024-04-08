@@ -219,6 +219,8 @@ case class EvaluationResults(
       case Divide(field1: Expr, field2: Expr)      => loop(field1) / loop(field2)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
+      case SmartStringIf(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
       case Sum(_) =>

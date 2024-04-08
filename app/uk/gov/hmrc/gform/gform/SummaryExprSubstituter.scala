@@ -67,6 +67,8 @@ object SummarySubstituter {
         Divide(substitute(substitutions, field1), substitute(substitutions, field2))
       case IfElse(cond, field1: Expr, field2: Expr) =>
         IfElse(cond(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
+      case SmartStringIf(cond, field1: Expr, field2: Expr) =>
+        SmartStringIf(cond(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
       case Else(field1: Expr, field2: Expr) =>
         Else(substitute(substitutions, field1), substitute(substitutions, field2))
       case e: FormCtx                   => e

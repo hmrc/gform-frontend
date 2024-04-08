@@ -35,6 +35,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Divide(field1, field2)                => Divide(expandExpr(field1), expandExpr(field2))
     case Else(field1, field2)                  => Else(expandExpr(field1), expandExpr(field2))
     case IfElse(cond, field1, field2)          => IfElse(beUpdater(cond), expandExpr(field1), expandExpr(field2))
+    case SmartStringIf(cond, field1, field2)   => SmartStringIf(beUpdater(cond), expandExpr(field1), expandExpr(field2))
     case FormCtx(formComponentId)              => FormCtx(expandFcId(formComponentId))
     case Sum(expr)                             => Sum(expandExpr(expr))
     case DateCtx(dateExpr)                     => DateCtx(expandDateExpr(dateExpr))

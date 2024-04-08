@@ -28,13 +28,14 @@ sealed trait Expr extends Product with Serializable {
 
   def firstExprForTypeResolution[T <: PageMode](formModel: FormModel[T]): Option[Expr] = {
     def loop(expr: Expr): List[Expr] = expr match {
-      case Add(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
-      case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
-      case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
-      case Divide(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
-      case IfElse(_, field1: Expr, field2: Expr)   => loop(field1) ++ loop(field2)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
-      case FormCtx(_)                              => expr :: Nil
+      case Add(field1: Expr, field2: Expr)              => loop(field1) ++ loop(field2)
+      case Multiply(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
+      case Subtraction(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
+      case Divide(field1: Expr, field2: Expr)           => loop(field1) ++ loop(field2)
+      case IfElse(_, field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
+      case SmartStringIf(_, field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
+      case Else(field1: Expr, field2: Expr)             => loop(field1) ++ loop(field2)
+      case FormCtx(_)                                   => expr :: Nil
       case Sum(field1: Expr) =>
         field1 match {
           case FormCtx(formComponentId) =>
@@ -95,6 +96,9 @@ sealed trait Expr extends Product with Serializable {
     case IfElse(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs(formModel)) ++
         field1.leafs(formModel) ++ field2.leafs(formModel)
+    case SmartStringIf(cond, field1: Expr, field2: Expr) =>
+      cond.allExpressions.flatMap(_.leafs(formModel)) ++
+        field1.leafs(formModel) ++ field2.leafs(formModel)
     case Else(field1: Expr, field2: Expr)          => field1.leafs(formModel) ++ field2.leafs(formModel)
     case FormCtx(formComponentId: FormComponentId) => this :: Nil
     case Sum(field1: Expr) =>
@@ -140,11 +144,13 @@ sealed trait Expr extends Product with Serializable {
   }
 
   def sums: List[Sum] = this match {
-    case Add(field1: Expr, field2: Expr)           => field1.sums ++ field2.sums
-    case Multiply(field1: Expr, field2: Expr)      => field1.sums ++ field2.sums
-    case Subtraction(field1: Expr, field2: Expr)   => field1.sums ++ field2.sums
-    case Divide(field1: Expr, field2: Expr)        => field1.sums ++ field2.sums
-    case IfElse(cond, field1: Expr, field2: Expr)  => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
+    case Add(field1: Expr, field2: Expr)          => field1.sums ++ field2.sums
+    case Multiply(field1: Expr, field2: Expr)     => field1.sums ++ field2.sums
+    case Subtraction(field1: Expr, field2: Expr)  => field1.sums ++ field2.sums
+    case Divide(field1: Expr, field2: Expr)       => field1.sums ++ field2.sums
+    case IfElse(cond, field1: Expr, field2: Expr) => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
+    case SmartStringIf(cond, field1: Expr, field2: Expr) =>
+      cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
     case Else(field1: Expr, field2: Expr)          => field1.sums ++ field2.sums
     case FormCtx(formComponentId: FormComponentId) => Nil
     case sum @ Sum(field1: Expr)                   => sum :: Nil
@@ -188,6 +194,9 @@ sealed trait Expr extends Product with Serializable {
     case Subtraction(field1: Expr, field2: Expr) => field1.leafs() ++ field2.leafs()
     case Divide(field1: Expr, field2: Expr)      => field1.leafs() ++ field2.leafs()
     case IfElse(cond, field1: Expr, field2: Expr) =>
+      cond.allExpressions.flatMap(_.leafs()) ++
+        field1.leafs() ++ field2.leafs()
+    case SmartStringIf(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs()) ++
         field1.leafs() ++ field2.leafs()
     case Else(field1: Expr, field2: Expr)          => field1.leafs() ++ field2.leafs()
@@ -235,6 +244,7 @@ final case class Multiply(field1: Expr, field2: Expr) extends Expr
 final case class Subtraction(field1: Expr, field2: Expr) extends Expr
 final case class Divide(field1: Expr, field2: Expr) extends Expr
 final case class IfElse(cond: BooleanExpr, field1: Expr, field2: Expr) extends Expr
+final case class SmartStringIf(cond: BooleanExpr, field1: Expr, field2: Expr) extends Expr
 final case class Else(field1: Expr, field2: Expr) extends Expr
 final case class FormCtx(formComponentId: FormComponentId) extends Expr
 final case class Sum(field1: Expr) extends Expr

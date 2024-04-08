@@ -75,7 +75,12 @@ private class Executor(
   messages: Messages,
   l: LangADT
 ) {
-  def apply(s: SmartString, markDown: Boolean): String =
+  def apply(inputSmartString: SmartString, markDown: Boolean): String = {
+    val s = if (inputSmartString.interpolations.collect { case ssi: SmartStringIf => ssi }.nonEmpty) {
+      inputSmartString.resolveSmartStringIf(cond => formModelVisibilityOptics.booleanExprResolver.resolve(cond))
+    } else {
+      inputSmartString
+    }
     new MessageFormat(s.rawValue(l))
       .format(
         s.interpolations
@@ -86,6 +91,7 @@ private class Executor(
           .asJava
           .toArray
       )
+  }
 
   private def formatExpr(expr: Expr, markDown: Boolean): String = {
 
