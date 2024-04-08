@@ -22,7 +22,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.{ Attachments, EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ Attachments, EnvelopeWithMapping, File, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -79,7 +79,7 @@ class SubmissionService(
     val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
 
     for {
-      _ <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)(cache.formTemplate.isObjectStore)
+      files <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)(cache.formTemplate.isObjectStore)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       submission <- gformBackEnd.createSubmission(
                       cache.form._id,
@@ -101,7 +101,7 @@ class SubmissionService(
 
     } yield {
       val (_, customerId) = result
-      auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics)
+      auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files)
       customerId
     }
   }
@@ -109,9 +109,10 @@ class SubmissionService(
   private def auditSubmissionEvent[D <: DataOrigin](
     cache: AuthCacheWithForm,
     customerId: CustomerId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    envelopeFiles: List[File]
   )(implicit hc: HeaderCarrier): Unit =
-    auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId)
+    auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId, envelopeFiles)
 
   private def cleanseEnvelope(
     envelopeId: EnvelopeId,
@@ -119,7 +120,7 @@ class SubmissionService(
     attachments: Attachments
   )(objectStore: Boolean)(implicit
     hc: HeaderCarrier
-  ): Future[Unit] = {
+  ): Future[List[File]] = {
     val lookup: Set[FileId] =
       attachments.files.flatMap(envelope.mapping.mapping.get).toSet
     val toRemove: List[FileId] = envelope.files
@@ -129,6 +130,7 @@ class SubmissionService(
       .map(_.fileId)
     logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
     fileUploadService.deleteFiles(envelopeId, toRemove.toSet)(objectStore)
+    Future.successful(envelope.files.filterNot(file => toRemove.contains(file.fileId)))
   }
 
 }

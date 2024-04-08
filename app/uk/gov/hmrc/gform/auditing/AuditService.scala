@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsNumber, Json }
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
+import uk.gov.hmrc.gform.fileupload.File
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -46,48 +47,50 @@ trait AuditService {
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formCreated", form, Map.empty, retrievals, CustomerId.empty)
+    sendEvent("formCreated", form, Map.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendFormResumeEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formResumed", form, Map.empty, retrievals, CustomerId.empty)
+    sendEvent("formResumed", form, Map.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendSubmissionEvent[D <: DataOrigin](
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId
+    customerId: CustomerId,
+    envelopeFiles: List[File]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formSubmitted", form, formToMap(form, formModelVisibilityOptics), retrievals, customerId)
+    sendEvent("formSubmitted", form, formToMap(form, formModelVisibilityOptics), retrievals, customerId, envelopeFiles)
 
   def formSavedEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formSaved", form, Map.empty, retrievals, CustomerId.empty)
+    sendEvent("formSaved", form, Map.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendFormTimoutEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formTimeout", form, Map.empty, retrievals, CustomerId.empty)
+    sendEvent("formTimeout", form, Map.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendFormSignOut[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    sendEvent("formSignOut", form, Map.empty, retrievals, CustomerId.empty)
+    sendEvent("formSignOut", form, Map.empty, retrievals, CustomerId.empty, List.empty)
 
   private def sendEvent(
     auditType: String,
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId
+    customerId: CustomerId,
+    envelopeFiles: List[File]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    auditConnector.sendExplicitAudit(auditType, details(form, detail, retrievals, customerId))
+    auditConnector.sendExplicitAudit(auditType, details(form, detail, retrievals, customerId, envelopeFiles))
 
   def calculateSubmissionEvent[D <: DataOrigin](
     form: Form,
@@ -106,14 +109,15 @@ trait AuditService {
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
-      detail = details(form, detail, retrievals, customerId)
+      detail = details(form, detail, retrievals, customerId, List.empty)
     )
 
   private def details(
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: CustomerId
+    customerId: CustomerId,
+    envelopeFiles: List[File]
   )(implicit hc: HeaderCarrier) = {
 
     val userInfo =
@@ -151,6 +155,17 @@ trait AuditService {
       }
 
     val userValues = Json.toJson(detail.filter(values => values._2.nonEmpty))
+    val envelopeFilesJsObj =
+      if (envelopeFiles.nonEmpty)
+        Json.obj(
+          "FileInfo" -> Json.obj(
+            "numberOfFiles" -> JsNumber(envelopeFiles.size),
+            "files"         -> envelopeFiles.map(file => Json.obj("name" -> file.fileName, "length" -> JsNumber(file.length)))
+          )
+        )
+      else
+        Json.obj()
+
     Json.obj(
       "FormId"         -> form._id.value,
       "EnvelopeId"     -> form.envelopeId.value,
@@ -160,7 +175,7 @@ trait AuditService {
       "UserValues"     -> userValues,
       "UserInfo"       -> userInfo,
       "SubmissionRef"  -> SubmissionRef(form.envelopeId).value
-    )
+    ) ++ envelopeFilesJsObj
   }
 
   def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(implicit
