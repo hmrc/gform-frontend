@@ -72,7 +72,8 @@ GET           /form/confirm-removal/:formTemplateId/:maybeAccessCode/:sectionNum
 GET           /exit-survey/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.AcknowledgementController.exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 
 
-GET           /language/:lang                                                                                    uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguage(lang: String)
+GET           /language/:lang                                                                                    uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguageNoDataChange(lang: String)
+GET           /language/:formTemplateId/:maybeAccessCode/:lang                                                   uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguageDataChange(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: String)
 
 GET           /lookup/:formTemplateId/:formComponentId/:register/:maybeAccessCode                                uk.gov.hmrc.gform.gform.LookupController.lookupWithSelectionCriteria(formTemplateId: FormTemplateId, formComponentId: FormComponentId, register: Register, maybeAccessCode: Option[AccessCode], query: LookupQuery)
 

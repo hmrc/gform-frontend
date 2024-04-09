@@ -16,20 +16,105 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.implicits._
 import play.api.Configuration
 import play.api.i18n.{ I18nSupport, Lang }
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
+import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, IsText, Lookup, Register, Text }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, RadioLookup }
 
 class LanguageSwitchController(
+  auth: AuthenticatedRequestActionsAlgebra[Future],
   configuration: Configuration,
   languageUtils: LanguageUtils,
+  lookupRegistry: LookupRegistry,
+  gformConnector: GformConnector,
   config: FrontendAppConfig,
   controllerComponents: ControllerComponents
-) extends LanguageController(languageUtils, controllerComponents) with I18nSupport {
+)(implicit ec: ExecutionContext)
+    extends LanguageController(languageUtils, controllerComponents) with FrontendHeaderCarrierProvider
+    with I18nSupport {
 
   protected def fallbackURL: String = "/"
 
   protected def languageMap: Map[String, Lang] = config.availableLanguages
+
+  def switchToLanguageDataChange(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    language: String
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      implicit request => l => cache => sse => formModelOptics =>
+        val lookups: List[(FormComponentId, Register)] =
+          formModelOptics.formModelRenderPageOptics.allFormComponents.collect {
+            case fc @ IsText(Text(Lookup(register, _), _, _, _, _, _)) => fc.id -> register
+          }
+
+        val maybeLanguageToSwitchTo: Option[LangADT] =
+          languageMap.get(language).map(l => LangADT.stringToLangADT(l.code))
+
+        maybeLanguageToSwitchTo
+          .map { languageToSwitchTo =>
+            val switchedLabel: List[(ModelComponentId, LookupLabel)] = lookups.flatMap {
+              case (formComponentId, register) =>
+                val modelComponentId = formComponentId.modelComponentId
+                val formField: FormField =
+                  formModelOptics.formModelRenderPageOptics.toFormField(modelComponentId)
+
+                lookupRegistry.get(register).flatMap { lookupType =>
+                  val options = lookupType match {
+                    case RadioLookup(options)      => options
+                    case AjaxLookup(options, _, _) => options
+                  }
+                  val maybeLookupInfo = options.lookupInfo(LookupLabel(formField.value))(l)
+                  maybeLookupInfo.flatMap { lookupInfo =>
+                    val newLookupOptions = options.m.get(languageToSwitchTo)
+                    newLookupOptions.flatMap { lookupOptions =>
+                      lookupOptions.options
+                        .find { case (key, lookupInfo2) =>
+                          lookupInfo.index === lookupInfo2.index
+                        }
+                        .map { case (lookupLabel, _) => modelComponentId -> lookupLabel }
+                    }
+                  }
+                }
+            }
+
+            val newFormData: List[FormField] = switchedLabel.map { case (modelComponentId, lookupLabel) =>
+              FormField(modelComponentId, lookupLabel.label)
+            }
+
+            val form = cache.form
+            val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
+            val userData: UserData = UserData(
+              formData = form.formData ++ FormData(newFormData),
+              formStatus = form.status,
+              visitsIndex = form.visitsIndex,
+              thirdPartyData = form.thirdPartyData,
+              componentIdToFileId = form.componentIdToFileId
+            )
+            gformConnector.updateUserData(formIdData, userData).flatMap { _ =>
+              switchToLanguage(language)(request)
+            }
+          }
+          .getOrElse {
+            switchToLanguage(language)(request)
+          }
+    }
+
+  def switchToLanguageNoDataChange(language: String): Action[AnyContent] =
+    switchToLanguage(language)
 }

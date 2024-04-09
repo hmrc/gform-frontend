@@ -25,6 +25,8 @@ import play.api.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
@@ -59,8 +61,13 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   val auditingConfig: AuditingConfig = AuditingConfig.fromConfig(playConfiguration)
 
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
-  def routeToSwitchLanguage: String => Call =
-    (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage(lang)
+  def routeToSwitchLanguageNoDataChange: String => Call =
+    (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguageNoDataChange(lang)
+
+  def routeToSwitchLanguageDataChange: (FormTemplateId, Option[AccessCode], String) => Call =
+    (formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: String) =>
+      uk.gov.hmrc.gform.gform.routes.LanguageSwitchController
+        .switchToLanguageDataChange(formTemplateId, maybeAccessCode, lang)
 
   def getOptionalNonEmptyCIStringList(emails: Option[String]): Option[NonEmptyList[CIString]] =
     emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.filter(_.trim.nonEmpty).map(email => ci"$email")))
@@ -89,7 +96,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         getJSConfig("auth-module.email")
       ),
       availableLanguages = availableLanguages,
-      routeToSwitchLanguage = routeToSwitchLanguage,
+      routeToSwitchLanguageDataChange = routeToSwitchLanguageDataChange,
+      routeToSwitchLanguageNoDataChange = routeToSwitchLanguageNoDataChange,
       optimizelyUrl = for {
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")

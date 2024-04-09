@@ -351,8 +351,11 @@ class GformModule(
 
   val languageSwitchController: LanguageSwitchController =
     new LanguageSwitchController(
+      controllersModule.authenticatedRequestActions,
       configModule.playConfiguration,
       new LanguageUtils(playBuiltInsModule.langs, configModule.playConfiguration)(playBuiltInsModule.messagesApi),
+      lookupRegistry,
+      gformBackendModule.gformConnector,
       configModule.frontendAppConfig,
       controllersModule.messagesControllerComponents
     )
