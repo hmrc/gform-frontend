@@ -20,8 +20,8 @@ import cats.data.NonEmptyList
 import org.typelevel.ci.CIString
 import play.api.Configuration
 import play.api.i18n.{ Lang, Messages }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
@@ -35,7 +35,8 @@ case class FrontendAppConfig(
   footerAccessibilityStatementUrl: String,
   authModule: AuthModule,
   availableLanguages: Map[String, Lang],
-  routeToSwitchLanguage: String => play.api.mvc.Call,
+  routeToSwitchLanguageDataChange: (FormTemplateId, Option[AccessCode], String) => play.api.mvc.Call,
+  routeToSwitchLanguageNoDataChange: String => play.api.mvc.Call,
   optimizelyUrl: Option[String],
   trackingConsentSnippet: HmrcTrackingConsentSnippet,
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
@@ -44,6 +45,16 @@ case class FrontendAppConfig(
   isProd: Boolean,
   configuration: Configuration
 ) {
+
+  def languageSwitchCall(
+    maybeFormTemplate: Option[FormTemplate],
+    maybeAccessCode: Option[AccessCode],
+    language: String
+  ): play.api.mvc.Call =
+    maybeFormTemplate match {
+      case Some(formTemplate) => routeToSwitchLanguageDataChange(formTemplate._id, maybeAccessCode, language)
+      case None               => routeToSwitchLanguageNoDataChange(language)
+    }
 
   def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
     case Some(Anonymous)                   => authModule.anonymous

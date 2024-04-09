@@ -189,7 +189,7 @@
 
 @languageSwitch = @{
   if(formSupportsLanguages) {
-    new components.HmrcLanguageSelect()(LanguageSelect(language, En -> "/submissions/language/english", Cy -> "/submissions/language/cymraeg"))
+    new components.HmrcLanguageSelect()(LanguageSelect(language, En -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "english").url, Cy -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "cymraeg").url))
   } else HtmlFormat.empty
 }
 
