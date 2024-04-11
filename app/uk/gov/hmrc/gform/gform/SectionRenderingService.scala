@@ -1698,7 +1698,8 @@ class SectionRenderingService(
     table: TableComp,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): Html = {
     def isVisibleValueRow(
       row: TableValueRow
@@ -1707,15 +1708,20 @@ class SectionRenderingService(
     )
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
+    def isNumericFormComponentRef(expr: Expr): Boolean = expr match {
+      case FormCtx(formComponentId) =>
+        formModel.fcLookup.get(formComponentId).map(_.isNumeric).getOrElse(false)
+      case _ => false
+    }
+
     def isNumeric(v: TableValue): Boolean = {
-      val interpolationsHaveLonelyNumeric = v.value.interpolations match {
-        case List(FormCtx(formComponentId)) =>
-          formModel.fcLookup.get(formComponentId).map(_.isNumeric).getOrElse(false)
-        case List(Typed(_, ExplicitExprType.Sterling(_)))  => true
-        case List(Typed(_, ExplicitExprType.Number(_, _))) => true
-        case _                                             => false
+      val interpolationsAreNumeric = v.value.interpolations match {
+        case List(Typed(_, ExplicitExprType.Sterling(_)))     => true
+        case List(Typed(_, ExplicitExprType.Number(_, _)))    => true
+        case exprs if exprs.forall(isNumericFormComponentRef) => true // !! interpolations contain both en and cy data
+        case _                                                => false
       }
-      interpolationsHaveLonelyNumeric && sse(v.value.copy(interpolations = List(Constant(""))), false).trim.isEmpty()
+      interpolationsAreNumeric && v.value.valueWithoutInterpolations.trim.isEmpty()
     }
 
     val normalisedTable = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
