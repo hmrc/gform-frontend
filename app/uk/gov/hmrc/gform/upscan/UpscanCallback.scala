@@ -94,10 +94,11 @@ object FailureDetails {
 
 sealed trait UpscanValidationFailure extends Product with Serializable {
   def toJsCode: String = this match {
-    case UpscanValidationFailure.EntityTooLarge        => "EntityTooLarge"
-    case UpscanValidationFailure.EntityTooSmall        => "EntityTooSmall"
-    case UpscanValidationFailure.FileNameTooLong       => "FileNameTooLong"
-    case UpscanValidationFailure.InvalidFileType(_, _) => "InvalidFileType"
+    case UpscanValidationFailure.EntityTooLarge          => "EntityTooLarge"
+    case UpscanValidationFailure.EntityTooSmall          => "EntityTooSmall"
+    case UpscanValidationFailure.FileNameTooLong         => "FileNameTooLong"
+    case UpscanValidationFailure.InvalidFileExtension(_) => "InvalidFileExtension"
+    case UpscanValidationFailure.InvalidFileType(_, _)   => "InvalidFileType"
   }
 }
 
@@ -105,6 +106,7 @@ object UpscanValidationFailure {
   case object EntityTooLarge extends UpscanValidationFailure
   case object EntityTooSmall extends UpscanValidationFailure
   case object FileNameTooLong extends UpscanValidationFailure
+  case class InvalidFileExtension(expectedExtension: String) extends UpscanValidationFailure
   case class InvalidFileType(errorDetail: String, fileMimeType: ContentType) extends UpscanValidationFailure
 
   implicit val reads: Reads[UpscanValidationFailure] = derived.reads()
