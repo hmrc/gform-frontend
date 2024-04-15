@@ -634,8 +634,14 @@ object TableValueRow {
   implicit val format: Format[TableValueRow] = derived.oformat()
 }
 
+case class TableHeadCell(label: SmartString, classes: Option[String])
+
+object TableHeadCell {
+  implicit val format: Format[TableHeadCell] = derived.oformat()
+}
+
 case class TableComp(
-  header: List[SmartString],
+  header: List[TableHeadCell],
   rows: List[TableValueRow],
   summaryValue: SmartString,
   caption: Option[String] = None,

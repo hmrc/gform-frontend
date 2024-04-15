@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, IncludeIf, IsFalse, IsTrue, TableComp, TableValue, TableValueRow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, IncludeIf, IsFalse, IsTrue, TableComp, TableHeadCell, TableValue, TableValueRow }
 import munit.FunSuite
 
 class SectionRenderingServiceSuite extends FunSuite {
@@ -32,8 +32,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(
@@ -64,8 +64,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(
@@ -93,8 +93,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(
@@ -127,7 +127,7 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1")
+        TableHeadCell(toSmartString("Header 1"), None)
       ),
       rows = List(
         TableValueRow(
@@ -157,7 +157,7 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1")
+        TableHeadCell(toSmartString("Header 1"), None)
       ),
       rows = List(
         TableValueRow(
@@ -196,7 +196,7 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1")
+        TableHeadCell(toSmartString("Header 1"), None)
       ),
       rows = List(
         TableValueRow(
@@ -229,7 +229,7 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1")
+        TableHeadCell(toSmartString("Header 1"), None)
       ),
       rows = List(
         TableValueRow(
@@ -289,9 +289,9 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2"),
-        toSmartString("Header 3")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None),
+        TableHeadCell(toSmartString("Header 3"), None)
       ),
       rows = List(
         TableValueRow(
@@ -352,9 +352,9 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2"),
-        toSmartString("Header 3")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None),
+        TableHeadCell(toSmartString("Header 3"), None)
       ),
       rows = List(
         TableValueRow(
@@ -438,11 +438,11 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2"),
-        toSmartString("Header 3"),
-        toSmartString("Header 4"),
-        toSmartString("Header 5")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None),
+        TableHeadCell(toSmartString("Header 3"), None),
+        TableHeadCell(toSmartString("Header 4"), None),
+        TableHeadCell(toSmartString("Header 5"), None)
       ),
       rows = List(
         TableValueRow(
@@ -498,11 +498,11 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2"),
-        toSmartString("Header 3"),
-        toSmartString("Header 4"),
-        toSmartString("Header 5")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None),
+        TableHeadCell(toSmartString("Header 3"), None),
+        TableHeadCell(toSmartString("Header 4"), None),
+        TableHeadCell(toSmartString("Header 5"), None)
       ),
       rows = List(
         TableValueRow(
@@ -577,8 +577,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(
@@ -625,8 +625,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(
@@ -693,8 +693,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val table = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(
@@ -741,8 +741,8 @@ class SectionRenderingServiceSuite extends FunSuite {
 
     val expectedTable = TableComp(
       header = List(
-        toSmartString("Header 1"),
-        toSmartString("Header 2")
+        TableHeadCell(toSmartString("Header 1"), None),
+        TableHeadCell(toSmartString("Header 2"), None)
       ),
       rows = List(
         TableValueRow(

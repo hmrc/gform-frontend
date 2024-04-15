@@ -330,13 +330,13 @@ class SectionRenderingService(
     val addAnotherQuestion: Html =
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
-    val evalRepeatsUntil = repeater.repeatsUntil
-      .map(repeatsUntil => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsUntil, None))
-      .getOrElse(false)
+    val evalRepeatsUntil = repeater.repeatsUntil.exists(repeatsUntil =>
+      formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsUntil, None)
+    )
 
-    val evalRepeatsWhile = repeater.repeatsWhile
-      .map(repeatsWhile => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsWhile, None))
-      .getOrElse(false)
+    val evalRepeatsWhile = repeater.repeatsWhile.exists(repeatsWhile =>
+      formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsWhile, None)
+    )
 
     val infoFields = repeater.fields
       .map { fields =>
@@ -696,10 +696,9 @@ class SectionRenderingService(
               pageModel -> c
           }
 
-        val tasks = TaskListUtils.withTaskSection(formTemplate, taskList.coordinates.taskSectionNumber) {
-          case section =>
-            section.tasks.toList
-        }
+        val tasks = TaskListUtils.withTaskSection(formTemplate, taskList.coordinates.taskSectionNumber)(section =>
+          section.tasks.toList
+        )
         specimen.navigation_tasklist(
           formTemplate,
           taskList,
@@ -1710,7 +1709,7 @@ class SectionRenderingService(
 
     def isNumericFormComponentRef(expr: Expr): Boolean = expr match {
       case FormCtx(formComponentId) =>
-        formModel.fcLookup.get(formComponentId).map(_.isNumeric).getOrElse(false)
+        formModel.fcLookup.get(formComponentId).exists(_.isNumeric)
       case _ => false
     }
 
@@ -1740,14 +1739,33 @@ class SectionRenderingService(
           )
         }
     }
+
+    val visibleTableRows = table.rows.filter(isVisibleValueRow)
+    val visibleIndexes = visibleTableRows.zipWithIndex.map(_._2)
+
+    val visibleHeaders = table.header.zipWithIndex
+      .filter { case (_, index) =>
+        visibleIndexes.contains(index)
+      }
+
     val headerNumericClasses = table.rows
-      .filter(isVisibleValueRow(_))
       .map(_.values.map(v => if (isNumeric(v)) "govuk-table__header--numeric" else ""))
       .headOption
       .getOrElse(List())
-    val hs = table.header.zipAll(headerNumericClasses, SmartString.empty, "").map { case (h, c) =>
-      HeadCell(content = HtmlContent(sse(h, false)), classes = c)
+
+    val headerClasses: List[String] = visibleHeaders.map {
+      case (header, _) if header.classes.nonEmpty => header.classes.getOrElse("")
+      case (_, index)                             => headerNumericClasses.lift(index).getOrElse("")
     }
+
+    val headCells = visibleHeaders
+      .map(_._1)
+      .map(_.label)
+      .zipAll(headerClasses, SmartString.empty, "")
+      .map { case (h, c) =>
+        HeadCell(content = HtmlContent(sse(h, false)), classes = c)
+      }
+
     val caption: Option[String] = table.caption.orElse(Some(formComponent.label.value()))
 
     val captionClasses = {
@@ -1759,13 +1777,13 @@ class SectionRenderingService(
         case Small      => "govuk-table__caption--s"
         case ExtraSmall => "govuk-table__caption--s"
       }
-      val captionClasses = if (c.isEmpty() && formComponent.labelSize.isEmpty) "govuk-table__caption--m" else c
+      val captionClasses = if (c.isEmpty && formComponent.labelSize.isEmpty) "govuk-table__caption--m" else c
       captionClasses + " " + labelClass
     }
     new GovukTable()(
       Table(
         rows = filteredRows,
-        head = Some(hs),
+        head = Some(headCells),
         caption = caption,
         captionClasses = captionClasses,
         classes = table.classes,
@@ -1967,7 +1985,7 @@ class SectionRenderingService(
     def isChecked(index: String): Boolean =
       formFieldValidationResult
         .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
-        .orElse(prepopValues.find(_ === index.toString))
+        .orElse(prepopValues.find(_ === index))
         .isDefined
 
     def helpTextHtml(maybeHelpText: Option[Html]): Option[Html] =
