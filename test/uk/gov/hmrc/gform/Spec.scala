@@ -40,7 +40,7 @@ trait Spec
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
   }
 }

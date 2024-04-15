@@ -54,13 +54,16 @@ class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartSt
   def noForm(evalExpr: Expr => String)(implicit l: LangADT): SmartStringEvaluator =
     new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String =
-        evalSmartString(s.rawValue(l), s.interpolations)
+        evalSmartString(s.rawDefaultValue(l), s.interpolations(_ => false))
 
       override def evalEnglish(s: SmartString, markDown: Boolean): String =
-        evalSmartString(s.rawValue(LangADT.En), s.interpolations)
+        evalSmartString(
+          s.rawDefaultValue(LangADT.En),
+          s.interpolations(_ => false)
+        )
 
-      private def evalSmartString(rawValue: String, interpolations: List[Expr]) =
-        new MessageFormat(rawValue)
+      private def evalSmartString(rawDefaultValue: String, interpolations: List[Expr]) =
+        new MessageFormat(rawDefaultValue)
           .format(
             interpolations
               .map(evalExpr)
@@ -76,9 +79,9 @@ private class Executor(
   l: LangADT
 ) {
   def apply(s: SmartString, markDown: Boolean): String =
-    new MessageFormat(s.rawValue(l))
+    new MessageFormat(s.rawValue(formModelVisibilityOptics.booleanExprResolver.resolve(_))(l))
       .format(
-        s.interpolations
+        s.interpolations(formModelVisibilityOptics.booleanExprResolver.resolve(_))
           .map {
             case concatExpr: Concat => formatConcatExpr(concatExpr, markDown)
             case interpolation      => formatExpr(interpolation, markDown)

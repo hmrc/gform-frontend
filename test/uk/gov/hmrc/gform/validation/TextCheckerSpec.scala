@@ -63,8 +63,8 @@ class TextCheckerSpec
   implicit val l: LangADT = LangADT.En
 
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
   }
 
   private val numberWithPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.International)

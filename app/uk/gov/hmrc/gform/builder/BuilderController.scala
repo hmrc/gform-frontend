@@ -868,7 +868,8 @@ class BuilderController(
             .formModel(sectionNumber)
             .asInstanceOf[CheckYourAnswers[DataExpanded]]
 
-        val (title, noPIITitle) = SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers)
+        val (title, noPIITitle) =
+          SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers, formModelOptics)
 
         val pageHeading: Html = uk.gov.hmrc.gform.views.html
           .page_heading(

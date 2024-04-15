@@ -41,8 +41,9 @@ object TableUtils {
     fmvo: FormModelVisibilityOptics[D]
   ): List[FormComponentId] =
     tableValueRow.values.flatMap { tableValue =>
-      tableValue.value.interpolations.flatMap(_.leafs(fmvo.formModel)).collect { case FormCtx(fcId) =>
-        fcId
+      tableValue.value.interpolations(fmvo.booleanExprResolver.resolve(_)).flatMap(_.leafs(fmvo.formModel)).collect {
+        case FormCtx(fcId) =>
+          fcId
       }
     }
 

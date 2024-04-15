@@ -37,8 +37,8 @@ sealed trait FormKind extends Product with Serializable {
   def allCustomExprs: List[Expr] =
     fold(_ => List.empty[Expr]) { taskList =>
       taskList.sections.toList.flatMap { taskSection =>
-        taskSection.title.interpolations ++ taskSection.tasks.toList.flatMap { task =>
-          task.title.interpolations ++ task.includeIf.toList.flatMap(_.booleanExpr.allExpressions)
+        taskSection.title.allInterpolations ++ taskSection.tasks.toList.flatMap { task =>
+          task.title.allInterpolations ++ task.includeIf.toList.flatMap(_.booleanExpr.allExpressions)
         }
       }
     }

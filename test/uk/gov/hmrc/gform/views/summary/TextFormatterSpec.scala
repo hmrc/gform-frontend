@@ -53,8 +53,8 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
   private val langADTForEn: LangADT = LangADT.En
   private val langADTForCy: LangADT = LangADT.Cy
   private val smartStringEvaluatorForCy: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.Cy)
-    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.Cy)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
   }
 
   def getComponent(constraint: TextConstraint) = FormComponent(
@@ -73,6 +73,13 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     None,
     None
   )
+
+  val dummyFormModelVisibilityOptics = {
+    implicit val l: LangADT = LangADT.En
+    val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
+    val inputData = mkDataOutOfDate("dummy" -> "dummy")
+    mkFormModelOptics(mkFormTemplate(sections), inputData).formModelVisibilityOptics
+  }
 
   val equalsCombinations = TableDrivenPropertyChecks.Table(
     // format: off
@@ -139,7 +146,13 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
 
   "componentTextReadonly for positiveNumber" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", positiveNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      positiveNumber,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "enPrefix value enSuffix"
   }
 
@@ -147,13 +160,25 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", positiveNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      positiveNumber,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "cyPrefix value cySuffix"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, prefixSmartString, None)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      positiveNumberWithUnit,
+      prefixSmartString,
+      None,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "enPrefix value litres"
   }
 
@@ -161,13 +186,25 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, prefixSmartString, None)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      positiveNumberWithUnit,
+      prefixSmartString,
+      None,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "cyPrefix value litr"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      positiveNumberWithUnit,
+      None,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "value enSuffix"
   }
 
@@ -175,13 +212,20 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      positiveNumberWithUnit,
+      None,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "value cySuffix"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, None)
+    val result =
+      TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "value litres"
   }
 
@@ -189,13 +233,20 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, None)
+    val result =
+      TextFormatter.componentTextForSummary("value", positiveNumberWithUnit, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "value litr"
   }
 
   "componentTextReadonly for Number" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", simpleNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      simpleNumber,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "enPrefix value enSuffix"
   }
 
@@ -203,13 +254,25 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", simpleNumber, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      simpleNumber,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "cyPrefix value cySuffix"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, prefixSmartString, None)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      simpleNumberWithUnit,
+      prefixSmartString,
+      None,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "enPrefix value litres"
   }
 
@@ -217,13 +280,25 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, prefixSmartString, None)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      simpleNumberWithUnit,
+      prefixSmartString,
+      None,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "cyPrefix value litr"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      simpleNumberWithUnit,
+      None,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "value enSuffix"
   }
 
@@ -231,13 +306,20 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      simpleNumberWithUnit,
+      None,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "value cySuffix"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, None)
+    val result =
+      TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "value litres"
   }
 
@@ -245,13 +327,20 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, None)
+    val result =
+      TextFormatter.componentTextForSummary("value", simpleNumberWithUnit, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "value litr"
   }
 
   "componentTextReadonly for Sterling" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "10000",
+      sterling,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "£10,000.00"
   }
 
@@ -259,13 +348,20 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "10000",
+      sterling,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "£10,000.00"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, None)
+    val result =
+      TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, None, dummyFormModelVisibilityOptics)
     result shouldBe "£10,000.00"
   }
 
@@ -273,13 +369,15 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, None)
+    val result =
+      TextFormatter.componentTextForSummary("10000", sterling, prefixSmartString, None, dummyFormModelVisibilityOptics)
     result shouldBe "£10,000.00"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("10000", sterling, None, suffixSmartString)
+    val result =
+      TextFormatter.componentTextForSummary("10000", sterling, None, suffixSmartString, dummyFormModelVisibilityOptics)
     result shouldBe "£10,000.00"
   }
 
@@ -287,13 +385,14 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("10000", sterling, None, suffixSmartString)
+    val result =
+      TextFormatter.componentTextForSummary("10000", sterling, None, suffixSmartString, dummyFormModelVisibilityOptics)
     result shouldBe "£10,000.00"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("10000", sterling, None, None)
+    val result = TextFormatter.componentTextForSummary("10000", sterling, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "£10,000.00"
   }
 
@@ -301,13 +400,19 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("10000", sterling, None, None)
+    val result = TextFormatter.componentTextForSummary("10000", sterling, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "£10,000.00"
   }
 
   "componentTextReadonly for ShortText" should "return correct string for prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      shortText,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "enPrefix value enSuffix"
   }
 
@@ -315,13 +420,20 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, suffixSmartString)
+    val result = TextFormatter.componentTextForSummary(
+      "value",
+      shortText,
+      prefixSmartString,
+      suffixSmartString,
+      dummyFormModelVisibilityOptics
+    )
     result shouldBe "cyPrefix value cySuffix"
   }
 
   it should "return correct string for only prefix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, None)
+    val result =
+      TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, None, dummyFormModelVisibilityOptics)
     result shouldBe "enPrefix value"
   }
 
@@ -329,13 +441,15 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, None)
+    val result =
+      TextFormatter.componentTextForSummary("value", shortText, prefixSmartString, None, dummyFormModelVisibilityOptics)
     result shouldBe "cyPrefix value"
   }
 
   it should "return correct string for only suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", shortText, None, suffixSmartString)
+    val result =
+      TextFormatter.componentTextForSummary("value", shortText, None, suffixSmartString, dummyFormModelVisibilityOptics)
     result shouldBe "value enSuffix"
   }
 
@@ -343,13 +457,14 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", shortText, None, suffixSmartString)
+    val result =
+      TextFormatter.componentTextForSummary("value", shortText, None, suffixSmartString, dummyFormModelVisibilityOptics)
     result shouldBe "value cySuffix"
   }
 
   it should "return correct string for no prefix and suffix for language En" in {
     implicit val l: LangADT = langADTForEn
-    val result = TextFormatter.componentTextForSummary("value", shortText, None, None)
+    val result = TextFormatter.componentTextForSummary("value", shortText, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "value"
   }
 
@@ -357,7 +472,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     implicit val l: LangADT = langADTForCy
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorForCy
 
-    val result = TextFormatter.componentTextForSummary("value", shortText, None, None)
+    val result = TextFormatter.componentTextForSummary("value", shortText, None, None, dummyFormModelVisibilityOptics)
     result shouldBe "value"
   }
 }

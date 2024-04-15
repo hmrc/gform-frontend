@@ -65,7 +65,7 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
     componentsExprs ++ booleanExprsExprs
   }
   def fromCheckYourAnswerPage(cyap: CheckYourAnswersPage): List[Expr] =
-    cyap.updateTitle.interpolations ++
+    cyap.updateTitle.allInterpolations ++
       fromOption(
         cyap.title,
         cyap.caption,

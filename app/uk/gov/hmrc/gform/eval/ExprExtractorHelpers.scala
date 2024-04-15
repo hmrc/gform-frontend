@@ -21,12 +21,12 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 trait ExprExtractorHelpers {
 
-  def fromSmartStrings(smartStrings: SmartString*): List[Expr] = smartStrings.toList.flatMap(_.interpolations)
+  def fromSmartStrings(smartStrings: SmartString*): List[Expr] = smartStrings.toList.flatMap(_.allInterpolations)
 
   def fromOptionF[A](option: Option[A])(f: A => List[Expr]): List[Expr] = option.fold(List.empty[Expr])(f)
 
   private def fromOption(maybeSmartString: Option[SmartString]): List[Expr] =
-    fromOptionF[SmartString](maybeSmartString)(_.interpolations)
+    fromOptionF[SmartString](maybeSmartString)(_.allInterpolations)
 
   def fromOption(maybeSmartStrings: Option[SmartString]*): List[Expr] = maybeSmartStrings.toList.flatMap(fromOption)
 
