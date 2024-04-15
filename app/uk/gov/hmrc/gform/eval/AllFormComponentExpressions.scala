@@ -99,7 +99,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
             value <- row.values
             expr  <- value.value.interpolations
           } yield expr),
-          header.flatMap(_.interpolations),
+          header.flatMap(_.label.interpolations),
           summaryValue.interpolations
         )
       case IsOverseasAddress(OverseasAddress(_, _, _, Some(e), _, _)) => toPlainExprs(e :: Nil)

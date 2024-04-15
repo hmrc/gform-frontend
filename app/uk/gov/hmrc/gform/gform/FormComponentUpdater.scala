@@ -121,10 +121,13 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
 
   private def expandTableComp(tableComp: TableComp): TableComp =
     tableComp.copy(
-      header = tableComp.header.map(expandSmartString),
+      header = tableComp.header.map(expandTableHeaderCell),
       rows = tableComp.rows.map(expandTableValueRow),
       summaryValue = expandSmartString(tableComp.summaryValue)
     )
+
+  private def expandTableHeaderCell(cell: TableHeadCell): TableHeadCell =
+    cell.copy(label = expandSmartString(cell.label))
 
   private def expandTableValueRow(row: TableValueRow): TableValueRow =
     row.copy(
