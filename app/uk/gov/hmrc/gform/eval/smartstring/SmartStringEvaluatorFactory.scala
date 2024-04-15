@@ -91,6 +91,8 @@ private class Executor(
 
     val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
 
+    println("TYPE INFO " + typeInfo)
+
     val interpolated = typeInfo.staticTypeData.exprType match {
       case ExprType.ChoiceSelection =>
         typeInfo.expr match {

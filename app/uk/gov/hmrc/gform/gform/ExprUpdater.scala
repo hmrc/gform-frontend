@@ -33,6 +33,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Multiply(field1, field2)              => Multiply(expandExpr(field1), expandExpr(field2))
     case Subtraction(field1, field2)           => Subtraction(expandExpr(field1), expandExpr(field2))
     case Divide(field1, field2)                => Divide(expandExpr(field1), expandExpr(field2))
+    case HideZeroDecimals(field1: Expr)        => HideZeroDecimals(expandExpr(field1))
     case Else(field1, field2)                  => Else(expandExpr(field1), expandExpr(field2))
     case IfElse(cond, field1, field2)          => IfElse(beUpdater(cond), expandExpr(field1), expandExpr(field2))
     case FormCtx(formComponentId)              => FormCtx(expandFcId(formComponentId))

@@ -416,6 +416,8 @@ object ExpressionResult {
     def -(nr: NumberResult): NumberResult = NumberResult(value - nr.value)
     def *(nr: NumberResult): NumberResult = NumberResult(value * nr.value)
     def /(nr: NumberResult): NumberResult = NumberResult(value / nr.value)
+
+    def hideZeroDecimals(): NumberResult = NumberResult(if (value.isValidInt) value.intValue else value)
   }
   case class StringResult(value: String) extends ExpressionResult {
     def +(sr: StringResult): StringResult = StringResult(value + sr.value)
