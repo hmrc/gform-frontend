@@ -385,11 +385,10 @@ case class EvaluationResults(
         whenVisible(formComponentId) {
           val modelComponentId = formComponentId.modelComponentId
           if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
-            val addresses =
-              recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
-                indexedComponentId =>
-                  getAddressResult(indexedComponentId)
-              }
+            val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
+              indexedComponentId =>
+                getAddressResult(indexedComponentId)
+            }
             ListResult(addresses)
           } else {
             val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
@@ -602,7 +601,6 @@ case class EvaluationResults(
           }
         )
         StringResult(str)
-
       case Concat(exprs) => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
       case CountryOfItmpAddress =>
         val itmpRetrievals = evaluationContext.thirdPartyData.itmpRetrievals
