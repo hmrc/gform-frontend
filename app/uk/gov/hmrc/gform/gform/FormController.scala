@@ -343,10 +343,12 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    fastForward: List[FastForward]
+    rawFastForward: List[FastForward]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
+        val formVisibilityModel = formModelOptics.formModelVisibilityOptics.formModel
+        val fastForward = filterTerminatedFastForward(sectionNumber, rawFastForward, formVisibilityModel)
         lazy val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
         def callSelector(call1: => Call, call2: => Call, lastSectionNumber: Option[SectionNumber]): Future[Call] =
@@ -1001,6 +1003,44 @@ class FormController(
       )
       .reverse
     if (ff.nonEmpty) ff else List(FastForward.Yes)
+  }
+
+  private def filterTerminatedFastForward(
+    browserSectionNumber: SectionNumber,
+    rawFastForward: List[FastForward],
+    formModel: FormModel[Visibility]
+  ): List[FastForward] = {
+    def hasTerminationIn(fromSn: SectionNumber, toSn: Option[SectionNumber]): Boolean =
+      formModel.availableSectionNumbers
+        .filter(sn =>
+          (fromSn, sn) match {
+            case (
+                  SectionNumber.TaskList(Coordinates(_, thisTaskNumber), _),
+                  SectionNumber.TaskList(Coordinates(_, otherTaskNumber), _)
+                ) =>
+              thisTaskNumber === otherTaskNumber
+            case _ => true
+          }
+        )
+        .filter(sn => fromSn <= sn)
+        .filter(sn =>
+          toSn match {
+            case Some(to) => sn <= to
+            case None     => true
+          }
+        )
+        .exists(sn => formModel(sn).isTerminationPage)
+
+    val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
+
+    val ff = rawFastForward
+      .filterNot {
+        case FastForward.CYA(SectionOrSummary.Section(sn)) => hasTerminationIn(sectionNumber, Some(sn))
+        case FastForward.CYA(_)                            => hasTerminationIn(sectionNumber, None)
+        case FastForward.StopAt(sn)                        => hasTerminationIn(sectionNumber, Some(sn))
+        case _                                             => false
+      }
+    removeDuplications(ff)
   }
 
 }
