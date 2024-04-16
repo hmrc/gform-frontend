@@ -93,8 +93,7 @@ sealed trait Expr extends Product with Serializable {
     case Multiply(field1: Expr, field2: Expr)    => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Subtraction(field1: Expr, field2: Expr) => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Divide(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case HideZeroDecimals(field1: Expr) =>
-      field1.leafs(formModel)
+    case HideZeroDecimals(field1: Expr)          => field1.leafs(formModel)
     case IfElse(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs(formModel)) ++
         field1.leafs(formModel) ++ field2.leafs(formModel)
@@ -143,12 +142,11 @@ sealed trait Expr extends Product with Serializable {
   }
 
   def sums: List[Sum] = this match {
-    case Add(field1: Expr, field2: Expr)         => field1.sums ++ field2.sums
-    case Multiply(field1: Expr, field2: Expr)    => field1.sums ++ field2.sums
-    case Subtraction(field1: Expr, field2: Expr) => field1.sums ++ field2.sums
-    case Divide(field1: Expr, field2: Expr)      => field1.sums ++ field2.sums
-    case HideZeroDecimals(field1: Expr) =>
-      field1.sums
+    case Add(field1: Expr, field2: Expr)           => field1.sums ++ field2.sums
+    case Multiply(field1: Expr, field2: Expr)      => field1.sums ++ field2.sums
+    case Subtraction(field1: Expr, field2: Expr)   => field1.sums ++ field2.sums
+    case Divide(field1: Expr, field2: Expr)        => field1.sums ++ field2.sums
+    case HideZeroDecimals(field1: Expr)            => field1.sums
     case IfElse(cond, field1: Expr, field2: Expr)  => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
     case Else(field1: Expr, field2: Expr)          => field1.sums ++ field2.sums
     case FormCtx(formComponentId: FormComponentId) => Nil
@@ -192,8 +190,7 @@ sealed trait Expr extends Product with Serializable {
     case Multiply(field1: Expr, field2: Expr)    => field1.leafs() ++ field2.leafs()
     case Subtraction(field1: Expr, field2: Expr) => field1.leafs() ++ field2.leafs()
     case Divide(field1: Expr, field2: Expr)      => field1.leafs() ++ field2.leafs()
-    case HideZeroDecimals(field1: Expr) =>
-      field1.leafs()
+    case HideZeroDecimals(field1: Expr)          => field1.leafs()
     case IfElse(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs()) ++
         field1.leafs() ++ field2.leafs()

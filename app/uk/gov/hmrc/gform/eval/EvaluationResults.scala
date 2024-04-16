@@ -212,96 +212,90 @@ case class EvaluationResults(
         NumberResult.apply
       )
 
-    def loop(expr: Expr): ExpressionResult =
-      expr match {
-        case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
-        case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
-        case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
-        case Divide(field1: Expr, field2: Expr)      => loop(field1) / loop(field2)
-        case HideZeroDecimals(field1: Expr) =>
-          loop(field1).numberRepresentation match {
-            case Some(value) =>
-              if (value.isValidInt) NumberResult(value.intValue).hideZeroDecimals() else NumberResult(value)
-            case None => unsupportedOperation("Number")(expr)
-          }
-        case IfElse(cond, field1: Expr, field2: Expr) =>
-          if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
-        case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-        case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
-        case Sum(_) =>
-          val substitutions = SummarySubstitutions(exprMap, repeatedComponentsDetails)
-          loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
-        case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
-        case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
-        case UserCtx(value: UserField) =>
-          value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
-            toNumberResult(
-              UserCtxEvaluatorProcessor
-                .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
-            )
-          )(_ => unsupportedOperation("Number")(expr))
-        case Constant(value: String)                  => toNumberResult(value)
-        case Value                                    => Empty
-        case FormTemplateCtx(value: FormTemplateProp) => unsupportedOperation("Number")(expr)
-        case ParamCtx(queryParam)                     => toNumberResult(evaluationContext.thirdPartyData.queryParams(queryParam))
-        case LinkCtx(_)                               => unsupportedOperation("Number")(expr)
-        case LangCtx                                  => unsupportedOperation("Number")(expr)
-        case DateCtx(_)                               => unsupportedOperation("Number")(expr)
-        case DateFunction(dateFunc) =>
-          evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
-            case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
-            case otherwise                              => otherwise
-          }
-        case Period(_, _)      => unsupportedOperation("Number")(expr)
-        case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-        case PeriodValue(_)    => unsupportedOperation("Number")(expr)
-        case AddressLens(_, _) => unsupportedOperation("Number")(expr)
-        case d @ DataRetrieveCtx(_, _) =>
-          evaluationContext.thirdPartyData.dataRetrieve
-            .fold(Option.empty[ExpressionResult]) { dataRetrieve =>
-              DataRetrieveEval
-                .getDataRetrieveAttribute(dataRetrieve, d)
-                .map {
-                  case s :: Nil => toNumberResult(s)
-                  case xs       => ListResult(xs.map(toNumberResult))
-                }
-            }
-            .getOrElse(unsupportedOperation("Number")(expr))
-        case d @ DataRetrieveCount(_) =>
-          val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
-          NumberResult(count)
-        case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
-        case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
-        case CsvCountryCountCheck(fcId, column, value) =>
-          val count = addToListValues(fcId, recData)
-            .filter(str =>
-              countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
-                case StringResult(r) => r == value
-                case _               => false
+    def loop(expr: Expr): ExpressionResult = expr match {
+      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
+      case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
+      case Divide(field1: Expr, field2: Expr)      => loop(field1) / loop(field2)
+      case HideZeroDecimals(field1: Expr)          => loop(field1)
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case ctx @ FormCtx(formComponentId)   => get(ctx, fromVariadicValue, evaluationContext)
+      case Sum(_) =>
+        val substitutions = SummarySubstitutions(exprMap, repeatedComponentsDetails)
+        loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
+      case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
+      case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
+      case UserCtx(value: UserField) =>
+        value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
+          toNumberResult(
+            UserCtxEvaluatorProcessor
+              .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
+          )
+        )(_ => unsupportedOperation("Number")(expr))
+      case Constant(value: String)                  => toNumberResult(value)
+      case Value                                    => Empty
+      case FormTemplateCtx(value: FormTemplateProp) => unsupportedOperation("Number")(expr)
+      case ParamCtx(queryParam)                     => toNumberResult(evaluationContext.thirdPartyData.queryParams(queryParam))
+      case LinkCtx(_)                               => unsupportedOperation("Number")(expr)
+      case LangCtx                                  => unsupportedOperation("Number")(expr)
+      case DateCtx(_)                               => unsupportedOperation("Number")(expr)
+      case DateFunction(dateFunc) =>
+        evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
+          case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
+          case otherwise                              => otherwise
+        }
+      case Period(_, _)      => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodValue(_)    => unsupportedOperation("Number")(expr)
+      case AddressLens(_, _) => unsupportedOperation("Number")(expr)
+      case d @ DataRetrieveCtx(_, _) =>
+        evaluationContext.thirdPartyData.dataRetrieve
+          .fold(Option.empty[ExpressionResult]) { dataRetrieve =>
+            DataRetrieveEval
+              .getDataRetrieveAttribute(dataRetrieve, d)
+              .map {
+                case s :: Nil => toNumberResult(s)
+                case xs       => ListResult(xs.map(toNumberResult))
               }
-            )
-            .size
-          NumberResult(count)
-        case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
-        case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
-        case IndexOf(fcId, index) =>
-          loop(FormCtx(fcId)) match {
-            case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-            case _              => unsupportedOperation("Number")(expr)
           }
-        case IndexOfDataRetrieveCtx(ctx, index) =>
-          loop(ctx) match {
-            case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-            case _              => unsupportedOperation("Number")(expr)
-          }
-        case NumberedList(_)         => unsupportedOperation("Number")(expr)
-        case BulletedList(_)         => unsupportedOperation("Number")(expr)
-        case StringOps(_, _)         => unsupportedOperation("Number")(expr)
-        case Concat(_)               => unsupportedOperation("Number")(expr)
-        case CountryOfItmpAddress    => unsupportedOperation("Number")(expr)
-        case ChoicesRevealedField(_) => unsupportedOperation("Number")(expr)
-        case ChoiceLabel(_)          => unsupportedOperation("Number")(expr)
-      }
+          .getOrElse(unsupportedOperation("Number")(expr))
+      case d @ DataRetrieveCount(_) =>
+        val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
+        NumberResult(count)
+      case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
+      case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
+      case CsvCountryCountCheck(fcId, column, value) =>
+        val count = addToListValues(fcId, recData)
+          .filter(str =>
+            countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
+              case StringResult(r) => r == value
+              case _               => false
+            }
+          )
+          .size
+        NumberResult(count)
+      case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
+      case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
+      case IndexOf(fcId, index) =>
+        loop(FormCtx(fcId)) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("Number")(expr)
+        }
+      case IndexOfDataRetrieveCtx(ctx, index) =>
+        loop(ctx) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("Number")(expr)
+        }
+      case NumberedList(_)         => unsupportedOperation("Number")(expr)
+      case BulletedList(_)         => unsupportedOperation("Number")(expr)
+      case StringOps(_, _)         => unsupportedOperation("Number")(expr)
+      case Concat(_)               => unsupportedOperation("Number")(expr)
+      case CountryOfItmpAddress    => unsupportedOperation("Number")(expr)
+      case ChoicesRevealedField(_) => unsupportedOperation("Number")(expr)
+      case ChoiceLabel(_)          => unsupportedOperation("Number")(expr)
+    }
 
     loop(typeInfo.expr)
   }
@@ -375,251 +369,249 @@ case class EvaluationResults(
       ExpressionResult.AddressResult(addressLines)
     }
 
-    def loop(expr: Expr): ExpressionResult = {
-      expr match {
-        case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
-        case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
-        case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
-        case Divide(field1: Expr, field2: Expr)      => unsupportedOperation("String")(expr)
-        case HideZeroDecimals(field1)                => loop(field1)
-        case IfElse(cond, field1: Expr, field2: Expr) =>
-          if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
-        case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-        case FormCtx(formComponentId: FormComponentId)
-            if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
-              .overseasAddressLookup(formComponentId.baseComponentId) || evaluationContext
-              .addressLookup(formComponentId.baseComponentId) =>
-          whenVisible(formComponentId) {
-            val modelComponentId = formComponentId.modelComponentId
-            if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
-              val addresses =
-                recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
-                  indexedComponentId =>
-                    getAddressResult(indexedComponentId)
-                }
-              ListResult(addresses)
-            } else {
-              val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
-              getAddressResult(indexedComponentId)
-            }
-          }
-        case FormCtx(formComponentId: FormComponentId)
-            if evaluationContext.postcodeLookup(formComponentId.baseComponentId) =>
-          whenVisible(formComponentId) {
-            ExpressionResult.StringResult(
-              evaluationContext.thirdPartyData.addressLines(formComponentId).fold("")(_.mkString(", "))
-            )
-          }
-        case FormCtx(formComponentId: FormComponentId)
-            if evaluationContext.taxPeriodYear(formComponentId.baseComponentId) =>
-          whenVisible(formComponentId) {
-            evalTaxPeriodYear(formComponentId, recData, evaluationContext.messages)
-          }
-        case ctx @ FormCtx(formComponentId: FormComponentId) =>
-          get(ctx, fromVariadicValue, evaluationContext)
-        case Sum(field1: Expr) => unsupportedOperation("String")(expr)
-        case Count(formComponentId) =>
-          nonEmptyStringResult(
-            StringResult(
-              addToListCount(formComponentId, recData, evaluationContext)
-                .stringRepresentation(typeInfo, evaluationContext.messages)
-            )
-          )
-        case AuthCtx(value: AuthInfo) =>
-          nonEmptyExpressionResult(
-            AuthContextPrepop
-              .values(value, evaluationContext.retrievals, evaluationContext.thirdPartyData.itmpRetrievals)
-          )
-        case UserCtx(value: UserField) =>
-          nonEmptyStringResult(
-            StringResult(
-              UserCtxEvaluatorProcessor
-                .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)
-            )
-          )
-        case Constant(value: String) => nonEmptyStringResult(StringResult(value))
-        case Value                   => Empty
-        case FormTemplateCtx(value: FormTemplateProp) =>
-          nonEmptyStringResult {
-            value match {
-              case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
-              case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
-              case FormTemplateProp.FileSizeLimit       => StringResult(evaluationContext.fileSizeLimit.value.toString)
-            }
-          }
-
-        case ParamCtx(queryParam) =>
-          nonEmptyStringResult(StringResult(evaluationContext.thirdPartyData.queryParams(queryParam)))
-        case LinkCtx(internalLink) =>
-          val link =
-            internalLink match {
-              case InternalLink.PrintSummaryPdf =>
-                uk.gov.hmrc.gform.gform.routes.SummaryController
-                  .downloadPDF(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode)
-                  .url
-              case InternalLink.PrintAcknowledgementPdf =>
-                uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-                  .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
-                  .url
-              case InternalLink.NewFormForTemplate(formTemplateId) =>
-                uk.gov.hmrc.gform.gform.routes.NewFormController
-                  .dashboardClean(formTemplateId)
-                  .url
-              case InternalLink.NewForm =>
-                uk.gov.hmrc.gform.gform.routes.NewFormController
-                  .dashboardClean(evaluationContext.formTemplateId)
-                  .url
-              case InternalLink.NewSession =>
-                uk.gov.hmrc.gform.gform.routes.NewFormController
-                  .dashboardWithNewSession(evaluationContext.formTemplateId)
-                  .url
-              case InternalLink.SignOut =>
-                uk.gov.hmrc.gform.gform.routes.SignOutController
-                  .signOut(evaluationContext.formTemplateId)
-                  .url
-              case PageLink(id) =>
-                computePageLink(id, evaluationContext)
-              case InternalLink.Download(fileName) =>
-                uk.gov.hmrc.gform.gform.routes.DownloadController
-                  .downloadFile(
-                    evaluationContext.formTemplateId,
-                    evaluationContext.maybeAccessCode,
-                    fileName
-                  )
-                  .url
-              case InternalLink.Image(fileName) =>
-                uk.gov.hmrc.gform.gform.routes.ImageController
-                  .image(
-                    evaluationContext.formTemplateId,
-                    evaluationContext.maybeAccessCode,
-                    fileName
-                  )
-                  .url
-              case InternalLink.UrlLink(url) =>
-                uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
-            }
-          nonEmptyStringResult(StringResult(link))
-        case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
-        case DateFunction(dateFunc) =>
-          evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
-            case ExpressionResult.DateResult(localDate) =>
-              ExpressionResult.StringResult(dateFunc.toValue(localDate).toString)
-            case otherwise => otherwise
-          }
-        case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-        case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-        case AddressLens(formComponentId, details) =>
-          whenVisible(formComponentId) {
-            val atomic: ModelComponentId.Atomic =
-              formComponentId.modelComponentId.toAtomicFormComponentId(
-                if (evaluationContext.addressLookup(formComponentId.baseComponentId))
-                  details.toAddressAtom
-                else if (evaluationContext.overseasAddressLookup(formComponentId.baseComponentId))
-                  details.toOverseasAddressAtom
-                else
-                  PostcodeLookup.postcode
-              )
-            recData.variadicFormData
-              .get(atomic)
-              .collectFirst {
-                case VariadicValue.One(value) if value.nonEmpty =>
-                  ExpressionResult.StringResult(value)
+    def loop(expr: Expr): ExpressionResult = expr match {
+      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
+      case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
+      case Divide(field1: Expr, field2: Expr)      => unsupportedOperation("String")(expr)
+      case HideZeroDecimals(field1)                => loop(field1)
+      case IfElse(cond, field1: Expr, field2: Expr) =>
+        if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.addressLookup(formComponentId.baseComponentId) || evaluationContext
+            .overseasAddressLookup(formComponentId.baseComponentId) || evaluationContext
+            .addressLookup(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          val modelComponentId = formComponentId.modelComponentId
+          if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
+            val addresses =
+              recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
+                indexedComponentId =>
+                  getAddressResult(indexedComponentId)
               }
-              .getOrElse(ExpressionResult.empty)
+            ListResult(addresses)
+          } else {
+            val indexedComponentId = formComponentId.modelComponentId.indexedComponentId
+            getAddressResult(indexedComponentId)
           }
-        case LangCtx => StringResult(evaluationContext.lang.langADTToString)
-        case d @ DataRetrieveCtx(_, _) =>
-          val exprResult =
-            evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
-              DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
-                case Some(h :: Nil) => StringResult(h)
-                case Some(xs)       => ListResult(xs.map(StringResult))
-                case None           => Empty
-              }
-            }
-          nonEmptyExpressionResult(exprResult)
+        }
+      case FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.postcodeLookup(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          ExpressionResult.StringResult(
+            evaluationContext.thirdPartyData.addressLines(formComponentId).fold("")(_.mkString(", "))
+          )
+        }
+      case FormCtx(formComponentId: FormComponentId)
+          if evaluationContext.taxPeriodYear(formComponentId.baseComponentId) =>
+        whenVisible(formComponentId) {
+          evalTaxPeriodYear(formComponentId, recData, evaluationContext.messages)
+        }
+      case ctx @ FormCtx(formComponentId: FormComponentId) =>
+        get(ctx, fromVariadicValue, evaluationContext)
+      case Sum(field1: Expr) => unsupportedOperation("String")(expr)
+      case Count(formComponentId) =>
+        nonEmptyStringResult(
+          StringResult(
+            addToListCount(formComponentId, recData, evaluationContext)
+              .stringRepresentation(typeInfo, evaluationContext.messages)
+          )
+        )
+      case AuthCtx(value: AuthInfo) =>
+        nonEmptyExpressionResult(
+          AuthContextPrepop
+            .values(value, evaluationContext.retrievals, evaluationContext.thirdPartyData.itmpRetrievals)
+        )
+      case UserCtx(value: UserField) =>
+        nonEmptyStringResult(
+          StringResult(
+            UserCtxEvaluatorProcessor
+              .processEvaluation(evaluationContext.retrievals, value, evaluationContext.authConfig)
+          )
+        )
+      case Constant(value: String) => nonEmptyStringResult(StringResult(value))
+      case Value                   => Empty
+      case FormTemplateCtx(value: FormTemplateProp) =>
+        nonEmptyStringResult {
+          value match {
+            case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
+            case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
+            case FormTemplateProp.FileSizeLimit       => StringResult(evaluationContext.fileSizeLimit.value.toString)
+          }
+        }
 
-        case d @ DataRetrieveCount(_) =>
-          val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
-          StringResult(count.toString)
-
-        case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
-        case Typed(expr, tpe) =>
-          (expr, tpe) match {
-            case (Constant(value), ExplicitExprType.Sterling(_)) =>
-              nonEmptyStringResult(StringResult(TextFormatter.formatSterling(value)))
-            case (Constant(value), ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
-              nonEmptyStringResult(
-                StringResult(TextFormatter.formatNumberWithPrecise(value, fractionalDigits, roundingMode))
-              )
-            case _ => loop(expr)
+      case ParamCtx(queryParam) =>
+        nonEmptyStringResult(StringResult(evaluationContext.thirdPartyData.queryParams(queryParam)))
+      case LinkCtx(internalLink) =>
+        val link =
+          internalLink match {
+            case InternalLink.PrintSummaryPdf =>
+              uk.gov.hmrc.gform.gform.routes.SummaryController
+                .downloadPDF(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode)
+                .url
+            case InternalLink.PrintAcknowledgementPdf =>
+              uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+                .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
+                .url
+            case InternalLink.NewFormForTemplate(formTemplateId) =>
+              uk.gov.hmrc.gform.gform.routes.NewFormController
+                .dashboardClean(formTemplateId)
+                .url
+            case InternalLink.NewForm =>
+              uk.gov.hmrc.gform.gform.routes.NewFormController
+                .dashboardClean(evaluationContext.formTemplateId)
+                .url
+            case InternalLink.NewSession =>
+              uk.gov.hmrc.gform.gform.routes.NewFormController
+                .dashboardWithNewSession(evaluationContext.formTemplateId)
+                .url
+            case InternalLink.SignOut =>
+              uk.gov.hmrc.gform.gform.routes.SignOutController
+                .signOut(evaluationContext.formTemplateId)
+                .url
+            case PageLink(id) =>
+              computePageLink(id, evaluationContext)
+            case InternalLink.Download(fileName) =>
+              uk.gov.hmrc.gform.gform.routes.DownloadController
+                .downloadFile(
+                  evaluationContext.formTemplateId,
+                  evaluationContext.maybeAccessCode,
+                  fileName
+                )
+                .url
+            case InternalLink.Image(fileName) =>
+              uk.gov.hmrc.gform.gform.routes.ImageController
+                .image(
+                  evaluationContext.formTemplateId,
+                  evaluationContext.maybeAccessCode,
+                  fileName
+                )
+                .url
+            case InternalLink.UrlLink(url) =>
+              uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
           }
-        case CsvCountryCheck(fcId, column) =>
-          loop(FormCtx(fcId)) match {
-            case StringResult(value) =>
-              countryLookup(value, column, evaluationContext.lookupOptions, evaluationContext.lang)
-            case _ => Empty
-          }
-
-        case CsvOverseasCountryCheck(fcId, column) if evaluationContext.overseasAddressLookup(fcId.baseComponentId) =>
-          whenVisible(fcId) {
-            val indexedComponentId = fcId.modelComponentId.indexedComponentId
-            val addressAtoms: List[ModelComponentId.Atomic] = OverseasAddress.fields(indexedComponentId).toList
-            val variadicValues: List[Option[VariadicValue]] =
-              addressAtoms.filter(_.atom == OverseasAddress.country).map(atom => recData.variadicFormData.get(atom))
-            variadicValues
-              .collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
-              .headOption
-              .map(country => countryLookup(country, column, evaluationContext.lookupOptions, evaluationContext.lang))
-              .getOrElse(Empty)
-          }
-        case CsvOverseasCountryCheck(fcId, column) => Empty
-        case CsvCountryCountCheck(fcId, column, value) =>
-          val count = addToListValues(fcId, recData)
-            .filter(str =>
-              countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
-                case StringResult(r) => r == value
-                case _               => false
-              }
+        nonEmptyStringResult(StringResult(link))
+      case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
+      case DateFunction(dateFunc) =>
+        evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateFunc.dateExpr) match {
+          case ExpressionResult.DateResult(localDate) =>
+            ExpressionResult.StringResult(dateFunc.toValue(localDate).toString)
+          case otherwise => otherwise
+        }
+      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case AddressLens(formComponentId, details) =>
+        whenVisible(formComponentId) {
+          val atomic: ModelComponentId.Atomic =
+            formComponentId.modelComponentId.toAtomicFormComponentId(
+              if (evaluationContext.addressLookup(formComponentId.baseComponentId))
+                details.toAddressAtom
+              else if (evaluationContext.overseasAddressLookup(formComponentId.baseComponentId))
+                details.toOverseasAddressAtom
+              else
+                PostcodeLookup.postcode
             )
-            .size
-          StringResult(s"$count")
-        case IndexOf(fcId, index) =>
-          loop(FormCtx(fcId)) match {
-            case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-            case _              => unsupportedOperation("String")(expr)
+          recData.variadicFormData
+            .get(atomic)
+            .collectFirst {
+              case VariadicValue.One(value) if value.nonEmpty =>
+                ExpressionResult.StringResult(value)
+            }
+            .getOrElse(ExpressionResult.empty)
+        }
+      case LangCtx => StringResult(evaluationContext.lang.langADTToString)
+      case d @ DataRetrieveCtx(_, _) =>
+        val exprResult =
+          evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+            DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
+              case Some(h :: Nil) => StringResult(h)
+              case Some(xs)       => ListResult(xs.map(StringResult))
+              case None           => Empty
+            }
           }
-        case IndexOfDataRetrieveCtx(ctx, index) =>
-          loop(ctx) match {
-            case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-            case _              => unsupportedOperation("String")(expr)
-          }
-        case NumberedList(fcId)         => loop(FormCtx(fcId))
-        case BulletedList(fcId)         => loop(FormCtx(fcId))
-        case StringOps(expr, stringFnc) =>
-          val str = loop(expr).withStringResult("")(s =>
-            stringFnc match {
-              case StringFnc.Capitalize    => s.capitalize
-              case StringFnc.CapitalizeAll => s.split(' ').map(_.capitalize).mkString(" ")
-              case StringFnc.LowerCase     => s.toLowerCase
-              case StringFnc.UpperCase     => s.toUpperCase
-              case StringFnc.RemoveSpaces  => s.replaceAll(" ", "")
-              case StringFnc.SubString(beginIndex, endIndex) =>
-                s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+        nonEmptyExpressionResult(exprResult)
+
+      case d @ DataRetrieveCount(_) =>
+        val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
+        StringResult(count.toString)
+
+      case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
+      case Typed(expr, tpe) =>
+        (expr, tpe) match {
+          case (Constant(value), ExplicitExprType.Sterling(_)) =>
+            nonEmptyStringResult(StringResult(TextFormatter.formatSterling(value)))
+          case (Constant(value), ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
+            nonEmptyStringResult(
+              StringResult(TextFormatter.formatNumberWithPrecise(value, fractionalDigits, roundingMode))
+            )
+          case _ => loop(expr)
+        }
+      case CsvCountryCheck(fcId, column) =>
+        loop(FormCtx(fcId)) match {
+          case StringResult(value) =>
+            countryLookup(value, column, evaluationContext.lookupOptions, evaluationContext.lang)
+          case _ => Empty
+        }
+
+      case CsvOverseasCountryCheck(fcId, column) if evaluationContext.overseasAddressLookup(fcId.baseComponentId) =>
+        whenVisible(fcId) {
+          val indexedComponentId = fcId.modelComponentId.indexedComponentId
+          val addressAtoms: List[ModelComponentId.Atomic] = OverseasAddress.fields(indexedComponentId).toList
+          val variadicValues: List[Option[VariadicValue]] =
+            addressAtoms.filter(_.atom == OverseasAddress.country).map(atom => recData.variadicFormData.get(atom))
+          variadicValues
+            .collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
+            .headOption
+            .map(country => countryLookup(country, column, evaluationContext.lookupOptions, evaluationContext.lang))
+            .getOrElse(Empty)
+        }
+      case CsvOverseasCountryCheck(fcId, column) => Empty
+      case CsvCountryCountCheck(fcId, column, value) =>
+        val count = addToListValues(fcId, recData)
+          .filter(str =>
+            countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
+              case StringResult(r) => r == value
+              case _               => false
             }
           )
-          StringResult(str)
-//          }
-        case Concat(exprs) => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
-        case CountryOfItmpAddress =>
-          val itmpRetrievals = evaluationContext.thirdPartyData.itmpRetrievals
-          nonEmptyExpressionResult(
-            StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
-          )
-        case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
-        case ChoiceLabel(fcId)          => evalChoiceLabel(evaluationContext, fcId, booleanExprResolver, recData)
-        case _                          => unsupportedOperation("String")(expr)
-      }
+          .size
+        StringResult(s"$count")
+      case IndexOf(fcId, index) =>
+        loop(FormCtx(fcId)) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("String")(expr)
+        }
+      case IndexOfDataRetrieveCtx(ctx, index) =>
+        loop(ctx) match {
+          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
+          case _              => unsupportedOperation("String")(expr)
+        }
+      case NumberedList(fcId) => loop(FormCtx(fcId))
+      case BulletedList(fcId) => loop(FormCtx(fcId))
+      case StringOps(expr, stringFnc) =>
+        val str = loop(expr).withStringResult("")(s =>
+          stringFnc match {
+            case StringFnc.Capitalize    => s.capitalize
+            case StringFnc.CapitalizeAll => s.split(' ').map(_.capitalize).mkString(" ")
+            case StringFnc.LowerCase     => s.toLowerCase
+            case StringFnc.UpperCase     => s.toUpperCase
+            case StringFnc.RemoveSpaces  => s.replaceAll(" ", "")
+            case StringFnc.SubString(beginIndex, endIndex) =>
+              s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+          }
+        )
+        StringResult(str)
+
+      case Concat(exprs) => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
+      case CountryOfItmpAddress =>
+        val itmpRetrievals = evaluationContext.thirdPartyData.itmpRetrievals
+        nonEmptyExpressionResult(
+          StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
+        )
+      case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
+      case ChoiceLabel(fcId)          => evalChoiceLabel(evaluationContext, fcId, booleanExprResolver, recData)
+      case _                          => unsupportedOperation("String")(expr)
     }
 
     loop(typeInfo.expr)

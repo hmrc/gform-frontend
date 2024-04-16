@@ -49,8 +49,7 @@ object ExprPrettyPrint {
     case Multiply(field1: Expr, field2: Expr)    => field1.prettyPrint + " * " + field2.prettyPrint
     case Subtraction(field1: Expr, field2: Expr) => field1.prettyPrint + " - " + field2.prettyPrint
     case Divide(field1: Expr, field2: Expr)      => field1.prettyPrint + " / " + field2.prettyPrint
-    case HideZeroDecimals(field1: Expr) =>
-      "hideZeroDecimals(" + field1.prettyPrint + ")"
+    case HideZeroDecimals(field1: Expr)          => "hideZeroDecimals(" + field1.prettyPrint + ")"
     case IfElse(cond, field1: Expr, field2: Expr) =>
       "if(" + cond.prettyPrint + ") then " + field1.prettyPrint + " else " + field2.prettyPrint
     case Else(field1: Expr, field2: Expr)        => field1.prettyPrint + " else " + field2.prettyPrint
