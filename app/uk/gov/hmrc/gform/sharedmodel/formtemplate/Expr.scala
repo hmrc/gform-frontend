@@ -32,12 +32,10 @@ sealed trait Expr extends Product with Serializable {
       case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
       case Divide(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
-      case HideZeroDecimals(field1: Expr) =>
-        println("FIRST LOOP " + field1)
-        loop(field1)
-      case IfElse(_, field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
-      case Else(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
-      case FormCtx(_)                            => expr :: Nil
+      case HideZeroDecimals(field1: Expr)          => loop(field1)
+      case IfElse(_, field1: Expr, field2: Expr)   => loop(field1) ++ loop(field2)
+      case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
+      case FormCtx(_)                              => expr :: Nil
       case Sum(field1: Expr) =>
         field1 match {
           case FormCtx(formComponentId) =>

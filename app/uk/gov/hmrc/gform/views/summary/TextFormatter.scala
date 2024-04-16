@@ -96,6 +96,15 @@ object TextFormatter {
       currentValue.reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
     } else currentValue
 
+  def hideZeroDecimals(textConstraint: TextConstraint, intermediateValue: String): String =
+    textConstraint match {
+      case Number(_, _, _, _) | PositiveNumber(_, _, _, _) | Sterling(_, _) =>
+        val splitNumber = intermediateValue.split("\\.")
+        if (splitNumber.length == 2 && splitNumber.last.matches("^0*$")) stripDecimal(intermediateValue)
+        else intermediateValue
+      case _ => intermediateValue
+    }
+
   private def prependPrefix(
     prefix: Option[SmartString]
   )(implicit

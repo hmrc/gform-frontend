@@ -219,10 +219,8 @@ case class EvaluationResults(
         case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
         case Divide(field1: Expr, field2: Expr)      => loop(field1) / loop(field2)
         case HideZeroDecimals(field1: Expr) =>
-          println("IN HIDE ZERO DECIMALS")
           loop(field1).numberRepresentation match {
             case Some(value) =>
-              println("HIDE ZERO DECIMAL VALUE " + value.intValue)
               if (value.isValidInt) NumberResult(value.intValue).hideZeroDecimals() else NumberResult(value)
             case None => unsupportedOperation("Number")(expr)
           }
