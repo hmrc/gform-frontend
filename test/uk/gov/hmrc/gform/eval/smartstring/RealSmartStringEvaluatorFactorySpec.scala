@@ -37,11 +37,10 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, Horizontal, OptionData, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, Number, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
-import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
@@ -468,5 +467,122 @@ class RealSmartStringEvaluatorFactorySpec
 
     lazy val smartStringEvaluator: SmartStringEvaluator =
       factory.apply(formModelOptics.formModelVisibilityOptics)
+  }
+
+  "evaluate SmartString with FormCtx (type number) with hideZeroDecimals and Sterling text constraint" in new TestFixture {
+    lazy val numberField: FormComponent = buildFormComponentWithTextConstraint(
+      "numberField",
+      Value,
+      Sterling(RoundingMode.defaultRoundingMode, positiveOnly = false)
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(numberField.modelComponentId, "14.00")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(numberField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression("Smart string {0}", HideZeroDecimals(FormCtx(FormComponentId("numberField")))),
+        false
+      )
+
+    result shouldBe "Smart string £14"
+  }
+
+  "evaluate SmartString with FormCtx (type number) with hideZeroDecimals and Number text constraint" in new TestFixture {
+    lazy val numberField: FormComponent = buildFormComponentWithTextConstraint(
+      "numberField",
+      Value,
+      Number(11, 2, RoundingMode.defaultRoundingMode, None)
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(numberField.modelComponentId, "14.00")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(numberField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression("Smart string {0}", HideZeroDecimals(FormCtx(FormComponentId("numberField")))),
+        false
+      )
+
+    result shouldBe "Smart string 14"
+  }
+
+  "evaluate SmartString with FormCtx (type number) with hideZeroDecimals and Number with unit text constraint" in new TestFixture {
+    lazy val numberField: FormComponent = buildFormComponentWithTextConstraint(
+      "numberField",
+      Value,
+      Number(
+        11,
+        2,
+        RoundingMode.defaultRoundingMode,
+        Some(LocalisedString(Map(LangADT.En -> "litres", LangADT.Cy -> "litr")))
+      )
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(numberField.modelComponentId, "14.00")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(numberField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression("Smart string {0}", HideZeroDecimals(FormCtx(FormComponentId("numberField")))),
+        false
+      )
+
+    result shouldBe "Smart string 14 litres"
+  }
+
+  "evaluate SmartString with FormCtx (type number) with hideZeroDecimals and PositiveNumber text constraint" in new TestFixture {
+    lazy val numberField: FormComponent = buildFormComponentWithTextConstraint(
+      "numberField",
+      Value,
+      PositiveNumber(11, 2, RoundingMode.defaultRoundingMode, None)
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(numberField.modelComponentId, "14.00")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(numberField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression("Smart string {0}", HideZeroDecimals(FormCtx(FormComponentId("numberField")))),
+        false
+      )
+
+    result shouldBe "Smart string 14"
   }
 }

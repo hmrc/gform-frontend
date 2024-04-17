@@ -48,4 +48,15 @@ class ExprPrettyPrintSuite extends FunSuite {
       assertEquals(res, expected)
     }
   }
+
+  val expressions: List[(Expr, String)] = List(
+    HideZeroDecimals(FormCtx(FormComponentId("number1"))) -> "hideZeroDecimals(number1)"
+  )
+
+  expressions.map { case (expression, expected) =>
+    test(s"pretty print expression: $expression") {
+      val res = expression.prettyPrint
+      assertEquals(res, expected)
+    }
+  }
 }
