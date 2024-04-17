@@ -46,7 +46,8 @@ object Dependencies {
     "com.fasterxml.jackson.core"       % "jackson-databind"               % jacksonDatabindVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor"        % jacksonVersion,
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names" % jacksonVersion,
-    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion
+    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion,
+    "com.lihaoyi" %% "pprint" % "0.8.1"
   )
 
   val munitVersion = "0.7.29"
