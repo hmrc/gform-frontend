@@ -175,7 +175,6 @@ object Javascript {
         case Subtraction(a, b)      => compute("subtract", a, b)
         case Multiply(a, b)         => compute("multiply", a, b)
         case Divide(a, b)           => compute("divide", a, b)
-        case HideZeroDecimals(a)    => s"hideZeroDecimals(${computeExpr(a)})"
         case sum @ Sum(FormCtx(id)) => sumCalc(id, sum)
         case IfElse(cond, a, b) =>
           if (formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(cond))
