@@ -200,7 +200,8 @@ class SectionRenderingService(
       }
       .getOrElse(List(HtmlFormat.empty))
 
-    val (title, noPIITitle) = SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers)
+    val (title, noPIITitle) =
+      SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers, formModelOptics)
 
     val ff = fastForward match {
       case Nil                                     => Nil
@@ -313,7 +314,8 @@ class SectionRenderingService(
         value = Some(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
         content = content.Text(option.label.value()),
         checked = isChecked(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
-        attributes = dataLabelAttribute(option.label)
+        attributes =
+          dataLabelAttribute(option.label, formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
       )
     }
 
@@ -437,7 +439,11 @@ class SectionRenderingService(
     html.form.addToList(
       repeater.title.value(),
       repeater.expandedCaption.map(_.value()),
-      repeater.noPIITitle.fold(repeater.title.valueWithoutInterpolations)(_.value()),
+      repeater.noPIITitle.fold(
+        repeater.title.valueWithoutInterpolations(
+          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+        )
+      )(_.value()),
       bracket,
       formTemplate,
       recordTable,
@@ -563,7 +569,9 @@ class SectionRenderingService(
       maybeAccessCode,
       sectionNumber,
       page.sectionHeader(),
-      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
+      page.noPIITitle.fold(
+        page.title.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+      )(_.value()),
       snippetsForFields,
       javascript,
       envelopeId,
@@ -811,7 +819,11 @@ class SectionRenderingService(
       maybeAccessCode,
       formTemplate.sectionNumberZero,
       declarationPage.sectionHeader(),
-      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value()),
+      declarationPage.noPIITitle.fold(
+        declarationPage.title.valueWithoutInterpolations(
+          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+        )
+      )(_.value()),
       snippets,
       "",
       EnvelopeId(""),
@@ -905,7 +917,11 @@ class SectionRenderingService(
       maybeAccessCode,
       formTemplate.sectionNumberZero,
       declarationPage.sectionHeader(),
-      declarationPage.noPIITitle.fold(declarationPage.title.valueWithoutInterpolations)(_.value()),
+      declarationPage.noPIITitle.fold(
+        declarationPage.title.valueWithoutInterpolations(
+          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+        )
+      )(_.value()),
       snippets,
       "",
       EnvelopeId(""),
@@ -1142,7 +1158,9 @@ class SectionRenderingService(
       maybeAccessCode,
       formTemplate.sectionNumberZero,
       page.sectionHeader(),
-      page.noPIITitle.fold(page.title.valueWithoutInterpolations)(_.value()),
+      page.noPIITitle.fold(
+        page.title.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+      )(_.value()),
       snippets,
       "",
       EnvelopeId(""),
@@ -1272,7 +1290,8 @@ class SectionRenderingService(
               ei,
               obligations,
               upscanInitiate,
-              upscanData
+              upscanData,
+              ei.formModelOptics
             )
           case FileUpload(fileUploadProvider, _, _) =>
             ei.isFileUploadOnlyPage(validationResult) match {
@@ -1714,13 +1733,17 @@ class SectionRenderingService(
     }
 
     def isNumeric(v: TableValue): Boolean = {
-      val interpolationsAreNumeric = v.value.interpolations match {
-        case List(Typed(_, ExplicitExprType.Sterling(_)))     => true
-        case List(Typed(_, ExplicitExprType.Number(_, _)))    => true
-        case exprs if exprs.forall(isNumericFormComponentRef) => true // !! interpolations contain both en and cy data
-        case _                                                => false
-      }
-      interpolationsAreNumeric && v.value.valueWithoutInterpolations.trim.isEmpty()
+      val interpolationsAreNumeric =
+        v.value.interpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)) match {
+          case List(Typed(_, ExplicitExprType.Sterling(_)))     => true
+          case List(Typed(_, ExplicitExprType.Number(_, _)))    => true
+          case exprs if exprs.forall(isNumericFormComponentRef) => true // !! interpolations contain both en and cy data
+          case _                                                => false
+        }
+      interpolationsAreNumeric && v.value
+        .valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+        .trim
+        .isEmpty()
     }
 
     val normalisedTable = SectionRenderingService.normaliseTableComp(table, isVisibleValueRow)
@@ -1942,7 +1965,7 @@ class SectionRenderingService(
           _.zipWith(visibleOptionsWithIndex.map(_._1))((helpText, option) =>
             (
               option,
-              if (helpText.isEmpty) None
+              if (helpText.isEmpty(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))) None
               else Some(markDownParser(helpText))
             )
           )
@@ -1955,7 +1978,13 @@ class SectionRenderingService(
           _.toList.zipWithIndex.filter(h => visibleOptionsWithIndex.map(_._2).toList.contains(h._2)).map(_._1).toNel
         )
         .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
-          (option, if (hint.isEmpty) toHint(option.hint) else toHint(Some(hint)), helpText)
+          (
+            option,
+            if (hint.isEmpty(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)))
+              toHint(option.hint)
+            else toHint(Some(hint)),
+            helpText
+          )
         })
         .getOrElse(optionsWithHelpText.map { case (option, helpText) => (option, toHint(option.hint), helpText) })
 
@@ -2001,7 +2030,10 @@ class SectionRenderingService(
               content = content.Text(option.label.value()),
               checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(option.label),
+              attributes = dataLabelAttribute(
+                option.label,
+                ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              ),
               hint = maybeHint
             )
         }
@@ -2034,7 +2066,10 @@ class SectionRenderingService(
               content = content.Text(option.label.value()),
               checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
               conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(option.label),
+              attributes = dataLabelAttribute(
+                option.label,
+                ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              ),
               hint = maybeHint
             )
             if (
@@ -2092,7 +2127,8 @@ class SectionRenderingService(
     extraInfo: ExtraInfo,
     obligations: Obligations,
     upscanInitiate: UpscanInitiate,
-    upscanData: Map[FormComponentId, UpscanData]
+    upscanData: Map[FormComponentId, UpscanData],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit request: RequestHeader, message: Messages, l: LangADT, sse: SmartStringEvaluator) = {
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
     val nestedEi: FormComponentId => Int => ExtraInfo = formComponentId =>
@@ -2179,7 +2215,10 @@ class SectionRenderingService(
             content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(option.label),
+            attributes = dataLabelAttribute(
+              option.label,
+              formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+            ),
             hint = maybeHint
           )
       }
@@ -2204,7 +2243,10 @@ class SectionRenderingService(
             content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(option.label),
+            attributes = dataLabelAttribute(
+              option.label,
+              formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+            ),
             hint = maybeHint
           )
       }
@@ -3182,8 +3224,8 @@ class SectionRenderingService(
     }
   }
 
-  private def dataLabelAttribute(label: SmartString): Map[String, String] =
-    dataLabelAttribute(label.localised.value(LangADT.En))
+  private def dataLabelAttribute(label: SmartString, resolver: BooleanExpr => Boolean): Map[String, String] =
+    dataLabelAttribute(label.localised(resolver).value(LangADT.En))
   private def dataLabelAttribute(label: String): Map[String, String] =
     Map("data-label" -> label.replaceAll("''", "'")) // Unescape single-quote
 
@@ -3266,7 +3308,8 @@ object SectionRenderingService {
   def atlCyaTitles[T <: PageMode](
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
-    checkYourAnswers: CheckYourAnswers[T]
+    checkYourAnswers: CheckYourAnswers[T],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -3284,8 +3327,9 @@ object SectionRenderingService {
         checkYourAnswers.expandedNoPIITitle.fold(messages("summary.checkYourAnswers"))(_.value())
       else
         checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
-          case Some(value) => value.valueWithoutInterpolations
-          case None        => messages("summary.checkYourAnswers")
+          case Some(value) =>
+            value.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+          case None => messages("summary.checkYourAnswers")
         })(_.value())
 
     (title, noPIITitle)

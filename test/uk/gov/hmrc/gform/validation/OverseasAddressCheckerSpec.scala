@@ -117,8 +117,8 @@ class OverseasAddressCheckerSpec
   private val lookupRegistry = new LookupRegistry(Map.empty)
 
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
   }
 
   private def componentsValidator(

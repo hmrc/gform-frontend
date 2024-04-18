@@ -48,18 +48,18 @@ object ExpandUtils {
   def modelComponentIdFromFormComponentId(formComponentId: FormComponentId): ModelComponentId =
     toModelComponentId(formComponentId.value)
 
-  def expandSmartString(smartString: SmartString, index: Int, ids: List[FormComponentId]): SmartString = {
-    val interpolations: List[Expr] = smartString.interpolations.map(expr => ExprUpdater(expr, index, ids))
-    smartString.copy(interpolations = interpolations).replace("$n", index.toString)
-  }
+  def expandSmartString(smartString: SmartString, index: Int, ids: List[FormComponentId]): SmartString =
+    smartString
+      .updateInterpolations(expr => ExprUpdater(expr, index, ids))
+      .replace("$n", index.toString)
 
-  def expandDataRetrieve(smartString: SmartString, index: Int): SmartString = {
-    val interpolations: List[Expr] = smartString.interpolations.map {
-      case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, index)
-      case otherwise                   => otherwise
-    }
-    smartString.copy(interpolations = interpolations).replace("$n", index.toString)
-  }
+  def expandDataRetrieve(smartString: SmartString, index: Int): SmartString =
+    smartString
+      .updateInterpolations {
+        case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, index)
+        case otherwise                   => otherwise
+      }
+      .replace("$n", index.toString)
 
   def expandGroup[S <: SourceOrigin](fc: FormComponent, group: Group, data: VariadicFormData[S]): List[FormComponent] =
     (1 to group.repeatsMax.getOrElse(1)).toList.flatMap { index =>

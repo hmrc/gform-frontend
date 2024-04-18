@@ -854,7 +854,11 @@ case class EvaluationResults(
     val result = recData.variadicFormData
       .many(fcId.modelComponentId)
       .map(
-        _.map(value => maybeChoiceM.fold("")(choiceM => choiceM(value).rawValue(evaluationContext.lang)))
+        _.map(value =>
+          maybeChoiceM.fold("")(choiceM =>
+            choiceM(value).rawValue(booleanExprResolver.resolve(_))(evaluationContext.lang)
+          )
+        )
           .mkString("")
       )
       .getOrElse("")

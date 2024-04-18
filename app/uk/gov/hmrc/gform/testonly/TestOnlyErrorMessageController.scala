@@ -145,15 +145,19 @@ class TestOnlyErrorMessageController(
           case IsText(t) => t.constraint.getClass().toString
           case othewise  => othewise.toString
         }) + "mandatory: " + formComponent.mandatory.toString,
-        label = formComponent.label.rawValue,
-        shortName = formComponent.shortName.map(_.rawValue).getOrElse(""),
-        errorShortName = formComponent.errorShortName.map(_.rawValue).getOrElse(""),
-        errorShortNameStart = formComponent.errorShortNameStart.map(_.rawValue).getOrElse(""),
-        errorExample = formComponent.errorExample.map(_.rawValue).getOrElse(""),
-        errorMessage = formComponent.errorMessage.map(_.rawValue).getOrElse(""),
+        label = formComponent.label.rawDefaultValue,
+        shortName = formComponent.shortName.map(_.rawDefaultValue).getOrElse(""),
+        errorShortName = formComponent.errorShortName.map(_.rawDefaultValue).getOrElse(""),
+        errorShortNameStart = formComponent.errorShortNameStart.map(_.rawDefaultValue).getOrElse(""),
+        errorExample = formComponent.errorExample.map(_.rawDefaultValue).getOrElse(""),
+        errorMessage = formComponent.errorMessage.map(_.rawDefaultValue).getOrElse(""),
         messages = messages,
-        validators =
-          formComponent.validators.map(s => (s.errorMessage.rawValue(LangADT.En), s.errorMessage.rawValue(LangADT.Cy)))
+        validators = formComponent.validators.map(s =>
+          (
+            s.errorMessage.rawDefaultValue(LangADT.En),
+            s.errorMessage.rawDefaultValue(LangADT.Cy)
+          )
+        )
       )
 
     def make(formComponent: FormComponent, gformError: GformError, inputBaseComponentId: Option[String])(implicit

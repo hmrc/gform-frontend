@@ -28,7 +28,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
 
     def fromSingleton(singleton: Singleton[_]): List[Expr] = {
       val page = singleton.page
-      val pageExprs = page.title.interpolations ++ fromOption(
+      val pageExprs = page.title.allInterpolations ++ fromOption(
         page.description,
         page.shortName,
         page.caption,

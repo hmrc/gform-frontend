@@ -64,18 +64,19 @@ object TextFormatter {
       // format: on
     }
 
-  def componentTextForSummary(
+  def componentTextForSummary[D <: DataOrigin](
     currentValue: String,
     textConstraint: TextConstraint,
     prefix: Option[SmartString],
-    suffix: Option[SmartString]
+    suffix: Option[SmartString],
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
     l: LangADT,
     sse: SmartStringEvaluator
   ): String =
     (textConstraint, prefix, suffix) match {
       // format: off
-      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised).orElse(unit))
+      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised(formModelVisibilityOptics.booleanExprResolver.resolve(_))).orElse(unit))
       case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
       case (_: WholeSterling, _, _)                                                  => stripDecimal(formatSterling(currentValue))
       case (UkSortCodeFormat, _, _)                                                  => formatUkSortCode(currentValue)
@@ -160,7 +161,8 @@ object TextFormatter {
     val currentValue = validationResult.getCurrentValue.getOrElse("")
 
     def getValue(formComponent: FormComponent): List[String] = formComponent match {
-      case IsText(text)     => componentTextForSummary(currentValue, text.constraint, prefix, suffix) :: Nil
+      case IsText(text) =>
+        componentTextForSummary(currentValue, text.constraint, prefix, suffix, formModelVisibilityOptics) :: Nil
       case IsFileUpload(_)  => envelope.userFileName(formComponent) :: Nil
       case IsChoice(choice) => choice.renderToString(formComponent, validationResult, formModelVisibilityOptics)
       case IsAddress(address) =>
