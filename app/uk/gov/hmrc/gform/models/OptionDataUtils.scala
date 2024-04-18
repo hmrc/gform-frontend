@@ -45,10 +45,11 @@ object OptionDataUtils {
   def determineBaseIds[D <: DataOrigin](optionData: OptionData)(implicit
     fmvo: FormModelVisibilityOptics[D]
   ): List[FormComponentId] =
-    (optionData.label :: optionData.hint.toList).flatMap(_.interpolations.flatMap(_.leafs(fmvo.formModel)).collect {
-      case FormCtx(fcId) =>
-        fcId
-    })
+    (optionData.label :: optionData.hint.toList)
+      .flatMap(_.interpolations(fmvo.booleanExprResolver.resolve(_)).flatMap(_.leafs(fmvo.formModel)).collect {
+        case FormCtx(fcId) =>
+          fcId
+      })
 
   def expandValueBased[D <: DataOrigin](valueBased: OptionData.ValueBased, dynamic: Dynamic)(implicit
     fmvo: FormModelVisibilityOptics[D],

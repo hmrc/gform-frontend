@@ -31,7 +31,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
     def fromRcElements(revealingChoiceElements: List[RevealingChoiceElement]): List[ExprMetadata] =
       revealingChoiceElements.toList.flatMap { case RevealingChoiceElement(choice, _, _, _) =>
         // We don't need to do anything about revealingFields, since they are expanded, see FormModelExpander[DependencyGraphVerification]
-        toPlainExprs(choice.label.interpolations)
+        toPlainExprs(choice.label.allInterpolations)
       }
 
     def fromGroup(group: Group): List[ExprMetadata] = {
@@ -42,10 +42,10 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       toPlainExprs(exprs)
     }
 
-    def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = nel.toList.flatMap(_.interpolations)
+    def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = nel.toList.flatMap(_.allInterpolations)
 
     val fcExprs: List[Expr] =
-      fc.label.interpolations ++
+      fc.label.allInterpolations ++
         fromOption(
           fc.helpText,
           fc.shortName,
@@ -57,7 +57,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
 
     val fcSelfRefferingExprs: List[Expr] =
       fromOption(fc.errorMessage) ++
-        fc.validators.flatMap(_.errorMessage.interpolations)
+        fc.validators.flatMap(_.errorMessage.allInterpolations)
 
     def fcLookupExpr(selectionCriteria: Option[List[SelectionCriteria]]): List[ExprMetadata] =
       selectionCriteria.fold(List.empty[ExprMetadata]) { selectionCriterias =>
@@ -80,13 +80,13 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
           optionHelpText.fold(List.empty[Expr])(fromNel)
         )
       case IsInformationMessage(InformationMessage(_, infoText)) =>
-        toPlainExprs(infoText.interpolations)
+        toPlainExprs(infoText.allInterpolations)
       case HasExpr(expr) => toPlainExprs(expr :: Nil)
       case IsMiniSummaryList(MiniSummaryList(rows)) =>
         toPlainExprs(
-          (rows.collect { case MiniSummaryRow.ValueRow(Some(key), _, _, _) => key.interpolations }).flatten,
+          (rows.collect { case MiniSummaryRow.ValueRow(Some(key), _, _, _) => key.allInterpolations }).flatten,
           (rows.collect { case MiniSummaryRow.SmartStringRow(Some(key), v, _, _) =>
-            key.interpolations ++ v.interpolations
+            key.allInterpolations ++ v.allInterpolations
           }).flatten,
           rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(e), _, _) => e },
           rows.collect { case MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(e), _, _) => e }
@@ -97,10 +97,10 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
           (for {
             row   <- rows
             value <- row.values
-            expr  <- value.value.interpolations
+            expr  <- value.value.allInterpolations
           } yield expr),
-          header.flatMap(_.label.interpolations),
-          summaryValue.interpolations
+          header.flatMap(_.label.allInterpolations),
+          summaryValue.allInterpolations
         )
       case IsOverseasAddress(OverseasAddress(_, _, _, Some(e), _, _)) => toPlainExprs(e :: Nil)
       case IsAddress(Address(_, _, _, Some(e)))                       => toPlainExprs(e :: Nil)

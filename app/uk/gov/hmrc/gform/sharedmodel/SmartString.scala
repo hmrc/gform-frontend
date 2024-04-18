@@ -16,37 +16,109 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.models.ExpandUtils
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, Expr, FormComponentId }
+import julienrf.json.derived
 
 import java.text.MessageFormat
 
-case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
-  def replace(toReplace: String, replaceWith: String): SmartString =
+case class SmartStringInternal(localised: LocalisedString, interpolations: List[Expr]) {
+  def replace(toReplace: String, replaceWith: String): SmartStringInternal =
     copy(localised = localised.replace(toReplace, replaceWith))
 
   def rawValue(implicit l: LangADT): String = localised.value(l)
 
   def isEmpty(implicit l: LangADT): Boolean = rawValue.isEmpty
 
+  def transform(fEn: String => String, fCy: String => String): SmartStringInternal =
+    copy(localised = localised.transform(fEn, fCy))
+}
+
+object SmartStringInternal {
+  val empty: SmartStringInternal = SmartStringInternal(LocalisedString.empty, Nil)
+
+  val blank: SmartStringInternal = SmartStringInternal(LocalisedString(Map(LangADT.En -> "", LangADT.Cy -> "")), Nil)
+
+  implicit val format: Format[SmartStringInternal] = Json.format[SmartStringInternal]
+}
+
+sealed trait SmartString {
+  private def fold[B](f: SmartString.SmartStringBase => B)(g: SmartString.SmartStringCond => B): B =
+    this match {
+      case n: SmartString.SmartStringBase => f(n)
+      case r: SmartString.SmartStringCond => g(r)
+    }
+
+  private def resolvedInternal(resolver: BooleanExpr => Boolean) = fold[SmartStringInternal](ssb => ssb.internal)(ssc =>
+    ssc.ifConditions.find { case (b, _) => resolver(b) }.map(_._2).getOrElse(ssc.elseCondition)
+  )
+
   def expand(index: Int, baseIds: List[FormComponentId]) = ExpandUtils.expandSmartString(this, index, baseIds)
 
   def expandDataRetrieve(index: Int) = ExpandUtils.expandDataRetrieve(this, index)
 
-  def valueWithoutInterpolations(implicit l: LangADT): String = {
+  def updateInterpolations(f: Expr => Expr): SmartString =
+    fold[SmartString](ssb =>
+      SmartString.SmartStringBase(ssb.internal.copy(interpolations = ssb.internal.interpolations.map(f)))
+    )(ssc =>
+      SmartString.SmartStringCond(
+        ssc.ifConditions.map { case (b, ssi) => (b, ssi.copy(interpolations = ssi.interpolations.map(f))) },
+        ssc.elseCondition.copy(interpolations = ssc.elseCondition.interpolations.map(f))
+      )
+    )
+
+  def replace(toReplace: String, replaceWith: String): SmartString =
+    fold[SmartString](ssb => SmartString.SmartStringBase(ssb.internal.replace(toReplace, replaceWith)))(ssc =>
+      SmartString.SmartStringCond(
+        ssc.ifConditions.map { case (b, ssi) => (b, ssi.replace(toReplace, replaceWith)) },
+        ssc.elseCondition.replace(toReplace, replaceWith)
+      )
+    )
+
+  def valueWithoutInterpolations(resolver: BooleanExpr => Boolean)(implicit l: LangADT): String = {
     import scala.jdk.CollectionConverters._
-    new MessageFormat(rawValue(l)).format(interpolations.map(_ => "").asJava.toArray)
+    val internal = resolvedInternal(resolver)
+    new MessageFormat(internal.rawValue(l)).format(internal.interpolations.map(_ => "").asJava.toArray)
   }
 
+  def isEmpty(resolver: BooleanExpr => Boolean)(implicit l: LangADT): Boolean = resolvedInternal(resolver).isEmpty
+
+  def interpolations(resolver: BooleanExpr => Boolean): List[Expr] = resolvedInternal(resolver).interpolations
+  def localised(resolver: BooleanExpr => Boolean): LocalisedString = resolvedInternal(resolver).localised
+
+  def allInterpolations: List[Expr] = fold[List[Expr]](ssb => ssb.internal.interpolations)(ssc =>
+    ssc.ifConditions.flatMap { case (_, ssi) => ssi.interpolations } ++ ssc.elseCondition.interpolations
+  )
+
+  def rawValue(resolver: BooleanExpr => Boolean)(implicit l: LangADT): String =
+    resolvedInternal(resolver).rawValue(l)
+  def rawDefaultValue(implicit l: LangADT): String = resolvedInternal(_ => false).rawValue(l)
+
   def transform(fEn: String => String, fCy: String => String): SmartString =
-    copy(localised = localised.transform(fEn, fCy))
+    fold[SmartString](ssb => SmartString.SmartStringBase(ssb.internal.transform(fEn, fCy)))(ssc =>
+      SmartString.SmartStringCond(
+        ssc.ifConditions.map { case (b, ssi) => (b, ssi.transform(fEn, fCy)) },
+        ssc.elseCondition.transform(fEn, fCy)
+      )
+    )
+
 }
 
 object SmartString {
-  val empty: SmartString = SmartString(LocalisedString.empty, Nil)
 
-  val blank: SmartString = SmartString(LocalisedString(Map(LangADT.En -> "", LangADT.Cy -> "")), Nil)
+  case class SmartStringBase(internal: SmartStringInternal) extends SmartString
+  case class SmartStringCond(ifConditions: List[(BooleanExpr, SmartStringInternal)], elseCondition: SmartStringInternal)
+      extends SmartString
 
-  implicit val format: Format[SmartString] = Json.format[SmartString]
+  val empty: SmartString = SmartStringBase(SmartStringInternal(LocalisedString.empty, Nil))
+
+  val blank: SmartString = SmartStringBase(
+    SmartStringInternal(LocalisedString(Map(LangADT.En -> "", LangADT.Cy -> "")), Nil)
+  )
+
+  def apply(localised: LocalisedString, interpolations: List[Expr]): SmartString =
+    SmartStringBase(SmartStringInternal(localised, interpolations))
+
+  implicit val smartStringFormat: OFormat[SmartString] = derived.oformat()
 }

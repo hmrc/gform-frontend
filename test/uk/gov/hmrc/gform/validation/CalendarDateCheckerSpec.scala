@@ -57,8 +57,8 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   )
 
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
-    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
+    override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
   }
 
   val environment = Environment.simple()
