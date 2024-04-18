@@ -360,4 +360,37 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     val result = TextFormatter.componentTextForSummary("value", shortText, None, None)
     result shouldBe "value"
   }
+
+  "hideZeroDecimals" should "return correct number string for Sterling" in {
+    val textConstraint: TextConstraint = Sterling(RoundingMode.defaultRoundingMode, positiveOnly = false)
+    val result = TextFormatter.hideZeroDecimals(textConstraint, "123.00")
+
+    result shouldBe "123"
+  }
+
+  it should "return correct number string for Number" in {
+    val textConstraint: TextConstraint = Number(11, 2, RoundingMode.defaultRoundingMode, None)
+    val result = TextFormatter.hideZeroDecimals(textConstraint, "123.00")
+
+    result shouldBe "123"
+  }
+
+  it should "return correct number string for PositiveNumber" in {
+    val textConstraint: TextConstraint = PositiveNumber(11, 2, RoundingMode.defaultRoundingMode, None)
+    val result = TextFormatter.hideZeroDecimals(textConstraint, "123.00")
+
+    result shouldBe "123"
+  }
+
+  it should "return correct number string for Number with unit" in {
+    val textConstraint: TextConstraint = Number(
+      11,
+      2,
+      RoundingMode.defaultRoundingMode,
+      Some(LocalisedString(Map(LangADT.En -> "litres", LangADT.Cy -> "litr")))
+    )
+    val result = TextFormatter.hideZeroDecimals(textConstraint, "123.00")
+
+    result shouldBe "123"
+  }
 }

@@ -131,7 +131,11 @@ private class Executor(
     }
 
     val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
-      TextFormatter.componentTextReadonly(interpolated, textConstraint)(l)
+      val intermediateValue: String = TextFormatter.componentTextReadonly(interpolated, textConstraint)(l)
+      expr match {
+        case HideZeroDecimals(_) => TextFormatter.hideZeroDecimals(textConstraint, intermediateValue)
+        case _                   => intermediateValue
+      }
     }
 
     expr match {

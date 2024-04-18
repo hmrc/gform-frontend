@@ -691,7 +691,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
         (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
         (toModelComponentId("1_addToListField1"), VariadicValue.One("Hello")),
-        (toModelComponentId("2_addToListField1"), VariadicValue.One("World"))
+        (toModelComponentId("2_addToListField1"), VariadicValue.One("World")),
+        (toModelComponentId("amount"), VariadicValue.One("14.00")),
+        (toModelComponentId("amountString"), VariadicValue.One("Fourteen"))
       )
     )
 
@@ -761,6 +763,30 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         Map.empty[Expr, ExpressionResult],
         RepeatedComponentsDetails.empty,
         "convert param to Sterling (fail when param is not a convertible to number)"
+      ),
+      (
+        TypeInfo(
+          HideZeroDecimals(FormCtx(FormComponentId("amount"))),
+          StaticTypeData(ExprType.number, Some(Sterling(RoundingMode.Down, false)))
+        ),
+        recData,
+        evaluationContext,
+        NumberResult(14.00),
+        Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
+        "use hide zero decimals without fail on number field"
+      ),
+      (
+        TypeInfo(
+          HideZeroDecimals(FormCtx(FormComponentId("amountString"))),
+          StaticTypeData(ExprType.number, Some(Sterling(RoundingMode.Down, false)))
+        ),
+        recData,
+        evaluationContext,
+        ExpressionResult.Invalid("Number - cannot convert 'Fourteen' to number"),
+        Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
+        "use hide zero decimals with graceful failure on string field"
       )
     )
     forAll(table) {

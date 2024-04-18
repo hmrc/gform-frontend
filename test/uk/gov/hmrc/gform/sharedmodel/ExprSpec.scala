@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Expr, FormComponentId, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Expr, FormComponentId, FormCtx, HideZeroDecimals }
 
 class ExprSpec extends Spec {
 
@@ -64,5 +64,22 @@ class ExprSpec extends Spec {
   it should "read FormCtx from json" in {
     val res: JsResult[Expr] = implicitly[Reads[Expr]].reads(formJson)
     res should beJsSuccess[Expr](formCtx)
+  }
+
+  private val hideZeroDecimals = HideZeroDecimals(FormCtx(FormComponentId("fieldA")))
+  private val hideZeroDecimalsJson = Json.obj(
+    "HideZeroDecimals" -> Json.obj(
+      "expr" -> Json.obj("FormCtx" -> Json.obj("formComponentId" -> "fieldA"))
+    )
+  )
+
+  it should "write HideZeroDecimals case class to json" in {
+    val res: JsValue = implicitly[Writes[Expr]].writes(hideZeroDecimals)
+    res should be(hideZeroDecimalsJson)
+  }
+
+  it should "read HideZeroDecimals case class from json (coming from mongo)" in {
+    val res: JsResult[Expr] = implicitly[Reads[Expr]].reads(hideZeroDecimalsJson)
+    res should beJsSuccess[Expr](hideZeroDecimals)
   }
 }

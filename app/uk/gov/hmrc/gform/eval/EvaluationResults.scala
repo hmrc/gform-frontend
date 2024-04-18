@@ -217,6 +217,7 @@ case class EvaluationResults(
       case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
       case Divide(field1: Expr, field2: Expr)      => loop(field1) / loop(field2)
+      case HideZeroDecimals(field1: Expr)          => loop(field1)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
@@ -373,6 +374,7 @@ case class EvaluationResults(
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
       case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
       case Divide(field1: Expr, field2: Expr)      => unsupportedOperation("String")(expr)
+      case HideZeroDecimals(field1)                => loop(field1)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)

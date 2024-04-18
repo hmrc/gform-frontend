@@ -181,6 +181,14 @@ trait ExampleAuthConfig {
   def buildFormComponent(name: String, expr: Expr, instruction: Option[Instruction] = None): FormComponent =
     buildFormComponent(name, Text(TextConstraint.default, expr), instruction)
 
+  def buildFormComponentWithTextConstraint(
+    name: String,
+    expr: Expr,
+    textConstraint: TextConstraint,
+    instruction: Option[Instruction] = None
+  ): FormComponent =
+    buildFormComponent(name, Text(textConstraint, expr), instruction)
+
   def buildFormComponent(name: String, componentType: ComponentType, instruction: Option[Instruction]): FormComponent =
     FormComponent(
       FormComponentId(name),

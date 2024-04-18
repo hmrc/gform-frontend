@@ -32,6 +32,7 @@ sealed trait Expr extends Product with Serializable {
       case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
       case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
       case Divide(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
+      case HideZeroDecimals(field1: Expr)          => loop(field1)
       case IfElse(_, field1: Expr, field2: Expr)   => loop(field1) ++ loop(field2)
       case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
       case FormCtx(_)                              => expr :: Nil
@@ -92,6 +93,7 @@ sealed trait Expr extends Product with Serializable {
     case Multiply(field1: Expr, field2: Expr)    => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Subtraction(field1: Expr, field2: Expr) => field1.leafs(formModel) ++ field2.leafs(formModel)
     case Divide(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
+    case HideZeroDecimals(field1: Expr)          => field1.leafs(formModel)
     case IfElse(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs(formModel)) ++
         field1.leafs(formModel) ++ field2.leafs(formModel)
@@ -144,6 +146,7 @@ sealed trait Expr extends Product with Serializable {
     case Multiply(field1: Expr, field2: Expr)      => field1.sums ++ field2.sums
     case Subtraction(field1: Expr, field2: Expr)   => field1.sums ++ field2.sums
     case Divide(field1: Expr, field2: Expr)        => field1.sums ++ field2.sums
+    case HideZeroDecimals(field1: Expr)            => field1.sums
     case IfElse(cond, field1: Expr, field2: Expr)  => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
     case Else(field1: Expr, field2: Expr)          => field1.sums ++ field2.sums
     case FormCtx(formComponentId: FormComponentId) => Nil
@@ -187,6 +190,7 @@ sealed trait Expr extends Product with Serializable {
     case Multiply(field1: Expr, field2: Expr)    => field1.leafs() ++ field2.leafs()
     case Subtraction(field1: Expr, field2: Expr) => field1.leafs() ++ field2.leafs()
     case Divide(field1: Expr, field2: Expr)      => field1.leafs() ++ field2.leafs()
+    case HideZeroDecimals(field1: Expr)          => field1.leafs()
     case IfElse(cond, field1: Expr, field2: Expr) =>
       cond.allExpressions.flatMap(_.leafs()) ++
         field1.leafs() ++ field2.leafs()
@@ -234,6 +238,7 @@ final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
 final case class Subtraction(field1: Expr, field2: Expr) extends Expr
 final case class Divide(field1: Expr, field2: Expr) extends Expr
+final case class HideZeroDecimals(expr: Expr) extends Expr
 final case class IfElse(cond: BooleanExpr, field1: Expr, field2: Expr) extends Expr
 final case class Else(field1: Expr, field2: Expr) extends Expr
 final case class FormCtx(formComponentId: FormComponentId) extends Expr
