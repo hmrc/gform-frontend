@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.implicits._
 import play.api.Configuration
 import play.api.i18n.{ I18nSupport, Lang }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.mvc.{ Action, ActionBuilder, AnyContent, ControllerComponents, Request }
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -42,7 +42,8 @@ class LanguageSwitchController(
   lookupRegistry: LookupRegistry,
   gformConnector: GformConnector,
   config: FrontendAppConfig,
-  controllerComponents: ControllerComponents
+  controllerComponents: ControllerComponents,
+  actionBuilder: ActionBuilder[Request, AnyContent]
 )(implicit ec: ExecutionContext)
     extends LanguageController(languageUtils, controllerComponents) with FrontendHeaderCarrierProvider
     with I18nSupport {
@@ -56,8 +57,35 @@ class LanguageSwitchController(
     maybeAccessCode: Option[AccessCode],
     language: String
   ): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => l => cache => sse => formModelOptics =>
+    actionBuilder.async(request =>
+      auth
+        .isLoggedIn(request)
+        .flatMap(isLoggedIn =>
+          if (isLoggedIn) {
+            // Presence of formTemplateId in the request doesn't guarantee the user data form exists
+            // We need to be sure that call to authAndRetrieveForm will succeed for language switch to occur
+            switchLanguageWithDataChange(formTemplateId, maybeAccessCode, language)(request)
+          } else {
+            // We are not logged in, let's just switch the language
+            switchToLanguage(language)(request)
+          }
+        )
+    )
+
+  def switchToLanguageNoDataChange(language: String): Action[AnyContent] =
+    switchToLanguage(language)
+
+  private def switchLanguageWithDataChange(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    language: String
+  ): Action[AnyContent] =
+    auth
+      .authAndRetrieveForm[SectionSelectorType.Normal](
+        formTemplateId,
+        maybeAccessCode,
+        OperationWithForm.EditForm
+      ) { implicit request => l => cache => sse => formModelOptics =>
         val lookups: List[(FormComponentId, Register)] =
           formModelOptics.formModelRenderPageOptics.allFormComponents.collect {
             case fc @ IsText(Text(Lookup(register, _), _, _, _, _, _)) => fc.id -> register
@@ -68,8 +96,8 @@ class LanguageSwitchController(
 
         maybeLanguageToSwitchTo
           .map { languageToSwitchTo =>
-            val switchedLabel: List[(ModelComponentId, LookupLabel)] = lookups.flatMap {
-              case (formComponentId, register) =>
+            val switchedLabel: List[(ModelComponentId, LookupLabel)] =
+              lookups.flatMap { case (formComponentId, register) =>
                 val modelComponentId = formComponentId.modelComponentId
                 val formField: FormField =
                   formModelOptics.formModelRenderPageOptics.toFormField(modelComponentId)
@@ -91,7 +119,7 @@ class LanguageSwitchController(
                     }
                   }
                 }
-            }
+              }
 
             val newFormData: List[FormField] = switchedLabel.map { case (modelComponentId, lookupLabel) =>
               FormField(modelComponentId, lookupLabel.label)
@@ -113,8 +141,5 @@ class LanguageSwitchController(
           .getOrElse {
             switchToLanguage(language)(request)
           }
-    }
-
-  def switchToLanguageNoDataChange(language: String): Action[AnyContent] =
-    switchToLanguage(language)
+      }
 }

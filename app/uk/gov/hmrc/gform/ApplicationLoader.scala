@@ -210,7 +210,8 @@ class ApplicationModule(context: Context)
     lookupRegistry,
     errResponder,
     countryLookupOptions,
-    englishMessages
+    englishMessages,
+    this
   )
 
   private val testOnlyModule = new TestOnlyModule(

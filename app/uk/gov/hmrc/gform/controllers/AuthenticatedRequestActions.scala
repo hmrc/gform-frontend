@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
+import shapeless.syntax.typeable._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2._
@@ -55,6 +56,7 @@ import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait AuthenticatedRequestActionsAlgebra[F[_]] {
+  def isLoggedIn(request: Request[AnyContent]): Future[Boolean]
   def refreshSession(formTemplateId: FormTemplateId): Action[AnyContent]
 
   def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
@@ -94,6 +96,22 @@ class AuthenticatedRequestActions(
 ) extends AuthenticatedRequestActionsAlgebra[Future] with AuthorisedFunctions {
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  def isLoggedIn(request: Request[AnyContent]): Future[Boolean] = {
+    implicit val r: Request[AnyContent] = request
+    implicit val lang: LangADT = getCurrentLanguage(request)
+    val formTemplateContext = request.attrs(FormTemplateKey)
+    for {
+      authResult <- authService
+                      .authenticateAndAuthorise(
+                        formTemplateContext,
+                        getAffinityGroup,
+                        getGovermentGatewayId,
+                        ggAuthorised(request),
+                        getCaseWorkerIdentity(request)
+                      )
+    } yield authResult.cast[AuthSuccessful].isDefined
+  }
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
     _ => {

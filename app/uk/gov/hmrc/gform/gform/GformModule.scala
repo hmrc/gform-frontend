@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import org.apache.pekko.actor.Scheduler
 import cats.instances.future._
+import play.api.BuiltInComponents
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -68,7 +69,8 @@ class GformModule(
   lookupRegistry: LookupRegistry,
   errorResponder: ErrResponder,
   countryLookupOptions: LocalisedLookupOptions,
-  englishMessages: Messages
+  englishMessages: Messages,
+  builtInComponents: BuiltInComponents
 )(implicit
   ec: ExecutionContext
 ) {
@@ -357,7 +359,8 @@ class GformModule(
       lookupRegistry,
       gformBackendModule.gformConnector,
       configModule.frontendAppConfig,
-      controllersModule.messagesControllerComponents
+      controllersModule.messagesControllerComponents,
+      builtInComponents.defaultActionBuilder
     )
 
   val lookupController = new LookupController(
