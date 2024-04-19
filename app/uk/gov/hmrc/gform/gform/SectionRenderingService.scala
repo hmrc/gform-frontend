@@ -1763,31 +1763,17 @@ class SectionRenderingService(
         }
     }
 
-    val visibleTableRows = table.rows.filter(isVisibleValueRow)
-    val visibleIndexes = visibleTableRows.zipWithIndex.map(_._2)
-
-    val visibleHeaders = table.header.zipWithIndex
-      .filter { case (_, index) =>
-        visibleIndexes.contains(index)
-      }
-
     val headerNumericClasses = table.rows
+      .find(isVisibleValueRow)
       .map(_.values.map(v => if (isNumeric(v)) "govuk-table__header--numeric" else ""))
-      .headOption
       .getOrElse(List())
 
-    val headerClasses: List[String] = visibleHeaders.map {
-      case (header, _) if header.classes.nonEmpty => header.classes.getOrElse("")
-      case (_, index)                             => headerNumericClasses.lift(index).getOrElse("")
+    val headCells = table.header.zipWithIndex.map { case (header, index) =>
+      HeadCell(
+        content = HtmlContent(sse(header.label, false)),
+        classes = header.classes.getOrElse(headerNumericClasses.lift(index).getOrElse(""))
+      )
     }
-
-    val headCells = visibleHeaders
-      .map(_._1)
-      .map(_.label)
-      .zipAll(headerClasses, SmartString.empty, "")
-      .map { case (h, c) =>
-        HeadCell(content = HtmlContent(sse(h, false)), classes = c)
-      }
 
     val caption: Option[String] = table.caption.orElse(Some(formComponent.label.value()))
 
