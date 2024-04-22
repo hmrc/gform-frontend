@@ -128,9 +128,18 @@ class SubmissionService(
         lookup.contains(file.fileId)
       }
       .map(_.fileId)
-    logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
-    fileUploadService.deleteFiles(envelopeId, toRemove.toSet)(objectStore)
-    Future.successful(envelope.files.filterNot(file => toRemove.contains(file.fileId)))
+    if (toRemove.isEmpty) {
+      logger.info(s"Cleanse envelope, nothing to remove from envelopeId $envelopeId.")
+      Future.successful(envelope.files)
+    } else {
+      val fileIds = toRemove.mkString(", ")
+      logger.info(
+        s"Cleanse envelope, removing ${toRemove.size} files from envelopeId $envelopeId. FileIds: $fileIds"
+      )
+      for {
+        _ <- fileUploadService.deleteFiles(envelopeId, toRemove.toSet)(objectStore)
+      } yield envelope.files.filterNot(file => toRemove.contains(file.fileId))
+    }
   }
 
 }

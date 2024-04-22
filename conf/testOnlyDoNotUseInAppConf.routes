@@ -71,4 +71,5 @@ GET           /submissions/test-only/payload-embedded/:formTemplateId/:destinati
 GET           /submissions/test-only/payload-source/:formTemplateId/:destinationId/              uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadSource(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
 GET           /submissions/test-only/payload-source/:formTemplateId/:destinationId/:accessCode   uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloadSource(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode])
 
-
+GET           /submissions/test-only/object-store/files/envelope/:envelopeId                     uk.gov.hmrc.gform.testonly.ObjectStoreAdminController.objectStoreContent(envelopeId: EnvelopeId)
+GET           /submissions/test-only/object-store/zip/envelope/:envelopeId                       uk.gov.hmrc.gform.testonly.ObjectStoreAdminController.objectStoreZip(envelopeId: EnvelopeId)
