@@ -105,6 +105,18 @@ class TestOnlyModule(
     lookupRegistry
   )
 
+  val objectStoreAdminConnector = new ObjectStoreAdminConnector(
+    wSHttpModule.wsClient
+  )
+
+  val objectStoreAdminController = new ObjectStoreAdminController(
+    controllersModule.authenticatedRequestActions,
+    configModule.frontendAppConfig,
+    controllersModule.messagesControllerComponents,
+    objectStoreAdminConnector,
+    configModule.mode
+  )
+
   val debugController = new DebugController(
     controllersModule.authenticatedRequestActions,
     fileUploadModule.fileUploadService,

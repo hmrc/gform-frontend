@@ -101,9 +101,6 @@
         View envelope <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/envelopes/" + envelopeId.value).path" class="govuk-link">files</a>
       </div>
       <div class="govuk-body">
-        View the uploaded files from <a href="https://admin.qa.tax.service.gov.uk/object-store-admin-frontend/objects/gform/envelopes/@envelopeId.value" class="govuk-link">bucket</a>
-      </div>
-      <div class="govuk-body">
         View translation <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/translation/" + formTemplate._id.value + "/debug").path" class="govuk-link">source</a>
       </div>
       <div class="govuk-inset-text">
@@ -112,6 +109,14 @@
         Source - original payload from *.hbs file
       </div>
     }
+
+      <h2 class="govuk-heading-s">Object store admin frontend</h2>
+      <div class="govuk-body">
+        View the uploaded files from <a href="@uk.gov.hmrc.gform.testonly.routes.ObjectStoreAdminController.objectStoreContent(envelopeId).path" class="govuk-link" target="_blank">bucket (opens in new tab)</a>
+      </div>
+      <div class="govuk-body">
+        View sdes <a href="@uk.gov.hmrc.gform.testonly.routes.ObjectStoreAdminController.objectStoreZip(envelopeId).path" class="govuk-link" target="_blank">zip (opens in new tab)</a> Note that this zip is available only short period of time after submission
+      </div>
 
       <h1 class="govuk-heading-l">Save or restore the form.</h1>
       <div class="govuk-body">
@@ -133,5 +138,5 @@
           @content
       </div>
     }
-    
+
 }

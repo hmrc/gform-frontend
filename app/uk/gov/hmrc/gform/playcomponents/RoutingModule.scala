@@ -123,7 +123,8 @@ class RoutingModule(
       builderRoutes,
       testOnlyModule.testOnlyController,
       testOnlyModule.debugController,
-      testOnlyModule.testOnlyErrorMessageController
+      testOnlyModule.testOnlyErrorMessageController,
+      testOnlyModule.objectStoreAdminController
     )
 
   val router: Router = {
