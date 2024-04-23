@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.api
 
 import uk.gov.hmrc.gform.gform.DataRetrieveConnectorBlueprint
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -40,6 +40,9 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    companyProfileB.get(dataRetrieve, request)
+    companyProfileB.get(dataRetrieve, request).map {
+      case CannotRetrieveResponse => ServiceResponse[DataRetrieve.Response](DataRetrieve.Response.Object(Map.empty))
+      case otherwise              => otherwise
+    }
 
 }
