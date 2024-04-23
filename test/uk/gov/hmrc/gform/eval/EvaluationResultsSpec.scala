@@ -22,7 +22,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.DataRetrieveAll
@@ -348,6 +348,51 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         StringResult("111"),
         "Third party data retrieval for id 'someDataRetrieveId' and attribute 'attribute1'"
+      ),
+      (
+        TypeInfo(
+          expr = DataRetrieveCtx(
+            id = DataRetrieveId(value = "company"),
+            attribute = DataRetrieve.Attribute(name = "registeredOfficeAddress")
+          ),
+          staticTypeData = StaticTypeData(exprType = ExprType.AddressString, textConstraint = None)
+        ),
+        recDataEmpty,
+        buildEvaluationContext(thirdPartyData =
+          ThirdPartyData.empty.copy(dataRetrieve =
+            Some(
+              Map(
+                DataRetrieveId("company") -> DataRetrieveResult(
+                  DataRetrieveId("registeredOfficeAddress"),
+                  RetrieveDataType.ObjectType(
+                    Map(
+                      DataRetrieve.Attribute("address_line_1") -> "address_line_1 value",
+                      DataRetrieve.Attribute("address_line_2") -> "address_line_2 value",
+                      DataRetrieve.Attribute("po_box")         -> "po_box value",
+                      DataRetrieve.Attribute("locality")       -> "locality value",
+                      DataRetrieve.Attribute("region")         -> "region value",
+                      DataRetrieve.Attribute("postal_code")    -> "postal_code value",
+                      DataRetrieve.Attribute("country")        -> "country value"
+                    )
+                  ),
+                  Json.obj()
+                )
+              )
+            )
+          )
+        ),
+        AddressResult(
+          List(
+            "address_line_1 value",
+            "address_line_2 value",
+            "po_box value",
+            "locality value",
+            "region value",
+            "postal_code value",
+            "country value"
+          )
+        ),
+        "Third party data retrieval for id 'company' and attribute 'registeredOfficeAddress'"
       ),
       (
         TypeInfo(CsvCountryCheck(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),

@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SmartString, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -42,6 +42,7 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 import SummarySubstituter._
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -520,6 +521,12 @@ case class EvaluationResults(
             .getOrElse(ExpressionResult.empty)
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
+      case DataRetrieveCtx(DataRetrieveId("company"), DataRetrieve.Attribute("registeredOfficeAddress")) =>
+        AddressResult(
+          DataRetrieveEval.getDataRetrieveAddressAttribute(
+            evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty)
+          )
+        )
       case d @ DataRetrieveCtx(_, _) =>
         val exprResult =
           evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
