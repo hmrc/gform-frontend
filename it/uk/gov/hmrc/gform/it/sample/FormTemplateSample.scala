@@ -37,6 +37,7 @@ trait FormTemplateSample {
       None,
       LayoutDisplayWidth.M,
       None,
+      None,
       None
     ),
     submitSection = None,
