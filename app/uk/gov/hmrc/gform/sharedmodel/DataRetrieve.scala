@@ -37,6 +37,7 @@ sealed trait ConstructAttribute extends Product with Serializable
 object ConstructAttribute {
   final case class AsIs(value: Fetch) extends ConstructAttribute
   final case class Concat(value: List[Fetch]) extends ConstructAttribute
+  final case class Combine(value: List[(DataRetrieve.Attribute, Fetch)]) extends ConstructAttribute
 
   implicit val format: OFormat[ConstructAttribute] = derived.oformat()
 }
@@ -105,20 +106,22 @@ case class DataRetrieve(
   }
 
   def fromObject(json: JsValue, instructions: List[AttributeInstruction]): List[(DataRetrieve.Attribute, String)] =
-    instructions.map { x =>
-      val res: String = x.from match {
-        case ConstructAttribute.AsIs(fetch) =>
-          val jsPath = fetch.path.foldLeft(JsPath: JsPath) { case (acc, next) =>
-            acc \ next
-          }
-          jsPath.json.pick[JsValue].reads(json) match {
-            case JsSuccess(JsString(attributeValue), _)  => attributeValue
-            case JsSuccess(JsNumber(attributeValue), _)  => attributeValue.toString
-            case JsSuccess(JsBoolean(attributeValue), _) => attributeValue.toString
-            case _                                       => ""
-          }
+    instructions.flatMap { x =>
+      def fromFetch(fetch: Fetch): String = {
+        val jsPath = fetch.path.foldLeft(JsPath: JsPath) { case (acc, next) =>
+          acc \ next
+        }
+        jsPath.json.pick[JsValue].reads(json) match {
+          case JsSuccess(JsString(attributeValue), _)  => attributeValue
+          case JsSuccess(JsNumber(attributeValue), _)  => attributeValue.toString
+          case JsSuccess(JsBoolean(attributeValue), _) => attributeValue.toString
+          case _                                       => ""
+        }
+      }
+      x.from match {
+        case ConstructAttribute.AsIs(fetch) => List(x.attribute -> fromFetch(fetch))
         case ConstructAttribute.Concat(fetches) =>
-          fetches
+          val res = fetches
             .map { fetch =>
               val jsPath = fetch.path.foldLeft(JsPath: JsPath) { case (acc, next) =>
                 acc \ next
@@ -129,8 +132,10 @@ case class DataRetrieve(
               }
             }
             .mkString(" ")
+          List(x.attribute -> res)
+        case ConstructAttribute.Combine(fetches) => fetches.map { case (attr, fetch) => attr -> fromFetch(fetch) }
+
       }
-      x.attribute -> res
     }
 
   def processResponse(json: JsValue): JsResult[DataRetrieve.Response] =
