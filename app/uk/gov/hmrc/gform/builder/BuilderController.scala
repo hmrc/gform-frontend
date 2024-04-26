@@ -68,11 +68,15 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    12; // This is managed manually. Increase it any time API used by builder extension is changed.
+    13; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
-  def originalSection(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def originalSection(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => lang => cache => sse => formModelOptics =>
         gformConnector.getFormTemplateRaw(formTemplateId).map { formTemplateRaw =>
           val jsonString: String = PlayJson.stringify(formTemplateRaw)
@@ -156,8 +160,8 @@ class BuilderController(
         }
     }
 
-  def originalFormTemplate(formTemplateId: FormTemplateId) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def originalFormTemplate(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => _ => _ => _ => _ =>
         gformConnector.getFormTemplateRaw(formTemplateId).map { formTemplateRaw =>
           val jsonString: String = PlayJson.stringify(formTemplateRaw)
@@ -177,8 +181,12 @@ class BuilderController(
         }
     }
 
-  def originalSummarySection(formTemplateId: FormTemplateId, maybeCoordinates: Option[Coordinates]) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def originalSummarySection(
+    formTemplateId: FormTemplateId,
+    maybeCoordinates: Option[Coordinates],
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => lang => cache => sse => formModelOptics =>
         gformConnector.getFormTemplateRaw(formTemplateId).flatMap { formTemplateRaw =>
           val jsonString: String = PlayJson.stringify(formTemplateRaw)
@@ -359,9 +367,10 @@ class BuilderController(
   def fetchSectionAndFormComponentHtml(
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
+    formComponentId: FormComponentId,
+    maybeAccessCode: Option[AccessCode]
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
         val sectionHtml = toSectionHtml(formModelOptics, sectionNumber)
@@ -385,8 +394,12 @@ class BuilderController(
         }
     }
 
-  def fetchTaskList(formTemplateId: FormTemplateId, sectionNumber: SectionNumber): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def fetchTaskList(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => cache => implicit sse => _ =>
         sectionNumber match {
           case SectionNumber.TaskList(Coordinates(taskSectionNumber, _), _) =>
@@ -406,8 +419,8 @@ class BuilderController(
         }
     }
 
-  def fetchSubmitSection(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def fetchSubmitSection(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => cache => implicit sse => _ =>
         val submitSectionJson = cache.formTemplate.submitSection
           .map { submitSection =>
@@ -419,17 +432,12 @@ class BuilderController(
         Ok(submitSectionJson).pure[Future]
     }
 
-  def fetchSectionHeaderHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
-      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
-        import i18nSupport._
-        val sectionHtml = toSectionHtml(formModelOptics, sectionNumber)
-
-        Ok(sectionHtml).pure[Future]
-    }
-
-  def fetchSummarySectionHtml(formTemplateId: FormTemplateId, maybeCoordinates: Option[Coordinates]) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def fetchSummarySectionHtml(
+    formTemplateId: FormTemplateId,
+    maybeCoordinates: Option[Coordinates],
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       request => lang => cache => implicit sse => formModelOptics =>
         maybeCoordinates match {
           case Some(coordinates) =>
@@ -462,21 +470,6 @@ class BuilderController(
 
   private def badRequest(error: String): Result = BadRequest(PlayJson.obj("error" -> error))
 
-  def fetchFormComponentHtml(
-    formTemplateId: FormTemplateId,
-    sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
-  ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
-      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
-        import i18nSupport._
-
-        toComponentHtml(formModelOptics, formTemplateId, sectionNumber, formComponentId, cache) match {
-          case Left(error) => badRequest(error).pure[Future]
-          case Right(html) => Ok(html).pure[Future]
-        }
-    }
-
   private def toSectionHtml(formModelOptics: FormModelOptics[DataOrigin.Mongo], sectionNumber: SectionNumber)(implicit
     sse: SmartStringEvaluator,
     request: Request[_],
@@ -501,9 +494,10 @@ class BuilderController(
   def htmlForSumarySectionFormComponent(
     formTemplateId: FormTemplateId,
     formComponentId: FormComponentId,
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    maybeAccessCode: Option[AccessCode]
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
 
@@ -681,10 +675,10 @@ class BuilderController(
     allFormComponentIds diff visibleFormComponentIds
   }
 
-  def originalAcknowledgement(formTemplateId: FormTemplateId) =
+  def originalAcknowledgement(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
-      None,
+      maybeAccessCode,
       OperationWithForm.EditFormAcknowledgement
     ) { implicit request => lang => cache => sse => formModelOptics =>
       gformConnector.getFormTemplateRaw(formTemplateId).flatMap { formTemplateRaw =>
@@ -703,10 +697,10 @@ class BuilderController(
 
     }
 
-  def generateAcknowledgementPanelHtml(formTemplateId: FormTemplateId) =
+  def generateAcknowledgementPanelHtml(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
-      None,
+      maybeAccessCode,
       OperationWithForm.EditFormAcknowledgement
     ) { implicit request => _ => cache => implicit sse => formModelOptics =>
       import i18nSupport._
@@ -741,11 +735,12 @@ class BuilderController(
 
   def htmlForAcknowledgementFormComponent(
     formTemplateId: FormTemplateId,
-    formComponentId: FormComponentId
+    formComponentId: FormComponentId,
+    maybeAccessCode: Option[AccessCode]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
-      None,
+      maybeAccessCode,
       OperationWithForm.EditFormAcknowledgement
     ) { implicit request => implicit lang => cache => implicit sse => formModelOptics =>
       import i18nSupport._
@@ -826,8 +821,12 @@ class BuilderController(
     }
   }
 
-  def fetchAtlDefaultPageHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def fetchAtlDefaultPageHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
         val singleton =
@@ -853,8 +852,12 @@ class BuilderController(
           .pure[Future]
     }
 
-  def fetchAtlCyaPageHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+  def fetchAtlCyaPageHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
 
@@ -931,8 +934,12 @@ class BuilderController(
 
     }
 
-  def fetchAtlRepeaterHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
-    fetchAtlRepeater(formTemplateId, sectionNumber) { _ => implicit sse => repeater => bracket =>
+  def fetchAtlRepeaterHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) { _ => implicit sse => repeater => bracket =>
       val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
 
       val recordTable: NonEmptyList[Html] = descriptions.zipWithIndex.map { case (description, index) =>
@@ -949,8 +956,12 @@ class BuilderController(
       )
     }
 
-  def fetchAtlRepeaterAddAnotherQuestionHtml(formTemplateId: FormTemplateId, sectionNumber: SectionNumber) =
-    fetchAtlRepeater(formTemplateId, sectionNumber) { _ => implicit sse => repeater => _ =>
+  def fetchAtlRepeaterAddAnotherQuestionHtml(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) { _ => implicit sse => repeater => _ =>
       Json.obj(
         "label" := repeater.addAnotherQuestion.label.value()
       )
@@ -959,9 +970,10 @@ class BuilderController(
   def fetchAtlDefaultPageFormComponentHtml(
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
+    formComponentId: FormComponentId,
+    maybeAccessCode: Option[AccessCode]
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
 
@@ -979,26 +991,32 @@ class BuilderController(
   def fetchAtlRepeaterFormComponentHtml(
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
+    formComponentId: FormComponentId,
+    maybeAccessCode: Option[AccessCode]
   ) =
-    fetchAtlRepeater(formTemplateId, sectionNumber) { implicit messages => implicit sse => repeater => _ =>
-      val infoHtml = repeater.fields.fold(HtmlFormat.empty) { fieldsNel =>
-        fieldsNel.toList
-          .collectFirst {
-            case fc @ IsInformationMessage(info) if fc.id === formComponentId =>
-              renderer.htmlForInformationMessage(fc, info.infoType, info.infoText)
-          }
-          .getOrElse(HtmlFormat.empty)
-      }
-      Json.obj(
-        "html" := sanitiseHtml(infoHtml)
-      )
+    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) {
+      implicit messages => implicit sse => repeater => _ =>
+        val infoHtml = repeater.fields.fold(HtmlFormat.empty) { fieldsNel =>
+          fieldsNel.toList
+            .collectFirst {
+              case fc @ IsInformationMessage(info) if fc.id === formComponentId =>
+                renderer.htmlForInformationMessage(fc, info.infoType, info.infoText)
+            }
+            .getOrElse(HtmlFormat.empty)
+        }
+        Json.obj(
+          "html" := sanitiseHtml(infoHtml)
+        )
     }
 
-  private def fetchAtlRepeater(formTemplateId: FormTemplateId, sectionNumber: SectionNumber)(
+  private def fetchAtlRepeater(
+    formTemplateId: FormTemplateId,
+    sectionNumber: SectionNumber,
+    maybeAccessCode: Option[AccessCode]
+  )(
     f: Messages => SmartStringEvaluator => Repeater[DataExpanded] => Bracket.AddToList[DataExpanded] => Json
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => lang => cache => sse => formModelOptics =>
         import i18nSupport._
         val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
