@@ -30,7 +30,8 @@ case class SummarySection(
   fields: Option[NonEmptyList[FormComponent]],
   displayWidth: LayoutDisplayWidth.LayoutDisplayWidth = LayoutDisplayWidth.M,
   includeIf: Option[IncludeIf],
-  pdf: Option[PdfCxt]
+  pdf: Option[PdfCxt],
+  excludeFromPdf: Option[List[FormComponentId]]
 ) {
   def toPage: Page[Basic] =
     Page(

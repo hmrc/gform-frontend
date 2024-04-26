@@ -296,6 +296,7 @@ object FormTemplateBuilder {
       None,
       LayoutDisplayWidth.M,
       None,
+      None,
       None
     ),
     None,
