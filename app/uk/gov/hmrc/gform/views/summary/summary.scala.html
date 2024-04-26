@@ -69,12 +69,11 @@
 }
 
 @main_template(
-  title = "",
+  title = extraInfoSummary.title,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   backLink = Some(backLink),
   isMainContentFullWidth = true,
-  serviceTitle = Some(extraInfoSummary.title),
   accessCode = extraInfoSummary.maybeAccessCode
 ) {
 
