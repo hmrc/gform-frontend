@@ -1301,12 +1301,27 @@ class SectionRenderingService(
               upscanData,
               ei.formModelOptics
             )
-          case FileUpload(fileUploadProvider, _, _) =>
+          case FileUpload(fileUploadProvider, _, allowedFileTypes) =>
+            val allowedContentTypes = allowedFileTypes
+              .map(_.contentTypes)
+              .getOrElse(ei.formTemplate.allowedFileTypes.contentTypes)
+              .toList
+              .map(_.value)
+              .mkString(", ")
+            val additionalAttributes = Map("accept" -> allowedContentTypes)
+
             ei.isFileUploadOnlyPage(validationResult) match {
               case None =>
-                htmlForFileUploadStandard(formComponent, fileUploadProvider, ei, validationResult, upscanData)
+                htmlForFileUploadStandard(
+                  formComponent,
+                  fileUploadProvider,
+                  ei,
+                  validationResult,
+                  upscanData,
+                  additionalAttributes
+                )
               case Some(_) =>
-                htmlForFileUploadSingle(formComponent, fileUploadProvider, ei, upscanData)
+                htmlForFileUploadSingle(formComponent, fileUploadProvider, ei, upscanData, additionalAttributes)
             }
 
           case InformationMessage(infoType, infoText) =>
@@ -1334,7 +1349,8 @@ class SectionRenderingService(
     fileUploadProvider: FileUploadProvider,
     ei: ExtraInfo,
     validationResult: ValidationResult,
-    upscanData: Map[FormComponentId, UpscanData]
+    upscanData: Map[FormComponentId, UpscanData],
+    additionalAttributes: Map[String, String]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1354,7 +1370,7 @@ class SectionRenderingService(
           case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
           case Some(upscanData) =>
             val fileUploadName = "file"
-            val attributes = Map("form" -> upscanData.formMetaData.htmlId)
+            val attributes = Map("form" -> upscanData.formMetaData.htmlId) ++ additionalAttributes
 
             htmlForFileUpload(
               formComponent,
@@ -1381,7 +1397,7 @@ class SectionRenderingService(
           fileSize,
           fileUploadName,
           formAction,
-          Map.empty[String, String]
+          additionalAttributes
         )
     }
   }
@@ -1390,7 +1406,8 @@ class SectionRenderingService(
     formComponent: FormComponent,
     fileUploadProvider: FileUploadProvider,
     ei: ExtraInfo,
-    upscanData: Map[FormComponentId, UpscanData]
+    upscanData: Map[FormComponentId, UpscanData],
+    additionalAttributes: Map[String, String]
   )(implicit
     request: RequestHeader,
     sse: SmartStringEvaluator,
@@ -1406,7 +1423,8 @@ class SectionRenderingService(
               formComponent,
               fileUploadName,
               ei,
-              upscanData.snippets
+              upscanData.snippets,
+              additionalAttributes
             )
         }
 
@@ -1416,7 +1434,8 @@ class SectionRenderingService(
           formComponent,
           fileUploadName,
           ei,
-          List.empty[Html]
+          List.empty[Html],
+          additionalAttributes
         )
     }
 
@@ -3024,7 +3043,8 @@ class SectionRenderingService(
     formComponent: FormComponent,
     fileUploadName: String,
     ei: ExtraInfo,
-    snippets: List[Html]
+    snippets: List[Html],
+    additionalAttributes: Map[String, String]
   )(implicit
     request: RequestHeader,
     sse: SmartStringEvaluator,
@@ -3052,7 +3072,8 @@ class SectionRenderingService(
       name = fileUploadName,
       label = label,
       hint = hintText(formComponent),
-      errorMessage = errorMessage
+      errorMessage = errorMessage,
+      attributes = additionalAttributes
     )
 
     val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
