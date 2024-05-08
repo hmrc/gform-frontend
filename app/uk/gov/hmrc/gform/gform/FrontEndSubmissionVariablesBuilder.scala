@@ -41,7 +41,7 @@ object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
     FrontEndSubmissionVariables(jsonBuilder(identifierValue, customerId))
   }
 
-  def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =
+  private def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =
     authConfig match {
       case HmrcEnrolmentModule(auth)             => enrolmentIdentifierValue(retrievals, auth)
       case HmrcAgentWithEnrolmentModule(_, auth) => enrolmentIdentifierValue(retrievals, auth)
@@ -49,7 +49,7 @@ object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
     }
 
   private val jsonBuilder: (String, CustomerId) => JsValue = (identifier, customerId) => {
-    val unescapedCustomerId = StringEscapeUtils.unescapeJson(customerId.id)
-    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "$unescapedCustomerId" } }""")
+    val escapedCustomerId = StringEscapeUtils.escapeJson(customerId.id)
+    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "$escapedCustomerId" } }""")
   }
 }
