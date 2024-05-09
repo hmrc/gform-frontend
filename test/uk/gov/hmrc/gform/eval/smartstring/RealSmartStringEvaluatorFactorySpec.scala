@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, Number, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IsFalse, Number, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -584,5 +584,40 @@ class RealSmartStringEvaluatorFactorySpec
       )
 
     result shouldBe "Smart string 14"
+  }
+
+  "evaluate SmartString using Concat function with Sterling component in IfElse statement" in new TestFixture {
+    lazy val sterlingField: FormComponent = buildFormComponentWithTextConstraint(
+      "sterlingField",
+      Value,
+      Sterling(RoundingMode.defaultRoundingMode, positiveOnly = true)
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(sterlingField.modelComponentId, "1000")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(sterlingField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "Smart string {0}",
+          IfElse(
+            IsFalse,
+            Constant("test"),
+            Concat(List(Constant("result = "), FormCtx(FormComponentId("sterlingField"))))
+          )
+        ),
+        false
+      )
+
+    result shouldBe "Smart string result = £1,000.00"
   }
 }

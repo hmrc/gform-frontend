@@ -24,8 +24,11 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
-import scala.jdk.CollectionConverters._
+import uk.gov.hmrc.gform.gform.{ ConcatFormatSubstituter, ConcatFormatSubstitutions, Substituter }
 
+import ConcatFormatSubstituter._
+
+import scala.jdk.CollectionConverters._
 import java.text.MessageFormat
 
 trait SmartStringEvaluatorFactory {
@@ -82,9 +85,12 @@ private class Executor(
     new MessageFormat(s.rawValue(formModelVisibilityOptics.booleanExprResolver.resolve(_))(l))
       .format(
         s.interpolations(formModelVisibilityOptics.booleanExprResolver.resolve(_))
-          .map {
-            case concatExpr: Concat => formatConcatExpr(concatExpr, markDown)
-            case interpolation      => formatExpr(interpolation, markDown)
+          .map { expr =>
+            val substitutions = ConcatFormatSubstitutions(concat => formatConcatExpr(concat, markDown))
+            implicitly[Substituter[ConcatFormatSubstitutions, Expr]].substitute(substitutions, expr)
+          }
+          .map { case interpolation =>
+            formatExpr(interpolation, markDown)
           }
           .asJava
           .toArray
