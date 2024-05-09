@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.gform
+import org.apache.commons.text.StringEscapeUtils
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
@@ -40,13 +41,15 @@ object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
     FrontEndSubmissionVariables(jsonBuilder(identifierValue, customerId))
   }
 
-  def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =
+  private def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =
     authConfig match {
       case HmrcEnrolmentModule(auth)             => enrolmentIdentifierValue(retrievals, auth)
       case HmrcAgentWithEnrolmentModule(_, auth) => enrolmentIdentifierValue(retrievals, auth)
       case _                                     => ""
     }
 
-  private val jsonBuilder: (String, CustomerId) => JsValue = (identifier, customerId) =>
-    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "${customerId.id}" } }""")
+  private val jsonBuilder: (String, CustomerId) => JsValue = (identifier, customerId) => {
+    val escapedCustomerId = StringEscapeUtils.escapeJson(customerId.id)
+    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "$escapedCustomerId" } }""")
+  }
 }

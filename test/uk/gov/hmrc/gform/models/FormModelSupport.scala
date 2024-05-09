@@ -20,7 +20,6 @@ import cats.data.NonEmptyList
 import cats.{ Id, Monad }
 import cats.syntax.applicative._
 import play.api.i18n.Messages
-
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
@@ -28,7 +27,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, ThirdPartyData, VisitIndex }
@@ -110,6 +109,20 @@ trait FormModelSupport extends GraphSpec {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     FormModelOptics
       .mkFormModelOptics[DataOrigin.Browser, Id, SectionSelectorType.Normal](data, authCache, recalculation)
+  }
+
+  def mkFormModelOpticsMongo(
+    formTemplate: FormTemplate,
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics[DataOrigin.Mongo] = {
+    val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
+      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.WithDeclaration](
+        data,
+        mkAuthCacheWithForm(formTemplate),
+        recalculation
+      )
+
+    formModelOptics.formModelVisibilityOptics
   }
 
   def mkProcessData(

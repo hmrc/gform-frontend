@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,79 +16,110 @@
 
 package uk.gov.hmrc.gform.gform
 
-/* import com.softwaremill.quicklens._
- * import play.api.libs.json.Json
- * import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
- * import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
- * import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
- * import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
- * import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
- * import FrontEndSubmissionVariablesBuilder._
- * import uk.gov.hmrc.gform.formtemplate.SectionSyntax
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate._
- * import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen._
- * import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
- */
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
-class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
-  /*   forAll(formTemplateGen) { template =>
-   *     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
-   *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
-   *       val enrolledIdType: ComponentType = Text(BasicText, userCtx)
-   *       val retrievals: AuthenticatedRetrievals =
-   *         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
-   *       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
-   *
-   *       val actual = FrontEndSubmissionVariablesBuilder(
-   *         retrievals,
-   *         template
-   *           .copy(
-   *             sections = template.sections.map(s => s.updateFields(s.fields.map(_.copy(`type` = enrolledIdType)))),
-   *             authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
-   *           ),
-   *         CustomerId("cid")
-   *       )
-   *
-   *       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
-   *       actual shouldBe FrontEndSubmissionVariables(
-   *         Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
-   *     }
-   *   }
-   *
-   *   forAll(formTemplateGen, formComponentGen(), formComponentGen()) { (template, cmp1, cmp2) =>
-   *     it should s"Build a data structure with valid key value pair for ${template._id} with multiple fields type" in new IdentifierExtractor {
-   *       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField.EnrolledIdentifier)
-   *       val enrolledId: ComponentType = Text(BasicText, userCtx)
-   *       val valueComponentType: ComponentType = Text(BasicText, Value)
-   *       val retrievals: AuthenticatedRetrievals =
-   *         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
-   *       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
-   *
-   *       val usrCtxComponent = cmp1.modify(_.`type`).setTo(enrolledId)
-   *       val valueComponent = cmp2.modify(_.`type`).setTo(valueComponentType)
-   *
-   *       val templateWithAtLeastTwoFields =
-   *         template
-   *           .copy(
-   *             sections = template.sections.map(s => s.updateFields(List(valueComponent, usrCtxComponent))),
-   *             authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
-   *           )
-   *
-   *       val actual = FrontEndSubmissionVariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
-   *       actual shouldBe FrontEndSubmissionVariables(
-   *         Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
-   *     }
-   *   }
-   *
-   *   val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
-   *
-   *   val materialisedRetrievalsAgent = AuthenticatedRetrievals(
-   *     GovernmentGatewayId(""),
-   *     Enrolments(Set(irsaEnrolment)),
-   *     AffinityGroup.Individual,
-   *     "TestGroupId",
-   *     None
-   *   )
-   */
+import munit.FunSuite
+import org.apache.commons.text.StringEscapeUtils
+import play.api.i18n.Messages
+import play.api.libs.json.Json
+import play.api.test.Helpers
+import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.gform.Helpers.mkDataOutOfDate
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, FrontEndSubmissionVariables, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolmentAuth, HmrcAgentWithEnrolmentModule, Never, ServiceId, ShortText, Text, UserCtx, UserField, Value }
+import uk.gov.hmrc.http.SessionId
+
+class FrontEndSubmissionVariablesBuilderTest extends FunSuite with FormModelSupport with VariadicFormDataSupport {
+
+  implicit val lang: LangADT = LangADT.En
+  implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
+
+  test(
+    "FrontEndSubmissionVariablesBuilder with AnonymousRetrievals should construct the correct JSON object with the backslash"
+  ) {
+
+    val retrievals: MaterialisedRetrievals = AnonymousRetrievals(SessionId("dummy-sessionId"))
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Text(ShortText.default, Value)),
+          mkFormComponent("b", Text(ShortText.default, Value))
+        )
+      )
+    )
+    val formTemplate = mkFormTemplate(sections)
+    val data = mkDataOutOfDate(
+      "a" -> "test",
+      "b" -> "123"
+    )
+
+    val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+      mkFormModelOpticsMongo(formTemplate, data)
+    val customerId = CustomerId("""\/324%@£$£%$^%*&^(_^&@$\@£%*^&(&~+\nnewline\ttab""")
+
+    val actual = FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId)
+    val expectedJson = Json.parse(s"""
+                                     |{
+                                     |  "user":
+                                     |    {
+                                     |      "enrolledIdentifier":"",
+                                     |      "customerId": "${StringEscapeUtils.escapeJson(customerId.id)}"
+                                     |     }
+                                     |}""".stripMargin)
+    val expected = FrontEndSubmissionVariables(expectedJson)
+
+    assertEquals(actual, expected)
+  }
+
+  test("FrontEndSubmissionVariablesBuilder with AuthenticatedRetrievals should construct the correct JSON object") {
+
+    val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+    val enrolmentIdentifierValue = "SA value"
+    val irSaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", enrolmentIdentifierValue)))
+    val userCtx = UserCtx(UserField.EnrolledIdentifier)
+    val retrievals: MaterialisedRetrievals = AuthenticatedRetrievals(
+      GovernmentGatewayId("id"),
+      Enrolments(Set(irSaEnrolment)),
+      AffinityGroup.Agent,
+      "TestGroupId",
+      None,
+      OtherRetrievals.empty,
+      ConfidenceLevel.L200
+    )
+
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Text(ShortText.default, Value)),
+          mkFormComponent("b", Text(ShortText.default, userCtx))
+        )
+      )
+    )
+    val formTemplate =
+      mkFormTemplate(sections).copy(authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
+
+    val data = mkDataOutOfDate(
+      "a" -> "test",
+      "b" -> "123"
+    )
+
+    val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+      mkFormModelOpticsMongo(formTemplate, data)
+    val customerId = CustomerId("""\/324%@£$£%$^%*&^(_^&@$\@£%*^&(&~+\nnewline\ttab""")
+
+    val actual = FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId)
+    val expectedJson = Json.parse(s"""
+                                     |{
+                                     |  "user":
+                                     |    {
+                                     |      "enrolledIdentifier": "$enrolmentIdentifierValue",
+                                     |      "customerId": "${StringEscapeUtils.escapeJson(customerId.id)}"
+                                     |     }
+                                     |}""".stripMargin)
+    val expected = FrontEndSubmissionVariables(expectedJson)
+
+    assertEquals(actual, expected)
+  }
 }
