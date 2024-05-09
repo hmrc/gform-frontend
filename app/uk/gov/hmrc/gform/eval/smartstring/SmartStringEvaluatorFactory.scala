@@ -89,8 +89,8 @@ private class Executor(
             val substitutions = ConcatFormatSubstitutions(concat => formatConcatExpr(concat, markDown))
             implicitly[Substituter[ConcatFormatSubstitutions, Expr]].substitute(substitutions, expr)
           }
-          .map {
-            case interpolation => formatExpr(interpolation, markDown)
+          .map { case interpolation =>
+            formatExpr(interpolation, markDown)
           }
           .asJava
           .toArray
