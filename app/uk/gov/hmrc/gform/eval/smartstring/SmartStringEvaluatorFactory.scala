@@ -27,6 +27,9 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import scala.jdk.CollectionConverters._
 
 import java.text.MessageFormat
+import uk.gov.hmrc.gform.gform.{ ConcatFormatSubstituter, ConcatFormatSubstitutions, Substituter }
+
+import ConcatFormatSubstituter._
 
 trait SmartStringEvaluatorFactory {
   def apply(
@@ -82,9 +85,12 @@ private class Executor(
     new MessageFormat(s.rawValue(formModelVisibilityOptics.booleanExprResolver.resolve(_))(l))
       .format(
         s.interpolations(formModelVisibilityOptics.booleanExprResolver.resolve(_))
+          .map { expr =>
+            val substitutions = ConcatFormatSubstitutions(concat => formatConcatExpr(concat, markDown))
+            implicitly[Substituter[ConcatFormatSubstitutions, Expr]].substitute(substitutions, expr)
+          }
           .map {
-            case concatExpr: Concat => formatConcatExpr(concatExpr, markDown)
-            case interpolation      => formatExpr(interpolation, markDown)
+            case interpolation => formatExpr(interpolation, markDown)
           }
           .asJava
           .toArray
