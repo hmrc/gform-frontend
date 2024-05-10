@@ -82,7 +82,7 @@ class ApplicationModule(context: Context)
 
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
-  protected val configModule = new ConfigModule(context, playBuiltInsModule)
+  protected lazy val configModule = new ConfigModule(context, playBuiltInsModule)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
 
@@ -273,7 +273,7 @@ class ApplicationModule(context: Context)
     assetsMetadata
   )
 
-  val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(
+  lazy val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(
     configModule.environment,
     configModule.playConfiguration,
     configModule.context.devContext.map(_.sourceMapper),
