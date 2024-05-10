@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, FrontEndSubmissionVariable
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolmentAuth, HmrcAgentWithEnrolmentModule, Never, ServiceId, ShortText, Text, UserCtx, UserField, Value }
 import uk.gov.hmrc.http.SessionId
 
-class FrontEndSubmissionVariablesBuilderTest extends FunSuite with FormModelSupport with VariadicFormDataSupport {
+class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
