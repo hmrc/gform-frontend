@@ -86,7 +86,14 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
     def bracketForSectionNumber(brackets: NonEmptyList[Bracket[A]]): Bracket[A] =
       brackets
         .find(_.hasSectionNumber(sectionNumber))
-        .getOrElse(throw new IllegalArgumentException(s"Wrong sectionNumber $sectionNumber"))
+        .getOrElse {
+          brackets
+            .collect {
+              case atl: Bracket.AddToList[A] if atl.iterations.exists(_.repeater.sectionNumber < sectionNumber) => atl
+            }
+            .lastOption
+            .getOrElse(throw new IllegalArgumentException(s"Wrong sectionNumber $sectionNumber"))
+        }
     fold { classic =>
       bracketForSectionNumber(classic.brackets)
     } { taskList =>
