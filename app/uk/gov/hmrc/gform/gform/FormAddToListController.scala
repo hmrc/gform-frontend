@@ -118,11 +118,16 @@ class FormAddToListController(
                   )
               }
             }
+            val repeater =
+              if (iterations.size <= index)
+                iterations.last.repeater.repeater
+              else iterations.toList(index).repeater.repeater
+
             Ok(
               html.form
                 .addToList_requestRemoval(
                   formTemplate,
-                  iterations.toList(index).repeater.repeater,
+                  repeater,
                   maybeAccessCode,
                   sectionNumber,
                   frontendAppConfig,
