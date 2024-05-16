@@ -211,6 +211,7 @@ class TestOnlyController(
         val ids: List[(DestinationId, String, Boolean)] = destinationList.destinations.collect {
           case d: Destination.DataStore         => (d.id, "hmrcIlluminate", d.convertSingleQuotes.getOrElse(false))
           case d: Destination.HandlebarsHttpApi => (d.id, "handlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
+          case d: Destination.HmrcDms           => (d.id, "hmrcDms", d.convertSingleQuotes.getOrElse(false))
         }
 
         val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, convertSingleQuotes) =>
@@ -300,7 +301,7 @@ class TestOnlyController(
             )
           ).filter(_ =>
             isObjectStore && destinationList.destinations.exists {
-              case Destination.HmrcDms(_, _, _, _, _, _, _, _, _, _, _)              => destination === Dms
+              case Destination.HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _)     => destination === Dms
               case Destination.DataStore(_, dsType, _, _, _, _, _, _, _, _, _, _, _) => destination === dsType
               case _                                                                 => false
             } && cache.form.status === Submitted
@@ -390,6 +391,7 @@ class TestOnlyController(
           val ids: Option[Option[String]] = destinationList.destinations.collectFirst {
             case d: Destination.DataStore if d.id === destinationId         => d.payload
             case d: Destination.HandlebarsHttpApi if d.id === destinationId => d.payload
+            case h: Destination.HmrcDms if h.id === destinationId           => h.payload
           }
           ids.flatten match {
             case None          => BadRequest(s"No payload found on destination $destinationId")

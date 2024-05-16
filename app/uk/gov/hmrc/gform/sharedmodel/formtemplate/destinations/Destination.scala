@@ -66,7 +66,10 @@ object Destination {
     dataOutputFormat: Option[DataOutputFormat],
     formdataXml: Boolean,
     backscan: Option[Boolean],
-    includeInstructionPdf: Boolean
+    includeInstructionPdf: Boolean,
+    convertSingleQuotes: Option[Boolean],
+    payload: Option[String],
+    payloadType: TemplateType
   ) extends Destination with DestinationWithCustomerId
 
   case class DataStore(
@@ -194,7 +197,10 @@ case class UploadableHmrcDmsDestination(
       dataOutputFormat,
       formdataXml.getOrElse(false),
       closedStatus,
-      includeInstructionPdf.getOrElse(false)
+      includeInstructionPdf.getOrElse(false),
+      convertSingleQuotes,
+      None,
+      TemplateType.XML
     )
 }
 
