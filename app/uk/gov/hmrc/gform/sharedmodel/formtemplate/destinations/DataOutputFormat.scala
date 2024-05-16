@@ -24,6 +24,7 @@ sealed trait DataOutputFormat
 object DataOutputFormat {
   case object JSON extends DataOutputFormat
   case object XML extends DataOutputFormat
+  case object HBS extends DataOutputFormat
 
   implicit val format: OFormat[DataOutputFormat] = derived.oformat()
 

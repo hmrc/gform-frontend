@@ -363,11 +363,10 @@ class GformBackEndService(
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =
     formTemplate.destinations match {
       case DestinationList(destinations, _, _) =>
-        destinations
-          .collect { case HmrcDms(_, _, _, _, _, _, _, _, _, _, includeInstructionPdf) =>
-            includeInstructionPdf
-          }
-          .contains(true)
+        destinations.exists {
+          case h: HmrcDms => h.includeInstructionPdf
+          case _          => false
+        }
       case _ => false
     }
 }
