@@ -34,10 +34,9 @@ trait CompanyInformationConnector[F[_]] {
 
 class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
     extends CompanyInformationConnector[Future] {
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   private val urlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}"
-
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
   private val identifier = "company profile"
 
   override def companyProfile(
