@@ -124,7 +124,8 @@ class RoutingModule(
       testOnlyModule.testOnlyController,
       testOnlyModule.debugController,
       testOnlyModule.testOnlyErrorMessageController,
-      testOnlyModule.objectStoreAdminController
+      testOnlyModule.objectStoreAdminController,
+      testOnlyModule.formTemplateExtractController
     )
 
   val router: Router = {

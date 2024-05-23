@@ -131,4 +131,10 @@ class TestOnlyModule(
       gformBackendModule.gformConnector,
       controllersModule.messagesControllerComponents
     )
+
+  val formTemplateExtractController: FormTemplateExtractController =
+    new FormTemplateExtractController(
+      controllersModule.authenticatedRequestActions,
+      controllersModule.messagesControllerComponents
+    )
 }

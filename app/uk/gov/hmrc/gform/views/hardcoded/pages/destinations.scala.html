@@ -103,6 +103,9 @@
       <div class="govuk-body">
         View translation <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/translation/" + formTemplate._id.value + "/debug").path" class="govuk-link">source</a>
       </div>
+      <div class="govuk-body">
+        View form template <a href="@uk.gov.hmrc.gform.testonly.routes.FormTemplateExtractController.extract(formTemplate._id, accessCode).path" class="govuk-link">report</a>
+      </div>
       <div class="govuk-inset-text">
         Embedded - payload is embedded into json template itself ('convertSingleQuotes' has been applied)
         <br>
