@@ -51,7 +51,7 @@
   }
 }
 
-@errorPrefix = @{if (containsErrors) "Error: " else ""}
+@errorPrefix = @{if (containsErrors) s"${messages("generic.error.title.prefix")} " else ""}
 
 @titlePrefix = @{if (title.nonEmpty) title + " - " else ""}
 
