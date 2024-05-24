@@ -492,9 +492,13 @@ class NewFormController(
     l: LangADT
   ): Future[Result] =
     for {
-      itmpRetrievals <- formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
-                          auth.getItmpRetrievals(request).map(Some(_))
-                        )
+      itmpRetrievals <- if (formTemplate.isSpecimen) {
+                          Future.successful(Option.empty[ItmpRetrievals])
+                        } else {
+                          formTemplate.dataRetrieve.fold(Future.successful(Option.empty[ItmpRetrievals]))(_ =>
+                            auth.getItmpRetrievals(request).map(Some(_))
+                          )
+                        }
       newCache <-
         InitFormEvaluator
           .makeCacheWithDataRetrieve(
