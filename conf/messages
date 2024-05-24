@@ -97,6 +97,9 @@ field.error.notGreaterThan={0} must not be greater than {1}
 choice.error.required={0} must be selected
 time.error.required={0} must be selected
 
+# Generic error prefix
+generic.error.title.prefix=Error:
+
 # Generic error suffixes
 generic.error.required={0} must be entered
 generic.error.upload={0} must be uploaded

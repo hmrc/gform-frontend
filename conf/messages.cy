@@ -97,6 +97,9 @@ field.error.notGreaterThan=Rhaid i {0} beidio â bod yn fwy na {1}
 choice.error.required=Rhaid dewis {0}
 time.error.required=Rhaid dewis {0}
 
+# Generic error prefix
+generic.error.title.prefix=Gwall:
+
 # Generic error suffixes
 generic.error.required=Rhaid nodi {0}
 generic.error.upload=Rhaid uwchlwytho {0}
