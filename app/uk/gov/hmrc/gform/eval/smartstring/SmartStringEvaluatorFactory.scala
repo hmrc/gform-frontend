@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.eval.smartstring
 
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
-import uk.gov.hmrc.gform.commons.MarkDownUtil.escapeMarkdown
+import uk.gov.hmrc.gform.commons.MarkDownUtil.unescapeMarkdownHtml
 import uk.gov.hmrc.gform.eval.{ ExprType, TypeInfo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -151,7 +151,7 @@ private class Executor(
           typeInfo.staticTypeData.exprType match {
             case ExprType.AddressString =>
               addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString("<br>")
-            case _ => escapeMarkdown(formatted)
+            case _ => unescapeMarkdownHtml(formatted)
           }
         } else {
           formatted
