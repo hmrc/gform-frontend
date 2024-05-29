@@ -17,7 +17,10 @@
 package uk.gov.hmrc.gform.views.summary
 
 import java.text.NumberFormat
-import cats.syntax.option._
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -40,6 +43,7 @@ object TextFormatter {
       case _: Sterling                                                       => formatSterling(currentValue)
       case _: WholeSterling                                                  => stripDecimal(formatSterling(currentValue))
       case UkSortCodeFormat                                                  => formatUkSortCode(currentValue)
+      case TimeFormat                                                        => normalizeLocalTime(currentValue)
       case _                                                                 => currentValue
       // format: on
     }
@@ -60,6 +64,7 @@ object TextFormatter {
       case (_: WholeSterling, _, true)                                                => stripTrailingZeros(currentValue)
       case (_: WholeSterling, _, _)                                                   => stripDecimal(formatSterling(stripTrailingZeros(currentValue), defaultFormat))
       case (UkSortCodeFormat,_ ,_)                                                    => formatUkSortCode(currentValue)
+      case (TimeFormat,_ ,_)                                                          => normalizeLocalTime(currentValue)
       case _                                                                          => currentValue
       // format: on
     }
@@ -80,6 +85,7 @@ object TextFormatter {
       case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
       case (_: WholeSterling, _, _)                                                  => stripDecimal(formatSterling(currentValue))
       case (UkSortCodeFormat, _, _)                                                  => formatUkSortCode(currentValue)
+      case (TimeFormat, _, _)                                                        => normalizeLocalTime(currentValue)
       case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
       case _                                                                         => currentValue
       // format: on
@@ -199,4 +205,43 @@ object TextFormatter {
     case Text(Number(_, _, _, _), _, _, _, _, _) | Text(PositiveNumber(_, _, _, _), _, _, _, _, _) => true
     case _                                                                                         => false
   }
+
+  private def normalizeLocalTime(time: String): String =
+    if (time.stripTrailing.isEmpty) {
+      ""
+    } else {
+      val localTime = maybeLocalTime(time).getOrElse(throw new IllegalArgumentException(s"Invalid time format: $time"))
+      normalizeLocalTime(localTime)
+    }
+
+  def normalizeLocalTime(localTime: LocalTime): String = {
+    val formatter = DateTimeFormatter.ofPattern("hh:mma")
+    val formattedTime = localTime.format(formatter)
+    formattedTime.replace("AM", "am").replace("PM", "pm")
+  }
+
+  def maybeLocalTime(time: String): Option[LocalTime] = {
+    val timeNormalized = time.toUpperCase().replaceAll("\\s+", "")
+    val patterns = List(
+      "HH",
+      "hha",
+      "HHa",
+      "HH:mm",
+      "HH.mm",
+      "HHmm",
+      "hh:mma",
+      "hh.mma",
+      "hhmma",
+      "HH:mma",
+      "HH.mma",
+      "HHmma"
+    )
+    val formatters = patterns.map(DateTimeFormatter.ofPattern)
+    formatters.collectFirst(
+      Function.unlift(formatter =>
+        Either.catchOnly[DateTimeParseException](LocalTime.parse(timeNormalized, formatter)).toOption
+      )
+    )
+  }
+
 }
