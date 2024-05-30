@@ -220,6 +220,12 @@ object TextFormatter {
     formattedTime.replace("AM", "am").replace("PM", "pm")
   }
 
+  def normalizeLocalTimeSafe(time: String): Option[String] =
+    try Some(normalizeLocalTime(time))
+    catch {
+      case _: IllegalArgumentException => None
+    }
+
   def maybeLocalTime(time: String): Option[LocalTime] = {
     val timeNormalized = time.toUpperCase().replaceAll("\\s+", "")
     val patterns = List(
