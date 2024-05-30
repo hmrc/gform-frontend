@@ -31,8 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicV
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber, TimeFormat }
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import uk.gov.hmrc.gform.validation.{ PostcodeLookupValidation, TextChecker }
-import uk.gov.hmrc.gform.views.summary.TextFormatter
+import uk.gov.hmrc.gform.validation.{ PostcodeLookupValidation, TextChecker, TimeFormatter }
 
 import scala.concurrent.Future
 
@@ -154,7 +153,12 @@ object FormDataHelpers {
                 } else if (modelComponentId.isAtomic("month")) {
                   normalizeMonth(first)
                 } else if (isTimeFormat) {
-                  TextFormatter.normalizeLocalTimeSafe(first).getOrElse(first)
+                  val localTime = TimeFormatter.maybeLocalTime(first)
+                  localTime
+                    .filterNot(t => TimeFormatter.isNoonConfusing(t, first))
+                    .filterNot(t => TimeFormatter.isNoonRangeConfusing(t, first))
+                    .map(TimeFormatter.normalizeLocalTime)
+                    .getOrElse(first)
                 } else first
               (
                 Some(

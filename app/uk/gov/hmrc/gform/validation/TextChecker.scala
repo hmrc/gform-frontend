@@ -34,8 +34,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.CheckerServiceHelper.validationFailure
 import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
 import uk.gov.hmrc.referencechecker.VatReferenceChecker
-import uk.gov.hmrc.gform.views.summary.TextFormatter
-import java.time.LocalTime
 
 import scala.util.matching.Regex
 
@@ -549,7 +547,7 @@ object TextChecker {
       nonEmptyCheck = validateTime(fieldValue, inputText)
     )
     def validateTime(fieldValue: FormComponent, timeStr: String): CheckProgram[Unit] = {
-      val localTime = TextFormatter.maybeLocalTime(timeStr)
+      val localTime = TimeFormatter.maybeLocalTime(timeStr)
 
       switchProgram(
         switchCase(
@@ -563,14 +561,14 @@ object TextChecker {
           }
         ),
         switchCase(
-          cond = localTime.map(isNoonConfusing(_, timeStr)).getOrElse(false),
+          cond = localTime.map(TimeFormatter.isNoonConfusing(_, timeStr)).getOrElse(false),
           thenProgram = validationFailure(fieldValue, genericErrorTimeConfusingNoon, None)
         ),
         switchCase(
-          cond = localTime.map(isNoonRangeConfusing(_, timeStr)).getOrElse(false),
+          cond = localTime.map(TimeFormatter.isNoonRangeConfusing(_, timeStr)).getOrElse(false),
           thenProgram = {
             val placeHolder = localTime.map(t =>
-              List(TextFormatter.normalizeLocalTime(t.minusHours(12)), TextFormatter.normalizeLocalTime(t))
+              List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t))
             )
             validationFailure(fieldValue, genericErrorTimeConfusingNoonRange, placeHolder)
           }
@@ -578,20 +576,6 @@ object TextChecker {
       )(
         elseProgram = successProgram(())
       )
-    }
-
-    def isNoonConfusing(time: LocalTime, timeStr: String): Boolean = {
-      val noon = LocalTime.NOON
-      val isInputConfusing = timeStr.replaceAll("[\\s.:]", "") == "12"
-      time.equals(noon) && isInputConfusing
-    }
-
-    def isNoonRangeConfusing(time: LocalTime, timeStr: String): Boolean = {
-      val startRange = LocalTime.NOON.minusMinutes(1)
-      val endRange = LocalTime.of(13, 0)
-      val normalizedInput = timeStr.replaceAll("[\\s.:]", "")
-
-      time.isAfter(startRange) && time.isBefore(endRange) && "^12\\d{2}$".r.matches(normalizedInput)
     }
 
     def catchAllCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
