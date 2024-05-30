@@ -38,8 +38,8 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
-import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
@@ -378,44 +378,53 @@ class SummaryController(
                 }
     } yield result
 
+  def createPDFHtml(cache: AuthCacheWithForm, formModelOptics: FormModelOptics[DataOrigin.Mongo])(implicit
+    request: Request[_],
+    l: LangADT,
+    ss: SmartStringEvaluator
+  ): Future[PdfHtml] = {
+    val draftText = cache.formTemplate.formCategory match {
+      case HMRCReturnForm => Messages("summary.pdf.formCategory.return")
+      case HMRCClaimForm  => Messages("summary.pdf.formCategory.claim")
+      case _              => Messages("summary.pdf.formCategory.form")
+    }
+
+    val summarySection = cache.formTemplate.summarySection
+
+    def defaultHeaderFooter = Some(PDFModel.HeaderFooter(Some(summarySection.header), None))
+
+    val maybeHeaderFooter = summarySection.pdf.fold(defaultHeaderFooter) { pdf =>
+      val maybeHeader = if (pdf.header.nonEmpty) pdf.header else Some(summarySection.header)
+      Some(PDFModel.HeaderFooter(maybeHeader, pdf.footer))
+    }
+
+    val pdfOptions = summarySection.pdf.map(pdf => PDFModel.Options(pdf.tabularFormat, None))
+
+    pdfRenderService
+      .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+        request.messages.messages(
+          "summary.checkYourAnswers"
+        ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
+        Some(summarySection.title.value()),
+        cache,
+        formModelOptics,
+        maybeHeaderFooter,
+        None,
+        SummaryPagePurpose.ForUser,
+        None,
+        Some(draftText),
+        pdfOptions,
+        Some(cache.formTemplate.formName.value)
+      )
+  }
+
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      val draftText = cache.formTemplate.formCategory match {
-        case HMRCReturnForm => Messages("summary.pdf.formCategory.return")
-        case HMRCClaimForm  => Messages("summary.pdf.formCategory.claim")
-        case _              => Messages("summary.pdf.formCategory.form")
-      }
-
-      val summarySection = cache.formTemplate.summarySection
-      def defaultHeaderFooter = Some(PDFModel.HeaderFooter(Some(summarySection.header), None))
-
-      val maybeHeaderFooter = summarySection.pdf.fold(defaultHeaderFooter) { pdf =>
-        val maybeHeader = if (pdf.header.nonEmpty) pdf.header else Some(summarySection.header)
-        Some(PDFModel.HeaderFooter(maybeHeader, pdf.footer))
-      }
-
-      val pdfOptions = summarySection.pdf.map(pdf => PDFModel.Options(pdf.tabularFormat, None))
-
-      pdfRenderService
-        .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
-          request.messages.messages(
-            "summary.checkYourAnswers"
-          ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
-          Some(summarySection.title.value()),
-          cache,
-          formModelOptics,
-          maybeHeaderFooter,
-          None,
-          SummaryPagePurpose.ForUser,
-          None,
-          Some(draftText),
-          pdfOptions,
-          Some(cache.formTemplate.formName.value)
-        )
+      createPDFHtml(cache, formModelOptics)
         .flatMap(pdfGeneratorService.generatePDF)
         .map { pdfSource =>
           Result(

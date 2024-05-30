@@ -33,7 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.fileupload.Attachments
-import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, NewFormController, StructuredFormDataBuilder, UserSessionBuilder }
+import uk.gov.hmrc.gform.gform.{ AcknowledgementController, CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, NewFormController, StructuredFormDataBuilder, SummaryController, UserSessionBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -62,12 +62,10 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
-import uk.gov.hmrc.gform.auth.models.OperationWithoutForm
 import uk.gov.hmrc.gform.BuildInfo
-
 import snapshot._
-
 import SnapshotForms._
+import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 
 import java.time.Instant
 
@@ -81,7 +79,10 @@ class TestOnlyController(
   frontendAppConfig: FrontendAppConfig,
   controllerComponents: MessagesControllerComponents,
   newFormController: NewFormController,
-  authLoginStubService: AuthLoginStubService
+  authLoginStubService: AuthLoginStubService,
+  summaryController: SummaryController,
+  acknowledgementController: AcknowledgementController,
+  nonRepudiationHelpers: NonRepudiationHelpers
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -1093,4 +1094,29 @@ class TestOnlyController(
       )
   }
 
+  def generateSummaryHtml(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      accessCode,
+      OperationWithForm.DownloadSummaryPdf
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      summaryController
+        .createPDFHtml(cache, formModelOptics)
+        .map { html =>
+          Ok(html.html).as(HTML)
+        }
+    }
+
+  def generateAcknowledgementHtml(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.WithAcknowledgement](
+      formTemplateId,
+      accessCode,
+      OperationWithForm.ViewAcknowledgement
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      acknowledgementController
+        .createPDFHtml(cache, accessCode, formModelOptics, sendAuditEvent = false)
+        .map { html =>
+          Ok(html.html).as(HTML)
+        }
+    }
 }
