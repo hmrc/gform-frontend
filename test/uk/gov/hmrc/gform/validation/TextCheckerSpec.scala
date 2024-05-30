@@ -366,6 +366,64 @@ class TextCheckerSpec
     }
   }
 
+  it should "validate when FormComponent constraint is TimeFormat" in {
+    val constraint = TimeFormat
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("00", ().asRight.asRight),
+      ("12am", ().asRight.asRight),
+      ("12AM", ().asRight.asRight),
+      ("12pm", ().asRight.asRight),
+      ("12PM", ().asRight.asRight),
+      ("00:59", ().asRight.asRight),
+      ("00.59", ().asRight.asRight),
+      ("00:59am", ().asRight.asRight),
+      ("0059AM", ().asRight.asRight),
+      ("12.59am", ().asRight.asRight),
+      ("12.59pm", ().asRight.asRight),
+      ("12:59pm", ().asRight.asRight),
+      ("1259pm", ().asRight.asRight),
+      ("2359", ().asRight.asRight),
+      ("23:59", ().asRight.asRight),
+      ("23.59", ().asRight.asRight),
+      ("2359pm", ().asRight.asRight),
+      ("2020", ().asRight.asRight),
+      (
+        "1899",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a time in the correct format")))
+      ),
+      (
+        "foo",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a time in the correct format")))
+      ),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a time")))
+      ),
+      (
+        "12",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12am for midnight or 12pm for midday")))
+      ),
+      (
+        "12:30",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:30 am for midnight or 12:30 pm for midday")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
   it should "validate when FormComponent constraint is lookup(country)" in new WithLookupData {
     val table = TableDrivenPropertyChecks.Table(
       ("input", "expected", "label", "shortName", "errorShortName"),

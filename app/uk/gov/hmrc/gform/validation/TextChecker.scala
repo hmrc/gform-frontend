@@ -154,6 +154,10 @@ object TextChecker {
   val genericErrorShortTextValidChar                         = "generic.error.shortText.valid.char"
   val genericErrorYearPattern                                = "generic.error.yearformat.real"
   val genericErrorYearRequired                               = "generic.error.yearformat.required"
+  val genericErrorTimePattern                                = "generic.error.time.real"
+  val genericErrorTimeRequired                               = "generic.error.time.required"
+  val genericErrorTimeConfusingNoon                          = "generic.error.time.confusing.noon"
+  val genericErrorTimeConfusingNoonRange                     = "generic.error.time.confusing.noon.range"
   // format: on
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
@@ -531,6 +535,49 @@ object TextChecker {
         validationFailure(fieldValue, genericErrorYearPattern, placeholder)
       }
     )
+
+    def timeFormatCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
+      mandatoryFailure = validationFailure(
+        fieldValue,
+        genericErrorTimeRequired,
+        fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
+          SmartString.blank.transform(_ => "a time", _ => "amser").value().pure[List]
+        ))
+      ),
+      nonEmptyCheck = validateTime(fieldValue, inputText)
+    )
+    def validateTime(fieldValue: FormComponent, timeStr: String): CheckProgram[Unit] = {
+      val localTime = TimeFormatter.maybeLocalTime(timeStr)
+
+      switchProgram(
+        switchCase(
+          cond = localTime.isEmpty,
+          thenProgram = {
+            val placeholder =
+              fieldValue.errorShortName.map(_.transform(identity, w => s" $w").value().pure[List]) orElse (Some(
+                SmartString.blank.transform(_ => "a time", _ => "amser").value().pure[List]
+              ))
+            validationFailure(fieldValue, genericErrorTimePattern, placeholder)
+          }
+        ),
+        switchCase(
+          cond = localTime.map(TimeFormatter.isNoonConfusing(_, timeStr)).getOrElse(false),
+          thenProgram = validationFailure(fieldValue, genericErrorTimeConfusingNoon, None)
+        ),
+        switchCase(
+          cond = localTime.map(TimeFormatter.isNoonRangeConfusing(_, timeStr)).getOrElse(false),
+          thenProgram = {
+            val placeHolder = localTime.map(t =>
+              List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t))
+            )
+            validationFailure(fieldValue, genericErrorTimeConfusingNoonRange, placeHolder)
+          }
+        )
+      )(
+        elseProgram = successProgram(())
+      )
+    }
+
     def catchAllCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(fieldValue, genericErrorRequired, None),
       nonEmptyCheck = successProgram(())
@@ -583,6 +630,7 @@ object TextChecker {
       case lookupRegistry.extractors.IsRadioLookup(_) => radioLookupCheck()
       case c: Lookup                                  => lookupCheck(c)
       case YearFormat                                 => yearFormatCheck()
+      case TimeFormat                                 => timeFormatCheck()
       case _                                          => catchAllCheck()
     }
   }
