@@ -43,7 +43,6 @@ object TextFormatter {
       case _: Sterling                                                       => formatSterling(currentValue)
       case _: WholeSterling                                                  => stripDecimal(formatSterling(currentValue))
       case UkSortCodeFormat                                                  => formatUkSortCode(currentValue)
-      case TimeFormat                                                        => normalizeLocalTime(currentValue)
       case _                                                                 => currentValue
       // format: on
     }
@@ -64,7 +63,6 @@ object TextFormatter {
       case (_: WholeSterling, _, true)                                                => stripTrailingZeros(currentValue)
       case (_: WholeSterling, _, _)                                                   => stripDecimal(formatSterling(stripTrailingZeros(currentValue), defaultFormat))
       case (UkSortCodeFormat,_ ,_)                                                    => formatUkSortCode(currentValue)
-      case (TimeFormat,_ ,_)                                                          => normalizeLocalTime(currentValue)
       case _                                                                          => currentValue
       // format: on
     }
@@ -85,7 +83,6 @@ object TextFormatter {
       case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
       case (_: WholeSterling, _, _)                                                  => stripDecimal(formatSterling(currentValue))
       case (UkSortCodeFormat, _, _)                                                  => formatUkSortCode(currentValue)
-      case (TimeFormat, _, _)                                                        => normalizeLocalTime(currentValue)
       case (_, p, s)                                                                 => prependPrefix(p) + currentValue + appendSuffix(s)
       case _                                                                         => currentValue
       // format: on
