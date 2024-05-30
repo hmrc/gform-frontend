@@ -24,7 +24,7 @@ import cats.implicits._
 object TimeFormatter {
 
   def normalizeLocalTime(localTime: LocalTime): String = {
-    val formatter = DateTimeFormatter.ofPattern("hh:mma")
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a")
     val formattedTime = localTime.format(formatter)
     formattedTime.replace("AM", "am").replace("PM", "pm")
   }
