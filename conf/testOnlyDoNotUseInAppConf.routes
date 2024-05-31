@@ -75,3 +75,6 @@ GET           /submissions/test-only/object-store/files/envelope/:envelopeId    
 GET           /submissions/test-only/object-store/zip/envelope/:envelopeId                           uk.gov.hmrc.gform.testonly.ObjectStoreAdminController.objectStoreZip(envelopeId: EnvelopeId)
 
 GET           /submissions/test-only/form-template/extract/:formTemplateId/:accessCode               uk.gov.hmrc.gform.testonly.FormTemplateExtractController.extract(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+
+GET           /submissions/test-only/summary/html/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.generateSummaryHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/acknowledgement/html/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.generateAcknowledgementHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])

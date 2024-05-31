@@ -18,9 +18,7 @@ package uk.gov.hmrc.gform.testonly
 
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.SessionCookieBaker
-
 import uk.gov.hmrc.gform.config.ConfigModule
-
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
 import uk.gov.hmrc.crypto.ApplicationCrypto
@@ -31,8 +29,7 @@ import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.builder.BuilderController
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
-import uk.gov.hmrc.gform.gform.SectionRenderingService
-import uk.gov.hmrc.gform.gform.GformModule
+import uk.gov.hmrc.gform.gform.{ GformModule, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -95,7 +92,10 @@ class TestOnlyModule(
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
     gformModule.newFormController,
-    authLoginStubService
+    authLoginStubService,
+    gformModule.summaryController,
+    gformModule.acknowledgementController,
+    gformModule.nonRepudiationHelpers
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
     playBuiltInsModule.i18nSupport,
