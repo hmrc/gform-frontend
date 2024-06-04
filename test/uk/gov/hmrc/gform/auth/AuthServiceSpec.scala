@@ -50,7 +50,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     `auth-module` = null,
     restrictedFileExtensionList = List("JFIF", "PNG"),
     albAdminIssuerUrl = "",
-    `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity"
+    `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity",
+    fileMaxUploadedSizeMB = 145
   )
 
   implicit val request: Request[AnyContent] = null

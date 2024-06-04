@@ -274,7 +274,8 @@ class GformModule(
     configModule.frontendAppConfig,
     summaryRenderingService,
     submissionService,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    configModule.appConfig
   )
 
   val printSectionController: PrintSectionController = new PrintSectionController(
