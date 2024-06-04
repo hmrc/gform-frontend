@@ -33,7 +33,8 @@ case class AppConfig(
   /*we can't override list in app-config-base:*/
   restrictedFileExtensionList: List[String],
   albAdminIssuerUrl: String,
-  `case-worker-assumed-identity-cookie`: String
+  `case-worker-assumed-identity-cookie`: String,
+  fileMaxUploadedSizeMB: Long
 ) {
 
   def restrictedFileExtensions: List[FileExtension] =

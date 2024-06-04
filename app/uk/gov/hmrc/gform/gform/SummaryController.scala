@@ -19,19 +19,18 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
-import cats.syntax.flatMap._
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
-import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -39,15 +38,15 @@ import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, _ }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.gform.validation.ValidationService
+import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ file_upload_limit_exceed, save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -68,7 +67,8 @@ class SummaryController(
   frontendAppConfig: FrontendAppConfig,
   summaryRenderingService: SummaryRenderingService,
   submissionService: SubmissionService,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -243,18 +243,6 @@ class SummaryController(
   ): Future[Result] = {
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
 
-    val isFormValidF = for {
-      envelope <- envelopeF
-      validationResult <- validationService
-                            .validateFormModel(
-                              cache.toCacheData,
-                              EnvelopeWithMapping(envelope, cache.form),
-                              formModelOptics.formModelVisibilityOptics,
-                              maybeCoordinates
-                            )
-      isTokenValid <- Future.successful(formDataFingerprint === cache.form.formData.fingerprint)
-    } yield validationResult.isFormValid && isTokenValid
-
     def changeStateAndRedirectToDeclarationOrPrint: Future[Result] = gformConnector
       .updateUserData(
         FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
@@ -324,17 +312,73 @@ class SummaryController(
         }
 
       }
-    val redirectToSummary: Result =
+
+    val redirectToSummary: Future[Result] =
       Redirect(
         routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, maybeCoordinates, None)
-      )
+      ).pure[Future]
+
+    def redirectToFileLimitExceed(uploadedFileSize: Long): Future[Result] =
+      Redirect(
+        routes.SummaryController.handleFileLimitExceeded(formTemplateId, maybeAccessCode, uploadedFileSize)
+      ).pure[Future]
+
+    def calcTotalUploadedFileSizeMB(envelope: Envelope): Long =
+      envelope.files.map(_.length).sum / (1024 * 1024)
+
+    def isFileSizeExceeded(totalSizeMB: Long, maxAllowedMB: Long): Boolean =
+      totalSizeMB > maxAllowedMB
+
+    def handleResult(
+      totalUploadedFileSizeMB: Long,
+      validationResult: ValidationResult,
+      isTokenValid: Boolean
+    ): Future[Result] =
+      if (isFileSizeExceeded(totalUploadedFileSizeMB, appConfig.fileMaxUploadedSizeMB)) {
+        redirectToFileLimitExceed(totalUploadedFileSizeMB)
+      } else if (validationResult.isFormValid && isTokenValid) {
+        changeStateAndRedirectToDeclarationOrPrint
+      } else {
+        redirectToSummary
+      }
+
     for {
-      result <- isFormValidF.ifM(
-                  changeStateAndRedirectToDeclarationOrPrint,
-                  redirectToSummary.pure[Future]
-                )
+      envelope <- envelopeF
+      validationResult <- validationService.validateFormModel(
+                            cache.toCacheData,
+                            EnvelopeWithMapping(envelope, cache.form),
+                            formModelOptics.formModelVisibilityOptics,
+                            maybeCoordinates
+                          )
+      isTokenValid = formDataFingerprint === cache.form.formData.fingerprint
+      totalUploadedFileSizeMB = calcTotalUploadedFileSizeMB(envelope)
+      result <- handleResult(totalUploadedFileSizeMB, validationResult, isTokenValid)
     } yield result
   }
+
+  def handleFileLimitExceeded(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    uploadedFileSize: Long
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewSummary
+    ) { implicit request => implicit l => cache => implicit ss => _ =>
+      val formAction = routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, None, true, None)
+      Ok(
+        file_upload_limit_exceed(
+          cache.formTemplate,
+          maybeAccessCode,
+          uploadedFileSize,
+          appConfig.fileMaxUploadedSizeMB,
+          frontendAppConfig,
+          formAction
+        )
+      )
+        .pure[Future]
+    }
 
   private def processSubmission(
     maybeAccessCode: Option[AccessCode],

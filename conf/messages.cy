@@ -634,3 +634,12 @@ EORI.default.helpText=’GB’ neu ’XI’ yw hwn wedi’i ddilyn gan 12 rhif. 
 UkEORI.default.helpText=GB yw hwn wedi’i ddilyn gan 12 rhif. Er enghraifft, GB123456789012.
 ukVrn.default.helpText=9 rhif yw hwn, weithiau &#226; ’GB’ ar y dechrau. Er enghraifft 123456789 neu GB123456789. Mae ar y dystysgrif cofrestru TAW.
 companyRegistrationNumber.default.helpText=Mae hwn yn 8 o gymeriadau. Er enghraifft, 01234567 neu AC012345.
+
+#uploaded file size limit
+uploadedFile.limitExceed.h1=Mae’n ddrwg gennym – mae problem wedi codi
+uploadedFile.limitExceed.p1=Mae maint cyfunol y ffeiliau sydd wedi’u huwchlwytho yn rhy fawr. Ni all maint cyfunol y ffeiliau sydd wedi’u huwchlwytho fod yn fwy na {0}MB, ac rydych wedi uwchlwytho ffeiliau sy’n {1}MB o faint.
+uploadedFile.limitExceed.p2=Mae’n rhaid i chi wneud y canlynol:
+uploadedFile.limitExceed.p2.li1=tynnu’r ffeiliau sy’n fwy o faint
+uploadedFile.limitExceed.p2.li2=lleihau maint y ffeiliau hyn
+uploadedFile.limitExceed.p2.li3=uwchlwytho’r ffeiliau sy’n llai o faint
+uploadedFile.limitExceed.p3=Unwaith i chi uwchlwytho ffeiliau sydd â maint cyfunol o {0}MB neu lai, gallwch gyflwyno’r ffurflen.
