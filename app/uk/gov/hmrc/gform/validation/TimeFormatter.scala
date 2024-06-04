@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.validation
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Locale
 import cats.implicits._
 
 object TimeFormatter {
@@ -48,7 +49,9 @@ object TimeFormatter {
     val formatters = patterns.map(DateTimeFormatter.ofPattern)
     formatters.collectFirst(
       Function.unlift(formatter =>
-        Either.catchOnly[DateTimeParseException](LocalTime.parse(timeNormalized, formatter)).toOption
+        Either
+          .catchOnly[DateTimeParseException](LocalTime.parse(timeNormalized, formatter.withLocale(Locale.ENGLISH)))
+          .toOption
       )
     )
   }
