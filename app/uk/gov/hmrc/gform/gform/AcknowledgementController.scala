@@ -212,22 +212,26 @@ class AcknowledgementController(
       maybeAccessCode,
       OperationWithForm.ForceUpdateFormStatus
     ) { implicit request => _ => cache => _ => _ =>
-      gformConnector
-        .updateUserData(
-          FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
-          UserData(
-            cache.form.formData,
-            InProgress,
-            cache.form.visitsIndex,
-            cache.form.thirdPartyData,
-            cache.form.componentIdToFileId
-          )
-        )
-        .flatMap { _ =>
-          Future.successful(
-            Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, None, true, None))
-          )
-        }
+      for {
+        _ <- gformConnector.deleteGeneratedFiles(cache.form.envelopeId)
+        res <-
+          gformConnector
+            .updateUserData(
+              FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+              UserData(
+                cache.form.formData,
+                InProgress,
+                cache.form.visitsIndex,
+                cache.form.thirdPartyData,
+                cache.form.componentIdToFileId
+              )
+            )
+            .flatMap { _ =>
+              Future.successful(
+                Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, None, true, None))
+              )
+            }
+      } yield res
     }
 
 }

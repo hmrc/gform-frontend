@@ -65,7 +65,8 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_pa
 import uk.gov.hmrc.gform.BuildInfo
 import snapshot._
 import SnapshotForms._
-import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
+import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 
 import java.time.Instant
 
@@ -81,8 +82,7 @@ class TestOnlyController(
   newFormController: NewFormController,
   authLoginStubService: AuthLoginStubService,
   summaryController: SummaryController,
-  acknowledgementController: AcknowledgementController,
-  nonRepudiationHelpers: NonRepudiationHelpers
+  acknowledgementController: AcknowledgementController
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -276,19 +276,16 @@ class TestOnlyController(
           )
         )
 
-        val maybeReturnToSummaryContent = Option(
-          uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-            "Return to summary page",
-            uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-              .changeStateAndRedirectToCYA(formTemplateId, maybeAccessCode)
-          )
-        )
-          .filter(_ =>
-            destinationList.destinations.size === 1 && destinationList.destinations.exists {
-              case Destination.StateTransition(_, _, _, _) => true
-              case _                                       => false
-            } && cache.form.status === Submitted
-          )
+        val maybeReturnToSummaryContent =
+          if (cache.form.status === Submitted)
+            Option(
+              uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+                "Return to summary page",
+                uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+                  .changeStateAndRedirectToCYA(formTemplateId, maybeAccessCode)
+              )
+            )
+          else None
 
         val envelopeId = cache.form.envelopeId
         val isObjectStore = cache.formTemplate.isObjectStore
@@ -916,7 +913,7 @@ class TestOnlyController(
         TableRow(
           content = HtmlContent {
             val url = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .snapshotDeleteConfirmation(snapshot.snapshotId, currentUrl)
+              .snapshotDeleteConfirmation(snapshot.snapshotId, RedirectUrl(currentUrl))
               .url
             s"""<a class=govuk-link href='$url'>delete</a>"""
           }
@@ -954,7 +951,7 @@ class TestOnlyController(
     new GovukTable()(table)
   }
 
-  def snapshotDeleteConfirmation(snapshotId: SnapshotId, backUrl: String) =
+  def snapshotDeleteConfirmation(snapshotId: SnapshotId, backUrl: RedirectUrl) =
     controllerComponents.actionBuilder.async { implicit request =>
       import i18nSupport._
       implicit val lang: LangADT = LangADT.En
@@ -964,7 +961,7 @@ class TestOnlyController(
           frontendAppConfig,
           snapshotId,
           actionUrl,
-          backUrl
+          backUrl.get(OnlyRelative).url
         )
       ).pure[Future]
     }
