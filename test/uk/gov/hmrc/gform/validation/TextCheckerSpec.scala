@@ -401,6 +401,8 @@ class TextCheckerSpec
       ("515", ().asRight.asRight),
       ("0515pm", ().asRight.asRight),
       ("05:15am", ().asRight.asRight),
+      ("05:15a.m", ().asRight.asRight),
+      ("05:15p.m.", ().asRight.asRight),
       ("05.15am", ().asRight.asRight),
       ("5:00am	", ().asRight.asRight),
       ("13", ().asRight.asRight),
