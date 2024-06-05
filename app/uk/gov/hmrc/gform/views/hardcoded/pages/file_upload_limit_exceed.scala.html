@@ -54,7 +54,7 @@
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
         <div class="govuk-body">
             <h1 class="govuk-heading-l">@{messages("uploadedFile.limitExceed.h1")}</h1>
-            <p>@{messages("uploadedFile.limitExceed.p1", uploadedFileSizeMB, fileMaxUploadedSizeMB)}</p>
+            <p>@{messages("uploadedFile.limitExceed.p1", fileMaxUploadedSizeMB, uploadedFileSizeMB)}</p>
             <p>@{messages("uploadedFile.limitExceed.p2")}</p>
             <ul class="govuk-list govuk-list--bullet">
                 <li>@{messages("uploadedFile.limitExceed.p2.li1")}</li>
