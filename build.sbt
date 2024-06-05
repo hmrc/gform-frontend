@@ -1,15 +1,16 @@
 import Dependencies.appDependencies
 import play.sbt.routes.RoutesKeys.routesImport
-import sbt.inConfig
-import uk.gov.hmrc.DefaultBuildSettings._
-import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.{ DefaultBuildSettings, SbtAutoBuildPlugin }
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning
-import org.irundaia.sbt.sass._
+import org.irundaia.sbt.sass.*
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val IntegrationTest = config("it") extend Test
+
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
 
 lazy val microservice = (project in file("."))
   .enablePlugins(
@@ -25,12 +26,10 @@ lazy val microservice = (project in file("."))
     SassKeys.generateSourceMaps := true,
     organization := "uk.gov.hmrc",
     name := "gform-frontend",
-    majorVersion := 0,
     PlayKeys.playDefaultPort := 9195,
-    scalaSettings,
-    defaultSettings(),
+    DefaultBuildSettings.scalaSettings,
+    DefaultBuildSettings.defaultSettings(),
     scalafmtOnCompile := true,
-    scalaVersion := "2.13.12",
     Test / testOptions := (Test / testOptions).value
       .map {
         // Default Argument added by https://github.com/hmrc/sbt-settings
@@ -84,16 +83,6 @@ lazy val microservice = (project in file("."))
     Assets / pipelineStages := Seq(concat, uglify),
     uglifyCompressOptions := Seq("warnings=false")
   )
-  .configs(IntegrationTest)
-  .settings(
-    inConfig(IntegrationTest)(Defaults.itSettings),
-    inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
-    IntegrationTest / Keys.fork := false,
-    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
-    addTestReportOption(IntegrationTest, "int-test-reports"),
-    IntegrationTest / parallelExecution := false,
-    scalafmtOnCompile := true
-  )
   .settings(
     resolvers ++= Seq(
       Resolver.bintrayRepo("jetbrains", "markdown"),
@@ -106,3 +95,14 @@ lazy val microservice = (project in file("."))
     buildInfoKeys := Seq[BuildInfoKey](version),
     buildInfoPackage := "uk.gov.hmrc.gform"
   )
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(
+    DefaultBuildSettings.itSettings(),
+    Keys.fork := false,
+    DefaultBuildSettings.addTestReportOption(IntegrationTest, "int-test-reports"),
+    scalafmtOnCompile := true
+  )
+  .settings(libraryDependencies ++= Dependencies.test)
