@@ -31,11 +31,20 @@ object TimeFormatter {
   }
 
   def maybeLocalTime(time: String): Option[LocalTime] = {
-    val timeNormalized = time.toUpperCase().replaceAll("\\s+", "")
+    val timeNormalized = time.toUpperCase().replaceAll("\\s+", "").replaceAll("AM.", "AM").replaceAll("PM.", "PM")
     val patterns = List(
       "HH",
+      "H:mm",
+      "h:mma",
+      "h:a",
+      "h.a",
+      "ha",
       "hha",
       "HHa",
+      "H.",
+      "Hmm",
+      "hmma",
+      "hmm.a",
       "HH:mm",
       "HH.mm",
       "HHmm",
