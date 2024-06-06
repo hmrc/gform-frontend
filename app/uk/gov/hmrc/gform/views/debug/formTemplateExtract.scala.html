@@ -14,7 +14,14 @@
  * limitations under the License.
  *@
 
-@(title: String, table: Html)(implicit request: Request[_])
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+
+@(
+    formTemplate: FormTemplate,
+    accessCode: Option[AccessCode],
+    title: String,
+    table: Html
+)(implicit request: Request[_])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -25,6 +32,7 @@
     </head>
     <body>
         <div class="govuk-body">
+            <a href="@uk.gov.hmrc.gform.testonly.routes.FormTemplateExtractController.exportToExcel(formTemplate._id,accessCode).path" class="govuk-link">Export Data to Excel</a>
             @table
         </div>
     </body>
