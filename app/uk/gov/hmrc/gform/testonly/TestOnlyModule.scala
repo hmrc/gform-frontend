@@ -94,8 +94,7 @@ class TestOnlyModule(
     gformModule.newFormController,
     authLoginStubService,
     gformModule.summaryController,
-    gformModule.acknowledgementController,
-    gformModule.nonRepudiationHelpers
+    gformModule.acknowledgementController
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
     playBuiltInsModule.i18nSupport,

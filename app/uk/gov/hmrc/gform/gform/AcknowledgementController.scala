@@ -203,31 +203,4 @@ class AcknowledgementController(
       Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
     }
 
-  def changeStateAndRedirectToCYA(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
-  ): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](
-      formTemplateId,
-      maybeAccessCode,
-      OperationWithForm.ForceUpdateFormStatus
-    ) { implicit request => _ => cache => _ => _ =>
-      gformConnector
-        .updateUserData(
-          FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
-          UserData(
-            cache.form.formData,
-            InProgress,
-            cache.form.visitsIndex,
-            cache.form.thirdPartyData,
-            cache.form.componentIdToFileId
-          )
-        )
-        .flatMap { _ =>
-          Future.successful(
-            Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, None, true, None))
-          )
-        }
-    }
-
 }

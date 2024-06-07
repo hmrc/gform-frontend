@@ -619,4 +619,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val url = s"$baseUrl/test-only/snapshot/$snapshotId"
     ws.DELETE[HttpResponse](url)
   }
+
+  def deleteGeneratedFiles(
+    envelopeId: EnvelopeId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/test-only/generated-files/${envelopeId.value}"
+    ws.DELETE[HttpResponse](url)
+  }
 }
