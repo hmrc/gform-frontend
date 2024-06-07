@@ -48,7 +48,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData, InProgress, Submitted, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
@@ -281,7 +281,7 @@ class TestOnlyController(
             Option(
               uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
                 "Return to summary page",
-                uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+                uk.gov.hmrc.gform.testonly.routes.TestOnlyController
                   .changeStateAndRedirectToCYA(formTemplateId, maybeAccessCode)
               )
             )
@@ -1115,5 +1115,39 @@ class TestOnlyController(
         .map { html =>
           Ok(html.html).as(HTML)
         }
+    }
+
+  def changeStateAndRedirectToCYA(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ForceUpdateFormStatus
+    ) { implicit request => _ => cache => _ => _ =>
+      for {
+        _ <- gformConnector.deleteGeneratedFiles(cache.form.envelopeId)
+        res <-
+          gformConnector
+            .updateUserData(
+              FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
+              UserData(
+                cache.form.formData,
+                InProgress,
+                cache.form.visitsIndex,
+                cache.form.thirdPartyData,
+                cache.form.componentIdToFileId
+              )
+            )
+            .flatMap { _ =>
+              Future.successful(
+                Redirect(
+                  uk.gov.hmrc.gform.gform.routes.SummaryController
+                    .summaryById(formTemplateId, maybeAccessCode, None, None, true, None)
+                )
+              )
+            }
+      } yield res
     }
 }

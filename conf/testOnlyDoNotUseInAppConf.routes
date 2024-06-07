@@ -79,3 +79,5 @@ GET           /submissions/test-only/form-template/export/:formTemplateId/:acces
 
 GET           /submissions/test-only/summary/html/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.generateSummaryHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /submissions/test-only/acknowledgement/html/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.generateAcknowledgementHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
+
+GET           /submissions/test-only/return-to-cya/:formTemplateId                                   uk.gov.hmrc.gform.testonly.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId: FormTemplateId, a: Option[AccessCode])
