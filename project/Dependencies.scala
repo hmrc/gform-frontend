@@ -38,6 +38,7 @@ object Dependencies {
     "io.circe"                    %% "circe-core"                 % circeVersion,
     "io.circe"                    %% "circe-generic"              % circeVersion,
     "io.circe"                    %% "circe-parser"               % circeVersion,
+    "org.apache.poi"               % "poi-ooxml"                  % "5.2.5",
     // Taken from: https://github.com/orgs/playframework/discussions/11222
     "com.fasterxml.jackson.core"       % "jackson-core"                   % jacksonVersion,
     "com.fasterxml.jackson.core"       % "jackson-annotations"            % jacksonVersion,
