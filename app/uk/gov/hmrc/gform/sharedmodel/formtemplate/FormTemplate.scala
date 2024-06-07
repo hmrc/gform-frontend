@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import ai.x.play.json.Jsonx
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, DataRetrieve, LocalisedString, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
-import ai.x.play.json.Encoders.encoder
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 case class FormTemplate(
@@ -70,12 +68,16 @@ case class FormTemplate(
 }
 
 object FormTemplate {
-
-  import JsonUtils._
-
-  private val reads = Reads[FormTemplate] { json =>
-    Jsonx.formatCaseClass[FormTemplate].reads(json)
+  implicit def readsNonEmptyList[T: Reads]: Reads[NonEmptyList[T]] = Reads[NonEmptyList[T]] { json =>
+    Json.fromJson[List[T]](json).flatMap {
+      case Nil     => JsError(JsonValidationError(s"Required at least one element. Got: $json"))
+      case x :: xs => JsSuccess(NonEmptyList(x, xs))
+    }
   }
 
-  implicit val format: OFormat[FormTemplate] = OFormat(reads, derived.owrites[FormTemplate]())
+  implicit def writesNonEmptyList[T: Writes]: Writes[NonEmptyList[T]] = Writes[NonEmptyList[T]] { v =>
+    JsArray((v.head :: v.tail).map(Json.toJson(_)))
+  }
+
+  implicit val format: OFormat[FormTemplate] = derived.oformat[FormTemplate]()
 }
