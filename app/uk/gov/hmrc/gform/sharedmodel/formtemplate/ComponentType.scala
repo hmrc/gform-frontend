@@ -348,6 +348,7 @@ sealed trait OptionData extends Product with Serializable {
 }
 
 object OptionData {
+  implicit val eqOptionData: Eq[OptionData] = Eq.fromUniversalEquals
 
   case class IndexBased(
     label: SmartString,

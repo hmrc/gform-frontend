@@ -68,7 +68,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    14; // This is managed manually. Increase it any time API used by builder extension is changed.
+    15; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(
@@ -152,6 +152,7 @@ class BuilderController(
               _.deepMerge(
                 Json.obj(
                   "hiddenComponentIds" := hiddenComponentIds,
+                  "hiddenChoicesLookup" := hiddenChoiceIndexes(formModelOptics, sectionNumber),
                   "version" := compatibilityVersion
                 )
               )
@@ -159,6 +160,34 @@ class BuilderController(
             .fold(BadRequest(s"No section for $sectionNumber found in form template $formTemplateId"))(json => Ok(json))
         }
     }
+
+  private def hiddenChoiceIndexes(
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    sectionNumber: SectionNumber
+  ): Map[String, List[Int]] = {
+    val visibilityFormComponents =
+      formModelOptics.formModelVisibilityOptics.formModel(sectionNumber).allFormComponents.map(fc => fc.id -> fc).toMap
+    val renderFormComponents =
+      formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).allFormComponents.map(fc => fc.id -> fc).toMap
+
+    renderFormComponents
+      .collect { case (id, renderFc @ IsChoice(renderChoice)) =>
+        visibilityFormComponents.get(id) match {
+          case Some(IsChoice(visibleChoice)) =>
+            val visibleOptions = visibleChoice.options.toList
+            val renderOptions = renderChoice.options.toList
+            val intersect = renderOptions.intersect(visibleOptions)
+            val result = renderOptions
+              .map(o => intersect.indexOf(o))
+              .zipWithIndex
+              .collect { case (-1, i) => i }
+            Some((id.value, result))
+          case _ => None
+        }
+      }
+      .flatten
+      .toMap
+  }
 
   def originalFormTemplate(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
