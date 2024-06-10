@@ -32,7 +32,7 @@ object FormTemplateId {
 
   val vformat: Format[FormTemplateId] =
     ValueClassFormat.vformat("formTemplateId", FormTemplateId.apply, x => JsString(x.value))
-  implicit val oformat: OFormat[FormTemplateId] =
+  val oformat: OFormat[FormTemplateId] =
     ValueClassFormat.oformat("formTemplateId", FormTemplateId.apply, _.value)
 
   implicit val show: Show[FormTemplateId] = Show.show(_.value)
