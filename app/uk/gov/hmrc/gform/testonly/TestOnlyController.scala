@@ -48,7 +48,8 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData, InProgress, Submitted, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, InProgress, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
@@ -61,12 +62,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ destinations, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ br, inset_text, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
+import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
+import uk.gov.hmrc.gform.views.html.debug.toolbox
 import uk.gov.hmrc.gform.BuildInfo
 import snapshot._
 import SnapshotForms._
 import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
+import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 
 import java.time.Instant
 
@@ -202,150 +206,262 @@ class TestOnlyController(
 
   }
 
-  def handlebarPayloads(
+  private def formTab(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): HtmlFormat.Appendable = {
+    val returnToSummaryLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "Return to summary page",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId, accessCode)
+    )
+
+    val viewFormDataLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View form data",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getFormData(formTemplateId, accessCode)
+    )
+
+    val viewSourceJsonTemplateLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View source json template",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/formtemplates/" + formTemplateId.value)
+    )
+
+    val saveCurrentFormLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "Save current form",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.saveFormPage(formTemplateId, accessCode)
+    )
+
+    val restoreFormLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "Restore a form",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(formTemplateId, accessCode, UserInputs())
+    )
+
+    val links =
+      List(returnToSummaryLink, viewFormDataLink, viewSourceJsonTemplateLink, saveCurrentFormLink, restoreFormLink)
+
+    bulleted_list(links)
+  }
+
+  private def submittedDataTab(formTemplate: FormTemplate, accessCode: Option[AccessCode], envelopeId: EnvelopeId) = {
+
+    def createDownloadContent(destination: SdesDestination) =
+      uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+        s"Download files for ${destination.description}",
+        uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+          .proxyToGform(s"gform/test-only/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
+      )
+
+    val downloadContents = List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate).map(createDownloadContent)
+
+    val dataStoreWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View data-store-work-item entry",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/data-store-work-item/envelopeId/" + envelopeId.value)
+    )
+
+    val dmsWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View dms-work-item entry",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/dms-work-item/envelopeId/" + envelopeId.value)
+    )
+
+    val viewSDESLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View sdes submission",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/sdes/envelopeId/" + envelopeId.value)
+    )
+
+    val links = downloadContents ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink)
+    bulleted_list(links)
+  }
+
+  private def developmentToolsTab(
+    formTemplate: FormTemplate,
+    accessCode: Option[AccessCode],
+    envelopeId: EnvelopeId
+  ) = {
+
+    val envelope = inputWrapper("Envelope ID", envelopeId.value)
+
+    val govukTable = formTemplate.destinations.fold { destinationList =>
+      val ids: List[(DestinationId, String, Boolean)] = destinationList.destinations.collect {
+        case d: Destination.DataStore         => (d.id, "hmrcIlluminate", d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.HandlebarsHttpApi => (d.id, "handlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.HmrcDms           => (d.id, "hmrcDms", d.convertSingleQuotes.getOrElse(false))
+      }
+
+      val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, convertSingleQuotes) =>
+        val processPayloadLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+          destinationId.id,
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+            .handlebarPayload(formTemplate._id, destinationId, accessCode)
+        )
+        val embeddedLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+          "Embedded",
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+            .handlebarPayloadEmbedded(formTemplate._id, destinationId, accessCode)
+        )
+        val sourceLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+          "Source",
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+            .handlebarPayloadSource(formTemplate._id, destinationId, accessCode)
+        )
+        List(
+          TableRow(
+            content = HtmlContent(processPayloadLink)
+          ),
+          TableRow(
+            content = Text(destinationType)
+          ),
+          TableRow(
+            content = HtmlContent(embeddedLink)
+          ),
+          TableRow(
+            content = HtmlContent(sourceLink)
+          ),
+          TableRow(
+            content = Text(convertSingleQuotes.toString)
+          )
+        )
+      }
+
+      val head =
+        Seq(
+          HeadCell(
+            content = Text("Output json")
+          ),
+          HeadCell(
+            content = Text("Destination type")
+          ),
+          HeadCell(
+            content = Text("Embedded")
+          ),
+          HeadCell(
+            content = Text("Source")
+          ),
+          HeadCell(
+            content = Text("convertSingleQuotes")
+          )
+        )
+
+      new GovukTable()(
+        Table(
+          caption = Some("Destinations with handlebar payload"),
+          captionClasses = "govuk-table__caption--m",
+          rows = rows,
+          head = Some(head)
+        )
+      )
+    }(_ => HtmlFormat.empty)
+
+    val viewHandlebarModelLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View handlebar json model",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handlebarModel(formTemplate._id, accessCode)
+    )
+
+    val viewSourceTemplateLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View source json template",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/formtemplates/" + formTemplate._id.value)
+    )
+
+    val viewInternalTemplateLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View internal json template ('convertSingleQuotes' has been applied to 'includeIf' etc.)",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/formtemplates/" + formTemplate._id.value + "/internal")
+    )
+
+    val viewEnvelopeFilesLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View envelope files",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/envelopes/" + envelopeId.value)
+    )
+
+    val viewUploadedFilesLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View the uploaded files from bucket",
+      uk.gov.hmrc.gform.testonly.routes.ObjectStoreAdminController.objectStoreContent(envelopeId)
+    )
+
+    val viewTranslationLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View translation source",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/translation/" + formTemplate._id.value + "/debug")
+    )
+
+    val links = List(
+      viewHandlebarModelLink,
+      viewSourceTemplateLink,
+      viewInternalTemplateLink,
+      viewEnvelopeFilesLink,
+      viewUploadedFilesLink,
+      viewTranslationLink
+    )
+
+    val bulletedList = bulleted_list(links)
+
+    val tableInset = inset_text(
+      HtmlFormat.fill(
+        List(
+          Html("Embedded - payload is embedded into json template itself ('convertSingleQuotes' has been applied)"),
+          br(),
+          Html("Source - original payload from *.hbs file")
+        )
+      )
+    )
+
+    HtmlFormat.fill(List(envelope, br(), bulletedList, br(), govukTable, tableInset))
+  }
+
+  private def reportsTab(formTemplate: FormTemplate, accessCode: Option[AccessCode]) = {
+    val viewFormTemplateDetailsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View form template details",
+      uk.gov.hmrc.gform.testonly.routes.FormTemplateExtractController.extract(formTemplate._id, accessCode)
+    )
+
+    val links = List(viewFormTemplateDetailsLink)
+
+    bulleted_list(links)
+  }
+
+  def handleToolbox(
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
-  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    accessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, accessCode) {
     implicit request => implicit lang => cache => _ => formModelOptics =>
       import i18nSupport._
-      val res: Result = cache.formTemplate.destinations.fold { destinationList =>
-        val ids: List[(DestinationId, String, Boolean)] = destinationList.destinations.collect {
-          case d: Destination.DataStore         => (d.id, "hmrcIlluminate", d.convertSingleQuotes.getOrElse(false))
-          case d: Destination.HandlebarsHttpApi => (d.id, "handlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
-          case d: Destination.HmrcDms           => (d.id, "hmrcDms", d.convertSingleQuotes.getOrElse(false))
-        }
 
-        val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, convertSingleQuotes) =>
-          val processPayloadLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-            destinationId.id,
-            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .handlebarPayload(formTemplateId, destinationId, maybeAccessCode)
-          )
-          val embeddedLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-            "Embedded",
-            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .handlebarPayloadEmbedded(formTemplateId, destinationId, maybeAccessCode)
-          )
-          val sourceLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-            "Source",
-            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .handlebarPayloadSource(formTemplateId, destinationId, maybeAccessCode)
-          )
-          List(
-            TableRow(
-              content = HtmlContent(processPayloadLink)
+      val govukTabs = new GovukTabs()(
+        Tabs(
+          items = Seq(
+            TabItem(
+              id = Some("form"),
+              label = "Form",
+              panel = TabPanel(
+                content = HtmlContent(formTab(formTemplateId, accessCode))
+              )
             ),
-            TableRow(
-              content = Text(destinationType)
+            TabItem(
+              id = Some("submitted-data"),
+              label = "Submitted data",
+              panel = TabPanel(
+                content = HtmlContent(submittedDataTab(cache.formTemplate, accessCode, cache.form.envelopeId))
+              )
             ),
-            TableRow(
-              content = HtmlContent(embeddedLink)
+            TabItem(
+              id = Some("reports"),
+              label = "Reports",
+              panel = TabPanel(
+                content = HtmlContent(reportsTab(cache.formTemplate, accessCode))
+              )
             ),
-            TableRow(
-              content = HtmlContent(sourceLink)
-            ),
-            TableRow(
-              content = Text(convertSingleQuotes.toString)
-            )
-          )
-        }
-
-        val head =
-          Seq(
-            HeadCell(
-              content = Text("Output json")
-            ),
-            HeadCell(
-              content = Text("Destination type")
-            ),
-            HeadCell(
-              content = Text("Embedded")
-            ),
-            HeadCell(
-              content = Text("Source")
-            ),
-            HeadCell(
-              content = Text("convertSingleQuotes")
-            )
-          )
-
-        val govukTable = new GovukTable()(
-          Table(
-            rows = rows,
-            head = Some(head)
-          )
-        )
-
-        val maybeReturnToSummaryContent =
-          if (cache.form.status === Submitted)
-            Option(
-              uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-                "Return to summary page",
-                uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-                  .changeStateAndRedirectToCYA(formTemplateId, maybeAccessCode)
+            TabItem(
+              id = Some("development-tools"),
+              label = "Development tools",
+              panel = TabPanel(
+                content = HtmlContent(developmentToolsTab(cache.formTemplate, accessCode, cache.form.envelopeId))
               )
             )
-          else None
-
-        val envelopeId = cache.form.envelopeId
-        val isObjectStore = cache.formTemplate.isObjectStore
-
-        def createDownloadContent(destination: SdesDestination): Option[HtmlFormat.Appendable] =
-          Option(
-            uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-              destination.description,
-              uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-                .proxyToGform(s"gform/test-only/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
-            )
-          ).filter(_ =>
-            isObjectStore && destinationList.destinations.exists {
-              case Destination.HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _)     => destination === Dms
-              case Destination.DataStore(_, dsType, _, _, _, _, _, _, _, _, _, _, _) => destination === dsType
-              case _                                                                 => false
-            } && cache.form.status === Submitted
-          )
-
-        val maybeDownloadContents =
-          Seq(Dms, DataStore, DataStoreLegacy, HmrcIlluminate).flatMap(createDownloadContent) match {
-            case nonEmptyContents if nonEmptyContents.nonEmpty => Some(nonEmptyContents)
-            case _                                             => None
-          }
-
-        Ok(
-          destinations(
-            cache.formTemplate,
-            cache.form.envelopeId,
-            maybeAccessCode,
-            true,
-            Option.empty[String],
-            frontendAppConfig,
-            govukTable,
-            maybeReturnToSummaryContent,
-            maybeDownloadContents,
-            cache.form._id.value
-          )
-        )
-      }(_ =>
-        Ok(
-          destinations(
-            cache.formTemplate,
-            cache.form.envelopeId,
-            maybeAccessCode,
-            false,
-            Some("Print destination has no payload"),
-            frontendAppConfig,
-            HtmlFormat.empty,
-            None,
-            None,
-            cache.form._id.value
           )
         )
       )
 
-      res.pure[Future]
+      Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs)).pure[Future]
 
   }
-
   def handlebarPayload(
     formTemplateId: FormTemplateId,
     destinationId: DestinationId,
@@ -1124,7 +1240,7 @@ class TestOnlyController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ForceUpdateFormStatus
+      OperationWithForm.ForceReturnToCYA
     ) { implicit request => _ => cache => _ => _ =>
       for {
         _ <- gformConnector.deleteGeneratedFiles(cache.form.envelopeId)

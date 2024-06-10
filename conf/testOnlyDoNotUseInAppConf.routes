@@ -60,8 +60,8 @@ GET           /submissions/test-only/errors-json/:formTemplateId                
 GET           /submissions/test-only/errors-html/:formTemplateId                                     uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /submissions/test-only/errors-html-usage/:formTemplateId                               uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsUsageHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
 
-GET           /submissions/test-only/payloads/:formTemplateId                                        uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloads(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
-GET           /submissions/test-only/payloads/:formTemplateId/:accessCode                            uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayloads(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+GET           /submissions/test-only/toolbox/:formTemplateId                                         uk.gov.hmrc.gform.testonly.TestOnlyController.handleToolbox(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/toolbox/:formTemplateId/:accessCode                             uk.gov.hmrc.gform.testonly.TestOnlyController.handleToolbox(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/handlebars-model/:formTemplateId                                uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
 GET           /submissions/test-only/handlebars-model/:formTemplateId/:accessCode                    uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarModel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/handlebar-payload/:formTemplateId/:destinationId                uk.gov.hmrc.gform.testonly.TestOnlyController.handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId, accessCode: Option[AccessCode] = None)
@@ -80,4 +80,4 @@ GET           /submissions/test-only/form-template/export/:formTemplateId/:acces
 GET           /submissions/test-only/summary/html/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.generateSummaryHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /submissions/test-only/acknowledgement/html/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.generateAcknowledgementHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
 
-GET           /submissions/test-only/return-to-cya/:formTemplateId                                   uk.gov.hmrc.gform.testonly.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/return-to-cya/:formTemplateId/:accessCode                       uk.gov.hmrc.gform.testonly.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
