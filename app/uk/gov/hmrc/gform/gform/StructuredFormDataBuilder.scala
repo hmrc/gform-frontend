@@ -277,7 +277,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         ObjectStructure(fields.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
       case t @ TextNode(_) =>
         if (sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
-          val poundOrComma = "[£,]".r
+          val poundOrComma = "[£,]|\\.(?=$)".r
           TextNode(poundOrComma.replaceAllIn(t.value, ""))
         } else {
           t
