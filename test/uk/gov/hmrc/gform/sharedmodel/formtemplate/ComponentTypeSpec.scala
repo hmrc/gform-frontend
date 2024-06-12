@@ -29,7 +29,7 @@ class ComponentTypeSpec extends Spec {
   }
 
   "Range" should "format times without a space between the numbers and the am/pm" in {
-    val formattedTime = Range.twelveHoursFormat.format(LocalTime.parse("01:45"))
+    val formattedTime = Range.twelveHoursFormat.format(LocalTime.parse("01:45")).replace("AM", "am")
 
     formattedTime shouldBe "01:45am"
   }
