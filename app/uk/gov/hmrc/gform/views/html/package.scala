@@ -66,14 +66,14 @@ package object html {
   private def toolboxFooterItem(formTemplate: FormTemplate) =
     new FooterItem(
       text = Some("Toolbox"),
-      href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}"),
+      href = Some(s"/submissions/test-only/toolbox/${formTemplate._id.value}"),
       attributes = Map.empty
     )
 
   private def toolboxFooterItemWithAccessCode(formTemplate: FormTemplate, accessCode: AccessCode) =
     new FooterItem(
       text = Some("Toolbox"),
-      href = Some(s"/submissions/test-only/payloads/${formTemplate._id.value}/${accessCode.value}"),
+      href = Some(s"/submissions/test-only/toolbox/${formTemplate._id.value}/${accessCode.value}"),
       attributes = Map.empty
     )
   private def startNewFormFooterItem(formTemplate: FormTemplate) = {
