@@ -118,7 +118,7 @@ class FormTemplateExtractController(
                 page.includeIf,
                 field.id,
                 field.shortName.getOrElse(field.label),
-                field.`type`,
+                field.showFormat,
                 field.includeIf,
                 false
               )
@@ -136,7 +136,7 @@ class FormTemplateExtractController(
                 page.includeIf,
                 field.id,
                 field.shortName.getOrElse(field.label),
-                field.`type`,
+                field.showFormat,
                 field.includeIf,
                 false
               )
@@ -155,7 +155,7 @@ class FormTemplateExtractController(
                     page.includeIf,
                     field.id,
                     field.shortName.getOrElse(field.label),
-                    field.`type`,
+                    field.showFormat,
                     field.includeIf,
                     true
                   )
@@ -197,7 +197,7 @@ class FormTemplateExtractController(
                     page.includeIf,
                     field.id,
                     field.shortName.getOrElse(field.label),
-                    field.`type`,
+                    field.showFormat,
                     field.includeIf,
                     false
                   )
@@ -215,7 +215,7 @@ class FormTemplateExtractController(
                     page.includeIf,
                     field.id,
                     field.shortName.getOrElse(field.label),
-                    field.`type`,
+                    field.showFormat,
                     field.includeIf,
                     false
                   )
@@ -234,7 +234,7 @@ class FormTemplateExtractController(
                         page.includeIf,
                         field.id,
                         field.shortName.getOrElse(field.label),
-                        field.`type`,
+                        field.showFormat,
                         field.includeIf,
                         true
                       )
@@ -284,7 +284,7 @@ class FormTemplateExtractController(
         ),
         Some(ReportTableRow(content = row.fieldId.value)),
         Some(ReportTableRow(content = evalSmartString(row.fieldLabel))),
-        Some(ReportTableRow(content = row.fieldFormat.showType)),
+        Some(ReportTableRow(content = row.fieldFormat)),
         Some(
           ReportTableRow(content = row.fieldCondition.map(cond => s"$${${cond.booleanExpr.prettyPrint}}").getOrElse(""))
         ),
