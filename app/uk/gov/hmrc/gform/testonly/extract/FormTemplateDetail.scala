@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.testonly.extract
 
 import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ComponentType, FormComponentId, IncludeIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf }
 
 case class FormTemplateDetail(
   sectionTitle: FormTemplateDetailRow,
@@ -28,7 +28,7 @@ case class FormTemplateDetail(
   pageCondition: Option[IncludeIf],
   fieldId: FormComponentId,
   fieldLabel: SmartString,
-  fieldFormat: ComponentType,
+  fieldFormat: String,
   fieldCondition: Option[IncludeIf],
   fieldRepeats: Boolean
 )

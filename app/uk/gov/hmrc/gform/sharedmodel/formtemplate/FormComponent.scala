@@ -114,6 +114,40 @@ case class FormComponent(
     case _                                                            => None
   }
 
+  val showFormat: String =
+    this match {
+      case IsText(Text(TelephoneNumber, _, _, _, _, _))            => "telephoneNumber"
+      case IsText(Text(Sterling(_, true), _, _, _, _, _))          => "positiveSterling"
+      case IsText(Text(Sterling(_, _), _, _, _, _, _))             => "sterling"
+      case IsText(Text(WholeSterling(true), _, _, _, _, _))        => "positiveWholeSterling"
+      case IsText(Text(WholeSterling(_), _, _, _, _, _))           => "wholeSterling"
+      case IsText(Text(PositiveNumber(_, 0, _, _), _, _, _, _, _)) => "positiveWholeNumber"
+      case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _)) => "positiveNumber"
+      case IsText(Text(Number(_, _, _, _), _, _, _, _, _))         => "number"
+      case IsText(Text(UkSortCodeFormat, _, _, _, _, _))           => "ukSortCode"
+      case IsText(Text(UkBankAccountNumber, _, _, _, _, _))        => "ukBankAccountNumber"
+      case IsText(Text(CtUTR, _, _, _, _, _))                      => "ctUtr"
+      case IsText(Text(SaUTR, _, _, _, _, _))                      => "saUtr"
+      case IsText(Text(NINO, _, _, _, _, _))                       => "nino"
+      case IsText(Text(PayeReference, _, _, _, _, _))              => "payeReference"
+      case IsText(Text(ChildBenefitNumber, _, _, _, _, _))         => "childBenefitNumber"
+      case IsText(Text(EORI, _, _, _, _, _))                       => "EORI"
+      case IsText(Text(UkEORI, _, _, _, _, _))                     => "UkEORI"
+      case IsText(Text(UkVrn, _, _, _, _, _))                      => "ukVrn"
+      case IsText(Text(Lookup(_, _), _, _, _, _, _))               => "lookup"
+      case IsText(Text(CompanyRegistrationNumber, _, _, _, _, _))  => "companyRegistrationNumber"
+      case IsText(Text(Email, _, _, _, _, _))                      => "email"
+      case IsText(Text(CountryCode, _, _, _, _, _))                => "countryCode"
+      case IsText(Text(NonUkCountryCode, _, _, _, _, _))           => "nonUkCountryCode"
+      case IsText(Text(ShortText(_, _), _, _, _, _, _))            => "shortText"
+      case IsText(Text(YearFormat, _, _, _, _, _))                 => "year"
+      case IsText(Text(TimeFormat, _, _, _, _, _))                 => "time"
+      case IsChoice(Choice(YesNo, _, _, _, _, _, _, _, _, _))      => "yesNo"
+      case IsChoice(Choice(Radio, _, _, _, _, _, _, _, _, _))      => "radio"
+      case IsChoice(Choice(Checkbox, _, _, _, _, _, _, _, _, _))   => "checkbox"
+      case other                                                   => other.`type`.showType
+    }
+
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
 
   def hideOnSummary: Boolean =
