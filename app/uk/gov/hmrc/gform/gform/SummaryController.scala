@@ -164,7 +164,7 @@ class SummaryController(
         requestRelatedData => variadicFormData => _ =>
           save match {
             case Exit =>
-              handleExit(cache.formTemplateContext, maybeAccessCode, cache, maybeCoordinates).pure[Future]
+              handleExit(cache.formTemplateContext, maybeAccessCode, cache, maybeCoordinates)
             case SummaryContinue =>
               handleSummaryContinue(
                 cache.form.formTemplateId,
@@ -188,43 +188,57 @@ class SummaryController(
   )(implicit
     request: Request[AnyContent],
     l: LangADT
-  ): Result = {
+  ): Future[Result] = {
     val formTemplate = formTemplateContext.formTemplate
-    maybeAccessCode match {
-      case Some(accessCode) =>
-        val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
-        Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
-      case _ =>
-        val config: Option[AuthConfig] =
-          formTemplate.authConfig match {
-            case Composite(configs) =>
-              val compositeAuthDetails =
-                jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                  .get(formTemplateContext)
-              AuthConfig
-                .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-            case config => Some(config)
-          }
-
-        config match {
-          case Some(c) if c.isEmailAuthConfig =>
-            Redirect(gform.routes.SaveAcknowledgementController.show(formTemplate._id))
+    gformConnector
+      .updateUserData(
+        FormIdData(cache.retrievals, formTemplate._id, maybeAccessCode),
+        UserData(
+          cache.form.formData,
+          Validated,
+          cache.form.visitsIndex,
+          cache.form.thirdPartyData,
+          cache.form.componentIdToFileId
+        )
+      )
+      .flatMap { _ =>
+        maybeAccessCode match {
+          case Some(accessCode) =>
+            val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
+            Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig)).pure[Future]
           case _ =>
-            val call = if (maybeCoordinates.isDefined) {
-              uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplateId, maybeAccessCode)
-            } else {
-              routes.SummaryController
-                .summaryById(
-                  formTemplate._id,
-                  maybeAccessCode,
-                  None,
-                  None
-                ) // TODO JoVl why are Coordinates needed here?
+            val config: Option[AuthConfig] =
+              formTemplate.authConfig match {
+                case Composite(configs) =>
+                  val compositeAuthDetails =
+                    jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+                      .get(formTemplateContext)
+                  AuthConfig
+                    .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
+                case config => Some(config)
+              }
+
+            config match {
+              case Some(c) if c.isEmailAuthConfig =>
+                Redirect(gform.routes.SaveAcknowledgementController.show(formTemplate._id)).pure[Future]
+              case _ =>
+                val call = if (maybeCoordinates.isDefined) {
+                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                    .landingPage(cache.formTemplateId, maybeAccessCode)
+                } else {
+                  routes.SummaryController
+                    .summaryById(
+                      formTemplate._id,
+                      maybeAccessCode,
+                      None,
+                      None
+                    ) // TODO JoVl why are Coordinates needed here?
+                }
+                val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
+                Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode)).pure[Future]
             }
-            val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
-            Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
         }
-    }
+      }
   }
 
   private def handleSummaryContinue(
