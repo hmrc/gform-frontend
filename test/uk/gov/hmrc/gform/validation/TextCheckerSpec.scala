@@ -427,7 +427,7 @@ class TextCheckerSpec
       ),
       (
         "12:30",
-        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:30 am for midnight or 12:30 pm for midday")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:30am for midnight or 12:30pm for midday")))
       )
     )
 
