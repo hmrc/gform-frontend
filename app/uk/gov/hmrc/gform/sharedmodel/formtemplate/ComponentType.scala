@@ -547,7 +547,7 @@ object Range {
   def stringToLocalTime(formatter: DateTimeFormatter, time: String): LocalTime =
     LocalTime.parse(time, formatter)
 
-  val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mm a")
+  val twelveHoursFormat = DateTimeFormatter.ofPattern("hh:mma")
 
   @tailrec
   def getTimeSlots(sTime: LocalTime, eTime: LocalTime, iMins: Int, acc: List[LocalTime]): List[LocalTime] = {
@@ -564,7 +564,7 @@ object Range {
         getTimeSlots(t.startTime.time, t.endTime.time, time.intervalMins.intervalMins, List(t.startTime.time))
       )
       .distinct
-      .map(_.format(twelveHoursFormat))
+      .map(_.format(twelveHoursFormat).replace("AM", "am").replace("PM", "pm"))
 }
 
 case class IntervalMins(intervalMins: Int) extends AnyVal
