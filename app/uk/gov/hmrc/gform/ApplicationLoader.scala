@@ -36,7 +36,7 @@ import _root_.controllers.AssetsComponents
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import play.filters.csrf.{ CSRF, CSRFComponents }
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
@@ -103,7 +103,7 @@ class ApplicationModule(context: Context)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
 
-  private val authModule = new AuthModule(configModule, wSHttpModule, gformBackendModule)
+  private val authModule = new AuthModule(configModule, wSHttpModule)
 
   private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
 
@@ -142,9 +142,7 @@ class ApplicationModule(context: Context)
     englishMessages
   )
 
-  private val fileUploadModule = new FileUploadModule(
-    wSHttpModule,
-    configModule,
+  private val objectStoreModule = new ObjectStoreModule(
     gformBackendModule.gformConnector
   )
 
@@ -153,14 +151,10 @@ class ApplicationModule(context: Context)
     authModule,
     gformBackendModule,
     playBuiltInsModule,
-    auditingModule,
     this,
-    hmrcSessionCookieBaker,
     errResponder,
     graphModule,
-    wSHttpModule,
-    countryLookupOptions,
-    fileUploadModule
+    countryLookupOptions
   )
 
   val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
@@ -171,7 +165,6 @@ class ApplicationModule(context: Context)
     wSHttpModule,
     configModule,
     gformBackendModule,
-    applicationCrypto,
     configModule.appConfig
   )
 
@@ -199,7 +192,7 @@ class ApplicationModule(context: Context)
     controllersModule,
     authModule,
     gformBackendModule,
-    fileUploadModule,
+    objectStoreModule,
     taskListModule,
     upscanModule,
     addressLookupModule,
@@ -208,7 +201,6 @@ class ApplicationModule(context: Context)
     playBuiltInsModule,
     graphModule,
     lookupRegistry,
-    errResponder,
     countryLookupOptions,
     englishMessages,
     this
@@ -222,7 +214,7 @@ class ApplicationModule(context: Context)
     graphModule,
     lookupRegistry,
     this,
-    fileUploadModule,
+    objectStoreModule,
     gformModule,
     wSHttpModule,
     applicationCrypto,
@@ -242,7 +234,6 @@ class ApplicationModule(context: Context)
   private val frontendFiltersModule = new FrontendFiltersModule(
     gformBackendModule,
     authModule,
-    applicationCrypto,
     playBuiltInsModule,
     akkaModule,
     configModule,
@@ -259,12 +250,8 @@ class ApplicationModule(context: Context)
 
   private val routingModule = new RoutingModule(
     playBuiltInsModule,
-    akkaModule,
     configModule,
-    auditingModule,
-    metricsModule,
     gformModule,
-    fileUploadModule,
     testOnlyModule,
     frontendFiltersModule,
     controllersModule,

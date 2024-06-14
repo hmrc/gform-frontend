@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SES
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -59,7 +59,7 @@ import uk.gov.hmrc.gform.models.FastForward
 class SummaryController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  fileUploadService: FileUploadService,
+  objectStoreService: ObjectStoreService,
   validationService: ValidationService,
   pdfGeneratorService: PdfGeneratorService,
   pdfRenderService: PDFRenderService,
@@ -255,7 +255,7 @@ class SummaryController(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Result] = {
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+    val envelopeF = objectStoreService.getEnvelope(cache.form.envelopeId)
 
     def changeStateAndRedirectToDeclarationOrPrint: Future[Result] = gformConnector
       .updateUserData(
@@ -405,7 +405,7 @@ class SummaryController(
     lise: SmartStringEvaluator
   ) =
     for {
-      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+      envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
       validationResult <- validationService
                             .validateAllSections(
                               cache.toCacheData,
@@ -503,7 +503,7 @@ class SummaryController(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Boolean] = {
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+    val envelopeF = objectStoreService.getEnvelope(cache.form.envelopeId)
 
     for {
       envelope <- envelopeF

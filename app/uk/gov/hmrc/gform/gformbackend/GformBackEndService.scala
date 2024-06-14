@@ -23,7 +23,7 @@ import play.api.mvc.Request
 import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.fileupload.Attachments
+import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose, UserSessionBuilder }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSession }

@@ -19,11 +19,11 @@ package uk.gov.hmrc.gform.it
 import org.jsoup.Jsoup
 import org.scalatest.time.{ Millis, Seconds, Span }
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
-import uk.gov.hmrc.gform.it.stubs.{ FileUploadStubs, GFormStubs }
+import uk.gov.hmrc.gform.it.stubs.{ EnvelopeStubs, GFormStubs }
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService.DigitalContact
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailTemplateId }
 
-class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
+class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
   override implicit val defaultPatience: PatienceConfig =
     PatienceConfig(timeout = Span(15, Seconds), interval = Span(500, Millis))
@@ -196,7 +196,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformFormStub(formTemplateEmailAuth)
 
     And("FileUpload get envelopes returns 200 OK")
-    getFileUploadEnvelopeStub()
+    getEnvelopeStub()
 
     When("I request for a new form, enter email and submit the confirmation code")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -233,7 +233,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with FileUploadStubs {
     gformEmailStub(DigitalContact(EmailTemplateId("code_template"), None), formTemplateId)
 
     And("FileUpload get envelopes returns 200 OK")
-    getFileUploadEnvelopeStub()
+    getEnvelopeStub()
 
     When("I request for a new form, enter email and submit the confirmation code")
     val emailForm = get("/submissions/new-form/form-template-with-email-auth").send()

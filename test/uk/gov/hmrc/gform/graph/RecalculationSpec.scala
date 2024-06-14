@@ -1055,7 +1055,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    val fileUpload = FileUpload(FileUploadProvider.FileUploadFrontend, None, None)
+    val fileUpload = FileUpload(None, None)
 
     val sections =
       mkSection(List(mkFormComponent("uploadInvoice", fileUpload))) ::

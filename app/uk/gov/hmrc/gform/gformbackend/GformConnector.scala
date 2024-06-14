@@ -28,7 +28,7 @@ import org.apache.commons.text.StringEscapeUtils
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }

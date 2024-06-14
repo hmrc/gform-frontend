@@ -26,7 +26,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 
 class FastForwardService(
-  fileUploadService: FileUploadService,
+  objectStoreService: ObjectStoreService,
   validationService: ValidationService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future],
@@ -113,7 +113,7 @@ class FastForwardService(
           DataOrigin.swapDataOrigin(formModelVisibilityOptics)
         )
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+          envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
           res <-
             updateUserData(
               cache,
@@ -247,7 +247,7 @@ class FastForwardService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Option[SectionNumber]] = for {
-    envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+    envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
     processData <- processDataService
                      .getProcessData[SectionSelectorType.Normal](
                        formModelOptics.formModelRenderPageOptics.recData.variadicFormData
@@ -264,5 +264,5 @@ class FastForwardService(
                                    validationService.validatePageModel,
                                    lastSectionNumber
                                  )
-  } yield maybeInvalidSectionNumber.filter(sn => lastSectionNumber.map(sn < _).getOrElse(true))
+  } yield maybeInvalidSectionNumber.filter(sn => lastSectionNumber.forall(sn < _))
 }

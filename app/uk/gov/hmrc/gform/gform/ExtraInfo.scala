@@ -19,10 +19,8 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.all._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.SaveAndExit
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
-import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.FastForward
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
@@ -77,32 +75,6 @@ final case class ExtraInfo(
     classes = "govuk-button--secondary"
   )
 
-  object fileUpload {
-
-    def formAction(frontendAppConfig: FrontendAppConfig, formComponent: FormComponent): String = {
-      val fileId = getFileId(formComponent)
-      val successUrl: String =
-        frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsSuccessCallback(
-          formTemplate._id,
-          sectionNumber,
-          maybeAccessCode,
-          formComponent.id,
-          fileId
-        )
-
-      val errorUrl: String =
-        frontendAppConfig.gformFrontendBaseUrl + FileUploadController.noJsErrorCallback(
-          formTemplate._id,
-          sectionNumber,
-          maybeAccessCode,
-          formComponent.id,
-          fileId
-        )
-
-      s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=$successUrl&redirect-error-url=$errorUrl"
-    }
-  }
-
   private val renderableAsSingleFileUpload: List[FormComponent] = singleton.page.allFields.filterNot {
     case IsInformationMessage(_) => true
     case IsTableComp(_)          => true
@@ -118,6 +90,6 @@ final case class ExtraInfo(
     }
 
   def isAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
-    validationResult(formComponent).getCurrentValue.filterNot(_ === "").isDefined
+    !validationResult(formComponent).getCurrentValue.forall(_ === "")
 
 }
