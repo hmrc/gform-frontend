@@ -341,7 +341,9 @@ class ExpressionResultSpec extends FunSuite {
     assert(!optStr)
   }
 
-  test("identical should return false when comparing StringResult and OptionResult with more than 1 option in both orders") {
+  test(
+    "identical should return false when comparing StringResult and OptionResult with more than 1 option in both orders"
+  ) {
     val stringResult = StringResult("First text is identical")
     val optionResult = OptionResult(Seq("First text is identical", "Second text should make this fail"))
 
