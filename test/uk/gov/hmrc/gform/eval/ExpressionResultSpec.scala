@@ -318,4 +318,37 @@ class ExpressionResultSpec extends FunSuite {
     assertEquals(lrH3 / lr12, ListResult(List(NumberResult(0), NumberResult(1.5))))
 
   }
+
+  test("identical should return true when comparing equal StringResult and OptionResult in both orders") {
+    val stringResult = StringResult("Text is identical")
+    val optionResult = OptionResult(Seq("Text is identical"))
+
+    val strOpt = stringResult.identical(optionResult)
+    val optStr = optionResult.identical(stringResult)
+
+    assert(strOpt)
+    assert(optStr)
+  }
+
+  test("identical should return false when comparing non-equal StringResult and OptionResult in both orders") {
+    val stringResult = StringResult("Text is not identical")
+    val optionResult = OptionResult(Seq("Text should not be identical"))
+
+    val strOpt = stringResult.identical(optionResult)
+    val optStr = optionResult.identical(stringResult)
+
+    assert(!strOpt)
+    assert(!optStr)
+  }
+
+  test("identical should return false when comparing StringResult and OptionResult with more than 1 option in both orders") {
+    val stringResult = StringResult("First text is identical")
+    val optionResult = OptionResult(Seq("First text is identical", "Second text should make this fail"))
+
+    val strOpt = stringResult.identical(optionResult)
+    val optStr = optionResult.identical(stringResult)
+
+    assert(!strOpt)
+    assert(!optStr)
+  }
 }
