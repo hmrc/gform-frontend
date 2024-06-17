@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.testonly
 
 import cats.implicits._
-import org.apache.poi.ss.usermodel.{ Cell, Row, Sheet, Workbook }
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
@@ -32,9 +30,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.TableRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import java.io.ByteArrayOutputStream
 import java.text.MessageFormat
-import scala.collection.immutable.List
 import scala.concurrent.{ ExecutionContext, Future }
 
 class FormTemplateExtractController(
@@ -323,42 +319,17 @@ class FormTemplateExtractController(
         Ok(html.debug.formTemplateExtract(cache.formTemplate, accessCode, title, htmlTable)).pure[Future]
     }
 
-  def exportToExcel(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+  def exportToCSV(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, accessCode, OperationWithForm.EditForm) {
       _ => implicit lang => cache => _ => _ =>
-        val workbook: Workbook = new XSSFWorkbook()
-        val sheet: Sheet = workbook.createSheet(s"Detailed Report for ${formTemplateId.value}")
-        val headerRow: Row = sheet.createRow(0)
+        val csvContent = (headers +: makeReportTableRows(cache).map(_.map(_.map(_.content).getOrElse(""))))
+          .map(_.mkString(","))
+          .mkString("\n")
 
-        for (i <- headers.indices) {
-          val cell: Cell = headerRow.createCell(i)
-          cell.setCellValue(headers(i))
-        }
-
-        val tableRows = makeReportTableRows(cache).map(_.map(_.map(_.content).getOrElse("")))
-
-        for (i <- tableRows.indices) {
-          val row: Row = sheet.createRow(i + 1) // Start from the second row
-          for (j <- tableRows(i).indices) {
-            val cell: Cell = row.createCell(j)
-            cell.setCellValue(tableRows(i)(j))
-          }
-        }
-
-        for (i <- headers.indices)
-          sheet.autoSizeColumn(i)
-
-        val outputStream = new ByteArrayOutputStream()
-        workbook.write(outputStream)
-        val fileContents = outputStream.toByteArray
-
-        outputStream.close()
-        workbook.close()
-
-        Ok(fileContents)
-          .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        Ok(csvContent)
+          .as("text/csv")
           .withHeaders(
-            "Content-Disposition" -> s"attachment; filename=${formTemplateId.value}-details.xlsx"
+            "Content-Disposition" -> s"attachment; filename=${formTemplateId.value}-details.csv"
           )
           .pure[Future]
     }
