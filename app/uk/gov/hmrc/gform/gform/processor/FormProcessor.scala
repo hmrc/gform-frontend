@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -55,7 +55,7 @@ class FormProcessor(
   validationService: ValidationService,
   fastForwardService: FastForwardService,
   recalculation: Recalculation[Future, Throwable],
-  fileUploadService: FileUploadAlgebra[Future],
+  objectStoreService: ObjectStoreAlgebra[Future],
   handler: FormControllerRequestHandler,
   bankAccountReputationConnector: BankAccountReputationConnector[Future],
   companyInformationConnector: CompanyInformationConnector[Future],
@@ -235,7 +235,7 @@ class FormProcessor(
                                 recalculation
                               )
       redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds)
-      _        <- fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)(cache.formTemplate.isObjectStore)
+      _        <- objectStoreService.deleteFiles(cache.form.envelopeId, filesToDelete)
     } yield redirect
   }
 
@@ -258,7 +258,7 @@ class FormProcessor(
       formModelVisibilityOptics.formModel(sectionNumber)
 
     for {
-      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+      envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
       envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
       FormValidationOutcome(isValid, formData, validatorsResult) <- handler.handleFormValidation(
                                                                       processData.formModelOptics,

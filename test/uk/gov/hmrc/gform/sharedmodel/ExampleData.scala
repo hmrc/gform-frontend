@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
@@ -279,7 +279,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - facePhoto` = FormComponent(
     `fieldId - facePhoto`,
-    FileUpload(FileUploadProvider.FileUploadFrontend, None, None),
+    FileUpload(None, None),
     toSmartString("Attach evidence of your smile"),
     helpText = None,
     None,
@@ -843,7 +843,6 @@ trait ExampleFormTemplate {
       FileInfoConfig.allAllowedFileTypes,
       None,
       Some(userResearchUrl),
-      None,
       None,
       None,
       None,

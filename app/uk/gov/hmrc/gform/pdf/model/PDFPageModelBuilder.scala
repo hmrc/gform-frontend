@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.pdf.model
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.LangADT

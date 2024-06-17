@@ -28,14 +28,13 @@ import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -60,14 +59,13 @@ class FormController(
   frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  fileUploadService: FileUploadAlgebra[Future],
+  objectStoreAlgebra: ObjectStoreAlgebra[Future],
   upscanService: UpscanAlgebra[Future],
   validationService: ValidationService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future],
   handler: FormControllerRequestHandler,
-  lookupExtractors: LookupExtractors,
   fastForwardService: FastForwardService,
   recalculation: Recalculation[Future, Throwable],
   formProcessor: FormProcessor,
@@ -102,8 +100,8 @@ class FormController(
         val formModel = formModelOptics.formModelVisibilityOptics.formModel
         val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
         val sectionNumber: SectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
-        fileUploadService
-          .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+        objectStoreAlgebra
+          .getEnvelope(cache.form.envelopeId)
           .flatMap { envelope =>
             def renderSingleton(
               singleton: Singleton[DataExpanded],
@@ -896,8 +894,7 @@ class FormController(
                                           recalculation
                                         )
                 res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
-                _ <-
-                  fileUploadService.deleteFiles(cache.form.envelopeId, filesToDelete)(cache.formTemplate.isObjectStore)
+                _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)
               } yield res
             }
 

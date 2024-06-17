@@ -28,8 +28,8 @@ import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorContr
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
 import uk.gov.hmrc.gform.capture.CaptureController
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrResponder }
-import uk.gov.hmrc.gform.fileupload.{ FileUploadController, FileUploadModule }
+import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.objectStore.{ ObjectStoreController, ObjectStoreModule }
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
@@ -58,7 +58,7 @@ class GformModule(
   controllersModule: ControllersModule,
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
-  fileUploadModule: FileUploadModule,
+  objectStoreModule: ObjectStoreModule,
   taskListModule: TaskListModule,
   upscanModule: UpscanModule,
   addressLookupModule: AddressLookupModule,
@@ -67,7 +67,6 @@ class GformModule(
   playBuiltInsModule: PlayBuiltInsModule,
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
-  errorResponder: ErrResponder,
   countryLookupOptions: LocalisedLookupOptions,
   englishMessages: Messages,
   builtInComponents: BuiltInComponents
@@ -106,7 +105,7 @@ class GformModule(
   val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator())
 
   val fastForwardService: FastForwardService = new FastForwardService(
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     validationModule.validationService,
     gformBackendModule.gformConnector,
     processDataService,
@@ -122,9 +121,9 @@ class GformModule(
     gformBackendModule.gformConnector
   )
 
-  val fileUploadController = new FileUploadController(
+  val objectStoreController = new ObjectStoreController(
     configModule.appConfig,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     controllersModule.authenticatedRequestActions,
     gformBackendModule.gformConnector,
     fastForwardService,
@@ -138,7 +137,7 @@ class GformModule(
       playBuiltInsModule.i18nSupport,
       controllersModule.authenticatedRequestActions,
       taskListModule.taskListRenderingService,
-      fileUploadModule.fileUploadService,
+      objectStoreModule.objectStoreService,
       controllersModule.messagesControllerComponents,
       fastForwardService,
       sectionRenderingService
@@ -179,7 +178,7 @@ class GformModule(
     validationModule.validationService,
     fastForwardService,
     graphModule.recalculation,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     formControllerRequestHandler,
     bankAccountReputationConnector,
     companyInformationConnector,
@@ -198,14 +197,13 @@ class GformModule(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     upscanModule.upscanService,
     validationModule.validationService,
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
     formControllerRequestHandler,
-    lookupRegistry.extractors,
     fastForwardService,
     graphModule.recalculation,
     addToListProcessor,
@@ -234,15 +232,14 @@ class GformModule(
   val summaryRenderingService = new SummaryRenderingService(
     sectionRenderingService,
     playBuiltInsModule.i18nSupport,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     validationModule.validationService,
-    configModule.frontendAppConfig,
-    gformBackendModule.gformConnector
+    configModule.frontendAppConfig
   )
 
   val pdfGeneratorService = new PdfGeneratorService(configModule.environment)
 
-  val pdfRenderService = new PDFRenderService(fileUploadModule.fileUploadService, validationModule.validationService)
+  val pdfRenderService = new PDFRenderService(objectStoreModule.objectStoreService, validationModule.validationService)
 
   val gformBackEndService = new GformBackEndService(
     gformBackendModule.gformConnector,
@@ -260,13 +257,13 @@ class GformModule(
     gformBackEndService,
     nonRepudiationHelpers,
     auditingModule.auditService,
-    fileUploadModule.fileUploadService
+    objectStoreModule.objectStoreService
   )
 
   val summaryController: SummaryController = new SummaryController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     validationModule.validationService,
     pdfGeneratorService,
     pdfRenderService,
@@ -317,7 +314,7 @@ class GformModule(
   val declarationController = new DeclarationController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     validationModule.validationService,
     sectionRenderingService,
     gformBackendModule.gformConnector,
@@ -331,7 +328,7 @@ class GformModule(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     gformBackendModule.gformConnector,
     fastForwardService,
     auditingModule.auditService,

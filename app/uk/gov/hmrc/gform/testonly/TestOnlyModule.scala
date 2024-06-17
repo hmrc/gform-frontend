@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.auth.AuthLoginStubConnector
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.builder.BuilderController
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.{ GformModule, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
@@ -47,7 +47,7 @@ class TestOnlyModule(
   graphModule: GraphModule,
   lookupRegistry: LookupRegistry,
   ahcWSComponents: AhcWSComponents,
-  fileUploadModule: FileUploadModule,
+  objectStoreModule: ObjectStoreModule,
   gformModule: GformModule,
   wSHttpModule: WSHttpModule,
   applicationCrypto: ApplicationCrypto,
@@ -118,7 +118,7 @@ class TestOnlyModule(
 
   val debugController = new DebugController(
     controllersModule.authenticatedRequestActions,
-    fileUploadModule.fileUploadService,
+    objectStoreModule.objectStoreService,
     controllersModule.messagesControllerComponents
   )
 

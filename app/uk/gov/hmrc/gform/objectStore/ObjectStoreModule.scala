@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.fileupload
+package uk.gov.hmrc.gform.objectStore
 
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
-import uk.gov.hmrc.http.HeaderCarrier
+import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 
-trait FileUploadAlgebra[F[_]] {
-  def getEnvelope(envelopeId: EnvelopeId)(objectStore: Boolean)(implicit hc: HeaderCarrier): F[Envelope]
-  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(objectStore: Boolean)(implicit hc: HeaderCarrier): F[Unit]
-  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(objectStore: Boolean)(implicit
-    hc: HeaderCarrier
-  ): F[Unit]
+class ObjectStoreModule(
+  gformConnector: GformConnector
+)(implicit
+  ec: ExecutionContext
+) {
+  val objectStoreService = new ObjectStoreService(gformConnector)
 }

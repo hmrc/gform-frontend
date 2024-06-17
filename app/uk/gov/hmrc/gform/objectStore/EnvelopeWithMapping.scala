@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.fileupload
+package uk.gov.hmrc.gform.objectStore
 
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
