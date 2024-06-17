@@ -143,8 +143,7 @@ case class FormComponent(
       case IsText(Text(YearFormat, _, _, _, _, _))                 => "year"
       case IsText(Text(TimeFormat, _, _, _, _, _))                 => "time"
       case IsChoice(Choice(YesNo, _, _, _, _, _, _, _, _, _))      => "yesNo"
-      case IsChoice(Choice(Radio, _, _, _, _, _, _, _, _, _))      => "radio"
-      case IsChoice(Choice(Checkbox, _, _, _, _, _, _, _, _, _))   => "checkbox"
+      case IsChoice(Choice(_, _, _, _, _, _, _, _, _, _))          => "choice"
       case other                                                   => other.`type`.showType
     }
 
