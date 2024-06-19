@@ -24,6 +24,7 @@ import play.api.i18n.Messages
 import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
+import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.lookup._
@@ -277,8 +278,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         ObjectStructure(fields.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
       case t @ TextNode(_) =>
         if (sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
-          val poundOrComma = "[£,]|\\.(?=$)".r
-          TextNode(poundOrComma.replaceAllIn(t.value, ""))
+          val cleanedValue = t.value.replace("£", "")
+          toBigDecimalSafe(cleanedValue)
+            .map(value => TextNode(value.toString))
+            .getOrElse(throw new NumberFormatException(s"Unable to convert value '${t.value}' to a number."))
         } else {
           t
         }
