@@ -330,3 +330,11 @@ object AllMiniSummaryListIncludeIfs {
     case _ => None
   }
 }
+
+object IsUpscanInitiateFileUpload {
+  def unapply(formComponent: FormComponent): Option[FormComponent] =
+    formComponent.`type` match {
+      case FileUpload(FileUploadProvider.Upscan(_), _, _) => Some(formComponent)
+      case _                                              => None
+    }
+}

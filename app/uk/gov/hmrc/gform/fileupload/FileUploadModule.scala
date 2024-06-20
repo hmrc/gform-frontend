@@ -14,35 +14,29 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.upscan
+package uk.gov.hmrc.gform.fileupload
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class UpscanModule(
+class FileUploadModule(
   wSHttpModule: WSHttpModule,
   configModule: ConfigModule,
-  gformBackendModule: GformBackendModule,
-  applicationCrypto: ApplicationCrypto,
-  appConfig: AppConfig
+  gformConnector: GformConnector
 )(implicit
   ec: ExecutionContext
 ) {
-  private val upscanBaseUrl = {
-    val baseUrl = configModule.serviceConfig.baseUrl("upscan")
-    baseUrl + "/upscan"
+
+  private val fileUploadBaseUrl = {
+    val baseUrl = configModule.serviceConfig.baseUrl("file-upload")
+    val pathPrefix = configModule.serviceConfig.getConfString("file-upload.path-prefix", "")
+    baseUrl + pathPrefix + "/file-upload"
   }
 
-  private val upscanConnector = new UpscanConnector(wSHttpModule.auditableWSHttp, upscanBaseUrl)
+  private val fileUploadConnector = new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
 
-  val upscanService: UpscanService = new UpscanService(
-    upscanConnector,
-    gformBackendModule.gformConnector,
-    configModule,
-    appConfig
-  )
+  val fileUploadService = new FileUploadService(fileUploadConnector, gformConnector)
 
 }

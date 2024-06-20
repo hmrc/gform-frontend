@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, Direction }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector

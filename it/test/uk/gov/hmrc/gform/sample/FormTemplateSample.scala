@@ -157,6 +157,7 @@ trait FormTemplateSample {
     accessibilityUrl = None,
     exitPages = None,
     expressionsOutput = None,
+    objectStore = None,
     displayWidth = None,
     emailCodeParameters = None,
     dataRetrieve = None

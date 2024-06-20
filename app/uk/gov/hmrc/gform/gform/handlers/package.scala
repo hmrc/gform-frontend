@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ PageModel, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult

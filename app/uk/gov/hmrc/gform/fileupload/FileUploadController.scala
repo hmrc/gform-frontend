@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.objectStore
+package uk.gov.hmrc.gform.fileupload
 
 import cats.Show
 import cats.implicits._
@@ -53,9 +53,9 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, Erro
 
 import scala.concurrent.ExecutionContext
 
-class ObjectStoreController(
+class FileUploadController(
   appConfig: AppConfig,
-  objectStoreService: ObjectStoreService,
+  fileUploadService: FileUploadService,
   auth: AuthenticatedRequestActions,
   gformConnector: GformConnector,
   fastForwardService: FastForwardService,
@@ -83,8 +83,10 @@ class ObjectStoreController(
         val formTemplateContext = request.attrs(FormTemplateKey)
         val formTemplate = formTemplateContext.formTemplate
         for {
-          envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
-          flash    <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(formTemplate.isObjectStore)
+          flash <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)(
+                     cache.formTemplate.isObjectStore
+                   )
           cacheUpd = cache
                        .modify(_.form.componentIdToFileId)
                        .using(_ + (formComponentId, fileId))
@@ -129,7 +131,7 @@ class ObjectStoreController(
     envelope: Envelope,
     envelopeId: EnvelopeId,
     allowedFileTypes: AllowedFileTypes
-  )(implicit
+  )(objectStore: Boolean)(implicit
     messages: Messages,
     hc: HeaderCarrier
   ): Future[Flash] = {
@@ -139,8 +141,8 @@ class ObjectStoreController(
     validated match {
       case Invalid(flash) =>
         logger.warn(show"Attemp to upload invalid file. Deleting FileId: $fileId, flash: $flash")
-        objectStoreService
-          .deleteFile(envelopeId, fileId)
+        fileUploadService
+          .deleteFile(envelopeId, fileId)(objectStore)
           .map(_ => flashWithFileId(flash, fileId))
       case Valid(_) => Flash().pure[Future]
     }
@@ -253,7 +255,7 @@ class ObjectStoreController(
       val formTemplate = formTemplateContext.formTemplate
 
       val deleteUrl =
-        routes.ObjectStoreController.confirmRemoval(
+        routes.FileUploadController.confirmRemoval(
           formTemplateId,
           maybeAccessCode,
           sectionNumber,
@@ -312,7 +314,7 @@ class ObjectStoreController(
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => _ => _ => _ => _ =>
       val deleteUrl =
-        routes.ObjectStoreController.deleteFile(
+        routes.FileUploadController.deleteFile(
           formTemplateId,
           maybeAccessCode,
           sectionNumber,
@@ -324,7 +326,7 @@ class ObjectStoreController(
         .fold(
           _ =>
             Redirect(
-              routes.ObjectStoreController
+              routes.FileUploadController
                 .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, formComponentId)
             )
               .flashing("removeParamMissing" -> "true")
@@ -375,7 +377,9 @@ class ObjectStoreController(
               .setTo(mappingUpd)
 
             for {
-              _ <- objectStoreService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)
+              _ <- fileUploadService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)(
+                     cache.formTemplate.isObjectStore
+                   )
               _ <- gformConnector
                      .updateUserData(
                        FormIdData.fromForm(cacheWithFileRemoved.form, maybeAccessCode),

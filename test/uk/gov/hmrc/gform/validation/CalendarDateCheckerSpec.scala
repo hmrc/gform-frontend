@@ -24,7 +24,7 @@ import play.api.http.HttpConfiguration
 import play.api.i18n._
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponent
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
 import uk.gov.hmrc.gform.lookup.LookupRegistry

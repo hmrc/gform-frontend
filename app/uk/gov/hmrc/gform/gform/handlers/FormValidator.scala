@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform.handlers
 
 import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome

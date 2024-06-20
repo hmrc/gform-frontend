@@ -22,11 +22,11 @@ import cats.implicits._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.objectStore.Error
-import uk.gov.hmrc.gform.objectStore.File
-import uk.gov.hmrc.gform.objectStore.Other
-import uk.gov.hmrc.gform.objectStore.Quarantined
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.Error
+import uk.gov.hmrc.gform.fileupload.File
+import uk.gov.hmrc.gform.fileupload.Other
+import uk.gov.hmrc.gform.fileupload.Quarantined
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId

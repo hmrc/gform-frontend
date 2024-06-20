@@ -20,9 +20,13 @@ import controllers.AssetsComponents
 import org.slf4j.LoggerFactory
 import play.api.http.HttpRequestHandler
 import play.api.routing.Router
+import uk.gov.hmrc.gform.akka.AkkaModule
+import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
+import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.health.HealthController
 import uk.gov.hmrc.hmrcfrontend.config.LanguageConfig
@@ -31,8 +35,12 @@ import uk.gov.hmrc.play.language.LanguageUtils
 
 class RoutingModule(
   playBuiltInsModule: PlayBuiltInsModule,
+  akkaModule: AkkaModule,
   configModule: ConfigModule,
+  auditingModule: AuditingModule,
+  metricsModule: MetricsModule,
   gformModule: GformModule,
+  fileUploadModule: FileUploadModule,
   testOnlyModule: TestOnlyModule,
   frontendFiltersModule: FrontendFiltersModule,
   controllersModule: ControllersModule,
@@ -76,7 +84,7 @@ class RoutingModule(
     gformModule.saveAcknowledgementController,
     gformModule.reviewController,
     assetsComponents.assets,
-    gformModule.objectStoreController,
+    gformModule.fileUploadController,
     gformModule.languageSwitchController,
     gformModule.lookupController,
     gformModule.signOutController,

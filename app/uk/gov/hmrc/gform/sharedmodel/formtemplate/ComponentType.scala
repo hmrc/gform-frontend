@@ -512,7 +512,17 @@ case class Group(
 
 case class InformationMessage(infoType: InfoType, infoText: SmartString) extends ComponentType
 
+sealed trait FileUploadProvider
+
+object FileUploadProvider {
+  final case class Upscan(compression: Boolean) extends FileUploadProvider
+  case object FileUploadFrontend extends FileUploadProvider
+
+  implicit val format: OFormat[FileUploadProvider] = derived.oformat()
+}
+
 case class FileUpload(
+  fileUploadProvider: FileUploadProvider,
   fileSizeLimit: Option[Int],
   allowedFileTypes: Option[AllowedFileTypes]
 ) extends ComponentType

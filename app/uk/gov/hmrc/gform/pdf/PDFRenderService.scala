@@ -21,7 +21,7 @@ import play.api.mvc.Request
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
@@ -37,7 +37,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 class PDFRenderService(
-  objectStoreAlgebra: ObjectStoreAlgebra[Future],
+  fileUploadAlgebra: FileUploadAlgebra[Future],
   validationService: ValidationService
 ) {
 
@@ -63,8 +63,8 @@ class PDFRenderService(
     pdfFunctions: PDFCustomRender[T]
   ): Future[PdfHtml] =
     for {
-      envelopeWithMapping <- objectStoreAlgebra
-                               .getEnvelope(cache.form.envelopeId)
+      envelopeWithMapping <- fileUploadAlgebra
+                               .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
                                .map(EnvelopeWithMapping(_, cache.form))
       validationResult <-
         validationService

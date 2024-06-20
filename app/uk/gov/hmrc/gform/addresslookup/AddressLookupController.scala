@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
-import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
