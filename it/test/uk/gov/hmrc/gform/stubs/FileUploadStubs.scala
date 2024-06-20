@@ -19,11 +19,11 @@ package uk.gov.hmrc.gform.it.stubs
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.{ ok, stubFor }
 
-trait EnvelopeStubs {
-  def getEnvelopeStub() =
+trait FileUploadStubs {
+  def getFileUploadEnvelopeStub() =
     stubFor(
       WireMock
-        .get(s"/gform/envelopes/some-envelope-id")
+        .get(s"/file-upload/envelopes/some-envelope-id")
         .willReturn(ok("""{ "files": [] }""".stripMargin))
     )
 

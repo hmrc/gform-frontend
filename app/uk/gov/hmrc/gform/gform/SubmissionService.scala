@@ -22,7 +22,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.{ Attachments, EnvelopeWithMapping, File, ObjectStoreService }
+import uk.gov.hmrc.gform.fileupload.{ Attachments, EnvelopeWithMapping, File, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -41,7 +41,7 @@ class SubmissionService(
   gformBackEnd: GformBackEndAlgebra[Future],
   nonRepudiationHelpers: NonRepudiationHelpers,
   auditService: AuditService,
-  objectStoreService: ObjectStoreService
+  fileUploadService: FileUploadService
 )(implicit ec: ExecutionContext) {
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -79,7 +79,7 @@ class SubmissionService(
     val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
 
     for {
-      files <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)
+      files <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)(cache.formTemplate.isObjectStore)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       submission <- gformBackEnd.createSubmission(
                       cache.form._id,
@@ -118,7 +118,9 @@ class SubmissionService(
     envelopeId: EnvelopeId,
     envelope: EnvelopeWithMapping,
     attachments: Attachments
-  )(implicit hc: HeaderCarrier): Future[List[File]] = {
+  )(objectStore: Boolean)(implicit
+    hc: HeaderCarrier
+  ): Future[List[File]] = {
     val lookup: Set[FileId] =
       attachments.files.flatMap(envelope.mapping.mapping.get).toSet
     val toRemove: List[FileId] = envelope.files
@@ -135,7 +137,7 @@ class SubmissionService(
         s"Cleanse envelope, removing ${toRemove.size} files from envelopeId $envelopeId. FileIds: $fileIds"
       )
       for {
-        _ <- objectStoreService.deleteFiles(envelopeId, toRemove.toSet)
+        _ <- fileUploadService.deleteFiles(envelopeId, toRemove.toSet)(objectStore)
       } yield envelope.files.filterNot(file => toRemove.contains(file.fileId))
     }
   }

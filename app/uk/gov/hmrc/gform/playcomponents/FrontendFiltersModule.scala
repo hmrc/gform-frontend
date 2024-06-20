@@ -67,6 +67,7 @@ class EmailSessionCookieCryptoFilter(
 class FrontendFiltersModule(
   gformBackendModule: GformBackendModule,
   authModule: AuthModule,
+  applicationCrypto: ApplicationCrypto,
   playBuiltInsModule: PlayBuiltInsModule,
   akkaModule: AkkaModule,
   configModule: ConfigModule,

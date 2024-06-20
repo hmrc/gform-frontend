@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.objectStore.Attachments
+import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.models.UserSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormComponentId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }

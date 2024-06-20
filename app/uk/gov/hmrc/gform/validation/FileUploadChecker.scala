@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.validation
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.Available
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.objectStore.Error
-import uk.gov.hmrc.gform.objectStore.File
-import uk.gov.hmrc.gform.objectStore.Infected
+import uk.gov.hmrc.gform.fileupload.Available
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.Error
+import uk.gov.hmrc.gform.fileupload.File
+import uk.gov.hmrc.gform.fileupload.Infected
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType

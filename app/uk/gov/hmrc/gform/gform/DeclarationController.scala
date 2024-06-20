@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra, Direction }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreService }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -43,7 +43,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class DeclarationController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  objectStoreService: ObjectStoreService,
+  fileUploadService: FileUploadService,
   validationService: ValidationService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
@@ -156,7 +156,7 @@ class DeclarationController(
               NoSpecificAction
             )
 
-          val envelopeF: Future[Envelope] = objectStoreService.getEnvelope(envelopeId)
+          val envelopeF: Future[Envelope] = fileUploadService.getEnvelope(envelopeId)(cache.formTemplate.isObjectStore)
 
           for {
             processData <- processDataF

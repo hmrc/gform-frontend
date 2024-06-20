@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.it
 
 import org.jsoup.Jsoup
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
-import uk.gov.hmrc.gform.it.stubs.{ EnvelopeStubs, GFormStubs }
+import uk.gov.hmrc.gform.it.stubs.{ FileUploadStubs, GFormStubs }
 
-class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
+class UserResearchUrlIT extends ITSpec with GFormStubs with FileUploadStubs {
 
   implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 

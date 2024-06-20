@@ -26,8 +26,9 @@ import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
+import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SectionRenderingService, SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -52,9 +53,10 @@ import scala.concurrent.{ ExecutionContext, Future }
 class SummaryRenderingService(
   renderer: SectionRenderingService,
   i18nSupport: I18nSupport,
-  objectStoreAlgebra: ObjectStoreAlgebra[Future],
+  fileUploadAlgebra: FileUploadAlgebra[Future],
   validationService: ValidationService,
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  gformConnector: GformConnector
 ) {
 
   def createHtmlForPrintPdf(
@@ -109,6 +111,7 @@ class SummaryRenderingService(
 
     for {
       pdfHtml <- getNotificationPdfHTML(
+                   cache.form.formTemplateId,
                    maybeAccessCode,
                    cache,
                    summaryPagePurpose,
@@ -159,7 +162,9 @@ class SummaryRenderingService(
     ec: ExecutionContext,
     lise: SmartStringEvaluator
   ): Future[Html] = {
-    val envelopeF = objectStoreAlgebra.getEnvelope(cache.form.envelopeId).map(EnvelopeWithMapping(_, cache.form))
+    val envelopeF = fileUploadAlgebra
+      .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+      .map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._
 
@@ -195,6 +200,7 @@ class SummaryRenderingService(
   }
 
   def getNotificationPdfHTML(
+    formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
@@ -208,7 +214,9 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator
   ): Future[Html] = {
 
-    val envelopeF = objectStoreAlgebra.getEnvelope(cache.form.envelopeId).map(EnvelopeWithMapping(_, cache.form))
+    val envelopeF = fileUploadAlgebra
+      .getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+      .map(EnvelopeWithMapping(_, cache.form))
 
     import i18nSupport._
 

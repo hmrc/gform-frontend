@@ -22,7 +22,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.FormModelSupport
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId

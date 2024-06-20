@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
-import uk.gov.hmrc.gform.objectStore.Attachments
+import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ AcknowledgementController, CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, NewFormController, StructuredFormDataBuilder, SummaryController, UserSessionBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation

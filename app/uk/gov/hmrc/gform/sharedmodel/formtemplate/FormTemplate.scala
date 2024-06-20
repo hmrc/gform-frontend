@@ -53,6 +53,7 @@ case class FormTemplate(
   accessibilityUrl: Option[AccessibilityUrl],
   expressionsOutput: Option[ExpressionOutput],
   exitPages: Option[NonEmptyList[ExitPage]],
+  objectStore: Option[Boolean],
   displayWidth: Option[LayoutDisplayWidth],
   emailCodeParameters: Option[NonEmptyList[EmailCodeParameter]],
   dataRetrieve: Option[NonEmptyList[DataRetrieve]]
@@ -62,6 +63,8 @@ case class FormTemplate(
 
   val sectionNumberZero: SectionNumber =
     formKind.fold[SectionNumber](_ => SectionNumber.classicZero)(_ => SectionNumber.taskListZero)
+
+  val isObjectStore: Boolean = objectStore.getOrElse(true)
 }
 
 object FormTemplate {

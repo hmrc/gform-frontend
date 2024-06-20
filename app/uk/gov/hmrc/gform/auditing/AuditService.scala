@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.auditing
 import play.api.libs.json.{ JsNumber, Json }
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
-import uk.gov.hmrc.gform.objectStore.File
+import uk.gov.hmrc.gform.fileupload.File
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
