@@ -232,7 +232,8 @@ class AuthService(
       identity,
       None,
       OtherRetrievals.empty,
-      ConfidenceLevel.L50
+      ConfidenceLevel.L50,
+      None
     )
 
   private def performEnrolment(
@@ -312,7 +313,7 @@ class AuthService(
   ): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
-        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), _)
+        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _), _)
             if ar.affinityGroup == AffinityGroup.Agent =>
           ggAgentAuthorise(agentAccess, formTemplate, enrolments) match {
             case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
@@ -331,8 +332,10 @@ class AuthService(
     minimumCL: String
   ): AuthResult =
     authResult match {
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel), _)
-          if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
+      case AuthSuccessful(
+            AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel, _),
+            _
+          ) if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
         logger.info(
           s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
         )
@@ -342,10 +345,10 @@ class AuthService(
         AuthRedirect(
           s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
         )
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Organisation, _, _, _, _), _) =>
+      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Organisation, _, _, _, _, _), _) =>
         logger.info(s"Organisations cannot access this form - ${formTemplate._id.value}")
         AuthBlocked("Organisations cannot access this form")
-      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Agent, _, _, _, _), _) =>
+      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Agent, _, _, _, _, _), _) =>
         agentAccess match {
           case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined => authResult
           case RequireMTDAgentEnrolment                                                       => AuthRedirect(routes.AgentEnrolmentController.prologue(formTemplate._id).url)

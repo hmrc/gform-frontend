@@ -552,7 +552,7 @@ class NewFormController(
       c.modify(_.form.thirdPartyData.itmpRetrievals).using(_ => Some(itmpRetrievals))
 
     cache.retrievals match {
-      case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _, confidenceLevel)
+      case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _, confidenceLevel, _)
           if formHasAuthItmpReferences() && confidenceLevel != ConfidenceLevel.L50 =>
         auth.getItmpRetrievals(request).map { itmpRetrievals =>
           modifyCacheItmpRetrievals(cache, itmpRetrievals)

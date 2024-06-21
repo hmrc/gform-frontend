@@ -234,7 +234,7 @@ case class EvaluationResults(
             UserCtxEvaluatorProcessor
               .processEvaluation(evaluationContext.retrievals, enrolment, evaluationContext.authConfig)
           )
-        )(_ => unsupportedOperation("Number")(expr))
+        )(_ => unsupportedOperation("Number")(expr))(_ => unsupportedOperation("Number")(expr))
       case Constant(value: String)                  => toNumberResult(value)
       case Value                                    => Empty
       case FormTemplateCtx(value: FormTemplateProp) => unsupportedOperation("Number")(expr)
