@@ -27,8 +27,73 @@ package uk.gov.hmrc.gform.graph.processor
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, UserField }
  * import uk.gov.hmrc.http.logging.SessionId
  */
+import uk.gov.hmrc.auth.core.{ Assistant, ConfidenceLevel, Enrolments, User }
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, OtherRetrievals }
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.UserField
+
 class UserCtxEvaluatorProcessorTest extends Spec {
+  "processEvaluation" should "correctly retrieve and process a user credential role of 'User'" in {
+    lazy val materialisedRetrievalsUser =
+      AuthenticatedRetrievals(
+        GovernmentGatewayId(""),
+        Enrolments(Set.empty),
+        AffinityGroup.Individual,
+        "TestGroupId",
+        None,
+        OtherRetrievals(None, None),
+        ConfidenceLevel.L50,
+        Some(User)
+      )
+
+    val result: String =
+      UserCtxEvaluatorProcessor.processEvaluation(materialisedRetrievalsUser, UserField.CredentialRole, authConfig)
+    val expectedResult: String = "user"
+
+    result shouldBe expectedResult
+  }
+
+  it should "correctly retrieve and process a user credential role of 'Assistant'" in {
+    lazy val materialisedRetrievalsAssistant =
+      AuthenticatedRetrievals(
+        GovernmentGatewayId(""),
+        Enrolments(Set.empty),
+        AffinityGroup.Agent,
+        "TestGroupId",
+        None,
+        OtherRetrievals(None, None),
+        ConfidenceLevel.L50,
+        Some(Assistant)
+      )
+
+    val result: String =
+      UserCtxEvaluatorProcessor.processEvaluation(materialisedRetrievalsAssistant, UserField.CredentialRole, authConfig)
+    val expectedResult: String = "assistant"
+
+    result shouldBe expectedResult
+  }
+
+  it should "correctly retrieve and process an empty user credential role" in {
+    lazy val materialisedRetrievalsEmpty =
+      AuthenticatedRetrievals(
+        GovernmentGatewayId(""),
+        Enrolments(Set.empty),
+        AffinityGroup.Individual,
+        "TestGroupId",
+        None,
+        OtherRetrievals(None, None),
+        ConfidenceLevel.L50,
+        None
+      )
+
+    val result: String =
+      UserCtxEvaluatorProcessor.processEvaluation(materialisedRetrievalsEmpty, UserField.CredentialRole, authConfig)
+    val expectedResult: String = ""
+
+    result shouldBe expectedResult
+  }
+
   /*
    *   forAll(userCtxTable) { (enr, field, serviceId, authConfig, expected) =>
    *     it should s"evaluate a user ctx with $enr, $field, $serviceId and $authConfig return $expected" in new UserCtxEvaluatorProcessor[

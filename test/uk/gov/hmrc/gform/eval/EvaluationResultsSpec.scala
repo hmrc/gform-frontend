@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.eval
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.libs.json.Json
 import play.api.test.Helpers
-import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core.{ Assistant, Enrolment, EnrolmentIdentifier, Enrolments, User }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
@@ -595,6 +595,27 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         StringResult(s"Business owes £200.00 at rate of £100 in tax year ${LocalDate.now().plusYears(1).getYear}"),
         "Eval Concat(List(Exprs)) as string (concat the values)"
+      ),
+      (
+        TypeInfo(UserCtx(UserField.CredentialRole), StaticTypeData(ExprType.string, None)),
+        recDataEmpty,
+        buildEvaluationContext(retrievals = authContext.copy(credentialRole = Some(User))),
+        StringResult("user"),
+        "Fetch and return the 'User' user credential role"
+      ),
+      (
+        TypeInfo(UserCtx(UserField.CredentialRole), StaticTypeData(ExprType.string, None)),
+        recDataEmpty,
+        buildEvaluationContext(retrievals = authContext.copy(credentialRole = Some(Assistant))),
+        StringResult("assistant"),
+        "Fetch and return the 'Assistant' user credential role"
+      ),
+      (
+        TypeInfo(UserCtx(UserField.CredentialRole), StaticTypeData(ExprType.string, None)),
+        recDataEmpty,
+        evaluationContext,
+        Empty,
+        "Be empty when no credential role is found"
       )
     )
     forAll(table) {
@@ -832,6 +853,15 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         Map.empty[Expr, ExpressionResult],
         RepeatedComponentsDetails.empty,
         "use hide zero decimals with graceful failure on string field"
+      ),
+      (
+        TypeInfo(UserCtx(UserField.CredentialRole), StaticTypeData(ExprType.number, None)),
+        recData,
+        evaluationContext,
+        ExpressionResult.Invalid("Number - unsupported computation. Cannot combine Number and UserCtx(CredentialRole)"),
+        Map.empty[Expr, ExpressionResult],
+        RepeatedComponentsDetails.empty,
+        "return an unsupported operation"
       )
     )
     forAll(table) {
