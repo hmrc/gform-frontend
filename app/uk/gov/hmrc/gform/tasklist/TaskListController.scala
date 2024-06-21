@@ -23,7 +23,7 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
-import uk.gov.hmrc.gform.fileupload.{ EnvelopeWithMapping, FileUploadService }
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.gform.{ FastForwardService, SectionRenderingService }
 import uk.gov.hmrc.gform.gform.routes.SummaryController
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -40,7 +40,7 @@ class TaskListController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
   taskListRenderingService: TaskListRenderingService,
-  fileUploadService: FileUploadService,
+  objectStoreService: ObjectStoreService,
   messagesControllerComponents: MessagesControllerComponents,
   fastForwardService: FastForwardService,
   sectionRendererService: SectionRenderingService
@@ -55,7 +55,7 @@ class TaskListController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+          envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
           html <-
             taskListRenderingService
               .renderTaskList(

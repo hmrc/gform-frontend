@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
@@ -80,7 +80,7 @@ class PDFRenderServiceSpec
     )
 
   trait Fixture {
-    val fileUploadAlgebra = mock[FileUploadAlgebra[Future]]
+    val fileUploadAlgebra = mock[ObjectStoreAlgebra[Future]]
     val validationService = mock[ValidationService]
     val pdfRenderService = new PDFRenderService(fileUploadAlgebra, validationService)
 
@@ -126,7 +126,7 @@ class PDFRenderServiceSpec
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
 
-    fileUploadAlgebra.getEnvelope(*[EnvelopeId])(*[Boolean])(*[HeaderCarrier]) shouldReturn Future.successful(
+    fileUploadAlgebra.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) shouldReturn Future.successful(
       Envelope.empty
     )
     validationService.validateFormModel(

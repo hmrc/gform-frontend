@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.upscan
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
@@ -26,7 +25,6 @@ class UpscanModule(
   wSHttpModule: WSHttpModule,
   configModule: ConfigModule,
   gformBackendModule: GformBackendModule,
-  applicationCrypto: ApplicationCrypto,
   appConfig: AppConfig
 )(implicit
   ec: ExecutionContext

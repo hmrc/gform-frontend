@@ -18,11 +18,10 @@ package uk.gov.hmrc.gform.auth
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBackendModule: GformBackendModule)(
-  implicit ec: ExecutionContext
+class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule)(implicit
+  ec: ExecutionContext
 ) {
   self =>
 

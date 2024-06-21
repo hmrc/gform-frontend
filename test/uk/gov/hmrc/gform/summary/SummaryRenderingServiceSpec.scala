@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, EnvelopeWithMapping, FileUploadAlgebra }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
@@ -97,12 +97,12 @@ class SummaryRenderingServiceSpec
     lazy val validationResult = ValidationResult.empty
 
     val renderer = new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty))
-    val mockFileUploadService = mock[FileUploadAlgebra[Future]]
+    val mockObjectStoreService = mock[ObjectStoreAlgebra[Future]]
     val mockValidationService = mock[ValidationService]
     val mockRecalculation = mock[Recalculation[Future, Throwable]]
     val mockGformConnector = mock[GformConnector]
 
-    mockFileUploadService.getEnvelope(*[EnvelopeId])(*[Boolean])(*[HeaderCarrier]) returns Future.successful(
+    mockObjectStoreService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(
       Envelope(List.empty)
     )
     mockValidationService
@@ -169,10 +169,9 @@ class SummaryRenderingServiceSpec
       new SummaryRenderingService(
         renderer,
         i18nSupport,
-        mockFileUploadService,
+        mockObjectStoreService,
         mockValidationService,
-        frontendAppConfig,
-        mockGformConnector
+        frontendAppConfig
       )
   }
 

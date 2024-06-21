@@ -23,7 +23,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, ExprType, StaticTypeData, TypeInfo }
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.objectStore.ObjectStoreService
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html
@@ -31,7 +31,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class DebugController(
   auth: AuthenticatedRequestActions,
-  fileUploadService: FileUploadService,
+  objectStoreService: ObjectStoreService,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit
   ec: ExecutionContext
@@ -43,7 +43,7 @@ class DebugController(
         val totalColumns = formModelOptics.formModelRenderPageOptics.formModel.pages.size
 
         for {
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)(cache.formTemplate.isObjectStore)
+          envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
         } yield {
           val page = html.debug.model(formModelOptics, totalColumns, envelope)
           Ok(page)

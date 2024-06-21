@@ -49,8 +49,6 @@ object AppConfig {
 
     appConfig
   }
-
-  class AppConfigException(message: String) extends IllegalArgumentException(message)
 }
 
 case class AuthModule(
