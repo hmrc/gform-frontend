@@ -76,7 +76,7 @@ object TableUtils {
     NonEmptyList.fromList(modelComponentIds) match {
       case None => NonEmptyList.one(tableValueRow)
       case Some(modelComponentIdsNel) =>
-        modelComponentIdsNel.map { case modelComponentId =>
+        modelComponentIdsNel.map { modelComponentId =>
           modelComponentId.maybeIndex match {
             case Some(index) =>
               updateTableValueRow(index, baseIds, tableValueRow)

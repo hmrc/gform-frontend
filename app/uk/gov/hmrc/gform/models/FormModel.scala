@@ -324,7 +324,7 @@ case class FormModel[A <: PageMode](
       // User is trying to see invisible page, so we need to send him to appropriate SectionNumber instead
       availableSectionNumbers match {
         case Nil       => throw new IllegalArgumentException(s"Cannot find valid sectionNumber for $sectionNumber.")
-        case head :: _ => availableSectionNumbers.reverse.find(_ < sectionNumber).getOrElse(head)
+        case head :: _ => availableSectionNumbers.findLast(_ < sectionNumber).getOrElse(head)
       }
     }
 

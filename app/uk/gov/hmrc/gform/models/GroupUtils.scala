@@ -68,13 +68,13 @@ object GroupUtils {
       fcId.modelComponentId.maybeIndex.fold(false) { index =>
         index === removingIndex
       }
-    }.toSet
+    }
 
     val groupFileUploadIdToKeep: Set[FormComponentId] = allGroupFileUploadIds.filter { fcId =>
       fcId.modelComponentId.maybeIndex.fold(false) { index =>
         index < removingIndex
       }
-    }.toSet
+    }
 
     val groupFileUploadIdToReindex = allGroupFileUploadIds.filter { fcId =>
       fcId.modelComponentId.maybeIndex.fold(false) { index =>

@@ -22,7 +22,7 @@ final case class UpscanInitiate(
   lookup: Map[FormComponentId, UpscanInitiateResponse]
 ) {
   def get(formComponentId: FormComponentId): UpscanInitiateResponse =
-    lookup.get(formComponentId).getOrElse(throw new Exception(s"No UpscanInitiateResponse for $formComponentId"))
+    lookup.getOrElse(formComponentId, throw new Exception(s"No UpscanInitiateResponse for $formComponentId"))
 }
 
 object UpscanInitiate {

@@ -84,7 +84,7 @@ class ApplicationModule(context: Context)
 
   protected lazy val configModule = new ConfigModule(context, playBuiltInsModule)
 
-  private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
+  private val metricsModule = new MetricsModule(configModule, akkaModule, executionContext)
 
   private val graphiteModule = new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 

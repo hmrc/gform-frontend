@@ -29,7 +29,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
   def unapply(fc: FormComponent): Option[List[ExprMetadata]] = {
 
     def fromRcElements(revealingChoiceElements: List[RevealingChoiceElement]): List[ExprMetadata] =
-      revealingChoiceElements.toList.flatMap { case RevealingChoiceElement(choice, _, _, _) =>
+      revealingChoiceElements.flatMap { case RevealingChoiceElement(choice, _, _, _) =>
         // We don't need to do anything about revealingFields, since they are expanded, see FormModelExpander[DependencyGraphVerification]
         toPlainExprs(choice.label.allInterpolations)
       }

@@ -34,11 +34,11 @@ sealed trait FastForward extends Product with Serializable {
     }
 
   def asString: String =
-    fold(_ => FastForward.ffYes)(_.stopAt.value.toString) {
+    fold(_ => FastForward.ffYes)(_.stopAt.value) {
       case FastForward.CYA(SectionOrSummary.FormSummary) => FastForward.ffCYAFormSummary
       case FastForward.CYA(SectionOrSummary.TaskSummary) => FastForward.ffCYATaskSummary
       case FastForward.CYA(SectionOrSummary.Section(to)) =>
-        FastForward.ffCYA + to.value.toString
+        FastForward.ffCYA + to.value
     }
 
   def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =

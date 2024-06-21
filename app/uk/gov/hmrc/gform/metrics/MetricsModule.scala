@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.metrics
 
-import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.play.bootstrap.metrics.{ DisabledMetrics, DisabledMetricsFilter, MetricsFilter, MetricsFilterImpl, MetricsImpl }
@@ -26,7 +25,6 @@ import scala.concurrent.ExecutionContext
 class MetricsModule(
   configModule: ConfigModule,
   akkaModule: AkkaModule,
-  controllerComponents: ControllerComponents,
   ec: ExecutionContext
 ) {
 

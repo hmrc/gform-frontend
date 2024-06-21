@@ -57,13 +57,10 @@ sealed trait FormKind extends Product with Serializable {
       }
     }
   }
-  private val atlMap = allSections.sections
-    .map {
-      case s: Section.AddToList => s.atlMap
-      case _                    => Map.empty
-    }
-    .flatten
-    .toMap
+  private val atlMap = allSections.sections.flatMap {
+    case s: Section.AddToList => s.atlMap
+    case _                    => Map.empty
+  }.toMap
   private val repeatingMap =
     allSections.sections.collect { case Section.RepeatingPage(page, _) => page.allIds.map(i => (i, i)) }.flatten.toMap
   private val groupMap = allSections.sections

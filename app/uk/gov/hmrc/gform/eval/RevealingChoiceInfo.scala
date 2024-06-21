@@ -43,7 +43,7 @@ case class RevealingChoiceInfo(lookup: Map[BaseComponentId, RevealingChoiceData]
 
       val answers: Seq[String] = variadicFormData.many(modelComponentId).toSeq.flatten
 
-      !answers.contains(revealingChoiceData.index.toString)
+      !answers.contains(revealingChoiceData.index)
     }
   }
 }

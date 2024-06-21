@@ -59,7 +59,7 @@
 }
 
 @displayHMRCLogo = @{
-  maybeFormTemplate.map(_.displayHMRCLogo).getOrElse(false)
+  maybeFormTemplate.exists(_.displayHMRCLogo)
 }
 
 @developmentPhase = @{

@@ -731,7 +731,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
         val lookup = formData.toData
         val lines: NonEmptyList[(Atom, String)] =
           Address.summaryPageFields(fcId.modelComponentId.indexedComponentId).map { modelCompoentIdAtomic =>
-            modelCompoentIdAtomic.atom -> lookup.get(modelCompoentIdAtomic).getOrElse("")
+            modelCompoentIdAtomic.atom -> lookup.getOrElse(modelCompoentIdAtomic, "")
           }
         lines.toList
           .filter(_._2.nonEmpty)
@@ -856,7 +856,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     val multiIndexedMap: Map[BaseComponentId, List[
       (IndexedComponentId.Indexed, ModelComponentId.Pure, NonEmptyList[ModelComponentId.Atomic])
     ]] =
-      multiIndexed.groupBy(_._1.baseComponentId).toMap
+      multiIndexed.groupBy(_._1.baseComponentId)
 
     val pmi = processMultiIndexed(multiIndexedMap, indexedIsPure, postcodeLookupsIds)
 

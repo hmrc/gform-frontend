@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.lookup
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, SimplifiedSelectionCriteria }
 
+import scala.annotation.tailrec
+
 case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
 
   def get(lookupLabel: LookupLabel): Option[LookupInfo] = options.get(lookupLabel)
@@ -68,6 +70,7 @@ object LookupOptions {
       // format: on
     }
 
+  @tailrec
   def filterBySelectionCriteria(
     selectionCriteria: List[SimplifiedSelectionCriteria],
     lookupOptions: Map[LookupLabel, LookupInfo]

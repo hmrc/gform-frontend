@@ -119,9 +119,9 @@ class AuthenticatedRequestActions(
       val predicate = AuthProviders(AuthProvider.GovernmentGateway)
 
       authorised(predicate)
-        .retrieve(Retrievals.affinityGroup) { case affinityGroup =>
+        .retrieve(Retrievals.affinityGroup)(affinityGroup =>
           Future.successful(affinityGroup.map(AffinityGroupUtil.localAffinityGroup))
-        }
+        )
     }
 
   def getGovermentGatewayId(implicit request: Request[AnyContent]): Unit => Future[Option[GovernmentGatewayId]] =
@@ -147,9 +147,7 @@ class AuthenticatedRequestActions(
     val predicate = Enrolment(serviceId.value)
 
     authorised(predicate)
-      .retrieve(Retrievals.allEnrolments) { case enrolments =>
-        checkIdentifiers(identifiers)(enrolments).pure[Future]
-      }
+      .retrieve(Retrievals.allEnrolments)(enrolments => checkIdentifiers(identifiers)(enrolments).pure[Future])
       .recoverWith {
         case ex @ InsufficientEnrolments(enrolment) =>
           logger.error("tax-enrolment service returned 201, but enrolment check in auth failed", ex)

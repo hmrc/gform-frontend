@@ -17,6 +17,8 @@
 package uk.gov.hmrc.gform.upscan
 
 import cats.implicits._
+import org.apache.pekko.http.scaladsl.model.Uri
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.config.{ AppConfig, ConfigModule }
@@ -75,7 +77,7 @@ class UpscanService(
 
     val baseUrl = appConfig.`gform-frontend-base-url`
 
-    val callback0 = java.net.URLEncoder.encode(formIdDataCrypted.value, "UTF-8")
+    val callback0 = Uri.Query(formIdDataCrypted.value)
     val callback: String =
       gformBaseUrl + s"/upscan/callback/${formComponentId.value}/${envelopeId.value}?formIdDataCrypted=$callback0"
 

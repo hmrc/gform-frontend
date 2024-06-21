@@ -93,6 +93,8 @@ import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 
+import scala.annotation.tailrec
+
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
 
@@ -2226,7 +2228,7 @@ class SectionRenderingService(
         hint = hintText(formComponent),
         errorMessage = errorMessage,
         name = formComponent.id.value,
-        items = items.toList
+        items = items
       )
 
       new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
@@ -3454,6 +3456,7 @@ object SectionRenderingService {
 }
 
 object IsNilOrInfoOnly {
+  @tailrec
   def unapply(xs: List[FormComponent]): Boolean =
     xs match {
       case Nil                                                      => true

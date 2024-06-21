@@ -24,7 +24,7 @@ package uk.gov.hmrc.gform.models
  * import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
  * import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
  * import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId */
-import org.scalatest.{ Inside }
+import org.scalatest.Inside
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 class AddToListUtilsBacisSpec extends AnyFlatSpecLike with Matchers with Inside with FormModelSupport {

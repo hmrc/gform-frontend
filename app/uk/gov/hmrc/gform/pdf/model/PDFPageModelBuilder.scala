@@ -160,7 +160,7 @@ object PDFPageModelBuilder {
           .orElse(singleton.page.presentationHint)
       }
       val pageTitle = getPageTitle(singleton.page, maybePresentationHint)
-      Some(PageData(pageTitle, pageFields, sectionNumber.value.toString))
+      Some(PageData(pageTitle, pageFields, sectionNumber.value))
     }
   }
 }

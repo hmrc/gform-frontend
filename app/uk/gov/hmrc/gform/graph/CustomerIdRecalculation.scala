@@ -34,8 +34,7 @@ object CustomerIdRecalculation {
       .map { expr =>
         CustomerId(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation.take(32))
       }
-      .filter(!_.isEmpty())
-      .headOption
+      .find(!_.isEmpty())
       .getOrElse(CustomerId.empty)
 
   private def customerIdExpressions(destinations: Destinations): List[Expr] = destinations match {

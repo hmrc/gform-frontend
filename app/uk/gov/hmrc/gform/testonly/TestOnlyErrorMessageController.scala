@@ -79,7 +79,6 @@ class TestOnlyErrorMessageController(
         val formComponents =
           formModelOptics.formModelRenderPageOptics.formModel.pages
             .flatMap(_.allFormComponents)
-            .toList
             .map(_.copy(includeIf = None))
             .map(fc =>
               if (!isUsageReport) fc
@@ -164,7 +163,7 @@ class TestOnlyErrorMessageController(
       l: LangADT
     ): List[FieldErrorReport] =
       gformError
-        .filter { case (id, _) => inputBaseComponentId.map(id.baseComponentId.value == _).getOrElse(true) }
+        .filter { case (id, _) => inputBaseComponentId.forall(id.baseComponentId.value == _) }
         .map { case (id, errors) => make(id.toMongoIdentifier, formComponent, errors.toList) }
         .toList
 

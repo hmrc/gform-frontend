@@ -158,7 +158,7 @@ object OptionDataUtils {
     NonEmptyList.fromList(modelComponentIds) match {
       case None => NonEmptyList.one(valueBased)
       case Some(modelComponentIdsNel) =>
-        modelComponentIdsNel.map { case modelComponentId =>
+        modelComponentIdsNel.map { modelComponentId =>
           modelComponentId.maybeIndex match {
             case Some(index) => f(index, baseIds, valueBased)
             case None        => valueBased

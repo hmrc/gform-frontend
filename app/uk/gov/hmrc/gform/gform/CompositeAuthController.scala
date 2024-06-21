@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.net.URLEncoder
 import cats.implicits._
+import org.apache.pekko.http.scaladsl.model.Uri
 import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors
 import play.api.i18n.I18nSupport
@@ -115,7 +115,7 @@ class CompositeAuthController(
                 case _                       => continueUrlBase
               }
               val ggLoginUrl = frontendAppConfig.governmentGatewaySignInUrl
-              val url = s"$ggLoginUrl?continue=${URLEncoder.encode(continueUrl, "UTF-8")}"
+              val url = s"$ggLoginUrl?continue=${Uri.Query(continueUrl)}"
               logger.info(
                 s"For a template, ${formTemplate._id.value} user has selected ${AuthConfig.authConfigNameInLogs(AuthConfig.hmrcSimpleModule)} config"
               )
