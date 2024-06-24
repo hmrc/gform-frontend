@@ -277,7 +277,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
       case ObjectStructure(fields) =>
         ObjectStructure(fields.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
       case t @ TextNode(_) =>
-        if (sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
+        if (t.value.nonEmpty && sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
           val cleanedValue = t.value.replace("£", "")
           toBigDecimalSafe(cleanedValue)
             .map(value => TextNode(value.toString))
