@@ -25,20 +25,25 @@ import cats.implicits._
 object TimeFormatter {
 
   def normalizeLocalTime(localTime: LocalTime): String = {
-    val formatter = DateTimeFormatter.ofPattern("hh:mma")
+    val formatter = DateTimeFormatter.ofPattern("h:mma")
     val formattedTime = localTime.format(formatter)
     formattedTime.replace("AM", "am").replace("PM", "pm")
   }
 
   def maybeLocalTime(time: String): Option[LocalTime] = {
-    val timeNormalized = time
-      .toUpperCase()
-      .replaceAll("\\s+", "")
-      .replaceAll("A\\.", "A")
-      .replaceAll("P\\.", "P")
-      .replaceAll("AM\\.", "AM")
-      .replaceAll("PM\\.", "PM")
+    val timeNormalized = if (time === "0") {
+      ""
+    } else {
+      time
+        .toUpperCase()
+        .replaceAll("\\s+", "")
+        .replaceAll("A\\.", "A")
+        .replaceAll("P\\.", "P")
+        .replaceAll("AM\\.", "AM")
+        .replaceAll("PM\\.", "PM")
+    }
     val patterns = List(
+      "H",
       "HH",
       "H:mm",
       "h:mma",
@@ -73,7 +78,7 @@ object TimeFormatter {
 
   def isNoonConfusing(time: LocalTime, timeStr: String): Boolean = {
     val noon = LocalTime.NOON
-    val isInputConfusing = timeStr.replaceAll("[\\s.:]", "") === "12"
+    val isInputConfusing = timeStr.replaceAll("[\\s.:]", "").stripSuffix("00") === "12"
     time.equals(noon) && isInputConfusing
   }
 

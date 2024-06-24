@@ -191,8 +191,8 @@ generic.error.yearformat.real=Nodwch flwyddyn{1} yn y fformat cywir
 
 generic.error.time.required=Nodwch {1}
 generic.error.time.real=Nodwch {1} yn y fformat cywir
-generic.error.time.confusing.noon=Nodwch 12am ar gyfer hanner nos neu 12pm ar gyfer hanner dydd
-generic.error.time.confusing.noon.range=Nodwch {1} ar gyfer hanner nos neu {2} ar gyfer hanner dydd
+generic.error.time.confusing.noon=Nodwch {1} ar gyfer hanner nos neu {2} ar gyfer hanner dydd
+generic.error.time.confusing.noon.range=Nodwch {1} neu {2}
 
 generic.error.submissionRef=Ni ellir dod o hyd i {0}. Nodwch {0} dilys yn y fformat cywir. Mae’n rhaid i hyn fod yn 14 o gymeriadau a chynnwys rhifau, cysylltnodau a phriflythrennau yn unig, er enghraifft ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef=Mae’n rhaid i {0} fod yn gyfeirnod cyflwyno ffurflen rhiant. Yr hyn a nodwyd yw cyfeirnod cyflwyno’r ffurflen hon.

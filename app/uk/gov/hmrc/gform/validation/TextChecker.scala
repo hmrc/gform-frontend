@@ -562,7 +562,14 @@ object TextChecker {
         ),
         switchCase(
           cond = localTime.map(TimeFormatter.isNoonConfusing(_, timeStr)).getOrElse(false),
-          thenProgram = validationFailure(fieldValue, genericErrorTimeConfusingNoon, None)
+          thenProgram = {
+            val placeHolder = localTime.map { t =>
+              List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t)).map(
+                formattedTime => if (timeStr === "12") formattedTime.replace(":00", "") else formattedTime
+              )
+            }
+            validationFailure(fieldValue, genericErrorTimeConfusingNoon, placeHolder)
+          }
         ),
         switchCase(
           cond = localTime.map(TimeFormatter.isNoonRangeConfusing(_, timeStr)).getOrElse(false),
