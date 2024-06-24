@@ -115,6 +115,7 @@ object ExprPrettyPrint {
     case UserField.AffinityGroup      => "Affinity group"
     case UserField.Enrolment(_, _, _) => "enrolment"
     case UserField.EnrolledIdentifier => "Enrolled identifier"
+    case UserField.CredentialRole     => "Credential role"
   }
 
   def prettyPrintDateFunction(dateProjection: DateProjection): String = dateProjection match {

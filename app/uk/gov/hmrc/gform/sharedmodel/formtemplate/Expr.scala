@@ -392,11 +392,12 @@ object Expr {
 sealed trait UserField {
   def fold[B](
     f: UserField.AffinityGroup.type => B
-  )(g: UserField.Enrolment => B)(h: UserField.EnrolledIdentifier.type => B): B =
+  )(g: UserField.Enrolment => B)(h: UserField.EnrolledIdentifier.type => B)(i: UserField.CredentialRole.type => B): B =
     this match {
       case UserField.AffinityGroup      => f(UserField.AffinityGroup)
       case e: UserField.Enrolment       => g(e)
       case UserField.EnrolledIdentifier => h(UserField.EnrolledIdentifier)
+      case UserField.CredentialRole     => i(UserField.CredentialRole)
     }
 }
 
@@ -405,6 +406,7 @@ object UserField {
   final case class Enrolment(serviceName: ServiceName, identifierName: IdentifierName, func: Option[UserFieldFunc])
       extends UserField
   final case object EnrolledIdentifier extends UserField
+  final case object CredentialRole extends UserField
 
   implicit val format: OFormat[UserField] = derived.oformat()
 }

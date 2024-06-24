@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.graph.processor
 
+import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
@@ -23,15 +24,20 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object UserCtxEvaluatorProcessor extends IdentifierExtractor {
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def processEvaluation(
     retrievals: MaterialisedRetrievals,
     userField: UserField,
     authConfig: AuthConfig
   ): String =
     (retrievals, userField) match {
-      case (AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), UserField.EnrolledIdentifier) =>
+      case (AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _), UserField.EnrolledIdentifier) =>
         authorizedEnrolmentValue(enrolments, authConfig)
-      case (AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), UserField.Enrolment(sn, in, maybeUserFieldFunc)) =>
+      case (
+            AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _),
+            UserField.Enrolment(sn, in, maybeUserFieldFunc)
+          ) =>
         enrolments.enrolments
           .find { e =>
             ServiceName(e.key) == sn && e.identifiers.exists(k => IdentifierName(k.key) == in)
@@ -52,6 +58,13 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
           .getOrElse("")
       case (_, UserField.AffinityGroup) =>
         affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals))
+      case (_, UserField.CredentialRole) =>
+        val credentialRole: String =
+          retrievals.getCredentialRole.fold("")(credentialRole => credentialRole.toString.toLowerCase)
+        logger.info(
+          s"User credential role has been retrieved as: ${if (credentialRole == "") "<empty string>" else credentialRole}"
+        )
+        credentialRole
       case (AnonymousRetrievals(_), _) => ""
       case (EmailRetrievals(_), _)     => ""
       case (VerifyRetrievals(_, _), _) => ""

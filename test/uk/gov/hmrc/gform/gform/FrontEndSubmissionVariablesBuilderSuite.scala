@@ -86,7 +86,8 @@ class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSup
       "TestGroupId",
       None,
       OtherRetrievals.empty,
-      ConfidenceLevel.L200
+      ConfidenceLevel.L200,
+      None
     )
 
     val sections = List(

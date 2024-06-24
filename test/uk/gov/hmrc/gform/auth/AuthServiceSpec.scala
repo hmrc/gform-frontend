@@ -70,7 +70,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       "TestGroupId",
       None,
       OtherRetrievals.empty,
-      ConfidenceLevel.L50
+      ConfidenceLevel.L50,
+      None
     )
 
   val materialisedRetrievalsOfsted =
@@ -81,7 +82,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a",
       maybeNino = None,
       otherRetrievals = OtherRetrievals.empty,
-      ConfidenceLevel.L50
+      ConfidenceLevel.L50,
+      credentialRole = None
     )
 
   val materialisedRetrievalsAgent =

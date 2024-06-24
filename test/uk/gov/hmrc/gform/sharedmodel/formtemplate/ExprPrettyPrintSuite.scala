@@ -42,7 +42,7 @@ class ExprPrettyPrintSuite extends FunSuite {
       ) -> "date from startDate component is before date from endDate component"
     )
 
-  booleanExpressions.map { case (expression, expected) =>
+  booleanExpressions.foreach { case (expression, expected) =>
     test(s"pretty print boolean expression: $expression") {
       val res = expression.prettyPrint
       assertEquals(res, expected)
@@ -53,9 +53,20 @@ class ExprPrettyPrintSuite extends FunSuite {
     HideZeroDecimals(FormCtx(FormComponentId("number1"))) -> "hideZeroDecimals(number1)"
   )
 
-  expressions.map { case (expression, expected) =>
+  expressions.foreach { case (expression, expected) =>
     test(s"pretty print expression: $expression") {
       val res = expression.prettyPrint
+      assertEquals(res, expected)
+    }
+  }
+
+  val userInfoFields: List[(UserField, String)] = List(
+    UserField.CredentialRole -> "Credential role"
+  )
+
+  userInfoFields.foreach { case (userInfo, expected) =>
+    test(s"pretty print user info: $userInfo") {
+      val res = ExprPrettyPrint.prettyPrintUserInfo(userInfo)
       assertEquals(res, expected)
     }
   }

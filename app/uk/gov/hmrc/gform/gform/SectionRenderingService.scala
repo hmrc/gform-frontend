@@ -3217,7 +3217,8 @@ class SectionRenderingService(
     groupIdentifier = "",
     maybeNino = None,
     otherRetrievals = OtherRetrievals.empty,
-    ConfidenceLevel.L50
+    ConfidenceLevel.L50,
+    credentialRole = None
   )
 
   def shouldDisplayHeading(
