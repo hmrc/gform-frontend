@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, GformFlashKeys, Origin, SaveAndContinue }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, EditAddToList, GformFlashKeys, Origin, SaveAndContinue }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
@@ -79,6 +79,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.fileupload
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.{ Input, PrefixOrSuffix }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
+import uk.gov.hmrc.hmrcfrontend.views.viewmodels.listwithactions.{ ListWithActions, ListWithActionsAction, ListWithActionsItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
@@ -432,6 +433,48 @@ class SectionRenderingService(
           .exists(_ < sectionNumber)
     }
 
+    val listWithActionsItems = recordTable.map { record =>
+      val changeAction = ListWithActionsAction(
+        content = content.Text(messages("addToList.change")),
+        href = uk.gov.hmrc.gform.gform.routes.FormController
+          .addToListAction(
+            formTemplate._id,
+            maybeAccessCode,
+            sectionNumber,
+            FastForward.Yes :: FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward,
+            EditAddToList(record.index, AddToListId(bracket.source.id.formComponentId))
+          )
+          .url,
+        visuallyHiddenText = Some(messages("addToList.change.visually.hidden", record.summaryText)),
+        attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", record.summaryText))
+      )
+
+      val removeAction = ListWithActionsAction(
+        content = content.Text(messages("addToList.remove")),
+        href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
+          .requestRemoval(
+            formTemplate._id,
+            maybeAccessCode,
+            sectionNumber,
+            record.index,
+            AddToListId(bracket.source.id.formComponentId)
+          )
+          .url,
+        visuallyHiddenText = Some(messages("addToList.change.visually.hidden", record.summaryText)),
+        attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", record.summaryText))
+      )
+      ListWithActionsItem(
+        name = HtmlContent(record.summaryText),
+        actions = List(changeAction, removeAction)
+      )
+
+    }
+
+    val listWithActions = ListWithActions(
+      items = listWithActionsItems.toList,
+      classes = "hmrc-add-to-a-list--wide"
+    )
+
     val renderComeBackLater =
       retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
 
@@ -461,7 +504,8 @@ class SectionRenderingService(
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       maybeAccessCode,
       sectionNumber,
-      fastForward
+      fastForward,
+      listWithActions
     )
   }
 
