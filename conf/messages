@@ -192,8 +192,8 @@ generic.error.yearformat.real=Enter {1} year in the correct format
 
 generic.error.time.required=Enter {1}
 generic.error.time.real=Enter {1} in the correct format
-generic.error.time.confusing.noon=Enter 12am for midnight or 12pm for midday
-generic.error.time.confusing.noon.range=Enter {1} for midnight or {2} for midday
+generic.error.time.confusing.noon=Enter {1} for midnight or {2} for midday
+generic.error.time.confusing.noon.range=Enter {1} or {2}
 
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef={0} must be the submission reference of a parent form. The value entered is the submission reference of this form.

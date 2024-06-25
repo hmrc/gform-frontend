@@ -409,6 +409,7 @@ class TextCheckerSpec
       ("00", ().asRight.asRight),
       ("05", ().asRight.asRight),
       ("5.", ().asRight.asRight),
+      ("3", ().asRight.asRight),
       (
         "1899",
         Left(Map(textComponent.id.modelComponentId -> Set("Enter a time in the correct format")))
@@ -426,8 +427,20 @@ class TextCheckerSpec
         Left(Map(textComponent.id.modelComponentId -> Set("Enter 12am for midnight or 12pm for midday")))
       ),
       (
+        "12.00",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:00am for midnight or 12:00pm for midday")))
+      ),
+      (
         "12:30",
-        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:30am for midnight or 12:30pm for midday")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:30am or 12:30pm")))
+      ),
+      (
+        "12:49",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter 12:49am or 12:49pm")))
+      ),
+      (
+        "0",
+        Left(Map(textComponent.id.modelComponentId -> Set("Enter a time in the correct format")))
       )
     )
 
