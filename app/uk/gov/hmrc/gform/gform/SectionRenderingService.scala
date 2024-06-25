@@ -37,8 +37,7 @@ import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewa
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, GformFlashKeys, Origin, SaveAndContinue }
-import uk.gov.hmrc.gform.fileupload.routes.FileUploadController
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
@@ -532,9 +531,8 @@ class SectionRenderingService(
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
     val formComponents = formModel(sectionNumber).allFormComponents
 
-    val fileUploadProviders: List[(FormComponent, FileUploadProvider)] = formComponents.collect {
-      case fc @ IsFileUpload(fu) =>
-        fc -> fu.fileUploadProvider
+    val fileUploadComponents: List[FormComponent] = formComponents.collect { case fc @ IsFileUpload(_) =>
+      fc
     }
 
     val fileUploadMaxSize: Map[FormComponentId, Int] = formComponents.collect { case fc @ IsFileUpload(fu) =>
@@ -542,14 +540,12 @@ class SectionRenderingService(
     }.toMap
 
     val upscanData: Map[FormComponentId, UpscanData] =
-      fileUploadProviders.flatMap {
-        case (fc, FileUploadProvider.Upscan(_)) =>
-          val uploadRequest = upscanInitiate.get(fc.id).uploadRequest
-          val snippetsForUpscan = List(htmlForUpscan(fc, ei, uploadRequest.fields))
-          Some(
-            fc.id -> UpscanData(uploadRequest.href, snippetsForUpscan, FormMetaData(fc.id, "gf-upscan-" + fc.id.value))
-          )
-        case _ => None
+      fileUploadComponents.flatMap { fc =>
+        val uploadRequest = upscanInitiate.get(fc.id).uploadRequest
+        val snippetsForUpscan = List(htmlForUpscan(fc, ei, uploadRequest.fields))
+        Some(
+          fc.id -> UpscanData(uploadRequest.href, snippetsForUpscan, FormMetaData(fc.id, "gf-upscan-" + fc.id.value))
+        )
       }.toMap
 
     val snippetsForFields = renderUnits
@@ -575,16 +571,10 @@ class SectionRenderingService(
       snippetsForFields,
       javascript,
       envelopeId,
-      ei.isFileUploadOnlyPage(validationResult).fold(actionForm) { case (formComponent, fileUpload) =>
-        fileUpload.fileUploadProvider match {
-          case FileUploadProvider.Upscan(_) =>
-            upscanData.get(formComponent.id) match {
-              case None             => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
-              case Some(upscanData) => Call("POST", upscanData.url)
-            }
-
-          case FileUploadProvider.FileUploadFrontend =>
-            Call("POST", ei.fileUpload.formAction(frontendAppConfig, formComponent))
+      ei.isFileUploadOnlyPage(validationResult).fold(actionForm) { case (formComponent, _) =>
+        upscanData.get(formComponent.id) match {
+          case None             => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
+          case Some(upscanData) => Call("POST", upscanData.url)
         }
       },
       renderComeBackLater,
@@ -1301,7 +1291,7 @@ class SectionRenderingService(
               upscanData,
               ei.formModelOptics
             )
-          case FileUpload(fileUploadProvider, _, allowedFileTypes) =>
+          case FileUpload(_, allowedFileTypes) =>
             val allowedContentTypes = allowedFileTypes
               .map(_.contentTypes)
               .getOrElse(ei.formTemplate.allowedFileTypes.contentTypes)
@@ -1314,14 +1304,13 @@ class SectionRenderingService(
               case None =>
                 htmlForFileUploadStandard(
                   formComponent,
-                  fileUploadProvider,
                   ei,
                   validationResult,
                   upscanData,
                   additionalAttributes
                 )
               case Some(_) =>
-                htmlForFileUploadSingle(formComponent, fileUploadProvider, ei, upscanData, additionalAttributes)
+                htmlForFileUploadSingle(formComponent, ei, upscanData, additionalAttributes)
             }
 
           case InformationMessage(infoType, infoText) =>
@@ -1346,7 +1335,6 @@ class SectionRenderingService(
 
   private def htmlForFileUploadStandard(
     formComponent: FormComponent,
-    fileUploadProvider: FileUploadProvider,
     ei: ExtraInfo,
     validationResult: ValidationResult,
     upscanData: Map[FormComponentId, UpscanData],
@@ -1364,30 +1352,12 @@ class SectionRenderingService(
         .map(_.length)
         .getOrElse(0)
 
-    fileUploadProvider match {
-      case FileUploadProvider.Upscan(_) =>
-        upscanData.get(formComponent.id) match {
-          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
-          case Some(upscanData) =>
-            val fileUploadName = "file"
-            val attributes = Map("form" -> upscanData.formMetaData.htmlId) ++ additionalAttributes
+    upscanData.get(formComponent.id) match {
+      case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
+      case Some(upscanData) =>
+        val fileUploadName = "file"
+        val attributes = Map("form" -> upscanData.formMetaData.htmlId) ++ additionalAttributes
 
-            htmlForFileUpload(
-              formComponent,
-              ei.formTemplateId,
-              ei,
-              validationResult,
-              fileId,
-              fileSize,
-              fileUploadName,
-              upscanData.url,
-              attributes
-            )
-        }
-      case FileUploadProvider.FileUploadFrontend =>
-        val formAction = ei.fileUpload.formAction(frontendAppConfig, formComponent)
-
-        val fileUploadName = formComponent.id.value
         htmlForFileUpload(
           formComponent,
           ei.formTemplateId,
@@ -1396,15 +1366,14 @@ class SectionRenderingService(
           fileId,
           fileSize,
           fileUploadName,
-          formAction,
-          additionalAttributes
+          upscanData.url,
+          attributes
         )
     }
   }
 
   private def htmlForFileUploadSingle(
     formComponent: FormComponent,
-    fileUploadProvider: FileUploadProvider,
     ei: ExtraInfo,
     upscanData: Map[FormComponentId, UpscanData],
     additionalAttributes: Map[String, String]
@@ -1413,28 +1382,15 @@ class SectionRenderingService(
     sse: SmartStringEvaluator,
     m: Messages
   ): Html =
-    fileUploadProvider match {
-      case FileUploadProvider.Upscan(_) =>
-        upscanData.get(formComponent.id) match {
-          case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
-          case Some(upscanData) =>
-            val fileUploadName = "file"
-            htmlForFileUploadOnly(
-              formComponent,
-              fileUploadName,
-              ei,
-              upscanData.snippets,
-              additionalAttributes
-            )
-        }
-
-      case FileUploadProvider.FileUploadFrontend =>
-        val fileUploadName = formComponent.id.value
+    upscanData.get(formComponent.id) match {
+      case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
+      case Some(upscanData) =>
+        val fileUploadName = "file"
         htmlForFileUploadOnly(
           formComponent,
           fileUploadName,
           ei,
-          List.empty[Html],
+          upscanData.snippets,
           additionalAttributes
         )
     }
@@ -1876,7 +1832,7 @@ class SectionRenderingService(
     )
 
     val deleteUrl =
-      FileUploadController.requestRemoval(
+      uk.gov.hmrc.gform.objectStore.routes.ObjectStoreController.requestRemoval(
         formTemplateId,
         ei.maybeAccessCode,
         ei.sectionNumber,

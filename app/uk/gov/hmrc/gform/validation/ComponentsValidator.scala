@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.fileupload.EnvelopeWithMapping
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.models.Visibility
@@ -222,7 +222,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
       case _: RevealingChoice =>
         validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
       case Group(_, _, _, _, _) => validationSuccess.pure[F]
-      case FileUpload(_, _, _) =>
+      case FileUpload(_, _) =>
         validIf(
           new FileUploadChecker[D]().runCheck(checkerDependency)
         )

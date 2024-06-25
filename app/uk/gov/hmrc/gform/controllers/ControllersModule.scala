@@ -18,16 +18,13 @@ package uk.gov.hmrc.gform.controllers
 
 import play.api.BuiltInComponents
 import play.api.i18n.MessagesApi
-import play.api.mvc.{ DefaultMessagesActionBuilderImpl, DefaultMessagesControllerComponents, MessagesControllerComponents, SessionCookieBaker }
-import uk.gov.hmrc.gform.auditing.AuditingModule
+import play.api.mvc.{ DefaultMessagesActionBuilderImpl, DefaultMessagesControllerComponents, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
-import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 import scala.concurrent.ExecutionContext
 
@@ -36,14 +33,10 @@ class ControllersModule(
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   playBuiltInsModule: PlayBuiltInsModule,
-  auditingModule: AuditingModule,
   builtInComponents: BuiltInComponents,
-  sessionCookieBaker: SessionCookieBaker,
   errResponder: ErrResponder,
   graphModule: GraphModule,
-  wSHttpModule: WSHttpModule,
-  lookupOptions: LocalisedLookupOptions,
-  fileUploadModule: FileUploadModule
+  lookupOptions: LocalisedLookupOptions
 )(implicit
   ec: ExecutionContext
 ) {

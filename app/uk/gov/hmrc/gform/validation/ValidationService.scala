@@ -24,7 +24,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.fileupload._
+import uk.gov.hmrc.gform.objectStore._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.PageModel

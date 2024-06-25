@@ -20,10 +20,10 @@ import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.it.stubs.{ FileUploadStubs, GFormStubs }
+import uk.gov.hmrc.gform.it.stubs.{ EnvelopeStubs, GFormStubs }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ReferrerConfig, ReferrerUrlPattern }
 
-class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
+class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
   "new form with referer config" should "Deny access if 'Referer' header is missing" in {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
@@ -91,7 +91,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
     )
     gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
-    getFileUploadEnvelopeStub()
+    getEnvelopeStub()
 
     When("I request for a new form with correct 'Referer' header")
     val newFormResponse =
@@ -120,7 +120,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with FileUploadStubs {
     )
     gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
-    getFileUploadEnvelopeStub()
+    getEnvelopeStub()
 
     When("I request for a new form with correct 'Referer' header")
     val newFormResponse =
