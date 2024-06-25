@@ -14,9 +14,12 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ InfoType, StandardInfo, LongInfo, ImportantInfo, BannerInfo, FormComponent, NoFormat }
 
+@import uk.gov.hmrc.hmrcfrontend.views.Utils.nonEmptyStringOrDefault
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 @(fieldValue: FormComponent,
   infoType: InfoType,
   text: Html,
@@ -28,48 +31,36 @@
 
   @infoType match {
     case StandardInfo => {
-      <div class="govuk-inset-text">
-        @text
-      </div>
+      @{
+        val insetText = InsetText(None, classes, Map.empty, HtmlContent(text))
+        new GovukInsetText()(insetText)
+      }
     }
 
     case LongInfo => {
-      <details class="gform-details govuk-details" data-module="govuk-details">
-        <summary class="govuk-details__summary">
-            <span class="govuk-details__summary-text @classes">
-              @{fieldValue.label.value}
-            </span>
-        </summary>
-        <div class="govuk-details__text">
-            @text
-        </div>
-      </details>
+      @{
+        val details = Details(None, open = false, classes, Map.empty, HtmlContent(sse(fieldValue.label, markDown = false)), HtmlContent(text))
+        new GovukDetails()(details)
+      }
     }
 
     case ImportantInfo => {
-      <div class="govuk-warning-text">
-        <span class="govuk-warning-text__icon gform-warning-text__icon_adjustment" aria-hidden="true">!</span>
-        <strong class="govuk-warning-text__text">
-            <span class="govuk-warning-text__assistive">@messages("generic.Warning")</span>
-            @text
-        </strong>
-      </div>
+      @{
+        val warningText = WarningText(Some(nonEmptyStringOrDefault(Some(messages("generic.Warning")), messages("govuk.warningText.iconFallbackText"))), classes, Map.empty, HtmlContent(text))
+        new GovukWarningText()(warningText)
+      }
     }
 
     case BannerInfo => {
-      <div class="govuk-panel govuk-panel--confirmation">
-        <h1 class="govuk-panel__title @classes">
-            @{fieldValue.label.value}
-        </h1>
-        <div class="govuk-panel__body">
-            @text
-        </div>
-      </div>
+      @{
+        val panel = Panel(1, classes, Map.empty, HtmlContent(sse(fieldValue.label, markDown = false)), HtmlContent(text))
+        new GovukPanel()(panel)
+      }
     }
 
     case NoFormat => {
       <div class="govuk-body govuk-!-font-size-19">
-            @text
+        @text
       </div>
     }
   }
