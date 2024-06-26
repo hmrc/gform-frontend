@@ -48,4 +48,5 @@ object OperationWithForm {
   final case object ViewImageByInternalLink extends OperationWithForm
   final case object EditFormAcknowledgement extends OperationWithForm
   final case object ForceReturnToCYA extends OperationWithForm
+  final case object NewFormLink extends OperationWithForm
 }

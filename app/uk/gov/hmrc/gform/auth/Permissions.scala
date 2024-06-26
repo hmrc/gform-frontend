@@ -55,6 +55,7 @@ object Permissions {
       case (ForceUpdateFormStatus, _, Submitted)                           => valid(operation, role, status)
       case (EditFormAcknowledgement, _, Submitted)                         => valid(operation, role, status)
       case (ForceReturnToCYA, _, _)                                        => valid(operation, role, status)
+      case (NewFormLink, _, _)                                             => valid(operation, role, status)
       case (_, _, Submitted)                                               => formSubmitted(operation, role, status)
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => valid(operation, role, status)
       case (EditFormWith, Customer | Agent, _)                             => mostLikelyInvalid(operation, role, status)

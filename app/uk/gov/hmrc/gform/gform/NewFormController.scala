@@ -108,6 +108,13 @@ class NewFormController(
         fastForwardService.deleteForm(formTemplateId, cache, queryParams)
     }
 
+  def dashboardNewFormLink(formTemplateId: FormTemplateId) =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.NewFormLink) {
+      implicit request => _ => cache => _ => _ =>
+        val queryParams = QueryParams.fromRequest(request)
+        fastForwardService.deleteForm(formTemplateId, cache, queryParams)
+    }
+
   /** To request a new confirmation code when verifying an email, user will have to start whole journey again in new session.
     */
   def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { request =>

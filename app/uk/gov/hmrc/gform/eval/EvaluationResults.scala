@@ -458,7 +458,7 @@ case class EvaluationResults(
                 .url
             case InternalLink.NewForm =>
               uk.gov.hmrc.gform.gform.routes.NewFormController
-                .dashboardClean(evaluationContext.formTemplateId)
+                .dashboardNewFormLink(evaluationContext.formTemplateId)
                 .url
             case InternalLink.NewSession =>
               uk.gov.hmrc.gform.gform.routes.NewFormController
