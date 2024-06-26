@@ -412,7 +412,17 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.FormTemplateExtractController.extract(formTemplate._id, accessCode)
     )
 
-    val links = List(viewFormTemplateDetailsLink)
+    val viewErrorReport = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View error report",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyErrorMessageController.errorsHtml(formTemplate._id, accessCode)
+    )
+
+    val viewErrorUsageReport = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View error usage report",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyErrorMessageController.errorsUsageHtml(formTemplate._id, accessCode)
+    )
+
+    val links = List(viewFormTemplateDetailsLink, viewErrorReport, viewErrorUsageReport)
 
     bulleted_list(links)
   }
