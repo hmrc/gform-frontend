@@ -247,7 +247,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         TypeInfo(LinkCtx(NewForm), StaticTypeData(ExprType.string, None)),
         recDataEmpty,
         evaluationContext,
-        StringResult("/new-form/aaa999/clean"),
+        StringResult("/new-form/aaa999/new-form-link"),
         "Eval LinkCtx(NewForm) as string (link to new form)"
       ),
       (
