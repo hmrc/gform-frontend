@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import org.apache.pekko.http.scaladsl.model.Uri
+import org.apache.commons.codec.net.URLCodec
 import org.slf4j.LoggerFactory
-
 import play.api._
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ RequestHeader, Result }
@@ -55,7 +54,8 @@ class CSRFErrorHandler(
 
     val loginUrl = maybeFormTemplateId.fold(ggLoginUrl) { formTemplateId =>
       val dashboardUrl = routes.NewFormController.dashboard(formTemplateId).url
-      val continueUrl = Uri.Query(gformBaseUrl + dashboardUrl)
+      val codec = new URLCodec("UTF-8")
+      val continueUrl = codec.encode(gformBaseUrl + dashboardUrl)
       s"$ggLoginUrl?continue=$continueUrl"
     }
 

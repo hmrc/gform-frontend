@@ -81,3 +81,6 @@ GET           /submissions/test-only/summary/html/:formTemplateId               
 GET           /submissions/test-only/acknowledgement/html/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.generateAcknowledgementHtml(formTemplateId: FormTemplateId, a: Option[AccessCode])
 
 GET           /submissions/test-only/return-to-cya/:formTemplateId/:accessCode                       uk.gov.hmrc.gform.testonly.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+
+GET           /submissions/test-only/finger-print/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.fingerPrint(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
+GET           /submissions/test-only/finger-print/:formTemplateId/:accessCode                        uk.gov.hmrc.gform.testonly.TestOnlyController.fingerPrint(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])

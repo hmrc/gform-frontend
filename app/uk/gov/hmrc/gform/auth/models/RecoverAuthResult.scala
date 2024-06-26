@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import org.apache.pekko.http.scaladsl.model.Uri
+import org.apache.commons.codec.net.URLCodec
 import org.slf4j.LoggerFactory
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.FormTemplateKey
-
 import uk.gov.hmrc.gform.gform.routes
 
 object RecoverAuthResult {
@@ -59,7 +58,8 @@ object RecoverAuthResult {
       routes.NewFormController.dashboard(formTemplate._id).url
     }
     logger.info("No Active Session. Redirecting user to: " + uri)
-    val continueUrl = Uri.Query(appConfig.`gform-frontend-base-url` + uri)
+    val codec = new URLCodec("UTF-8")
+    val continueUrl = codec.encode(appConfig.`gform-frontend-base-url` + uri)
     val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
     val url = s"$ggLoginUrl?continue=$continueUrl"
     AuthRedirectFlashingFormName(url)
