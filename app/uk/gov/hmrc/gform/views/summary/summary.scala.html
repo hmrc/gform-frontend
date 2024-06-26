@@ -81,7 +81,7 @@
 
     @twoThirdsMainContent {
         @page_heading(title, caption)
-        @if(!header.body.isEmpty) {
+        @if(header.body.nonEmpty) {
             <div class="govuk-body">@header</div>
         }
     }

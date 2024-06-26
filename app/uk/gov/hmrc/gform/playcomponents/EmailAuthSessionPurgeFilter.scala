@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import org.apache.pekko.stream.Materializer
-import cats.data.NonEmptyList
 import play.api.mvc.{ Filter, RequestHeader, Result }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, EmailRetrievals }
@@ -37,7 +36,7 @@ import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ compositeAuthSession
 import uk.gov.hmrc.gform.gform.EmailAuthUtils
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, EmailAuthConfig, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Composite, EmailAuthConfig, FormTemplate }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -66,7 +65,7 @@ class EmailAuthSessionPurgeFilter(
       val formTemplate = formTemplateContext.formTemplate
       formTemplate.authConfig match {
         case _: EmailAuthConfig => handleEmail(next, formTemplateContext)
-        case Composite(configs) => handleCompositeAuth(next, formTemplateContext, configs)
+        case Composite(_)       => handleCompositeAuth(next, formTemplateContext)
         case _                  => next(rh)
       }
     } else {
@@ -88,8 +87,7 @@ class EmailAuthSessionPurgeFilter(
 
   def handleCompositeAuth(
     next: RequestHeader => Future[Result],
-    formTemplateContext: FormTemplateContext,
-    configs: NonEmptyList[AuthConfig]
+    formTemplateContext: FormTemplateContext
   )(implicit rh: RequestHeader): Future[Result] = {
 
     val formTemplate = formTemplateContext.formTemplate

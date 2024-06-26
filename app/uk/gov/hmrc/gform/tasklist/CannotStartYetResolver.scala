@@ -23,6 +23,8 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormCtx }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddressLens
 
+import scala.annotation.tailrec
+
 final class CannotStartYetResolver(
   // Return FormComponentIds which are defined in given task
   formComponentIdsLookup: Map[Coordinates, Set[BaseComponentId]],
@@ -45,6 +47,7 @@ final class CannotStartYetResolver(
       coordinates -> dependentCoordinates
   }
 
+  @tailrec
   def resolveCannotStartYet(
     initialStatuses: NonEmptyList[(Coordinates, TaskStatus)]
   ): NonEmptyList[(Coordinates, TaskStatus)] = {

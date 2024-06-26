@@ -74,7 +74,7 @@ case class FormComponent(
   }
 
   def childrenFormComponents: List[FormComponent] = `type` match {
-    case t: RevealingChoice => t.options.toList.flatMap(_.revealingFields)
+    case t: RevealingChoice => t.options.flatMap(_.revealingFields)
     case t: Group           => t.fields
     case _                  => Nil
   }

@@ -125,7 +125,7 @@ object Javascript {
     val elementId = field.id
     val functionName = JsFunction("compute" + elementId)
 
-    val isDependent: Set[ModelComponentId] = successorLookup.get(field.id).getOrElse(Set.empty)
+    val isDependent: Set[ModelComponentId] = successorLookup.getOrElse(field.id, Set.empty)
 
     def getRoundingMode(fc: FormComponent) =
       fc.`type` match {

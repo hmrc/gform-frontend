@@ -24,7 +24,7 @@ class FileIdsWithMapping(
   val mapping: FormComponentIdToFileIdMapping
 ) {
   def associatedFileIds(modelComponentIds: Set[ModelComponentId]): Set[FileId] =
-    modelComponentIds.filter(isFileField).map(mapping.find).flatten
+    modelComponentIds.filter(isFileField).flatMap(mapping.find)
 }
 
 object FileIdsWithMapping {

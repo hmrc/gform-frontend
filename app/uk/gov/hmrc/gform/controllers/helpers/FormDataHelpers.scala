@@ -107,7 +107,7 @@ object FormDataHelpers {
   def dataEnteredInGroup[S <: SourceOrigin](group: Group, fieldData: VariadicFormData[S]): Boolean =
     group.fields
       .flatMap(_.multiValueId.toModelComponentIds)
-      .exists(id => fieldData.get(id).exists(_.exists(!_.isEmpty)))
+      .exists(id => fieldData.get(id).exists(_.exists(_.nonEmpty)))
 
   def updateFormField(form: Form, updatedFormField: FormField): Form = {
     val updated: List[FormField] = form.formData.fields.filterNot(_.id === updatedFormField.id).+:(updatedFormField)
@@ -134,7 +134,7 @@ object FormDataHelpers {
             modelComponentId -> VariadicValue.Many(
               s.toList.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty).toIndexedSeq
             )
-          );
+          )
           (
             value,
             None,

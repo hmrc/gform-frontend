@@ -45,7 +45,7 @@ trait ObligationValidator extends TaxSelectionNavigator {
       .map { case (cached, taxResponse) =>
         (cached.obligation, taxResponse)
       }
-      .map { case (obligation, taxResponse) =>
+      .flatMap { case (obligation, taxResponse) =>
         val taxSelectionNavigation = taxSelectionNavigator(formModelOptics, obligation, taxResponse)
 
         taxSelectionNavigation match {
@@ -53,7 +53,6 @@ trait ObligationValidator extends TaxSelectionNavigator {
           case DoNotGoBackToTaxPeriodSelection => None
         }
       }
-      .flatten
 
     formModelOptics.clearModelComponentIds(toRemove)
   }

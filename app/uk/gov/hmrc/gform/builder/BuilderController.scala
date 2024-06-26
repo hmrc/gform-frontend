@@ -921,14 +921,11 @@ class BuilderController(
 
         // This is hack to avoid whole validation machinery
         val lookup: Map[FormComponentId, FormFieldValidationResult] =
-          formModelOptics.formModelVisibilityOptics.data.all
-            .map { case (modelComponentId, variadicValue) =>
-              formModelOptics.formModelRenderPageOptics
-                .find(modelComponentId)
-                .map(fc => fc.id -> FieldOk(fc, variadicValue.toSeq.mkString("")))
-            }
-            .flatten
-            .toMap
+          formModelOptics.formModelVisibilityOptics.data.all.flatMap { case (modelComponentId, variadicValue) =>
+            formModelOptics.formModelRenderPageOptics
+              .find(modelComponentId)
+              .map(fc => fc.id -> FieldOk(fc, variadicValue.toSeq.mkString("")))
+          }.toMap
 
         val validationResult = ValidationResult.empty.copy(lookup = lookup)
 

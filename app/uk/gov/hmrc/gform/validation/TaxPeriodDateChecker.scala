@@ -84,7 +84,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
       )
       .andThen { case (monthStr, yearStr) =>
         val monthProgram = ifProgram(
-          cond = monthStr.toIntOption.map(m => m >= 1 && m <= 12).getOrElse(false),
+          cond = monthStr.toIntOption.exists(m => m >= 1 && m <= 12),
           thenProgram = successProgram(()),
           elseProgram = errorProgram(
             Map(
@@ -95,7 +95,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
           )
         )
         val yearProgram = ifProgram(
-          cond = yearStr.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false),
+          cond = yearStr.toIntOption.exists(y => y >= 1900 && y <= 2099),
           thenProgram = successProgram(()),
           elseProgram = errorProgram(
             Map(

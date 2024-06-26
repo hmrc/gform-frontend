@@ -62,7 +62,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ br, inset_text, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ br, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
 import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
 import uk.gov.hmrc.gform.views.html.debug.toolbox
 import uk.gov.hmrc.gform.BuildInfo
@@ -71,6 +71,7 @@ import SnapshotForms._
 import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 
 import java.time.Instant
 
@@ -393,12 +394,16 @@ class TestOnlyController(
 
     val bulletedList = bulleted_list(links)
 
-    val tableInset = inset_text(
-      HtmlFormat.fill(
-        List(
-          Html("Embedded - payload is embedded into json template itself ('convertSingleQuotes' has been applied)"),
-          br(),
-          Html("Source - original payload from *.hbs file")
+    val tableInset = new GovukInsetText()(
+      InsetText(
+        content = content.HtmlContent(
+          HtmlFormat.fill(
+            List(
+              Html("Embedded - payload is embedded into json template itself ('convertSingleQuotes' has been applied)"),
+              br(),
+              Html("Source - original payload from *.hbs file")
+            )
+          )
         )
       )
     )

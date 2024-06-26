@@ -540,7 +540,7 @@ object SummaryRenderingService {
       val fcrd = implicitly[FormComponentRenderDetails[SummaryRender]]
       val slrTables: List[SummaryListRow] = bracket.iterations.last.repeater.repeater.fields
         .map(
-          _.filterNot(_.hideOnSummary).toList
+          _.filterNot(_.hideOnSummary)
             .collect { case fc @ IsTableComp(table) =>
               val label = fcrd.label(fc)
               summaryListRow(

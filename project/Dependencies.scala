@@ -21,6 +21,7 @@ object Dependencies {
     "org.typelevel"               %% "cats-free"                  % "2.9.0",
     "org.typelevel"               %% "cats-mtl"                   % "1.4.0",
     "org.typelevel"               %% "case-insensitive"           % "1.4.0",
+    "com.typesafe.akka"           %% "akka-http"                  % "10.2.10",
     "com.github.pureconfig"       %% "pureconfig"                 % "0.17.6",
     "org.jetbrains"                % "markdown"                   % "0.1.46",
     "com.chuusai"                 %% "shapeless"                  % "2.3.10",

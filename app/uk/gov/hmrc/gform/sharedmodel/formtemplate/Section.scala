@@ -98,9 +98,6 @@ object Section {
     val allSumInfo: SumInfo =
       pages.toList.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
 
-    def isInATL(addAnotherQuestionId: FormComponentId, fcId: FormComponentId): Boolean =
-      addAnotherQuestionId == addAnotherQuestion.id && pages.toList.flatMap(_.allIds).exists(_ == fcId)
-
   }
 
   implicit val format: OFormat[Section] = derived.oformat()

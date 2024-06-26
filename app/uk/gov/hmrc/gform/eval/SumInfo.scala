@@ -56,6 +56,6 @@ object SumInfo {
     }
 
     private def getSet(key: Sum, sumInfo: SumInfo): Set[FormComponentId] =
-      sumInfo.lookup.get(key).getOrElse(Set.empty[FormComponentId])
+      sumInfo.lookup.getOrElse(key, Set.empty[FormComponentId])
   }
 }

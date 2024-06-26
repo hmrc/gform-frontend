@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.collection.mutable.LinkedHashSet
-
 import ComponentChecker._
 import GformError.linkedHashSetMonoid
 
@@ -123,7 +122,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     formComponent match {
       case IsMultiField(_) =>
         val evaluationResults = formModelVisibilityOptics.evaluationResults
-        val maybeAddressDetail = evaluationResults.exprMap.map(_._1).collectFirst {
+        val maybeAddressDetail = evaluationResults.exprMap.keys.collectFirst {
           case AddressLens(fcId, addressDetail) if fcId === formComponent.id => addressDetail
         }
         val modelComponentIds = maybeAddressDetail.fold(formComponent.multiValueId.atomsModelComponentIds) {
@@ -314,11 +313,10 @@ object ComponentsValidatorHelper {
   ): LinkedHashSet[String] = {
     val varsList: List[String] = vars.getOrElse(Nil)
     val withDescriptor: List[String] = fieldDescriptor(formComponent, partLabel).trim :: varsList
-    val orderedSet = LinkedHashSet[String]()
     val errorMsg = formComponent.errorMessage
       .map(ls => ls.value())
       .getOrElse(messages(messageKey, withDescriptor: _*))
 
-    orderedSet += errorMsg
+    LinkedHashSet(errorMsg)
   }
 }

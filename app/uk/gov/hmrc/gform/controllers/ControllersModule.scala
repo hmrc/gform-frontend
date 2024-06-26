@@ -62,7 +62,7 @@ class ControllersModule(
     lookupOptions
   )
 
-  val messagesControllerComponents: MessagesControllerComponents = new DefaultMessagesControllerComponents(
+  val messagesControllerComponents: MessagesControllerComponents = DefaultMessagesControllerComponents(
     new DefaultMessagesActionBuilderImpl(builtInComponents.defaultBodyParser, playBuiltInsModule.messagesApi),
     builtInComponents.defaultActionBuilder,
     builtInComponents.playBodyParsers,

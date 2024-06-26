@@ -83,8 +83,7 @@ case class Navigator(
     availableSectionNumbers.max(Ordering.by((_: SectionNumber).numberValue))
 
   val previousSectionNumber: Option[SectionNumber] =
-    filteredSectionNumbers(sectionNumber).reverse
-      .find(_ < sectionNumber)
+    filteredSectionNumbers(sectionNumber).findLast(_ < sectionNumber)
 
   lazy val nextSectionNumber: SectionNumber = {
     val sn = sectionNumber.increment

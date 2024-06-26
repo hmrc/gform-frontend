@@ -525,7 +525,7 @@ object TextChecker {
       nonEmptyCheck = validateYear(fieldValue, inputText)
     )
     def validateYear(fieldValue: FormComponent, yearStr: String): CheckProgram[Unit] = ifProgram(
-      cond = yearStr.toIntOption.map(y => y >= 1900 && y <= 2099).getOrElse(false),
+      cond = yearStr.toIntOption.exists(y => y >= 1900 && y <= 2099),
       thenProgram = successProgram(()),
       elseProgram = {
         val placeholder =
@@ -561,7 +561,7 @@ object TextChecker {
           }
         ),
         switchCase(
-          cond = localTime.map(TimeFormatter.isNoonConfusing(_, timeStr)).getOrElse(false),
+          cond = localTime.exists(TimeFormatter.isNoonConfusing(_, timeStr)),
           thenProgram = {
             val placeHolder = localTime.map { t =>
               List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t)).map(
@@ -572,7 +572,7 @@ object TextChecker {
           }
         ),
         switchCase(
-          cond = localTime.map(TimeFormatter.isNoonRangeConfusing(_, timeStr)).getOrElse(false),
+          cond = localTime.exists(TimeFormatter.isNoonRangeConfusing(_, timeStr)),
           thenProgram = {
             val placeHolder = localTime.map(t =>
               List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t))

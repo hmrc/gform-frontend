@@ -121,7 +121,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   // GFORMS-2314 introduced template version to be mandatory. Ultimately all
   // user form data will contain version. At that point this check will be no-op
   private def allowNonVersionedFormIfTemplateIsOnFirstVersion(formTemplate: FormTemplate, form: Form): Boolean =
-    formTemplate.version === FormTemplateVersion(1) && !form.formTemplateVersion.isDefined
+    formTemplate.version === FormTemplateVersion(1) && form.formTemplateVersion.isEmpty
 
   private def getFormByLegacyFormTemplate(
     formTemplate: FormTemplate,

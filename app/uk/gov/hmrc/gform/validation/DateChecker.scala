@@ -434,7 +434,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     messages: Messages
   ): CheckProgram[LocalDate] = {
 
-    val fieldIdList = formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one).toList
+    val fieldIdList = formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one)
 
     val (day, month, year) = fieldIdList match {
       case Some(d) :: Some(m) :: Some(y) :: Nil => (Some(d), Some(m), Some(y))

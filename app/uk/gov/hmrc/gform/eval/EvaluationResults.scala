@@ -268,14 +268,12 @@ case class EvaluationResults(
       case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
       case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
-        val count = addToListValues(fcId, recData)
-          .filter(str =>
-            countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
-              case StringResult(r) => r == value
-              case _               => false
-            }
-          )
-          .size
+        val count = addToListValues(fcId, recData).count(str =>
+          countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
+            case StringResult(r) => r === value
+            case _               => false
+          }
+        )
         NumberResult(count)
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
@@ -565,23 +563,20 @@ case class EvaluationResults(
           val indexedComponentId = fcId.modelComponentId.indexedComponentId
           val addressAtoms: List[ModelComponentId.Atomic] = OverseasAddress.fields(indexedComponentId).toList
           val variadicValues: List[Option[VariadicValue]] =
-            addressAtoms.filter(_.atom == OverseasAddress.country).map(atom => recData.variadicFormData.get(atom))
+            addressAtoms.filter(_.atom === OverseasAddress.country).map(atom => recData.variadicFormData.get(atom))
           variadicValues
-            .collect { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
-            .headOption
+            .collectFirst { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
             .map(country => countryLookup(country, column, evaluationContext.lookupOptions, evaluationContext.lang))
             .getOrElse(Empty)
         }
       case CsvOverseasCountryCheck(fcId, column) => Empty
       case CsvCountryCountCheck(fcId, column, value) =>
-        val count = addToListValues(fcId, recData)
-          .filter(str =>
-            countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
-              case StringResult(r) => r == value
-              case _               => false
-            }
-          )
-          .size
+        val count = addToListValues(fcId, recData).count(str =>
+          countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
+            case StringResult(r) => r === value
+            case _               => false
+          }
+        )
         StringResult(s"$count")
       case IndexOf(fcId, index) =>
         loop(FormCtx(fcId)) match {

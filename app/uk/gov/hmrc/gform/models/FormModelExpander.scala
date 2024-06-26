@@ -95,7 +95,6 @@ object FormModelExpander {
           case ModelComponentId.Atomic(IndexedComponentId.Indexed(baseComponentId, index), _) if baseIds(baseComponentId) => index
           // format: on
         }
-        .toSet
 
       val repeatCount = if (indexes.isEmpty) 1 else indexes.max
 

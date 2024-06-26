@@ -126,7 +126,7 @@ case class ThirdPartyData(
       val lookup = formData.toData
       val lines: NonEmptyList[String] =
         Address.summaryPageFields(formComponentId.modelComponentId.indexedComponentId).map { modelCompoentIdAtomic =>
-          lookup.get(modelCompoentIdAtomic).getOrElse("")
+          lookup.getOrElse(modelCompoentIdAtomic, "")
         }
       lines.toList.filter(_.nonEmpty)
 

@@ -48,7 +48,7 @@ class ConditionIs[T](mapping: Mapping[T], value: T) extends Condition {
   override def withPrefix(prefix: String): Condition = new ConditionIs(mapping withPrefix prefix, value)
 }
 
-case class OnlyWhen[T](wrapped: Mapping[T], condition: Condition, val constraints: Seq[Constraint[Option[T]]] = Nil)
+case class OnlyWhen[T](wrapped: Mapping[T], condition: Condition, constraints: Seq[Constraint[Option[T]]] = Nil)
     extends Mapping[Option[T]] {
 
   override val format: Option[(String, Seq[Any])] = wrapped.format
