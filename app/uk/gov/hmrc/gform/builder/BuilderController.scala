@@ -68,7 +68,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    16; // This is managed manually. Increase it any time API used by builder extension is changed.
+    17; // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(
