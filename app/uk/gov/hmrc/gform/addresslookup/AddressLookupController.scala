@@ -703,6 +703,7 @@ class AddressLookupController(
       id = formComponentId,
       `type` = Address(false, List.empty[Address.Configurable.Mandatory], false, None),
       label = SmartString(LocalisedString(Map.empty), List.empty[Expr]),
+      isPageHeading = false,
       helpText = None,
       shortName = None,
       includeIf = None,

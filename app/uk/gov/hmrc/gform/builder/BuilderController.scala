@@ -46,7 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
-import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
+import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -68,7 +68,7 @@ class BuilderController(
   }
 
   private val compatibilityVersion =
-    17; // This is managed manually. Increase it any time API used by builder extension is changed.
+    18 // This is managed manually. Increase it any time API used by builder extension is changed.
 
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(
@@ -408,10 +408,9 @@ class BuilderController(
         componentHtml match {
           case Left(error) => badRequest(error).pure[Future]
           case Right(html) =>
-            val validationResult = ValidationResult.empty
             val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
             val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
-            val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
+            val formLevelHeading = renderer.shouldDisplayHeading(singleton)
 
             Ok(
               Json.obj(
@@ -510,9 +509,7 @@ class BuilderController(
 
     val sectionHeader = singleton.page.sectionHeader()
 
-    val validationResult = ValidationResult.empty
-
-    val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
+    val formLevelHeading = renderer.shouldDisplayHeading(singleton)
 
     val sectionHtml = html.form.section_header(sectionHeader, !formLevelHeading)
 
@@ -659,7 +656,7 @@ class BuilderController(
 
         val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None)
 
-        val formLevelHeading = renderer.shouldDisplayHeading(singleton, formModelOptics, validationResult)
+        val formLevelHeading = renderer.shouldDisplayHeading(singleton)
 
         val renderUnit = RenderUnit.Pure(formComponent)
 
@@ -679,6 +676,23 @@ class BuilderController(
         )
         val obligations: Obligations = NotChecked
 
+        val formComponents = singleton.allFormComponents
+        val fileUploadComponents: List[FormComponent] = formComponents.collect { case fc @ IsFileUpload(_) =>
+          fc
+        }
+
+        val upscanData: Map[FormComponentId, UpscanData] =
+          fileUploadComponents.flatMap { fc =>
+            val snippetsForUpscan = List(HtmlFormat.empty)
+            Some(
+              fc.id -> UpscanData(
+                "this-is-not-an-url",
+                snippetsForUpscan,
+                FormMetaData(fc.id, "gf-upscan-" + fc.id.value)
+              )
+            )
+          }.toMap
+
         val formComponentHtml = renderer.htmlFor(
           renderUnit,
           formTemplateId,
@@ -686,7 +700,7 @@ class BuilderController(
           validationResult,
           obligations,
           UpscanInitiate.empty,
-          Map.empty[FormComponentId, UpscanData]
+          upscanData
         )
 
         Right(formComponentHtml)

@@ -78,6 +78,7 @@ trait FormTemplateSample {
                     value = uk.gov.hmrc.gform.sharedmodel.formtemplate.Value
                   ),
                   label = toSmartString("Text field 1"),
+                  isPageHeading = false,
                   helpText = None,
                   shortName = None,
                   includeIf = None,

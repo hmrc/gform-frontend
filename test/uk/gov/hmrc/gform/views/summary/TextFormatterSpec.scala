@@ -61,6 +61,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     `fieldId - firstName`,
     Text(constraint, Value),
     toSmartString("First Name"),
+    false,
     None,
     None,
     None,
