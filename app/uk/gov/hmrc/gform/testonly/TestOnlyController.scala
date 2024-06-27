@@ -1281,4 +1281,16 @@ class TestOnlyController(
             }
       } yield res
     }
+
+  def fingerPrint(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ForceReturnToCYA
+    ) { _ => _ => cache => _ => _ =>
+      Ok(cache.form.formData.fingerprint).pure[Future]
+    }
 }

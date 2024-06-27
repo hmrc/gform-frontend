@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.auth
 
 import java.util.Base64
 import cats.implicits._
-import org.apache.pekko.http.scaladsl.model.Uri
+import org.apache.commons.codec.net.URLCodec
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsError, JsSuccess, Json }
 import play.api.mvc.{ AnyContent, Cookie, Request }
@@ -339,8 +339,9 @@ class AuthService(
         logger.info(
           s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
         )
-        val completionUrl = Uri.Query(gform.routes.NewFormController.dashboard(formTemplate._id).url)
-        val failureUrl = Uri.Query(gform.routes.IdentityVerificationController.failure(formTemplate._id).url)
+        val codec = new URLCodec("UTF-8")
+        val completionUrl = codec.encode(gform.routes.NewFormController.dashboard(formTemplate._id).url)
+        val failureUrl = codec.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url)
         AuthRedirect(
           s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
         )

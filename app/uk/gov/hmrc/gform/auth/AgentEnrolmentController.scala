@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auth
 
-import org.apache.pekko.http.scaladsl.model.Uri
+import org.apache.commons.codec.net.URLCodec
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
@@ -38,7 +38,8 @@ class AgentEnrolmentController(
   import i18nSupport._
 
   private def agentSubscribeUrl(continueUrl: String): String = {
-    val encodedContinueUrl = Uri.Query(continueUrl)
+    val codec = new URLCodec("UTF-8")
+    val encodedContinueUrl = codec.encode(continueUrl)
     val baseUrl = appConfig.`agent-subscription-frontend-base-url`
     s"$baseUrl/agent-subscription/business-type?continue=$encodedContinueUrl"
   }
