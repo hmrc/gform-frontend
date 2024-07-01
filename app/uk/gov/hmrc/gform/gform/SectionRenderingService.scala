@@ -537,7 +537,7 @@ class SectionRenderingService(
 
     val FormHandlerResult(validationResult, envelope) = formHandlerResult
 
-    val formLevelHeading = shouldDisplayHeading(singleton, formModelOptics, validationResult)
+    val formLevelHeading = shouldDisplayHeading(singleton)
 
     val ei = ExtraInfo(
       singleton,
@@ -3224,23 +3224,9 @@ class SectionRenderingService(
   )
 
   def shouldDisplayHeading(
-    singleton: Singleton[DataExpanded],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    validationResult: ValidationResult
-  )(implicit sse: SmartStringEvaluator): Boolean = {
-    val page = singleton.page
-    page.allFields.filter(isVisible(_, formModelOptics)) match {
-      case IsGroup(g) :: _              => false
-      case IsInformationMessage(_) :: _ => false
-      case fc @ IsFileUpload(_) :: _ =>
-        if (validationResult(fc.head).getCurrentValue.isDefined)
-          false
-        else fc.head.editable && fc.head.label.value() === page.title.value()
-      case formComponent :: IsNilOrInfoOnly() =>
-        formComponent.editable && formComponent.label.value() === page.title.value()
-      case _ => false
-    }
-  }
+    singleton: Singleton[DataExpanded]
+  ): Boolean =
+    singleton.page.allFields.headOption.map(_.isPageHeading).getOrElse(false)
 
   private def dataLabelAttribute(label: SmartString, resolver: BooleanExpr => Boolean): Map[String, String] =
     dataLabelAttribute(label.localised(resolver).value(LangADT.En))

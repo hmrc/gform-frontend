@@ -42,6 +42,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     id = formComponentId,
     `type` = Text(ShortText(1, 20), Value),
     label = toSmartString(""),
+    isPageHeading = false,
     helpText = None,
     shortName = None,
     validIf = None,

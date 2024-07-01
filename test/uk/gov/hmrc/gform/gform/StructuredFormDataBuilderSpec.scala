@@ -1436,6 +1436,7 @@ class StructuredFormDataBuilderSpec
       FormComponentId(id),
       componentType,
       toSmartString(""),
+      false,
       None,
       None,
       None,

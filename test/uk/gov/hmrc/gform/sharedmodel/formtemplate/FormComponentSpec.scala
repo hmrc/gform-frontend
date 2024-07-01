@@ -173,6 +173,7 @@ class FormComponentSpec extends Spec {
       FormComponentId(fcId),
       ct,
       toSmartString(label),
+      false,
       None,
       Some(toSmartString(shortName)),
       None,
