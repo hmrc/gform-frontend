@@ -277,7 +277,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -1476,7 +1476,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -1851,7 +1851,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2008,7 +2008,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2200,7 +2200,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2300,7 +2300,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2393,7 +2393,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2487,7 +2487,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2691,7 +2691,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2758,7 +2758,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2845,7 +2845,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2918,7 +2918,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -2994,7 +2994,7 @@ class SectionRenderingService(
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
     val errorMessage: Option[ErrorMessage] = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )
@@ -3055,7 +3055,7 @@ class SectionRenderingService(
     val errors: Option[String] = request.flash.get(GformFlashKeys.FileUploadError)
 
     val errorMessage = errors.map(error =>
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
     )

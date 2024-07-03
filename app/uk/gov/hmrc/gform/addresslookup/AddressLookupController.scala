@@ -409,7 +409,7 @@ class AddressLookupController(
                 )
               )
               val fieldsError = Map(
-                "choose" -> ErrorMessage(
+                "choose" -> ErrorMessage.errorMessageWithDefaultStringsTranslated(
                   content = content.Text(request.messages.messages("generic.error.selectOption"))
                 )
               )

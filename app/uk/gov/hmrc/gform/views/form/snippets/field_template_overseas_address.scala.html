@@ -56,7 +56,7 @@
 
 @safeErrorMessage(atom: Atom) = @{
     val errors: LinkedHashSet[String] = validationResult.fieldErrorsWithSuffix(atom)
-    errors.map(e => ErrorMessage(
+    errors.map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(
         id = Some(atom.value),
         classes = "error-message",
         content = Text(e)

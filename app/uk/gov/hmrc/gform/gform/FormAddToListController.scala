@@ -111,7 +111,7 @@ class FormAddToListController(
                       )
                     ),
                     Map(
-                      "remove" -> ErrorMessage(
+                      "remove" -> ErrorMessage.errorMessageWithDefaultStringsTranslated(
                         content = Text(errorMessage)
                       )
                     )

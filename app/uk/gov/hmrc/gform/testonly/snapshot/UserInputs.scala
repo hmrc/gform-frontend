@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.testonly.snapshot
 
 import cats.implicits._
+import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ ErrorMessage, Fieldset, HtmlContent, InputItem, Legend }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
@@ -47,7 +48,7 @@ object DateTimeUserInput {
     legend: String,
     dateTimeUserInput: DateTimeUserInput,
     errors: Map[String, String]
-  ): DateInput = {
+  )(implicit messages: Messages): DateInput = {
     val dayInput = createInputItem(s"$prefix-day", "Day", 2, dateTimeUserInput.day, errors)
     val monthInput = createInputItem(s"$prefix-month", "Month", 2, dateTimeUserInput.month, errors)
     val yearInput = createInputItem(s"$prefix-year", "Year", 4, dateTimeUserInput.year, errors)
@@ -78,8 +79,10 @@ object DateTimeUserInput {
   private def errorClass(id: String, errors: Map[String, String]): String =
     if (errors.contains(id)) "govuk-input--error" else ""
 
-  private def createErrorMessage(errors: Map[String, String]): Option[ErrorMessage] =
-    if (errors.isEmpty) None else Some(ErrorMessage(content = HtmlContent(errors.values.mkString("<br>"))))
+  private def createErrorMessage(errors: Map[String, String])(implicit messages: Messages): Option[ErrorMessage] =
+    if (errors.isEmpty) None
+    else
+      Some(ErrorMessage.errorMessageWithDefaultStringsTranslated(content = HtmlContent(errors.values.mkString("<br>"))))
 
   implicit def queryStringBindableDateTimeUserInput(implicit
     stringBinder: QueryStringBindable[String]
@@ -117,7 +120,7 @@ case class UserInputs(
 )
 object UserInputs {
   def apply(): UserInputs = UserInputs(None, None, None, None, None)
-  def fromDateInput(userInput: UserInputs, errors: Map[String, String]): DateInput =
+  def fromDateInput(userInput: UserInputs, errors: Map[String, String])(implicit messages: Messages): DateInput =
     DateTimeUserInput.createDateInput(
       "from",
       "Snapshot created after date",
@@ -125,7 +128,7 @@ object UserInputs {
       errors
     )
 
-  def toDateInput(userInput: UserInputs, errors: Map[String, String]): DateInput =
+  def toDateInput(userInput: UserInputs, errors: Map[String, String])(implicit messages: Messages): DateInput =
     DateTimeUserInput.createDateInput(
       "to",
       "Snapshot created before date",

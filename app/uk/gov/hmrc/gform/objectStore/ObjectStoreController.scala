@@ -277,7 +277,7 @@ class ObjectStoreController(
               )
             ),
             Map(
-              "remove" -> ErrorMessage(
+              "remove" -> ErrorMessage.errorMessageWithDefaultStringsTranslated(
                 content = Text(request.messages.messages("generic.error.selectOption"))
               )
             )

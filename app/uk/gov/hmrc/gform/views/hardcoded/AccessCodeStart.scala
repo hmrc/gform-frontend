@@ -58,7 +58,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
 
     val errorMessage: Option[ErrorMessage] = form.errors.headOption.map { error =>
       val message = messages(s"${error.key}.${error.message}", formCategory)
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = Text(message)
       )
     }
