@@ -49,4 +49,5 @@ object OperationWithForm {
   final case object EditFormAcknowledgement extends OperationWithForm
   final case object ForceReturnToCYA extends OperationWithForm
   final case object NewFormLink extends OperationWithForm
+  final case object SwitchLanguage extends OperationWithForm
 }

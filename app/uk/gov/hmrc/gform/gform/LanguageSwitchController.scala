@@ -84,7 +84,7 @@ class LanguageSwitchController(
       .authAndRetrieveForm[SectionSelectorType.Normal](
         formTemplateId,
         maybeAccessCode,
-        OperationWithForm.EditForm
+        OperationWithForm.SwitchLanguage
       ) { implicit request => l => cache => sse => formModelOptics =>
         val lookups: List[(FormComponentId, Register)] =
           formModelOptics.formModelRenderPageOptics.allFormComponents.collect {
