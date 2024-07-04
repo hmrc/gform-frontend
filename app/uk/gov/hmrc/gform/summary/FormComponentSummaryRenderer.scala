@@ -62,7 +62,14 @@ object FormComponentSummaryRenderer {
   ): List[SummaryListRow] = {
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
-    val fastForward = fastForward0.getOrElse(List(FastForward.CYA(SectionOrSummary.FormSummary)))
+    val currentFastForward =
+      fastForward0.getOrElse(List(FastForward.CYA(SectionOrSummary.FormSummary)))
+
+    val fastForward = currentFastForward match {
+      case value if value.last.asString.startsWith("back") =>
+        currentFastForward.dropRight(1) :+ FastForward.BackUntil(sectionNumber)
+      case value => value :+ FastForward.BackUntil(sectionNumber)
+    }
 
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix)) =>

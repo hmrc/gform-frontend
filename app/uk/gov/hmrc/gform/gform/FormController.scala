@@ -377,24 +377,42 @@ class FormController(
             }
             firstCYA match {
               case ff @ Some(FastForward.CYA(SectionOrSummary.FormSummary)) =>
-                callSelector(
-                  routes.SummaryController
-                    .summaryById(
-                      cache.formTemplateId,
-                      maybeAccessCode,
-                      sectionNumber.toCoordinates,
-                      None,
-                      ff = ff
-                    ),
-                  createBackUrl(toSectionNumber, fastForward),
-                  None
-                )
+                fastForward.last match {
+                  case FastForward.BackUntil(sn) if sectionNumber.compare(sn) <= 0 =>
+                    routes.SummaryController
+                      .summaryById(
+                        cache.formTemplateId,
+                        maybeAccessCode,
+                        sectionNumber.toCoordinates,
+                        None,
+                        ff = ff
+                      )
+                      .pure[Future]
+                  case _ =>
+                    callSelector(
+                      routes.SummaryController
+                        .summaryById(
+                          cache.formTemplateId,
+                          maybeAccessCode,
+                          sectionNumber.toCoordinates,
+                          None,
+                          ff = ff
+                        ),
+                      createBackUrl(toSectionNumber, fastForward),
+                      None
+                    )
+                }
               case Some(FastForward.CYA(SectionOrSummary.Section(to))) =>
-                callSelector(
-                  createBackUrl(to, fastForward),
-                  createBackUrl(toSectionNumber, fastForward),
-                  Some(to)
-                )
+                fastForward.last match {
+                  case FastForward.BackUntil(sn) if sectionNumber.compare(sn) <= 0 =>
+                    createBackUrl(to, fastForward).pure[Future]
+                  case _ =>
+                    callSelector(
+                      createBackUrl(to, fastForward),
+                      createBackUrl(toSectionNumber, fastForward),
+                      Some(to)
+                    )
+                }
               case Some(FastForward.StopAt(sn)) =>
                 sectionNumber.fold { classic =>
                   createBackUrl(toSectionNumber, FastForward.StopAt(sectionNumber) :: fastForward).pure[Future]
@@ -415,16 +433,32 @@ class FormController(
                 } { taskList =>
                   fastForward match {
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
-                      Future.successful(
-                        routes.SummaryController
-                          .summaryById(
-                            cache.formTemplateId,
-                            maybeAccessCode,
-                            sectionNumber.toCoordinates,
-                            None,
-                            ff = fastForward.headOption
+                      xs.last match {
+                        case FastForward.BackUntil(sn) if sectionNumber.compare(sn) <= 0 =>
+                          Future.successful(
+                            routes.SummaryController
+                              .summaryById(
+                                cache.formTemplateId,
+                                maybeAccessCode,
+                                sectionNumber.toCoordinates,
+                                None,
+                                ff = fastForward.headOption
+                              )
                           )
-                      )
+                        case _ =>
+                          navigator.previousSectionNumber.fold(
+                            Future.successful(
+                              routes.SummaryController
+                                .summaryById(
+                                  cache.formTemplateId,
+                                  maybeAccessCode,
+                                  sectionNumber.toCoordinates,
+                                  None,
+                                  ff = fastForward.headOption
+                                )
+                            )
+                          )(previousSectionNumber => createBackUrl(previousSectionNumber, fastForward).pure[Future])
+                      }
                     case _ =>
                       val maybePreviousPage = navigator.previousSectionNumber
 
