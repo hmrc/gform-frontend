@@ -530,8 +530,8 @@ object SummaryRenderingService {
         "",
         (
           url,
-          messages("addToList.addOrRemove"),
-          messages("addToList.addOrRemove") + " " + repeater.title
+          messages("addToList.change"),
+          messages("addToList.change") + " " + repeater.title
             .value()
         ) :: Nil,
         ""
@@ -552,8 +552,8 @@ object SummaryRenderingService {
                 "",
                 (
                   url,
-                  messages("addToList.addOrRemove"),
-                  messages("addToList.addOrRemove") + " " + repeater.title
+                  messages("addToList.change"),
+                  messages("addToList.change") + " " + repeater.title
                     .value()
                 ) :: Nil,
                 ""
