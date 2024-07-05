@@ -235,6 +235,8 @@ object ValueClassBinder {
             for {
               sn2 <- toSectionNumber(key, from)
             } yield FastForward.CYA(SectionOrSummary.Section(sn2))
+          case value if value.startsWith("back") =>
+            toSectionNumber(key, value.replace("back", "")).map(FastForward.BackUntil)
           case value => toSectionNumber(key, value).map(FastForward.StopAt)
         }
 
