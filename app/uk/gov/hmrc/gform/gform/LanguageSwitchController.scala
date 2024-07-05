@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, IsText, Lookup, Register, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IsOverseasAddress, IsText, Lookup, OverseasAddress, Register, Text }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
@@ -86,9 +86,10 @@ class LanguageSwitchController(
         maybeAccessCode,
         OperationWithForm.SwitchLanguage
       ) { implicit request => l => cache => sse => formModelOptics =>
-        val lookups: List[(FormComponentId, Register)] =
+        val lookups: List[(ModelComponentId, Register)] =
           formModelOptics.formModelRenderPageOptics.allFormComponents.collect {
-            case fc @ IsText(Text(Lookup(register, _), _, _, _, _, _)) => fc.id -> register
+            case fc @ IsText(Text(Lookup(register, _), _, _, _, _, _)) => fc.id.modelComponentId                                 -> register
+            case fc @ IsOverseasAddress(_)                             => fc.id.toAtomicFormComponentId(OverseasAddress.country) -> Register.Country
           }
 
         val maybeLanguageToSwitchTo: Option[LangADT] =
@@ -97,28 +98,13 @@ class LanguageSwitchController(
         maybeLanguageToSwitchTo
           .map { languageToSwitchTo =>
             val switchedLabel: List[(ModelComponentId, LookupLabel)] =
-              lookups.flatMap { case (formComponentId, register) =>
-                val modelComponentId = formComponentId.modelComponentId
+              lookups.flatMap { case (modelComponentId, register) =>
                 val formField: FormField =
                   formModelOptics.formModelRenderPageOptics.toFormField(modelComponentId)
 
-                lookupRegistry.get(register).flatMap { lookupType =>
-                  val options = lookupType match {
-                    case RadioLookup(options)      => options
-                    case AjaxLookup(options, _, _) => options
-                  }
-                  val maybeLookupInfo = options.lookupInfo(LookupLabel(formField.value))(l)
-                  maybeLookupInfo.flatMap { lookupInfo =>
-                    val newLookupOptions = options.m.get(languageToSwitchTo)
-                    newLookupOptions.flatMap { lookupOptions =>
-                      lookupOptions.options
-                        .find { case (key, lookupInfo2) =>
-                          lookupInfo.index === lookupInfo2.index
-                        }
-                        .map { case (lookupLabel, _) => modelComponentId -> lookupLabel }
-                    }
-                  }
-                }
+                switchLookupLabelLanguage(register, LookupLabel(formField.value), l, languageToSwitchTo).map(
+                  modelComponentId -> _
+                )
               }
 
             val newFormData: List[FormField] = switchedLabel.map { case (modelComponentId, lookupLabel) =>
@@ -142,4 +128,28 @@ class LanguageSwitchController(
             switchToLanguage(language)(request)
           }
       }
+  private def switchLookupLabelLanguage(
+    register: Register,
+    lookupLabel: LookupLabel,
+    languageToSwichFrom: LangADT,
+    languageToSwitchTo: LangADT
+  ): Option[LookupLabel] =
+    lookupRegistry.get(register).flatMap { lookupType =>
+      val options = lookupType match {
+        case RadioLookup(options)      => options
+        case AjaxLookup(options, _, _) => options
+      }
+      val maybeLookupInfo = options.lookupInfo(lookupLabel)(languageToSwichFrom)
+      maybeLookupInfo.flatMap { lookupInfo =>
+        val newLookupOptions = options.m.get(languageToSwitchTo)
+        newLookupOptions.flatMap { lookupOptions =>
+          lookupOptions.options
+            .find { case (key, lookupInfo2) =>
+              lookupInfo.index === lookupInfo2.index
+            }
+            .map { case (lookupLabel, _) => lookupLabel }
+        }
+      }
+    }
+
 }
