@@ -107,7 +107,7 @@ class EmailAuthController(
                 )
               ),
               Some(
-                ErrorMessage(
+                ErrorMessage.errorMessageWithDefaultStringsTranslated(
                   content = content.Text(
                     request.messages
                       .messages(message, params: _*)
@@ -248,7 +248,7 @@ class EmailAuthController(
               )
             ),
             Some(
-              ErrorMessage(
+              ErrorMessage.errorMessageWithDefaultStringsTranslated(
                 content = content.Text(request.messages.messages(errorMessage))
               )
             )

@@ -289,7 +289,9 @@ object FormComponentSummaryRenderer {
     }
   }
 
-  private def checkErrors(fieldValue: FormComponent, formFieldValidationResult: FormFieldValidationResult) =
+  private def checkErrors(fieldValue: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
+    messages: Messages
+  ) =
     formFieldValidationResult.fieldErrors.toList.map { e =>
       errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
     }

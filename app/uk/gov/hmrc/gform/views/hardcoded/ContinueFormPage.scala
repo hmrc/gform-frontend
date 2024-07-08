@@ -51,7 +51,7 @@ class ContinueFormPage(val formTemplate: FormTemplate, form: Form[String])(impli
 
     val errorMessage = form.errors.headOption.map { error =>
       val message = messages(s"${error.key}.${error.message}", formCategory)
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = Text(message)
       )
     }

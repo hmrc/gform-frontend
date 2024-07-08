@@ -60,7 +60,7 @@ class AddressSelectionPage(
 
     val errorMessage = form.errors.headOption.map { error =>
       val message = messages(s"${error.key}.${error.message}")
-      ErrorMessage(
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = Text(message)
       )
     }
