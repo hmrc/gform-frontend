@@ -131,7 +131,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
             countryAtomicModelComponentId,
             context.formComponent,
             "generic.error.overseas.country.required",
-            Some(errorShortNamePlaceholder :: Nil)
+            None
           )
         ),
         elseProgram = successProgram(())

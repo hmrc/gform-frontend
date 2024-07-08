@@ -483,7 +483,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "Enter business address country"
+            "Enter country"
           )
         )
       )
