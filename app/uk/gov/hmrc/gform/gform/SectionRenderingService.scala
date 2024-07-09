@@ -3226,7 +3226,7 @@ class SectionRenderingService(
   def shouldDisplayHeading(
     singleton: Singleton[DataExpanded]
   ): Boolean =
-    singleton.page.allFields.headOption.map(_.isPageHeading).getOrElse(false)
+    singleton.page.allFields.dropWhile(_.onlyShowOnSummary).headOption.map(_.isPageHeading).getOrElse(false)
 
   private def dataLabelAttribute(label: SmartString, resolver: BooleanExpr => Boolean): Map[String, String] =
     dataLabelAttribute(label.localised(resolver).value(LangADT.En))
