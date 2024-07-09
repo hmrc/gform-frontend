@@ -152,6 +152,7 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
           Some(toSmartString("Continue")),
           None,
           None,
+          None,
           None
         )
       ),
