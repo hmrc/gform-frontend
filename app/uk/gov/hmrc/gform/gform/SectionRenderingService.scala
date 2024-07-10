@@ -466,7 +466,7 @@ class SectionRenderingService(
         attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", record.summaryText))
       )
       ListWithActionsItem(
-        name = HtmlContent(record.summaryText),
+        name = HtmlContent(record.summary),
         actions = List(changeAction, removeAction)
       )
 
