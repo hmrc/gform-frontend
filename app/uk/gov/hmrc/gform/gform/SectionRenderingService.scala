@@ -617,9 +617,7 @@ class SectionRenderingService(
       maybeAccessCode,
       sectionNumber,
       page.sectionHeader(),
-      page.noPIITitle.fold(
-        page.title.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
-      )(_.value()),
+      page.noPIITitle.fold(page.title.value())(_.value()),
       snippetsForFields,
       javascript,
       envelopeId,
@@ -1208,9 +1206,7 @@ class SectionRenderingService(
       maybeAccessCode,
       formTemplate.sectionNumberZero,
       page.sectionHeader(),
-      page.noPIITitle.fold(
-        page.title.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
-      )(_.value()),
+      page.noPIITitle.fold(page.title.value())(_.value()),
       snippets,
       "",
       EnvelopeId(""),
