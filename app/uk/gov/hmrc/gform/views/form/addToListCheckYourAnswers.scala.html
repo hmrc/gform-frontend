@@ -17,7 +17,11 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, FormTemplate }
+
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 @import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
@@ -42,6 +46,8 @@
     specimenNavigation: Html,
     fastForward: List[FastForward],
     snippets: List[Html],
+    displayWidth: LayoutDisplayWidth,
+    isMainContentFullWidth: Boolean
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -54,17 +60,35 @@
   new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, fastForward).path,
                content = new Text(messages("linkText.back")))
 }
+
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@mainContent = @{
+  contentBlock: Html => displayWidth match {
+    case LayoutDisplayWidth.L  => threeQuartersMainContent(contentBlock)
+    case LayoutDisplayWidth.XL => fullMainContent(contentBlock)
+    case LayoutDisplayWidth.M  => twoThirdsMainContent(contentBlock)
+    case _                     => twoThirdsMainContent(contentBlock)
+  }
+}
+@titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
+
 @main_template(
     title = noPIITitle,
     formTemplate = formTemplate,
     containsErrors = pageLevelError.hasErrors,
     frontendAppConfig = frontendAppConfig,
     backLink = Some(backLink),
-    accessCode = maybeAccessCode
+    accessCode = maybeAccessCode,
+    isMainContentFullWidth = isMainContentFullWidth
 ) {
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
-    @page_heading(title, caption)
+    @titleContent {
+        @page_heading(title, caption)
+    }
 
     @header.map{ h =>
         <div class="govuk-body">
@@ -72,9 +96,12 @@
         </div>
     }
 
-    <div class="govuk-body">
-        @addToListCheckYourAnswersTable(summaryListRows)
-    </div>
+
+    @mainContent {
+        <div class="govuk-body">
+            @addToListCheckYourAnswersTable(summaryListRows)
+        </div>
+    }
 
     @footer.map{ f =>
         <div class="govuk-body">

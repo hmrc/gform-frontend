@@ -124,6 +124,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ): Html = {
 
+    val displayWidth = checkYourAnswers.displayWidth.getOrElse(LayoutDisplayWidth.M)
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
@@ -232,7 +233,9 @@ class SectionRenderingService(
       checkYourAnswers.expandedFooter.map(markDownParser),
       specimenNavigation(formTemplate, specimenSource, sectionNumber, formModelOptics.formModelRenderPageOptics),
       ff,
-      infoFields
+      infoFields,
+      displayWidth,
+      isMainContentFullWidth = checkYourAnswers.displayWidth.nonEmpty
     )
 
   }
@@ -603,8 +606,11 @@ class SectionRenderingService(
     ) && !formTemplate.draftRetrievalMethod.isNotPermitted && !singleton.page.isHideSaveAndComeBackButton
 
     val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
+    val miniSummaryListComps = formComponents.collect { case IsMiniSummaryList(tc) => tc }
 
-    val maybeDisplayWidth = if (tableComps.nonEmpty) Some(page.displayWidth.getOrElse(LayoutDisplayWidth.M)) else None
+    val maybeDisplayWidth =
+      if (tableComps.nonEmpty || miniSummaryListComps.nonEmpty) Some(page.displayWidth.getOrElse(LayoutDisplayWidth.M))
+      else None
 
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,

@@ -400,7 +400,8 @@ class FormModelBuilder[E, F[_]: Functor](
       index,
       c.presentationHint,
       c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
-      c.fields
+      c.fields,
+      c.displayWidth
     )
   }
 
