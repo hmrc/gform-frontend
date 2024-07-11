@@ -70,7 +70,7 @@
     case LayoutDisplayWidth.L  => threeQuartersMainContent(contentBlock)
     case LayoutDisplayWidth.XL => fullMainContent(contentBlock)
     case LayoutDisplayWidth.M  => twoThirdsMainContent(contentBlock)
-    case _                      => twoThirdsMainContent(contentBlock)
+    case _                     => twoThirdsMainContent(contentBlock)
   }
 }
 @titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
