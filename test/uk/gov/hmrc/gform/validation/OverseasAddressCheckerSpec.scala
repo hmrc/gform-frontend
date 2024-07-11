@@ -456,7 +456,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "Enter country"
+            "Enter a country"
           )
         )
       )
@@ -483,7 +483,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "Enter country"
+            "Enter a country"
           )
         )
       )
