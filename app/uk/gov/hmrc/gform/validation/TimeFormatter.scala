@@ -47,6 +47,7 @@ object TimeFormatter {
       "HH",
       "H:mm",
       "h:mma",
+      "h.mma",
       "h:a",
       "h.a",
       "ha",
