@@ -73,7 +73,6 @@
     case _                     => twoThirdsMainContent(contentBlock)
   }
 }
-@titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
 
 @main_template(
     title = noPIITitle,
@@ -82,11 +81,11 @@
     frontendAppConfig = frontendAppConfig,
     backLink = Some(backLink),
     accessCode = maybeAccessCode,
-    isMainContentFullWidth = isMainContentFullWidth
+    isMainContentFullWidth = true
 ) {
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
-    @titleContent {
+    @twoThirdsMainContent {
         @page_heading(title, caption)
     }
 
