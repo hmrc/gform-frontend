@@ -2196,7 +2196,7 @@ class SectionRenderingService(
               case Nil     => None
             }
 
-        (o.choice, toHint(o.hint), isSelected, maybeRevealingFieldsHtml)
+        (o.choice, toHint(o.hint.orElse(o.choice.hint)), isSelected, maybeRevealingFieldsHtml)
       }
 
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
