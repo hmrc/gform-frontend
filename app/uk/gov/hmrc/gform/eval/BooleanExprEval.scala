@@ -23,11 +23,11 @@ import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
-
 import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId.{ Atomic, Pure }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsLogin, IsTrue, LessThan, LessThanOrEquals, LoginInfo, MatchRegex, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, DuplicateExists, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsLogin, IsTrue, LessThan, LessThanOrEquals, LoginInfo, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
@@ -102,6 +102,18 @@ class BooleanExprEval[F[_]: Monad] {
           .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
           .pure[F]
 
+      case DuplicateExists(fields: Seq[FormCtx]) =>
+        val formModel = formModelVisibilityOptics.formModel
+        val recData = formModelVisibilityOptics.recData
+        BooleanExprEval
+          .evalDuplicateExpr(
+            fields,
+            formModel,
+            formModelVisibilityOptics.booleanExprResolver,
+            recData
+          )
+          .pure[F]
+
       case MatchRegex(expr, regex) =>
         val expressionResult: ExpressionResult =
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult
@@ -147,6 +159,28 @@ class BooleanExprEval[F[_]: Monad] {
 }
 
 object BooleanExprEval {
+
+  def evalDuplicateExpr[T <: PageMode](
+    fields: Seq[FormCtx],
+    formModel: FormModel[T],
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.Current]
+  ): Boolean = {
+    val fieldSet = fields.map(f => f.formComponentId.baseComponentId.value).toSet
+    val filteredData = recData.variadicFormData.data.filter(m => fieldSet.contains(m._1.baseComponentId.value))
+    val rowsToCompare = filteredData
+      .map {
+        case (Pure(comp), v)         => (comp.maybeIndex.getOrElse(0), None, v)
+        case (Atomic(comp, atom), v) => (comp.maybeIndex.getOrElse(0), Some(atom.value), v)
+      }
+      .groupBy(_._1)
+      .map { t =>
+        (t._1, t._2.map(x => (x._2, x._3)).toSet)
+      }
+      .values
+
+    rowsToCompare.size != rowsToCompare.toSet.size
+  }
 
   def evalInExpr[T <: PageMode](
     in: In,

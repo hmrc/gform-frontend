@@ -96,6 +96,7 @@ object ConcatFormatSubstituter {
         case IsLogin(value)                   => IsLogin(value)
         case DateBefore(left, right)          => DateBefore(left(substitutions), right(substitutions))
         case DateAfter(left, right)           => DateAfter(left(substitutions), right(substitutions))
+        case DuplicateExists(fields)          => DuplicateExists(fields)
       }
     }
 

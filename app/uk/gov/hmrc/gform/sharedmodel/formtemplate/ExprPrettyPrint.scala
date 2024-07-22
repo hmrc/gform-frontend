@@ -36,6 +36,7 @@ object ExprPrettyPrint {
     case MatchRegex(expr, _)              => "Regex"
     case FormPhase(_)                     => "Form phase"
     case First(formCtx)                   => "First"
+    case DuplicateExists(fields)          => "DuplicateExists"
     case IsLogin(loginInfo)               => prettyPrintLoginInfo(loginInfo)
   }
 
