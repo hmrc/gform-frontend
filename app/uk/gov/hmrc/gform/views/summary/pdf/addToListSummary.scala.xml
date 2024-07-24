@@ -1,0 +1,32 @@
+ @import uk.gov.hmrc.gform.summary.SummaryRenderingService
+
+@(values: Map[Int, String])
+<fo:inline>
+    <fo:list-block role="L">
+        @values.map{ value =>
+        <fo:list-item font-size="11pt"
+
+                      padding-after="0.5cm" role="LI">
+            <fo:list-item-label role="Lbl"
+                                start-indent="1mm"
+                                end-indent="label-end()">
+                <fo:block font-family="arial-bold"
+                          font-weight="bold"
+                          font-size="11pt"
+                          line-height="11pt">
+                    <fo:inline>
+                        <fo:wrapper role="artifact">
+                            @value._1 -
+                        </fo:wrapper>
+                    </fo:inline>
+                </fo:block>
+            </fo:list-item-label>
+            <fo:list-item-body role="LBody" start-indent="0.8cm" >
+                <fo:block>
+                    @{SummaryRenderingService.renderAddToListSummaryItemBody(value._2)}
+                </fo:block>
+            </fo:list-item-body>
+        </fo:list-item>
+        }
+    </fo:list-block>
+</fo:inline>

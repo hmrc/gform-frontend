@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import org.apache.xmlgraphics.util.MimeConstants
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
@@ -31,14 +32,14 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
+import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -49,6 +50,7 @@ class AcknowledgementController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
   pdfService: PdfGeneratorService,
+  fopService: FopService,
   pdfRenderService: PDFRenderService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
@@ -108,7 +110,7 @@ class AcknowledgementController(
       }
     }
 
-  def createPDFHtml(
+  def createPDFContent(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
@@ -117,7 +119,7 @@ class AcknowledgementController(
     request: Request[_],
     l: LangADT,
     ss: SmartStringEvaluator
-  ): Future[PdfHtml] = {
+  ): Future[PdfContent] = {
     import i18nSupport._
     val messages: Messages = request2Messages(request)
     val formString = nonRepudiationHelpers.formDataToJson(cache.form)
@@ -163,9 +165,9 @@ class AcknowledgementController(
                       FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
                       cache.form.envelopeId
                     )
-      pdfHtml <-
+      pdfContent <-
         pdfRenderService
-          .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
+          .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
             s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
             None,
             cache,
@@ -180,7 +182,7 @@ class AcknowledgementController(
             maybePdfOptions,
             Some(cache.formTemplate.formName.value)
           )
-    } yield pdfHtml
+    } yield pdfContent
   }
 
   def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
@@ -189,13 +191,22 @@ class AcknowledgementController(
       maybeAccessCode,
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      for {
-        pdfHtml   <- createPDFHtml(cache, maybeAccessCode, formModelOptics, sendAuditEvent = true)
-        pdfSource <- pdfService.generatePDF(pdfHtml)
-      } yield Result(
-        header = ResponseHeader(200, Map.empty),
-        body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
-      )
+      val pdfContentF = createPDFContent(cache, maybeAccessCode, formModelOptics, sendAuditEvent = true)
+
+      if (cache.formTemplate.accessiblePdf) {
+        for {
+          pdfContent <- pdfContentF
+          pdfSource  <- fopService.render(pdfContent.content)
+        } yield Ok(pdfSource).as(MimeConstants.MIME_PDF)
+      } else {
+        for {
+          pdfContent <- pdfContentF
+          pdfSource  <- pdfService.generatePDF(pdfContent)
+        } yield Result(
+          header = ResponseHeader(200, Map.empty),
+          body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
+        )
+      }
     }
 
   def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =

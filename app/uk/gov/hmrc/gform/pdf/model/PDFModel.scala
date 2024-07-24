@@ -41,7 +41,7 @@ trait PDFModel {
   case class PageData(title: Option[String], fields: List[PageField], id: String) extends SummaryData
 
   case class AddToListPageGroup(title: String, pages: List[PageData], id: String)
-  case class AddToListSummary(title: String, values: List[Html])
+  case class AddToListSummary(title: String, values: List[String])
   case class AddToListData(title: String, summary: AddToListSummary, pageGroups: List[AddToListPageGroup], id: String)
       extends SummaryData
 

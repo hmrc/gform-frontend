@@ -1,0 +1,42 @@
+<fo:block role="Div">
+        <fo:block role="P"
+                  font-size="12pt"
+                  font-family="arial"
+                  font-weight="normal"
+                  line-height="12pt"
+                  padding-before="2cm"
+                  padding-after="0.2cm">
+            <fo:block>
+                Signature of authorising officer on behalf of HMRC
+            </fo:block>
+        </fo:block>
+        <fo:block role="Div"
+                  border-style="solid"
+                  border-width="0.5px"
+                  space-after ="10px"
+                  height = "80px"
+                  padding-before="50px"
+                  margin-right="40%">
+        </fo:block>
+
+        <fo:block role="P"
+                  font-size="12pt"
+                  font-family="arial"
+                  font-weight="normal"
+                  line-height="12pt"
+                  padding-after="0.2cm">
+            <fo:block>
+                Date  DD MM YYYY
+            </fo:block>
+        </fo:block>
+
+        <fo:inline-container role="Div" inline-progression-dimension="40%" margin-left="-0.5cm">
+            <fo:block role="Div">
+                <fo:wrapper role="artifact">
+                    <fo:external-graphic content-type="content-type:image/png" src="images/date.png"
+                                         fox:alt-text="Date fields"
+                                         content-height="scale-to-fit" content-width="10cm"/>
+                </fo:wrapper>
+            </fo:block>
+        </fo:inline-container>
+</fo:block>

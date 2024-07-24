@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmi
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SourceOrigin, SubmissionData, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfContent, SourceOrigin, SubmissionData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateContext, FormTemplateId, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
@@ -176,7 +176,7 @@ class GformBackEndService(
 
     for {
       htmlForPDF <-
-        pdfRenderService.createPDFHtml[D, U, PDFType.Summary](
+        pdfRenderService.createPDFContent[D, U, PDFType.Summary](
           s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
           None,
           cache,
@@ -236,7 +236,7 @@ class GformBackEndService(
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
     formModelOptics: FormModelOptics[D]
-  )(implicit messages: Messages, request: Request[_], l: LangADT, hc: HeaderCarrier): Future[Option[PdfHtml]] = {
+  )(implicit messages: Messages, request: Request[_], l: LangADT, hc: HeaderCarrier): Future[Option[PdfContent]] = {
     val formModelOpticsUpdatedFuture = FormModelOptics.mkFormModelOptics[D, Future, SectionSelectorType.Normal](
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
@@ -253,7 +253,7 @@ class GformBackEndService(
         )
 
       pdfRenderService
-        .createPDFHtml[D, U, PDFType.Instruction](
+        .createPDFContent[D, U, PDFType.Instruction](
           s"Instructions PDF - ${cache.formTemplate.formName.value}",
           None,
           cache,
@@ -307,8 +307,8 @@ class GformBackEndService(
     emailParameters: EmailParametersRecalculated,
     maybeAccessCode: Option[AccessCode],
     customerId: CustomerId,
-    htmlForPDF: PdfHtml,
-    htmlForInstructionPDF: Option[PdfHtml],
+    htmlForPDF: PdfContent,
+    htmlForInstructionPDF: Option[PdfContent],
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -335,8 +335,8 @@ class GformBackEndService(
     )
 
   private def buildSubmissionData[D <: DataOrigin](
-    htmlForPDF: PdfHtml,
-    htmlForInstructionPDF: Option[PdfHtml],
+    htmlForPDF: PdfContent,
+    htmlForInstructionPDF: Option[PdfContent],
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,

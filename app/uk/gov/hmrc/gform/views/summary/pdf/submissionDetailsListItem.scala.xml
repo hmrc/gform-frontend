@@ -1,0 +1,14 @@
+@(label: String, value: String)
+<fo:list-item role="LI"
+              space-before="0.5cm"
+              font-size="9pt"
+              font-family="arial"
+              font-weight="normal"
+              line-height="9pt">
+    <fo:list-item-label role="Lbl" end-indent="label-end()">
+        <fo:block font-family="arial-bold" font-weight="bold">@{unescapeXml(label)}</fo:block>
+    </fo:list-item-label>
+    <fo:list-item-body role="LBody" start-indent="body-start()" end-indent="5mm" >
+        <fo:block wrap-option="wrap">@{unescapeXml(value)}</fo:block>
+    </fo:list-item-body>
+</fo:list-item>

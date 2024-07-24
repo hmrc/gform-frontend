@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.pdf.model
 
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
@@ -77,7 +76,7 @@ object PDFPageModelBuilder {
         val addToListSummary: AddToListSummary =
           AddToListSummary(
             addToList.repeaters.last.title.value(),
-            addToList.repeaters.map(r => markDownParser(r.expandedSummaryDescription)).toList
+            addToList.repeaters.map(r => r.expandedSummaryDescription.value()).toList
           )
         val addToListPageGroups: List[AddToListPageGroup] = addToList.iterations.toList.zipWithIndex.flatMap {
           case (iteration, index) =>
@@ -148,6 +147,12 @@ object PDFPageModelBuilder {
         PDFPageFieldBuilder
           .build(fc, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
       )
+      .filter {
+        case SimpleField(label, _) => label.isDefined
+        case ChoiceField(label, _) => label.isDefined
+        case _                     => true
+      }
+
     if (pageFields.isEmpty) {
       None
     } else {
