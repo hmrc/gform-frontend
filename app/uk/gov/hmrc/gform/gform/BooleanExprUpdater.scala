@@ -46,6 +46,7 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case DateAfter(left, right)           => DateAfter(expandDateExpr(left), expandDateExpr(right))
     case DateBefore(left, right)          => DateBefore(expandDateExpr(left), expandDateExpr(right))
     case First(formCtx)                   => First(expandFormCtx(formCtx))
+    case DuplicateExists(fieldList)       => DuplicateExists(fieldList.map(expandFormCtx))
     case otherwise                        => otherwise
   }
 }

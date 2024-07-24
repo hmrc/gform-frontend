@@ -140,7 +140,7 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
         case (mcId, value)
             if mcId.baseComponentId === indexed.baseComponentId &&
               mcId.maybeIndex.exists(_ <= indexed.index) =>
-          modelComponentId -> value
+          mcId -> value
       }
     }
 

@@ -143,7 +143,7 @@ object FormModelBuilder {
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
       case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, booleanExprResolver, recData)
-      case DuplicateExists(fields)             => BooleanExprEval.evalDuplicateExpr(fields, formModel, booleanExprResolver, recData)
+      case DuplicateExists(fieldList)          => BooleanExprEval.evalDuplicateExpr(fieldList, recData)
       case MatchRegex(expr, regex)             => matchRegex(expr, regex)
       case FormPhase(value)                    => phase.fold(false)(_.value == value)
       case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)

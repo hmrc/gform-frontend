@@ -283,7 +283,7 @@ class Recalculation[F[_]: Monad, E](
       case MatchRegex(expr, regex)             => rr.matchRegex(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case In(expr, dataSource)                => false
-      case DuplicateExists(fields)             => false
+      case DuplicateExists(fieldList)          => false
       case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
       case IsLogin(value)                      => BooleanExprEval.evalIsLoginExpr(value, retrievals)
     }
@@ -325,7 +325,7 @@ class Recalculation[F[_]: Monad, E](
       case Contains(field1, field2)            => rr.compareF(field1, field2, _ contains _)
       case MatchRegex(expr, regex)             => rr.matchRegexF(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhaseF(value)
-      case DuplicateExists(fields)             => noStateChange(false)
+      case DuplicateExists(fieldList)          => noStateChange(false)
       case In(expr, dataSource) =>
         val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
         val expressionResult: ExpressionResult =

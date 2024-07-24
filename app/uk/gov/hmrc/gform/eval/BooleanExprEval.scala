@@ -102,16 +102,10 @@ class BooleanExprEval[F[_]: Monad] {
           .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
           .pure[F]
 
-      case DuplicateExists(fields: Seq[FormCtx]) =>
-        val formModel = formModelVisibilityOptics.formModel
+      case DuplicateExists(fieldList: Seq[FormCtx]) =>
         val recData = formModelVisibilityOptics.recData
         BooleanExprEval
-          .evalDuplicateExpr(
-            fields,
-            formModel,
-            formModelVisibilityOptics.booleanExprResolver,
-            recData
-          )
+          .evalDuplicateExpr(fieldList, recData)
           .pure[F]
 
       case MatchRegex(expr, regex) =>
@@ -162,21 +156,19 @@ object BooleanExprEval {
 
   def evalDuplicateExpr[T <: PageMode](
     fields: Seq[FormCtx],
-    formModel: FormModel[T],
-    booleanExprResolver: BooleanExprResolver,
     recData: RecData[SourceOrigin.Current]
   ): Boolean = {
-    val fieldSet = fields.map(f => f.formComponentId.baseComponentId.value).toSet
-    val filteredData = recData.variadicFormData.data.filter(m => fieldSet.contains(m._1.baseComponentId.value))
+    def canonicalStr(str: String): String = str.toLowerCase.replaceAll(" +", " ")
+    val filteredData =
+      fields.flatMap(f => recData.variadicFormData.forBaseComponentIdLessThen(f.formComponentId.modelComponentId))
     val rowsToCompare = filteredData
       .map {
-        case (Pure(comp), v)         => (comp.maybeIndex.getOrElse(0), None, v)
-        case (Atomic(comp, atom), v) => (comp.maybeIndex.getOrElse(0), Some(atom.value), v)
+        case (Pure(comp), vv) => (comp.maybeIndex, comp.baseComponentId.value, None, vv.toSeq.map(canonicalStr))
+        case (Atomic(comp, atom), vv) =>
+          (comp.maybeIndex, comp.baseComponentId.value, Some(atom.value), vv.toSeq.map(canonicalStr))
       }
       .groupBy(_._1)
-      .map { t =>
-        (t._1, t._2.map(x => (x._2, x._3)).toSet)
-      }
+      .map(tuple => (tuple._1, tuple._2.map(tupleInner => (tupleInner._2, tupleInner._3, tupleInner._4)).toSet))
       .values
 
     rowsToCompare.size != rowsToCompare.toSet.size

@@ -36,8 +36,9 @@ object ExprPrettyPrint {
     case MatchRegex(expr, _)              => "Regex"
     case FormPhase(_)                     => "Form phase"
     case First(formCtx)                   => "First"
-    case DuplicateExists(fields)          => "DuplicateExists"
     case IsLogin(loginInfo)               => prettyPrintLoginInfo(loginInfo)
+    case DuplicateExists(fieldList) =>
+      "Duplicate exists across (" + fieldList.map(_.formComponentId.value).mkString(", ") + ")"
   }
 
   def prettyPrintLoginInfo(loginInfo: LoginInfo): String = loginInfo match {
