@@ -1,0 +1,8 @@
+@(values: List[Html])
+@values.map { value =>
+    <fo:block role="P">
+        <fo:block>
+            @{unescapeXml(value.body)}
+        </fo:block>
+    </fo:block>
+}

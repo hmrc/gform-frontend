@@ -1,0 +1,34 @@
+@import uk.gov.hmrc.gform.pdf.model.PDFModel._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.summary.SummaryRenderingService
+
+@(pageData: PageData)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+@if(pageData.title.isDefined){
+        <fo:block role="Div" padding-before="0.8cm">
+}
+                    <fo:block role="Div">
+                        @if(pageData.title.isDefined){
+                            <fo:block role="H2"
+                                      font-size="16px"
+                                      font-family="arial-bold"
+                                      font-weight="bold"
+                                      line-height="16pt"
+                                      padding-bottom="2mm"
+                                      border-after-style="solid"
+                                      border-color="#D3D3D3"
+                                      linefeed-treatment="preserve">
+                                @pageData.title.map(t => unescapeXml(t))
+                            </fo:block>
+                        } else {
+                            <fo:block> </fo:block>
+                         }
+                        <fo:list-block start-indent="1mm" provisional-distance-between-starts="8cm">
+                                @pageData.fields.map { field =>
+                                    @{SummaryRenderingService.renderPageField(field)}
+                                }
+                        </fo:list-block>
+                    </fo:block>
+@if(pageData.title.isDefined){
+        </fo:block>
+}

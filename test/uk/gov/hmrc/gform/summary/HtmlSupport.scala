@@ -19,15 +19,15 @@ package uk.gov.hmrc.gform.summary
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.PdfHtml
+import uk.gov.hmrc.gform.sharedmodel.PdfContent
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 
 import scala.jdk.CollectionConverters._
 
 trait HtmlSupport {
 
-  implicit class PdfHtmlOps(pdfHtml: PdfHtml) {
-    val document = Jsoup.parse(pdfHtml.html)
+  implicit class PdfHtmlOps(pdfContent: PdfContent) {
+    val document = Jsoup.parse(pdfContent.content)
 
     val title = document.title()
 

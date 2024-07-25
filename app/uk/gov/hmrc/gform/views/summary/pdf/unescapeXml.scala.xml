@@ -1,0 +1,4 @@
+@import org.apache.commons.text.StringEscapeUtils
+
+@(value: String)
+@{StringEscapeUtils.unescapeXml(value)}
