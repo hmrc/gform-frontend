@@ -31,6 +31,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, 
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 
+import scala.util.matching.Regex
+
 /** Evaluates Boolean expressions in context where they do not participate to overall FormModel.
   * For example Boolean expressions from validIf expressions.
   */
@@ -153,25 +155,44 @@ class BooleanExprEval[F[_]: Monad] {
 }
 
 object BooleanExprEval {
-
   def evalDuplicateExpr[T <: PageMode](
     fields: Seq[FormCtx],
     recData: RecData[SourceOrigin.Current]
   ): Boolean = {
-    def canonicalStr(str: String): String = str.toLowerCase.replaceAll(" +", " ")
-    val filteredData =
+    def canonicalStr(str: String, id: String): String = {
+      def lowerAndRemoveWhitespace(str: String): String = str.toLowerCase.filterNot(_.isWhitespace)
+      val fileUploadRegex: Regex = s"^[0-9]+_${id}_(.+)$$".r
+
+      fileUploadRegex.findFirstMatchIn(str) match {
+        case Some(res) => lowerAndRemoveWhitespace(res.group(1))
+        case _         => lowerAndRemoveWhitespace(str)
+      }
+    }
+
+    val filtered =
       fields.flatMap(f => recData.variadicFormData.forBaseComponentIdLessThen(f.formComponentId.modelComponentId))
-    val rowsToCompare = filteredData
+    val compare = filtered
       .map {
-        case (Pure(comp), vv) => (comp.maybeIndex, comp.baseComponentId.value, None, vv.toSeq.map(canonicalStr))
-        case (Atomic(comp, atom), vv) =>
-          (comp.maybeIndex, comp.baseComponentId.value, Some(atom.value), vv.toSeq.map(canonicalStr))
+        case (Pure(component), variadicValue) =>
+          (
+            component.maybeIndex,
+            component.baseComponentId.value,
+            None,
+            variadicValue.toSeq.map(canonicalStr(_, component.baseComponentId.value))
+          )
+        case (Atomic(component, atom), variadicValue) =>
+          (
+            component.maybeIndex,
+            component.baseComponentId.value,
+            Some(atom.value),
+            variadicValue.toSeq.map(canonicalStr(_, component.baseComponentId.value))
+          )
       }
       .groupBy(_._1)
       .map(tuple => (tuple._1, tuple._2.map(tupleInner => (tupleInner._2, tupleInner._3, tupleInner._4)).toSet))
       .values
 
-    rowsToCompare.size != rowsToCompare.toSet.size
+    compare.size != compare.toSet.size
   }
 
   def evalInExpr[T <: PageMode](
