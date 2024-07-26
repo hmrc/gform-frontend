@@ -87,49 +87,48 @@
 
     @twoThirdsMainContent {
         @page_heading(title, caption)
+        @header.map{ h =>
+            <div class="govuk-body">
+                @h
+            </div>
+        }
     }
-
-    @header.map{ h =>
-        <div class="govuk-body">
-            @h
-        </div>
-    }
-
 
     @mainContent {
+
         <div class="govuk-body">
             @addToListCheckYourAnswersTable(summaryListRows)
         </div>
-    }
 
-    @footer.map{ f =>
+        @footer.map{ f =>
+            <div class="govuk-body">
+                @f
+            </div>
+        }
+
         <div class="govuk-body">
-            @f
+            @snippets
         </div>
-    }
 
-    <div class="govuk-body">
-        @snippets
-    </div>
+        @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
-    @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
-
-        <div class="govuk-button-group">
-            @govukButton(Button(content = Text(continueButtonLabel),
-                    inputType=Some("submit"),
-                    name=Some("save")
-                )
-            )
-            @if(renderComeBackLater) {
-                    @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+            <div class="govuk-button-group">
+                @govukButton(Button(content = Text(continueButtonLabel),
                         inputType=Some("submit"),
-                        attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.StopAt(sectionNumber)), SaveAndExit).path),
-                        classes="govuk-button--secondary"
+                        name=Some("save")
                     )
                 )
-            }
+                @if(renderComeBackLater) {
+                        @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                            inputType=Some("submit"),
+                            attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.StopAt(sectionNumber)), SaveAndExit).path),
+                            classes="govuk-button--secondary"
+                        )
+                    )
+                }
 
-        </div>
+            </div>
+        }
     }
     @specimenNavigation
 }
