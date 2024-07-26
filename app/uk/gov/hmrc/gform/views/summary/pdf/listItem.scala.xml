@@ -1,0 +1,18 @@
+@import play.twirl.api.XmlFormat
+
+@(label: Option[String], value: XmlFormat.Appendable)
+<fo:list-item role="LI"
+              font-size="11pt"
+              font-family="arial"
+              font-weight="normal"
+              line-height="11pt"
+              padding-before="0.5cm">
+    <fo:list-item-label role="Lbl" end-indent="label-end()">
+        @label.map { l =>
+            <fo:block role="P" font-family="arial-bold" font-weight="bold">@l</fo:block>
+        }
+    </fo:list-item-label>
+    <fo:list-item-body role="LBody" start-indent="body-start()" end-indent="5mm" >
+        <fo:block keep-together="auto">@value</fo:block>
+    </fo:list-item-body>
+</fo:list-item>

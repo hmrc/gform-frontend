@@ -180,7 +180,7 @@ class SummaryRenderingServiceSpec
     "createHtmlForPrintPdf" should {
       "should have title with 'Form Summary' prefix and form template name" in new TestFixture {
 
-        val pdfHtml: PdfHtml =
+        val pdfContent: PdfContent =
           summaryRenderingService
             .createHtmlForPrintPdf(
               maybeAccessCode,
@@ -192,14 +192,14 @@ class SummaryRenderingServiceSpec
             )
             .futureValue
 
-        Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
+        Html(pdfContent.content).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
       }
     }
 
     "createHtmlForNotificationPdf" should {
       "should have title with 'Form Summary' prefix and form template name" in new TestFixture {
 
-        val pdfHtml: PdfHtml =
+        val pdfContent: PdfContent =
           summaryRenderingService
             .createHtmlForNotificationPdf(
               maybeAccessCode,
@@ -210,7 +210,7 @@ class SummaryRenderingServiceSpec
             )
             .futureValue
 
-        Html(pdfHtml.html).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
+        Html(pdfContent.content).title shouldBe "Acknowledgement PDF - AAA999 dev test template"
       }
     }
 

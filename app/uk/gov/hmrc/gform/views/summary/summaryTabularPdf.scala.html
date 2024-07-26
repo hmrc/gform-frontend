@@ -183,7 +183,7 @@
                         <div class="col-lg-4 label">
                         @{summary.title}
                         </div>
-                        <div class="col-lg-8">@ordered_list(summary.values)</div>
+                        <div class="col-lg-8">@ordered_list(summary.values.map(markDownParser))</div>
                     </div>
                     @for(pageGroup <- pageGroups) {
                         <div id="@{pageGroup.id}">

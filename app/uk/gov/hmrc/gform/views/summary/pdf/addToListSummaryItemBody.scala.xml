@@ -1,0 +1,16 @@
+@(boldText: String, normalText: String)
+<fo:block role="Div">
+    <fo:inline role="P"
+               font-size="11px"
+               font-family="arial-bold"
+               font-weight="bold"
+               line-height="11pt">
+        @boldText
+        <fo:inline font-size="11px"
+                   font-family="arial"
+                   font-weight="normal"
+                   line-height="11pt">
+            @normalText
+        </fo:inline>
+    </fo:inline>
+</fo:block>
