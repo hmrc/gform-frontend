@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, FormModel, FormModelBuilder, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.monoidHtml
+import uk.gov.hmrc.gform.{ gform, monoidHtml }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
@@ -74,76 +74,106 @@ class AddressLookupController(
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        val maybeAddressLookupResult: Option[AddressLookupResult] =
-          cache.form.thirdPartyData.postcodeLookup.flatMap(_.get(formComponentId))
-        maybeAddressLookupResult
-          .fold(
-            Future.failed[Result](
-              new NotFoundException(s"No addresslookup found for FormComponentId: ${formComponentId.value}.")
-            )
-          ) { addressLookupResult =>
-            addressLookupResult.response.addresses
-              .fold {
-                val renderComeBackLater =
-                  cache.retrievals.renderSaveAndComeBackLater && !cache.formTemplate.draftRetrievalMethod.isNotPermitted
-                Ok(
-                  addresslookup.no_address_found(
-                    cache.formTemplate,
-                    frontendAppConfig,
-                    addressLookupResult.request.postcode,
-                    routes.AddressLookupController
-                      .tryDifferentAddress(
-                        cache.formTemplate._id,
-                        maybeAccessCode,
-                        formComponentId,
-                        sectionNumber,
-                        addressLookupResult.request.postcode,
-                        fastForward
-                      ),
-                    goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode, fastForward),
-                    renderComeBackLater,
-                    maybeAccessCode,
-                    sectionNumber
+        val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, cache.form)
+
+        formControllerRequestHandler
+          .handleSuppressErrors(
+            formModelOptics,
+            formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers,
+            cache.toCacheData,
+            envelopeWithMapping,
+            validationService.validatePageModel,
+            SuppressErrors.No
+          )
+          .flatMap { formHandlerResult =>
+            if (formHandlerResult.validationResult.isFormValid) {
+              val maybeAddressLookupResult: Option[AddressLookupResult] =
+                cache.form.thirdPartyData.postcodeLookup.flatMap(_.get(formComponentId))
+              maybeAddressLookupResult
+                .fold(
+                  Future.failed[Result](
+                    new NotFoundException(s"No addresslookup found for FormComponentId: ${formComponentId.value}.")
                   )
-                ).pure[Future]
-              } { addressRecords =>
-                if (addressRecords.size === 1) {
-                  val addressId = addressRecords.head.id
-                  addressLookupService
-                    .saveAddress(cache.form, maybeAccessCode, formComponentId, addressId)
-                    .as(
-                      Redirect(
-                        routes.AddressLookupController
-                          .confirmAddress(
-                            formTemplateId,
-                            maybeAccessCode,
+                ) { addressLookupResult =>
+                  addressLookupResult.response.addresses
+                    .fold {
+                      val renderComeBackLater =
+                        cache.retrievals.renderSaveAndComeBackLater && !cache.formTemplate.draftRetrievalMethod.isNotPermitted
+                      Ok(
+                        addresslookup.no_address_found(
+                          cache.formTemplate,
+                          frontendAppConfig,
+                          addressLookupResult.request.postcode,
+                          routes.AddressLookupController
+                            .tryDifferentAddress(
+                              cache.formTemplate._id,
+                              maybeAccessCode,
+                              formComponentId,
+                              sectionNumber,
+                              addressLookupResult.request.postcode,
+                              fastForward
+                            ),
+                          goToSectionNumberLink(cache, formModelOptics, sectionNumber, maybeAccessCode, fastForward),
+                          renderComeBackLater,
+                          maybeAccessCode,
+                          sectionNumber
+                        )
+                      ).pure[Future]
+                    } { addressRecords =>
+                      if (addressRecords.size === 1) {
+                        val addressId = addressRecords.head.id
+                        addressLookupService
+                          .saveAddress(cache.form, maybeAccessCode, formComponentId, addressId)
+                          .as(
+                            Redirect(
+                              routes.AddressLookupController
+                                .confirmAddress(
+                                  formTemplateId,
+                                  maybeAccessCode,
+                                  formComponentId,
+                                  sectionNumber,
+                                  fastForward
+                                )
+                            )
+                          )
+                      } else {
+                        val formModel = formModelOptics.formModelRenderPageOptics.formModel
+                        val title = titleForChooseAddressPage(formModel, addressLookupResult, formComponentId)
+                        Ok(
+                          renderChooseAddressPage(
                             formComponentId,
+                            addressIdForm,
+                            addressRecords,
+                            cache,
+                            formModelOptics,
                             sectionNumber,
+                            maybeAccessCode,
+                            addressLookupResult,
+                            title,
                             fastForward
                           )
-                      )
-                    )
-                } else {
-                  val formModel = formModelOptics.formModelRenderPageOptics.formModel
-                  val title = titleForChooseAddressPage(formModel, addressLookupResult, formComponentId)
-                  Ok(
-                    renderChooseAddressPage(
-                      formComponentId,
-                      addressIdForm,
-                      addressRecords,
-                      cache,
-                      formModelOptics,
-                      sectionNumber,
-                      maybeAccessCode,
-                      addressLookupResult,
-                      title,
-                      fastForward
-                    )
-                  ).pure[Future]
+                        ).pure[Future]
+                      }
+                    }
                 }
-
-              }
-
+            } else {
+              val sectionTitle4Ga = SectionTitle4Ga.sectionTitle4GaFactory(
+                formModelOptics.formModelVisibilityOptics.formModel(sectionNumber),
+                sectionNumber
+              )
+              Redirect(
+                gform.routes.FormController
+                  .form(
+                    formTemplateId,
+                    maybeAccessCode,
+                    sectionNumber,
+                    sectionTitle4Ga,
+                    SuppressErrors.No,
+                    fastForward
+                  )
+              )
+                .pure[Future]
+            }
           }
     }
 
@@ -714,7 +744,8 @@ class AddressLookupController(
       derived = false,
       errorMessage = None,
       errorShortName = formComponent.flatMap(_.errorShortName),
-      errorShortNameStart = formComponent.flatMap(_.errorShortNameStart)
+      errorShortNameStart = formComponent.flatMap(_.errorShortNameStart),
+      validators = formComponent.map(_.validators).getOrElse(Nil)
     )
 
   private def mkSyntheticCache(
