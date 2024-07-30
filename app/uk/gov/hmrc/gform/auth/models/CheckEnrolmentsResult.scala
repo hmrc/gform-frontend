@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.auth.models
 
+import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.auth.{ Identifier, Verifier }
+
 sealed trait CheckEnrolmentsResult extends Product with Serializable
 
 object CheckEnrolmentsResult {
@@ -23,6 +26,7 @@ object CheckEnrolmentsResult {
   case object Failed extends CheckEnrolmentsResult
   case object InvalidIdentifiers extends CheckEnrolmentsResult
   case object InvalidCredentials extends CheckEnrolmentsResult
-  case object Conflict extends CheckEnrolmentsResult
-  case object InsufficientEnrolments extends CheckEnrolmentsResult
+  case class Conflict(identifiers: NonEmptyList[Identifier], verifiers: List[Verifier]) extends CheckEnrolmentsResult
+  case class InsufficientEnrolments(identifiers: NonEmptyList[Identifier], verifiers: List[Verifier])
+      extends CheckEnrolmentsResult
 }

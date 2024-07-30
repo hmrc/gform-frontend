@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.gform.gform.processor
 
+import cats.data.NonEmptyList
 import play.api.i18n.Messages
-import play.api.mvc.{ AnyContent, Request, Result }
+import play.api.mvc.Result
 import play.api.mvc.Results.{ Ok, Redirect }
+import uk.gov.hmrc.gform.auth.{ Identifier, Verifier }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentOutcomes, EnrolmentSection, FormTemplate }
 import uk.gov.hmrc.gform.validation.ValidationResult
-import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 
@@ -40,21 +40,6 @@ class EnrolmentResultProcessor(
   formModelOptics: FormModelOptics[DataOrigin.Mongo],
   frontendAppConfig: FrontendAppConfig
 ) {
-
-  private def getResult(
-    validationResult: ValidationResult,
-    globalErrors: List[ErrorLink]
-  ): Result =
-    Ok(
-      renderEnrolmentSection(
-        formTemplate,
-        retrievals,
-        enrolmentSection,
-        formModelOptics,
-        globalErrors,
-        validationResult
-      )
-    )
 
   def recoverEnrolmentError(
     validationResult: ValidationResult
@@ -76,28 +61,52 @@ class EnrolmentResultProcessor(
             (validationResult, List.empty)
         }
       val (validationResultFinal, globalErrors) = convertEnrolmentError(enrolmentError)
-      getResult(validationResultFinal, globalErrors)
+      Ok(
+        renderEnrolmentSection(
+          formTemplate,
+          retrievals,
+          enrolmentSection,
+          formModelOptics,
+          globalErrors,
+          validationResult
+        )
+      )
     }
 
-  def processEnrolmentResult()(
+  def processEnrolmentResult(enrolmentOutcomes: EnrolmentOutcomes)(
     authRes: CheckEnrolmentsResult
-  )(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
+  ): Result =
     authRes match {
-      case CheckEnrolmentsResult.Conflict =>
-        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
-      case CheckEnrolmentsResult.Successful =>
-        Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id).url)
-      case CheckEnrolmentsResult.InvalidIdentifiers | CheckEnrolmentsResult.InvalidCredentials |
-          CheckEnrolmentsResult.InsufficientEnrolments =>
-        val globalError: ErrorLink = ErrorLink(
-          content = content.HtmlContent(html.form.errors.error_global_enrolment(formTemplate._id))
+      case CheckEnrolmentsResult.Conflict(identifiers, verifiers) =>
+        val params = toQueryParams(identifiers, verifiers)
+        Redirect(
+          uk.gov.hmrc.gform.gform.routes.EnrolmentController
+            .alreadyLinkedPage(formTemplate._id, params)
         )
 
-        val globalErrors = globalError :: Nil
-        val validationResult = ValidationResult.empty
-        getResult(validationResult, globalErrors)
+      case CheckEnrolmentsResult.Successful =>
+        Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.successPage(formTemplate._id))
+      case CheckEnrolmentsResult.InvalidIdentifiers | CheckEnrolmentsResult.InvalidCredentials =>
+        Redirect(
+          uk.gov.hmrc.gform.gform.routes.EnrolmentController
+            .technicalFailurePage(formTemplate._id)
+        )
+
+      case CheckEnrolmentsResult.InsufficientEnrolments(identifiers, verifiers) =>
+        val params = toQueryParams(identifiers, verifiers)
+        Redirect(
+          uk.gov.hmrc.gform.gform.routes.EnrolmentController
+            .notMatchedPage(formTemplate._id, params)
+        )
+
       case CheckEnrolmentsResult.Failed =>
         // Nothing we can do here, so technical difficulties it is.
         throw new Exception("Enrolment has failed. Most probable reason is enrolment service being unavailable")
     }
+
+  private def toQueryParams(identifiers: NonEmptyList[Identifier], verifiers: List[Verifier]): String = {
+    val identifiersParam = identifiers.map(i => i.key + "=" + i.value).toList
+    val verifiersParam = verifiers.map(v => v.key + "=" + v.value)
+    (identifiersParam ++ verifiersParam).mkString("~")
+  }
 }

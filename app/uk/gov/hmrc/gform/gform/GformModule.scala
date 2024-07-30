@@ -92,7 +92,8 @@ class GformModule(
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
     graphModule.smartStringEvaluatorFactory,
-    gformBackendModule.gformConnector
+    gformBackendModule.gformConnector,
+    englishMessages
   )
 
   val taxPeriodStateChecker = new TaxPeriodStateChecker[Future, Throwable] {

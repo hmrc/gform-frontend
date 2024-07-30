@@ -48,13 +48,22 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
           )
         )
 
+    def fromEnrolmentOutcome(enrolmentOutcome: EnrolmentOutcome): List[ExprMetadata] =
+      List(enrolmentOutcome.title, enrolmentOutcome.content).flatMap(ss =>
+        toPlainExprs(fromSmartStrings(enrolmentOutcome.title))
+      )
+
+    def fromEnrolmentOutcomes(enrolmentOutcomes: EnrolmentOutcomes): List[ExprMetadata] =
+      List(enrolmentOutcomes.notMatchedPage, enrolmentOutcomes.alreadyLinkedPage, enrolmentOutcomes.successPage)
+        .flatMap(fromEnrolmentOutcome)
+
     def fromAuth: List[ExprMetadata] = formTemplate.authConfig match {
-      case HasEnrolmentSection(_, enrolmentSection, _, _) =>
+      case HasEnrolmentSection(_, enrolmentSection, _, _, enrolmentOutcomes) =>
         fromPage(enrolmentSection.toPage) ++
           toPlainExprs(
             enrolmentSection.identifiers.map(_.value).toList,
             enrolmentSection.verifiers.map(_.value)
-          )
+          ) ++ fromEnrolmentOutcomes(enrolmentOutcomes)
       case _ => Nil
     }
 
