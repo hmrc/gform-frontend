@@ -189,10 +189,11 @@ object BooleanExprEval {
           )
       }
       .groupBy(_._1)
-      .map(tuple => (tuple._1, tuple._2.map(tupleInner => (tupleInner._2, tupleInner._3, tupleInner._4)).toSet))
+      .view
+      .mapValues(_.map { case (_, baseComponentId, atom, value) => (baseComponentId, atom, value) }.toSet)
       .values
 
-    compare.size != compare.toSet.size
+    compare.toList.size =!= compare.toSet.size
   }
 
   def evalInExpr[T <: PageMode](
