@@ -1,0 +1,64 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{EnrolmentOutcome, FormTemplate}
+
+@(
+  enrolmentOutcome: EnrolmentOutcome,
+  table: Html,
+  frontendAppConfig: FrontendAppConfig,
+  formTemplate: FormTemplate
+)(
+  implicit
+  request: Request[_],
+  messages: Messages,
+  l:LangADT,
+  sse: SmartStringEvaluator
+)
+
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+
+@heading = @{messages(enrolmentOutcome.title.value)}
+@button = @{messages("enrolment.content.try.again")}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = heading,
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig,
+  accessCode = None
+) {
+
+  <h1 class="govuk-heading-l">@{heading}</h1>
+
+  <p class="govuk-body">@messages("enrolment.content.entered.following")</p>
+
+  @table
+
+  <div class="govuk-body">@markDownParser(enrolmentOutcome.content.value)</div>
+
+  <p class="govuk-body">
+    @{Html(messages("enrolment.content.not.matched.contact", formTemplate._id.value))}
+  </p>
+
+  @formWithCSRF(action = uk.gov.hmrc.gform.gform.routes.NewFormController.decision(formTemplate._id)) {
+    @govukButton(Button(content = Text(button), value = Some(button)))
+  }
+}

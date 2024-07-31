@@ -22,13 +22,13 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.gform.Helpers.mkDataOutOfDate
+import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, FrontEndSubmissionVariables, LangADT }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolmentAuth, HmrcAgentWithEnrolmentModule, Never, ServiceId, ShortText, Text, UserCtx, UserField, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolmentAuth, EnrolmentOutcome, EnrolmentOutcomes, HmrcAgentWithEnrolmentModule, Never, ServiceId, ShortText, Text, UserCtx, UserField, Value }
 import uk.gov.hmrc.http.SessionId
 
 class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSupport with VariadicFormDataSupport {
@@ -75,7 +75,9 @@ class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSup
 
   test("FrontEndSubmissionVariablesBuilder with AuthenticatedRetrievals should construct the correct JSON object") {
 
-    val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+    val enrolmentOutcome = EnrolmentOutcome(toSmartString("title"), toSmartString("content"))
+    val enrolmentOutcomes = EnrolmentOutcomes(enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome)
+    val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never, enrolmentOutcomes)
     val enrolmentIdentifierValue = "SA value"
     val irSaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", enrolmentIdentifierValue)))
     val userCtx = UserCtx(UserField.EnrolledIdentifier)

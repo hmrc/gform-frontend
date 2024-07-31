@@ -25,7 +25,8 @@ import AuthConfig._
 
 case class EnrolmentAuth(
   serviceId: ServiceId,
-  enrolmentCheck: EnrolmentCheck
+  enrolmentCheck: EnrolmentCheck,
+  enrolmentOutcomes: EnrolmentOutcomes
 )
 object EnrolmentAuth {
   implicit val format: OFormat[EnrolmentAuth] = derived.oformat()
@@ -127,15 +128,19 @@ case class EmailAuthConfig(
 case class Composite(configs: NonEmptyList[AuthConfig]) extends AuthConfig
 
 object HasEnrolmentSection {
-  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =
+  def unapply(
+    ac: AuthConfig
+  ): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction, EnrolmentOutcomes)] =
     ac match {
-      case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
-        Some((serviceId, es, check, enrolmentAction))
+      case HmrcEnrolmentModule(
+            EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check), enrolmentOutcomes)
+          ) =>
+        Some((serviceId, es, check, enrolmentAction, enrolmentOutcomes))
       case HmrcAgentWithEnrolmentModule(
             _,
-            EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))
+            EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check), maybeEnrolmentOutcomes)
           ) =>
-        Some((serviceId, es, check, enrolmentAction))
+        Some((serviceId, es, check, enrolmentAction, maybeEnrolmentOutcomes))
       case _ => None
     }
 }
@@ -168,39 +173,6 @@ object AuthConfig {
 
   def enrolmentActionMatch(enrolmentAction: Option[EnrolmentAction]): EnrolmentAction =
     enrolmentAction.getOrElse(NoAction)
-
-  def toEnrolmentAuth(
-    serviceId: ServiceId,
-    maybeRegimeId: Option[RegimeId],
-    maybeEnrolmentCheck: Option[EnrolmentCheckVerb],
-    maybeEnrolmentSection: Option[EnrolmentSection],
-    maybeEnrolmentAction: Option[EnrolmentAction]
-  ): EnrolmentAuth =
-    (maybeEnrolmentCheck, maybeEnrolmentSection) match {
-      case (Some(AlwaysVerb), Some(enrolmentSection)) =>
-        EnrolmentAuth(
-          serviceId,
-          DoCheck(
-            Always,
-            RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
-            toEnrolmentPostCheck(maybeRegimeId)
-          )
-        )
-      case (Some(ForNonAgentsVerb), Some(enrolmentSection)) =>
-        EnrolmentAuth(
-          serviceId,
-          DoCheck(
-            ForNonAgents,
-            RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
-            toEnrolmentPostCheck(maybeRegimeId)
-          )
-        )
-      case (Some(AlwaysVerb), None) =>
-        EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
-      case (Some(ForNonAgentsVerb), None) =>
-        EnrolmentAuth(serviceId, DoCheck(ForNonAgents, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
-      case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never)
-    }
 
   def getAuthConfig(name: String, configs: NonEmptyList[AuthConfig]): Option[AuthConfig] =
     configs.find(_.authConfigName == name)

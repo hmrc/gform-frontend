@@ -225,10 +225,17 @@ trait ExampleAuthConfig {
     List.empty
   )
 
+  val enrolmentOutcome = EnrolmentOutcome(toSmartString("title"), toSmartString("content"))
+  val enrolmentOutcomes = EnrolmentOutcomes(enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome)
+
   def authConfig =
     HmrcAgentWithEnrolmentModule(
       AllowAnyAgentAffinityUser,
-      EnrolmentAuth(serviceId, DoCheck(Always, RequireEnrolment(enrolmentSection, NoAction), NoCheck))
+      EnrolmentAuth(
+        serviceId,
+        DoCheck(Always, RequireEnrolment(enrolmentSection, NoAction), NoCheck),
+        enrolmentOutcomes
+      )
     )
 }
 

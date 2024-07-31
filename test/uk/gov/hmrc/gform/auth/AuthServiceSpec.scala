@@ -126,9 +126,13 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val ggAuthorisedRedirect = factory(AuthRedirect(""))
   val ggAuthorisedEnrolment = factory(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
 
-  val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
+  val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck), enrolmentOutcomes)
   val enrolmentAuthCheck =
-    EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))))
+    EnrolmentAuth(
+      ServiceId("HMRC-ORG-OBTDS"),
+      DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))),
+      enrolmentOutcomes
+    )
 
   val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuthNoCheck)
   val formTemplateAgentDenied = buildFormTemplate.copy(authConfig = authConfigAgentDenied)

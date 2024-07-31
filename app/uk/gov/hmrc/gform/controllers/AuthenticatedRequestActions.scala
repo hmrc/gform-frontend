@@ -140,7 +140,7 @@ class AuthenticatedRequestActions(
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
-  def checkEnrolment(serviceId: ServiceId, identifiers: NonEmptyList[Identifier])(implicit
+  def checkEnrolment(serviceId: ServiceId, identifiers: NonEmptyList[Identifier], verifiers: List[Verifier])(implicit
     hc: HeaderCarrier
   ): Future[CheckEnrolmentsResult] = {
 
@@ -151,7 +151,7 @@ class AuthenticatedRequestActions(
       .recoverWith {
         case ex @ InsufficientEnrolments(enrolment) =>
           logger.error("tax-enrolment service returned 201, but enrolment check in auth failed", ex)
-          CheckEnrolmentsResult.InsufficientEnrolments.pure[Future]
+          CheckEnrolmentsResult.InsufficientEnrolments(identifiers, verifiers).pure[Future]
         case ex =>
           logger.error("tax-enrolment service returned 201, but auth call failed unexpectedly", ex)
           CheckEnrolmentsResult.Failed.pure[Future]
