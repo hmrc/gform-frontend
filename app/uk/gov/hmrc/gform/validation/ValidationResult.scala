@@ -23,8 +23,7 @@ import uk.gov.hmrc.gform.models.Singleton
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.FormData
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsChoice, IsRevealingChoice }
 
 import scala.annotation.nowarn
 import scala.collection.mutable.LinkedHashSet
@@ -67,7 +66,10 @@ case class ValidationResult(
 
     val enteredFormFieldValidationResults: List[FormFieldValidationResult] = formFieldValidationResults.collect {
       case fe @ FieldError(fc, cv, _) =>
-        fe.copy(currentValue = enteredVariadicFormData.userData.one(fc.modelComponentId).getOrElse(cv))
+        fc match {
+          case IsChoice(_) | IsRevealingChoice(_) => fe.copy(currentValue = cv)
+          case _                                  => fe.copy(currentValue = enteredVariadicFormData.userData.one(fc.modelComponentId).getOrElse(cv))
+        }
     }
 
     val formComponentValidations =
