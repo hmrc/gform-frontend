@@ -1,5 +1,7 @@
 @(title: String, rows: Map[String, String])
-<fo:block role="Div" padding-before="1.5cm">
+<fo:block role="Div"
+          padding-before="1.5cm"
+          keep-together.within-page="always">
     <fo:block role="H2"
               font-size="18px"
               font-family="arial-bold"

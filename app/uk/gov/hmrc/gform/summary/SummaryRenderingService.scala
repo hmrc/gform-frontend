@@ -47,6 +47,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.views.xml.summary.pdf._
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
+import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 import java.time.format.DateTimeFormatter
 import scala.concurrent.{ ExecutionContext, Future }
@@ -755,17 +756,35 @@ object SummaryRenderingService {
   }
 
   def renderAddToListSummaryItemBody(content: String) = {
-    // the regex pattern to find text between **
-    val pattern = "\\*\\*(.*?)\\*\\*".r
 
-    val (boldText, remainingText) = pattern.findFirstMatchIn(content) match {
-      case Some(m) =>
-        val bold = m.group(1)
-        val rest = content.substring(m.end).trim
-        (bold, rest)
-      case None =>
-        ("", content)
+    val (boldText, remainingText) = if (content.contains("<strong>")) {
+      // the regex pattern to find text between <strong> </strong>
+      val patternStrong = "<strong>(.*?)</strong>".r
+
+      patternStrong.findFirstMatchIn(content) match {
+        case Some(m) =>
+          val bold = m.group(1)
+          val rest = content.substring(m.end).trim
+          (bold, rest)
+        case None =>
+          ("", content)
+      }
+
+    } else {
+      // the regex pattern to find text between **
+      val pattern = "\\*\\*(.*?)\\*\\*".r
+
+      pattern.findFirstMatchIn(content) match {
+        case Some(m) =>
+          val bold = m.group(1)
+          val rest = content.substring(m.end).trim
+          (bold, rest)
+        case None =>
+          ("", content)
+      }
+
     }
-    addToListSummaryItemBody(boldText, remainingText)
+
+    addToListSummaryItemBody(boldText, PdfHelper.transformHtmlToXML(remainingText))
   }
 }

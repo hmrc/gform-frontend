@@ -13,6 +13,6 @@
         }
     </fo:list-item-label>
     <fo:list-item-body role="LBody" start-indent="body-start()" end-indent="5mm" >
-        <fo:block keep-together="auto">@value</fo:block>
+        <fo:block>@value</fo:block>
     </fo:list-item-body>
 </fo:list-item>
