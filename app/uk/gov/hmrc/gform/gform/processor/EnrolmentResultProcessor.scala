@@ -68,7 +68,7 @@ class EnrolmentResultProcessor(
           enrolmentSection,
           formModelOptics,
           globalErrors,
-          validationResult
+          validationResultFinal
         )
       )
     }
