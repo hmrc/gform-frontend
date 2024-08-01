@@ -317,11 +317,24 @@ class FormProcessor(
 
       updatePostcodeLookup <-
         if (isValid) {
-          pageModel.postcodeLookup.flatTraverse { formComponent =>
-            addressLookupService
-              .retrievePostcodeLookupData(formComponent, formModelVisibilityOptics)
-              .map(_.map(resp => formComponent.id -> resp))
-          }
+          handler
+            .handleFormValidation(
+              processData.formModelOptics,
+              validationSectionNumber,
+              cache.toCacheData,
+              envelopeWithMapping,
+              validationService.validatePageModel,
+              enteredVariadicFormData
+            )
+            .flatMap { formValidationOutcome =>
+              if (formValidationOutcome.isValid) {
+                pageModel.postcodeLookup.flatTraverse { formComponent =>
+                  addressLookupService
+                    .retrievePostcodeLookupData(formComponent, formModelVisibilityOptics)
+                    .map(_.map(resp => formComponent.id -> resp))
+                }
+              } else Option.empty.pure[Future]
+            }
         } else Option.empty.pure[Future]
 
       res <- {
