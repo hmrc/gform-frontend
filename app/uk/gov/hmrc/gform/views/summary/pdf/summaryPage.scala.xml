@@ -5,7 +5,9 @@
 
 @(pageData: PageData)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 @if(pageData.title.isDefined){
-        <fo:block role="Div" padding-before="0.8cm">
+        <fo:block role="Div"
+                  padding-before="0.8cm"
+                  keep-together.within-page="always">
 }
                     <fo:block role="Div">
                         @if(pageData.title.isDefined){

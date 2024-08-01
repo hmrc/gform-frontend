@@ -144,7 +144,12 @@
 
             <!-- header -->
             @maybeHeader.map { header =>
-                <fo:block role="Div" padding-before="1cm">
+                <fo:block role="Div"
+                          padding-before="1cm"
+                          font-size="14px"
+                          font-family="arial"
+                          font-weight="normal"
+                          line-height="14pt">
                     @XmlFormat.raw(header)
                 </fo:block>
             }
@@ -158,14 +163,13 @@
 
             <!-- footer -->
             @maybeFooter.map { footer =>
-                <fo:block role="Div" padding-before="1cm">
-                    <fo:block role="H2"
-                              font-size="18px"
-                              font-family="arial"
-                              font-weight="normal"
-                              line-height="18pt">
+                <fo:block role="Div"
+                          padding-before="1cm"
+                          font-size="14px"
+                          font-family="arial"
+                          font-weight="normal"
+                          line-height="14pt">
                         @XmlFormat.raw(footer)
-                    </fo:block>
                 </fo:block>
             }
             <!-- end footer -->
@@ -174,7 +178,13 @@
             @summarySectionDeclaration.map{ declaration =>
                 @if(declaration.body.nonEmpty) {
                     <fo:block role="Div" padding-before="30px">
+                        <fo:block role="H3"
+                                  font-size="14px"
+                                  font-family="arial"
+                                  font-weight="normal"
+                                  line-height="14pt">
                             @declaration
+                        </fo:block>
                     </fo:block>
                 }
             }

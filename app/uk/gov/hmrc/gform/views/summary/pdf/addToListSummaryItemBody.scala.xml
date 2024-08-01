@@ -1,4 +1,6 @@
-@(boldText: String, normalText: String)
+@import play.twirl.api.XmlFormat
+
+@(boldText: String, normalText: XmlFormat.Appendable)
 <fo:block role="Div">
     <fo:inline role="P"
                font-size="11px"

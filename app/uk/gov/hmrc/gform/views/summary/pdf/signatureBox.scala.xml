@@ -1,4 +1,5 @@
 <fo:block role="Div">
+    <fo:block role="Div" keep-together.within-page="always">
         <fo:block role="P"
                   font-size="12pt"
                   font-family="arial"
@@ -18,7 +19,8 @@
                   padding-before="50px"
                   margin-right="40%">
         </fo:block>
-
+    </fo:block>
+    <fo:block role="Div" keep-together.within-page="always">
         <fo:block role="P"
                   font-size="12pt"
                   font-family="arial"
@@ -39,4 +41,5 @@
                 </fo:wrapper>
             </fo:block>
         </fo:inline-container>
+    </fo:block>
 </fo:block>

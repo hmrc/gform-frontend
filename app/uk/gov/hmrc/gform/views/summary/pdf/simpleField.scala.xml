@@ -1,8 +1,8 @@
+@import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
+
 @(values: List[Html])
 @values.map { value =>
-    <fo:block role="P">
-        <fo:block>
-            @{unescapeXml(value.body)}
-        </fo:block>
-    </fo:block>
+<fo:block role="P">
+        @{PdfHelper.transformHtmlToXML(value.body)}
+</fo:block>
 }
