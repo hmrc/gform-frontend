@@ -70,22 +70,13 @@ case class Navigator(
   sectionNumber: SectionNumber,
   formModel: FormModel[Visibility]
 ) extends Navigation {
-  require(
-    sectionNumber >= minSectionNumber,
-    s"section number is too low: $sectionNumber is not >= $minSectionNumber"
-  )
-  require(
-    sectionNumber <= maxSectionNumber,
-    s"section number is too big: $sectionNumber is not <= $maxSectionNumber"
-  )
-
-  private lazy val maxSectionNumber: SectionNumber =
+  private val maxSectionNumber: SectionNumber =
     availableSectionNumbers.max(Ordering.by((_: SectionNumber).numberValue))
 
   val previousSectionNumber: Option[SectionNumber] =
     filteredSectionNumbers(sectionNumber).findLast(_ < sectionNumber)
 
-  lazy val nextSectionNumber: SectionNumber = {
+  val nextSectionNumber: SectionNumber = {
     val sn = sectionNumber.increment
     if (addToListSectionNumbers.contains(sectionNumber)) {
       sn
@@ -98,4 +89,13 @@ case class Navigator(
         }
     }
   }
+
+  require(
+    sectionNumber >= minSectionNumber,
+    s"section number is too low: $sectionNumber is not >= $minSectionNumber"
+  )
+  require(
+    sectionNumber <= maxSectionNumber,
+    s"section number is too big: $sectionNumber is not <= $maxSectionNumber"
+  )
 }
