@@ -433,8 +433,8 @@ class FormController(
                 } { taskList =>
                   fastForward match {
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
-                      xs.last match {
-                        case FastForward.BackUntil(sn) if sectionNumber.compare(sn) <= 0 =>
+                      xs.lastOption match {
+                        case Some(FastForward.BackUntil(sn)) if sectionNumber.compare(sn) <= 0 =>
                           Future.successful(
                             routes.SummaryController
                               .summaryById(
