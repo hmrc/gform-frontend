@@ -19,6 +19,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BetaBanner, FormTemplate }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.summary.FullMainContent
+@import uk.gov.hmrc.gform.views.html.components.HmrcCustomHeader
+@import uk.gov.hmrc.gform.views.html.helpers.HmrcCustomHeaderBuilder
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers
@@ -31,6 +33,11 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.testOnlyAdditionalFooterItems
 @import uk.gov.hmrc.hmrcfrontend.config.TudorCrownConfig
+@import uk.gov.hmrc.hmrcfrontend.config.AccountMenuConfig
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.implicits.RichAccountMenu
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcAccountMenu
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcNotificationBadge
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accountmenu._
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -151,8 +158,8 @@
 @hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
 @hmrcUserResearchBanner = @{new components.HmrcUserResearchBanner()}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
-@hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
-@hmrcStandardHeader = @{new helpers.HmrcStandardHeader(hmrcHeader)}
+@hmrcCustomHeader = @{new HmrcCustomHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
+@hmrcCustomHeaderBuilder = @{new HmrcCustomHeaderBuilder(hmrcCustomHeader)}
 @hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
@@ -177,14 +184,35 @@
   }
 }
 
+@hmrcAccountMenu = @{new HmrcAccountMenu(new HmrcNotificationBadge)}
+@ptaNav = {@hmrcAccountMenu(AccountMenu(
+        accountHome = AccountHome(
+            href = "/appConfig.ptaHomeUrl",
+            active = true
+        ),
+        messages = AccountMessages(
+            href = "/appConfig.messagesUrl",
+            messageCount = None
+        ),
+        checkProgress = CheckProgress(
+            href = "/appConfig.trackingHomeUrl"
+        ),
+        yourProfile = YourProfile("/appConfig.personalDetailsUrl"),
+        signOut = SignOut("/appConfig.signOutUrl"),
+        language = if(messages.lang.code == "cy") Cy else En
+    ))
+}
+
 @headerBlock = {
-  @hmrcStandardHeader(
+  @hmrcCustomHeaderBuilder(
     serviceName = Some(serviceTitle),
     signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
     phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
-    displayHmrcBanner = displayHMRCLogo
+    displayHmrcBanner = displayHMRCLogo,
+    additionalBannersBlock = Some(ptaNav)
   )
+
 }
 
 @languageSwitch = @{
