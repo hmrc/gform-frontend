@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@
   phaseBanner: Option[PhaseBanner] = None,
   displayHmrcBanner: Boolean = false,
   additionalBannersBlock: Option[Html] = None,
-  containerClasses: String = Header.defaultObject.containerClasses
+  containerClasses: String = Header.defaultObject.containerClasses,
+  renderAccountMenu: Boolean = false,
+  hmrcAccountMenu: Option[Html] = None
 )(implicit messages: Messages, request: RequestHeader)
 @defining("service.name") { serviceNameKey =>
   @defining(if(messages.isDefinedAt(serviceNameKey)) Some(messages(serviceNameKey)) else None) { serviceNameFromMessages =>
@@ -44,6 +46,8 @@
       displayHmrcBanner = displayHmrcBanner,
       additionalBannersBlock = additionalBannersBlock,
       containerClasses = containerClasses
-    ))
+    ),
+    renderingAccountMenu = renderAccountMenu,
+    accountMenu = hmrcAccountMenu)
   }
 }

@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 
 @this(hmrcBanner: HmrcBanner, hmrcUserResearchBanner: HmrcUserResearchBanner, govukPhaseBanner: GovukPhaseBanner, tudorCrownConfig: TudorCrownConfig)
 
-@(params: Header)
+@(params: Header, renderingAccountMenu: Boolean = false, accountMenu: Option[Html] = None)
 @import params._
 
 @containerClassList = @{
@@ -92,14 +92,16 @@
 
           @(signOutHref, languageToggle.map(_.linkMap)) match {
           case (Some(uk.gov.hmrc.hmrcfrontend.views.Utils.NonEmptyString(s)), _) => {
-          <nav class="hmrc-sign-out-nav">
-            <a class="govuk-link hmrc-sign-out-nav__link" href="@s">
-              @language match {
-              case Cy => {Allgofnodi}
-              case _ => {Sign out}
-              }
-            </a>
-          </nav>
+            @if(!renderingAccountMenu) {
+              <nav class="hmrc-sign-out-nav">
+                <a class="govuk-link hmrc-sign-out-nav__link" href="@s">
+                  @language match {
+                  case Cy => {Allgofnodi}
+                  case _ => {Sign out}
+                  }
+                </a>
+              </nav>
+            }
           }
           case (_, Some(linkMap)) if linkMap.nonEmpty => {
           <nav class="hmrc-language-select" aria-label="@{language match {
@@ -122,9 +124,11 @@
         } else {}
       </div>
     </div>
-    <div class="govuk-width-container">
-      @additionalBannersBlock
-    </div>
+    @if(renderingAccountMenu){
+        <div class="govuk-width-container">
+          @accountMenu
+        </div>
+    }
     @phaseBanner.map { pb =>
       <div class="govuk-width-container">
         @govukPhaseBanner(pb)
@@ -138,6 +142,7 @@
         @hmrcBanner(Banner(language, useTudorCrown))
       </div>
     }
+    @additionalBannersBlock
 </header>
 
 @serviceNameLinkOrSpan(serviceName: Option[String], serviceUrl: String) = {

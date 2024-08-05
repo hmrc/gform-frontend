@@ -69,6 +69,10 @@
   maybeFormTemplate.exists(_.displayHMRCLogo)
 }
 
+@displayAccountMenu = @{
+  maybeFormTemplate.exists(_.displayAccountHeader)
+}
+
 @developmentPhase = @{
   maybeFormTemplate.flatMap(_.developmentPhase)
 }
@@ -187,8 +191,7 @@
 @hmrcAccountMenu = @{new HmrcAccountMenu(new HmrcNotificationBadge)}
 @ptaNav = {@hmrcAccountMenu(AccountMenu(
         accountHome = AccountHome(
-            href = "/appConfig.ptaHomeUrl",
-            active = true
+            href = "/appConfig.ptaHomeUrl"
         ),
         messages = AccountMessages(
             href = "/appConfig.messagesUrl",
@@ -198,7 +201,7 @@
             href = "/appConfig.trackingHomeUrl"
         ),
         yourProfile = YourProfile("/appConfig.personalDetailsUrl"),
-        signOut = SignOut("/appConfig.signOutUrl"),
+        signOut = if(displaySignOut) SignOut(timeoutDialog.flatMap(_.signOutUrl).get) else SignOut("/"),
         language = if(messages.lang.code == "cy") Cy else En
     ))
 }
@@ -210,7 +213,8 @@
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
     phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
     displayHmrcBanner = displayHMRCLogo,
-    additionalBannersBlock = Some(ptaNav)
+    renderAccountMenu = displaySignOut && displayAccountMenu,
+    hmrcAccountMenu = Some(ptaNav)
   )
 
 }

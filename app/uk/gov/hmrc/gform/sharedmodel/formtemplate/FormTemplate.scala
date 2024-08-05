@@ -55,7 +55,8 @@ case class FormTemplate(
   exitPages: Option[NonEmptyList[ExitPage]],
   displayWidth: Option[LayoutDisplayWidth],
   emailCodeParameters: Option[NonEmptyList[EmailCodeParameter]],
-  dataRetrieve: Option[NonEmptyList[DataRetrieve]]
+  dataRetrieve: Option[NonEmptyList[DataRetrieve]],
+  displayAccountHeader: Option[Boolean]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
