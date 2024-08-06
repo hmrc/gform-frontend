@@ -1213,7 +1213,12 @@ class SectionRenderingService(
       uk.gov.hmrc.gform.gform.routes.EnrolmentController
         .submitEnrolment(formTemplate._id, uk.gov.hmrc.gform.controllers.Continue),
       false,
-      messages("button.confirmAndSend"),
+      SectionRenderingService.determineContinueLabelKey(
+        retrievals.continueLabelKey,
+        formTemplate.draftRetrievalMethod.isNotPermitted,
+        page.continueLabel,
+        false
+      ),
       0,
       FileInfoConfig.allAllowedFileTypes,
       Nil
