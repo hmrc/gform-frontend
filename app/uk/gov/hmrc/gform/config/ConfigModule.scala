@@ -88,6 +88,10 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
       signOutUrl = typesafeConfig.getString("signout-url"),
       footerAccessibilityStatementUrl = typesafeConfig.getString("footer-accessibility-statement-url"),
+      ptaHomeUrl = typesafeConfig.getString("pta-home-url"),
+      ptaMessagesUrl = typesafeConfig.getString("pta-messages-url"),
+      ptaTrackUrl = typesafeConfig.getString("pta-track-url"),
+      ptaProfileUrl = typesafeConfig.getString("pta-profile-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=",
       authModule = AuthModule(
         getJSConfig("auth-module.hmrc"),

@@ -38,6 +38,8 @@
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcAccountMenu
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcNotificationBadge
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accountmenu._
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.LanguageToggle
+@import scala.collection.immutable.SortedMap
 
 @(appConfig: FrontendAppConfig,
   serviceTitle: String,
@@ -191,16 +193,16 @@
 @hmrcAccountMenu = @{new HmrcAccountMenu(new HmrcNotificationBadge)}
 @ptaNav = {@hmrcAccountMenu(AccountMenu(
         accountHome = AccountHome(
-            href = "/appConfig.ptaHomeUrl"
+            href = appConfig.ptaHomeUrl
         ),
         messages = AccountMessages(
-            href = "/appConfig.messagesUrl",
+            href = appConfig.ptaMessagesUrl,
             messageCount = None
         ),
         checkProgress = CheckProgress(
-            href = "/appConfig.trackingHomeUrl"
+            href = appConfig.ptaTrackUrl
         ),
-        yourProfile = YourProfile("/appConfig.personalDetailsUrl"),
+        yourProfile = YourProfile(appConfig.ptaProfileUrl),
         signOut = if(displaySignOut && timeoutDialog.flatMap(_.signOutUrl)) SignOut(timeoutDialog.flatMap(_.signOutUrl).get) else SignOut("/"),
         language = if(messages.lang.code == "cy") Cy else En
     ))
@@ -209,12 +211,13 @@
 @headerBlock = {
   @hmrcCustomHeaderBuilder(
     serviceName = Some(serviceTitle),
-    signOutUrl = timeoutDialog.flatMap(_.signOutUrl),
+    signOutUrl = if(!displayAccountMenu) timeoutDialog.flatMap(_.signOutUrl) else None,
     userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
     phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
     displayHmrcBanner = displayHMRCLogo,
     renderAccountMenu = displaySignOut && displayAccountMenu,
-    hmrcAccountMenu = Some(ptaNav)
+    hmrcAccountMenu = Some(ptaNav),
+    languageToggle = if(displayAccountMenu && displaySignOut && formSupportsLanguages) Some(new LanguageToggle(SortedMap(En -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "english").url, Cy -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "cymraeg").url))) else None
   )
 
 }
@@ -229,7 +232,9 @@
   @if(!displayHMRCLogo){
     <br/>
   }
-  @languageSwitch
+  @if(!displayAccountMenu || !displaySignOut) {
+    @languageSwitch
+  }
   @backLink.map(govukBackLink.apply)
 }
 

@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.views.html.components.HmrcCustomHeader
 @import uk.gov.hmrc.hmrcfrontend.views.Aliases.{Cy, En, Header, UserResearchBanner}
 @import uk.gov.hmrc.govukfrontend.views.Aliases.PhaseBanner
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.LanguageToggle
 
 @this(hmrcCustomHeader: HmrcCustomHeader)
 
@@ -30,7 +31,8 @@
   additionalBannersBlock: Option[Html] = None,
   containerClasses: String = Header.defaultObject.containerClasses,
   renderAccountMenu: Boolean = false,
-  hmrcAccountMenu: Option[Html] = None
+  hmrcAccountMenu: Option[Html] = None,
+  languageToggle: Option[LanguageToggle] = None
 )(implicit messages: Messages, request: RequestHeader)
 @defining("service.name") { serviceNameKey =>
   @defining(if(messages.isDefinedAt(serviceNameKey)) Some(messages(serviceNameKey)) else None) { serviceNameFromMessages =>
@@ -45,7 +47,8 @@
       phaseBanner = phaseBanner,
       displayHmrcBanner = displayHmrcBanner,
       additionalBannersBlock = additionalBannersBlock,
-      containerClasses = containerClasses
+      containerClasses = containerClasses,
+      inputLanguageToggle = languageToggle
     ),
     renderingAccountMenu = renderAccountMenu,
     accountMenu = hmrcAccountMenu)
