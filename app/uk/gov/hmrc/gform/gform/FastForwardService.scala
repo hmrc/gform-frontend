@@ -60,7 +60,8 @@ class FastForwardService(
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeSectionNumber: Option[SectionNumber],
-    fastForward: List[FastForward] = Nil
+    fastForward: List[FastForward] = Nil,
+    suppressErrors: SuppressErrors = SuppressErrors.Yes
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -71,14 +72,16 @@ class FastForwardService(
       maybeAccessCode,
       if (fastForward.nonEmpty) fastForward else maybeSectionNumber.map(FastForward.StopAt).toList,
       formModelOptics,
-      maybeSectionNumber
+      maybeSectionNumber,
+      suppressErrors
     )
 
   def redirectStopAt[U <: SectionSelectorType: SectionSelector](
     sectionNumber: SectionNumber,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    suppressErrors: SuppressErrors = SuppressErrors.Yes
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -89,7 +92,8 @@ class FastForwardService(
       maybeAccessCode,
       List(FastForward.StopAt(sectionNumber)),
       formModelOptics,
-      Some(sectionNumber)
+      Some(sectionNumber),
+      suppressErrors
     )
 
   private def redirectWithRecalculation[U <: SectionSelectorType: SectionSelector](
@@ -97,7 +101,8 @@ class FastForwardService(
     maybeAccessCode: Option[AccessCode],
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    maybeSectionNumber: Option[SectionNumber]
+    maybeSectionNumber: Option[SectionNumber],
+    suppressErrors: SuppressErrors
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -123,7 +128,7 @@ class FastForwardService(
               EnvelopeWithMapping(envelope, cache.form),
               maybeSectionNumber
             )(
-              redirectResult(cache, maybeAccessCode, processData, _, fastForward, _)
+              redirectResult(cache, maybeAccessCode, processData, _, fastForward, _, suppressErrors)
             )
         } yield res
 
@@ -135,7 +140,8 @@ class FastForwardService(
     processData: ProcessData,
     sectionOrSummary: SectionOrSummary,
     fastForward: List[FastForward],
-    maybeSectionNumber: Option[SectionNumber]
+    maybeSectionNumber: Option[SectionNumber],
+    suppressErrors: SuppressErrors
   )(implicit sse: SmartStringEvaluator): Result =
     sectionOrSummary match {
       case SectionOrSummary.Section(sn) =>
@@ -149,7 +155,7 @@ class FastForwardService(
               maybeAccessCode,
               sn,
               sectionTitle4Ga,
-              SuppressErrors.Yes,
+              suppressErrors,
               fastForward
             )
         )

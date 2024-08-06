@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.core.Retrying
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, FormTemplateId, IsFileUpload, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, FormTemplateId, IsFileUpload, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
@@ -78,7 +78,8 @@ class UpscanController(
                         sectionNumber,
                         cache.copy(form = form),
                         maybeAccessCode,
-                        formModelOptics
+                        formModelOptics,
+                        SuppressErrors.No
                       )
                   }
                 case UpscanFileStatus.Failed =>
