@@ -222,7 +222,8 @@ trait ExampleAuthConfig {
     None,
     List.empty,
     NonEmptyList.one(IdentifierRecipe("key", FormCtx(FormComponentId("field")))),
-    List.empty
+    List.empty,
+    None
   )
 
   val enrolmentOutcome = EnrolmentOutcome(toSmartString("title"), toSmartString("content"))
