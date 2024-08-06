@@ -89,6 +89,7 @@ object FormComponentIdSubstituter {
           case And(left, right)                 => And(substitute(substitutions, left), substitute(substitutions, right))
           case IsTrue                           => IsTrue
           case IsFalse                          => IsFalse
+          case DuplicateExists(fieldList)       => DuplicateExists(fieldList)
           case Contains(FormCtx(fcId), value) =>
             Contains(FormCtx(substitutions.updateFormComponentId(fcId)), value(substitutions))
           case In(e, dataSource)       => In(e(substitutions), dataSource)
