@@ -70,7 +70,7 @@
 }
 
 @displayAccountMenu = @{
-  maybeFormTemplate.exists(_.displayAccountHeader)
+  maybeFormTemplate.flatMap(_.displayAccountHeader).getOrElse(false)
 }
 
 @developmentPhase = @{
@@ -201,7 +201,7 @@
             href = "/appConfig.trackingHomeUrl"
         ),
         yourProfile = YourProfile("/appConfig.personalDetailsUrl"),
-        signOut = if(displaySignOut) SignOut(timeoutDialog.flatMap(_.signOutUrl).get) else SignOut("/"),
+        signOut = if(displaySignOut && timeoutDialog.flatMap(_.signOutUrl)) SignOut(timeoutDialog.flatMap(_.signOutUrl).get) else SignOut("/"),
         language = if(messages.lang.code == "cy") Cy else En
     ))
 }
