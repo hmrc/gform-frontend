@@ -3,6 +3,6 @@
 @(values: List[Html])
 @values.map { value =>
 <fo:block role="P">
-        @{PdfHelper.transformHtmlToXML(value.body)}
+        @{PdfHelper.renderHtml(value.body)}
 </fo:block>
 }

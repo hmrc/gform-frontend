@@ -1,6 +1,6 @@
  @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 
-@(values: Map[Int, String])
+@(values: Seq[(Int, String)])
 <fo:inline>
     <fo:list-block role="L">
         @values.map{ value =>
