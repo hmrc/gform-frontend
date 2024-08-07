@@ -21,10 +21,16 @@ import play.twirl.api.{ Html, XmlFormat }
 import uk.gov.hmrc.gform.views.xml.summary.pdf.simpleField
 
 object PdfHelper {
-  def transformHtmlToXML(value: String): XmlFormat.Appendable =
-    if (value.contains("<br>")) {
-      simpleField(value.split("<br>").map(StringEscapeUtils.unescapeXml).map(Html(_)).toList)
-    } else {
-      XmlFormat.raw(StringEscapeUtils.unescapeXml(value))
+  def renderHtml(value: String): XmlFormat.Appendable = {
+    val newLineDelimiters = List("<br>", "\n\n")
+    val maybeDelimiter = newLineDelimiters.find(value.contains)
+
+    val lines = maybeDelimiter match {
+      case Some(delimiter) => value.split(delimiter)
+      case None            => return XmlFormat.raw(StringEscapeUtils.unescapeXml(value))
     }
+
+    simpleField(lines.map(StringEscapeUtils.unescapeXml).map(Html(_)).toList)
+  }
+
 }
