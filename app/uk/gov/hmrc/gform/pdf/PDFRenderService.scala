@@ -28,10 +28,11 @@ import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFModel, PDFPageModelBuilder, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, PdfHtml }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, PdfContent }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.html.summary.{ summaryPdf, summaryTabularPdf }
+import uk.gov.hmrc.gform.views.xml.summary.pdf.summary
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -41,7 +42,7 @@ class PDFRenderService(
   validationService: ValidationService
 ) {
 
-  def createPDFHtml[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, T <: PDFType](
+  def createPDFContent[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, T <: PDFType](
     title: String,
     maybePageTitle: Option[String],
     cache: AuthCacheWithForm,
@@ -61,7 +62,7 @@ class PDFRenderService(
     ec: ExecutionContext,
     lise: SmartStringEvaluator,
     pdfFunctions: PDFCustomRender[T]
-  ): Future[PdfHtml] =
+  ): Future[PdfContent] =
     for {
       envelopeWithMapping <- objectStoreAlgebra
                                .getEnvelope(cache.form.envelopeId)
@@ -78,32 +79,46 @@ class PDFRenderService(
 
       val includeSignatureBox = maybePdfOptions.flatMap(_.includeSignatureBox).getOrElse(false)
 
-      val html = layout match {
-        case PDFLayout.Default =>
-          summaryPdf(
-            title,
-            maybePageTitle,
-            pdfModel,
-            maybeHeaderFooter,
-            maybeSubmissionDetails,
-            cache.formTemplate,
-            summaryDeclaration,
-            maybeDraftText,
-            includeSignatureBox
-          ).toString
-        case PDFLayout.Tabular =>
-          summaryTabularPdf(
-            title,
-            pdfModel,
-            maybeHeaderFooter,
-            cache.formTemplate,
-            maybeFormName,
-            maybeDraftText,
-            maybeSubmissionDetails,
-            summaryDeclaration,
-            includeSignatureBox
-          ).toString
+      val content = if (cache.formTemplate.accessiblePdf) {
+        summary(
+          title,
+          maybeFormName,
+          pdfModel,
+          maybeHeaderFooter.flatMap(_.header.map(_.rawDefaultValue).filter(_.nonEmpty)),
+          maybeHeaderFooter.flatMap(_.footer.map(_.rawDefaultValue).filter(_.nonEmpty)),
+          maybeSubmissionDetails,
+          summaryDeclaration,
+          maybeDraftText,
+          includeSignatureBox
+        ).body
+      } else {
+        layout match {
+          case PDFLayout.Default =>
+            summaryPdf(
+              title,
+              maybePageTitle,
+              pdfModel,
+              maybeHeaderFooter,
+              maybeSubmissionDetails,
+              cache.formTemplate,
+              summaryDeclaration,
+              maybeDraftText,
+              includeSignatureBox
+            ).toString
+          case PDFLayout.Tabular =>
+            summaryTabularPdf(
+              title,
+              pdfModel,
+              maybeHeaderFooter,
+              cache.formTemplate,
+              maybeFormName,
+              maybeDraftText,
+              maybeSubmissionDetails,
+              summaryDeclaration,
+              includeSignatureBox
+            ).toString
+        }
       }
-      PdfHtml(html)
+      PdfContent(content)
     }
 }

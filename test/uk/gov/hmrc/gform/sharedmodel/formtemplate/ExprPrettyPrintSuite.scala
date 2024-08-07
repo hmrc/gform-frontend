@@ -39,7 +39,10 @@ class ExprPrettyPrintSuite extends FunSuite {
       DateBefore(
         DateFormCtxVar(FormCtx("startDate")),
         DateFormCtxVar(FormCtx("endDate"))
-      ) -> "date from startDate component is before date from endDate component"
+      ) -> "date from startDate component is before date from endDate component",
+      DuplicateExists(
+        Seq(FormCtx("name"), FormCtx("dob"))
+      ) -> "Duplicate exists across (name, dob)"
     )
 
   booleanExpressions.foreach { case (expression, expected) =>

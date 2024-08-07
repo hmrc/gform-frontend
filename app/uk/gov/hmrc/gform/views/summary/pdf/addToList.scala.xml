@@ -1,0 +1,55 @@
+@import play.twirl.api.XmlFormat
+@import uk.gov.hmrc.gform.pdf.model.PDFModel.{ AddToListSummary, AddToListPageGroup }
+@import uk.gov.hmrc.gform.summary.SummaryRenderingService
+
+@(title: String, summaryTitle: Option[String], summaryValue: XmlFormat.Appendable,  pageGroups: List[AddToListPageGroup])(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+<fo:block role="Div" padding-before="1cm">
+    <fo:block role="H2"
+              font-size="16px"
+              font-family="arial-bold"
+              font-weight="bold"
+              line-height="16pt"
+              padding-bottom="2mm"
+              border-after-style="solid"
+              border-color="#D3D3D3"
+              linefeed-treatment="preserve">
+        @title
+    </fo:block>
+    <fo:list-block start-indent="1mm" provisional-distance-between-starts="8cm">
+        @listItem(summaryTitle, summaryValue)
+    </fo:list-block>
+    @pageGroups.map { pageGroup =>
+        <fo:block role="Div">
+            <fo:block role="H3"
+                      font-size="14px"
+                      font-family="arial-bold"
+                      font-weight="bold"
+                      line-height="14pt"
+                      padding-before="0.5cm">
+                @pageGroup.title
+            </fo:block>
+            @pageGroup.pages.map { page =>
+                <fo:block role="Div">
+                        @if(page.title.isDefined){
+                            <fo:block role="H4"
+                                      font-size="12px"
+                                      font-family="arial-bold"
+                                      font-weight="bold"
+                                      line-height="12pt"
+                                      padding-bottom="5mm"
+                                      padding-before="1cm">
+                                @page.title.map(t => unescapeXml(t))
+                            </fo:block>
+                        } else {
+                            <fo:block> </fo:block>
+                        }
+                        <fo:list-block start-indent="1mm" provisional-distance-between-starts="8cm">
+                            @page.fields.map { field =>
+                                @{SummaryRenderingService.renderPageField(field)}
+                            }
+                        </fo:list-block>
+                </fo:block>
+            }
+        </fo:block>
+    }
+</fo:block>

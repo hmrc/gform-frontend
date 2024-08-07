@@ -188,7 +188,8 @@ case class EnrolmentSection(
   shortName: Option[SmartString],
   fields: List[FormComponent],
   identifiers: NonEmptyList[IdentifierRecipe],
-  verifiers: List[VerifierRecipe]
+  verifiers: List[VerifierRecipe],
+  continueLabel: Option[SmartString]
 ) {
   def toSection = Section.NonRepeatingPage(toPage)
 
@@ -202,7 +203,7 @@ case class EnrolmentSection(
       caption = None,
       includeIf = None,
       fields = fields,
-      continueLabel = None,
+      continueLabel = continueLabel,
       continueIf = None,
       instruction = None,
       presentationHint = None,
@@ -228,4 +229,24 @@ object IdentifierRecipe {
 case class VerifierRecipe(key: String, value: FormCtx)
 object VerifierRecipe {
   implicit val format: OFormat[VerifierRecipe] = Json.format[VerifierRecipe]
+}
+
+final case class EnrolmentOutcomes(
+  notMatchedPage: EnrolmentOutcome,
+  alreadyLinkedPage: EnrolmentOutcome,
+  technicalFailurePage: EnrolmentOutcome,
+  successPage: EnrolmentOutcome
+)
+
+object EnrolmentOutcomes {
+  implicit val format: OFormat[EnrolmentOutcomes] = Json.format[EnrolmentOutcomes]
+}
+
+final case class EnrolmentOutcome(
+  title: SmartString,
+  content: SmartString
+)
+
+object EnrolmentOutcome {
+  implicit val format: OFormat[EnrolmentOutcome] = Json.format[EnrolmentOutcome]
 }

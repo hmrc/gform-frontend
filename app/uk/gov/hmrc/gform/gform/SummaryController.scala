@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
+import org.apache.xmlgraphics.util.MimeConstants
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
@@ -37,13 +38,13 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
+import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ file_upload_limit_exceed, save_acknowledgement, save_with_access_code }
@@ -61,6 +62,7 @@ class SummaryController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
   objectStoreService: ObjectStoreService,
   validationService: ValidationService,
+  fopService: FopService,
   pdfGeneratorService: PdfGeneratorService,
   pdfRenderService: PDFRenderService,
   gformConnector: GformConnector,
@@ -436,11 +438,11 @@ class SummaryController(
                 }
     } yield result
 
-  def createPDFHtml(cache: AuthCacheWithForm, formModelOptics: FormModelOptics[DataOrigin.Mongo])(implicit
+  def createPDFContent(cache: AuthCacheWithForm, formModelOptics: FormModelOptics[DataOrigin.Mongo])(implicit
     request: Request[_],
     l: LangADT,
     ss: SmartStringEvaluator
-  ): Future[PdfHtml] = {
+  ): Future[PdfContent] = {
     val draftText = cache.formTemplate.formCategory match {
       case HMRCReturnForm => Messages("summary.pdf.formCategory.return")
       case HMRCClaimForm  => Messages("summary.pdf.formCategory.claim")
@@ -459,7 +461,7 @@ class SummaryController(
     val pdfOptions = summarySection.pdf.map(pdf => PDFModel.Options(pdf.tabularFormat, None))
 
     pdfRenderService
-      .createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      .createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
         request.messages.messages(
           "summary.checkYourAnswers"
         ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
@@ -482,14 +484,22 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      createPDFHtml(cache, formModelOptics)
-        .flatMap(pdfGeneratorService.generatePDF)
-        .map { pdfSource =>
-          Result(
-            header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
-          )
-        }
+      val pdfContentF = createPDFContent(cache, formModelOptics)
+
+      if (cache.formTemplate.accessiblePdf) {
+        for {
+          pdfContent <- pdfContentF
+          pdfSource  <- fopService.render(pdfContent.content)
+        } yield Ok(pdfSource).as(MimeConstants.MIME_PDF)
+      } else {
+        for {
+          pdfContent <- pdfContentF
+          pdfSource  <- pdfGeneratorService.generatePDF(pdfContent)
+        } yield Result(
+          header = ResponseHeader(200, Map.empty),
+          body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
+        )
+      }
     }
 
   private def isFormValid(

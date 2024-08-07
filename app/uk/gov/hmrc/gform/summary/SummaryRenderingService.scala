@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.eq._
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Call, Request }
-import play.twirl.api.{ Html, HtmlFormat }
+import play.twirl.api.{ Html, HtmlFormat, XmlFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -45,6 +45,9 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ Card, CardTitle,
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.gform.views.xml.summary.pdf._
+import uk.gov.hmrc.gform.pdf.model.PDFModel._
+import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 import java.time.format.DateTimeFormatter
 import scala.concurrent.{ ExecutionContext, Future }
@@ -71,13 +74,13 @@ class SummaryRenderingService(
     hc: HeaderCarrier,
     ec: ExecutionContext,
     lise: SmartStringEvaluator
-  ): Future[PdfHtml] =
+  ): Future[PdfContent] =
     for {
       summaryHtml <-
         getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None, None)
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
-      PdfHtml(
+      PdfContent(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
             summaryHtml,
@@ -102,7 +105,7 @@ class SummaryRenderingService(
     hc: HeaderCarrier,
     ec: ExecutionContext,
     lise: SmartStringEvaluator
-  ): Future[PdfHtml] = {
+  ): Future[PdfContent] = {
     val pdfFieldIds = pdfNotification.fieldIds
     val pdfHeader = pdfNotification.header
     val pdfFooter = pdfNotification.footer
@@ -117,7 +120,7 @@ class SummaryRenderingService(
                  )
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdfHeader, pdfFooter)
-      PdfHtml(
+      PdfContent(
         HtmlSanitiser
           .sanitiseHtmlForPDF(
             pdfHtml,
@@ -699,4 +702,89 @@ object SummaryRenderingService {
       case (None, false) => messages(continueLabelKey)
     }
 
+  def renderSubmissionDetails(maybeSubmissionDetails: Option[SubmissionDetails])(implicit
+    messages: Messages
+  ) =
+    maybeSubmissionDetails
+      .map { sd =>
+        val formattedTime =
+          s"${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}"
+        val rows = Map(
+          (messages("submission.date"), formattedTime),
+          (messages("submission.reference"), sd.submission.submissionRef.toString),
+          (messages("submission.mark"), sd.hashedValue)
+        )
+
+        submisssionDetails(messages("submission.details"), rows)
+      }
+      .getOrElse(XmlFormat.empty)
+
+  def renderSummaryData(
+    summaryDataList: List[SummaryData]
+  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
+    summaryDataList.map {
+      case pageData: PageData => summaryPage(pageData)
+      case AddToListData(title, summary, pageGroups, _) =>
+        val summaryValues = summary.values.zipWithIndex.map { case (v, idx) => (idx + 1) -> v }.toMap
+        val addToListSummaryPage = addToListSummary(summaryValues)
+        addToList(title, Some(summary.title), addToListSummaryPage, pageGroups)
+    }
+
+  def renderPageField(field: PageField): XmlFormat.Appendable = field match {
+    case SimpleField(label, values) =>
+      listItem(label, simpleField(values))
+    case ChoiceField(label, values) =>
+      listItem(label, choiceField(values))
+    case rc: RevealingChoiceField =>
+      val renderedElements = if (rc.isSeparate) {
+        listItem(rc.label, revealingChoiceField(rc.choiceElements.map(ce => Html(ce.label)))) ::
+          rc.choiceElements.flatMap { choiceElement =>
+            choiceElement.fields.map(renderPageField)
+          }
+      } else {
+        rc.choiceElements.flatMap { choiceElement =>
+          listItem(rc.label, XmlFormat.raw(choiceElement.label)) ::
+            choiceElement.fields.map(renderPageField)
+        }
+      }
+
+      XmlFormat.fill(renderedElements)
+    case GroupField(label, groupFields) =>
+      listItem(label, XmlFormat.fill(groupFields.map(renderPageField)))
+    case _ =>
+      XmlFormat.empty
+  }
+
+  def renderAddToListSummaryItemBody(content: String) = {
+
+    val (boldText, remainingText) = if (content.contains("<strong>")) {
+      // the regex pattern to find text between <strong> </strong>
+      val patternStrong = "<strong>(.*?)</strong>".r
+
+      patternStrong.findFirstMatchIn(content) match {
+        case Some(m) =>
+          val bold = m.group(1)
+          val rest = content.substring(m.end).trim
+          (bold, rest)
+        case None =>
+          ("", content)
+      }
+
+    } else {
+      // the regex pattern to find text between **
+      val pattern = "\\*\\*(.*?)\\*\\*".r
+
+      pattern.findFirstMatchIn(content) match {
+        case Some(m) =>
+          val bold = m.group(1)
+          val rest = content.substring(m.end).trim
+          (bold, rest)
+        case None =>
+          ("", content)
+      }
+
+    }
+
+    addToListSummaryItemBody(boldText, PdfHelper.transformHtmlToXML(remainingText))
+  }
 }

@@ -47,7 +47,7 @@ import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfContent, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, InProgress, UserData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
@@ -175,7 +175,7 @@ class TestOnlyController(
                             )
 
       submissionData = SubmissionData(
-                         PdfHtml("htmlForPDF"),
+                         PdfContent("htmlForPDF"),
                          None,
                          FrontEndSubmissionVariablesBuilder(
                            retrievals,
@@ -574,7 +574,7 @@ class TestOnlyController(
                             )
 
       submissionData = SubmissionData(
-                         PdfHtml("htmlForPDF"),
+                         PdfContent("htmlForPDF"),
                          None,
                          FrontEndSubmissionVariablesBuilder(
                            retrievals,
@@ -1222,32 +1222,37 @@ class TestOnlyController(
       )
   }
 
-  def generateSummaryHtml(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+  def generateSummaryContent(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       accessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       summaryController
-        .createPDFHtml(cache, formModelOptics)
-        .map { html =>
-          Ok(html.html).as(HTML)
-        }
+        .createPDFContent(cache, formModelOptics)
+        .map(content => pdfContent(cache.formTemplate.accessiblePdf, content))
     }
 
-  def generateAcknowledgementHtml(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+  def generateAcknowledgementContent(
+    formTemplateId: FormTemplateId,
+    accessCode: Option[AccessCode]
+  ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithAcknowledgement](
       formTemplateId,
       accessCode,
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       acknowledgementController
-        .createPDFHtml(cache, accessCode, formModelOptics, sendAuditEvent = false)
-        .map { html =>
-          Ok(html.html).as(HTML)
-        }
+        .createPDFContent(cache, accessCode, formModelOptics, sendAuditEvent = false)
+        .map(content => pdfContent(cache.formTemplate.accessiblePdf, content))
     }
 
+  private def pdfContent(accessiblePdf: Boolean, content: PdfContent) =
+    if (accessiblePdf) {
+      Ok(content.content).as(XML)
+    } else {
+      Ok(content.content).as(HTML)
+    }
   def changeStateAndRedirectToCYA(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]

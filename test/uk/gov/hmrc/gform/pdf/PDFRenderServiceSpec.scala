@@ -145,7 +145,7 @@ class PDFRenderServiceSpec
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -155,15 +155,15 @@ class PDFRenderServiceSpec
         SummaryPagePurpose.ForUser,
         None
       )
-    ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
+    ) { pdfContent =>
+      pdfContent.content.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
     }
   }
 
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model as default format" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -175,15 +175,15 @@ class PDFRenderServiceSpec
         None,
         None
       )
-    ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
+    ) { pdfContent =>
+      pdfContent.content.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
     }
   }
 
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model as tabular format" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -195,15 +195,15 @@ class PDFRenderServiceSpec
         None,
         Some(PDFModel.Options(Some(true), None))
       )
-    ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
+    ) { pdfContent =>
+      pdfContent.content.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML()
     }
   }
 
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model with a signature box" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -215,15 +215,15 @@ class PDFRenderServiceSpec
         None,
         Some(PDFModel.Options(Some(false), Some(true)))
       )
-    ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageSummaryPDFHTML(htmlSignatureBox)
+    ) { pdfContent =>
+      pdfContent.content.trimLines shouldBe nonRepeatingPageSummaryPDFHTML(htmlSignatureBox)
     }
   }
 
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model with a signature box as tabular format" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -235,8 +235,8 @@ class PDFRenderServiceSpec
         None,
         Some(PDFModel.Options(Some(true), Some(true)))
       )
-    ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML(htmlSignatureBoxAsTabular)
+    ) { pdfContent =>
+      pdfContent.content.trimLines shouldBe nonRepeatingPageTabularSummaryPDFHTML(htmlSignatureBoxAsTabular)
     }
   }
 
@@ -256,7 +256,7 @@ class PDFRenderServiceSpec
     )
 
     whenReady(
-      pdfRenderService.createPDFHtml[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Instruction](
+      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Instruction](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -266,8 +266,8 @@ class PDFRenderServiceSpec
         SummaryPagePurpose.ForUser,
         None
       )
-    ) { pdfHtml =>
-      pdfHtml.html.trimLines shouldBe nonRepeatingPageInstructionPDFHTML()
+    ) { pdfContent =>
+      pdfContent.content.trimLines shouldBe nonRepeatingPageInstructionPDFHTML()
     }
   }
 }

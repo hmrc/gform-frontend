@@ -20,13 +20,13 @@ import org.apache.pekko.stream.scaladsl.{ Source, StreamConverters }
 import org.apache.pekko.util.ByteString
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import play.api.Environment
-import uk.gov.hmrc.gform.sharedmodel.PdfHtml
+import uk.gov.hmrc.gform.sharedmodel.PdfContent
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class PdfGeneratorService(environment: Environment) {
 
-  def generatePDF(pdfHtml: PdfHtml)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
+  def generatePDF(pdfContent: PdfContent)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
     StreamConverters.asOutputStream().mapMaterializedValue { os =>
       Future {
         val builder = new PdfRendererBuilder()
@@ -34,7 +34,7 @@ class PdfGeneratorService(environment: Environment) {
         builder.usePdfAConformance(PdfRendererBuilder.PdfAConformance.PDFA_3_U)
         builder.useFont(() => environment.classLoader.getResourceAsStream("arial.ttf"), "Arial")
         builder.useFastMode()
-        builder.withHtmlContent(pdfHtml.html.replace("<br>", "<br/>"), null)
+        builder.withHtmlContent(pdfContent.content.replace("<br>", "<br/>"), null)
         builder.toStream(os)
         builder.run()
       }

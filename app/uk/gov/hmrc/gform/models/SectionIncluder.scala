@@ -53,7 +53,7 @@ object SectionSelector {
 
       def getSections(formTemplate: FormTemplate): AllSections =
         formTemplate.authConfig match {
-          case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
+          case HasEnrolmentSection((_, enrolmentSection, _, _, _)) =>
             AllSections.Classic(Nil, enrolmentSection.toSection :: Nil)
           case _ => AllSections.Classic(Nil, Nil)
         }

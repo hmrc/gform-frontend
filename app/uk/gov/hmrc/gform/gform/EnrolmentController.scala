@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.{ EitherT, Kleisli, NonEmptyList, ReaderT }
+import play.api.data.Form
 import cats.instances.future._
 import cats.instances.list._
 import cats.mtl.{ Ask, Raise }
@@ -26,13 +27,15 @@ import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
+import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, Direction }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
+import uk.gov.hmrc.gform.eval.InitFormEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
@@ -41,6 +44,7 @@ import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -48,9 +52,15 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
+import uk.gov.hmrc.gform.views.hardcoded.EnrolmentAlreadyLinkedPage
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.TableRow
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.views.html.hardcoded.pages._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -78,7 +88,8 @@ class EnrolmentController(
   frontendAppConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  gformConnector: GformConnector
+  gformConnector: GformConnector,
+  englishMessages: Messages
 )(implicit
   ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
@@ -109,10 +120,204 @@ class EnrolmentController(
 
   import i18nSupport._
 
+  def technicalFailurePage(formTemplateId: FormTemplateId) =
+    withEnrolmentSection(formTemplateId)(formTemplate =>
+      enrolmentSection =>
+        enrolmentOutcomes =>
+          implicit sse =>
+            implicit request =>
+              implicit l =>
+                Ok(
+                  enrolment_technical_failure_page(
+                    enrolmentOutcomes.technicalFailurePage,
+                    frontendAppConfig,
+                    formTemplate
+                  )
+                )
+    )
+
+  def successPage(formTemplateId: FormTemplateId) =
+    withEnrolmentSection(formTemplateId)(formTemplate =>
+      enrolmentSection =>
+        enrolmentOutcomes =>
+          implicit sse =>
+            implicit request =>
+              implicit l =>
+                Ok(
+                  enrolment_success_page(
+                    enrolmentOutcomes.successPage,
+                    frontendAppConfig,
+                    formTemplate
+                  )
+                )
+    )
+
+  def successPageSubmit(formTemplateId: FormTemplateId) =
+    withEnrolmentSection(formTemplateId)(formTemplate =>
+      enrolmentSection =>
+        enrolmentOutcomes =>
+          sse =>
+            request => l => Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id).url)
+    )
+
+  def alreadyLinkedPage(formTemplateId: FormTemplateId, params: String) =
+    withEnrolmentSection(formTemplateId)(formTemplate =>
+      enrolmentSection =>
+        enrolmentOutcomes =>
+          implicit sse =>
+            implicit request =>
+              implicit l => {
+                val table = new GovukTable()(
+                  paramsTable(params, enrolmentSection)
+                )
+                val enrolmentAlreadyLinkedPage = new EnrolmentAlreadyLinkedPage(formTemplate, alreadyLinkedChoice)
+                Ok(
+                  enrolment_already_linked_page(
+                    enrolmentAlreadyLinkedPage,
+                    enrolmentOutcomes.alreadyLinkedPage,
+                    table,
+                    frontendAppConfig,
+                    params
+                  )
+                )
+              }
+    )
+
+  def notMatchedPage(formTemplateId: FormTemplateId, params: String) =
+    withEnrolmentSection(formTemplateId)(formTemplate =>
+      enrolmentSection =>
+        enrolmentOutcomes =>
+          implicit sse =>
+            implicit request =>
+              implicit l => {
+                val table = new GovukTable()(
+                  paramsTable(params, enrolmentSection)
+                )
+                Ok(
+                  enrolment_not_matched_page(
+                    enrolmentOutcomes.notMatchedPage,
+                    table,
+                    frontendAppConfig,
+                    formTemplate
+                  )
+                )
+              }
+    )
+
+  private def withEnrolmentSection(
+    formTemplateId: FormTemplateId
+  )(
+    f: FormTemplate => EnrolmentSection => EnrolmentOutcomes => SmartStringEvaluator => Request[
+      AnyContent
+    ] => LangADT => Result
+  ) =
+    auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
+      val initFormEvaluator = InitFormEvaluator(cache, cache.formTemplate.authConfig, Option.empty[ItmpRetrievals])
+      val sse = new RealSmartStringEvaluatorFactory(englishMessages).noForm(initFormEvaluator.evalExpr)
+      cache.formTemplate.authConfig match {
+        case HasEnrolmentSection((_, enrolmentSection, _, _, enrolmentOutcomes)) =>
+          Future.successful(
+            f(cache.formTemplate)(enrolmentSection)(enrolmentOutcomes)(sse)(request)(l)
+          )
+        case _ =>
+          throw new Exception("Enrolment section not found")
+      }
+    }
+
+  private val alreadyLinkedChoice: Form[String] = Form(
+    play.api.data.Forms.single(
+      "enrolment.change.or.sign.out" -> play.api.data.Forms.nonEmptyText
+    )
+  )
+
+  def alreadyLinkedPageSubmit(formTemplateId: FormTemplateId, params: String) =
+    withEnrolmentSection(formTemplateId)(formTemplate =>
+      enrolmentSection =>
+        enrolmentOutcomes =>
+          implicit sse =>
+            implicit request =>
+              implicit l => {
+                val table = new GovukTable()(
+                  paramsTable(params, enrolmentSection)
+                )
+
+                alreadyLinkedChoice
+                  .bindFromRequest()
+                  .fold(
+                    errorForm => {
+                      val enrolmentAlreadyLinkedPage = new EnrolmentAlreadyLinkedPage(formTemplate, errorForm)
+                      BadRequest(
+                        enrolment_already_linked_page(
+                          enrolmentAlreadyLinkedPage,
+                          enrolmentOutcomes.alreadyLinkedPage,
+                          table,
+                          frontendAppConfig,
+                          params
+                        )
+                      )
+                    },
+                    {
+                      case "change-gg-account" =>
+                        Redirect(
+                          uk.gov.hmrc.gform.gform.routes.NewFormController.dashboardWithNewSession(formTemplate._id)
+                        )
+                      case "sign-out" =>
+                        Redirect(uk.gov.hmrc.gform.gform.routes.SignOutController.signOut(formTemplate._id))
+                      case unknown =>
+                        throw new Exception(s"Unexpected value of linked account parameter: '$unknown'")
+                    }
+                  )
+              }
+    )
+
+  private def paramsTable(params: String, enrolmentSection: EnrolmentSection)(implicit
+    sse: SmartStringEvaluator
+  ): Table = {
+    val idenPairs: List[(String, String)] =
+      params.split("~").toList.flatMap { p =>
+        p.split("=").toList match {
+          case identifierKey :: value :: Nil => Some(identifierKey -> value)
+          case _                             => None
+        }
+      }
+
+    val identifierLookup: Map[String, FormCtx] =
+      enrolmentSection.identifiers.map(i => i.key -> i.value).toList.toMap
+    val verifierLookup: Map[String, FormCtx] =
+      enrolmentSection.verifiers.map(v => v.key -> v.value).toList.toMap
+
+    val lookup: Map[String, FormCtx] = identifierLookup ++ verifierLookup
+
+    val rowData: List[(SmartString, String)] = idenPairs.flatMap { case (key, value) =>
+      lookup.get(key).flatMap { formCtx =>
+        val fcId = formCtx.formComponentId
+        val maybeFormComponent: Option[FormComponent] =
+          enrolmentSection.fields.find(formComponent => formComponent.id == fcId)
+        maybeFormComponent.map(fc => fc.shortName.getOrElse(fc.label) -> value)
+      }
+    }
+
+    val rows = rowData.map { case (label, value) =>
+      List(
+        TableRow(
+          content = uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text(label.value())
+        ),
+        TableRow(
+          content = uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text(value)
+        )
+      )
+    }
+
+    Table(
+      firstCellIsHeader = true,
+      rows = rows
+    )
+  }
+
   def showEnrolment(formTemplateId: FormTemplateId) =
     auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
       cache.formTemplate.authConfig match {
-        case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
+        case HasEnrolmentSection((_, enrolmentSection, _, _, _)) =>
           Future.successful(
             Ok(
               renderEnrolmentSection(
@@ -160,11 +365,13 @@ class EnrolmentController(
   def submitEnrolment(formTemplateId: FormTemplateId, action: Direction) =
     auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => cache =>
       import cache._
-      val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
-        serviceId => identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers)))
+      val checkEnrolment: ServiceId => List[Verifier] => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
+        serviceId =>
+          verifiers =>
+            identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers, verifiers)))
 
       formTemplate.authConfig match {
-        case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
+        case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev, enrolmentOutcomes)) =>
           val genesisFormModel: FormModel[DataExpanded] = FormModel.fromEnrolmentSection(enrolmentSection)
 
           val formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo] =
@@ -224,7 +431,7 @@ class EnrolmentController(
                            .fold(
                              enrolmentResultProcessor
                                .recoverEnrolmentError(formHandlerResult.validationResult),
-                             enrolmentResultProcessor.processEnrolmentResult()
+                             enrolmentResultProcessor.processEnrolmentResult(enrolmentOutcomes)
                            )
                            .run(Env(formTemplate, retrievals, formModelVisibilityOptics))
                 } yield res
@@ -242,7 +449,6 @@ class EnrolmentController(
               .flashing("formTitle" -> formTemplate.formName.value)
           )
       }
-
     }
 
   private def validateIdentifiers[F[_]: Applicative](
@@ -263,7 +469,7 @@ class EnrolmentController(
     serviceId: ServiceId,
     enrolmentSection: EnrolmentSection,
     postCheck: EnrolmentPostCheck,
-    checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
+    checkEnrolment: List[Verifier] => NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
     formHandlerResult: FormHandlerResult,
     enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
@@ -273,8 +479,9 @@ class EnrolmentController(
       for {
         enrolmentResponse <- enrolmentService.enrolUser[F](serviceId, identifiers, verifiers, retrievals)
         result <- enrolmentResponse match {
-                    case ServiceResponse(TaxEnrolmentsResponse.Success)  => checkEnrolment(identifiers)
-                    case ServiceResponse(TaxEnrolmentsResponse.Conflict) => CheckEnrolmentsResult.Conflict.pure[F]
+                    case ServiceResponse(TaxEnrolmentsResponse.Success) => checkEnrolment(verifiers)(identifiers)
+                    case ServiceResponse(TaxEnrolmentsResponse.Conflict) =>
+                      CheckEnrolmentsResult.Conflict(identifiers, verifiers).pure[F]
                     case ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers) =>
                       CheckEnrolmentsResult.InvalidIdentifiers.pure[F]
                     case ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials) =>

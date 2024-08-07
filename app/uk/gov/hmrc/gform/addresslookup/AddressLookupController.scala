@@ -141,9 +141,7 @@ class AddressLookupController(
                     )
                   ).pure[Future]
                 }
-
               }
-
           }
     }
 
@@ -714,7 +712,8 @@ class AddressLookupController(
       derived = false,
       errorMessage = None,
       errorShortName = formComponent.flatMap(_.errorShortName),
-      errorShortNameStart = formComponent.flatMap(_.errorShortNameStart)
+      errorShortNameStart = formComponent.flatMap(_.errorShortNameStart),
+      validators = formComponent.map(_.validators).getOrElse(Nil)
     )
 
   private def mkSyntheticCache(

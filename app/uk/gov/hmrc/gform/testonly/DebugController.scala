@@ -139,6 +139,7 @@ class DebugController(
         case FormPhase(value)        => Nil
         case First(_)                => Nil
         case IsLogin(_)              => Nil
+        case DuplicateExists(_)      => Nil
       }
     }
 

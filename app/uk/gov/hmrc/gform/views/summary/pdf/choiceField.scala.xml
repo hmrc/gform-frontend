@@ -1,0 +1,39 @@
+@(values: List[Html])
+@if(values.size > 1) {
+<fo:inline>
+        <fo:list-block role="L">
+                @values.map{ value =>
+                <fo:list-item padding-after="0.5cm" role="LI">
+                        <fo:list-item-label role="Lbl"
+                                            start-indent="1mm"
+                                            end-indent="label-end()">
+                                <fo:block font-size="11pt"
+                                          font-family="arial-bold"
+                                          font-weight="bold"
+                                          line-height="11pt">
+                                        <fo:inline>
+                                                <fo:wrapper role="artifact">
+                                                        &#8226;
+                                                </fo:wrapper>
+                                        </fo:inline>
+                                </fo:block>
+                        </fo:list-item-label>
+                        <fo:list-item-body role="LBody" start-indent="0.5cm" >
+                                <fo:block font-size="11pt"
+                                          font-family="arial"
+                                          font-weight="normal"
+                                          line-height="11pt">
+                                        @unescapeXml(value.body)
+                                </fo:block>
+                        </fo:list-item-body>
+                </fo:list-item>
+                }
+        </fo:list-block>
+</fo:inline>
+} else {
+        @values.map{ value =>
+                <fo:block role="P">
+                        @unescapeXml(value.body)
+                </fo:block>
+        }
+}

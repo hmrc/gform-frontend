@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
+import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
 import uk.gov.hmrc.gform.tasklist.{ TaskListController, TaskListModule }
 import uk.gov.hmrc.gform.upscan.{ UpscanController, UpscanModule }
 import uk.gov.hmrc.gform.validation.ValidationModule
@@ -92,7 +92,8 @@ class GformModule(
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
     graphModule.smartStringEvaluatorFactory,
-    gformBackendModule.gformConnector
+    gformBackendModule.gformConnector,
+    englishMessages
   )
 
   val taxPeriodStateChecker = new TaxPeriodStateChecker[Future, Throwable] {
@@ -260,11 +261,14 @@ class GformModule(
     objectStoreModule.objectStoreService
   )
 
+  val fopService = new FopService(configModule.environment)
+
   val summaryController: SummaryController = new SummaryController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     objectStoreModule.objectStoreService,
     validationModule.validationService,
+    fopService,
     pdfGeneratorService,
     pdfRenderService,
     gformBackendModule.gformConnector,
@@ -288,6 +292,7 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     pdfGeneratorService,
+    fopService,
     pdfRenderService,
     sectionRenderingService,
     gformBackendModule.gformConnector,

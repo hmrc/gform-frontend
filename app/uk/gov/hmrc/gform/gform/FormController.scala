@@ -347,7 +347,7 @@ class FormController(
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         val formVisibilityModel = formModelOptics.formModelVisibilityOptics.formModel
         val fastForward = filterTerminatedFastForward(sectionNumber, rawFastForward, formVisibilityModel)
-        lazy val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
+        val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
         def callSelector(call1: => Call, call2: => Call, lastSectionNumber: Option[SectionNumber]): Future[Call] =
           for {
@@ -433,8 +433,8 @@ class FormController(
                 } { taskList =>
                   fastForward match {
                     case FastForward.CYA(SectionOrSummary.TaskSummary) :: xs =>
-                      xs.last match {
-                        case FastForward.BackUntil(sn) if sectionNumber.compare(sn) <= 0 =>
+                      xs.lastOption match {
+                        case Some(FastForward.BackUntil(sn)) if sectionNumber.compare(sn) <= 0 =>
                           Future.successful(
                             routes.SummaryController
                               .summaryById(

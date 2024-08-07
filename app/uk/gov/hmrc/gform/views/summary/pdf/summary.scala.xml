@@ -1,0 +1,204 @@
+@import uk.gov.hmrc.gform.commons.MarkDownUtil._
+@import uk.gov.hmrc.gform.summary.SummaryRenderingService
+@import uk.gov.hmrc.gform.summary.SubmissionDetails
+@import uk.gov.hmrc.gform.pdf.model.PDFModel.{ SummaryData, HeaderFooter }
+@import play.twirl.api.XmlFormat
+
+@(title: String,
+  maybeFormName: Option[String],
+  summaryDataList: List[SummaryData],
+  maybeHeader: Option[String],
+  maybeFooter: Option[String],
+  maybeSubmissionDetails: Option[SubmissionDetails],
+  summarySectionDeclaration: Option[Html],
+  maybeDraftText: Option[String],
+  includeSignatureBox: Boolean)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format"
+         xmlns:fox="http://xmlgraphics.apache.org/fop/extensions">
+    <fo:layout-master-set>
+        <!-- fo:layout-master-set defines in its children the page layout:
+             the pagination and layout specifications
+            - page-masters: have the role of describing the intended subdivisions
+                             of a page and the geometry of these subdivisions
+                            In this case there is only a simple-page-master which defines the
+                            layout for all pages of the text
+        -->
+        <!-- layout information -->
+        <fo:simple-page-master master-name="all"
+                               page-height="29.7cm"
+                               page-width="21cm"
+                               margin-top="2cm"
+                               margin-bottom="2cm"
+                               margin-left="1.5cm"
+                               margin-right="1.5cm">
+            @if(maybeDraftText.isDefined) {
+                <fo:region-body content-type="content-type:image/png" background-image="images/draft.png"
+                                fox:alt-text="Draft copy image"
+                                fox:background-image-width="21cm"
+                                fox:background-image-height="27cm"/>
+            } else {
+                <fo:region-body/>
+            }
+        </fo:simple-page-master>
+    </fo:layout-master-set>
+    <!-- end: defines page layout -->
+
+    <!-- Document metadata -->
+    <fo:declarations>
+        <x:xmpmeta xmlns:x="adobe:ns:meta/">
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+                <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/">
+                    <dc:title>
+                        @title
+                    </dc:title>
+                </rdf:Description>
+            </rdf:RDF>
+        </x:xmpmeta>
+    </fo:declarations>
+    <!-- end Document metadata -->
+
+
+    <!-- start page-sequence
+         here comes the text (contained in flow objects)
+         the page-sequence can contain different fo:flows
+         the attribute value of master-name refers to the page layout
+         which is to be used to layout the text contained in this
+         page-sequence-->
+    <fo:page-sequence master-reference="all">
+
+        <!-- start fo:flow
+             each flow is targeted
+             at one (and only one) of the following:
+             xsl-region-body (usually: normal text)
+             xsl-region-before (usually: header)
+             xsl-region-after  (usually: footer)
+             xsl-region-start  (usually: left margin)
+             xsl-region-end    (usually: right margin)
+             ['usually' applies here to languages with left-right and top-down
+              writing direction like English]
+             in this case there is only one target: xsl-region-body
+          -->
+        <fo:flow flow-name="xsl-region-body">
+
+            <!-- each paragraph is encapsulated in a block element
+                 the attributes of the block define
+                 font-family and size, line-heigth etc. -->
+
+            <!-- logo and heading -->
+            <fo:block role="Div"
+                      space-after="-3px"
+                      id="logo-heading">
+                <fo:inline-container role="Div" inline-progression-dimension="23%">
+                    <fo:block role="Div"
+                              border-left-style="solid"
+                              border-width="2px"
+                              border-color="#D3D3D3"
+                              font-family="arial-bold"
+                              font-weight="bold"
+                              padding-start="4px">
+                        <fo:wrapper role="artifact">
+                            <fo:external-graphic content-type="content-type:image/png" src="images/hmrc-logo.jpg"
+                                                 fox:alt-text="Hmrc logo"
+                                                 content-height="scale-to-fit" content-width="0.8cm"/>
+                        </fo:wrapper>
+                        <fo:block role="P"
+                                  line-height="14pt"
+                                  font-size="14pt"
+                                  font-family="arial-bold"
+                                  font-weight="bold"
+                                  padding-before="-14px"
+                                  linefeed-treatment="preserve">
+                            GOV.UK
+                        </fo:block>
+                    </fo:block>
+                </fo:inline-container>
+            </fo:block>
+            <!-- end logo and heading -->
+
+            <!-- form name -->
+            @maybeFormName.map{ formName =>
+                <fo:block role="Div" space-before="0.5cm">
+                    <fo:block role="H1"
+                              font-size="22px"
+                              font-family="arial-bold"
+                              font-weight="bold"
+                              line-height="22pt">
+                        @formName
+                    </fo:block>
+                </fo:block>
+            }
+            <!-- end form name -->
+
+            <!-- draft text -->
+            @maybeDraftText.map{ draftText =>
+                <fo:block role="Div" space-before="1cm">
+                    <fo:block role="P"
+                              font-size="20px"
+                              font-family="arial-bold"
+                              font-weight="bold"
+                              line-height="20pt">
+                        @draftText
+                    </fo:block>
+                </fo:block>
+            }
+
+            <!-- header -->
+            @maybeHeader.map { header =>
+                <fo:block role="Div"
+                          padding-before="1cm"
+                          font-size="14px"
+                          font-family="arial"
+                          font-weight="normal"
+                          line-height="14pt">
+                    @XmlFormat.raw(header)
+                </fo:block>
+            }
+            <!-- end header -->
+
+            <!-- summary data -->
+            <fo:block role="Div">
+                @{SummaryRenderingService.renderSummaryData(summaryDataList)}
+            </fo:block>
+            <!-- end summary data -->
+
+            <!-- footer -->
+            @maybeFooter.map { footer =>
+                <fo:block role="Div"
+                          padding-before="1cm"
+                          font-size="14px"
+                          font-family="arial"
+                          font-weight="normal"
+                          line-height="14pt">
+                        @XmlFormat.raw(footer)
+                </fo:block>
+            }
+            <!-- end footer -->
+
+            <!-- declaration -->
+            @summarySectionDeclaration.map{ declaration =>
+                @if(declaration.body.nonEmpty) {
+                    <fo:block role="Div" padding-before="30px">
+                        <fo:block role="H3"
+                                  font-size="14px"
+                                  font-family="arial"
+                                  font-weight="normal"
+                                  line-height="14pt">
+                            @declaration
+                        </fo:block>
+                    </fo:block>
+                }
+            }
+            <!-- end declaration -->
+
+            <!-- submission details -->
+            @{SummaryRenderingService.renderSubmissionDetails(maybeSubmissionDetails)}
+            <!-- end submission details -->
+
+            <!-- signature box -->
+            @if(includeSignatureBox){
+                @signatureBox()
+            }
+            <!-- end signature box -->
+        </fo:flow> <!-- closes the flow element-->
+    </fo:page-sequence> <!-- closes the page-sequence -->
+</fo:root>

@@ -220,8 +220,6 @@ generic.error.calendarDate.day.real=Nodwch ddiwrnod yn y fformat cywir
 generic.error.calendarDate.month.real=Nodwch fis yn y fformat cywir
 
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
-enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
-enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
 enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
 enrolment.error.conflict=Mae angen i chi ofyn am fynediad i ddefnyddio’r gwasanaeth hwn
@@ -237,6 +235,16 @@ enrolment.help.open.days=Dydd Llun i Ddydd Gwener, 08:00 i 18:00
 enrolment.help.closed.days=Ar gau ar benwythnosau a gwyliau’r banc.
 enrolment.help.call.charges=Gwybodaeth am gostau galwadau
 enrolment.insufficient=Cofrestriadau Annigonol
+
+enrolment.content.entered.following=Gwnaethoch nodi’r manylion canlynol:
+enrolment.content.try.again=Rhowch gynnig arall arni gan ddefnyddio manylion gwahanol.
+enrolment.content.not.matched.contact=Os bydd y broblem hon yn parhau, gallwch <a class="govuk-link" href="/submissions/help-with-registration/{0}">gysylltu â CThEF i gael help (yn agor tab newydd).</a>
+enrolment.content.what.now=Beth hoffech ei wneud nawr?
+enrolment.content.already.linked.contact=Os oes angen help arnoch gyda chyfrif, gallwch <a class="govuk-link" href="/submissions/help-with-registration/{0}">gysylltu CThEF (yn agor tab newydd).</a>
+enrolment.content.already.linked.sign.in=Mewngofnodi gyda chyfrif Porth y Llywodraeth gwahanol
+enrolment.content.already.linked.sign.out=Allgofnodi o’r gwasanaeth hwn
+enrolment.change.or.sign.out.error.required=Dewiswch yr hyn rydych am ei wneud nawr
+enrolment.content.try.again.button=Rhowch gynnig arall arni
 
 # Access code form field errors
 accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd

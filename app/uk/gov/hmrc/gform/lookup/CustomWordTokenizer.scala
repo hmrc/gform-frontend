@@ -40,10 +40,13 @@ class CustomWordTokenizer extends Analyzer {
       var end = boundary.next
 
       while (end != BreakIterator.DONE) {
-        val word = text.substring(start, end)
-        if (Character.isLetterOrDigit(word.charAt(0)) || Character.getType(word.charAt(0)) == Character.CURRENCY_SYMBOL)
-          result.add(word)
-
+        if (start <= end && end <= text.length) {
+          val word = text.substring(start, end)
+          if (
+            Character.isLetterOrDigit(word.charAt(0)) || Character.getType(word.charAt(0)) == Character.CURRENCY_SYMBOL
+          )
+            result.add(word)
+        }
         start = end
         end = boundary.next
       }

@@ -40,6 +40,7 @@ sealed trait BooleanExpr {
     case FormPhase(_)                     => Nil
     case First(formCtx)                   => formCtx :: Nil
     case IsLogin(_)                       => Nil
+    case DuplicateExists(_)               => Nil
   }
 
   def prettyPrint: String = ExprPrettyPrint.prettyPrintBooleanExpr(this)
@@ -62,6 +63,7 @@ final case class MatchRegex(expr: Expr, regex: Regex) extends BooleanExpr
 final case class DateBefore(left: DateExpr, right: DateExpr) extends BooleanExpr
 final case class DateAfter(left: DateExpr, right: DateExpr) extends BooleanExpr
 final case class First(formCtx: FormCtx) extends BooleanExpr
+final case class DuplicateExists(fieldList: Seq[FormCtx]) extends BooleanExpr
 final case class IsLogin(value: LoginInfo) extends BooleanExpr
 
 final case class FormPhase(value: FormPhaseValue) extends BooleanExpr
