@@ -725,7 +725,7 @@ object SummaryRenderingService {
     summaryDataList.map {
       case pageData: PageData => summaryPage(pageData)
       case AddToListData(title, summary, pageGroups, _) =>
-        val summaryValues = summary.values.zipWithIndex.map { case (v, idx) => (idx + 1) -> v }.toMap
+        val summaryValues = summary.values.zipWithIndex.map { case (v, idx) => (idx + 1) -> v }
         val addToListSummaryPage = addToListSummary(summaryValues)
         addToList(title, Some(summary.title), addToListSummaryPage, pageGroups)
     }
@@ -770,11 +770,15 @@ object SummaryRenderingService {
           ("", content)
       }
 
+    } else if (content.contains("#")) {
+      val newLine = "\n\n"
+      val lines = content.split(newLine)
+      (lines.headOption.map(_.replace("#", "")).getOrElse(""), lines.tail.mkString(newLine))
     } else {
       // the regex pattern to find text between **
-      val pattern = "\\*\\*(.*?)\\*\\*".r
+      val patternBold = "\\*\\*(.*?)\\*\\*".r
 
-      pattern.findFirstMatchIn(content) match {
+      patternBold.findFirstMatchIn(content) match {
         case Some(m) =>
           val bold = m.group(1)
           val rest = content.substring(m.end).trim
@@ -782,9 +786,8 @@ object SummaryRenderingService {
         case None =>
           ("", content)
       }
-
     }
 
-    addToListSummaryItemBody(boldText, PdfHelper.transformHtmlToXML(remainingText))
+    addToListSummaryItemBody(boldText, PdfHelper.renderHtml(remainingText))
   }
 }

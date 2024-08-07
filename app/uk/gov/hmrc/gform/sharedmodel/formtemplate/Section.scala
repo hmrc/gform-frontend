@@ -188,7 +188,8 @@ case class EnrolmentSection(
   shortName: Option[SmartString],
   fields: List[FormComponent],
   identifiers: NonEmptyList[IdentifierRecipe],
-  verifiers: List[VerifierRecipe]
+  verifiers: List[VerifierRecipe],
+  continueLabel: Option[SmartString]
 ) {
   def toSection = Section.NonRepeatingPage(toPage)
 
@@ -202,7 +203,7 @@ case class EnrolmentSection(
       caption = None,
       includeIf = None,
       fields = fields,
-      continueLabel = None,
+      continueLabel = continueLabel,
       continueIf = None,
       instruction = None,
       presentationHint = None,
