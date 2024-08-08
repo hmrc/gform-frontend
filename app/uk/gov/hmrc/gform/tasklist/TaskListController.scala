@@ -132,7 +132,8 @@ class TaskListController(
                   cache,
                   maybeAccessCode,
                   formModelOptics,
-                  Some(sn)
+                  Some(sn),
+                  SuppressErrors.Yes
                 )
             }
           }

@@ -217,7 +217,13 @@ class NewFormController(
               case "continue" =>
                 cache.formTemplate.formKind.fold(_ =>
                   fastForwardService
-                    .redirectFastForward[SectionSelectorType.Normal](cache, noAccessCode, formModelOptics, None)
+                    .redirectFastForward[SectionSelectorType.Normal](
+                      cache,
+                      noAccessCode,
+                      formModelOptics,
+                      None,
+                      SuppressErrors.Yes
+                    )
                 )(_ =>
                   Redirect(
                     uk.gov.hmrc.gform.tasklist.routes.TaskListController
@@ -478,7 +484,7 @@ class NewFormController(
                          )
       cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
       r <- cache.formTemplate.formKind.fold { classic =>
-             fastForwardService.redirectFastForward(cacheUpdated, accessCode, formModelOptics, None)
+             fastForwardService.redirectFastForward(cacheUpdated, accessCode, formModelOptics, None, SuppressErrors.Yes)
            } { taskList =>
              val url =
                uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(cache.formTemplate._id, accessCode)

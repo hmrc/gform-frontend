@@ -528,6 +528,7 @@ class AddressLookupController(
               maybeAccessCode,
               formModelOptics,
               maybeSectionNumber,
+              SuppressErrors.Yes,
               fastForward
             ) // TODO JoVl Revisit maybeCoordinates param
         ) { sn =>
@@ -537,6 +538,7 @@ class AddressLookupController(
               maybeAccessCode,
               formModelOptics,
               maybeSectionNumber,
+              SuppressErrors.Yes,
               fastForward
             )
         }
