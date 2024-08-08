@@ -36,8 +36,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.mutable.LinkedHashSet
-
 import GformError.linkedHashSetMonoid
+import uk.gov.hmrc.gform.eval.DataRetrieveEval
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 
 object ValidationUtil {
 
@@ -140,6 +141,27 @@ object ValidationUtil {
           "postcode" -> itmpAddress.flatMap(_.postCode).getOrElse(""),
           "uk"       -> itmpAddress.flatMap(_.countryName).filter(_.trim.nonEmpty).fold(true)(_ => false).toString,
           "country"  -> itmpAddress.flatMap(_.countryName).filter(_.trim.nonEmpty).getOrElse("")
+        )
+
+        val syntheticOptics = formModelVisibilityOptics
+          .modify(_.recData.variadicFormData)
+          .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
+        multiFieldValidationResult(formComponent, syntheticOptics)
+
+      case IsAddress(Address(_, _, _, Some(DataRetrieveCtx(dataRetrieveId, Attribute("registeredOfficeAddress"))))) =>
+        val addressMap =
+          formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve.fold(
+            Map.empty[String, String]
+          )(dr => DataRetrieveEval.getDataRetrieveAddressMap(dr, dataRetrieveId))
+
+        val atomMap: Map[String, String] = Map(
+          "street1"  -> addressMap.get("address_line_1").getOrElse(""),
+          "street2"  -> addressMap.get("address_line_1").getOrElse(""),
+          "street3"  -> addressMap.get("region").getOrElse(""),
+          "street4"  -> "",
+          "postcode" -> addressMap.get("postal_code").getOrElse(""),
+          "uk"       -> addressMap.get("country").filter(_.trim.nonEmpty).fold(true)(_ => false).toString,
+          "country"  -> addressMap.get("country").getOrElse("")
         )
 
         val syntheticOptics = formModelVisibilityOptics

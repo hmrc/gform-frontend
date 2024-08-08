@@ -37,10 +37,11 @@ object DataRetrieveEval {
       }
 
   private[eval] def getDataRetrieveAddressAttribute(
-    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult]
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveId: DataRetrieveId
   ): List[String] = {
     def getAttr(attr: String) =
-      getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(DataRetrieveId("company"), DataRetrieve.Attribute(attr)))
+      getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(dataRetrieveId, DataRetrieve.Attribute(attr)))
         .flatMap(_.headOption)
 
     {
@@ -64,6 +65,27 @@ object DataRetrieveEval {
     }
       .getOrElse(List.empty[String])
       .filter(!_.isBlank)
+  }
+
+  def getDataRetrieveAddressMap(
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveId: DataRetrieveId
+  ): Map[String, String] = {
+    def getAttr(attr: String) =
+      getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(dataRetrieveId, DataRetrieve.Attribute(attr)))
+        .flatMap(_.headOption)
+
+    val addressMap = Map(
+      "address_line_1" -> getAttr("address_line_1"),
+      "address_line_2" -> getAttr("address_line_2"),
+      "postal_code"    -> getAttr("postal_code"),
+      "region"         -> getAttr("region"),
+      "country"        -> getAttr("country").map(country => if (isInUK(country)) "" else country)
+    )
+
+    addressMap.collect {
+      case (key, Some(value)) if !value.isBlank => key -> value
+    }
   }
 
   private def isInUK(country: String): Boolean = ukParts(country.toUpperCase)
