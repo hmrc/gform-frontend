@@ -42,7 +42,6 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 import SummarySubstituter._
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -519,10 +518,11 @@ case class EvaluationResults(
             .getOrElse(ExpressionResult.empty)
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
-      case DataRetrieveCtx(DataRetrieveId("company"), DataRetrieve.Attribute("registeredOfficeAddress")) =>
+      case DataRetrieveCtx(dataRetrieveId, DataRetrieve.Attribute("registeredOfficeAddress")) =>
         AddressResult(
           DataRetrieveEval.getDataRetrieveAddressAttribute(
-            evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty)
+            evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
+            dataRetrieveId
           )
         )
       case d @ DataRetrieveCtx(_, _) =>
