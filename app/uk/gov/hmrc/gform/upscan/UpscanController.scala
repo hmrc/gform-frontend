@@ -132,7 +132,13 @@ class UpscanController(
                   }
 
                   fastForwardService
-                    .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
+                    .redirectStopAt[SectionSelectorType.Normal](
+                      sectionNumber,
+                      cache,
+                      maybeAccessCode,
+                      formModelOptics,
+                      SuppressErrors.Yes
+                    )
                     .map(_.flashing(flashWithFileId(flash, fileId)))
               }
             }
@@ -225,7 +231,13 @@ class UpscanController(
         }
 
         fastForwardService
-          .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
+          .redirectStopAt[SectionSelectorType.Normal](
+            sectionNumber,
+            cache,
+            maybeAccessCode,
+            formModelOptics,
+            SuppressErrors.Yes
+          )
           .map(_.flashing(flashWithFileId(flash, fileId)))
     }
 

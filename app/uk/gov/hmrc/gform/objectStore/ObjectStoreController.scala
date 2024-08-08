@@ -95,7 +95,8 @@ class ObjectStoreController(
                      sectionNumber,
                      cacheUpd,
                      maybeAccessCode,
-                     formModelOptics
+                     formModelOptics,
+                     SuppressErrors.Yes
                    )
         } yield res.flashing(flash)
 
@@ -214,7 +215,13 @@ class ObjectStoreController(
         }
 
         fastForwardService
-          .redirectStopAt[SectionSelectorType.Normal](sectionNumber, cache, maybeAccessCode, formModelOptics)
+          .redirectStopAt[SectionSelectorType.Normal](
+            sectionNumber,
+            cache,
+            maybeAccessCode,
+            formModelOptics,
+            SuppressErrors.Yes
+          )
           .map(_.flashing(flashWithFileId(flash, fileId)))
     }
 
@@ -362,7 +369,8 @@ class ObjectStoreController(
                 cacheU,
                 maybeAccessCode,
                 formModelOptics,
-                Some(sectionNumber)
+                Some(sectionNumber),
+                SuppressErrors.Yes
               )
           case Some((fileToDelete, formDataUpd, mappingUpd)) =>
             logger.info(

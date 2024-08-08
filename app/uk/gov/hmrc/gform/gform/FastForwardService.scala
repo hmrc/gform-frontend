@@ -60,8 +60,8 @@ class FastForwardService(
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeSectionNumber: Option[SectionNumber],
-    fastForward: List[FastForward] = Nil,
-    suppressErrors: SuppressErrors = SuppressErrors.Yes
+    suppressErrors: SuppressErrors,
+    fastForward: List[FastForward] = Nil
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -81,7 +81,7 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    suppressErrors: SuppressErrors = SuppressErrors.Yes
+    suppressErrors: SuppressErrors
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
