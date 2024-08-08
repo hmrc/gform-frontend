@@ -224,16 +224,19 @@ enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasan
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
 enrolment.error.conflict=Mae angen i chi ofyn am fynediad i ddefnyddio’r gwasanaeth hwn
 
-enrolment.help.title=Help gyda’ch manylion cofrestru
-enrolment.help.description=Cysylltwch â CThEM am help gyda’ch manylion cofrestru er mwyn i chi allu mewngofnodi i’r gwasanaeth rydych wedi cofrestru ar ei gyfer.
+enrolment.help.title=Cael help gyda’ch cyfrif neu’ch manylion cofrestru
+enrolment.help.description=Cysylltwch â CThEF os oes angen help arnoch i fewngofnodi i’r gwasanaeth hwn.
 enrolment.help.contact.title=Ffôn
+enrolment.help.contact.description=Gallwch ffonio CThEF gan ddefnyddio’r manylion canlynol.
 enrolment.help.contact.telephone=Ffôn:
 enrolment.help.contact.textphone=Ffôn testun:
-enrolment.help.contact.outside=Y tu allan i’r DU:
+enrolment.help.contact.outside=O’r tu allan i’r DU:
 enrolment.help.opening.times=Oriau agor:
-enrolment.help.open.days=Dydd Llun i Ddydd Gwener, 08:00 i 18:00
-enrolment.help.closed.days=Ar gau ar benwythnosau a gwyliau’r banc.
-enrolment.help.call.charges=Gwybodaeth am gostau galwadau
+enrolment.help.open.days=Dydd Llun i ddydd Gwener: 08:30 i 17:00
+enrolment.help.closed.days=Ar gau ar benwythnosau a gwyliau banc
+enrolment.help.best.time.title=Yr amser gorau i alw:
+enrolment.help.best.time=Mae’r llinellau ffôn yn llai prysur rhwng 08:30 ac 11:00.
+enrolment.help.call.charges=Gwybodaeth am gostau galwadau (yn agor tab newydd).
 enrolment.insufficient=Cofrestriadau Annigonol
 
 enrolment.content.entered.following=Gwnaethoch nodi’r manylion canlynol:

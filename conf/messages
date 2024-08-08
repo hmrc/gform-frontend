@@ -225,16 +225,19 @@ enrolment.error.regimeId=The registration number you have entered is for a diffe
 enrolment.error.missingIdentifier=A registration number must be entered
 enrolment.error.conflict=You need to request access to use this service
 
-enrolment.help.title=Get help with your registration details
-enrolment.help.description=Contact HMRC to get help with your registration details so that you can sign in to the service that you are registered for.
+enrolment.help.title=Get help with your account or registration details
+enrolment.help.description=Contact HMRC to get help so that you can sign in to this service.
 enrolment.help.contact.title=Phone
+enrolment.help.contact.description=You can call HMRC using the following details.
 enrolment.help.contact.telephone=Telephone:
 enrolment.help.contact.textphone=Textphone:
 enrolment.help.contact.outside=Outside UK:
 enrolment.help.opening.times=Opening times:
 enrolment.help.open.days=Monday to Friday: 8am to 6pm
 enrolment.help.closed.days=Closed weekends and bank holidays.
-enrolment.help.call.charges=Find out about call charges
+enrolment.help.call.charges=Find out about call charges (opens in new tab).
+enrolment.help.best.time.title=Best time to call:
+enrolment.help.best.time=Phone lines are less busy between 8:30am and 11am.
 enrolment.insufficient=Insufficient Enrolments
 
 enrolment.content.entered.following=You entered the following details:
