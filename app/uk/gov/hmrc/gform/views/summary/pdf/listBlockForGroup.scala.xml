@@ -1,0 +1,8 @@
+@import play.twirl.api.XmlFormat
+
+@(value: XmlFormat.Appendable)
+<fo:inline>
+        <fo:list-block role="L" start-indent="0.1mm" provisional-distance-between-starts="8cm">
+            @value
+        </fo:list-block>
+</fo:inline>

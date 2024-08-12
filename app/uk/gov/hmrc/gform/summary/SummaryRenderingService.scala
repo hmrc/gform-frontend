@@ -750,7 +750,7 @@ object SummaryRenderingService {
 
       XmlFormat.fill(renderedElements)
     case GroupField(label, groupFields) =>
-      listItem(label, XmlFormat.fill(groupFields.map(renderPageField)))
+      listItemForGroup(label, listBlockForGroup(XmlFormat.fill(groupFields.map(renderPageField))))
     case _ =>
       XmlFormat.empty
   }
