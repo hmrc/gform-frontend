@@ -79,6 +79,7 @@ object DataRetrieveEval {
       "address_line_1" -> getAttr("address_line_1"),
       "address_line_2" -> getAttr("address_line_2"),
       "postal_code"    -> getAttr("postal_code"),
+      "locality"       -> getAttr("locality"),
       "region"         -> getAttr("region"),
       "country"        -> getAttr("country").map(country => if (isInUK(country)) "" else country)
     )
