@@ -156,9 +156,9 @@ object ValidationUtil {
 
         val atomMap: Map[String, String] = Map(
           "street1"  -> addressMap.get("address_line_1").getOrElse(""),
-          "street2"  -> addressMap.get("address_line_1").getOrElse(""),
-          "street3"  -> addressMap.get("region").getOrElse(""),
-          "street4"  -> "",
+          "street2"  -> addressMap.get("address_line_2").getOrElse(""),
+          "street3"  -> addressMap.get("locality").getOrElse(""),
+          "street4"  -> addressMap.get("region").getOrElse(""),
           "postcode" -> addressMap.get("postal_code").getOrElse(""),
           "uk"       -> addressMap.get("country").filter(_.trim.nonEmpty).fold(true)(_ => false).toString,
           "country"  -> addressMap.get("country").getOrElse("")
