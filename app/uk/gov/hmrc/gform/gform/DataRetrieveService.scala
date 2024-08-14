@@ -50,13 +50,14 @@ object DataRetrieveService {
           bankAccountReputationConnector.map(_.personalBankAccountExistence)
         case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
           bankAccountReputationConnector.map(_.personalBankAccountExistence)
-        case DataRetrieve.Type("companyRegistrationNumber") => companyInformationConnector.map(_.companyProfile)
-        case DataRetrieve.Type("ninoInsights")              => ninoInsightsConnector.map(_.insights)
-        case DataRetrieve.Type("bankAccountInsights")       => bankAccountInsightConnector.map(_.insights)
-        case DataRetrieve.Type("employments")               => gformConnector.map(_.getEmployments)
-        case DataRetrieve.Type("hmrcRosmRegistrationCheck") => gformConnector.map(_.getDesOrganisation)
-        case DataRetrieve.Type("agentDetails")              => gformConnector.map(_.getDesAgentDetails)
-        case _                                              => Option.empty
+        case DataRetrieve.Type("companyHouseProfile")        => companyInformationConnector.map(_.companyProfile)
+        case DataRetrieve.Type("companyHouseActiveOfficers") => companyInformationConnector.map(_.companyOfficers)
+        case DataRetrieve.Type("ninoInsights")               => ninoInsightsConnector.map(_.insights)
+        case DataRetrieve.Type("bankAccountInsights")        => bankAccountInsightConnector.map(_.insights)
+        case DataRetrieve.Type("employments")                => gformConnector.map(_.getEmployments)
+        case DataRetrieve.Type("hmrcRosmRegistrationCheck")  => gformConnector.map(_.getDesOrganisation)
+        case DataRetrieve.Type("agentDetails")               => gformConnector.map(_.getDesAgentDetails)
+        case _                                               => Option.empty
       }
     maybeExecutor.flatTraverse { executor =>
       DataRetrieveService

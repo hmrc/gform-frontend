@@ -79,8 +79,8 @@ class CompanyInformationConnectorSpec
   val companyInformationAsyncConnector = new CompanyInformationAsyncConnector(wsHttp, url)
 
   trait TestFixture {
-    val dataRetrieveCompanyRegistrationNumber = DataRetrieve(
-      DataRetrieve.Type("companyRegistrationNumber"),
+    val dataRetrieveCompanyHouseProfile = DataRetrieve(
+      DataRetrieve.Type("companyHouseProfile"),
       DataRetrieveId("someId"),
       Attr.FromObject(
         List(
@@ -109,6 +109,22 @@ class CompanyInformationConnectorSpec
         )
       ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
+      List.empty[DataRetrieve.ParamExpr],
+      None
+    )
+
+    val dataRetrieveCompanyHouseActiveOfficers = DataRetrieve(
+      DataRetrieve.Type("companyHouseActiveOfficers"),
+      DataRetrieveId("directors"),
+      Attr.FromObject(
+        List(
+          AttributeInstruction(
+            Attribute("activeCount"),
+            ConstructAttribute.AsIs(Fetch(List("active_count")))
+          )
+        )
+      ),
+      Map(DataRetrieve.Attribute("activeCount") -> DataRetrieve.AttrType.Integer),
       List.empty[DataRetrieve.ParamExpr],
       None
     )
@@ -242,7 +258,7 @@ class CompanyInformationConnectorSpec
         )
     )
 
-    val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyRegistrationNumber, request)
+    val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyHouseProfile, request)
 
     whenReady(future) { response =>
       response shouldBe ServiceResponse(
@@ -268,7 +284,7 @@ class CompanyInformationConnectorSpec
         )
     )
 
-    val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyRegistrationNumber, request)
+    val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyHouseProfile, request)
 
     whenReady(future) { response =>
       response shouldBe ServiceResponse(
@@ -286,7 +302,74 @@ class CompanyInformationConnectorSpec
         )
     )
 
-    val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyRegistrationNumber, request)
+    val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyHouseProfile, request)
+
+    whenReady(future) { response =>
+      response shouldBe CannotRetrieveResponse
+    }
+  }
+
+  "companyHouseActiveOfficers" should "call the companies house api proxy endpoint and return valid company active officers when valid data is received from the API" in new TestFixture {
+    val companyActiveOfficersReturn: JsValue = Json.parse("""{
+                                                            |    "active_count": 3
+                                                            |}
+                                                            |""".stripMargin)
+
+    stubFor(
+      WireMock
+        .get(
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+        )
+        .willReturn(
+          ok(companyActiveOfficersReturn.toString)
+        )
+    )
+
+    val future = companyInformationAsyncConnector.companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
+
+    whenReady(future) { response =>
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(
+          Map(
+            Attribute("activeCount") -> "3"
+          )
+        )
+      )
+    }
+  }
+
+  it should "call the companies house api proxy endpoint and return empty company active officers details when the company active officers is not found from the API" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+        )
+        .willReturn(
+          notFound()
+        )
+    )
+
+    val future = companyInformationAsyncConnector.companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
+
+    whenReady(future) { response =>
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(Map.empty)
+      )
+    }
+  }
+
+  it should "call the companies house active officers api proxy endpoint and return the cannot retrieve response when there is an error accessing the API" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+        )
+        .willReturn(
+          serverError()
+        )
+    )
+
+    val future = companyInformationAsyncConnector.companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
 
     whenReady(future) { response =>
       response shouldBe CannotRetrieveResponse

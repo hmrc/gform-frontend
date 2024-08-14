@@ -30,20 +30,28 @@ trait CompanyInformationConnector[F[_]] {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier): F[ServiceCallResponse[DataRetrieve.Response]]
+
+  def companyOfficers(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request
+  )(implicit hc: HeaderCarrier): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
 class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
     extends CompanyInformationConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private val urlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}"
-  private val identifier = "company profile"
+  private val profileUrlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}"
+  private val profileIdentifier = "company profile"
+  private val officersUrlWithPlaceholders =
+    s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}/officers?register_view=true&register_type={{registerType}}"
+  private val officersIdentifier = "company officers"
 
   override def companyProfile(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-    val url = request.fillPlaceholders(urlWithPlaceholders)
+    val url = request.fillPlaceholders(profileUrlWithPlaceholders)
 
     ws.GET[HttpResponse](url)
       .map { httpResponse =>
@@ -54,25 +62,62 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
               .fold(
                 invalid => {
                   logger.error(
-                    s"Calling $identifier returned successfully, but marshalling of data failed with: $invalid"
+                    s"Calling $profileIdentifier returned successfully, but marshalling of data failed with: $invalid"
                   )
                   CannotRetrieveResponse
                 },
                 valid => {
-                  logger.info(s"Calling $identifier returned Success.")
+                  logger.info(s"Calling $profileIdentifier returned Success.")
                   ServiceResponse(valid)
                 }
               )
           case Status.NOT_FOUND =>
-            logger.info(s"Calling $identifier returned successfully, but no company was found: $httpResponse")
+            logger.info(s"Calling $profileIdentifier returned successfully, but no company was found: $httpResponse")
             ServiceResponse[DataRetrieve.Response](DataRetrieve.Response.Object(Map.empty))
           case other =>
-            logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
+            logger.error(s"Problem when calling $profileIdentifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
         }
       }
       .recover { case ex =>
-        logger.error(s"Unknown problem when calling $identifier", ex)
+        logger.error(s"Unknown problem when calling $profileIdentifier", ex)
+        CannotRetrieveResponse
+      }
+  }
+
+  override def companyOfficers(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+    hc: HeaderCarrier
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
+    val url = request.fillPlaceholders(officersUrlWithPlaceholders)
+
+    ws.GET[HttpResponse](url)
+      .map { httpResponse =>
+        httpResponse.status match {
+          case Status.OK =>
+            dataRetrieve
+              .processResponse(httpResponse.json)
+              .fold(
+                invalid => {
+                  logger.error(
+                    s"Calling $officersIdentifier returned successfully, but marshalling of data failed with: $invalid"
+                  )
+                  CannotRetrieveResponse
+                },
+                valid => {
+                  logger.info(s"Calling $officersIdentifier returned Success.")
+                  ServiceResponse(valid)
+                }
+              )
+          case Status.NOT_FOUND =>
+            logger.info(s"Calling $officersIdentifier returned successfully, but no company was found: $httpResponse")
+            ServiceResponse[DataRetrieve.Response](DataRetrieve.Response.Object(Map.empty))
+          case other =>
+            logger.error(s"Problem when calling $officersIdentifier. Http status: $other, body: ${httpResponse.body}")
+            CannotRetrieveResponse
+        }
+      }
+      .recover { case ex =>
+        logger.error(s"Unknown problem when calling $officersIdentifier", ex)
         CannotRetrieveResponse
       }
   }
