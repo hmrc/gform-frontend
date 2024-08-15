@@ -44,7 +44,7 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
   private val profileUrlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}"
   private val profileIdentifier = "company profile"
   private val officersUrlWithPlaceholders =
-    s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}/officers?register_view=true&register_type={{registerType}}"
+    s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}/officers?register_type={{registerType}}"
   private val officersIdentifier = "company officers"
 
   override def companyProfile(

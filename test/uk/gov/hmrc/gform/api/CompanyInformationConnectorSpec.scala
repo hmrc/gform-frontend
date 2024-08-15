@@ -318,7 +318,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_type=%7B%7BregisterType%7D%7D"
         )
         .willReturn(
           ok(companyActiveOfficersReturn.toString)
@@ -342,7 +342,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_type=%7B%7BregisterType%7D%7D"
         )
         .willReturn(
           notFound()
@@ -362,7 +362,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_type=%7B%7BregisterType%7D%7D"
         )
         .willReturn(
           serverError()
