@@ -112,8 +112,8 @@ class BankAccountReputationAsyncConnectorSpec
       None
     )
 
-    val dataRetrieveCompanyRegistrationNumber = DataRetrieve(
-      DataRetrieve.Type("companyRegistrationNumber"),
+    val dataRetrieveCompanyHouseProfile = DataRetrieve(
+      DataRetrieve.Type("companyHouseProfile"),
       DataRetrieveId("someId"),
       Attr.FromObject(
         List(
@@ -254,7 +254,7 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     val future = bankAccountReputationAsyncConnector.validateBankDetails(
-      dataRetrieveCompanyRegistrationNumber,
+      dataRetrieveCompanyHouseProfile,
       request
     )
 
