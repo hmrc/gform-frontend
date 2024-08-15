@@ -71,7 +71,7 @@
 }
 
 @displayAccountMenu = @{
-  maybeFormTemplate.flatMap(_.displayAccountHeader).getOrElse(false)
+  maybeFormTemplate.exists(_.displayAccountHeader)
 }
 
 @developmentPhase = @{

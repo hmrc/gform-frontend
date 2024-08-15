@@ -318,7 +318,7 @@ object FormTemplateBuilder {
     None,
     None,
     false,
-    None
+    false
   )
 
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =

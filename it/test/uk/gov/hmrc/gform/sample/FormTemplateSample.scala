@@ -162,7 +162,7 @@ trait FormTemplateSample {
     emailCodeParameters = None,
     dataRetrieve = None,
     accessiblePdf = false,
-    displayAccountHeader = None
+    displayAccountHeader = false
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
