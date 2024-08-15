@@ -28,6 +28,7 @@
 @import uk.gov.hmrc.hmrcfrontend.views.config.HmrcFooterItems
 @import uk.gov.hmrc.hmrcfrontend.views.Aliases.{UserResearchBanner, Header}
 @import views.html.helper.CSPNonce
+@import uk.gov.hmrc.gform.controllers.CookieNames
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.testOnlyAdditionalFooterItems
 @import uk.gov.hmrc.hmrcfrontend.config.TudorCrownConfig
@@ -103,6 +104,9 @@
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
     <script @{CSPNonce.attr} type="module" src='@routes.Assets.versioned("lib/govuk-frontend/dist/govuk/govuk-frontend.min.js")'></script>
+    @if(!appConfig.isProd && requestHeader.cookies.get(CookieNames.formBuilderCookieName).isDefined){
+       <script @{CSPNonce.attr} src='@routes.Assets.versioned("builder.js")'></script>
+    }
 
     <script @{CSPNonce.attr} type="module">
       import { initAll } from '@routes.Assets.versioned("lib/govuk-frontend/dist/govuk/govuk-frontend.min.js")'

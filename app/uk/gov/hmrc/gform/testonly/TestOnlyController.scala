@@ -36,7 +36,7 @@ import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, CookieNames }
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
@@ -207,7 +207,11 @@ class TestOnlyController(
 
   }
 
-  private def formTab(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): HtmlFormat.Appendable = {
+  private def formTab(
+    formTemplateId: FormTemplateId,
+    accessCode: Option[AccessCode],
+    isFormBuilderEnabled: Boolean
+  ): HtmlFormat.Appendable = {
     val returnToSummaryLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "Return to summary page",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId, accessCode)
@@ -233,8 +237,20 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(formTemplateId, accessCode, UserInputs())
     )
 
+    val toggleFormBuilder = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      if (isFormBuilderEnabled) "Disable form builder" else "Enable form builder",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.toggleFormBuilder(formTemplateId, accessCode)
+    )
+
     val links =
-      List(returnToSummaryLink, viewFormDataLink, viewSourceJsonTemplateLink, saveCurrentFormLink, restoreFormLink)
+      List(
+        returnToSummaryLink,
+        viewFormDataLink,
+        viewSourceJsonTemplateLink,
+        saveCurrentFormLink,
+        restoreFormLink,
+        toggleFormBuilder
+      )
 
     bulleted_list(links)
   }
@@ -439,6 +455,8 @@ class TestOnlyController(
     implicit request => implicit lang => cache => _ => formModelOptics =>
       import i18nSupport._
 
+      val isFormBuilderEnabled = request.cookies.get(CookieNames.formBuilderCookieName).isDefined
+
       val govukTabs = new GovukTabs()(
         Tabs(
           items = Seq(
@@ -446,7 +464,7 @@ class TestOnlyController(
               id = Some("form"),
               label = "Form",
               panel = TabPanel(
-                content = HtmlContent(formTab(formTemplateId, accessCode))
+                content = HtmlContent(formTab(formTemplateId, accessCode, isFormBuilderEnabled))
               )
             ),
             TabItem(
@@ -923,6 +941,20 @@ class TestOnlyController(
           )
         )
       }
+    }
+
+  private val enableFormBuilderCookie = Cookie(CookieNames.formBuilderCookieName, "enabled", secure = true)
+  private val discardFormBuilderCookie = DiscardingCookie(CookieNames.formBuilderCookieName)
+
+  def toggleFormBuilder(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
+    controllerComponents.actionBuilder.async { request =>
+      val redirect =
+        Redirect(uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handleToolbox(formTemplateId, maybeAccessCode))
+      val result = request.cookies.get(CookieNames.formBuilderCookieName) match {
+        case None    => redirect.withCookies(enableFormBuilderCookie)
+        case Some(_) => redirect.discardingCookies(discardFormBuilderCookie)
+      }
+      Future.successful(result)
     }
 
   def getSnapshots(

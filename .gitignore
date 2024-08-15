@@ -2,6 +2,7 @@
 
 !.gitignore
 !.scalafmt.conf
+!.justfile
 
 .cache
 /.classpath
@@ -35,3 +36,4 @@ tmp
 .idea_modules
 bin
 project/metals.sbt
+/builder/node_modules
