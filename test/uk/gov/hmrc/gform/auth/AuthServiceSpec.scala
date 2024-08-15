@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.auth
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core.{ Assistant, ConfidenceLevel, CredentialRole, Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
 import Function.const
-import uk.gov.hmrc.auth.core.ConfidenceLevel
 
 class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChecks {
 
@@ -62,7 +61,11 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
 
   val getGovernmentGatewayId: Unit => Future[Option[GovernmentGatewayId]] = const(Future.successful(None))
 
-  private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
+  private def materialisedRetrievalsBuilder(
+    affinityGroup: AffinityGroup,
+    enrolments: Enrolments,
+    credentialRole: Option[CredentialRole]
+  ) =
     AuthenticatedRetrievals(
       governmentGatewayId,
       enrolments,
@@ -71,7 +74,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       None,
       OtherRetrievals.empty,
       ConfidenceLevel.L50,
-      None
+      credentialRole
     )
 
   val materialisedRetrievalsOfsted =
@@ -87,19 +90,20 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     )
 
   val materialisedRetrievalsAgent =
-    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Agent, enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Agent, enrolments, None)
 
   val materialisedRetrievalsEnrolledAgent =
     materialisedRetrievalsBuilder(
       uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Agent,
-      Enrolments(Set(Enrolment("HMRC-AS-AGENT")))
+      Enrolments(Set(Enrolment("HMRC-AS-AGENT"))),
+      None
     )
 
   val materialisedRetrievalsOrganisation =
-    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation, enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation, enrolments, None)
 
   val materialisedRetrievalsIndividual =
-    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual, enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual, enrolments, None)
 
   val materialisedRetrievalsEnrolment =
     materialisedRetrievalsBuilder(
@@ -110,7 +114,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
             identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890"))
           )
         )
-      )
+      ),
+      None
     )
 
   //TODO: add support to materialisedRetrievalsBuilder to supply a credential Role to the AuthenticatedRetrievals init
@@ -125,7 +130,21 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
             identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890"))
           )
         )
-      )
+      ),
+      Some(Assistant)
+    )
+
+  val materialisedRetrievalsNoEnrolmentOrgAssistant =
+    materialisedRetrievalsBuilder(
+      uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation,
+      Enrolments(
+        Set(
+          Enrolment("HMRC-ORG-OBTDS").copy(
+            identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12NO567890"))
+          )
+        )
+      ),
+      Some(Assistant)
     )
 
   //val requestUri = "/submissions/test"
@@ -140,6 +159,12 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val ggAuthorisedSuccessfulEnrolledAgent = factory(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
   val ggAuthorisedRedirect = factory(AuthRedirect(""))
   val ggAuthorisedEnrolment = factory(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
+  val ggAuthorisedEnrolmentAssistant = factory(
+    AuthSuccessful(materialisedRetrievalsEnrolmentOrgAssistant, Role.Customer)
+  )
+  val ggAuthorisedNoEnrolmentAssistant = factory(
+    AuthSuccessful(materialisedRetrievalsNoEnrolmentOrgAssistant, Role.Customer)
+  )
 
   val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck), enrolmentOutcomes)
   val enrolmentAuthCheck =
@@ -277,6 +302,32 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
           None
         )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
+  }
+
+  it should "authorise a gg authentication with enrolment and Assistant Credential role" in {
+    val result =
+      authService
+        .authenticateAndAuthorise(
+          FormTemplateContext.basicContext(formTemplateEnrolment, None),
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedEnrolmentAssistant,
+          None
+        )
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolmentOrgAssistant, Role.Customer))
+  }
+
+  it should "block a gg authentication with no enrolment and Assistant Credential role" in {
+    val result =
+      authService
+        .authenticateAndAuthorise(
+          FormTemplateContext.basicContext(formTemplateEnrolment, None),
+          getAffinityGroup,
+          getGovernmentGatewayId,
+          ggAuthorisedNoEnrolmentAssistant,
+          None
+        )
+    result.futureValue should be(AuthBlocked("Enrolment for regimeId: AB required."))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
