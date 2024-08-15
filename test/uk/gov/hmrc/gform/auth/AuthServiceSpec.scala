@@ -113,6 +113,21 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       )
     )
 
+  //TODO: add support to materialisedRetrievalsBuilder to supply a credential Role to the AuthenticatedRetrievals init
+  //TODO: Make some different AuthenticatedRetrievals for the test cases needed for the new functionality
+  //TODO: Create all the newly required objects and write some tests.
+  val materialisedRetrievalsEnrolmentOrgAssistant =
+    materialisedRetrievalsBuilder(
+      uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation,
+      Enrolments(
+        Set(
+          Enrolment("HMRC-ORG-OBTDS").copy(
+            identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890"))
+          )
+        )
+      )
+    )
+
   //val requestUri = "/submissions/test"
 
   private def factory[A](a: A): PartialFunction[Throwable, AuthResult] => Predicate => Future[A] =

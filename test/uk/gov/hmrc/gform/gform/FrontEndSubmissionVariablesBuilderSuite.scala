@@ -76,7 +76,8 @@ class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSup
   test("FrontEndSubmissionVariablesBuilder with AuthenticatedRetrievals should construct the correct JSON object") {
 
     val enrolmentOutcome = EnrolmentOutcome(toSmartString("title"), toSmartString("content"))
-    val enrolmentOutcomes = EnrolmentOutcomes(enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome)
+    val enrolmentOutcomes =
+      EnrolmentOutcomes(enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome)
     val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never, enrolmentOutcomes)
     val enrolmentIdentifierValue = "SA value"
     val irSaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", enrolmentIdentifierValue)))

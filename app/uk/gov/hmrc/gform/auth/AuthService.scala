@@ -260,6 +260,9 @@ class AuthService(
         }
 
         val showEnrolment = AuthRedirect(gform.routes.EnrolmentController.showEnrolment(formTemplate._id).url)
+        val showInsufficientCredentials = AuthRedirect(
+          gform.routes.EnrolmentController.insufficientCredentialsPage(formTemplate._id).url
+        )
 
         val recoverPF = needEnrolment match {
           case RequireEnrolment(enrolmentSection, _) => RecoverAuthResult.redirectToEnrolmentSection(showEnrolment)
@@ -281,7 +284,12 @@ class AuthService(
                               if (isRegimeIdEnrolled) authResult
                               else
                                 needEnrolment match {
-                                  case RequireEnrolment(_, _) => showEnrolment
+                                  case RequireEnrolment(_, _) =>
+                                    if (retrievals.credentialRole.get == Assistant) {
+                                      showInsufficientCredentials
+                                    } else {
+                                      showEnrolment
+                                    }
                                   case RejectAccess =>
                                     AuthBlocked(s"Enrolment for regimeId: ${regimeId.value} required.")
                                 }
