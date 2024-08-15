@@ -170,7 +170,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val enrolmentAuthCheck =
     EnrolmentAuth(
       ServiceId("HMRC-ORG-OBTDS"),
-      DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))),
+      DoCheck(Always, RequireEnrolment(enrolmentSection, NoAction), RegimeIdCheck(RegimeId("AB"))),
       enrolmentOutcomes
     )
 
@@ -184,7 +184,9 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   val formTemplateRequireMTDAgentEnrolment = buildFormTemplate.copy(authConfig = authConfigRequireMTDAgentEnrolment)
 
   val authConfigEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthCheck)
+  val authConfigEnrolmentOrg = HmrcEnrolmentModule(enrolmentAuthCheck)
   val formTemplateEnrolment = buildFormTemplate.copy(authConfig = authConfigEnrolment)
+  val formTemplateEnrolmentOrg = buildFormTemplate.copy(authConfig = authConfigEnrolmentOrg)
 
   val authAWSALB: AuthConfig = AWSALBAuth
   val formTemplateAWSALB = buildFormTemplate.copy(authConfig = authAWSALB)
@@ -308,7 +310,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService
         .authenticateAndAuthorise(
-          FormTemplateContext.basicContext(formTemplateEnrolment, None),
+          FormTemplateContext.basicContext(formTemplateEnrolmentOrg, None),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedEnrolmentAssistant,
@@ -317,17 +319,17 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolmentOrgAssistant, Role.Customer))
   }
 
-  it should "block a gg authentication with no enrolment and Assistant Credential role" in {
+  it should "Redirect a gg authentication with Assistant Credential role with no enrolment to insuf creds to enrol page" in {
     val result =
       authService
         .authenticateAndAuthorise(
-          FormTemplateContext.basicContext(formTemplateEnrolment, None),
+          FormTemplateContext.basicContext(formTemplateEnrolmentOrg, None),
           getAffinityGroup,
           getGovernmentGatewayId,
           ggAuthorisedNoEnrolmentAssistant,
           None
         )
-    result.futureValue should be(AuthBlocked("Enrolment for regimeId: AB required."))
+    result.futureValue should be(AuthRedirect("/enrolment-page/insufficient-credentials/aaa999"))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
