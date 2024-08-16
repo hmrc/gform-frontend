@@ -8,19 +8,13 @@ import com.typesafe.sbt.packager.Keys.dist
 object ParcelBuild {
   val parcelBuild = TaskKey[Int]("parcel-build")
 
-  private def runOperation(operation: String, result: Int): Int = {
-    if (result != 0) {
-      throw new Exception(s"$operation failed with result $result")
-    }
-    result
-  }
-
   val parcelBundleSetting: Seq[sbt.Def.Setting[_]] = Seq(
-    parcelBuild :=
-      runOperation(
-        "npx parcel build",
-        Process("npx parcel build", (Compile / baseDirectory).value / "builder").run().exitValue()
-      ),
+    parcelBuild := {
+      Process("npm install --no-save", (Compile / baseDirectory).value / "builder") #&& Process(
+        "npm run build",
+        (Compile / baseDirectory).value / "builder"
+      ) !
+    },
     dist := { dist dependsOn parcelBuild }.value
   )
 }
