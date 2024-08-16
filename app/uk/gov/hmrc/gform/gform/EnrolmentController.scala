@@ -186,7 +186,7 @@ class EnrolmentController(
 
   def insufficientCredentialsPage(formTemplateId: FormTemplateId) =
     withEnrolmentSection(formTemplateId)(formTemplate =>
-      enrolmentSection =>
+      _ =>
         enrolmentOutcomes =>
           implicit sse =>
             implicit request =>
