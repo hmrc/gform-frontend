@@ -95,15 +95,17 @@ class FormTemplateExtractController(
       .fold { classic =>
         val sectionFieldCount = classic.sections
           .flatMap(
-            _.fold(page => page.page.fields)(page => page.page.fields)(page => page.pages.toList.flatMap(_.fields))
-              .filterNot(ignoredComponent)
+            _.fold(page => page.page.allFieldsNested)(page => page.page.allFieldsNested)(page =>
+              page.pages.toList.flatMap(_.allFieldsNested)
+            )
           )
+          .filterNot(ignoredComponent)
           .size
 
         classic.sections.flatMap { section =>
           section.fold { nonRepeatingPage =>
             val page = nonRepeatingPage.page
-            val allFields = page.allFields.filterNot(ignoredComponent)
+            val allFields = page.allFieldsNested.filterNot(ignoredComponent)
             val pageFieldCount = allFields.size
             allFields.map { field =>
               FormTemplateDetail(
@@ -121,7 +123,7 @@ class FormTemplateExtractController(
             }
           } { repeatingPage =>
             val page = repeatingPage.page
-            val allFields = page.allFields.filterNot(ignoredComponent)
+            val allFields = page.allFieldsNested.filterNot(ignoredComponent)
             val pageFieldCount = allFields.size
             allFields.map(field =>
               FormTemplateDetail(
@@ -139,7 +141,7 @@ class FormTemplateExtractController(
             )
           } { atl =>
             atl.pages.toList.flatMap { page =>
-              val allFields = page.allFields.filterNot(ignoredComponent)
+              val allFields = page.allFieldsNested.filterNot(ignoredComponent)
               val pageFieldCount = allFields.size
               allFields
                 .map(field =>
@@ -166,23 +168,26 @@ class FormTemplateExtractController(
             .flatMap(
               _.sections.toList
                 .flatMap(
-                  _.fold(page => page.page.fields)(page => page.page.fields)(page =>
-                    page.pages.toList.flatMap(_.fields)
-                  ).filterNot(ignoredComponent)
+                  _.fold(page => page.page.allFieldsNested)(page => page.page.allFieldsNested)(page =>
+                    page.pages.toList.flatMap(_.allFieldsNested)
+                  )
                 )
+                .filterNot(ignoredComponent)
             )
             .size
           taskSection.tasks.toList.flatMap { task =>
             val taskFieldCount = task.sections.toList
               .flatMap(
-                _.fold(page => page.page.fields)(page => page.page.fields)(page => page.pages.toList.flatMap(_.fields))
-                  .filterNot(ignoredComponent)
+                _.fold(page => page.page.allFieldsNested)(page => page.page.allFieldsNested)(page =>
+                  page.pages.toList.flatMap(_.allFieldsNested)
+                )
               )
+              .filterNot(ignoredComponent)
               .size
             task.sections.toList.flatMap { section =>
               section.fold { nonRepeatingPage =>
                 val page = nonRepeatingPage.page
-                val allFields = page.allFields.filterNot(ignoredComponent)
+                val allFields = page.allFieldsNested.filterNot(ignoredComponent)
                 val pageFieldCount = allFields.size
                 allFields.map { field =>
                   FormTemplateDetail(
@@ -200,7 +205,7 @@ class FormTemplateExtractController(
                 }
               } { repeatingPage =>
                 val page = repeatingPage.page
-                val allFields = page.allFields.filterNot(ignoredComponent)
+                val allFields = page.allFieldsNested.filterNot(ignoredComponent)
                 val pageFieldCount = allFields.size
                 allFields.map(field =>
                   FormTemplateDetail(
@@ -218,7 +223,7 @@ class FormTemplateExtractController(
                 )
               } { atl =>
                 atl.pages.toList.flatMap { page =>
-                  val allFields = page.allFields.filterNot(ignoredComponent)
+                  val allFields = page.allFieldsNested.filterNot(ignoredComponent)
                   val pageFieldCount = allFields.size
                   allFields
                     .map(field =>
