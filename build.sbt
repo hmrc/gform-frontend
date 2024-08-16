@@ -27,7 +27,9 @@ lazy val microservice = (project in file("."))
     organization := "uk.gov.hmrc",
     name := "gform-frontend",
     PlayKeys.playDefaultPort := 9195,
+    PlayKeys.playRunHooks += Parcel(baseDirectory.value),
     DefaultBuildSettings.scalaSettings,
+    ParcelBuild.parcelBundleSetting,
     DefaultBuildSettings.defaultSettings(),
     scalafmtOnCompile := true,
     Test / testOptions := (Test / testOptions).value
@@ -79,8 +81,11 @@ lazy val microservice = (project in file("."))
       "-Wconf:src=twirl/.*:silent,src=routes/.*:silent",
       "-Wconf:cat=lint-multiarg-infix:silent"
     ),
+    uglifyOps := UglifyOps.singleFile,
+    uglify / excludeFilter ~= { _ || "builder.js" },
     pipelineStages := Seq(digest),
     Assets / pipelineStages := Seq(concat, uglify),
+    Assets / unmanagedResourceDirectories += baseDirectory.value / "builder" / "dist",
     uglifyCompressOptions := Seq("warnings=false")
   )
   .settings(

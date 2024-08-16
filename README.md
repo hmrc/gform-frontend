@@ -3,23 +3,23 @@
 [![Build Status](https://travis-ci.org/hmrc/gform-frontend.svg)](https://travis-ci.org/hmrc/gform-frontend) [ ![Download](https://api.bintray.com/packages/hmrc/releases/gform-frontend/images/download.svg) ](https://bintray.com/hmrc/releases/gform-frontend/_latestVersion)
 
 Gform is a SaaS for authoring and running form submission journeys.
- 
-This frontend presents those forms based on templates fetched from the backend.  It handles any authorisation using 
+
+This frontend presents those forms based on templates fetched from the backend.  It handles any authorisation using
 either eeitt authorisation or government gateway, when required it can also manage enrolment for government gateway.
 Data values entered on the forms are persisted by the backend and ultimately submitted to DMS by the backend.
 
 ### Running Gform Locally with Service Manager
 
-When running locally: 
- 
-    sm --start GFORM_DEP -f
-    
-runs all dependent services of gform. 
+When running locally:
 
-when using gform: 
-    
+    sm --start GFORM_DEP -f
+
+runs all dependent services of gform.
+
+when using gform:
+
     sm --start GFORM_ALL -f
-    
+
 run dependencies and gform.
 
 ### Enter a form
@@ -28,7 +28,7 @@ To try entering a form locally, with sample data in the gform backend and using 
 
 [(http://localhost:9949/auth-login-stub/gg-sign-in?continue=http://localhost:9195/submissions/new-form/aaa999)](http://localhost:9949/auth-login-stub/gg-sign-in?continue=http://localhost:9195/submissions/new-form/aaa999)
 
-to use this form you will have to upload a template see below. 
+to use this form you will have to upload a template see below.
 
 ### Uploading sample data
 
@@ -37,18 +37,18 @@ Note you need to be in the gform project.
 
     curl http://localhost:9196/gform/formtemplates -H "Content-Type: application/json" -d '@sample-data/template-aaa999.json'
 
-this template is in json and has several required fields. 
+this template is in json and has several required fields.
 
-Upload eeitt test data for legacy eeitt auth if assigned in template: 
-    
+Upload eeitt test data for legacy eeitt auth if assigned in template:
+
     curl --data-binary '@sample-data/EEITTTestUsers.txt' http://localhost:9191/eeitt/etmp-data/live/business-users
-        
+
  the backend can be accessed through the frontend proxy, to try this locally:
 
     curl -s http://localhost:9195/submissions/test-only/proxy-to-gform/gform/formtemplates -H "Content-Type: application/json" -H "X-requested-with: foo" -d '@sample-data/template-aaa999.json'
-    
+
     you can proxy to any backend call. only when test only routes are enabled.
-    
+
 (Note that you will need to have configured your local gform-frontend for test only routes and CSRF bypass, as in for example app-config-dev
 
 
@@ -63,13 +63,20 @@ Upload eeitt test data for legacy eeitt auth if assigned in template:
 6. Once you can see your new form is working you can refer to the specification and re-post updates to your form JSON to tailor your test form to your requirements.  Most types of updates are applied instantly to journeys in-progress but some will require you to re-start the journey.  If you make any mistakes you will get a 400 Bad Request with details of the error in the body.
   You may want to consider using an online JSON editor like https://jsonblob.com/, https://jsoneditoronline.org/ or an editor like https://atom.io/ to simplify authoring your JSON form definitions and copy/paste to postman to apply changes. You can get a feel for the gform template JSON structure by referring to the specification and [current examples](https://github.com/hmrc/gform-templates).
 
+## Development
 
-### Using legacy-eeitt-auth?
-> If you are working on an EEITT form and using { "authModule": "legacyEEITTAuth" }
-> then you will be prompted to login with an enrolled reference number and postcode.
-> Pick a test user to use for the correct regime (note 3rd and 4th characters of the ID)
-> from the list of test users at https://github.com/hmrc/gform/blob/master/sample-data/EEITTTestUsers.txt.
+### Running on Apple Silicon
 
+Error: `node_modules/term-size/vendor/macos/term-size: Bad CPU type in executable`
+
+Parcel depends on https://www.npmjs.com/package/term-size (see `npm ls -a`) which itself depends on binary called `term-size`
+
+On mac os `term-size` binary (dependency of Parcel) does not support Apple Silicon.
+
+It is possible to build a native binary via:
+https://github.com/sindresorhus/macos-term-size
+
+And replace the one in `node_modules/term-size/vendor/macos/term-size`
 
 ### License
 
