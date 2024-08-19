@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.gform.api
 
+import cats.implicits.catsSyntaxEq
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.http.Status
+import play.api.libs.json.{ JsError, JsNumber, JsObject, JsResult, JsSuccess, JsValue, Json }
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -43,8 +45,7 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
 
   private val profileUrlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}"
   private val profileIdentifier = "company profile"
-  private val officersUrlWithPlaceholders =
-    s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}/officers?register_view=true&register_type={{registerType}}"
+  private val officersUrlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}/officers"
   private val officersIdentifier = "company officers"
 
   override def companyProfile(
@@ -94,8 +95,7 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
       .map { httpResponse =>
         httpResponse.status match {
           case Status.OK =>
-            dataRetrieve
-              .processResponse(httpResponse.json)
+            processOfficersResponse(httpResponse.json)
               .fold(
                 invalid => {
                   logger.error(
@@ -103,10 +103,21 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
                   )
                   CannotRetrieveResponse
                 },
-                valid => {
-                  logger.info(s"Calling $officersIdentifier returned Success.")
-                  ServiceResponse(valid)
-                }
+                validResponse =>
+                  dataRetrieve
+                    .processResponse(validResponse)
+                    .fold(
+                      invalid => {
+                        logger.error(
+                          s"Calling internal $officersIdentifier returned successfully, but marshalling of data failed with: $invalid"
+                        )
+                        CannotRetrieveResponse
+                      },
+                      valid => {
+                        logger.info(s"Calling $officersIdentifier returned Success.")
+                        ServiceResponse(valid)
+                      }
+                    )
               )
           case Status.NOT_FOUND =>
             logger.info(s"Calling $officersIdentifier returned successfully, but no company was found: $httpResponse")
@@ -121,4 +132,22 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
         CannotRetrieveResponse
       }
   }
+
+  private def processOfficersResponse(json: JsValue): JsResult[JsObject] =
+    json.validate[Officers] match {
+      case JsSuccess(officers, _) =>
+        val activeOfficers = officers.items.filterNot(_.resignedOn.nonEmpty)
+        val activeDirectors = activeOfficers.count(_.officerRole === "director")
+        val activeSecretaries = activeOfficers.count(_.officerRole === "secretary")
+        val activeLlpMembers = activeOfficers.count(_.officerRole === "llp-member")
+        val result = Json.obj(
+          "active_directors"   -> JsNumber(activeDirectors),
+          "active_secretaries" -> JsNumber(activeSecretaries),
+          "active_llp_members" -> JsNumber(activeLlpMembers)
+        )
+
+        JsSuccess(result)
+      case unexpected => JsError(s"Expected array response for $unexpected")
+    }
+
 }
