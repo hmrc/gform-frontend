@@ -119,12 +119,24 @@ class CompanyInformationConnectorSpec
       Attr.FromObject(
         List(
           AttributeInstruction(
-            Attribute("activeCount"),
-            ConstructAttribute.AsIs(Fetch(List("active_count")))
+            DataRetrieve.Attribute("activeDirectors"),
+            ConstructAttribute.AsIs(Fetch(List("active_directors")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("activeSecretaries"),
+            ConstructAttribute.AsIs(Fetch(List("active_secretaries")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("activeLlpMembers"),
+            ConstructAttribute.AsIs(Fetch(List("active_llp_members")))
           )
         )
       ),
-      Map(DataRetrieve.Attribute("activeCount") -> DataRetrieve.AttrType.Integer),
+      Map(
+        DataRetrieve.Attribute("activeDirectors")   -> DataRetrieve.AttrType.Integer,
+        DataRetrieve.Attribute("activeSecretaries") -> DataRetrieve.AttrType.Integer,
+        DataRetrieve.Attribute("activeLlpMembers")  -> DataRetrieve.AttrType.Integer
+      ),
       List.empty[DataRetrieve.ParamExpr],
       None
     )
@@ -311,14 +323,39 @@ class CompanyInformationConnectorSpec
 
   "companyHouseActiveOfficers" should "call the companies house api proxy endpoint and return valid company active officers when valid data is received from the API" in new TestFixture {
     val companyActiveOfficersReturn: JsValue = Json.parse("""{
-                                                            |    "active_count": 3
+                                                            |   "items": [
+                                                            |       {
+                                                            |           "officer_role": "director"
+                                                            |       },
+                                                            |       {
+                                                            |           "officer_role": "director"
+                                                            |       },
+                                                            |       {
+                                                            |           "officer_role": "director",
+                                                            |           "resigned_on": "01-01-2000"
+                                                            |       },
+                                                            |       {
+                                                            |           "officer_role": "secretary",
+                                                            |           "resigned_on": "01-01-2000"
+                                                            |       },
+                                                            |       {
+                                                            |           "officer_role": "secretary"
+                                                            |       },
+                                                            |       {
+                                                            |           "officer_role": "secretary",
+                                                            |           "resigned_on": "01-01-2000"
+                                                            |       },
+                                                            |       {
+                                                            |           "officer_role": "llp-member"
+                                                            |       }
+                                                            |   ]
                                                             |}
                                                             |""".stripMargin)
 
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers"
         )
         .willReturn(
           ok(companyActiveOfficersReturn.toString)
@@ -331,7 +368,9 @@ class CompanyInformationConnectorSpec
       response shouldBe ServiceResponse(
         DataRetrieve.Response.Object(
           Map(
-            Attribute("activeCount") -> "3"
+            Attribute("activeDirectors")   -> "2",
+            Attribute("activeSecretaries") -> "1",
+            Attribute("activeLlpMembers")  -> "1"
           )
         )
       )
@@ -342,7 +381,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers"
         )
         .willReturn(
           notFound()
@@ -362,7 +401,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers?register_view=true&register_type=%7B%7BregisterType%7D%7D"
+          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers"
         )
         .willReturn(
           serverError()
