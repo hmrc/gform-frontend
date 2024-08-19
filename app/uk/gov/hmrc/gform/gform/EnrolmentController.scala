@@ -52,7 +52,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
-import uk.gov.hmrc.gform.views.hardcoded.{ EnrolmentAlreadyLinkedPage, InsufficientCredentialsPage }
+import uk.gov.hmrc.gform.views.hardcoded.EnrolmentBlockedPage
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
@@ -171,7 +171,7 @@ class EnrolmentController(
                 val table = new GovukTable()(
                   paramsTable(params, enrolmentSection)
                 )
-                val enrolmentAlreadyLinkedPage = new EnrolmentAlreadyLinkedPage(formTemplate, changeOrSignoutChoice)
+                val enrolmentAlreadyLinkedPage = new EnrolmentBlockedPage(formTemplate, changeOrSignoutChoice)
                 Ok(
                   enrolment_already_linked_page(
                     enrolmentAlreadyLinkedPage,
@@ -191,7 +191,7 @@ class EnrolmentController(
           implicit sse =>
             implicit request =>
               implicit l => {
-                val insufficientCredentialsPage = new InsufficientCredentialsPage(formTemplate, changeOrSignoutChoice)
+                val insufficientCredentialsPage = new EnrolmentBlockedPage(formTemplate, changeOrSignoutChoice)
                 Ok(
                   insufficient_credentials_page(
                     insufficientCredentialsPage,
@@ -264,7 +264,7 @@ class EnrolmentController(
                   .bindFromRequest()
                   .fold(
                     errorForm => {
-                      val enrolmentAlreadyLinkedPage = new EnrolmentAlreadyLinkedPage(formTemplate, errorForm)
+                      val enrolmentAlreadyLinkedPage = new EnrolmentBlockedPage(formTemplate, errorForm)
                       BadRequest(
                         enrolment_already_linked_page(
                           enrolmentAlreadyLinkedPage,
@@ -275,23 +275,14 @@ class EnrolmentController(
                         )
                       )
                     },
-                    {
-                      case "change-gg-account" =>
-                        Redirect(
-                          uk.gov.hmrc.gform.gform.routes.NewFormController.dashboardWithNewSession(formTemplate._id)
-                        )
-                      case "sign-out" =>
-                        Redirect(uk.gov.hmrc.gform.gform.routes.SignOutController.signOut(formTemplate._id))
-                      case unknown =>
-                        throw new Exception(s"Unexpected value of linked account parameter: '$unknown'")
-                    }
+                    successFormAction => handleChangeOrSignoutSuccess(successFormAction, formTemplate)
                   )
               }
     )
 
-  def inSufficientCredentialsPageSubmit(formTemplateId: FormTemplateId) =
+  def insufficientCredentialsPageSubmit(formTemplateId: FormTemplateId) =
     withEnrolmentSection(formTemplateId)(formTemplate =>
-      enrolmentSection =>
+      _ =>
         enrolmentOutcomes =>
           implicit sse =>
             implicit request =>
@@ -300,7 +291,7 @@ class EnrolmentController(
                   .bindFromRequest()
                   .fold(
                     errorForm => {
-                      val insufficientCredentialsPage = new InsufficientCredentialsPage(formTemplate, errorForm)
+                      val insufficientCredentialsPage = new EnrolmentBlockedPage(formTemplate, errorForm)
                       BadRequest(
                         insufficient_credentials_page(
                           insufficientCredentialsPage,
@@ -309,18 +300,21 @@ class EnrolmentController(
                         )
                       )
                     },
-                    {
-                      case "change-gg-account" =>
-                        Redirect(
-                          uk.gov.hmrc.gform.gform.routes.NewFormController.dashboardWithNewSession(formTemplate._id)
-                        )
-                      case "sign-out" =>
-                        Redirect(uk.gov.hmrc.gform.gform.routes.SignOutController.signOut(formTemplate._id))
-                      case unknown =>
-                        throw new Exception(s"Unexpected value of linked account parameter: '$unknown'")
-                    }
+                    successFormAction => handleChangeOrSignoutSuccess(successFormAction, formTemplate)
                   )
     )
+
+  private def handleChangeOrSignoutSuccess(formAction: String, formTemplate: FormTemplate) =
+    formAction match {
+      case "change-gg-account" =>
+        Redirect(
+          uk.gov.hmrc.gform.gform.routes.NewFormController.dashboardWithNewSession(formTemplate._id)
+        )
+      case "sign-out" =>
+        Redirect(uk.gov.hmrc.gform.gform.routes.SignOutController.signOut(formTemplate._id))
+      case unknown =>
+        throw new Exception(s"Unexpected value of linked account parameter: '$unknown'")
+    }
 
   private def paramsTable(params: String, enrolmentSection: EnrolmentSection)(implicit
     sse: SmartStringEvaluator
@@ -368,9 +362,8 @@ class EnrolmentController(
 
   def showEnrolment(formTemplateId: FormTemplateId) =
     auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
-      if (cache.retrievals.getCredentialRole.get == Assistant) {
+      if (cache.retrievals.getCredentialRole.contains(Assistant)) {
         Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.insufficientCredentialsPage(formTemplateId))
-          .flashing("formTitle" -> cache.formTemplate.formName.value)
           .pure[Future]
       } else {
         cache.formTemplate.authConfig match {

@@ -245,8 +245,8 @@ enrolment.content.try.again=Try again using different details
 enrolment.content.not.matched.contact=If this problem continues, you can <a class="govuk-link" href="/submissions/help-with-registration/{0}">contact HMRC to get help (opens in new tab).</a>
 enrolment.content.what.now=What do you want to do now?
 enrolment.content.already.linked.contact=If you need help with an account you <a class="govuk-link" href="/submissions/help-with-registration/{0}">can contact HMRC (opens in new tab).</a>
-enrolment.content.already.linked.sign.in=Sign in with a different Government Gateway account
-enrolment.content.already.linked.sign.out=Sign out of this service
+enrolment.content.blocked.sign.in=Sign in with a different Government Gateway account
+enrolment.content.blocked.sign.out=Sign out of this service
 enrolment.change.or.sign.out.error.required=Select what you want to do now
 enrolment.content.try.again.button=Try again
 

@@ -314,7 +314,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolmentOrgAssistant, Role.Customer))
   }
 
-  it should "Redirect a gg authentication with Assistant Credential role with no enrolment to insuf creds to enrol page" in {
+  it should "Redirect a gg authentication with Assistant Credential role with no enrolment to insuf creds to enrol page via /enrolment" in {
     val result =
       authService
         .authenticateAndAuthorise(
@@ -324,7 +324,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
           ggAuthorisedNoEnrolmentAssistant,
           None
         )
-    result.futureValue should be(AuthRedirect("/enrolment-page/insufficient-credentials/aaa999"))
+    result.futureValue should be(AuthRedirect("/enrolment/aaa999"))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {

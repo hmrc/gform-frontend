@@ -18,11 +18,11 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{EnrolmentOutcome, FormTemplate}
-@import uk.gov.hmrc.gform.views.hardcoded.EnrolmentAlreadyLinkedPage
+@import uk.gov.hmrc.gform.views.hardcoded.EnrolmentBlockedPage
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 
 @(
-  enrolmentAlreadyLinkedPage: EnrolmentAlreadyLinkedPage,
+  enrolmentAlreadyLinkedPage: EnrolmentBlockedPage,
   enrolmentOutcome: EnrolmentOutcome,
   table: Html,
   frontendAppConfig: FrontendAppConfig,
