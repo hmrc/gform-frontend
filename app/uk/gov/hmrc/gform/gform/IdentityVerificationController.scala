@@ -41,9 +41,6 @@ class IdentityVerificationController(
 
   def failure(formTemplateId: FormTemplateId): Action[AnyContent] = pageWithContent(_.ivFailure)(formTemplateId)
 
-  def enrolmentsNeeded(formTemplateId: FormTemplateId): Action[AnyContent] =
-    pageWithContent(_.notAllowedIn)(formTemplateId)
-
   private def pageWithContent(f: HmrcVerified => LocalisedString)(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.asyncNoAuth(formTemplateId) { implicit request => implicit l => formTemplate =>
       import i18nSupport._

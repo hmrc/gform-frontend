@@ -151,15 +151,15 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
 
   val authConfigHmrcVerifiedMTDAgent = HmrcVerified(
     LocalisedString(Map(LangADT.En -> "test")),
-    LocalisedString(Map(LangADT.En -> "test")),
     RequireMTDAgentEnrolment,
-    "200"
+    "200",
+    true
   )
   val authConfigHmrcVerifiedAnyAgent = HmrcVerified(
     LocalisedString(Map(LangADT.En -> "test")),
-    LocalisedString(Map(LangADT.En -> "test")),
     AllowAnyAgentAffinityUser,
-    "200"
+    "200",
+    true
   )
 
   val authService = new AuthService(appConfig)
