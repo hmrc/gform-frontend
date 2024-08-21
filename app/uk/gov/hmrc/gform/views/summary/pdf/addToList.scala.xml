@@ -9,13 +9,15 @@
               font-family="arial-bold"
               font-weight="bold"
               line-height="16pt"
-              padding-bottom="2mm"
               border-after-style="solid"
+              padding-after="0.1cm"
               border-color="#D3D3D3"
-              linefeed-treatment="preserve">
+              linefeed-treatment="treat-as-space">
         @title
     </fo:block>
-    <fo:list-block start-indent="1mm" provisional-distance-between-starts="8cm">
+    <fo:list-block start-indent="1mm"
+                   provisional-distance-between-starts="8cm"
+                   provisional-label-separation="1cm">
         @listItem(summaryTitle, summaryValue)
     </fo:list-block>
     @pageGroups.map { pageGroup =>
@@ -43,7 +45,9 @@
                         } else {
                             <fo:block> </fo:block>
                         }
-                        <fo:list-block start-indent="1mm" provisional-distance-between-starts="8cm">
+                        <fo:list-block start-indent="1mm"
+                                       provisional-distance-between-starts="8cm"
+                                       provisional-label-separation="1cm">
                             @page.fields.map { field =>
                                 @{SummaryRenderingService.renderPageField(field)}
                             }

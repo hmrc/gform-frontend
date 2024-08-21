@@ -4,11 +4,11 @@
 <fo:inline>
     <fo:list-block role="L">
         @values.map{ value =>
-        <fo:list-item font-size="11pt"
-
-                      padding-after="0.5cm" role="LI">
+        <fo:list-item role="LI"
+                      font-size="11pt"
+                      padding-after="0.5cm">
             <fo:list-item-label role="Lbl"
-                                start-indent="1mm"
+                                start-indent="0.1mm"
                                 end-indent="label-end()">
                 <fo:block font-family="arial-bold"
                           font-weight="bold"
