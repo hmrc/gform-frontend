@@ -281,7 +281,8 @@ class AuthService(
                               if (isRegimeIdEnrolled) authResult
                               else
                                 needEnrolment match {
-                                  case RequireEnrolment(_, _) => showEnrolment
+                                  case RequireEnrolment(_, _) =>
+                                    showEnrolment
                                   case RejectAccess =>
                                     AuthBlocked(s"Enrolment for regimeId: ${regimeId.value} required.")
                                 }

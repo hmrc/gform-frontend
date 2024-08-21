@@ -227,7 +227,8 @@ trait ExampleAuthConfig {
   )
 
   val enrolmentOutcome = EnrolmentOutcome(toSmartString("title"), toSmartString("content"))
-  val enrolmentOutcomes = EnrolmentOutcomes(enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome)
+  val enrolmentOutcomes =
+    EnrolmentOutcomes(enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome, enrolmentOutcome)
 
   def authConfig =
     HmrcAgentWithEnrolmentModule(

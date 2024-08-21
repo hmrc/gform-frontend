@@ -247,8 +247,8 @@ enrolment.content.try.again=Rhowch gynnig arall arni gan ddefnyddio manylion gwa
 enrolment.content.not.matched.contact=Os bydd y broblem hon yn parhau, gallwch <a class="govuk-link" href="/submissions/help-with-registration/{0}">gysylltu â CThEF i gael help (yn agor tab newydd).</a>
 enrolment.content.what.now=Beth hoffech ei wneud nawr?
 enrolment.content.already.linked.contact=Os oes angen help arnoch gyda chyfrif, gallwch <a class="govuk-link" href="/submissions/help-with-registration/{0}">gysylltu CThEF (yn agor tab newydd).</a>
-enrolment.content.already.linked.sign.in=Mewngofnodi gyda chyfrif Porth y Llywodraeth gwahanol
-enrolment.content.already.linked.sign.out=Allgofnodi o’r gwasanaeth hwn
+enrolment.content.blocked.sign.in=Mewngofnodi gyda chyfrif Porth y Llywodraeth gwahanol
+enrolment.content.blocked.sign.out=Allgofnodi o’r gwasanaeth hwn
 enrolment.change.or.sign.out.error.required=Dewiswch yr hyn rydych am ei wneud nawr
 enrolment.content.try.again.button=Rhowch gynnig arall arni
 

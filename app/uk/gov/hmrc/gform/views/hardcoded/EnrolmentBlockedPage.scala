@@ -22,7 +22,7 @@ import play.api.data.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.govukfrontend.views.html.components._
 
-class EnrolmentAlreadyLinkedPage(val formTemplate: FormTemplate, form: Form[String])(implicit messages: Messages)
+class EnrolmentBlockedPage(val formTemplate: FormTemplate, form: Form[String])(implicit messages: Messages)
     extends CommonPageProperties(formTemplate) {
 
   private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
@@ -69,12 +69,12 @@ class EnrolmentAlreadyLinkedPage(val formTemplate: FormTemplate, form: Form[Stri
     )
 
     val change = RadioItem(
-      content = Text(messages("enrolment.content.already.linked.sign.in")),
+      content = Text(messages("enrolment.content.blocked.sign.in")),
       value = Some("change-gg-account")
     )
 
     val signOut = RadioItem(
-      content = Text(messages("enrolment.content.already.linked.sign.out")),
+      content = Text(messages("enrolment.content.blocked.sign.out")),
       value = Some("sign-out")
     )
 

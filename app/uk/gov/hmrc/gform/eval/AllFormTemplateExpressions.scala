@@ -54,7 +54,12 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
       )
 
     def fromEnrolmentOutcomes(enrolmentOutcomes: EnrolmentOutcomes): List[ExprMetadata] =
-      List(enrolmentOutcomes.notMatchedPage, enrolmentOutcomes.alreadyLinkedPage, enrolmentOutcomes.successPage)
+      List(
+        enrolmentOutcomes.notMatchedPage,
+        enrolmentOutcomes.alreadyLinkedPage,
+        enrolmentOutcomes.successPage,
+        enrolmentOutcomes.insufficientCredentialsPage
+      )
         .flatMap(fromEnrolmentOutcome)
 
     def fromAuth: List[ExprMetadata] = formTemplate.authConfig match {
