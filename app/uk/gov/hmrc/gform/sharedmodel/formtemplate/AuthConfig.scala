@@ -110,9 +110,9 @@ case object Anonymous extends AuthConfig
 case object HmrcAny extends AuthConfig
 case class HmrcVerified(
   ivFailure: LocalisedString,
-  notAllowedIn: LocalisedString,
   agentAccess: AgentAccess,
-  minimumCL: String
+  minimumCL: String,
+  allowOrganisations: Boolean
 ) extends AuthConfig
 case object HmrcSimpleModule extends AuthConfig
 case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig

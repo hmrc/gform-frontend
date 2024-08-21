@@ -93,7 +93,6 @@ GET           /printSection/pdf/:formTemplateId                                 
 GET           /printSection/notificationPdf/:formTemplateId                                                      uk.gov.hmrc.gform.gform.PrintSectionController.downloadNotificationPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 
 GET           /identity-verification/failure/:formTemplateId                                                     uk.gov.hmrc.gform.gform.IdentityVerificationController.failure(formTemplateId: FormTemplateId)
-GET           /identity-verification/enrolments-needed/:formTemplateId                                           uk.gov.hmrc.gform.gform.IdentityVerificationController.enrolmentsNeeded(formTemplateId: FormTemplateId)
 
 GET           /upscan/success/:formTemplateId/:sectionCursor/:maybeAccessCode/:formComponentId                   uk.gov.hmrc.gform.upscan.UpscanController.success(formTemplateId: FormTemplateId, sectionCursor: SectionNumber, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId)
 GET           /upscan/error/:formTemplateId/:sectionCursor/:maybeAccessCode/:formComponentId                     uk.gov.hmrc.gform.upscan.UpscanController.error(formTemplateId: FormTemplateId, sectionCursor: SectionNumber, maybeAccessCode: Option[AccessCode], formComponentId: FormComponentId)

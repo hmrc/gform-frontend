@@ -70,9 +70,9 @@ class AuthService(
           .pure[Future]
       case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
       case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
-      case HmrcVerified(_, _, agentAccess, minimumCL) =>
+      case HmrcVerified(_, agentAccess, minimumCL, allowOrganisations) =>
         performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult =>
-          isHmrcVerified(authResult, formTemplate, agentAccess, minimumCL)
+          isHmrcVerified(authResult, formTemplate, agentAccess, minimumCL, allowOrganisations)
         )
       case HmrcSimpleModule => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -329,7 +329,8 @@ class AuthService(
     authResult: AuthResult,
     formTemplate: FormTemplate,
     agentAccess: AgentAccess,
-    minimumCL: String
+    minimumCL: String,
+    allowOrganisations: Boolean
   ): AuthResult =
     authResult match {
       case AuthSuccessful(
@@ -345,7 +346,8 @@ class AuthService(
         AuthRedirect(
           s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
         )
-      case AuthSuccessful(AuthenticatedRetrievals(_, _, AffinityGroup.Organisation, _, _, _, _, _), _) =>
+      case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, _, _, _, _), _)
+          if !allowOrganisations =>
         logger.info(s"Organisations cannot access this form - ${formTemplate._id.value}")
         AuthBlocked("Organisations cannot access this form")
       case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Agent, _, _, _, _, _), _) =>
