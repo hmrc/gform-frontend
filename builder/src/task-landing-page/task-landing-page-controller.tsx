@@ -1,8 +1,8 @@
-import * as styles from "bundle-text:../content.css";
+import * as styles from "bundle-text:../section/content.css";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { ContentScriptRequest, FormTemplatePart, FormTemplateUpdateRequest, APIResponse } from "../../types";
-import { MessageKind } from "../../types";
-import { onMessageHandler } from "../../background/index";
+import { ContentScriptRequest, FormTemplatePart, FormTemplateUpdateRequest, APIResponse } from "../types";
+import { MessageKind } from "../types";
+import { onMessageHandler } from "../background/index";
 
 export const TaskLandingPageControllerFactory =
   (

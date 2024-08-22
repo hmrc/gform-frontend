@@ -14,91 +14,94 @@ import { AcknowledgementSectionFactory } from "./acknowledgement-section-control
 
 import { onMessageHandler } from "../background/index";
 
-const url: string = window.document.documentURI;
-const urlMatch: RegExpMatchArray | null = url.match(/(.*)\/submissions\/acknowledgement\/([^/]*)?(.*)/);
-const host = urlMatch![1];
-const formTemplateId: FormTemplateId = urlMatch![2];
-const queryParams = urlMatch![3];
-const urlParams = new URLSearchParams("?" + queryParams);
+export const activateAcknowledgementBuilder = (urlMatch: RegExpMatchArray, url: string) => {
+  const host = urlMatch![1];
+  const formTemplateId: FormTemplateId = urlMatch![2];
+  const queryParams = urlMatch![3];
+  const urlParams = new URLSearchParams("?" + queryParams);
 
-const maybeAccessCode: string | null = urlParams.get("a");
+  const maybeAccessCode: string | null = urlParams.get("a");
 
-const contentScriptRequest: ContentScriptRequest = {
-  host,
-  formTemplateId,
-  kind: MessageKind.AcknowledgementSection,
-  data: maybeAccessCode,
-};
+  const contentScriptRequest: ContentScriptRequest = {
+    host,
+    formTemplateId,
+    kind: MessageKind.AcknowledgementSection,
+    data: maybeAccessCode,
+  };
 
-const initiateAcknowledgementSection = (
-  acknowledgementSection: AcknowledgementSection,
-  acknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable,
-) => {
-  const attachmentDiv = document.createElement("div");
-  attachmentDiv.setAttribute("id", "acknowledgement-section-shadow-root");
-  acknowledgementPanelTitleClickable.panelTitle.insertAdjacentElement("afterend", attachmentDiv);
-  const content: HTMLDivElement | undefined = attachShadowDom(attachmentDiv);
+  const initiateAcknowledgementSection = (
+    acknowledgementSection: AcknowledgementSection,
+    acknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable,
+  ) => {
+    const attachmentDiv = document.createElement("div");
+    attachmentDiv.setAttribute("id", "acknowledgement-section-shadow-root");
+    acknowledgementPanelTitleClickable.panelTitle.insertAdjacentElement("afterend", attachmentDiv);
+    const content: HTMLDivElement | undefined = attachShadowDom(attachmentDiv);
 
-  if (content !== undefined) {
-    const AcknowledgementSectionController = AcknowledgementSectionFactory(
-      host,
-      formTemplateId,
-      acknowledgementSection,
-      acknowledgementPanelTitleClickable,
-      maybeAccessCode,
-    );
-    render(<AcknowledgementSectionController />, content);
-  }
-};
-
-const initiateNote = (acknowledgeComponent: AcknowledgementSection): void => {
-  const mainContent = document.getElementById("main-content");
-  if (mainContent !== null) {
-    const noteAttachmentDiv = document.createElement("div");
-    noteAttachmentDiv.setAttribute("id", "acknowledgement-section-note-shadow-root");
-    mainContent.insertAdjacentElement("beforebegin", noteAttachmentDiv);
-
-    const content: HTMLDivElement | undefined = attachShadowDom(noteAttachmentDiv);
     if (content !== undefined) {
-      const NoteControllerComponent = NoteComponentControllerFactory(
+      const AcknowledgementSectionController = AcknowledgementSectionFactory(
         host,
         formTemplateId,
-        acknowledgeComponent.note || [],
-        acknowledgeComponent.doneNote || [],
+        acknowledgementSection,
+        acknowledgementPanelTitleClickable,
+        maybeAccessCode,
       );
-
-      render(<NoteControllerComponent noteKind={NoteUpdateKind.AcknowledgementSection} noteKindData={null} />, content);
+      render(<AcknowledgementSectionController />, content);
     }
-  }
-};
+  };
 
-onMessageHandler<AcknowledgementSection>(contentScriptRequest, (initialAcknowledgementSectionData) => {
-  const acknowledgementSection: AcknowledgementSection = replaceWithEnglishValue(
-    initialAcknowledgementSectionData,
-  ) as AcknowledgementSection;
+  const initiateNote = (acknowledgeComponent: AcknowledgementSection): void => {
+    const mainContent = document.getElementById("main-content");
+    if (mainContent !== null) {
+      const noteAttachmentDiv = document.createElement("div");
+      noteAttachmentDiv.setAttribute("id", "acknowledgement-section-note-shadow-root");
+      mainContent.insertAdjacentElement("beforebegin", noteAttachmentDiv);
 
-  initiateNote(acknowledgementSection);
-
-  const panelTitle: Element | null = document.querySelector(".govuk-panel.govuk-panel--confirmation");
-
-  if (panelTitle instanceof HTMLElement) {
-    const acknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable = {
-      panelTitle: panelTitle,
-    };
-
-    if (panelTitle instanceof HTMLDivElement) {
-      initiateAcknowledgementSection(acknowledgementSection, acknowledgementPanelTitleClickable);
-
-      const sectionNumber: SectionNumber = SectionNumber.AcknowledgementSectionNumber();
-      if (acknowledgementSection.fields !== undefined) {
-        const params: InfoRenderParam = {
+      const content: HTMLDivElement | undefined = attachShadowDom(noteAttachmentDiv);
+      if (content !== undefined) {
+        const NoteControllerComponent = NoteComponentControllerFactory(
           host,
           formTemplateId,
-          sectionNumber,
-          kind: MessageKind.UpdateAcknowledgementFormComponent,
-        };
-        initiateInfoComponents(acknowledgementSection.fields, params, maybeAccessCode);
+          acknowledgeComponent.note || [],
+          acknowledgeComponent.doneNote || [],
+        );
+
+        render(
+          <NoteControllerComponent noteKind={NoteUpdateKind.AcknowledgementSection} noteKindData={null} />,
+          content,
+        );
       }
     }
-  }
-});
+  };
+
+  onMessageHandler<AcknowledgementSection>(contentScriptRequest, (initialAcknowledgementSectionData) => {
+    const acknowledgementSection: AcknowledgementSection = replaceWithEnglishValue(
+      initialAcknowledgementSectionData,
+    ) as AcknowledgementSection;
+
+    initiateNote(acknowledgementSection);
+
+    const panelTitle: Element | null = document.querySelector(".govuk-panel.govuk-panel--confirmation");
+
+    if (panelTitle instanceof HTMLElement) {
+      const acknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable = {
+        panelTitle: panelTitle,
+      };
+
+      if (panelTitle instanceof HTMLDivElement) {
+        initiateAcknowledgementSection(acknowledgementSection, acknowledgementPanelTitleClickable);
+
+        const sectionNumber: SectionNumber = SectionNumber.AcknowledgementSectionNumber();
+        if (acknowledgementSection.fields !== undefined) {
+          const params: InfoRenderParam = {
+            host,
+            formTemplateId,
+            sectionNumber,
+            kind: MessageKind.UpdateAcknowledgementFormComponent,
+          };
+          initiateInfoComponents(acknowledgementSection.fields, params, maybeAccessCode);
+        }
+      }
+    }
+  });
+};
