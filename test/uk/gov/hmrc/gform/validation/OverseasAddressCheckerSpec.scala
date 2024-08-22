@@ -861,7 +861,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            """No match for "Espana". Select a value from the list."""
+            """No match for "Espana". Select a country from the list."""
           )
         )
       )

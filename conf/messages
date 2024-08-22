@@ -154,6 +154,7 @@ generic.governmentId.not.exist=The {0} you entered does not exist
 generic.error.sortCode=Enter a valid sort code like 123456
 generic.error.exactNumbers={0} must be {1} numbers
 generic.error.lookup=No match for "{1}". Select a value from the list.
+country.error.lookup=No match for "{1}". Select a country from the list.
 generic.error.register={0} must be from a valid list, {1} is not a valid list
 generic.error.email={0} must match code you received by email
 generic.error.mustBeBetween={0} must be between {1} and {2}
@@ -353,7 +354,7 @@ generic.error.overseas.Postcode=Postcode
 generic.error.overseas.country.maxLength={0} must be {1} characters or less
 generic.error.overseas.country={0} country
 generic.error.overseas.Country=Country
-generic.error.overseas.nomatch=No match for "{0}". Select a value from the list.
+generic.error.overseas.nomatch=No match for "{0}". Select a country from the list.
 generic.error.overseas.validation.default=address
 
 # Date
