@@ -154,6 +154,19 @@ case class EvaluationResults(
       NumberResult(xs.size)
     }
 
+  private def addToListIndex(
+    formComponentId: FormComponentId,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): ExpressionResult = {
+    val index =
+      recData.variadicFormData
+        .forBaseComponentIdLessThen(formComponentId.modelComponentId)
+        .map(_._1)
+        .size + 1
+
+    NumberResult(index)
+  }
+
   private def addToListValues(
     formComponentId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate]
@@ -174,7 +187,7 @@ case class EvaluationResults(
     index: SizeRefType
   ): ExpressionResult = {
     val xs: Iterable[(ModelComponentId, VariadicValue)] =
-      recData.variadicFormData.forBaseComponentIdLessThen(formComponentId.modelComponentId)
+      recData.variadicFormData.forBaseComponentIdLessThenEqual(formComponentId.modelComponentId)
 
     val indexString = index match {
       case SizeRefType.IndexBased(index) => index.toString
@@ -226,6 +239,7 @@ case class EvaluationResults(
         val substitutions = SummarySubstitutions(exprMap, repeatedComponentsDetails)
         loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
       case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
+      case Index(formComponentId)   => addToListIndex(formComponentId, recData)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
         value.fold(_ => unsupportedOperation("Number")(expr))(enrolment =>
@@ -412,6 +426,13 @@ case class EvaluationResults(
         nonEmptyStringResult(
           StringResult(
             addToListCount(formComponentId, recData, evaluationContext)
+              .stringRepresentation(typeInfo, evaluationContext.messages)
+          )
+        )
+      case Index(formComponentId) =>
+        nonEmptyStringResult(
+          StringResult(
+            addToListIndex(formComponentId, recData)
               .stringRepresentation(typeInfo, evaluationContext.messages)
           )
         )

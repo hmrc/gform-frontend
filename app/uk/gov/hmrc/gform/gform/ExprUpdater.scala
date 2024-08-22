@@ -50,6 +50,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Size(formComponentId, index)          => Size(expandFcId(formComponentId), index)
     case Typed(expr, tpe)                      => Typed(expandExpr(expr), tpe)
     case Count(_)                              => expr
+    case Index(formComponentId)                => Index(expandFcId(formComponentId))
     case AuthCtx(_)                            => expr
     case UserCtx(_)                            => expr
     case Constant(_)                           => expr

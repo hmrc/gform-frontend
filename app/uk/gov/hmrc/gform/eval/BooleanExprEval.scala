@@ -170,7 +170,7 @@ object BooleanExprEval {
     }
 
     val filtered =
-      fields.flatMap(f => recData.variadicFormData.forBaseComponentIdLessThen(f.formComponentId.modelComponentId))
+      fields.flatMap(f => recData.variadicFormData.forBaseComponentIdLessThenEqual(f.formComponentId.modelComponentId))
     val compare = filtered
       .map {
         case (Pure(component), variadicValue) =>

@@ -41,6 +41,7 @@ object FormComponentIdSubstituter {
         case Sum(field1: Expr)             => Sum(substitute(substitutions, field1))
         case DateCtx(dateExpr)             => DateCtx(dateExpr(substitutions))
         case Count(fcId)                   => Count(substitutions.updateFormComponentId(fcId))
+        case Index(fcId)                   => Index(substitutions.updateFormComponentId(fcId))
         case e: AuthCtx                    => e
         case e: UserCtx                    => e
         case e: Constant                   => e

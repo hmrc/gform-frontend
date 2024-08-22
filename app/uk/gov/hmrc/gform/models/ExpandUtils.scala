@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.int._
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.gform.{ ExprUpdater, FormComponentUpdater }
+import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, ExprUpdater, FormComponentUpdater }
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -50,15 +50,18 @@ object ExpandUtils {
 
   def expandSmartString(smartString: SmartString, index: Int, ids: List[FormComponentId]): SmartString =
     smartString
-      .updateInterpolations(expr => ExprUpdater(expr, index, ids))
+      .updateInterpolations(expr => ExprUpdater(expr, index, ids), boolExpr => BooleanExprUpdater(boolExpr, index, ids))
       .replace("$n", index.toString)
 
   def expandDataRetrieve(smartString: SmartString, index: Int): SmartString =
     smartString
-      .updateInterpolations {
-        case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, index)
-        case otherwise                   => otherwise
-      }
+      .updateInterpolations(
+        {
+          case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, index)
+          case otherwise                   => otherwise
+        },
+        boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId])
+      )
       .replace("$n", index.toString)
 
   def expandGroup[S <: SourceOrigin](fc: FormComponent, group: Group, data: VariadicFormData[S]): List[FormComponent] =

@@ -58,6 +58,7 @@ object ExprPrettyPrint {
     case FormCtx(fcId)                           => fcId.value
     case Sum(field1: Expr)                       => "sum(" + field1.prettyPrint + ")"
     case Count(formComponentId: FormComponentId) => "count(" + formComponentId.value + ")"
+    case Index(formComponentId: FormComponentId) => "index(" + formComponentId.value + ")"
     case AuthCtx(authInfo)                       => ExprPrettyPrint.prettyPrintAuthInfo(authInfo)
     case UserCtx(userField)                      => ExprPrettyPrint.prettyPrintUserInfo(userField)
     case Constant(constant)                      => if (constant.isEmpty) "<empty>" else constant
