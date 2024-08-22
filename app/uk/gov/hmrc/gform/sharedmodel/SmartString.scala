@@ -58,12 +58,12 @@ sealed trait SmartString {
 
   def expandDataRetrieve(index: Int) = ExpandUtils.expandDataRetrieve(this, index)
 
-  def updateInterpolations(f: Expr => Expr): SmartString =
+  def updateInterpolations(f: Expr => Expr, g: BooleanExpr => BooleanExpr): SmartString =
     fold[SmartString](ssb =>
       SmartString.SmartStringBase(ssb.internal.copy(interpolations = ssb.internal.interpolations.map(f)))
     )(ssc =>
       SmartString.SmartStringCond(
-        ssc.ifConditions.map { case (b, ssi) => (b, ssi.copy(interpolations = ssi.interpolations.map(f))) },
+        ssc.ifConditions.map { case (b, ssi) => (g(b), ssi.copy(interpolations = ssi.interpolations.map(f))) },
         ssc.elseCondition.copy(interpolations = ssc.elseCondition.interpolations.map(f))
       )
     )

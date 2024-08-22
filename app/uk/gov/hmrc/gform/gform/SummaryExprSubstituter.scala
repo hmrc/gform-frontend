@@ -74,6 +74,7 @@ object SummarySubstituter {
       case Sum(field1: Expr)            => substitutions.replaceSumWithAdds(substitute(substitutions, field1))
       case DateCtx(dateExpr)            => DateCtx(dateExpr(substitutions))
       case e: Count                     => e
+      case e: Index                     => e
       case e: AuthCtx                   => e
       case e: UserCtx                   => e
       case e: Constant                  => e

@@ -134,12 +134,24 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
     VariadicFormData[S](data ++ copy)
   }
 
-  def forBaseComponentIdLessThen(modelComponentId: ModelComponentId): Iterable[(ModelComponentId, VariadicValue)] =
+  def forBaseComponentIdLessThenEqual(modelComponentId: ModelComponentId): Iterable[(ModelComponentId, VariadicValue)] =
     modelComponentId.indexedComponentId.fold(pure => forBaseComponentId(pure.baseComponentId)) { indexed =>
       collect {
         case (mcId, value)
             if mcId.baseComponentId === indexed.baseComponentId &&
               mcId.maybeIndex.exists(_ <= indexed.index) =>
+          mcId -> value
+      }
+    }
+
+  def forBaseComponentIdLessThen(modelComponentId: ModelComponentId): Iterable[(ModelComponentId, VariadicValue)] =
+    modelComponentId.indexedComponentId.fold { pure =>
+      forBaseComponentId(pure.baseComponentId)
+    } { indexed =>
+      collect {
+        case (mcId, value)
+            if mcId.baseComponentId === indexed.baseComponentId &&
+              mcId.maybeIndex.exists(_ < indexed.index) =>
           mcId -> value
       }
     }
