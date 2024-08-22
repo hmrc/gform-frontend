@@ -7,7 +7,7 @@
               font-weight="normal"
               line-height="11pt"
               padding-before="0.5cm">
-    <fo:list-item-label role="Lbl" end-indent="label-end()">
+    <fo:list-item-label role="Lbl" start-indent="1mm" end-indent="label-end()">
         @label.map { l =>
             <fo:block role="P" font-family="arial-bold" font-weight="bold">@l</fo:block>
         }

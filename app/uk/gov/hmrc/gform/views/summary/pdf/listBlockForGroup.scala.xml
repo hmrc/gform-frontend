@@ -2,7 +2,10 @@
 
 @(value: XmlFormat.Appendable)
 <fo:inline>
-        <fo:list-block role="L" start-indent="0.1mm" provisional-distance-between-starts="8cm">
+        <fo:list-block role="L"
+                       start-indent="0.1mm"
+                       provisional-distance-between-starts="8cm"
+                       provisional-label-separation="1cm">
             @value
         </fo:list-block>
 </fo:inline>
