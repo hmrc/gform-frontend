@@ -472,7 +472,13 @@ class TextCheckerSpec
       ),
       (
         "England",
-        Left(Map(textComponent.id.modelComponentId -> mutable.LinkedHashSet("""No match for "England". Select a country from the list."""))),
+        Left(
+          Map(
+            textComponent.id.modelComponentId -> mutable.LinkedHashSet(
+              """No match for "England". Select a country from the list"""
+            )
+          )
+        ),
         toSmartString("Residence Country"),
         Some(toSmartString("Country")),
         None
@@ -541,8 +547,12 @@ class TextCheckerSpec
         )
       )
     )
-    result.foldMap(ShortCircuitInterpreter) shouldBe Left(Map(textComponent.id.modelComponentId ->
-      mutable.LinkedHashSet("""No match for "Not a port". Select a value from the list.""")))
+    result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+      Map(
+        textComponent.id.modelComponentId ->
+          mutable.LinkedHashSet("""No match for "Not a port". Select a value from the list.""")
+      )
+    )
   }
 
   private def purePure(fieldId: String) =

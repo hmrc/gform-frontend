@@ -307,7 +307,7 @@ generic.error.overseas.line3.maxLength=Mae’n rhaid i linell 3 fod yn {1} o gym
 generic.error.overseas.town.city.maxLength=Mae’n rhaid i’r dref neu’r ddinas fod yn {1} o gymeriadau neu lai
 generic.error.overseas.postcode.maxLength=Mae’n rhaid i’r cod post fod yn {1} o gymeriadau neu lai
 generic.error.overseas.country.maxLength=Mae’n rhaid i’r wlad fod yn {1} o gyymeriadau neu lai
-generic.error.overseas.nomatch=Dim byd yn cyd-fynd â "{0}". Dewiswch wlad o'r rhestr.
+generic.error.overseas.nomatch=Dim byd yn cyd-fynd â "{0}". Dewiswch wlad o’r rhestr
 
 # International Address
 internationalAddress.line1=Cyfeiriad 1
