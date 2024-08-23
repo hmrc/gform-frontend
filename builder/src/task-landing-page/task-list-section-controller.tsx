@@ -1,4 +1,4 @@
-import * as styles from "bundle-text:../content.css";
+import * as styles from "bundle-text:../section/content.css";
 import { useEffect, useRef, useState } from "preact/hooks";
 import {
   ContentScriptRequest,
@@ -12,10 +12,10 @@ import {
   TaskSummarySectionPart,
   UpdateByPath,
   TemplateBatchUpdate,
-} from "../../types";
-import { MessageKind, SmartString } from "../../types";
-import { SmartStringDiv, SmartStringInputDeprecated } from "../useSmartString";
-import { onMessageHandler } from "../../background/index";
+} from "../types";
+import { MessageKind, SmartString } from "../types";
+import { SmartStringDiv, SmartStringInputDeprecated } from "../section/useSmartString";
+import { onMessageHandler } from "../background/index";
 
 const taskPath = (sectionNumber: SectionNumber, taskNumber: number): string => {
   return ".sections[" + SectionNumber.asString(sectionNumber) + "].tasks[" + taskNumber.toString() + "]";

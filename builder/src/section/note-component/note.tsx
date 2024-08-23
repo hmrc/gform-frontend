@@ -180,7 +180,6 @@ export const Note = ({ note, noteIndex, dispatch }: NoteProps) => {
                   backgroundColor: note.color,
                 }}
                 tabIndex={0}
-                disabled={!textAreaEditable}
                 value={textAreaValue}
                 ref={textAreaInputRef}
                 onKeyUp={handleTextAreaKeyUp}

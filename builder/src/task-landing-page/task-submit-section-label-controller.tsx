@@ -1,4 +1,4 @@
-import * as styles from "bundle-text:../content.css";
+import * as styles from "bundle-text:../section/content.css";
 import { useEffect, useRef, useState } from "preact/hooks";
 import {
   UpdateByPath,
@@ -9,11 +9,11 @@ import {
   SubmitSection,
   SubmitSectionPart,
   UpdateSubmitSection,
-} from "../../types";
+} from "../types";
 
-import { SmartStringDiv, SmartStringInputDeprecated } from "../useSmartString";
+import { SmartStringDiv, SmartStringInputDeprecated } from "../section/useSmartString";
 
-import { onMessageHandler } from "../../background/index";
+import { onMessageHandler } from "../background/index";
 
 export const TaskSubmitSectionLabelControllerFactory =
   (
