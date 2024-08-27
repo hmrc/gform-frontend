@@ -61,8 +61,7 @@ class EnrolmentBlockedPage(val formTemplate: FormTemplate, form: Form[String])(i
         legend = Some(
           Legend(
             content = Text(messages("enrolment.content.what.now")),
-            isPageHeading = true,
-            classes = "govuk-fieldset__legend--l"
+            classes = "govuk-fieldset__legend--m"
           )
         )
       )
