@@ -2959,8 +2959,7 @@ class SectionRenderingService(
               .orElse(prepop),
             classes = s"$inputClasses ${sizeForAtom(atom)}",
             attributes = attributes,
-            // The month can be entered using either a name (e.g., "January/jan") or a number (e.g., "1").
-            inputmode = if (modelComponentId.isAtomic("month")) Some("text") else Some("numeric")
+            inputmode = Some("numeric")
           )
         }
 
