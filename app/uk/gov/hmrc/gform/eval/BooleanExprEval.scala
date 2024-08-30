@@ -155,9 +155,9 @@ class BooleanExprEval[F[_]: Monad] {
 }
 
 object BooleanExprEval {
-  def evalDuplicateExpr[T <: PageMode](
+  def evalDuplicateExpr[T <: PageMode, R <: SourceOrigin](
     fields: Seq[FormCtx],
-    recData: RecData[SourceOrigin.Current]
+    recData: RecData[R]
   ): Boolean = {
     def canonicalStr(str: String, id: String): String = {
       def lowerAndRemoveWhitespace(str: String): String = str.toLowerCase.filterNot(_.isWhitespace)
