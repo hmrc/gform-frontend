@@ -211,16 +211,11 @@ object TextChecker {
       validationFailure(fieldValue, getLookupErrorMessageKey, Some(vars))
     }
 
-    def getLookupErrorMessageKey: String = {
-      for {
-        text   <- fieldValue.`type`.cast[Text]
-        lookup <- text.constraint.cast[Lookup]
-      } yield lookup.register match {
-        case Register.Country => countryErrorLookup
-        case _                => genericErrorLookup
+    def getLookupErrorMessageKey: String =
+      fieldValue match {
+        case IsText(Text(Lookup(Register.Country, _), _, _, _, _, _)) => countryErrorLookup
+        case _                                                        => genericErrorLookup
       }
-    }.getOrElse(genericErrorLookup)
-
     def existsLabel(options: LookupOptions) =
       switchProgram(
         switchCase(
