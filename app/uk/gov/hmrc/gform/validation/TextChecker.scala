@@ -37,7 +37,6 @@ import uk.gov.hmrc.referencechecker.VatReferenceChecker
 
 import scala.util.matching.Regex
 import ComponentChecker._
-import shapeless.syntax.typeable.typeableOps
 
 class TextChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
