@@ -172,6 +172,7 @@ generic.error.text.valid.char={2} must not include {1}
 generic.error.shortText.valid.char={1} must only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 
 generic.error.date.required=Enter {1}{2}
+generic.error.date.required.any={1} must include a {2}
 generic.error.day.required=Enter a day in the correct format
 generic.error.month.required=Enter a month in the correct format
 generic.error.year.required=Enter a year in the correct format

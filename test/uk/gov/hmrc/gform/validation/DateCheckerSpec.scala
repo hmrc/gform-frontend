@@ -812,12 +812,12 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Enter a date",
+            "Date must include a month and a year",
             "Enter a month in the correct format"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Enter a date",
+            "Date must include a month and a year",
             "Enter a year in the correct format"
           )
         )
@@ -834,12 +834,12 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Enter start date, like 01 04 2023",
+            "Date must include a month and a year",
             "Enter a month in the correct format"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Enter start date, like 01 04 2023",
+            "Date must include a month and a year",
             "Enter a year in the correct format"
           )
         )

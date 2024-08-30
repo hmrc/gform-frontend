@@ -171,6 +171,7 @@ generic.error.text.valid.char=Mae {2} yn gorfod peidio â chynnwys {1}
 generic.error.shortText.valid.char=Mae {1} yn gorfod cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau yn unig
 
 generic.error.date.required=Nodwch {1}{2}
+generic.error.date.required.any={1} rhaid i’r dyddiad gynnwys {2}
 generic.error.day.required=Nodwch ddiwrnod yn y fformat cywir
 generic.error.month.required=Nodwch fis yn y fformat cywir
 generic.error.year.required=Nodwch flwyddyn yn y fformat cywir
