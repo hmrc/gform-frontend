@@ -69,6 +69,8 @@ trait FormTemplateGen {
 
   def userResearchUrlGen: Gen[UserResearchUrl] = PrimitiveGen.urlGen.map(UserResearchUrl(_))
 
+  def serviceStartPageUrlGen: Gen[ServiceStartPageUrl] = PrimitiveGen.urlGen.map(ServiceStartPageUrl(_))
+
   def emailCodeTemplateIdGen: Gen[Option[LocalisedEmailTemplateId]] =
     Gen.option(LocalisedEmailTemplateIdGen.localisedEmailTemplateIdGen)
 
@@ -104,6 +106,7 @@ trait FormTemplateGen {
       displayHMRCLogo          <- PrimitiveGen.booleanGen
       userResearchUrl          <- Gen.option(userResearchUrlGen)
       emailCodeParameters      <- emailCodeParameterListGen
+      serviceStartPageUrl      <- Gen.option(serviceStartPageUrlGen)
     } yield FormTemplate(
       formTemplateIdLowerCase(id),
       id,
@@ -138,7 +141,7 @@ trait FormTemplateGen {
       None,
       false,
       false,
-      None
+      serviceStartPageUrl
     )
 }
 
