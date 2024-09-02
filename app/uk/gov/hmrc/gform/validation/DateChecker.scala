@@ -132,6 +132,35 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     )
   }
 
+  private def requiredAnyFieldError(
+    formComponent: FormComponent,
+    modelComponentId: ModelComponentId,
+    modelComponentIds: List[ModelComponentId]
+  )(implicit
+    sse: SmartStringEvaluator,
+    messages: Messages
+  ): CheckProgram[Unit] = {
+    val placeholder1 = formComponent.errorShortNameStart
+      .flatMap(_.nonBlankValue())
+      .getOrElse(SmartString.blank.transform(_ => "Date", _ => "Mae’n").value())
+    val placeholder2 = modelComponentIds
+      .map {
+        case ModelComponentId.Atomic(_, Atom(v)) => messages(s"date.$v")
+        case _                                   => ""
+      }
+      .mkString(SmartString.blank.transform(_ => " and a ", _ => " a ").value())
+    errorProgram[Unit](
+      Map[ModelComponentId, LinkedHashSet[String]](
+        modelComponentId -> errors(
+          formComponent,
+          "generic.error.date.required.any",
+          Some(List(placeholder1, placeholder2)),
+          ""
+        )
+      )
+    )
+  }
+
   private def checkAnyFieldsEmpty(
     fieldValue: FormComponent,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
@@ -139,12 +168,25 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     sse: SmartStringEvaluator,
     messages: Messages
   ): CheckProgram[Unit] = {
-    val validatedResult =
-      fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
-        val answer = formModelVisibilityOptics.data.one(modelComponentId)
-        answer.filterNot(_.isEmpty()).fold(requiredError(fieldValue, modelComponentId))(_ => successProgram(()))
+    val answers = fieldValue.multiValueId.atomsModelComponentIds
+      .map { modelComponentId =>
+        val answer = formModelVisibilityOptics.data.one(modelComponentId).filter(_.trim.nonEmpty)
+        modelComponentId -> answer
       }
-    validatedResult.nonShortCircuitProgram
+
+    if (answers.map(_._2).forall(_.isEmpty)) {
+      fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
+        requiredError(fieldValue, modelComponentId)
+      }.nonShortCircuitProgram
+    } else {
+      answers.map { case (modelComponentId, answer) =>
+        answer
+          .filterNot(_.isEmpty)
+          .fold(requiredAnyFieldError(fieldValue, modelComponentId, answers.collect { case (id, None) => id }))(_ =>
+            successProgram(())
+          )
+      }.nonShortCircuitProgram
+    }
   }
 
   private def checkAllFieldsEmpty(
