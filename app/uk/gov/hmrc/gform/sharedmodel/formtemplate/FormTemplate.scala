@@ -57,7 +57,8 @@ case class FormTemplate(
   emailCodeParameters: Option[NonEmptyList[EmailCodeParameter]],
   dataRetrieve: Option[NonEmptyList[DataRetrieve]],
   accessiblePdf: Boolean,
-  displayAccountHeader: Boolean
+  displayAccountHeader: Boolean,
+  serviceStartPageUrl: Option[ServiceStartPageUrl]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")

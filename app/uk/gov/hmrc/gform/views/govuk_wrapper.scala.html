@@ -75,6 +75,21 @@
   maybeFormTemplate.exists(_.displayAccountHeader)
 }
 
+@serviceStartPageUrl = @{
+  maybeFormTemplate.flatMap(_.serviceStartPageUrl.map(_.value))
+}
+
+@serviceLink = @{
+    maybeFormTemplate match {
+        case Some(formTemplate) => serviceStartPageUrl.getOrElse(
+                formTemplate.formKind.fold
+                    { _ => "" }
+                    { _ => if(displaySignOut) uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplate._id, accessCode).path else "" }
+            )
+        case None               => ""
+    }
+}
+
 @developmentPhase = @{
   maybeFormTemplate.flatMap(_.developmentPhase)
 }
@@ -216,6 +231,7 @@
 @headerBlock = {
   @hmrcHeader(Header(
     serviceName = Some(serviceTitle),
+    serviceUrl = serviceLink,
     signOutHref = if(!displayAccountMenu) timeoutDialog.flatMap(_.signOutUrl) else None,
     language = if(messages.lang.code == "cy") Cy else En,
     assetsPath = Assets.at("govuk/images").url,
