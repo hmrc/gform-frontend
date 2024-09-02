@@ -57,7 +57,7 @@ CV,,Cape Verde,Cabo Verde,,4,0,0,0,0
 CW,,Curacao,Curaçao,,4,0,0,0,0
 CX,,Christmas Islands,Ynys y Nadolig,,4,0,0,0,0
 CY,,Cyprus,Cyprus,20,3,1,1,0,1
-CZ,,Czech Republic,Y Weriniaeth Tsiec,20,3,1,1,0,1
+CZ,Czechia,Czech Republic,Y Weriniaeth Tsiec,20,3,1,1,0,1
 DE,,Germany,Yr Almaen,20,3,1,1,0,1
 DJ,,Djibouti,Djibouti,,4,0,0,0,0
 DK,,Denmark,Denmarc,20,3,1,1,0,1
@@ -233,7 +233,7 @@ TW,,Taiwan,Taiwan,,4,0,0,0,0
 TZ,,Tanzania,Tanzania,,4,0,0,0,0
 UA,,Ukraine,Ukrain,,4,0,0,0,0
 UG,,Uganda,Uganda,,4,0,0,0,0
-UK,England Scotland Wales Northern Ireland Great Britain UK GB,United Kingdom,Y Deyrnas Unedig,30,1,0,0,0,0
+UK,England Scotland Wales Northern Ireland Great Britain UK GB,United Kingdom,Y Deyrnas Unedig,20,1,0,0,0,0
 UM,,United States Minor outlying islands,Mân Ynysoedd Pellennig yr Unol Daleithiau,,4,0,0,0,0
 US,USA America,United States,Yr Unol Daleithiau,10,4,0,0,0,0
 UY,,Uruguay,Uruguay,,4,0,0,0,0
