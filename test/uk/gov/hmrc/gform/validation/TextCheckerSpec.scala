@@ -43,8 +43,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.LookupLoader.mkAutocomplete
-
 import ComponentChecker._
+import scala.collection.mutable
 
 class TextCheckerSpec
     extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers with IdiomaticMockito
@@ -471,6 +471,19 @@ class TextCheckerSpec
         None
       ),
       (
+        "England",
+        Left(
+          Map(
+            textComponent.id.modelComponentId -> mutable.LinkedHashSet(
+              """No match for "England". Select a country from the list"""
+            )
+          )
+        ),
+        toSmartString("Residence Country"),
+        Some(toSmartString("Country")),
+        None
+      ),
+      (
         "",
         Left(Map(textComponent.id.modelComponentId -> Set("Enter Residence Country"))),
         toSmartString("Residence Country"),
@@ -512,6 +525,36 @@ class TextCheckerSpec
     }
   }
 
+  it should "validate when FormComponent constraint is lookup(port)" in new WithLookupDataPort {
+    val fc = textComponent
+      .copy(`type` = Text(constraint, Value))
+      .copy(errorShortName = None)
+      .copy(shortName = None)
+      .copy(label = toSmartString("Port"))
+    val formModelOptics = mkFormModelOptics(
+      mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+      mkDataOutOfDate(textComponent.id.value -> "Not a port")
+    )
+    val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+      formModelOptics.formModelVisibilityOptics,
+      new LookupRegistry(
+        Map(
+          Register.Port -> AjaxLookup(
+            portLookupOptions,
+            mkAutocomplete(portLookupOptions),
+            ShowAll.Enabled
+          )
+        )
+      )
+    )
+    result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+      Map(
+        textComponent.id.modelComponentId ->
+          mutable.LinkedHashSet("""No match for "Not a port". Select a value from the list.""")
+      )
+    )
+  }
+
   private def purePure(fieldId: String) =
     ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId(fieldId)))
 
@@ -540,6 +583,30 @@ class TextCheckerSpec
               LookupRegion("2"),
               LookupInGibraltarEuEeaEfta("1"),
               Map()
+            )
+          )
+        )
+      )
+    )
+  }
+
+  trait WithLookupDataPort {
+
+    val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = None
+    val constraint = Lookup(Register.Port, portLookupSelectionCriteria)
+    lazy val portLookupOptions: LocalisedLookupOptions = LocalisedLookupOptions(
+      Map(
+        LangADT.En -> LookupOptions(
+          Map(
+            LookupLabel("LHR") -> PortLookupInfo(
+              LookupId("LHR"),
+              0,
+              LookupKeywords(Some("London Heathrow")),
+              LookupPriority(1),
+              LookupRegion("1"),
+              LookupPortType("Airport"),
+              LookupCountryCode("GB"),
+              LookupPortCode("ZZ11ZZ")
             )
           )
         )

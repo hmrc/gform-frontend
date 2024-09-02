@@ -36,7 +36,6 @@ import uk.gov.hmrc.referencechecker.CorporationTaxReferenceChecker
 import uk.gov.hmrc.referencechecker.VatReferenceChecker
 
 import scala.util.matching.Regex
-
 import ComponentChecker._
 
 class TextChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
@@ -97,6 +96,7 @@ object TextChecker {
   val genericTelephoneNumberErrorPattern                     = "generic.telephoneNumber.error.pattern"
   val genericShortTextErrorPattern                           = "generic.shortText.error.pattern"
   val genericErrorLookup                                     = "generic.error.lookup"
+  val countryErrorLookup                                     = "country.error.lookup"
   val genericErrorRegistry                                   = "generic.error.registry"
   val genericErrorRequired                                   = "generic.error.required"
   val genericErrorParentSubmissionRefSameAsFormSubmissionRef = "generic.error.parentSubmissionRefSameAsFormSubmissionRef"
@@ -207,9 +207,14 @@ object TextChecker {
 
     def lookupError: CheckProgram[Unit] = {
       val vars: List[String] = lookupLabel.label :: Nil
-      validationFailure(fieldValue, genericErrorLookup, Some(vars))
+      validationFailure(fieldValue, getLookupErrorMessageKey, Some(vars))
     }
 
+    def getLookupErrorMessageKey: String =
+      fieldValue match {
+        case IsText(Text(Lookup(Register.Country, _), _, _, _, _, _)) => countryErrorLookup
+        case _                                                        => genericErrorLookup
+      }
     def existsLabel(options: LookupOptions) =
       switchProgram(
         switchCase(

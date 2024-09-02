@@ -56,6 +56,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OverseasAddress
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -860,9 +861,10 @@ class OverseasAddressCheckerSpec
       Invalid(
         Map(
           ModelComponentId
-            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            """No match for "Espana". Select a value from the list."""
-          )
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> mutable
+            .LinkedHashSet(
+              """No match for "Espana". Select a country from the list"""
+            )
         )
       )
     )
@@ -1551,9 +1553,10 @@ class OverseasAddressCheckerSpec
       Invalid(
         Map(
           ModelComponentId
-            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            """Dim byd yn cyd-fynd â "Espana". Dewiswch werth o’r rhestr."""
-          )
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> mutable
+            .LinkedHashSet(
+              """Dim byd yn cyd-fynd â "Espana". Dewiswch wlad o’r rhestr"""
+            )
         )
       )
     )
