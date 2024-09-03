@@ -82,7 +82,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 1223,UK,2,LGE,,Lightwater - LGE,Lightwater - LGE,,1,NULL,0,
 1224,UK,2,LGR,,Langar - LGR,Langar - LGR,,1,NULL,0,
 1231,UK,3,LIV,Birkenhead,Liverpool Seaport - LIV,Liverpool Seaport - LIV,,1,NULL,0,
-1235,UK,2,LON,Thames Gateway Tilbury Baltic Wharf Rochford Holehaven Leigh-On-Sea Rochford Southend Corporation Jetty,London - LON,London - LON,,1,NULL,0,
+1235,UK,3,LON,Thames Gateway Tilbury Baltic Wharf Rochford Holehaven Leigh-On-Sea Rochford Southend Corporation Jetty,London - LON,London - LON,,1,NULL,0,
 1238,UK,2,LRH,,Lark Hill - LRH,Lark Hill - LRH,,1,NULL,0,
 1241,UK,2,LUT,,London Luton Airport - LTN,London Luton Airport - LTN,5,1,NULL,0,
 1245,UK,2,MAN,,Manchester  Airport - MAN,Manchester  Airport - MAN,10,1,NULL,0,
