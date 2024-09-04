@@ -139,6 +139,24 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: ListResult      => t.list.exists(_.contains(er))
   }
 
+  def hasAnswer(er: ExpressionResult): Boolean = this match {
+    case t: Invalid      => false
+    case t: Hidden.type  => false
+    case t: Empty.type   => false
+    case t: NumberResult => er.ifNumberResult(_ === t.value)
+    case t: StringResult =>
+      er.ifStringResult(stringResult => CanonicalString(stringResult) === CanonicalString(t.value))
+    case t: OptionResult =>
+      er.fold[Boolean](_ => false)(_ => false)(_ => false)(n => t.contains(n.value))(n => t.contains(n.value))(_ =>
+        false
+      )(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)
+    case t: DateResult      => er.ifDateResult(_.equals(t.value))
+    case t: TaxPeriodResult => false
+    case t: PeriodResult    => false
+    case t: AddressResult   => this === er
+    case t: ListResult      => t.list.exists(_.hasAnswer(er))
+  }
+
   def identical(er: ExpressionResult): Boolean = this match {
     case t: Invalid     => false
     case t: Hidden.type => er === Empty

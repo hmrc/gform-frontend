@@ -36,6 +36,7 @@ sealed trait BooleanExpr {
     case IsFalse                          => Nil
     case Contains(multiValueField, value) => multiValueField :: value :: Nil
     case In(formCtx, _)                   => formCtx :: Nil
+    case HasAnswer(formCtx, atlFormCtx)   => List(formCtx) ++ atlFormCtx.allExpressions.toList
     case MatchRegex(expr, _)              => expr :: Nil
     case FormPhase(_)                     => Nil
     case First(formCtx)                   => formCtx :: Nil
@@ -58,6 +59,7 @@ final case object IsTrue extends BooleanExpr
 final case object IsFalse extends BooleanExpr
 final case class Contains(multiValueField: FormCtx, value: Expr) extends BooleanExpr
 final case class In(value: Expr, dataSource: DataSource) extends BooleanExpr
+final case class HasAnswer(formCtx: FormCtx, addToListRef: AddToListRef) extends BooleanExpr
 final case class MatchRegex(expr: Expr, regex: Regex) extends BooleanExpr
 
 final case class DateBefore(left: DateExpr, right: DateExpr) extends BooleanExpr

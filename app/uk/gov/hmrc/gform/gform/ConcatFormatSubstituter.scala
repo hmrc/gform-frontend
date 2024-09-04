@@ -91,6 +91,7 @@ object ConcatFormatSubstituter {
         case IsFalse                          => IsFalse
         case Contains(multiValueField, value) => Contains(multiValueField, value(substitutions))
         case In(formCtx, dataSource)          => In(formCtx(substitutions), dataSource)
+        case HasAnswer(formCtx, atlFormCtx)   => HasAnswer(formCtx, atlFormCtx)
         case MatchRegex(expr, regex)          => MatchRegex(expr(substitutions), regex)
         case FormPhase(value)                 => FormPhase(value)
         case First(formCtx)                   => First(formCtx)

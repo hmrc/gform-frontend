@@ -399,13 +399,27 @@ class TestOnlyController(
         .proxyToGform("gform/translation/" + formTemplate._id.value + "/debug")
     )
 
+    val viewExpressionsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View expressions graph",
+      uk.gov.hmrc.gform.testonly.routes.DebugController
+        .exprs(formTemplate._id)
+    )
+
+    val viewFormModelLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View form model",
+      uk.gov.hmrc.gform.testonly.routes.DebugController
+        .model(formTemplate._id)
+    )
+
     val links = List(
       viewHandlebarModelLink,
       viewSourceTemplateLink,
       viewInternalTemplateLink,
       viewEnvelopeFilesLink,
       viewUploadedFilesLink,
-      viewTranslationLink
+      viewTranslationLink,
+      viewExpressionsLink,
+      viewFormModelLink
     )
 
     val bulletedList = bulleted_list(links)

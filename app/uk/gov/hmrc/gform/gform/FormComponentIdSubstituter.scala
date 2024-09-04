@@ -93,13 +93,14 @@ object FormComponentIdSubstituter {
           case DuplicateExists(fieldList)       => DuplicateExists(fieldList)
           case Contains(FormCtx(fcId), value) =>
             Contains(FormCtx(substitutions.updateFormComponentId(fcId)), value(substitutions))
-          case In(e, dataSource)       => In(e(substitutions), dataSource)
-          case MatchRegex(expr, regex) => MatchRegex(expr(substitutions), regex)
-          case FormPhase(value)        => FormPhase(value)
-          case First(FormCtx(fcId))    => First(FormCtx(substitutions.updateFormComponentId(fcId)))
-          case IsLogin(value)          => IsLogin(value)
-          case DateBefore(left, right) => DateBefore(left(substitutions), right(substitutions))
-          case DateAfter(left, right)  => DateAfter(left(substitutions), right(substitutions))
+          case In(e, dataSource)              => In(e(substitutions), dataSource)
+          case HasAnswer(formCtx, atlFormCtx) => HasAnswer(formCtx, atlFormCtx)
+          case MatchRegex(expr, regex)        => MatchRegex(expr(substitutions), regex)
+          case FormPhase(value)               => FormPhase(value)
+          case First(FormCtx(fcId))           => First(FormCtx(substitutions.updateFormComponentId(fcId)))
+          case IsLogin(value)                 => IsLogin(value)
+          case DateBefore(left, right)        => DateBefore(left(substitutions), right(substitutions))
+          case DateAfter(left, right)         => DateAfter(left(substitutions), right(substitutions))
         }
     }
 
