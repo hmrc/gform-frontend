@@ -21,6 +21,7 @@ import org.scalactic.source.Position
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor3
 import uk.gov.hmrc.gform.Helpers._
+import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -1298,6 +1299,70 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         sections
       ) should have message "All options of the choice component are invisible"
     }
+  }
+
+  it should "evaluate HasAnswer expression" in {
+    val fcA = mkFormComponent("homeCountry", Text(Lookup(Register.Country, None), Value))
+
+    val sectionA = mkSection(List(fcA))
+
+    val beExpr =
+      HasAnswer(
+        FormCtx(FormComponentId("homeCountry")),
+        AddToListRef.Expanded(
+          NonEmptyList.of(FormCtx(FormComponentId("1_country")), FormCtx(FormComponentId("2_country")))
+        )
+      )
+
+    val country = mkFormComponent("country", Text(Lookup(Register.Country, None), Value)).copy(validators =
+      List(
+        FormComponentValidator(
+          ValidIf(Not(beExpr)),
+          SmartString(LocalisedString.empty, List())
+        )
+      )
+    )
+
+    val sectionATL = mkAddToListSection(
+      "someQuestion",
+      None,
+      List(country)
+    )
+
+    val formTemplate = mkFormTemplate(sectionA, sectionATL)
+
+    val data = Table(
+      ("input", "output"),
+      (
+        Map(
+          FormComponentId("homeCountry").modelComponentId    -> VariadicValue.One("Australia"),
+          FormComponentId("1_country").modelComponentId      -> VariadicValue.One("Belgium"),
+          FormComponentId("2_country").modelComponentId      -> VariadicValue.One("Australia"),
+          FormComponentId("1_someQuestion").modelComponentId -> VariadicValue.Many(Seq("0"))
+        ),
+        true
+      ),
+      (
+        Map(
+          FormComponentId("homeCountry").modelComponentId    -> VariadicValue.One("Australia"),
+          FormComponentId("1_country").modelComponentId      -> VariadicValue.One("Belgium"),
+          FormComponentId("2_country").modelComponentId      -> VariadicValue.One("Canade"),
+          FormComponentId("1_someQuestion").modelComponentId -> VariadicValue.Many(Seq("0"))
+        ),
+        false
+      )
+    )
+
+    implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
+
+    forAll(data) { (input, expectedOutput) =>
+      val formModelOptics = mkFormModelOptics(formTemplate, VariadicFormData[SourceOrigin.OutOfDate](input))
+
+      val res = new BooleanExprEval().eval(formModelOptics.formModelVisibilityOptics)(beExpr)
+
+      res shouldBe expectedOutput
+    }
+
   }
 
   private def verify(

@@ -134,12 +134,13 @@ class DebugController(
         case Contains(multiValueField, value) =>
           InspectedBooleanExpr
             .Contains(booleanExpr, inspectExpr(multiValueField, formModel), inspectExpr(value, formModel)) :: Nil
-        case In(formCtx, dataSource) => Nil
-        case MatchRegex(expr, regex) => Nil
-        case FormPhase(value)        => Nil
-        case First(_)                => Nil
-        case IsLogin(_)              => Nil
-        case DuplicateExists(_)      => Nil
+        case In(formCtx, dataSource)        => Nil
+        case HasAnswer(formCtx, atlFormCtx) => Nil
+        case MatchRegex(expr, regex)        => Nil
+        case FormPhase(value)               => Nil
+        case First(_)                       => Nil
+        case IsLogin(_)                     => Nil
+        case DuplicateExists(_)             => Nil
       }
     }
 

@@ -27,11 +27,9 @@ import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.{ Atomic, Pure }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, DuplicateExists, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, In, IsFalse, IsLogin, IsTrue, LessThan, LessThanOrEquals, LoginInfo, MatchRegex, Not, Or }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListRef, And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, DuplicateExists, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, HasAnswer, In, IsFalse, IsLogin, IsTrue, LessThan, LessThanOrEquals, LoginInfo, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-
-import scala.util.matching.Regex
 
 /** Evaluates Boolean expressions in context where they do not participate to overall FormModel.
   * For example Boolean expressions from validIf expressions.
@@ -104,6 +102,22 @@ class BooleanExprEval[F[_]: Monad] {
           .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
           .pure[F]
 
+      case h @ HasAnswer(_, _) =>
+        val formModel = formModelVisibilityOptics.formModel
+        val recalculationResult = formModelVisibilityOptics.recalculationResult
+        val evaluationResult = recalculationResult.evaluationResults
+        val evaluationContext = recalculationResult.evaluationContext
+        val recData = formModelVisibilityOptics.recData
+        BooleanExprEval
+          .evalHasAnswer(
+            h,
+            formModel,
+            evaluationResult,
+            evaluationContext,
+            formModelVisibilityOptics.booleanExprResolver,
+            recData
+          )
+          .pure[F]
       case DuplicateExists(fieldList: Seq[FormCtx]) =>
         val recData = formModelVisibilityOptics.recData
         BooleanExprEval
@@ -159,15 +173,6 @@ object BooleanExprEval {
     fields: Seq[FormCtx],
     recData: RecData[R]
   ): Boolean = {
-    def canonicalStr(str: String, id: String): String = {
-      def lowerAndRemoveWhitespace(str: String): String = str.toLowerCase.filterNot(_.isWhitespace)
-      val fileUploadRegex: Regex = s"^[0-9]+_${id}_(.+)$$".r
-
-      fileUploadRegex.findFirstMatchIn(str) match {
-        case Some(res) => lowerAndRemoveWhitespace(res.group(1))
-        case _         => lowerAndRemoveWhitespace(str)
-      }
-    }
 
     val filtered =
       fields.flatMap(f => recData.variadicFormData.forBaseComponentIdLessThenEqual(f.formComponentId.modelComponentId))
@@ -178,14 +183,14 @@ object BooleanExprEval {
             component.maybeIndex,
             component.baseComponentId.value,
             None,
-            variadicValue.toSeq.map(canonicalStr(_, component.baseComponentId.value))
+            variadicValue.toSeq.map(CanonicalString(_, component.baseComponentId))
           )
         case (Atomic(component, atom), variadicValue) =>
           (
             component.maybeIndex,
             component.baseComponentId.value,
             Some(atom.value),
-            variadicValue.toSeq.map(canonicalStr(_, component.baseComponentId.value))
+            variadicValue.toSeq.map(CanonicalString(_, component.baseComponentId))
           )
       }
       .groupBy(_._1)
@@ -195,6 +200,30 @@ object BooleanExprEval {
 
     compare.toList.size =!= compare.toSet.size
   }
+
+  def evalHasAnswer[T <: PageMode](
+    hasAnswer: HasAnswer,
+    formModel: FormModel[T],
+    evaluationResults: EvaluationResults,
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.Current]
+  ): Boolean =
+    hasAnswer.addToListRef match {
+      case AddToListRef.Basic(formCtx) => false
+      case AddToListRef.Expanded(formCtxs) =>
+        val typeInfo = formModel.toFirstOperandTypeInfo(hasAnswer.formCtx)
+        val expressionResult = evaluationResults
+          .evalExprCurrent(typeInfo, recData, booleanExprResolver, evaluationContext)
+
+        formCtxs.exists { formCtx =>
+          val atlTypeInfo = formModel.toFirstOperandTypeInfo(formCtx)
+          val altExpressionResult = evaluationResults
+            .evalExprCurrent(atlTypeInfo, recData, booleanExprResolver, evaluationContext)
+
+          altExpressionResult.hasAnswer(expressionResult)
+        }
+    }
 
   def evalInExpr[T <: PageMode](
     in: In,

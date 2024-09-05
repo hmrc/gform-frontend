@@ -33,6 +33,7 @@ object ExprPrettyPrint {
     case IsFalse                          => "false"
     case Contains(multiValueField, value) => multiValueField.prettyPrint + " contains " + value.prettyPrint
     case In(formCtx, _)                   => "In"
+    case HasAnswer(formCtx, atlRef)       => formCtx.prettyPrint + " in " + atlRef.allExpressions.head.prettyPrint
     case MatchRegex(expr, _)              => "Regex"
     case FormPhase(_)                     => "Form phase"
     case First(formCtx)                   => "First"

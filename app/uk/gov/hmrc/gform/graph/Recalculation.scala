@@ -283,9 +283,19 @@ class Recalculation[F[_]: Monad, E](
       case MatchRegex(expr, regex)             => rr.matchRegex(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case In(expr, dataSource)                => false
-      case DuplicateExists(fieldList)          => false
-      case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
-      case IsLogin(value)                      => BooleanExprEval.evalIsLoginExpr(value, retrievals)
+      case h @ HasAnswer(_, _) =>
+        BooleanExprEval
+          .evalHasAnswer(
+            h,
+            formModel,
+            evaluationResults,
+            evaluationContext,
+            booleanExprResolver,
+            SourceOrigin.changeSource(recData)
+          )
+      case DuplicateExists(fieldList)      => BooleanExprEval.evalDuplicateExpr(fieldList, recData)
+      case First(FormCtx(formComponentId)) => BooleanExprEval.evalFirstExpr(formComponentId)
+      case IsLogin(value)                  => BooleanExprEval.evalIsLoginExpr(value, retrievals)
     }
 
     loop(booleanExpr)
@@ -356,9 +366,22 @@ class Recalculation[F[_]: Monad, E](
               })((updS, _).pure[F])
           }
         }
+      case h @ HasAnswer(_, _) =>
+        noStateChange(
+          BooleanExprEval
+            .evalHasAnswer(
+              h,
+              formModel,
+              evaluationResults,
+              evaluationContext,
+              booleanExprResolver,
+              SourceOrigin.changeSource(recData)
+            )
+        )
       case First(FormCtx(formComponentId)) => noStateChange(BooleanExprEval.evalFirstExpr(formComponentId))
       case IsLogin(value)                  => noStateChange(BooleanExprEval.evalIsLoginExpr(value, retrievals))
     }
+
     loop(booleanExpr)
   }
 

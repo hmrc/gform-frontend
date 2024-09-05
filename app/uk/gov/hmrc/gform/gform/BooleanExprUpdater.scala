@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
@@ -30,6 +31,13 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case DateIfElse(cond, field1, field2)                       => DateIfElse(cond, expandDateExpr(field1), expandDateExpr(field2))
     case DateOrElse(field1, field2)                             => DateOrElse(expandDateExpr(field1), expandDateExpr(field2))
   }
+  private def expandAddLoListRef(addToListRef: AddToListRef): AddToListRef = addToListRef match {
+    case AddToListRef.Basic(atlFormCtx) =>
+      NonEmptyList
+        .fromList((1 to index).toList.map(idx => ExprUpdater.formCtx(atlFormCtx, idx, baseIds)))
+        .fold[AddToListRef](AddToListRef.Basic(atlFormCtx))(AddToListRef.Expanded(_))
+    case AddToListRef.Expanded(_) => addToListRef
+  }
 
   def apply(booleanExpr: BooleanExpr): BooleanExpr = booleanExpr match {
     case Equals(left, right)              => Equals(expandExpr(left), expandExpr(right))
@@ -42,6 +50,7 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case And(left, right)                 => And(apply(left), apply(right))
     case Contains(formCtx, expr)          => Contains(expandFormCtx(formCtx), expandExpr(expr))
     case In(expr, dataSource)             => In(expandExpr(expr), dataSource)
+    case HasAnswer(formCtx, atlRef)       => HasAnswer(expandFormCtx(formCtx), expandAddLoListRef(atlRef))
     case MatchRegex(expr, regex)          => MatchRegex(expandExpr(expr), regex)
     case DateAfter(left, right)           => DateAfter(expandDateExpr(left), expandDateExpr(right))
     case DateBefore(left, right)          => DateBefore(expandDateExpr(left), expandDateExpr(right))
