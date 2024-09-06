@@ -543,13 +543,18 @@ class NewFormController(
       }
     } yield res
 
-  private def hasItmpExpr(exprs: List[Expr]) =
-    exprs.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
-      exprs.contains(AuthCtx(AuthInfo.ItmpName)) ||
-      exprs.contains(AuthCtx(AuthInfo.ItmpDateOfBirth)) ||
-      exprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName))) ||
-      exprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName))) ||
-      exprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName)))
+  private def hasItmpExpr(exprs: List[Expr]) = {
+    val leafs = exprs.flatMap(_.leafs())
+    val itmpAuthContexts = List(
+      AuthCtx(AuthInfo.ItmpAddress),
+      AuthCtx(AuthInfo.ItmpName),
+      AuthCtx(AuthInfo.ItmpDateOfBirth),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName)),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName)),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName))
+    )
+    leafs.exists(itmpAuthContexts.contains)
+  }
 
   private def maybeUpdateItmpCache(
     request: Request[AnyContent],
@@ -578,6 +583,7 @@ class NewFormController(
         val modelComponentIds = formModel.confirmationPageMap.flatMap { case (sectionNumber, confirmation) =>
           val allBracketExprs =
             formModel.brackets.withSectionNumber(sectionNumber).toPlainBracket.allExprs(formModel)
+
           if (hasItmpExpr(allBracketExprs)) {
             Some(confirmation.question.id.modelComponentId)
           } else None
