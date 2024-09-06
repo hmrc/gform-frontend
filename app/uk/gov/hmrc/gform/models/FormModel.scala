@@ -43,11 +43,19 @@ case class FormModel[A <: PageMode](
   val reverseConfirmationMap: Map[ModelPageId, ConfirmationPage.Confirmee] = pagesWithIndex.toList.flatMap {
     case (pageModel, sectionNumber) =>
       pageModel.maybeConfirmation.toList.flatMap(confirmation =>
-        confirmation.redirects.toList.map(
-          _.pageId.modelPageId -> ConfirmationPage.Confirmee(sectionNumber, confirmation)
-        )
+        confirmation.redirects.toList
+          .flatMap(_.toList)
+          .map(
+            _.pageId.modelPageId -> ConfirmationPage.Confirmee(sectionNumber, confirmation)
+          )
       )
   }.toMap
+
+  val confirmationPageMap = pagesWithIndex.toList.flatMap { case (pageModel, sectionNumber) =>
+    pageModel.maybeConfirmation.map { confirmation =>
+      sectionNumber -> confirmation
+    }
+  }
 
   val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
 

@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.gform.auth.models
 
+import cats.Eq
 import cats.implicits._
+
 import java.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName, Name }
@@ -26,6 +28,7 @@ import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
+
 import java.security.MessageDigest
 import uk.gov.hmrc.http.SessionId
 
@@ -181,6 +184,7 @@ object ItmpRetrievals {
   implicit val itmpNameFormat: OFormat[ItmpName] = Json.format[ItmpName]
   implicit val itmpAddressFormat: OFormat[ItmpAddress] = Json.format[ItmpAddress]
   implicit val format: OFormat[ItmpRetrievals] = Json.format[ItmpRetrievals]
+  implicit val equal: Eq[ItmpRetrievals] = Eq.fromUniversalEquals
 }
 
 final case class OtherRetrievals(

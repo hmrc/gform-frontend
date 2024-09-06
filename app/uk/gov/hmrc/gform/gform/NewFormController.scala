@@ -215,21 +215,25 @@ class NewFormController(
             },
             {
               case "continue" =>
-                cache.formTemplate.formKind.fold(_ =>
-                  fastForwardService
-                    .redirectFastForward[SectionSelectorType.Normal](
-                      cache,
-                      noAccessCode,
-                      formModelOptics,
-                      None,
-                      SuppressErrors.Yes
+                for {
+                  updatedCache <- maybeUpdateItmpCache(request, cache, formModelOptics)
+                  res <-
+                    cache.formTemplate.formKind.fold(_ =>
+                      fastForwardService
+                        .redirectFastForward[SectionSelectorType.Normal](
+                          updatedCache,
+                          noAccessCode,
+                          formModelOptics,
+                          None,
+                          SuppressErrors.Yes
+                        )
+                    )(_ =>
+                      Redirect(
+                        uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                          .landingPage(cache.formTemplateId, noAccessCode)
+                      ).pure[Future]
                     )
-                )(_ =>
-                  Redirect(
-                    uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                      .landingPage(cache.formTemplateId, noAccessCode)
-                  ).pure[Future]
-                )
+                } yield res
               case "delete" => fastForwardService.deleteForm(formTemplateId, cache, queryParams)
               case _        => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
@@ -539,6 +543,19 @@ class NewFormController(
       }
     } yield res
 
+  private def hasItmpExpr(exprs: List[Expr]) = {
+    val leafs = exprs.flatMap(_.leafs())
+    val itmpAuthContexts = List(
+      AuthCtx(AuthInfo.ItmpAddress),
+      AuthCtx(AuthInfo.ItmpName),
+      AuthCtx(AuthInfo.ItmpDateOfBirth),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName)),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName)),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName))
+    )
+    leafs.exists(itmpAuthContexts.contains)
+  }
+
   private def maybeUpdateItmpCache(
     request: Request[AnyContent],
     cache: AuthCacheWithForm,
@@ -553,22 +570,36 @@ class NewFormController(
         cache.formTemplateContext.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.values.toList)
       val allExprs = allBracketExprs ++ allCustomExprs ++ expressionsOutExprs
 
-      allExprs.contains(AuthCtx(AuthInfo.ItmpAddress)) ||
-      allExprs.contains(AuthCtx(AuthInfo.ItmpName)) ||
-      allExprs.contains(AuthCtx(AuthInfo.ItmpDateOfBirth)) ||
-      allExprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName))) ||
-      allExprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName))) ||
-      allExprs.contains(AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName)))
+      hasItmpExpr(allExprs)
     }
 
-    def modifyCacheItmpRetrievals(c: AuthCacheWithForm, itmpRetrievals: ItmpRetrievals): AuthCacheWithForm =
-      c.modify(_.form.thirdPartyData.itmpRetrievals).using(_ => Some(itmpRetrievals))
+    def modifyCacheItmpRetrievals(
+      c: AuthCacheWithForm,
+      itmpRetrievals: ItmpRetrievals
+    ): AuthCacheWithForm =
+      if (c.form.thirdPartyData.itmpRetrievals =!= Some(itmpRetrievals)) {
+
+        val formModel = formModelOptics.formModelRenderPageOptics.formModel
+        val modelComponentIds = formModel.confirmationPageMap.flatMap { case (sectionNumber, confirmation) =>
+          val allBracketExprs =
+            formModel.brackets.withSectionNumber(sectionNumber).toPlainBracket.allExprs(formModel)
+
+          if (hasItmpExpr(allBracketExprs)) {
+            Some(confirmation.question.id.modelComponentId)
+          } else None
+        }
+
+        c.modify(_.form.thirdPartyData.itmpRetrievals)
+          .using(_ => Some(itmpRetrievals))
+          .modify(_.form.formData)
+          .using(_ => formModelOptics.clearModelComponentIds(modelComponentIds).pageOpticsData.toFormData)
+      } else c
 
     cache.retrievals match {
       case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _, confidenceLevel, _)
           if formHasAuthItmpReferences() && confidenceLevel != ConfidenceLevel.L50 =>
-        auth.getItmpRetrievals(request).map { itmpRetrievals =>
-          modifyCacheItmpRetrievals(cache, itmpRetrievals)
+        auth.getItmpRetrievals(request).flatMap { itmpRetrievals =>
+          modifyCacheItmpRetrievals(cache, itmpRetrievals).pure[Future]
         }
       case _ => modifyCacheItmpRetrievals(cache, ItmpRetrievals(None, None, None)).pure[Future]
     }
