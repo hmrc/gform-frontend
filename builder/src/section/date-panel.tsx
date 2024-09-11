@@ -135,7 +135,7 @@ export const DatePanelFactory =
       formComponentPart["errorExample"] = state.errorExample;
       formComponentPart["errorMessage"] = state.errorMessage;
       formComponentPart["labelSize"] = state.labelSize;
-      formComponentPart["mandatory"] = state.optional ? "false" : "";
+      formComponentPart["mandatory"] = state.optional ? false : "";
 
       const data: FormComponentUpdateRequest = {
         payload: formComponentPart,

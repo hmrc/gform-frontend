@@ -80,8 +80,8 @@ export const initialAddressState = (formComponent: FormComponent): AddressState 
   const optional = isOptional(formComponent);
   const isCityMandatory =
     formComponent.type === "overseasAddress"
-      ? formComponent.cityMandatory !== "false"
-      : formComponent.cityMandatory === "true";
+      ? formComponent.cityMandatory !== false
+      : formComponent.cityMandatory === true;
   const state: AddressState = {
     isOverseasAddress: formComponent.type === "overseasAddress",
     label: formComponent.label,
@@ -94,11 +94,11 @@ export const initialAddressState = (formComponent: FormComponent): AddressState 
     errorMessage: formComponent.errorMessage,
     labelSize: formComponent.labelSize,
     isCityMandatory: isCityMandatory,
-    isCountyDisplayed: formComponent.countyDisplayed === "true",
-    isLine2Mandatory: formComponent.line2Mandatory === "true",
-    isPostcodeMandatory: formComponent.postcodeMandatory === "true",
-    isCountryLookup: formComponent.countryLookup !== "false",
-    isCountryDisplayed: formComponent.countryDisplayed !== "false",
+    isCountyDisplayed: formComponent.countyDisplayed === true,
+    isLine2Mandatory: formComponent.line2Mandatory === true,
+    isPostcodeMandatory: formComponent.postcodeMandatory === true,
+    isCountryLookup: formComponent.countryLookup !== false,
+    isCountryDisplayed: formComponent.countryDisplayed !== false,
   };
 
   const undo = replaceUndefinedByEmptyString(state);
@@ -160,17 +160,17 @@ export const AddressPanelFactory =
       const isCityMandatory = state.isCityMandatory
         ? state.isOverseasAddress
           ? ""
-          : "true"
+          : true
         : state.isOverseasAddress
-          ? "false"
+          ? false
           : "";
 
       formComponentPart["cityMandatory"] = isCityMandatory;
-      formComponentPart["countyDisplayed"] = !state.isOverseasAddress && state.isCountyDisplayed ? "true" : "";
-      formComponentPart["line2Mandatory"] = state.isOverseasAddress && state.isLine2Mandatory ? "true" : "";
-      formComponentPart["postcodeMandatory"] = state.isOverseasAddress && state.isPostcodeMandatory ? "true" : "";
-      formComponentPart["countryLookup"] = state.isOverseasAddress && state.isCountryLookup ? "" : "false";
-      formComponentPart["countryDisplayed"] = state.isOverseasAddress && state.isCountryDisplayed ? "" : "false";
+      formComponentPart["countyDisplayed"] = !state.isOverseasAddress && state.isCountyDisplayed ? true : "";
+      formComponentPart["line2Mandatory"] = state.isOverseasAddress && state.isLine2Mandatory ? true : "";
+      formComponentPart["postcodeMandatory"] = state.isOverseasAddress && state.isPostcodeMandatory ? true : "";
+      formComponentPart["countryLookup"] = state.isOverseasAddress && state.isCountryLookup ? "" : false;
+      formComponentPart["countryDisplayed"] = state.isOverseasAddress && state.isCountryDisplayed ? "" : false;
 
       const data: FormComponentUpdateRequest = {
         payload: formComponentPart,

@@ -330,7 +330,7 @@ export type FormComponent = {
   infoText?: SmartString;
   infoType?: string;
   multivalue?: string;
-  multiline?: string;
+  multiline?: boolean;
   dividerPosition?: number | string;
   dividerText?: SmartString;
   noneChoice?: number | string;
