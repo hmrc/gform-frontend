@@ -543,8 +543,12 @@ class NewFormController(
       }
     } yield res
 
-  private def hasItmpExpr(exprs: List[Expr]) = {
+  private def evalItmpExpr(exprs: List[Expr], itmpAuthContexts: List[AuthCtx]) = {
     val leafs = exprs.flatMap(_.leafs())
+    leafs.exists(itmpAuthContexts.contains)
+  }
+
+  private def hasItmpExpr(exprs: List[Expr]) = {
     val itmpAuthContexts = List(
       AuthCtx(AuthInfo.ItmpAddress),
       AuthCtx(AuthInfo.ItmpName),
@@ -553,7 +557,31 @@ class NewFormController(
       AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName)),
       AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName))
     )
-    leafs.exists(itmpAuthContexts.contains)
+    evalItmpExpr(exprs, itmpAuthContexts)
+  }
+
+  private def hasItmpNameExpr(exprs: List[Expr]) = {
+    val itmpAuthContexts = List(
+      AuthCtx(AuthInfo.ItmpName),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName)),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName)),
+      AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.FamilyName))
+    )
+    evalItmpExpr(exprs, itmpAuthContexts)
+  }
+
+  private def hasItmpDateOfBirthExpr(exprs: List[Expr]) = {
+    val itmpAuthContexts = List(
+      AuthCtx(AuthInfo.ItmpDateOfBirth)
+    )
+    evalItmpExpr(exprs, itmpAuthContexts)
+  }
+
+  private def hasItmpAddressExpr(exprs: List[Expr]) = {
+    val itmpAuthContexts = List(
+      AuthCtx(AuthInfo.ItmpAddress)
+    )
+    evalItmpExpr(exprs, itmpAuthContexts)
   }
 
   private def maybeUpdateItmpCache(
@@ -576,15 +604,26 @@ class NewFormController(
     def modifyCacheItmpRetrievals(
       c: AuthCacheWithForm,
       itmpRetrievals: ItmpRetrievals
-    ): AuthCacheWithForm =
-      if (c.form.thirdPartyData.itmpRetrievals =!= Some(itmpRetrievals)) {
+    ): AuthCacheWithForm = {
+      val cacheItmpRetrievals = c.form.thirdPartyData.itmpRetrievals
+      if (cacheItmpRetrievals =!= Some(itmpRetrievals)) {
 
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val modelComponentIds = formModel.confirmationPageMap.flatMap { case (sectionNumber, confirmation) =>
           val allBracketExprs =
             formModel.brackets.withSectionNumber(sectionNumber).toPlainBracket.allExprs(formModel)
 
-          if (hasItmpExpr(allBracketExprs)) {
+          if (cacheItmpRetrievals.flatMap(_.itmpName) != itmpRetrievals.itmpName && hasItmpNameExpr(allBracketExprs)) {
+            Some(confirmation.question.id.modelComponentId)
+          } else if (
+            cacheItmpRetrievals
+              .flatMap(_.itmpDateOfBirth) != itmpRetrievals.itmpDateOfBirth && hasItmpDateOfBirthExpr(allBracketExprs)
+          ) {
+            Some(confirmation.question.id.modelComponentId)
+          } else if (
+            cacheItmpRetrievals
+              .flatMap(_.itmpAddress) != itmpRetrievals.itmpAddress && hasItmpAddressExpr(allBracketExprs)
+          ) {
             Some(confirmation.question.id.modelComponentId)
           } else None
         }
@@ -594,6 +633,7 @@ class NewFormController(
           .modify(_.form.formData)
           .using(_ => formModelOptics.clearModelComponentIds(modelComponentIds).pageOpticsData.toFormData)
       } else c
+    }
 
     cache.retrievals match {
       case AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, Some(_), _, confidenceLevel, _)
