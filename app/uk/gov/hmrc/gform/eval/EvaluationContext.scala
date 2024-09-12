@@ -50,6 +50,6 @@ final case class EvaluationContext(
   fileSizeLimit: FileSizeLimit,
   lookupOptions: LocalisedLookupOptions,
   dataRetrieveAll: DataRetrieveAll,
-  choiceLookup: Map[BaseComponentId, NonEmptyList[OptionData]],
+  choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]],
   addToListIds: Set[AddToListId]
 )
