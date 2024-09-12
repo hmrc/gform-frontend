@@ -22,7 +22,7 @@ import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationContext, EvaluationResults }
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, SourceOrigin }
 
 sealed trait DateExpr {
   def leafExprs: List[Expr] = this match {
@@ -30,6 +30,7 @@ sealed trait DateExpr {
     case DateFormCtxVar(formCtx)       => formCtx :: Nil
     case DateExprWithOffset(dExpr, _)  => dExpr.leafExprs
     case HmrcTaxPeriodCtx(formCtx, _)  => formCtx :: Nil
+    case DataRetrieveDateCtx(_, _)     => DateCtx(this) :: Nil
     case DateIfElse(_, field1, field2) => field1.leafExprs ++ field2.leafExprs
     case DateOrElse(field1, field2)    => field1.leafExprs ++ field2.leafExprs
   }
@@ -45,6 +46,7 @@ sealed trait DateExpr {
     case DateExprWithOffset(dExpr, _) =>
       dExpr.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
     case HmrcTaxPeriodCtx(formCtx, _) => Some(formCtx)
+    case DataRetrieveDateCtx(_, _)    => None
     case DateIfElse(cond, field1, field2) =>
       if (booleanExprResolver.resolve(cond))
         field1.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
@@ -102,6 +104,7 @@ case class DateValueExpr(value: DateExprValue) extends DateExpr
 case class DateFormCtxVar(formCtx: FormCtx) extends DateExpr
 case class DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) extends DateExpr
 case class HmrcTaxPeriodCtx(formCtx: FormCtx, hmrcTaxPeriodInfo: HmrcTaxPeriodInfo) extends DateExpr
+case class DataRetrieveDateCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends DateExpr
 case class DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) extends DateExpr
 case class DateOrElse(field1: DateExpr, field2: DateExpr) extends DateExpr
 
