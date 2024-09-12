@@ -39,6 +39,7 @@ object Dependencies {
     "io.circe"                    %% "circe-generic"              % circeVersion,
     "io.circe"                    %% "circe-parser"               % circeVersion,
     "org.apache.xmlgraphics"       % "fop"                        % "2.9",
+    "ai.x"                        %% "play-json-extensions"       % "0.42.0",
     // Taken from: https://github.com/orgs/playframework/discussions/11222
     "com.fasterxml.jackson.core"       % "jackson-core"                   % jacksonVersion,
     "com.fasterxml.jackson.core"       % "jackson-annotations"            % jacksonVersion,

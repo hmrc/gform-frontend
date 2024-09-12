@@ -24,6 +24,8 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiVa
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.ops.FormComponentOps
+import ai.x.play.json.Encoders.encoder
+import ai.x.play.json.Jsonx
 
 case class FormComponent(
   id: FormComponentId,
@@ -47,7 +49,8 @@ case class FormComponent(
   errorShortName: Option[SmartString] = None,
   errorShortNameStart: Option[SmartString] = None,
   errorExample: Option[SmartString] = None,
-  extraLetterSpacing: Option[Boolean] = None
+  extraLetterSpacing: Option[Boolean] = None,
+  priority: Option[Priority] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId
@@ -160,7 +163,7 @@ case class FormComponent(
 }
 
 object FormComponent {
-  implicit val format: OFormat[FormComponent] = Json.format[FormComponent]
+  implicit val format: OFormat[FormComponent] = Jsonx.formatCaseClass[FormComponent]
 }
 
 object IsText {
