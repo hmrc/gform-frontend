@@ -25,6 +25,12 @@ final case class DataRetrieveAll(lookup: Map[DataRetrieveId, DataRetrieve]) exte
       case None     => false
       case Some(dr) => dr.attrTypeMapping.get(attribute).fold(false)(_ === DataRetrieve.AttrType.Integer)
     }
+
+  def isDate(dataRetriveId: DataRetrieveId, attribute: DataRetrieve.Attribute): Boolean =
+    lookup.get(dataRetriveId) match {
+      case None     => false
+      case Some(dr) => dr.attrTypeMapping.get(attribute).fold(false)(_ === DataRetrieve.AttrType.Date)
+    }
 }
 
 object DataRetrieveAll {

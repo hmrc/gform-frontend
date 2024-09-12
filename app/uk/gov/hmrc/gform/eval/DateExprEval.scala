@@ -20,12 +20,12 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExpr, DateExprWithOffset, DateFormCtxVar, DateIfElse, DateOrElse, DateValueExpr, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, DataRetrieveDateCtx, Date, DateExpr, DateExprWithOffset, DateFormCtxVar, DateIfElse, DateOrElse, DateValueExpr, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD }
 
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ ObligationDetail, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, ObligationDetail, SourceOrigin, VariadicValue }
 
 import scala.util.Try
 
@@ -48,6 +48,7 @@ object DateExprEval {
         )
       case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
+      case DataRetrieveDateCtx(id, attribute) => evalDataRetrieveDate(id, attribute, evaluationContext)
       case DateIfElse(cond, field1, field2) =>
         if (booleanExprResolver.resolve(cond))
           eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field1)
@@ -103,6 +104,10 @@ object DateExprEval {
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext).getOrElse(
           ExpressionResult.empty
         )
+      case DataRetrieveDateCtx(id, attribute) =>
+        evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
+          ExpressionResult.empty
+        )
       case DateIfElse(cond, field1, field2) =>
         if (booleanExprResolver.resolve(cond))
           evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
@@ -135,6 +140,23 @@ object DateExprEval {
         )
       }
   }
+
+  def toDateResult(value: String): Option[DateResult] = Try(DateResult(LocalDate.parse(value))).toOption
+
+  private def evalDataRetrieveDate(
+    id: DataRetrieveId,
+    attribute: DataRetrieve.Attribute,
+    evaluationContext: EvaluationContext
+  ): Option[DateResult] =
+    evaluationContext.thirdPartyData.dataRetrieve
+      .fold(Option.empty[DateResult]) { dataRetrieve =>
+        DataRetrieveEval
+          .getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(id, attribute))
+          .flatMap {
+            case s :: Nil => toDateResult(s)
+            case xs       => None
+          }
+      }
 
   // for "submitMode": "summaryinfoonly" fields, since they don't exist in form data.
   private def fromValue(evaluationContext: EvaluationContext, formComponentId: FormComponentId): ExpressionResult =
