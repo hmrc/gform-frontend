@@ -62,7 +62,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case LangCtx                               => expr
     case Period(_, _)                          => expr
     case PeriodExt(_, _)                       => expr
-    case IndexOf(_, _)                         => expr // This is not explanded on purpose, so it can be used correctly inside ATL
+    case IndexOf(_, _)                         => expr // This is not expanded on purpose, so it can be used correctly inside ATL
     case IndexOfDataRetrieveCtx(_, _)          => expr
     case NumberedList(formComponentId)         => NumberedList(expandFcId(formComponentId))
     case BulletedList(formComponentId)         => BulletedList(expandFcId(formComponentId))
@@ -71,6 +71,8 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case CountryOfItmpAddress                  => expr
     case ChoicesRevealedField(formComponentId) => ChoicesRevealedField(expandFcId(formComponentId))
     case ChoiceLabel(formComponentId)          => ChoiceLabel(expandFcId(formComponentId))
+    case ChoicesSelected(formComponentId)      => ChoicesSelected(expandFcId(formComponentId))
+    case ChoicesAvailable(formComponentId)     => ChoicesAvailable(expandFcId(formComponentId))
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {

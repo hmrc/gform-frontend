@@ -73,6 +73,8 @@ object ConcatFormatSubstituter {
         case CountryOfItmpAddress         => CountryOfItmpAddress
         case e: ChoicesRevealedField      => e
         case e: ChoiceLabel               => e
+        case e: ChoicesSelected           => e
+        case e: ChoicesAvailable          => e
       }
     }
 

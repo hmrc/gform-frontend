@@ -155,9 +155,9 @@ case class FormModel[A <: PageMode](
     fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).baseComponentId
   }.toSet
 
-  val choiceLookup: Map[BaseComponentId, NonEmptyList[OptionData]] = allFormComponents.collect {
+  val choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]] = allFormComponents.collect {
     case fc @ IsChoice(choice) =>
-      fc.baseComponentId -> choice.options
+      fc.modelComponentId -> choice.options
   }.toMap
 
   val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
@@ -281,12 +281,13 @@ case class FormModel[A <: PageMode](
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
-      case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
-      case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case IndexOf(formComponentId, _)   => explicitTypedExpr(expr, formComponentId)
-      case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
-      case otherwise                     => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+      case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
+      case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case ChoicesSelected(_) | ChoicesAvailable(_) => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case IndexOf(formComponentId, _)              => explicitTypedExpr(expr, formComponentId)
+      case AuthCtx(AuthInfo.ItmpAddress)            => TypeInfo(expr, StaticTypeData(ExprType.address, None))
+      case otherwise                                => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
   }
 
