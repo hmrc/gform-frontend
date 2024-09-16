@@ -195,7 +195,7 @@ export const initialTextState = (formComponent: FormComponent): TextState => {
   const { min: param1, max: param2 } = extractFormatValues(formComponent.format || "");
   const format = extractFormatPrefix(formComponent.format || "");
   const isLookup = formComponent.format?.startsWith("lookup") || false;
-  const isMultiline = formComponent.multiline === "true";
+  const isMultiline = formComponent.multiline === true;
   const optional = isOptional(formComponent);
   const state: TextState = {
     label: formComponent.label,
@@ -280,9 +280,9 @@ export const TextPanelFactory =
       }
 
       if (state.isMultiline) {
-        formComponentPart["multiline"] = "true";
+        formComponentPart["multiline"] = true;
       } else if (state.isLookup) {
-        formComponentPart["multiline"] = "false";
+        formComponentPart["multiline"] = false;
       } else {
         formComponentPart["multiline"] = "";
       }
@@ -293,7 +293,7 @@ export const TextPanelFactory =
       formComponentPart["errorMessage"] = textState.errorMessage;
       formComponentPart["displayWidth"] = textState.displayWidth;
       formComponentPart["labelSize"] = textState.labelSize;
-      formComponentPart["mandatory"] = textState.optional ? "false" : "";
+      formComponentPart["mandatory"] = textState.optional ? false : "";
 
       const data: FormComponentUpdateRequest = {
         payload: formComponentPart,

@@ -237,7 +237,7 @@ export const ChoicePanelFactory =
 
       formComponentPart["errorShortName"] = state.errorShortName;
       formComponentPart["errorMessage"] = state.errorMessage;
-      formComponentPart["mandatory"] = state.optional ? "false" : "";
+      formComponentPart["mandatory"] = state.optional ? false : "";
       formComponentPart["dividerPosition"] = state.dividerPosition;
       formComponentPart["dividerText"] = typeof state.dividerPosition === "number" ? state.dividerText : "";
 

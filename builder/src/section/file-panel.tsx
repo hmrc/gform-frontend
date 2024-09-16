@@ -123,7 +123,7 @@ export const FilePanelFactory =
       formComponentPart["errorShortName"] = state.errorShortName;
       formComponentPart["errorMessage"] = state.errorMessage;
       formComponentPart["labelSize"] = state.labelSize;
-      formComponentPart["mandatory"] = state.optional ? "false" : "";
+      formComponentPart["mandatory"] = state.optional ? false : "";
 
       const data: FormComponentUpdateRequest = {
         payload: formComponentPart,
