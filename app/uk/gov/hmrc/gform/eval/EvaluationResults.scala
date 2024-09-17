@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateExpr }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
-
 import SummarySubstituter._
 
 case class EvaluationResults(
@@ -722,7 +721,11 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case DateCtx(dateExpr)                => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
-      case _                                => ExpressionResult.empty
+      case DataRetrieveCtx(id, attribute) =>
+        evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
+          ExpressionResult.empty
+        )
+      case _ => ExpressionResult.empty
     }
 
     loop(typeInfo.expr) orElse evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
