@@ -143,7 +143,7 @@ object DateExprEval {
 
   def toDateResult(value: String): Option[DateResult] = Try(DateResult(LocalDate.parse(value))).toOption
 
-  private def evalDataRetrieveDate(
+  def evalDataRetrieveDate(
     id: DataRetrieveId,
     attribute: DataRetrieve.Attribute,
     evaluationContext: EvaluationContext
