@@ -81,9 +81,9 @@ class ConfirmationService(
                 )
               )
           case _ =>
-            val maybeRedirect = confirmation.redirects.find(r =>
-              processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None)
-            )
+            val maybeRedirect = confirmation.redirects.toList
+              .flatMap(_.toList)
+              .find(r => processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None))
             maybeRedirect.fold(
               ConfirmationAction.noop
             ) { redirect =>
