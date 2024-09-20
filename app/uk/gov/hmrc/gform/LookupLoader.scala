@@ -144,6 +144,43 @@ class LookupLoader {
     mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
+  private def readSdltReliefType(
+    filename: String,
+    idColumnName: String,
+    keywords: String,
+    englishLabel: String,
+    welshLabel: String,
+    priority: String,
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
+
+    type ColumnData =
+      (LookupLabel, LookupLabel, LookupId, LookupKeywords, LookupPriority)
+
+    val headerDecoder: HeaderDecoder[ColumnData] =
+      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, keywords, priority)(
+        (
+          _: LookupLabel,
+          _: LookupLabel,
+          _: LookupId,
+          _: LookupKeywords,
+          _: LookupPriority
+        )
+      )
+
+    val csvWithColumns = readCsvWithColumns(filename)
+
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (enLabel, cyLabel, id, keywords, priority) = columnData
+
+      val columns = csvWithColumns.find(_.get(idColumnName).get == id.id).get
+      val li = SdltReliefTypeLookupInfo(id, index, keywords, priority, columns)
+      ((enLabel, li), (cyLabel, li))
+    }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
+  }
+
   private def readCurrencies(
     filename: String,
     id: String,
@@ -304,6 +341,7 @@ class LookupLoader {
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy", "KeyWords", "Priority", "Region", "PortType", "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   private val sicCode                  = readSicCode("SicCode.csv",               "SicCode",      "Name", "Name-cy", "Section", mkAjaxLookup(ShowAll.Disabled))
+  private val sdltReliefType           = readSdltReliefType("SDLT-TypeOfRelief.csv", "Code", "Keywords", "ReliefType", "ReliefType-cy", "Priority", mkAjaxLookup(ShowAll.Enabled))
   // format: on
 
   val registerLookup: Map[Register, LookupType] =
@@ -326,7 +364,8 @@ class LookupLoader {
       Register.IntentBigPurchase        -> intentBigPurchase,
       Register.IntentLivingCostsAndFees -> intentLivingCostsAndFees,
       Register.IntentOther              -> intentOther,
-      Register.SicCode                  -> sicCode
+      Register.SicCode                  -> sicCode,
+      Register.SdltReliefType           -> sdltReliefType
     )
 }
 
@@ -348,6 +387,7 @@ object LookupLoader {
           engine.add(new LookupRecord(ll.label, LookupPriority(1), k))
         case (ll, SicCodeLookupInfo(_, _, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
+        case (ll, SdltReliefTypeLookupInfo(_, _, k, p, _)) => engine.add(new LookupRecord(ll.label, p, k))
       }
 
       l -> engine

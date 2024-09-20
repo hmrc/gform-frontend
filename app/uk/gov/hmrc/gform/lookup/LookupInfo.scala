@@ -67,3 +67,11 @@ final case class AgentComplaintCategoriesLookupInfo(
   keywords: LookupKeywords,
   columns: Map[String, String]
 ) extends LookupInfo
+
+final case class SdltReliefTypeLookupInfo(
+  id: LookupId,
+  index: Int,
+  keywords: LookupKeywords,
+  priority: LookupPriority,
+  columns: Map[String, String]
+) extends LookupInfo
