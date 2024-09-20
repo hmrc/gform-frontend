@@ -66,18 +66,21 @@ class LookupController(
           SimplifiedSelectionCriteria
             .convertToSimplifiedSelectionCriteria(_, lookupRegistry, formModelOptics.formModelVisibilityOptics)
         }
-
+        val priority: Option[Priority] = oFormComponent match {
+          case Some(oFormComponent) => oFormComponent.priority
+          case _                    => None
+        }
         val results = (lookupRegistry.get(register), lookupQuery, sSelectionCriteria) match {
           case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty, Some(sc)) =>
             options.m
               .get(l)
               .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
               .map(s => LocalisedLookupOptions(Map(l -> s)))
-              .map(_.process(_.sortLookupByPriorityAndLabel.map(_.label)))
+              .map(_.process(_.sortLookupByPriorityAndLabel(priority).map(_.label)))
               .getOrElse(List.empty)
 
           case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty, None) =>
-            options.process(_.sortLookupByPriorityAndLabel).map(_.label)
+            options.process(_.sortLookupByPriorityAndLabel(priority)).map(_.label)
 
           case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty, _) =>
             List.empty
@@ -93,7 +96,7 @@ class LookupController(
               .get(l)
               .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
               .map(s => LocalisedLookupOptions(Map(l -> s)))
-              .map(_.process(_.sortLookupByPriorityAndLabel))
+              .map(_.process(_.sortLookupByPriorityAndLabel(priority)))
               .getOrElse(List.empty)
               .filter(labels.contains)
               .map(_.label)
@@ -107,7 +110,7 @@ class LookupController(
                 )
             showAll match {
               case ShowAll.Enabled =>
-                options.process(_.sortLookupByPriorityAndLabel.filter(labels.contains)).map(_.label)
+                options.process(_.sortLookupByPriorityAndLabel(priority).filter(labels.contains)).map(_.label)
               case ShowAll.Disabled => labels.map(_.label)
             }
 

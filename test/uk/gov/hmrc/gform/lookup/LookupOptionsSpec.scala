@@ -31,6 +31,7 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
       0,
       LookupKeywords(Some("Britain")),
       LookupPriority(1),
+      LookupPriority(1),
       LookupRegion("1"),
       LookupInGibraltarEuEeaEfta("1"),
       Map()
@@ -39,6 +40,7 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
       LookupId("FR"),
       1,
       LookupKeywords(Some("France")),
+      LookupPriority(1),
       LookupPriority(1),
       LookupRegion("2"),
       LookupInGibraltarEuEeaEfta("1"),
