@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.ops.FormComponentOps
 import ai.x.play.json.Encoders.encoder
 import ai.x.play.json.Jsonx
 
+//TODO: Update (removal)
 case class FormComponent(
   id: FormComponentId,
   `type`: ComponentType,
@@ -94,6 +95,7 @@ case class FormComponent(
 
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
+  //TODO: Update
   private val exprType: ExprType = this match {
     case IsText(Text(Sterling(_, _), _, _, _, _, _))             => ExprType.number
     case IsText(Text(WholeSterling(_), _, _, _, _, _))           => ExprType.number
@@ -108,6 +110,7 @@ case class FormComponent(
     case _                                                       => ExprType.String
   }
 
+  //TODO: Update
   private val textConstraint: Option[TextConstraint] = this match {
     case IsText(Text(tc @ Sterling(_, _), _, _, _, _, _))             => Some(tc)
     case IsText(Text(tc @ WholeSterling(_), _, _, _, _, _))           => Some(tc)
@@ -118,6 +121,7 @@ case class FormComponent(
     case _                                                            => None
   }
 
+  //TODO: Update
   val showFormat: String =
     this match {
       case IsText(Text(TelephoneNumber, _, _, _, _, _))            => "telephoneNumber"
@@ -162,6 +166,7 @@ case class FormComponent(
   val errorPlaceholder = errorShortName orElse shortName
 }
 
+//TODO: Update (revert)
 object FormComponent {
   implicit val format: OFormat[FormComponent] = Jsonx.formatCaseClass[FormComponent]
 }

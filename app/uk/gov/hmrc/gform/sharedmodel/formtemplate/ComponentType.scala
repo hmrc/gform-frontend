@@ -68,6 +68,7 @@ sealed trait ComponentType {
   }
 }
 
+//TODO: Update
 case class Text(
   constraint: TextConstraint,
   value: Expr,
