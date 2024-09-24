@@ -886,7 +886,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     l: LangADT
   ): F[String] =
     formModelVisibilityOptics.formModel.fcLookup.get(modelComponentId.toFormComponentId) match {
-      case Some(IsText(Text(Lookup(register, _), _, _, _, _, _))) => lookupIdFromLabel(LookupLabel(value), register)
+      case Some(IsText(Text(Lookup(register, _), _, _, _, _, _, _))) => lookupIdFromLabel(LookupLabel(value), register)
       case None =>
         me.raiseError(
           StructuredFormDataBuilderException(

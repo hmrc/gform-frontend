@@ -68,14 +68,14 @@ sealed trait ComponentType {
   }
 }
 
-//TODO: Update
 case class Text(
   constraint: TextConstraint,
   value: Expr,
   displayWidth: DisplayWidth = DisplayWidth.DEFAULT,
   toUpperCase: UpperCaseBoolean = IsNotUpperCase,
   prefix: Option[SmartString] = None,
-  suffix: Option[SmartString] = None
+  suffix: Option[SmartString] = None,
+  priority: Option[Priority] = None
 ) extends ComponentType
 
 sealed trait UpperCaseBoolean

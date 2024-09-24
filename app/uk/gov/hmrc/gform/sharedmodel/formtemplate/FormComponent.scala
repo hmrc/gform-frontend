@@ -24,10 +24,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiVa
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import ai.x.play.json.Encoders.encoder
-import ai.x.play.json.Jsonx
 
-//TODO: Update (removal)
 case class FormComponent(
   id: FormComponentId,
   `type`: ComponentType,
@@ -50,8 +47,7 @@ case class FormComponent(
   errorShortName: Option[SmartString] = None,
   errorShortNameStart: Option[SmartString] = None,
   errorExample: Option[SmartString] = None,
-  extraLetterSpacing: Option[Boolean] = None,
-  priority: Option[Priority] = None
+  extraLetterSpacing: Option[Boolean] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId
@@ -95,64 +91,61 @@ case class FormComponent(
 
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
-  //TODO: Update
   private val exprType: ExprType = this match {
-    case IsText(Text(Sterling(_, _), _, _, _, _, _))             => ExprType.number
-    case IsText(Text(WholeSterling(_), _, _, _, _, _))           => ExprType.number
-    case IsText(Text(Number(_, _, _, _), _, _, _, _, _))         => ExprType.number
-    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _)) => ExprType.number
-    case IsText(Text(YearFormat, _, _, _, _, _))                 => ExprType.number
-    case IsChoice(_)                                             => ExprType.ChoiceSelection
-    case IsRevealingChoice(_)                                    => ExprType.ChoiceSelection
-    case IsDate(_)                                               => ExprType.DateString
-    case IsAddress(_) | IsOverseasAddress(_)                     => ExprType.AddressString
-    case IsTaxPeriodDate()                                       => ExprType.TaxPeriod
-    case _                                                       => ExprType.String
+    case IsText(Text(Sterling(_, _), _, _, _, _, _, _))             => ExprType.number
+    case IsText(Text(WholeSterling(_), _, _, _, _, _, _))           => ExprType.number
+    case IsText(Text(Number(_, _, _, _), _, _, _, _, _, _))         => ExprType.number
+    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => ExprType.number
+    case IsText(Text(YearFormat, _, _, _, _, _, _))                 => ExprType.number
+    case IsChoice(_)                                                => ExprType.ChoiceSelection
+    case IsRevealingChoice(_)                                       => ExprType.ChoiceSelection
+    case IsDate(_)                                                  => ExprType.DateString
+    case IsAddress(_) | IsOverseasAddress(_)                        => ExprType.AddressString
+    case IsTaxPeriodDate()                                          => ExprType.TaxPeriod
+    case _                                                          => ExprType.String
   }
 
-  //TODO: Update
   private val textConstraint: Option[TextConstraint] = this match {
-    case IsText(Text(tc @ Sterling(_, _), _, _, _, _, _))             => Some(tc)
-    case IsText(Text(tc @ WholeSterling(_), _, _, _, _, _))           => Some(tc)
-    case IsText(Text(tc @ Number(_, _, _, _), _, _, _, _, _))         => Some(tc)
-    case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _, _, _)) => Some(tc)
-    case IsText(Text(UkSortCodeFormat, _, _, _, _, _))                => Some(UkSortCodeFormat)
-    case IsText(Text(TimeFormat, _, _, _, _, _))                      => Some(TimeFormat)
-    case _                                                            => None
+    case IsText(Text(tc @ Sterling(_, _), _, _, _, _, _, _))             => Some(tc)
+    case IsText(Text(tc @ WholeSterling(_), _, _, _, _, _, _))           => Some(tc)
+    case IsText(Text(tc @ Number(_, _, _, _), _, _, _, _, _, _))         => Some(tc)
+    case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => Some(tc)
+    case IsText(Text(UkSortCodeFormat, _, _, _, _, _, _))                => Some(UkSortCodeFormat)
+    case IsText(Text(TimeFormat, _, _, _, _, _, _))                      => Some(TimeFormat)
+    case _                                                               => None
   }
 
-  //TODO: Update
   val showFormat: String =
     this match {
-      case IsText(Text(TelephoneNumber, _, _, _, _, _))            => "telephoneNumber"
-      case IsText(Text(Sterling(_, true), _, _, _, _, _))          => "positiveSterling"
-      case IsText(Text(Sterling(_, _), _, _, _, _, _))             => "sterling"
-      case IsText(Text(WholeSterling(true), _, _, _, _, _))        => "positiveWholeSterling"
-      case IsText(Text(WholeSterling(_), _, _, _, _, _))           => "wholeSterling"
-      case IsText(Text(PositiveNumber(_, 0, _, _), _, _, _, _, _)) => "positiveWholeNumber"
-      case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _)) => "positiveNumber"
-      case IsText(Text(Number(_, _, _, _), _, _, _, _, _))         => "number"
-      case IsText(Text(UkSortCodeFormat, _, _, _, _, _))           => "ukSortCode"
-      case IsText(Text(UkBankAccountNumber, _, _, _, _, _))        => "ukBankAccountNumber"
-      case IsText(Text(CtUTR, _, _, _, _, _))                      => "ctUtr"
-      case IsText(Text(SaUTR, _, _, _, _, _))                      => "saUtr"
-      case IsText(Text(NINO, _, _, _, _, _))                       => "nino"
-      case IsText(Text(PayeReference, _, _, _, _, _))              => "payeReference"
-      case IsText(Text(ChildBenefitNumber, _, _, _, _, _))         => "childBenefitNumber"
-      case IsText(Text(EORI, _, _, _, _, _))                       => "EORI"
-      case IsText(Text(UkEORI, _, _, _, _, _))                     => "UkEORI"
-      case IsText(Text(UkVrn, _, _, _, _, _))                      => "ukVrn"
-      case IsText(Text(Lookup(_, _), _, _, _, _, _))               => "lookup"
-      case IsText(Text(CompanyRegistrationNumber, _, _, _, _, _))  => "companyRegistrationNumber"
-      case IsText(Text(Email, _, _, _, _, _))                      => "email"
-      case IsText(Text(CountryCode, _, _, _, _, _))                => "countryCode"
-      case IsText(Text(NonUkCountryCode, _, _, _, _, _))           => "nonUkCountryCode"
-      case IsText(Text(ShortText(_, _), _, _, _, _, _))            => "shortText"
-      case IsText(Text(YearFormat, _, _, _, _, _))                 => "year"
-      case IsText(Text(TimeFormat, _, _, _, _, _))                 => "time"
-      case IsChoice(Choice(YesNo, _, _, _, _, _, _, _, _, _))      => "yesNo"
-      case IsChoice(Choice(_, _, _, _, _, _, _, _, _, _))          => "choice"
-      case other                                                   => other.`type`.showType
+      case IsText(Text(TelephoneNumber, _, _, _, _, _, _))            => "telephoneNumber"
+      case IsText(Text(Sterling(_, true), _, _, _, _, _, _))          => "positiveSterling"
+      case IsText(Text(Sterling(_, _), _, _, _, _, _, _))             => "sterling"
+      case IsText(Text(WholeSterling(true), _, _, _, _, _, _))        => "positiveWholeSterling"
+      case IsText(Text(WholeSterling(_), _, _, _, _, _, _))           => "wholeSterling"
+      case IsText(Text(PositiveNumber(_, 0, _, _), _, _, _, _, _, _)) => "positiveWholeNumber"
+      case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => "positiveNumber"
+      case IsText(Text(Number(_, _, _, _), _, _, _, _, _, _))         => "number"
+      case IsText(Text(UkSortCodeFormat, _, _, _, _, _, _))           => "ukSortCode"
+      case IsText(Text(UkBankAccountNumber, _, _, _, _, _, _))        => "ukBankAccountNumber"
+      case IsText(Text(CtUTR, _, _, _, _, _, _))                      => "ctUtr"
+      case IsText(Text(SaUTR, _, _, _, _, _, _))                      => "saUtr"
+      case IsText(Text(NINO, _, _, _, _, _, _))                       => "nino"
+      case IsText(Text(PayeReference, _, _, _, _, _, _))              => "payeReference"
+      case IsText(Text(ChildBenefitNumber, _, _, _, _, _, _))         => "childBenefitNumber"
+      case IsText(Text(EORI, _, _, _, _, _, _))                       => "EORI"
+      case IsText(Text(UkEORI, _, _, _, _, _, _))                     => "UkEORI"
+      case IsText(Text(UkVrn, _, _, _, _, _, _))                      => "ukVrn"
+      case IsText(Text(Lookup(_, _), _, _, _, _, _, _))               => "lookup"
+      case IsText(Text(CompanyRegistrationNumber, _, _, _, _, _, _))  => "companyRegistrationNumber"
+      case IsText(Text(Email, _, _, _, _, _, _))                      => "email"
+      case IsText(Text(CountryCode, _, _, _, _, _, _))                => "countryCode"
+      case IsText(Text(NonUkCountryCode, _, _, _, _, _, _))           => "nonUkCountryCode"
+      case IsText(Text(ShortText(_, _), _, _, _, _, _, _))            => "shortText"
+      case IsText(Text(YearFormat, _, _, _, _, _, _))                 => "year"
+      case IsText(Text(TimeFormat, _, _, _, _, _, _))                 => "time"
+      case IsChoice(Choice(YesNo, _, _, _, _, _, _, _, _, _))         => "yesNo"
+      case IsChoice(Choice(_, _, _, _, _, _, _, _, _, _))             => "choice"
+      case other                                                      => other.`type`.showType
     }
 
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
@@ -166,9 +159,8 @@ case class FormComponent(
   val errorPlaceholder = errorShortName orElse shortName
 }
 
-//TODO: Update (revert)
 object FormComponent {
-  implicit val format: OFormat[FormComponent] = Jsonx.formatCaseClass[FormComponent]
+  implicit val format: OFormat[FormComponent] = Json.format[FormComponent]
 }
 
 object IsText {
@@ -178,16 +170,16 @@ object IsText {
 object IsEmail {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
-      case Text(Email, _, _, _, _, _) => true
-      case _                          => false
+      case Text(Email, _, _, _, _, _, _) => true
+      case _                             => false
     }
 }
 
 object IsCapitalised {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
-      case t @ Text(_, _, _, IsUpperCase, _, _) => true
-      case _                                    => false
+      case t @ Text(_, _, _, IsUpperCase, _, _, _) => true
+      case _                                       => false
     }
 }
 
@@ -268,8 +260,8 @@ object IsTime {
 object IsTelephone {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
-      case Text(TelephoneNumber, _, _, _, _, _) => true
-      case _                                    => false
+      case Text(TelephoneNumber, _, _, _, _, _, _) => true
+      case _                                       => false
     }
 }
 
@@ -297,7 +289,7 @@ object HasDynamicChoice {
 object IsEmailVerifier {
   def unapply(formComponent: FormComponent): Option[(EmailFieldId, EmailVerifiedBy)] =
     formComponent.`type` match {
-      case Text(evb @ EmailVerifiedBy(_, _), _, _, _, _, _) =>
+      case Text(evb @ EmailVerifiedBy(_, _), _, _, _, _, _, _) =>
         Some((emailFieldId(formComponent.id), evb))
       case _ => None
     }

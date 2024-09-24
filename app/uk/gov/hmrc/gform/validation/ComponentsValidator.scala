@@ -199,7 +199,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(
           new EmailFieldIdChecker[D]().runCheck(checkerDependency)
         )
-      case Text(constraint, _, _, _, _, _) =>
+      case Text(constraint, _, _, _, _, _, _) =>
         validIf(
           new TextChecker[D]().runCheck(checkerDependency)
         )

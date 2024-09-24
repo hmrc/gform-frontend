@@ -59,17 +59,19 @@ class LookupController(
         val oFormComponent = aFormComponents.find(_.id.value === withoutCountryAtomFormComponentId.value)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-          case IsText(Text(Lookup(_, sc), _, _, _, _, _))            => sc
+          case IsText(Text(Lookup(_, sc), _, _, _, _, _, _))         => sc
           case IsOverseasAddress(OverseasAddress(_, _, _, _, _, sc)) => sc
           case _                                                     => None
         } map {
           SimplifiedSelectionCriteria
             .convertToSimplifiedSelectionCriteria(_, lookupRegistry, formModelOptics.formModelVisibilityOptics)
         }
-        val priority: Option[Priority] = oFormComponent match {
-          case Some(oFormComponent) => oFormComponent.priority
-          case _                    => None
+
+        val priority: Option[Priority] = oFormComponent flatMap {
+          case IsText(Text(_, _, _, _, _, _, priority)) => priority
+          case _                                        => None
         }
+
         val results = (lookupRegistry.get(register), lookupQuery, sSelectionCriteria) match {
           case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty, Some(sc)) =>
             options.m
