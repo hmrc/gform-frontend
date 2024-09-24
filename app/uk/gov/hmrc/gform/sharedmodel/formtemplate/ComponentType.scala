@@ -330,6 +330,7 @@ sealed trait OptionData extends Product with Serializable {
   def label: SmartString
   def hint: Option[SmartString]
   def dynamic: Option[Dynamic]
+  def includeIf: Option[IncludeIf]
 
   def value(index: Int): String = this match {
     case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value

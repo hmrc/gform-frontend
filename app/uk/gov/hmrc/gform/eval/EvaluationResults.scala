@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateExpr }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
-
 import SummarySubstituter._
 
 case class EvaluationResults(
@@ -208,6 +207,53 @@ case class EvaluationResults(
       result       <- dataRetrieve.get(dataRetrieveCount.id)
     } yield result.data.size
 
+  private def getChoicesSelected(
+    formComponentId: FormComponentId,
+    evaluationContext: EvaluationContext
+  ): NumberResult = {
+    val modelComponentId = formComponentId.modelComponentId
+    val answers: Option[Seq[String]] = recData.variadicFormData.many(modelComponentId)
+    val choicesSelected = evaluationContext.choiceLookup
+      .get(modelComponentId)
+      .fold(0) { _ =>
+        answers.fold(0)(_.size)
+      }
+    NumberResult(choicesSelected)
+  }
+
+  private def getChoicesAvailable(
+    formComponentId: FormComponentId,
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver
+  ): NumberResult =
+    evaluationContext.choiceLookup
+      .get(formComponentId.modelComponentId)
+      .map { optionDataNel =>
+        val choicesAvailable: Int = optionDataNel.toList.map { optionData =>
+          optionData match {
+            case o: OptionData.IndexBased                => 1
+            case OptionData.ValueBased(_, _, _, None, _) => 1
+            case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _) =>
+              evaluationContext.thirdPartyData.dataRetrieve
+                .flatMap(dr => dr.get(indexOfDataRetrieveCtx.ctx.id))
+                .fold(0)(drr => drr.data.size)
+
+            case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _) =>
+              recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
+          }
+        }.sum
+
+        val choicesHidden: Int =
+          optionDataNel.toList
+            .count(od =>
+              od.includeIf.exists { incIf =>
+                !booleanExprResolver.resolve(incIf.booleanExpr)
+              }
+            )
+        NumberResult(choicesAvailable - choicesHidden)
+      }
+      .getOrElse(NumberResult(0))
+
   private def evalNumber(
     typeInfo: TypeInfo,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -300,13 +346,16 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
-      case NumberedList(_)         => unsupportedOperation("Number")(expr)
-      case BulletedList(_)         => unsupportedOperation("Number")(expr)
-      case StringOps(_, _)         => unsupportedOperation("Number")(expr)
-      case Concat(_)               => unsupportedOperation("Number")(expr)
-      case CountryOfItmpAddress    => unsupportedOperation("Number")(expr)
-      case ChoicesRevealedField(_) => unsupportedOperation("Number")(expr)
-      case ChoiceLabel(_)          => unsupportedOperation("Number")(expr)
+      case NumberedList(_)                  => unsupportedOperation("Number")(expr)
+      case BulletedList(_)                  => unsupportedOperation("Number")(expr)
+      case StringOps(_, _)                  => unsupportedOperation("Number")(expr)
+      case Concat(_)                        => unsupportedOperation("Number")(expr)
+      case CountryOfItmpAddress             => unsupportedOperation("Number")(expr)
+      case ChoicesRevealedField(_)          => unsupportedOperation("Number")(expr)
+      case ChoiceLabel(_)                   => unsupportedOperation("Number")(expr)
+      case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
+      case ChoicesAvailable(formComponentId) =>
+        getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver)
     }
 
     loop(typeInfo.expr)
@@ -672,7 +721,11 @@ case class EvaluationResults(
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case DateCtx(dateExpr)                => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
-      case _                                => ExpressionResult.empty
+      case DataRetrieveCtx(id, attribute) =>
+        evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
+          ExpressionResult.empty
+        )
+      case _ => ExpressionResult.empty
     }
 
     loop(typeInfo.expr) orElse evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
@@ -840,6 +893,8 @@ case class EvaluationResults(
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isInteger(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isDate(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
@@ -863,7 +918,7 @@ case class EvaluationResults(
     recData: RecData[SourceOrigin.OutOfDate]
   ) = {
     val maybeChoiceM: Option[Map[String, SmartString]] = evaluationContext.choiceLookup
-      .get(fcId.baseComponentId)
+      .get(fcId.modelComponentId)
       .map(_.toList.zipWithIndex.collect {
         case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
         case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>

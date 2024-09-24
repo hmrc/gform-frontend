@@ -28,6 +28,7 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case DateFormCtxVar(formCtx: FormCtx)                       => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) => DateExprWithOffset(expandDateExpr(dExpr), offset)
     case HmrcTaxPeriodCtx(formCtx: FormCtx, _)                  => DateFormCtxVar(expandFormCtx(formCtx))
+    case d @ DataRetrieveDateCtx(_, _)                          => d
     case DateIfElse(cond, field1, field2)                       => DateIfElse(cond, expandDateExpr(field1), expandDateExpr(field2))
     case DateOrElse(field1, field2)                             => DateOrElse(expandDateExpr(field1), expandDateExpr(field2))
   }

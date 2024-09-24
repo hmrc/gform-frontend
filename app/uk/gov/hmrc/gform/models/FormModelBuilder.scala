@@ -395,6 +395,9 @@ class FormModelBuilder[E, F[_]: Functor](
       index,
       s.allIds
     ).updatedWithId.copy(mandatory = false, derived = true, submissible = false)
+
+    val expandedFields = c.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId))
+
     CheckYourAnswers[T](
       s.pageId.withIndex(index).withSuffix("CYA"),
       c.title.map(_.expand(index, s.allIds)),
@@ -409,7 +412,7 @@ class FormModelBuilder[E, F[_]: Functor](
       index,
       c.presentationHint,
       c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
-      c.fields,
+      expandedFields,
       c.displayWidth
     )
   }
@@ -417,6 +420,9 @@ class FormModelBuilder[E, F[_]: Functor](
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
+
+    val expandedFields = s.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId))
+
     Repeater[T](
       expand(s.title),
       s.caption.map(expand),
@@ -430,7 +436,7 @@ class FormModelBuilder[E, F[_]: Functor](
       fc,
       index,
       s.instruction,
-      s.fields,
+      expandedFields,
       s.repeatsUntil,
       s.repeatsWhile
     )

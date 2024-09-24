@@ -104,6 +104,8 @@ object SummarySubstituter {
       case CountryOfItmpAddress         => CountryOfItmpAddress
       case e: ChoicesRevealedField      => e
       case e: ChoiceLabel               => e
+      case e: ChoicesSelected           => e
+      case e: ChoicesAvailable          => e
     }
   }
 
@@ -140,6 +142,7 @@ object SummarySubstituter {
         case DateFormCtxVar(formCtx)                      => DateFormCtxVar(formCtx)
         case DateExprWithOffset(dExpr, o)                 => DateExprWithOffset(substitute(substitutions, dExpr), o)
         case HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo) => HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo)
+        case d @ DataRetrieveDateCtx(_, _)                => d
         case DateIfElse(ifElse, field1, field2) =>
           DateIfElse(ifElse(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
         case DateOrElse(field1, field2) =>

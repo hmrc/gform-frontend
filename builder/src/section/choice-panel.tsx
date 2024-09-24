@@ -237,7 +237,7 @@ export const ChoicePanelFactory =
 
       formComponentPart["errorShortName"] = state.errorShortName;
       formComponentPart["errorMessage"] = state.errorMessage;
-      formComponentPart["mandatory"] = state.optional ? "false" : "";
+      formComponentPart["mandatory"] = state.optional ? false : "";
       formComponentPart["dividerPosition"] = state.dividerPosition;
       formComponentPart["dividerText"] = typeof state.dividerPosition === "number" ? state.dividerText : "";
 
@@ -468,6 +468,30 @@ export const ChoicePanelFactory =
           <input type="checkbox" id="h1-checkbox" checked={choiceState.pageHeading} onClick={onH1FieldLabelToggle} />
           <label for="h1-checkbox">Use field label as H1</label>
         </div>
+        <div hidden={!showAllFields}>
+          <SmartStringInput id="edit-shortName" value={choiceState.shortName} onKeyUp={onShortNameChange}>
+            Short name
+          </SmartStringInput>
+        </div>
+        <div hidden={!(showAllFields || showHelpText)}>
+          <SmartStringInput id="edit-helpText" value={choiceState.helpText} onKeyUp={onHelpTextChange}>
+            Help text
+          </SmartStringInput>
+        </div>
+        <div hidden={!showAllFields}>
+          <SmartStringInput id="edit-errorShortName" value={choiceState.errorShortName} onKeyUp={onErrorShortNameKeyUp}>
+            Error short name
+          </SmartStringInput>
+        </div>
+        <div hidden={!showAllFields}>
+          <SmartStringInput id="edit-errorMessage" value={choiceState.errorMessage} onKeyUp={onErrorMessageKeyUp}>
+            Error message
+          </SmartStringInput>
+        </div>
+        <div hidden={!showAllFields}>
+          <input type="checkbox" id="optional" checked={choiceState.optional} onClick={optionalToggle} />
+          <label for="optional">Optional</label>
+        </div>
         {Array.from({ length: currentNumberOfChoices }, (_, index) => (
           <div
             id={"div-edit-choice-" + index}
@@ -500,31 +524,6 @@ export const ChoicePanelFactory =
             {generateChoiceNoneChoiceInputElements(index)}
           </div>
         ))}
-
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-shortName" value={choiceState.shortName} onKeyUp={onShortNameChange}>
-            Short name
-          </SmartStringInput>
-        </div>
-        <div hidden={!(showAllFields || showHelpText)}>
-          <SmartStringInput id="edit-helpText" value={choiceState.helpText} onKeyUp={onHelpTextChange}>
-            Help text
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-errorShortName" value={choiceState.errorShortName} onKeyUp={onErrorShortNameKeyUp}>
-            Error short name
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-errorMessage" value={choiceState.errorMessage} onKeyUp={onErrorMessageKeyUp}>
-            Error message
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <input type="checkbox" id="optional" checked={choiceState.optional} onClick={optionalToggle} />
-          <label for="optional">Optional</label>
-        </div>
       </fieldset>
     );
   };
