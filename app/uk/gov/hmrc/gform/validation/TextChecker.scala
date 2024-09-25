@@ -1543,11 +1543,7 @@ object TextChecker {
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
-    val str = value.replace(" ", "")
-    val isValidPhoneNumber = str match {
-      case TelephoneNumber.phoneNumberValidation() => true
-      case _                                       => false
-    }
+    val isValidPhoneNumber = TelephoneNumber.phoneNumberValidation.matches(value)
     ifProgram(
       cond = !isValidPhoneNumber,
       thenProgram = {
