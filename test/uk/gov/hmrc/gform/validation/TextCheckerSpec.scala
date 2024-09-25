@@ -44,6 +44,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.LookupLoader.mkAutocomplete
 import ComponentChecker._
+import org.scalacheck.Gen
+
 import scala.collection.mutable
 
 class TextCheckerSpec
@@ -125,6 +127,20 @@ class TextCheckerSpec
 
   it should "return invalid when character count is less than 7" in {
     val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 6))
+    forAll(invalidNumber) { phoneNumber =>
+      val result = TextChecker.validatePhoneNumber(testFormComponent, phoneNumber)
+      result.foldMap(ShortCircuitInterpreter) shouldBe Left(
+        Map(
+          purePure("testFormComponent") -> Set(
+            "Enter a phone number, like 01632 960 001, 07700 900 982 or +44 0770 090 0175"
+          )
+        )
+      )
+    }
+  }
+
+  it should "return invalid when character count is greater than 25" in {
+    val invalidNumber = Gen.const("1234567890 1234567890 12345")
     forAll(invalidNumber) { phoneNumber =>
       val result = TextChecker.validatePhoneNumber(testFormComponent, phoneNumber)
       result.foldMap(ShortCircuitInterpreter) shouldBe Left(

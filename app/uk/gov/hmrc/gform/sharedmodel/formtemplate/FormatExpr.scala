@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ Selec
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, LocalisedString }
 
 import scala.annotation.nowarn
+import scala.util.matching.Regex
 
 sealed trait FormatExpr
 final case class OrientationFormat(value: String) extends FormatExpr
@@ -283,7 +284,7 @@ case object YearFormat extends TextConstraint
 case object TimeFormat extends TextConstraint
 
 case object TelephoneNumber extends TextConstraint {
-  val phoneNumberValidation = """^[\+A-Z0-9 )/(*#-]{7,25}$""".r
+  val phoneNumberValidation: Regex = """^[+A-Z0-9 )/(*#-]{7,25}$""".r
 }
 
 case object Email extends TextConstraint
