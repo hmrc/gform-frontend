@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.lookup
 
+import cats.implicits.catsSyntaxEq
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, Priority, SimplifiedSelectionCriteria, Uk }
 
 import scala.annotation.tailrec
@@ -41,7 +42,7 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
         case (label, DefaultLookupInfo(_, _)) => (LookupPriority(1), label)
         case (label, CountryLookupInfo(_, _, _, priority, priorityUk, _, _, _)) =>
           priorityType match {
-            case Some(priorityType) => if (priorityType == Uk) (priorityUk, label) else (priority, label)
+            case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
             case _                  => (priority, label)
           }
         case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)

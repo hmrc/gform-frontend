@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 
@@ -25,5 +26,6 @@ case object Standard extends Priority
 case object Uk extends Priority
 
 object Priority {
+  implicit val equal: Eq[Priority] = Eq.fromUniversalEquals
   implicit val format: OFormat[Priority] = derived.oformat()
 }
