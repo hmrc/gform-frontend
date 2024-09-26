@@ -411,6 +411,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     0,
                     LookupKeywords(Some("England Great Britain")),
                     LookupPriority(1),
+                    LookupPriority(1),
                     LookupRegion("1"),
                     LookupInGibraltarEuEeaEfta("1"),
                     Map("InEU" -> "1")
@@ -453,6 +454,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     LookupId("GB"),
                     0,
                     LookupKeywords(Some("England Great Britain")),
+                    LookupPriority(1),
                     LookupPriority(1),
                     LookupRegion("1"),
                     LookupInGibraltarEuEeaEfta("1"),
@@ -500,6 +502,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                       LookupId("GB"),
                       0,
                       LookupKeywords(Some("England Great Britain")),
+                      LookupPriority(1),
                       LookupPriority(1),
                       LookupRegion("1"),
                       LookupInGibraltarEuEeaEfta("1"),

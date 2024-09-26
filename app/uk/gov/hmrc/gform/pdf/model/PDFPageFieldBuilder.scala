@@ -48,7 +48,7 @@ object PDFPageFieldBuilder {
   ): PageField = {
     import pdfFunctions._
     formComponent match {
-      case IsText(Text(_, _, _, _, prefix, suffix)) =>
+      case IsText(Text(_, _, _, _, prefix, suffix, _)) =>
         SimpleField(
           getFormComponentLabel(formComponent),
           formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix, formModelVisibilityOptics)

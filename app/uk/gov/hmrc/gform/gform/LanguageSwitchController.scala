@@ -88,8 +88,8 @@ class LanguageSwitchController(
       ) { implicit request => l => cache => sse => formModelOptics =>
         val lookups: List[(ModelComponentId, Register)] =
           formModelOptics.formModelRenderPageOptics.allFormComponents.collect {
-            case fc @ IsText(Text(Lookup(register, _), _, _, _, _, _)) => fc.id.modelComponentId                                 -> register
-            case fc @ IsOverseasAddress(_)                             => fc.id.toAtomicFormComponentId(OverseasAddress.country) -> Register.Country
+            case fc @ IsText(Text(Lookup(register, _), _, _, _, _, _, _)) => fc.id.modelComponentId                                 -> register
+            case fc @ IsOverseasAddress(_)                                => fc.id.toAtomicFormComponentId(OverseasAddress.country) -> Register.Country
           }
 
         val maybeLanguageToSwitchTo: Option[LangADT] =

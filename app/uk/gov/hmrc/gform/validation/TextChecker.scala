@@ -212,8 +212,8 @@ object TextChecker {
 
     def getLookupErrorMessageKey: String =
       fieldValue match {
-        case IsText(Text(Lookup(Register.Country, _), _, _, _, _, _)) => countryErrorLookup
-        case _                                                        => genericErrorLookup
+        case IsText(Text(Lookup(Register.Country, _), _, _, _, _, _, _)) => countryErrorLookup
+        case _                                                           => genericErrorLookup
       }
     def existsLabel(options: LookupOptions) =
       switchProgram(

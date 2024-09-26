@@ -70,7 +70,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       }
 
     val componentTypeExprs: List[ExprMetadata] = fc match {
-      case IsText(Text(Lookup(_, sc), _, _, _, _, _))     => fcLookupExpr(sc)
+      case IsText(Text(Lookup(_, sc), _, _, _, _, _, _))  => fcLookupExpr(sc)
       case IsGroup(group)                                 => fromGroup(group)
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
       case IsChoice(Choice(_, options, _, _, hints, optionHelpText, _, _, _, _)) =>

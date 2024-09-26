@@ -1299,9 +1299,9 @@ class SectionRenderingService(
             htmlForAddress(formComponent, a, validationResult, ei, countyDisplayed)
           case o @ OverseasAddress(_, _, _, _, _, _) =>
             htmlForOverseasAddress(formComponent, o, validationResult, ei)
-          case t @ Text(Lookup(register, _), _, _, _, _, _) =>
+          case t @ Text(Lookup(register, _), _, _, _, _, _, _) =>
             renderLookup(t, formComponent, register, validationResult, ei)
-          case t @ Text(_, _, _, _, _, _) =>
+          case t @ Text(_, _, _, _, _, _, _) =>
             renderText(t, formComponent, validationResult, ei)
           case t @ TextArea(_, _, _, _, _, _) =>
             renderTextArea(t, formComponent, validationResult, ei)
@@ -3251,7 +3251,7 @@ class SectionRenderingService(
   ): Option[List[SelectItem]] = {
 
     val selectionCriteria: Option[List[SimplifiedSelectionCriteria]] = (formComponent match {
-      case IsText(Text(Lookup(_, sc), _, _, _, _, _))            => sc
+      case IsText(Text(Lookup(_, sc), _, _, _, _, _, _))         => sc
       case IsOverseasAddress(OverseasAddress(_, _, _, _, _, sc)) => sc
       case _                                                     => None
     }).map {

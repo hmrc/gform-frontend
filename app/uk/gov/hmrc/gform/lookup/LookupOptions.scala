@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, SimplifiedSelectionCriteria }
+import cats.implicits.catsSyntaxEq
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, Priority, SimplifiedSelectionCriteria, Uk }
 
 import scala.annotation.tailrec
 
@@ -35,11 +36,15 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
       }
       .map(_._1)
 
-  def sortLookupByPriorityAndLabel: List[LookupLabel] =
+  def sortLookupByPriorityAndLabel(priorityType: Option[Priority]): List[LookupLabel] =
     options.toList
       .sortBy {
-        case (label, DefaultLookupInfo(_, _))                        => (LookupPriority(1), label)
-        case (label, CountryLookupInfo(_, _, _, priority, _, _, _))  => (priority, label)
+        case (label, DefaultLookupInfo(_, _)) => (LookupPriority(1), label)
+        case (label, CountryLookupInfo(_, _, _, priority, priorityUk, _, _, _)) =>
+          priorityType match {
+            case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
+            case _                  => (priority, label)
+          }
         case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _))  => (priority, label)
         case (label, SicCodeLookupInfo(_, _, _))                     => (LookupPriority(1), label)
@@ -54,10 +59,10 @@ object LookupOptions {
   def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
     (lookupInfo, columnName) match {
       // format: off
-      case (CountryLookupInfo(_, _, _, _, region, _, _), CsvColumnName.region)               => Some(region.region)
-      case (CountryLookupInfo(id, _, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
-      case (CountryLookupInfo(_, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta)               => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
-      case (CountryLookupInfo(_, _, _, _, _, _, columns), column)                            =>
+      case (CountryLookupInfo(_, _, _, _, _, region, _, _), CsvColumnName.region)               => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta)               => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
+      case (CountryLookupInfo(_, _, _, _, _, _, _, columns), column)                            =>
         Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)

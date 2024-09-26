@@ -22,91 +22,91 @@ package object ops {
 
   implicit class FormComponentOps(formComponent: FormComponent) {
     def isSterling = formComponent.`type` match {
-      case Text(_: Sterling, _, _, _, _, _)          => true
+      case Text(_: Sterling, _, _, _, _, _, _)       => true
       case TextArea(_: Sterling, _, _, _, _, _)      => true
-      case Text(_: WholeSterling, _, _, _, _, _)     => true
+      case Text(_: WholeSterling, _, _, _, _, _, _)  => true
       case TextArea(_: WholeSterling, _, _, _, _, _) => true
       case _                                         => false
     }
     def isNumber = formComponent.`type` match {
-      case Text(Number(_, _, _, _), _, _, _, _, _)     => true
+      case Text(Number(_, _, _, _), _, _, _, _, _, _)  => true
       case TextArea(Number(_, _, _, _), _, _, _, _, _) => true
       case _                                           => false
     }
     def isPositiveNumber = formComponent.`type` match {
-      case Text(PositiveNumber(_, _, _, _), _, _, _, _, _)     => true
+      case Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)  => true
       case TextArea(PositiveNumber(_, _, _, _), _, _, _, _, _) => true
       case _                                                   => false
     }
 
     def isReferenceNumber = formComponent.`type` match {
-      case Text(_: ReferenceNumber, _, _, _, _, _)     => true
+      case Text(_: ReferenceNumber, _, _, _, _, _, _)  => true
       case TextArea(_: ReferenceNumber, _, _, _, _, _) => true
       case _                                           => false
     }
 
     def isPayeReference = formComponent.`type` match {
-      case Text(PayeReference, _, _, _, _, _)     => true
+      case Text(PayeReference, _, _, _, _, _, _)  => true
       case TextArea(PayeReference, _, _, _, _, _) => true
       case _                                      => false
     }
 
     def isUkSortCode = formComponent.`type` match {
-      case Text(UkSortCodeFormat, _, _, _, _, _) => true
-      case _                                     => false
+      case Text(UkSortCodeFormat, _, _, _, _, _, _) => true
+      case _                                        => false
     }
 
     def isUkBankAccountNumber = formComponent.`type` match {
-      case Text(UkBankAccountNumber, _, _, _, _, _) => true
-      case _                                        => false
+      case Text(UkBankAccountNumber, _, _, _, _, _, _) => true
+      case _                                           => false
     }
 
     def isNumeric = formComponent.isNumber || formComponent.isPositiveNumber || formComponent.isSterling
 
     def isUkVrn = formComponent.`type` match {
-      case Text(UkVrn, _, _, _, _, _) => true
-      case _                          => false
+      case Text(UkVrn, _, _, _, _, _, _) => true
+      case _                             => false
     }
 
     def isEORI = formComponent.`type` match {
-      case Text(EORI, _, _, _, _, _) => true
-      case _                         => false
+      case Text(EORI, _, _, _, _, _, _) => true
+      case _                            => false
     }
 
     def isUkEORI = formComponent.`type` match {
-      case Text(UkEORI, _, _, _, _, _) => true
-      case _                           => false
+      case Text(UkEORI, _, _, _, _, _, _) => true
+      case _                              => false
     }
 
     def isNino = formComponent.`type` match {
-      case Text(NINO, _, _, _, _, _) => true
-      case _                         => false
+      case Text(NINO, _, _, _, _, _, _) => true
+      case _                            => false
     }
 
     def isCtUtr = formComponent.`type` match {
-      case Text(CtUTR, _, _, _, _, _) => true
-      case _                          => false
+      case Text(CtUTR, _, _, _, _, _, _) => true
+      case _                             => false
     }
 
     def isSaUtr = formComponent.`type` match {
-      case Text(SaUTR, _, _, _, _, _) => true
-      case _                          => false
+      case Text(SaUTR, _, _, _, _, _, _) => true
+      case _                             => false
     }
 
     def isChildBenefitNumber = formComponent.`type` match {
-      case Text(ChildBenefitNumber, _, _, _, _, _) => true
-      case _                                       => false
+      case Text(ChildBenefitNumber, _, _, _, _, _, _) => true
+      case _                                          => false
     }
 
     def isCompanyRegistrationNumber = formComponent.`type` match {
-      case Text(CompanyRegistrationNumber, _, _, _, _, _) => true
-      case _                                              => false
+      case Text(CompanyRegistrationNumber, _, _, _, _, _, _) => true
+      case _                                                 => false
     }
 
     def isUTR = formComponent.`type` match {
-      case Text(SaUTR, _, _, _, _, _) => true
-      case Text(CtUTR, _, _, _, _, _) => true
-      case _                          => false
+      case Text(SaUTR, _, _, _, _, _, _) => true
+      case Text(CtUTR, _, _, _, _, _, _) => true
+      case _                             => false
     }
   }
 }
