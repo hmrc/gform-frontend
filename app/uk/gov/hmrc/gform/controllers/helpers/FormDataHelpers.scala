@@ -226,7 +226,8 @@ object FormDataHelpers {
         poundOrComma.replaceAllIn(value, "")
       case Some(formComponent) if formComponent.isReferenceNumber => value.replace(" ", "")
       case Some(formComponent) if formComponent.isPayeReference   => value.replace(" ", "")
-      case Some(formComponent) if formComponent.isUTR || formComponent.isUkBankAccountNumber =>
+      case Some(formComponent)
+          if formComponent.isUTR || formComponent.isUkBankAccountNumber || formComponent.isCompanyRegistrationNumber =>
         value.replaceAll(" ", "")
       case Some(formComponent) if formComponent.isUkVrn =>
         value.toUpperCase.trim.replace(" ", "").replaceAll("^GB([0-9]{9}$)", "$1")
