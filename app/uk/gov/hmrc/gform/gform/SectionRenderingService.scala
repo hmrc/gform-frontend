@@ -93,6 +93,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, Go
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
+import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, TypeInfo }
 
 import scala.annotation.tailrec
 
@@ -1618,7 +1619,11 @@ class SectionRenderingService(
       val slRows = rows.flatMap {
         case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, maybePageId) =>
           val exprResult = ei.formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(e)
-          val exprStr = exprResult.stringRepresentation
+          val exprStr = exprResult.typeInfo match {
+            case TypeInfo(_, StaticTypeData(ExprType.address, _)) =>
+              exprResult.addressRepresentation.map(HtmlFormat.escape).map(_.body).mkString("<br>")
+            case _ => exprResult.stringRepresentation
+          }
           val formattedExprStr = exprResult.typeInfo.staticTypeData.textConstraint.fold(exprStr) { textConstraint =>
             TextFormatter.componentTextReadonly(exprStr, textConstraint)
           }
