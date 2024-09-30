@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId, MultiValueId }
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class FormModel[A <: PageMode](
@@ -273,7 +273,8 @@ case class FormModel[A <: PageMode](
       case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
           Size(_, _) | CsvCountryCountCheck(_, _, _) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case DataRetrieveCtx(DataRetrieveId("company"), DataRetrieve.Attribute("registeredOfficeAddress")) =>
+      case DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) |
+          DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) =>
         TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isInteger(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
