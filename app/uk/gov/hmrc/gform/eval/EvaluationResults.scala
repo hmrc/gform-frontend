@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SmartString, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 import SummarySubstituter._
@@ -209,51 +210,24 @@ case class EvaluationResults(
   private def getChoicesSelected(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext
-  ): NumberResult =
-    if (formComponentId.modelComponentId.indexedComponentId.isIndexed) {
-      val modelComponentId = formComponentId.modelComponentId
-      val answers: Option[Seq[String]] = recData.variadicFormData.many(modelComponentId)
-      val choicesSelected = evaluationContext.choiceLookup
-        .get(modelComponentId)
-        .fold(0) { _ =>
-          answers.fold(0)(_.size)
-        }
-      NumberResult(choicesSelected)
-    } else {
-      val baseComponentId = formComponentId.baseComponentId
-      val answers = recData.variadicFormData.data
-        .filter(_._1.baseComponentId === baseComponentId)
-        .values
-        .flatMap {
-          case VariadicValue.Many(vs) => vs
-          case notMany =>
-            throw new IllegalArgumentException(
-              s"Expected VariadicValue.Many for form component ID $baseComponentId. Got $notMany"
-            )
-        }
-        .toSet
-      val choicesSelectedValues =
-        evaluationContext.choiceLookup.map(c => c._1.baseComponentId -> c._2).get(baseComponentId)
-
-      val choicesSelected = choicesSelectedValues
-        .fold(0) { _ =>
-          answers.size
-        }
-      NumberResult(choicesSelected)
-    }
+  ): NumberResult = {
+    val modelComponentId = formComponentId.modelComponentId
+    val answers: Option[Seq[String]] = recData.variadicFormData.many(modelComponentId)
+    val choicesSelected = evaluationContext.choiceLookup
+      .get(modelComponentId)
+      .fold(0) { _ =>
+        answers.fold(0)(_.size)
+      }
+    NumberResult(choicesSelected)
+  }
 
   private def getChoicesAvailable(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext,
     booleanExprResolver: BooleanExprResolver
-  ): NumberResult = {
-    val modelComponentId =
-      if (formComponentId.modelComponentId.indexedComponentId.isIndexed)
-        formComponentId.modelComponentId
-      else formComponentId.withFirstIndex.modelComponentId
-
+  ): NumberResult =
     evaluationContext.choiceLookup
-      .get(modelComponentId)
+      .get(formComponentId.modelComponentId)
       .map { optionDataNel =>
         val choicesAvailable: Int = optionDataNel.toList.map { optionData =>
           optionData match {
@@ -279,7 +253,6 @@ case class EvaluationResults(
         NumberResult(choicesAvailable - choicesHidden)
       }
       .getOrElse(NumberResult(0))
-  }
 
   private def evalNumber(
     typeInfo: TypeInfo,
