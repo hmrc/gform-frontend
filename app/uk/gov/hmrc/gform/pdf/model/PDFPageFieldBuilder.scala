@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
+import cats.implicits.catsSyntaxEq
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -23,6 +24,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
+import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper.{ evaluateIncludeIf, getFormattedExprStr }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -31,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 
 object PDFPageFieldBuilder {
   def build[T <: PDFType, D <: DataOrigin](
@@ -45,22 +48,26 @@ object PDFPageFieldBuilder {
     l: LangADT,
     lise: SmartStringEvaluator,
     pdfFunctions: PDFCustomRender[T]
-  ): PageField = {
+  ): List[PageField] = {
     import pdfFunctions._
     formComponent match {
       case IsText(Text(_, _, _, _, prefix, suffix, _)) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix, formModelVisibilityOptics)
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            formatText(validationResult(formComponent), envelopeWithMapping, prefix, suffix, formModelVisibilityOptics)
+          )
         )
 
       case IsTextArea(_) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          formatText(
-            validationResult(formComponent),
-            envelopeWithMapping,
-            formModelVisibilityOptics = formModelVisibilityOptics
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            formatText(
+              validationResult(formComponent),
+              envelopeWithMapping,
+              formModelVisibilityOptics = formModelVisibilityOptics
+            )
           )
         )
 
@@ -69,15 +76,17 @@ object PDFPageFieldBuilder {
 
         def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(Date.month)))
 
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List {
-            val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(Date.day)))
-            val month = messages(s"date.$monthKey")
-            val year = validationResult(formComponent).getCurrentValue(safeId(Date.year))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            List {
+              val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(Date.day)))
+              val month = messages(s"date.$monthKey")
+              val year = validationResult(formComponent).getCurrentValue(safeId(Date.year))
 
-            Html(s"$day $month $year")
-          }
+              Html(s"$day $month $year")
+            }
+          )
         )
 
       case IsCalendarDate() =>
@@ -85,13 +94,15 @@ object PDFPageFieldBuilder {
 
         def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.month)))
 
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List {
-            val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.day)))
-            val month = messages(s"date.$monthKey")
-            Html(s"$day $month")
-          }
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            List {
+              val day = renderMonth(validationResult(formComponent).getCurrentValue(safeId(CalendarDate.day)))
+              val month = messages(s"date.$monthKey")
+              Html(s"$day $month")
+            }
+          )
         )
 
       case IsPostcodeLookup(_) =>
@@ -100,9 +111,11 @@ object PDFPageFieldBuilder {
             .addressLines(formComponent.id)
             .getOrElse(Nil)
 
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          addressLines.map(HtmlFormat.escape(_))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            addressLines.map(HtmlFormat.escape(_))
+          )
         )
 
       case IsTaxPeriodDate() =>
@@ -110,52 +123,79 @@ object PDFPageFieldBuilder {
 
         def monthKey = getMonthValue(validationResult(formComponent).getCurrentValue(safeId(TaxPeriodDate.month)))
 
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List {
-            val year = renderMonth(validationResult(formComponent).getCurrentValue(safeId(TaxPeriodDate.year)))
-            val month = messages(s"date.$monthKey")
-            Html(s"$month $year")
-          }
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            List {
+              val year = renderMonth(validationResult(formComponent).getCurrentValue(safeId(TaxPeriodDate.year)))
+              val month = messages(s"date.$monthKey")
+              Html(s"$month $year")
+            }
+          )
         )
 
       case IsTime(_) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List(Html(validationResult(formComponent).getCurrentValue.getOrElse("")))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            List(Html(validationResult(formComponent).getCurrentValue.getOrElse("")))
+          )
         )
       case IsAddress(_) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          Address
-            .renderToString(formComponent, validationResult(formComponent))
-            .map(HtmlFormat.escape(_))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            Address
+              .renderToString(formComponent, validationResult(formComponent))
+              .map(HtmlFormat.escape(_))
+          )
         )
 
       case IsOverseasAddress(_) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          OverseasAddress
-            .renderToString(formComponent, validationResult(formComponent))
-            .map(HtmlFormat.escape(_))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            OverseasAddress
+              .renderToString(formComponent, validationResult(formComponent))
+              .map(HtmlFormat.escape(_))
+          )
         )
 
       case IsInformationMessage(_) =>
-        SimpleField(None, List.empty)
+        List(SimpleField(None, List.empty))
 
       case IsTableComp(TableComp(_, _, summaryValue, _, _, _, _)) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List(Html(summaryValue.value()))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            List(Html(summaryValue.value()))
+          )
         )
 
-      case IsMiniSummaryList(_) =>
-        SimpleField(None, List.empty)
+      case IsMiniSummaryList(msl) =>
+        if (msl.displayInSummary === IsDisplayInSummary) {
+          msl.rows.map {
+            case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _) =>
+              if (evaluateIncludeIf(includeIf, formModelVisibilityOptics)) {
+                SimpleField(
+                  label.map(lise(_, false)),
+                  List(Html(getFormattedExprStr(formModelVisibilityOptics, e)))
+                )
+              } else {
+                SimpleField(None, List.empty)
+              }
+            case _ => SimpleField(None, List.empty)
+          }
+        } else {
+          List(SimpleField(None, List.empty))
+        }
 
       case IsFileUpload(_) =>
-        SimpleField(
-          getFormComponentLabel(formComponent),
-          List(HtmlFormat.escape(envelopeWithMapping.userFileName(formComponent)))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            List(HtmlFormat.escape(envelopeWithMapping.userFileName(formComponent)))
+          )
         )
 
       case IsHmrcTaxPeriod(h) =>
@@ -166,20 +206,24 @@ object PDFPageFieldBuilder {
         )
         val maybeObligation = cache.form.thirdPartyData.obligations.findByPeriodKey(h, periodId)
 
-        SimpleField(
-          getFormComponentLabel(formComponent).map(_.capitalize),
-          List(Html(maybeObligation.fold("Value Lost!") { od =>
-            messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
-              messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
-          }))
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent).map(_.capitalize),
+            List(Html(maybeObligation.fold("Value Lost!") { od =>
+              messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
+                messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
+            }))
+          )
         )
 
       case IsChoice(choice) =>
-        ChoiceField(
-          getFormComponentLabel(formComponent),
-          choice
-            .renderToString(formComponent, validationResult(formComponent), formModelVisibilityOptics)
-            .map(HtmlFormat.escape)
+        List(
+          ChoiceField(
+            getFormComponentLabel(formComponent),
+            choice
+              .renderToString(formComponent, validationResult(formComponent), formModelVisibilityOptics)
+              .map(HtmlFormat.escape)
+          )
         )
 
       case IsRevealingChoice(rc) =>
@@ -193,25 +237,27 @@ object PDFPageFieldBuilder {
                 val filteredFields = doFilter(element.revealingFields)
                 val revealingFields = formComponentOrdering
                   .fold(filteredFields)(filteredFields.sorted(_))
-                  .map(f =>
+                  .flatMap(f =>
                     build(f, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
                   )
                 ChoiceElement(element.choice.label.value(), revealingFields)
               }
           }
-        RevealingChoiceField(
-          getFormComponentLabel(formComponent),
-          selections,
-          isSeparate
+        List(
+          RevealingChoiceField(
+            getFormComponentLabel(formComponent),
+            selections,
+            isSeparate
+          )
         )
 
       case IsGroup(group) =>
         val groupFields = group.fields
-        val fields = formComponentOrdering.fold(groupFields)(groupFields.sorted(_)).map { f =>
+        val fields = formComponentOrdering.fold(groupFields)(groupFields.sorted(_)).flatMap { f =>
           build(f, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
         }
 
-        GroupField(getFormComponentLabel(formComponent), fields)
+        List(GroupField(getFormComponentLabel(formComponent), fields))
 
       case other => throw new Exception(s"Invalid formComponent in PDFPageFieldBuilder, got $other")
     }

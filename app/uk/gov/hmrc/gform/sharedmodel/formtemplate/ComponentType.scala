@@ -600,9 +600,20 @@ object MiniSummaryRow {
   implicit val format: Format[MiniSummaryRow] = derived.oformat()
 }
 
-case class MiniSummaryList(rows: List[MiniSummaryRow]) extends ComponentType
+case class MiniSummaryList(rows: List[MiniSummaryRow], displayInSummary: DisplayInSummary = IsNotDisplayInSummary)
+    extends ComponentType
 object MiniSummaryList {
   implicit val format: Format[MiniSummaryList] = derived.oformat()
+}
+
+sealed trait DisplayInSummary
+
+case object IsDisplayInSummary extends DisplayInSummary
+case object IsNotDisplayInSummary extends DisplayInSummary
+
+object DisplayInSummary {
+  implicit val equal: Eq[DisplayInSummary] = Eq.fromUniversalEquals
+  implicit val format: OFormat[DisplayInSummary] = derived.oformat()
 }
 
 case class TableValue(value: SmartString, cssClass: Option[String], colspan: Option[Int], rowspan: Option[Int]) {
