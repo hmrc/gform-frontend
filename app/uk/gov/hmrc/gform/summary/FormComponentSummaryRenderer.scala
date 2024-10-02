@@ -323,7 +323,8 @@ object FormComponentSummaryRenderer {
     l: LangADT,
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
-  ): List[SummaryListRow] =
+  ): List[SummaryListRow] = {
+    val hiddenRow = SummaryListRow(classes = "govuk-visually-hidden")
     if (miniSummaryList.displayInSummary === IsDisplayInSummary) {
       miniSummaryList.rows.map {
         case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _) =>
@@ -339,13 +340,14 @@ object FormComponentSummaryRenderer {
               ""
             )
           } else {
-            SummaryListRow(classes = "govuk-visually-hidden")
+            hiddenRow
           }
-        case _ => SummaryListRow(classes = "govuk-visually-hidden")
+        case _ => hiddenRow
       }
     } else {
-      List(SummaryListRow(classes = "govuk-visually-hidden"))
+      List(hiddenRow)
     }
+  }
 
   private def getTextSummaryListRows[T <: RenderType, D <: DataOrigin](
     fieldValue: FormComponent,
