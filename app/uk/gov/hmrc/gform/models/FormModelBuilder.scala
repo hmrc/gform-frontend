@@ -437,8 +437,8 @@ class FormModelBuilder[E, F[_]: Functor](
       index,
       s.instruction,
       expandedFields,
-      s.repeatsUntil,
-      s.repeatsWhile
+      s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
+      s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds)))
     )
   }
 
