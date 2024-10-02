@@ -168,7 +168,6 @@ export interface AcknowledgementRequest {
 
 export interface AcknowledgementSection {
   title?: SmartString;
-  panelTitle?: SmartString;
   showReference?: boolean;
   note?: NoteInfo[] | string;
   fields?: FormComponent[];
@@ -534,8 +533,8 @@ export interface UpdateAcknowledgementResponse {
   panelHtml?: string;
 }
 
-export type AcknowledgementPanelTitleClickable = {
-  panelTitle: HTMLElement;
+export type AcknowledgementTitleClickable = {
+  title: HTMLElement;
 };
 
 export interface InfoRenderParam {

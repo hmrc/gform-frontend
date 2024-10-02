@@ -759,13 +759,13 @@ class BuilderController(
       val heading = renderer.acknowledgementHeading(formCategory)
 
       destinationList.map { l =>
-        val panelTitle = l.acknowledgementSection.panelTitle.map(_.value())
+        val title = l.acknowledgementSection.title.map(_.value())
         val showReference = l.acknowledgementSection.showReference
-        (panelTitle, showReference)
+        (title, showReference)
       } match {
-        case Some((panelTitle, showReference)) =>
+        case Some((title, showReference)) =>
           val html = renderer.renderAcknowledgementPanel(
-            panelTitle,
+            title,
             showReference,
             formCategory,
             envelopeId,
