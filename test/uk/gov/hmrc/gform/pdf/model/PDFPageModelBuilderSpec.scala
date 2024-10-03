@@ -33,11 +33,11 @@ import uk.gov.hmrc.gform.pdf.model.PDFPageModelBuilder.makeModel
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, Section, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, IsDisplayInSummary, MiniSummaryList, MiniSummaryListValue, Section, Value }
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 
-import scala.collection.immutable.List
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 
 class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSupport {
 
@@ -69,17 +69,33 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       Value
     )
 
+    lazy val fcMsl: FormComponent = buildFormComponent(
+      "miniSummaryList",
+      MiniSummaryList(
+        List(
+          ValueRow(
+            Option(toSmartString("Key")),
+            MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("name"))),
+            None,
+            None
+          )
+        ),
+        IsDisplayInSummary
+      ),
+      None
+    )
+
     lazy val addToListQuestionComponent: FormComponent = addToListQuestion("addToListQuestion")
 
     lazy val sections: List[Section] = List(
       mkSection(
-        List(fcName)
+        List(fcName, fcMsl)
       )
     )
 
     lazy val form: Form =
       buildForm(
-        FormData(List.empty)
+        FormData(List(FormField(fcName.modelComponentId, "name&value")))
       )
 
     lazy val validationResult: ValidationResult = new ValidationResult(
@@ -114,7 +130,14 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       envelopeWithMapping,
       validationResult
     ) shouldBe List(
-      PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name&amp;value")))), "0")
+      PageData(
+        Some("Section Name"),
+        List(
+          SimpleField(Some("name"), List(Html("name&amp;value"))),
+          SimpleField(Some("Key"), List(Html("name&value")))
+        ),
+        "0"
+      )
     )
   }
 

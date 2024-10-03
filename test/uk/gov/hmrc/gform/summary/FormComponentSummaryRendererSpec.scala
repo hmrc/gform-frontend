@@ -16,11 +16,8 @@
 
 package uk.gov.hmrc.gform.summary
 
-import org.mockito.ArgumentMatchersSugar
-import org.mockito.scalatest.IdiomaticMockito
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.{ Millis, Span }
+import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
@@ -36,20 +33,15 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormCtx, FormTemplate, FormTemplateContext, IsDisplayInSummary, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, IsDisplayInSummary, IsNotDisplayInSummary, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, NotChecked }
 import uk.gov.hmrc.gform.validation.ValidationResult
-import uk.gov.hmrc.govukfrontend.views.Aliases.Text
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ Empty, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.http.SessionId
 
-class FormComponentSummaryRendererSpec
-    extends AnyWordSpecLike with Matchers with ScalaFutures with ArgumentMatchersSugar with IdiomaticMockito
-    with HtmlSupport with FormModelSupport {
-
-  override implicit val patienceConfig: PatienceConfig =
-    PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
+class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers with FormModelSupport {
 
   trait TestFixture {
     implicit val langADT: LangADT = LangADT.En
@@ -84,52 +76,134 @@ class FormComponentSummaryRendererSpec
 
   "FormComponentSummaryRenderer" should {
     "summaryListRows" should {
-      "should return list of summary list rows from mini summary list component with DisplayInSummary case IsDisplayInSummary" in new TestFixture {
-        lazy val nameField: FormComponent = buildFormComponent(
-          "nameField",
-          Value
-        )
-        lazy val minSummaryList: FormComponent = buildFormComponent(
-          "miniSummaryList",
-          MiniSummaryList(
-            List(
-              ValueRow(Option(toSmartString("Name")), MiniSummaryListValue.AnyExpr(FormCtx(nameField.id)), None, None)
+      "should return correct list of summary list rows from mini summary list component" in {
+        val table = Table(
+          ("miniSummaryList", "key", "value", "classes"),
+          (
+            buildFormComponent(
+              "miniSummaryList",
+              MiniSummaryList(
+                List(
+                  ValueRow(
+                    Option(toSmartString("Name")),
+                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                    None,
+                    None
+                  )
+                ),
+                IsDisplayInSummary
+              ),
+              None
             ),
-            IsDisplayInSummary
+            "Name",
+            "nameValue",
+            ""
           ),
-          None
-        )
-        override lazy val form: Form =
-          buildForm(
-            FormData(
-              List(
-                FormField(nameField.modelComponentId, "nameValue")
-              )
-            )
+          (
+            buildFormComponent(
+              "miniSummaryList",
+              MiniSummaryList(
+                List(
+                  ValueRow(
+                    Option(toSmartString("Name")),
+                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                    None,
+                    None
+                  )
+                ),
+                IsNotDisplayInSummary
+              ),
+              None
+            ),
+            "",
+            "",
+            "govuk-visually-hidden"
+          ),
+          (
+            buildFormComponent(
+              "miniSummaryList",
+              MiniSummaryList(
+                List(
+                  ValueRow(
+                    Option(toSmartString("Name")),
+                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                    Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("nameValue")))),
+                    None
+                  )
+                ),
+                IsDisplayInSummary
+              ),
+              None
+            ),
+            "Name",
+            "nameValue",
+            ""
+          ),
+          (
+            buildFormComponent(
+              "miniSummaryList",
+              MiniSummaryList(
+                List(
+                  ValueRow(
+                    Option(toSmartString("Name")),
+                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                    Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("notTheValue")))),
+                    None
+                  )
+                ),
+                IsDisplayInSummary
+              ),
+              None
+            ),
+            "",
+            "",
+            "govuk-visually-hidden"
           )
-        override lazy val formTemplate: FormTemplate = buildFormTemplate(
-          destinationList,
-          sections = List(nonRepeatingPageSection(title = "page1", fields = List(nameField, minSummaryList)))
         )
 
-        val rows: List[SummaryListRow] = FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
-          minSummaryList,
-          None,
-          formTemplate._id,
-          formModelOptics.formModelVisibilityOptics,
-          None,
-          SectionNumber.Classic(0),
-          SectionTitle4Ga("page1"),
-          NotChecked,
-          ValidationResult.empty,
-          envelopeWithMapping,
-          AddressRecordLookup.from(cache.form.thirdPartyData),
-          None,
-          Some(List(FastForward.CYA(SectionOrSummary.FormSummary)))
-        )
-        rows.length shouldBe 1
-        rows.head.key.content shouldBe Text("Name")
-        rows.head.value.content shouldBe HtmlContent("nameValue")
+        forAll(table) { (miniSummaryList, key, value, classes) =>
+          lazy val nameField: FormComponent = buildFormComponent(
+            "nameField",
+            Value
+          )
+          val testFixture: TestFixture = new TestFixture {
+            override lazy val formTemplate: FormTemplate = buildFormTemplate(
+              destinationList,
+              sections = List(nonRepeatingPageSection(title = "page1", fields = List(nameField, miniSummaryList)))
+            )
+            override lazy val form: Form =
+              buildForm(
+                FormData(
+                  List(
+                    FormField(nameField.modelComponentId, "nameValue")
+                  )
+                )
+              )
+          }
+          import testFixture._
+          val rows: List[SummaryListRow] =
+            FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+              miniSummaryList,
+              None,
+              formTemplate._id,
+              formModelOptics.formModelVisibilityOptics,
+              None,
+              SectionNumber.Classic(0),
+              SectionTitle4Ga("page1"),
+              NotChecked,
+              ValidationResult.empty,
+              envelopeWithMapping,
+              AddressRecordLookup.from(cache.form.thirdPartyData),
+              None,
+              Some(List(FastForward.CYA(SectionOrSummary.FormSummary)))
+            )
+          rows.length shouldBe 1
+          rows.head.key.content shouldBe (if (key.isEmpty) { Empty }
+                                          else { Text(key) })
+          rows.head.value.content shouldBe (if (value.isEmpty) { Empty }
+                                            else { HtmlContent(value) })
+          rows.head.classes shouldBe classes
+        }
       }
     }
   }
