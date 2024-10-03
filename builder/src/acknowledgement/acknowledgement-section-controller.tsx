@@ -27,7 +27,6 @@ export const AcknowledgementSectionFactory =
 
     const serverError = useRef<HTMLDivElement>(null);
 
-    const panelTitleInput = useRef<SmartStringDiv>(null);
     const titleInput = useRef<SmartStringDiv>(null);
 
     const hideReferenceInput = useRef<HTMLInputElement>(null);
@@ -52,9 +51,6 @@ export const AcknowledgementSectionFactory =
     };
 
     const panelTitleKeyUp = (e: KeyboardEvent) => {
-      if (panelTitleInput.current !== null) {
-        setPanelTitleValue(panelTitleInput.current.value);
-      }
       if (titleInput.current !== null) {
         setTitleValue(titleInput.current.value);
       }
@@ -65,9 +61,6 @@ export const AcknowledgementSectionFactory =
       const acknowledgementComponentPart: AcknowledgementSection = {};
       if (titleInput.current !== null) {
         acknowledgementComponentPart["title"] = titleInput.current.value;
-      }
-      if (panelTitleInput.current !== null) {
-        acknowledgementComponentPart["panelTitle"] = panelTitleInput.current.value;
       }
 
       if (hideReferenceInput.current !== null) {
@@ -140,17 +133,7 @@ export const AcknowledgementSectionFactory =
     return (
       <div id="edit-acknowledgement-panel-title" class="info" style={{ display: windowDisplayed ? "block" : "none" }}>
         <style>{styles}</style>
-        <SmartStringDiv ref={panelTitleInput}>
-          <SmartStringInputDeprecated
-            id="edit-panel-title"
-            class="form-control"
-            value={panelTitleValue}
-            onKeyUp={panelTitleKeyUp}
-          >
-            Panel Title
-          </SmartStringInputDeprecated>
-        </SmartStringDiv>
-        <SmartStringDiv style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={titleInput}>
+        <SmartStringDiv ref={titleInput}>
           <SmartStringInputDeprecated id="edit-title" class="form-control" value={titleValue} onKeyUp={panelTitleKeyUp}>
             Title
           </SmartStringInputDeprecated>
@@ -168,7 +151,7 @@ export const AcknowledgementSectionFactory =
         </div>
 
         <button id="update-button" class="btn btn-success" onClick={updateHandler}>
-          Update panel title
+          Update title
         </button>
         <button id="cancel-button" class="btn btn-secondary" onClick={cancelClickHandler}>
           Cancel

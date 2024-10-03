@@ -133,7 +133,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
 
   val ackSection =
     AcknowledgementSection(
-      toSmartString("ack section with email param field"),
+      Some(toSmartString("ack section with email param field")),
       None,
       None,
       formComponent,
@@ -148,6 +148,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       ),
       None,
       true,
+      false,
       None
     )
 
@@ -800,7 +801,7 @@ trait ExampleFormTemplate {
 
   def acknowledgementSection =
     AcknowledgementSection(
-      toSmartString("Acknowledgement Page"),
+      Some(toSmartString("Acknowledgement Page")),
       Some(toSmartString("this page is to acknowledge submission")),
       Some(toSmartString("shortName for acknowledgement")),
       List(`fieldValue - info`),
@@ -808,6 +809,7 @@ trait ExampleFormTemplate {
       None,
       None,
       true,
+      false,
       None
     )
 

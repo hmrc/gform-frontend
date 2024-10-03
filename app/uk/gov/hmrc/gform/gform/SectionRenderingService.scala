@@ -1093,9 +1093,13 @@ class SectionRenderingService(
     )
 
     val formCategory = formTemplate.formCategory
-    val panelTitle = destinationList.acknowledgementSection.panelTitle.map(_.value())
-    val showReference = destinationList.acknowledgementSection.showReference
-    val heading = acknowledgementHeading(formCategory)
+    val acknowledgementSection = destinationList.acknowledgementSection
+    val panelTitle = acknowledgementSection.title.map(_.value())
+    val showReference = acknowledgementSection.showReference
+    val heading =
+      acknowledgementSection.noPIITitle.fold(
+        acknowledgementSection.title.map(_.value()).getOrElse(acknowledgementHeading(formCategory))
+      )(noPIITitle => noPIITitle.value())
     val acknowledgementPanel = renderAcknowledgementPanel(
       panelTitle,
       showReference,

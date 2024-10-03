@@ -691,7 +691,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val emptyDestinationPrint = DestinationPrint(emptyPrintSectionPage, emptyPrintSectionPdf, None)
     val emptyDeclarationSection = DeclarationSection(emptySS, None, None, None, None, List.empty[FormComponent], None)
     val emptyAcknowledgementSection =
-      AcknowledgementSection(emptySS, None, None, List.empty[FormComponent], true, None, None, true, None)
+      AcknowledgementSection(Some(emptySS), None, None, List.empty[FormComponent], true, None, None, true, false, None)
     val emptyHmrcDms =
       Destination.HmrcDms(
         DestinationId(""),
@@ -728,7 +728,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("printSection.pdf.footer",             dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdf = emptyPrintSectionPdf.copy(footer = stringExpr)))),
       ("printSection.pdfNotification.header", dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdfNotification = Some(emptyPrintSectionPdfNotification.copy(header = stringExpr))))),
       ("printSection.pdfNotification.footer", dummyFormTemplate.copy(destinations = emptyDestinationPrint.copy(pdfNotification = Some(emptyPrintSectionPdfNotification.copy(footer = stringExpr))))),
-      ("acknowledgementSection.title",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(title = stringExpr)))),
+      ("acknowledgementSection.title",        dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(title = Some(stringExpr))))),
       ("acknowledgementSection.description",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(description = Some(stringExpr))))),
       ("acknowledgementSection.shortName",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(shortName = Some(stringExpr))))),
       ("acknowledgementSection.fields",       dummyFormTemplate.copy(destinations = emptyDestinationList.copy(acknowledgementSection = emptyAcknowledgementSection.copy(fields = field :: Nil)))),

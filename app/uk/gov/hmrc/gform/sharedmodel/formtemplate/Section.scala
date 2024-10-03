@@ -142,7 +142,7 @@ object DeclarationSection {
 }
 
 case class AcknowledgementSection(
-  title: SmartString,
+  title: Option[SmartString],
   description: Option[SmartString],
   shortName: Option[SmartString],
   fields: List[FormComponent],
@@ -150,16 +150,17 @@ case class AcknowledgementSection(
   pdf: Option[PdfCxt],
   instructionPdf: Option[PdfCxt],
   displayFeedbackLink: Boolean,
-  panelTitle: Option[SmartString]
+  notPII: Boolean,
+  noPIITitle: Option[SmartString]
 ) {
 
   def toSection = Section.NonRepeatingPage(toPage)
 
   def toPage: Page[Basic] =
     Page(
-      title = title,
+      title = title.getOrElse(SmartString.empty),
       id = None,
-      noPIITitle = None,
+      noPIITitle = noPIITitle,
       description = description,
       shortName = shortName,
       caption = None,

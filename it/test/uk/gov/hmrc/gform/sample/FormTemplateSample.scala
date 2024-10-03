@@ -125,7 +125,7 @@ trait FormTemplateSample {
         )
       ),
       acknowledgementSection = AcknowledgementSection(
-        title = toSmartString("Acknowledgement Page"),
+        title = Some(toSmartString("Acknowledgement Page")),
         description = None,
         shortName = None,
         fields = List.empty,
@@ -133,7 +133,8 @@ trait FormTemplateSample {
         pdf = None,
         instructionPdf = None,
         displayFeedbackLink = true,
-        panelTitle = None
+        notPII = false,
+        noPIITitle = None
       ),
       declarationSection = Some(
         DeclarationSection(
