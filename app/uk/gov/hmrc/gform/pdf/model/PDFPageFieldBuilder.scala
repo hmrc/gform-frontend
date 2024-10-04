@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.Yes
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 
 object PDFPageFieldBuilder {
@@ -173,7 +174,7 @@ object PDFPageFieldBuilder {
         )
 
       case IsMiniSummaryList(msl) =>
-        if (msl.displayInSummary === IsDisplayInSummary) {
+        if (msl.displayInSummary === Yes) {
           msl.rows.map {
             case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _) =>
               if (evaluateIncludeIf(includeIf, formModelVisibilityOptics)) {

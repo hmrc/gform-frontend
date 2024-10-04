@@ -32,8 +32,9 @@ import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelector
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.{ No, Yes }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, IsDisplayInSummary, IsNotDisplayInSummary, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, NotChecked }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Empty, Text }
@@ -91,7 +92,7 @@ class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers wit
                     None
                   )
                 ),
-                IsDisplayInSummary
+                Yes
               ),
               None
             ),
@@ -111,7 +112,7 @@ class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers wit
                     None
                   )
                 ),
-                IsNotDisplayInSummary
+                No
               ),
               None
             ),
@@ -131,7 +132,7 @@ class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers wit
                     None
                   )
                 ),
-                IsDisplayInSummary
+                Yes
               ),
               None
             ),
@@ -151,7 +152,7 @@ class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers wit
                     None
                   )
                 ),
-                IsDisplayInSummary
+                Yes
               ),
               None
             ),
