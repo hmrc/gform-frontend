@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, MiniSummaryList, MiniSummaryListValue, Section, Value }
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.Yes
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 
 class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSupport {
@@ -80,7 +80,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
             None
           )
         ),
-        Yes
+        DisplayInSummary.Yes
       ),
       None
     )

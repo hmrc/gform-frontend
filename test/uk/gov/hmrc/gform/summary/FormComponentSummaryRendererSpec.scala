@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.summary
 
-import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import org.scalatest.wordspec.AnyWordSpecLike
+import munit.FunSuite
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.{ FakeRequest, Helpers }
@@ -32,7 +31,7 @@ import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelector
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.{ No, Yes }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, NotChecked }
@@ -42,7 +41,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.http.SessionId
 
-class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers with FormModelSupport {
+class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
 
   trait TestFixture {
     implicit val langADT: LangADT = LangADT.En
@@ -75,137 +74,139 @@ class FormComponentSummaryRendererSpec extends AnyWordSpecLike with Matchers wit
       .apply(formModelOptics.formModelVisibilityOptics)
   }
 
-  "FormComponentSummaryRenderer" should {
-    "summaryListRows" should {
-      "should return correct list of summary list rows from mini summary list component" in {
-        val table = Table(
-          ("miniSummaryList", "key", "value", "classes"),
-          (
-            buildFormComponent(
-              "miniSummaryList",
-              MiniSummaryList(
-                List(
-                  ValueRow(
-                    Option(toSmartString("Name")),
-                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
-                    None,
-                    None
-                  )
-                ),
-                Yes
-              ),
-              None
-            ),
-            "Name",
-            "nameValue",
-            ""
-          ),
-          (
-            buildFormComponent(
-              "miniSummaryList",
-              MiniSummaryList(
-                List(
-                  ValueRow(
-                    Option(toSmartString("Name")),
-                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
-                    None,
-                    None
-                  )
-                ),
-                No
-              ),
-              None
-            ),
-            "",
-            "",
-            "govuk-visually-hidden"
-          ),
-          (
-            buildFormComponent(
-              "miniSummaryList",
-              MiniSummaryList(
-                List(
-                  ValueRow(
-                    Option(toSmartString("Name")),
-                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
-                    Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("nameValue")))),
-                    None
-                  )
-                ),
-                Yes
-              ),
-              None
-            ),
-            "Name",
-            "nameValue",
-            ""
-          ),
-          (
-            buildFormComponent(
-              "miniSummaryList",
-              MiniSummaryList(
-                List(
-                  ValueRow(
-                    Option(toSmartString("Name")),
-                    MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
-                    Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("notTheValue")))),
-                    None
-                  )
-                ),
-                Yes
-              ),
-              None
-            ),
-            "",
-            "",
-            "govuk-visually-hidden"
-          )
-        )
-
-        forAll(table) { (miniSummaryList, key, value, classes) =>
-          lazy val nameField: FormComponent = buildFormComponent(
-            "nameField",
-            Value
-          )
-          val testFixture: TestFixture = new TestFixture {
-            override lazy val formTemplate: FormTemplate = buildFormTemplate(
-              destinationList,
-              sections = List(nonRepeatingPageSection(title = "page1", fields = List(nameField, miniSummaryList)))
-            )
-            override lazy val form: Form =
-              buildForm(
-                FormData(
-                  List(
-                    FormField(nameField.modelComponentId, "nameValue")
-                  )
-                )
+  test("summaryListRows should return correct list of summary list rows from mini summary list component") {
+    val table = Table(
+      ("miniSummaryList", "key", "value", "classes"),
+      (
+        buildFormComponent(
+          "miniSummaryList",
+          MiniSummaryList(
+            List(
+              ValueRow(
+                Option(toSmartString("Name")),
+                MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                None,
+                None
               )
-          }
-          import testFixture._
-          val rows: List[SummaryListRow] =
-            FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
-              miniSummaryList,
-              None,
-              formTemplate._id,
-              formModelOptics.formModelVisibilityOptics,
-              None,
-              SectionNumber.Classic(0),
-              SectionTitle4Ga("page1"),
-              NotChecked,
-              ValidationResult.empty,
-              envelopeWithMapping,
-              AddressRecordLookup.from(cache.form.thirdPartyData),
-              None,
-              Some(List(FastForward.CYA(SectionOrSummary.FormSummary)))
+            ),
+            DisplayInSummary.Yes
+          ),
+          None
+        ),
+        "Name",
+        "nameValue",
+        ""
+      ),
+      (
+        buildFormComponent(
+          "miniSummaryList",
+          MiniSummaryList(
+            List(
+              ValueRow(
+                Option(toSmartString("Name")),
+                MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                None,
+                None
+              )
+            ),
+            DisplayInSummary.No
+          ),
+          None
+        ),
+        "",
+        "",
+        "govuk-visually-hidden"
+      ),
+      (
+        buildFormComponent(
+          "miniSummaryList",
+          MiniSummaryList(
+            List(
+              ValueRow(
+                Option(toSmartString("Name")),
+                MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("nameValue")))),
+                None
+              )
+            ),
+            DisplayInSummary.Yes
+          ),
+          None
+        ),
+        "Name",
+        "nameValue",
+        ""
+      ),
+      (
+        buildFormComponent(
+          "miniSummaryList",
+          MiniSummaryList(
+            List(
+              ValueRow(
+                Option(toSmartString("Name")),
+                MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("notTheValue")))),
+                None
+              )
+            ),
+            DisplayInSummary.Yes
+          ),
+          None
+        ),
+        "",
+        "",
+        "govuk-visually-hidden"
+      )
+    )
+
+    forAll(table) { (miniSummaryList, key, value, classes) =>
+      lazy val nameField: FormComponent = buildFormComponent(
+        "nameField",
+        Value
+      )
+      val testFixture: TestFixture = new TestFixture {
+        override lazy val formTemplate: FormTemplate = buildFormTemplate(
+          destinationList,
+          sections = List(nonRepeatingPageSection(title = "page1", fields = List(nameField, miniSummaryList)))
+        )
+        override lazy val form: Form =
+          buildForm(
+            FormData(
+              List(
+                FormField(nameField.modelComponentId, "nameValue")
+              )
             )
-          rows.length shouldBe 1
-          rows.head.key.content shouldBe (if (key.isEmpty) { Empty }
-                                          else { Text(key) })
-          rows.head.value.content shouldBe (if (value.isEmpty) { Empty }
-                                            else { HtmlContent(value) })
-          rows.head.classes shouldBe classes
-        }
+          )
       }
+      import testFixture._
+      val rows: List[SummaryListRow] =
+        FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+          miniSummaryList,
+          None,
+          formTemplate._id,
+          formModelOptics.formModelVisibilityOptics,
+          None,
+          SectionNumber.Classic(0),
+          SectionTitle4Ga("page1"),
+          NotChecked,
+          ValidationResult.empty,
+          envelopeWithMapping,
+          AddressRecordLookup.from(cache.form.thirdPartyData),
+          None,
+          Some(List(FastForward.CYA(SectionOrSummary.FormSummary)))
+        )
+      assertEquals(rows.length, 1)
+      assertEquals(
+        rows.head.key.content,
+        if (key.isEmpty) { Empty }
+        else { Text(key) }
+      )
+      assertEquals(
+        rows.head.value.content,
+        if (value.isEmpty) { Empty }
+        else { HtmlContent(value) }
+      )
+      assertEquals(rows.head.classes, classes)
     }
   }
 

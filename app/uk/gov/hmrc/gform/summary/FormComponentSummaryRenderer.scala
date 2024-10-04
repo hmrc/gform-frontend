@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.monoidHtml
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.Yes
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
@@ -326,7 +326,7 @@ object FormComponentSummaryRenderer {
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] = {
     val hiddenRow = SummaryListRow(classes = "govuk-visually-hidden")
-    if (miniSummaryList.displayInSummary === Yes) {
+    if (miniSummaryList.displayInSummary === DisplayInSummary.Yes) {
       miniSummaryList.rows.map {
         case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _) =>
           if (evaluateIncludeIf(includeIf, formModelVisibilityOptics)) {
