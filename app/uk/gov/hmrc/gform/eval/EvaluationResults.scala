@@ -224,10 +224,12 @@ case class EvaluationResults(
   private def getChoicesAvailable(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext,
-    booleanExprResolver: BooleanExprResolver
-  ): NumberResult =
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): NumberResult = {
+    val modelComponentId = formComponentId.modelComponentId
     evaluationContext.choiceLookup
-      .get(formComponentId.modelComponentId)
+      .get(modelComponentId)
       .map { optionDataNel =>
         val choicesAvailable: Int = optionDataNel.toList.map { optionData =>
           optionData match {
@@ -243,6 +245,45 @@ case class EvaluationResults(
           }
         }.sum
 
+        val hideSelectedChoices: Boolean = evaluationContext.hideChoicesSelected(modelComponentId)
+
+        val alreadySelected = if (hideSelectedChoices) {
+          val allAnswerData: Iterable[(ModelComponentId, VariadicValue)] =
+            recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId).filter { case (md, _) =>
+              (for {
+                idx1 <- md.maybeIndex
+                idx2 <- modelComponentId.maybeIndex
+              } yield idx1 =!= idx2).getOrElse(true)
+            }
+          val allAnswers: Set[String] = allAnswerData.flatMap { case (_, vv) => vv.toSeq }.toSet
+
+          optionDataNel.toList.map { optionData =>
+            optionData match {
+              case _: OptionData.IndexBased => 0 // 0 because we don't support index based options hiding
+              case o: OptionData.ValueBased =>
+                o.value match {
+                  case OptionDataValue.StringBased(value) => if (allAnswers(value)) 1 else 0
+                  case OptionDataValue.FormCtxBased(formCtx) =>
+                    val values: Iterable[(ModelComponentId, VariadicValue)] =
+                      recData.variadicFormData
+                        .forBaseComponentId(formCtx.formComponentId.modelComponentId.baseComponentId)
+
+                    val optionAnswers: Set[String] = values.flatMap { case (_, vv) => vv.toSeq.toSet }.toSet
+                    optionAnswers.intersect(allAnswers).size
+
+                  case OptionDataValue.ExprBased(prefix, expr) =>
+                    val value = prefix + evalExprAsString(
+                      expr,
+                      evaluationContext,
+                      booleanExprResolver,
+                      recData
+                    )
+                    if (allAnswers(value)) 1 else 0
+                }
+            }
+          }.sum
+        } else 0
+
         val choicesHidden: Int =
           optionDataNel.toList
             .count(od =>
@@ -250,9 +291,10 @@ case class EvaluationResults(
                 !booleanExprResolver.resolve(incIf.booleanExpr)
               }
             )
-        NumberResult(choicesAvailable - choicesHidden)
+        NumberResult(choicesAvailable - choicesHidden - alreadySelected)
       }
       .getOrElse(NumberResult(0))
+  }
 
   private def evalNumber(
     typeInfo: TypeInfo,
@@ -355,7 +397,7 @@ case class EvaluationResults(
       case ChoiceLabel(_)                   => unsupportedOperation("Number")(expr)
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId) =>
-        getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver)
+        getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
     }
 
     loop(typeInfo.expr)
@@ -878,13 +920,11 @@ case class EvaluationResults(
     StringResult(concatValue)
   }
 
-  private def evalExprAsString(
+  private def typeInfoForExpr(
     expr: Expr,
-    evaluationContext: EvaluationContext,
-    booleanExprResolver: BooleanExprResolver,
-    recData: RecData[SourceOrigin.OutOfDate]
-  ): String = {
-    val typeInfo: TypeInfo = expr match {
+    evaluationContext: EvaluationContext
+  ): TypeInfo =
+    expr match {
       case Add(_, _) | Multiply(_, _) | Subtraction(_, _) | Divide(_, _) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DateCtx(_) => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
@@ -897,12 +937,21 @@ case class EvaluationResults(
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
-      case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
-      case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
-      case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+      case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
+      case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case AuthCtx(AuthInfo.ItmpAddress)            => TypeInfo(expr, StaticTypeData(ExprType.address, None))
+      case IfElse(cond, field1: Expr, field2: Expr) => typeInfoForExpr(field1, evaluationContext)
+      case _                                        => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
+
+  private def evalExprAsString(
+    expr: Expr,
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): String = {
+    val typeInfo: TypeInfo = typeInfoForExpr(expr, evaluationContext)
     evalExpr(
       typeInfo,
       recData,

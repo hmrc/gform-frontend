@@ -1338,7 +1338,8 @@ class SectionRenderingService(
                 dividerPosition,
                 dividerText,
                 noneChoice,
-                _
+                _,
+                hideChoicesSelected
               ) =>
             htmlForChoice(
               formComponent,
@@ -1352,7 +1353,8 @@ class SectionRenderingService(
               ei,
               dividerPosition,
               dividerText,
-              noneChoice
+              noneChoice,
+              hideChoicesSelected
             )
           case RevealingChoice(options, multiValue) =>
             htmlForRevealingChoice(
@@ -1973,9 +1975,37 @@ class SectionRenderingService(
     }
   }
 
-  private def isVisibleOption(optionData: OptionData, formModelOptics: FormModelOptics[DataOrigin.Mongo]): Boolean =
+  private def hasNotBeenSelectedYet(
+    hideChoicesSelected: Boolean,
+    optionData: OptionData,
+    modelComponentId: ModelComponentId,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    m: Messages
+  ): Boolean = if (!hideChoicesSelected) true
+  else {
+    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+    val allValues: Iterable[(ModelComponentId, VariadicValue)] =
+      formModelVisibilityOptics.recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId).filter {
+        case (mcId, _) =>
+          mcId =!= modelComponentId // Ignore itself, so user can edit it
+      }
+    val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
     optionData match {
-      case OptionData.ValueBased(_, _, includeIf, _, _) =>
+      case OptionData.ValueBased(_, _, _, _, _) =>
+        val value = optionData.getValue(-1, formModelVisibilityOptics)
+        !selectedValues(value)
+      case OptionData.IndexBased(_, _, _, _) =>
+        true // Do not hide index based options
+    }
+  }
+
+  private def isVisibleOption(
+    optionData: OptionData,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): Boolean =
+    optionData match {
+      case OptionData.ValueBased(_, _, includeIf, _, value) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
       case OptionData.IndexBased(_, _, includeIf, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
@@ -2011,7 +2041,8 @@ class SectionRenderingService(
     ei: ExtraInfo,
     dividerPosition: Option[DividerPosition],
     dividerText: LocalisedString,
-    maybeNoneChoice: Option[NoneChoice]
+    maybeNoneChoice: Option[NoneChoice],
+    hideChoicesSelected: Boolean
   )(implicit
     l: LangADT,
     m: Messages,
@@ -2023,7 +2054,11 @@ class SectionRenderingService(
       else selections.map(_.toString).toSet
 
     val visibleOptionsWithIndex: NonEmptyList[(OptionData, Int)] = options.zipWithIndex
-      .filter { case (o, _) => isVisibleOption(o, ei.formModelOptics) && optionHasContent(o) }
+      .filter { case (o, _) =>
+        hasNotBeenSelectedYet(hideChoicesSelected, o, formComponent.modelComponentId, ei.formModelOptics) &&
+          isVisibleOption(o, ei.formModelOptics) &&
+          optionHasContent(o)
+      }
       .toNel
       .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
 

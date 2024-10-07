@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -149,6 +150,7 @@ class SummaryRenderingServiceSpec
           FileSizeLimit(1),
           LocalisedLookupOptions(Map()),
           DataRetrieveAll.empty,
+          Set.empty[ModelComponentId],
           Map.empty,
           Set.empty
         )
