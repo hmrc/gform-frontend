@@ -284,7 +284,8 @@ class FormDataHelpersSpec extends Spec {
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         )
       ),
       mkFormComponent(

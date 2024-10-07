@@ -50,6 +50,7 @@ final case class EvaluationContext(
   fileSizeLimit: FileSizeLimit,
   lookupOptions: LocalisedLookupOptions,
   dataRetrieveAll: DataRetrieveAll,
+  hideChoicesSelected: Set[ModelComponentId], // ids of choices with "hideChoicesSelected": true
   choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]],
   addToListIds: Set[AddToListId]
 )

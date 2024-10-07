@@ -78,6 +78,7 @@ object FormModelOptics {
         FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
         cache.countryLookupOptions,
         DataRetrieveAll.empty,
+        Set.empty[ModelComponentId],
         Map.empty,
         Set.empty
       )

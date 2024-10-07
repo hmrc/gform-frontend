@@ -143,8 +143,8 @@ case class FormComponent(
       case IsText(Text(ShortText(_, _), _, _, _, _, _, _))            => "shortText"
       case IsText(Text(YearFormat, _, _, _, _, _, _))                 => "year"
       case IsText(Text(TimeFormat, _, _, _, _, _, _))                 => "time"
-      case IsChoice(Choice(YesNo, _, _, _, _, _, _, _, _, _))         => "yesNo"
-      case IsChoice(Choice(_, _, _, _, _, _, _, _, _, _))             => "choice"
+      case IsChoice(Choice(YesNo, _, _, _, _, _, _, _, _, _, _))      => "yesNo"
+      case IsChoice(Choice(_, _, _, _, _, _, _, _, _, _, _))          => "choice"
       case other                                                      => other.`type`.showType
     }
 

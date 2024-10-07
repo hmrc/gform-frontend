@@ -1462,7 +1462,8 @@ class StructuredFormDataBuilderSpec
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
     )
 
@@ -1479,7 +1480,8 @@ class StructuredFormDataBuilderSpec
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
     )
 

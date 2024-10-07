@@ -23,6 +23,7 @@ import play.api.i18n.Lang
 import play.api.{ Environment, Mode }
 import uk.gov.hmrc.gform.auth.models.OtherRetrievals
 import uk.gov.hmrc.gform.config.FileInfoConfig
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ Basic, DataRetrieveAll, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolments }
@@ -83,6 +84,7 @@ trait ExampleEvaluationContext {
       FileSizeLimit(1),
       LocalisedLookupOptions(Map()),
       DataRetrieveAll.empty,
+      Set.empty[ModelComponentId],
       Map.empty,
       Set.empty
     )
@@ -489,7 +491,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       None,
       LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
       None,
-      None
+      None,
+      false
     ),
     toSmartString("sample label"),
     false,
@@ -587,7 +590,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       ),
       ls,
       false,

@@ -89,6 +89,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       FileSizeLimit(1),
       LocalisedLookupOptions(Map()),
       DataRetrieveAll.empty,
+      Set.empty[ModelComponentId],
       Map.empty,
       Set.empty
     )

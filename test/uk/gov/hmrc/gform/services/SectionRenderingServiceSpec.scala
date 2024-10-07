@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
@@ -130,6 +131,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           FileSizeLimit(1),
           LocalisedLookupOptions(Map()),
           DataRetrieveAll.empty,
+          Set.empty[ModelComponentId],
           Map.empty,
           Set.empty
         )

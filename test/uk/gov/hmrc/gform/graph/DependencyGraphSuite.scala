@@ -169,7 +169,8 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val sections: List[Section] = List(

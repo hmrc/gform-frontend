@@ -160,6 +160,11 @@ case class FormModel[A <: PageMode](
       fc.modelComponentId -> choice.options
   }.toMap
 
+  val hideChoicesSelected: Set[ModelComponentId] = allFormComponents.collect {
+    case fc @ IsChoice(choice) if choice.hideChoicesSelected =>
+      fc.modelComponentId
+  }.toSet
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil
