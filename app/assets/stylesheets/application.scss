@@ -65,11 +65,11 @@ $govuk-new-typography-scale: true;
 }
 
 @media (min-width: 40.0625em) {
-  .govuk-summary-list__key_m {
+  .summary-list__key_medium {
     width: 45%;
   }
-  .govuk-summary-list__key_l {
-    width: 65%;
+  .summary-list__key_large {
+    width: 60%;
   }
 }
 

@@ -25,8 +25,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist._
 
 object SummaryListRowHelper {
   def getKeyDisplayWidthClass(keyDisplayWidth: KeyDisplayWidth): String = keyDisplayWidth match {
-    case KeyDisplayWidth.L => "govuk-summary-list__key_l"
-    case KeyDisplayWidth.M => "govuk-summary-list__key_m"
+    case KeyDisplayWidth.L => "summary-list__key_large"
+    case KeyDisplayWidth.M => "summary-list__key_medium"
     case _                 => ""
   }
 
