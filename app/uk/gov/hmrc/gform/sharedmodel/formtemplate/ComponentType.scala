@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 
@@ -312,6 +313,14 @@ object LayoutDisplayWidth extends Enumeration {
 
   implicit val displayWidthReads: Reads[LayoutDisplayWidth] = Reads.enumNameReads(LayoutDisplayWidth)
   implicit val displayWidthWrites: Writes[LayoutDisplayWidth] = Writes.enumNameWrites
+}
+
+object KeyDisplayWidth extends Enumeration {
+  type KeyDisplayWidth = Value
+  val S, M, L = Value
+
+  implicit val keyDisplayWidthReads: Reads[KeyDisplayWidth] = Reads.enumNameReads(KeyDisplayWidth)
+  implicit val keyDisplayWidthWrites: Writes[KeyDisplayWidth] = Writes.enumNameWrites
 }
 
 sealed trait Dynamic extends Product with Serializable
@@ -600,7 +609,10 @@ object MiniSummaryRow {
   implicit val format: Format[MiniSummaryRow] = derived.oformat()
 }
 
-case class MiniSummaryList(rows: List[MiniSummaryRow]) extends ComponentType
+case class MiniSummaryList(
+  rows: List[MiniSummaryRow],
+  keyDisplayWidth: Option[KeyDisplayWidth]
+) extends ComponentType
 object MiniSummaryList {
   implicit val format: Format[MiniSummaryList] = derived.oformat()
 }

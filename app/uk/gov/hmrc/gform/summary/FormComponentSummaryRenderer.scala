@@ -28,13 +28,14 @@ import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.monoidHtml
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.views.html.errorInline
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.br
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper.summaryListRow
-import uk.gov.hmrc.gform.views.summary.TextFormatter
+import uk.gov.hmrc.gform.views.summary.{ SummaryListRowHelper, TextFormatter }
 import uk.gov.hmrc.gform.views.summary.TextFormatter.formatText
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -53,7 +54,8 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     addressRecordLookup: AddressRecordLookup,
     iterationTitle: Option[String] = None,
-    fastForward0: Option[List[FastForward]]
+    fastForward0: Option[List[FastForward]],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -85,7 +87,8 @@ object FormComponentSummaryRenderer {
           suffix,
           iterationTitle,
           fastForward,
-          formModelVisibilityOptics
+          formModelVisibilityOptics,
+          keyDisplayWidth
         )
 
       case IsTextArea(_) =>
@@ -99,7 +102,8 @@ object FormComponentSummaryRenderer {
           envelope,
           iterationTitle,
           fastForward,
-          formModelVisibilityOptics
+          formModelVisibilityOptics,
+          keyDisplayWidth
         )
 
       case IsDate(_) =>
@@ -111,7 +115,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsCalendarDate() =>
@@ -123,7 +128,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsTaxPeriodDate() =>
@@ -135,7 +141,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsPostcodeLookup(_) =>
@@ -148,7 +155,8 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           iterationTitle,
           fastForward,
-          addressRecordLookup
+          addressRecordLookup,
+          keyDisplayWidth
         )
 
       case IsTime(_) =>
@@ -160,7 +168,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsAddress(_) =>
@@ -172,7 +181,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsOverseasAddress(_) =>
@@ -184,7 +194,8 @@ object FormComponentSummaryRenderer {
           sectionTitle4Ga,
           formFieldValidationResult,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsInformationMessage(_) =>
@@ -201,7 +212,8 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           envelope,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsFileUpload(_) =>
@@ -214,7 +226,8 @@ object FormComponentSummaryRenderer {
           formFieldValidationResult,
           envelope,
           iterationTitle,
-          fastForward
+          fastForward,
+          keyDisplayWidth
         )
 
       case IsHmrcTaxPeriod(h) =>
@@ -230,7 +243,8 @@ object FormComponentSummaryRenderer {
           envelope,
           iterationTitle,
           fastForward,
-          formModelVisibilityOptics
+          formModelVisibilityOptics,
+          keyDisplayWidth
         )
 
       case IsChoice(choice) =>
@@ -244,7 +258,8 @@ object FormComponentSummaryRenderer {
           choice,
           iterationTitle,
           fastForward,
-          formModelVisibilityOptics
+          formModelVisibilityOptics,
+          keyDisplayWidth
         )
 
       case IsRevealingChoice(rc) =>
@@ -263,7 +278,8 @@ object FormComponentSummaryRenderer {
           envelope,
           iterationTitle,
           fastForward,
-          addressRecordLookup
+          addressRecordLookup,
+          keyDisplayWidth
         )
 
       case IsGroup(group) =>
@@ -282,7 +298,8 @@ object FormComponentSummaryRenderer {
           envelope,
           iterationTitle,
           fastForward,
-          addressRecordLookup
+          addressRecordLookup,
+          keyDisplayWidth
         )
       case IsMiniSummaryList(_) => List[SummaryListRow]()
       case otherFormComponent   => throw new Exception(s"$otherFormComponent is not supported in summary list row")
@@ -299,11 +316,13 @@ object FormComponentSummaryRenderer {
   private def getVisuallyHiddenText(fieldValue: FormComponent)(implicit lise: SmartStringEvaluator) =
     Some(fieldValue.shortName.map(ls => ls.value()).getOrElse(fieldValue.label.value()))
 
-  private def getKeyClasses(hasErrors: Boolean) =
+  private def getKeyClasses(hasErrors: Boolean, keyDisplayWidth: KeyDisplayWidth) = {
+    val keyWidthClass = SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth)
     if (hasErrors)
-      "summary--error"
+      s"summary--error $keyWidthClass"
     else
-      ""
+      keyWidthClass
+  }
 
   private def getTextSummaryListRows[T <: RenderType, D <: DataOrigin](
     fieldValue: FormComponent,
@@ -317,7 +336,8 @@ object FormComponentSummaryRenderer {
     suffix: Option[SmartString],
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -333,7 +353,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value =
       if (hasErrors) errors
@@ -389,7 +409,8 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -405,7 +426,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val currentValueLines =
       formatText(formFieldValidationResult, envelope, formModelVisibilityOptics = formModelVisibilityOptics).flatMap(
@@ -461,7 +482,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -476,7 +498,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
 
@@ -537,7 +559,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -552,7 +575,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
 
@@ -612,7 +635,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -626,7 +650,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     def safeId(atom: Atom) = HtmlFieldId.pure(fieldValue.atomicFormComponentId(atom))
 
@@ -688,7 +712,8 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -703,7 +728,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     def printAddress(addressLines: List[String]): Html =
       addressLines
@@ -775,7 +800,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -790,7 +816,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value =
       if (hasErrors) errors.head else HtmlFormat.escape(formFieldValidationResult.getCurrentValue.getOrElse(""))
@@ -839,7 +865,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -853,7 +880,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value = if (hasErrors) {
       errors.head
@@ -908,7 +935,8 @@ object FormComponentSummaryRenderer {
     sectionTitle4Ga: SectionTitle4Ga,
     formFieldValidationResult: FormFieldValidationResult,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -922,7 +950,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value = if (hasErrors) {
       errors.head
@@ -979,7 +1007,8 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -989,13 +1018,14 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
     val viewLabel = messages("summary.view")
+    val keyClasses = getKeyClasses(hasErrors = false, keyDisplayWidth)
 
     List(
       summaryListRow(
         label,
         Html(table.summaryValue.value()),
         visuallyHiddenText,
-        "",
+        keyClasses,
         "",
         "",
         List(
@@ -1027,7 +1057,8 @@ object FormComponentSummaryRenderer {
     formFieldValidationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
-    fastForward: List[FastForward]
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1044,7 +1075,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value = if (hasErrors) errors.head else HtmlFormat.escape(envelope.userFileName(formComponent))
 
@@ -1096,7 +1127,8 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1114,7 +1146,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
     val periodId = TaxPeriodHelper.formatTaxPeriodOutput(formFieldValidationResult, envelope, formModelVisibilityOptics)
 
     val maybeObligation = obligations.findByPeriodKey(h, periodId)
@@ -1175,7 +1207,8 @@ object FormComponentSummaryRenderer {
     choice: Choice,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1192,7 +1225,7 @@ object FormComponentSummaryRenderer {
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value =
       if (hasErrors)
@@ -1261,7 +1294,8 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1283,7 +1317,7 @@ object FormComponentSummaryRenderer {
           errorInline("summary", e, Seq())
         }
 
-        val keyClasses = getKeyClasses(hasErrors)
+        val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
         val value =
           if (hasErrors)
@@ -1308,7 +1342,8 @@ object FormComponentSummaryRenderer {
                 envelope,
                 addressRecordLookup,
                 None,
-                Some(fastForward)
+                Some(fastForward),
+                keyDisplayWidth
               )
             }
 
@@ -1389,7 +1424,7 @@ object FormComponentSummaryRenderer {
           label,
           HtmlFormat.empty,
           visuallyHiddenText,
-          "",
+          getKeyClasses(hasErrors = false, keyDisplayWidth),
           "",
           "",
           if (fieldValue.onlyShowOnSummary)
@@ -1436,7 +1471,8 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -1446,7 +1482,7 @@ object FormComponentSummaryRenderer {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
-    val keyClasses = getKeyClasses(hasErrors)
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val label = group.repeatLabel.map(_.value()).getOrElse(fcrd.label(formComponent))
 
@@ -1524,7 +1560,8 @@ object FormComponentSummaryRenderer {
             envelope,
             addressRecordLookup,
             iterationTitle,
-            Some(fastForward)
+            Some(fastForward),
+            keyDisplayWidth
           )
         }
 
