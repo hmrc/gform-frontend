@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.ExpressionResult._
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModelSupport, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
@@ -72,6 +73,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       FileSizeLimit(1),
       LocalisedLookupOptions(Map()),
       DataRetrieveAll.empty,
+      Set.empty[ModelComponentId],
       Map.empty,
       Set.empty
     )
@@ -374,7 +376,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val formComponentIds = Table(
@@ -462,7 +465,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val formComponentIds = Table(
@@ -786,7 +790,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("0")))
@@ -920,7 +925,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val includeIf1 = IncludeIf(Contains(ctx("a"), Constant("1")))
@@ -1229,7 +1235,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val formComponentIds = Table(
@@ -1270,7 +1277,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
         None,
-        None
+        None,
+        false
       )
 
     val formComponentIds = Table(

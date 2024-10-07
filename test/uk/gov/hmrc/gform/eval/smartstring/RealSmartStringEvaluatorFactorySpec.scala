@@ -162,7 +162,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         ),
         None
       )
@@ -209,7 +210,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         ),
         None
       )
@@ -247,7 +249,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         ),
         None
       )
@@ -284,7 +287,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         ),
         None
       )
@@ -449,6 +453,7 @@ class RealSmartStringEvaluatorFactorySpec
           FileSizeLimit(1),
           LocalisedLookupOptions(Map()),
           DataRetrieveAll.empty,
+          Set.empty[ModelComponentId],
           Map.empty,
           Set.empty
         )

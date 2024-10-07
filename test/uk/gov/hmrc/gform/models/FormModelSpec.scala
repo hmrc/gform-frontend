@@ -350,7 +350,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         )
       )
     val fcB = mkFormComponent("b", Text(TextConstraint.default, Constant("456")))
@@ -447,7 +448,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         )
       )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))
@@ -535,7 +537,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
           None,
-          None
+          None,
+          false
         )
       )
     val fcC = mkFormComponent("c", Text(TextConstraint.default, Value))

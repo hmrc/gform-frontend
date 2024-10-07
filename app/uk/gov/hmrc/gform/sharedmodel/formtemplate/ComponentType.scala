@@ -401,7 +401,8 @@ case class Choice(
   dividerPosition: Option[DividerPosition],
   dividerText: LocalisedString,
   noneChoice: Option[NoneChoice],
-  noneChoiceError: Option[LocalisedString]
+  noneChoiceError: Option[LocalisedString],
+  hideChoicesSelected: Boolean
 ) extends ComponentType {
   def renderToString[D <: DataOrigin](
     formComponent: FormComponent,
