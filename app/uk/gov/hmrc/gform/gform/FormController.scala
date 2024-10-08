@@ -163,7 +163,7 @@ class FormController(
                     pageModel.allFormComponents
                       .collect { fc =>
                         fc.`type` match {
-                          case MiniSummaryList(rows) =>
+                          case MiniSummaryList(rows, _) =>
                             rows.collect {
                               case MiniSummaryRow.ValueRow(
                                     _,
