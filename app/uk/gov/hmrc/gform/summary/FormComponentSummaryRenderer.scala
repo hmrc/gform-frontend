@@ -309,7 +309,8 @@ object FormComponentSummaryRenderer {
         getMiniSummaryListRows(
           msl,
           formComponent,
-          formModelVisibilityOptics
+          formModelVisibilityOptics,
+          keyDisplayWidth
         )
 
       case otherFormComponent => throw new Exception(s"$otherFormComponent is not supported in summary list row")
@@ -337,7 +338,8 @@ object FormComponentSummaryRenderer {
   private def getMiniSummaryListRows[T <: RenderType, D <: DataOrigin](
     miniSummaryList: MiniSummaryList,
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    parentKeyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -353,9 +355,7 @@ object FormComponentSummaryRenderer {
               label.map(lise(_, false)).getOrElse(fcrd.label(fieldValue)),
               Html(getFormattedExprStr(formModelVisibilityOptics, e)),
               None,
-              SummaryListRowHelper.getKeyDisplayWidthClass(
-                miniSummaryList.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
-              ),
+              SummaryListRowHelper.getKeyDisplayWidthClass(parentKeyDisplayWidth),
               "",
               "",
               Nil,
