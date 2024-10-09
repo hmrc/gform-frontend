@@ -555,7 +555,7 @@ object SummaryRenderingService {
                 label,
                 markDownParser(table.summaryValue),
                 Some(label),
-                "",
+                SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                 "",
                 "",
                 (
