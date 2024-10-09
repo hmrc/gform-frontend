@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.summarypdf
 import org.apache.pekko.stream.scaladsl.{ Source, StreamConverters }
 import org.apache.pekko.util.ByteString
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
+import org.jsoup.Jsoup
+import org.jsoup.helper.W3CDom
 import play.api.Environment
 import uk.gov.hmrc.gform.sharedmodel.PdfContent
 
@@ -29,12 +31,13 @@ class PdfGeneratorService(environment: Environment) {
   def generatePDF(pdfContent: PdfContent)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
     StreamConverters.asOutputStream().mapMaterializedValue { os =>
       Future {
+        val w3cDom = new W3CDom().fromJsoup(Jsoup.parse(pdfContent.content))
         val builder = new PdfRendererBuilder()
         builder.usePdfUaAccessbility(true)
         builder.usePdfAConformance(PdfRendererBuilder.PdfAConformance.PDFA_3_U)
         builder.useFont(() => environment.classLoader.getResourceAsStream("arial.ttf"), "Arial")
         builder.useFastMode()
-        builder.withHtmlContent(pdfContent.content.replace("<br>", "<br/>"), null)
+        builder.withW3cDocument(w3cDom, null) //https://github.com/danfickle/openhtmltopdf/issues/341
         builder.toStream(os)
         builder.run()
       }
