@@ -108,7 +108,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
           r.copy(
             atlId = expandFormCtx(FormCtx(ref)).formComponentId,
             includeIf = includeIf.map(expandIncludeIf),
-            rows = expandSummaryList(MiniSummaryList(rows, summaryList.keyDisplayWidth)).rows
+            rows = expandSummaryList(MiniSummaryList(rows, summaryList.displayInSummary, summaryList.keyDisplayWidth)).rows
           )
       }
       .map {

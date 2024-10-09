@@ -22,6 +22,7 @@ import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
+import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper.{ evaluateIncludeIf, getFormattedExprStr }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.models.ids.ModelPageId
@@ -29,6 +30,8 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
@@ -301,8 +304,15 @@ object FormComponentSummaryRenderer {
           addressRecordLookup,
           keyDisplayWidth
         )
-      case IsMiniSummaryList(_) => List[SummaryListRow]()
-      case otherFormComponent   => throw new Exception(s"$otherFormComponent is not supported in summary list row")
+
+      case IsMiniSummaryList(msl) =>
+        getMiniSummaryListRows(
+          msl,
+          formComponent,
+          formModelVisibilityOptics
+        )
+
+      case otherFormComponent => throw new Exception(s"$otherFormComponent is not supported in summary list row")
     }
   }
 
@@ -322,6 +332,41 @@ object FormComponentSummaryRenderer {
       s"summary--error $keyWidthClass"
     else
       keyWidthClass
+  }
+
+  private def getMiniSummaryListRows[T <: RenderType, D <: DataOrigin](
+    miniSummaryList: MiniSummaryList,
+    fieldValue: FormComponent,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+    val hiddenRow = SummaryListRow(classes = "govuk-visually-hidden")
+    if (miniSummaryList.displayInSummary === DisplayInSummary.Yes) {
+      miniSummaryList.rows.map {
+        case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _) =>
+          if (evaluateIncludeIf(includeIf, formModelVisibilityOptics)) {
+            summaryListRow(
+              label.map(lise(_, false)).getOrElse(fcrd.label(fieldValue)),
+              Html(getFormattedExprStr(formModelVisibilityOptics, e)),
+              None,
+              SummaryListRowHelper.getKeyDisplayWidthClass(miniSummaryList.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)),
+              "",
+              "",
+              Nil,
+              ""
+            )
+          } else {
+            hiddenRow
+          }
+        case _ => hiddenRow
+      }
+    } else {
+      List(hiddenRow)
+    }
   }
 
   private def getTextSummaryListRows[T <: RenderType, D <: DataOrigin](
