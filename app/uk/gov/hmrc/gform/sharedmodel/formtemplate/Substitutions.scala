@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import julienrf.json.derived
-import play.api.libs.json.{ Format, OFormat }
+import play.api.libs.json._
 
-final case class ExpressionOutput(lookup: Map[ExpressionId, Expr])
-
-object ExpressionOutput extends JsonUtils {
-
-  implicit val mapReads: Format[Map[ExpressionId, Expr]] =
-    JsonUtils.formatMap[ExpressionId, Expr](ExpressionId.apply, _.id)
-
-  implicit val format: OFormat[ExpressionOutput] = derived.oformat()
+final case class ExpressionId(id: String) extends AnyVal
+object ExpressionId {
+  implicit val format: OFormat[ExpressionId] = derived.oformat()
+  implicit val equal: Eq[ExpressionId] = Eq.fromUniversalEquals
+}
+final case class BooleanExprId(id: String) extends AnyVal
+object BooleanExprId {
+  implicit val format: OFormat[BooleanExprId] = derived.oformat()
+  implicit val equal: Eq[BooleanExprId] = Eq.fromUniversalEquals
 }
