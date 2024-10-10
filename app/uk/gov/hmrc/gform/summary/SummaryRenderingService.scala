@@ -47,6 +47,8 @@ import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.views.xml.summary.pdf._
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
+import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 import java.time.format.DateTimeFormatter
@@ -286,7 +288,8 @@ object SummaryRenderingService {
         envelopeUpd,
         obligations,
         addressRecordLookup,
-        maybeCoordinates
+        maybeCoordinates,
+        summarySection.keyDisplayWidth
       )
     summary(
       ExtraInfoSummary(
@@ -382,7 +385,8 @@ object SummaryRenderingService {
     envelope: EnvelopeWithMapping,
     obligations: Obligations,
     addressRecordLookup: AddressRecordLookup,
-    maybeCoordinates: Option[Coordinates]
+    maybeCoordinates: Option[Coordinates],
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -422,7 +426,8 @@ object SummaryRenderingService {
             envelope,
             addressRecordLookup,
             iterationTitle,
-            Some(ff)
+            Some(ff),
+            keyDisplayWidth
           )
         )
     }
@@ -528,7 +533,7 @@ object SummaryRenderingService {
         label, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
         addToListSummary,
         Some(label),
-        "",
+        SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
         "",
         "",
         (
@@ -550,7 +555,7 @@ object SummaryRenderingService {
                 label,
                 markDownParser(table.summaryValue),
                 Some(label),
-                "",
+                SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                 "",
                 "",
                 (
@@ -636,7 +641,8 @@ object SummaryRenderingService {
             envelope,
             addressRecordLookup,
             None,
-            None
+            None,
+            KeyDisplayWidth.S
           )
         )
 

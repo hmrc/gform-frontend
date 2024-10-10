@@ -414,7 +414,8 @@ class FormModelBuilder[E, F[_]: Functor](
       c.presentationHint,
       c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
       expandedFields,
-      c.displayWidth
+      c.displayWidth,
+      c.keyDisplayWidth
     )
   }
 

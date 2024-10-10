@@ -835,6 +835,7 @@ trait ExampleFormTemplate {
       Some(toSmartString("Summary ContinueLabel")),
       None,
       LayoutDisplayWidth.M,
+      KeyDisplayWidth.S,
       None,
       None,
       None

@@ -31,9 +31,8 @@ import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelector
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DisplayInSummary, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, KeyDisplayWidth, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, NotChecked }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Empty, Text }
@@ -76,7 +75,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
 
   test("summaryListRows should return correct list of summary list rows from mini summary list component") {
     val table = Table(
-      ("miniSummaryList", "key", "value", "classes"),
+      ("miniSummaryList", "key", "value", "count"),
       (
         buildFormComponent(
           "miniSummaryList",
@@ -89,13 +88,14 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 None
               )
             ),
-            DisplayInSummary.Yes
+            DisplayInSummary.Yes,
+            None
           ),
           None
         ),
         "Name",
         "nameValue",
-        ""
+        1
       ),
       (
         buildFormComponent(
@@ -109,13 +109,14 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 None
               )
             ),
-            DisplayInSummary.No
+            DisplayInSummary.No,
+            None
           ),
           None
         ),
         "",
         "",
-        "govuk-visually-hidden"
+        0
       ),
       (
         buildFormComponent(
@@ -129,13 +130,14 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 None
               )
             ),
-            DisplayInSummary.Yes
+            DisplayInSummary.Yes,
+            None
           ),
           None
         ),
         "Name",
         "nameValue",
-        ""
+        1
       ),
       (
         buildFormComponent(
@@ -149,17 +151,18 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 None
               )
             ),
-            DisplayInSummary.Yes
+            DisplayInSummary.Yes,
+            None
           ),
           None
         ),
         "",
         "",
-        "govuk-visually-hidden"
+        0
       )
     )
 
-    forAll(table) { (miniSummaryList, key, value, classes) =>
+    forAll(table) { (miniSummaryList, key, value, count) =>
       lazy val nameField: FormComponent = buildFormComponent(
         "nameField",
         Value
@@ -193,20 +196,23 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
           envelopeWithMapping,
           AddressRecordLookup.from(cache.form.thirdPartyData),
           None,
-          Some(List(FastForward.CYA(SectionOrSummary.FormSummary)))
+          Some(List(FastForward.CYA(SectionOrSummary.FormSummary))),
+          KeyDisplayWidth.S
         )
-      assertEquals(rows.length, 1)
-      assertEquals(
-        rows.head.key.content,
-        if (key.isEmpty) { Empty }
-        else { Text(key) }
-      )
-      assertEquals(
-        rows.head.value.content,
-        if (value.isEmpty) { Empty }
-        else { HtmlContent(value) }
-      )
-      assertEquals(rows.head.classes, classes)
+      assertEquals(rows.length, count)
+
+      if (rows.nonEmpty) {
+        assertEquals(
+          rows.head.key.content,
+          if (key.isEmpty) { Empty }
+          else { Text(key) }
+        )
+        assertEquals(
+          rows.head.value.content,
+          if (value.isEmpty) { Empty }
+          else { HtmlContent(value) }
+        )
+      }
     }
   }
 

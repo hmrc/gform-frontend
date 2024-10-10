@@ -93,6 +93,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, Go
 import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper.getFormattedExprStr
 
 import scala.annotation.tailrec
@@ -126,6 +127,7 @@ class SectionRenderingService(
   ): Html = {
 
     val displayWidth = checkYourAnswers.displayWidth.getOrElse(LayoutDisplayWidth.M)
+    val keyDisplayWidth = checkYourAnswers.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
@@ -197,7 +199,15 @@ class SectionRenderingService(
                 specialAttributes = Map.empty[String, String],
                 addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
               )
-              htmlForMiniSummaryList(fc, formTemplate._id, miniSummaryList.rows, ei, validationResult, NotChecked)
+              htmlForMiniSummaryList(
+                fc,
+                formTemplate._id,
+                miniSummaryList.rows,
+                ei,
+                validationResult,
+                NotChecked,
+                keyDisplayWidth
+              )
             case unsupported =>
               throw new Exception("AddToList.CheckYourAnswers.fields contains a non-Info component: " + unsupported)
           }
@@ -397,7 +407,15 @@ class SectionRenderingService(
                 specialAttributes = Map.empty[String, String],
                 addressRecordLookup = AddressRecordLookup.from(form.thirdPartyData)
               )
-              htmlForMiniSummaryList(fc, formTemplate._id, miniSummaryList.rows, ei, validationResult, NotChecked)
+              htmlForMiniSummaryList(
+                fc,
+                formTemplate._id,
+                miniSummaryList.rows,
+                ei,
+                validationResult,
+                NotChecked,
+                KeyDisplayWidth.S
+              )
             case unsupported => throw new Exception("AddToList.fields contains a non-Info component: " + unsupported)
           }
       }
@@ -1384,8 +1402,16 @@ class SectionRenderingService(
               htp,
               ei.formModelOptics.formModelVisibilityOptics
             )
-          case MiniSummaryList(rows, _) =>
-            htmlForMiniSummaryList(formComponent, formTemplateId, rows, ei, validationResult, obligations)
+          case MiniSummaryList(rows, _, keyDisplayWidth) =>
+            htmlForMiniSummaryList(
+              formComponent,
+              formTemplateId,
+              rows,
+              ei,
+              validationResult,
+              obligations,
+              keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
+            )
           case t: TableComp => htmlForTableComp(formComponent, t, ei.formModelOptics)
         }
       }
@@ -1573,14 +1599,15 @@ class SectionRenderingService(
     rows: List[MiniSummaryRow],
     ei: ExtraInfo,
     validationResult: ValidationResult,
-    obligations: Obligations
+    obligations: Obligations,
+    keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator,
     l: LangADT,
     fcrd: FormComponentRenderDetails[SummaryRender]
   ): Html = {
-    def renderRows(rows: List[MiniSummaryRow]) = {
+    def renderRows(rows: List[MiniSummaryRow], keyDisplayWidth: KeyDisplayWidth) = {
 
       def summaryListRowByPageId(key: Option[SmartString], value: String, pageId: PageId) = {
         val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
@@ -1599,7 +1626,7 @@ class SectionRenderingService(
             key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
             Html(value),
             Some(""),
-            "",
+            SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
             "",
             "",
             List(
@@ -1633,7 +1660,7 @@ class SectionRenderingService(
                   key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
                   Html(formattedExprStr),
                   Some(""),
-                  "",
+                  SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                   "",
                   "",
                   List(),
@@ -1643,6 +1670,7 @@ class SectionRenderingService(
           }
         case ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _, _) =>
           val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+
           formModel.sectionNumberLookup
             .get(formComponentId)
             .map { sn =>
@@ -1663,7 +1691,8 @@ class SectionRenderingService(
                   ei.envelope,
                   ei.addressRecordLookup,
                   None,
-                  Some(List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber))))
+                  Some(List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))),
+                  keyDisplayWidth
                 )
             }
             .toList
@@ -1677,7 +1706,7 @@ class SectionRenderingService(
                   key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
                   Html(ss.value()),
                   Some(""),
-                  "",
+                  SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                   "",
                   "",
                   List(),
@@ -1723,7 +1752,15 @@ class SectionRenderingService(
             )
           case e => e
         }
-        htmlForMiniSummaryList(formComponent, formTemplateId, updatedATLRows, ei, validationResult, obligations)
+        htmlForMiniSummaryList(
+          formComponent,
+          formTemplateId,
+          updatedATLRows,
+          ei,
+          validationResult,
+          obligations,
+          keyDisplayWidth
+        )
       }
     }
     val visibleRows: List[MiniSummaryRow] = rows
@@ -1740,10 +1777,10 @@ class SectionRenderingService(
       .reverse
       .map(_.reverse)
     val htmls = visibleRowsPartitioned.map {
-      case HeaderRow(h) :: xs => HtmlFormat.fill(List(header(Html(sse(h, false))), renderRows(xs)))
+      case HeaderRow(h) :: xs => HtmlFormat.fill(List(header(Html(sse(h, false))), renderRows(xs, keyDisplayWidth)))
       case ATLRow(atlId, _, atlRows) :: xs =>
-        HtmlFormat.fill(renderedATLRows(AddToListId(atlId), atlRows) ++ List(renderRows(xs)))
-      case xs => renderRows(xs)
+        HtmlFormat.fill(renderedATLRows(AddToListId(atlId), atlRows) ++ List(renderRows(xs, keyDisplayWidth)))
+      case xs => renderRows(xs, keyDisplayWidth)
 
     }
     HtmlFormat.fill(htmls)
@@ -3416,6 +3453,7 @@ object SectionRenderingService {
         val page = singletonWithNumber.singleton.page
 
         val hidePageTitle = page.presentationHint.filter(_ === InvisiblePageTitle).fold(hidePageTitleByCya)(_ => true)
+        val keyDisplayWidth = checkYourAnswers.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
 
         SummaryList(
           rows = page.fields
@@ -3435,7 +3473,8 @@ object SectionRenderingService {
                   envelope,
                   addressRecordLookup,
                   None,
-                  Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
+                  Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward),
+                  keyDisplayWidth
                 )
             },
           classes = "govuk-!-margin-bottom-0",

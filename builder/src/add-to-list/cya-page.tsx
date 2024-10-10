@@ -269,7 +269,9 @@ const AtlCyaPageControllerFactory =
     const removeItemIfInput = useRef<HTMLInputElement>(null);
     const presentationHintContainer = useRef<HTMLDivElement>(null);
     const displayWidthInput = useRef<HTMLSelectElement>(null);
+    const keyDisplayWidthInput = useRef<HTMLSelectElement>(null);
     const displayWidthContainer = useRef<HTMLDivElement>(null);
+    const keyDisplayWidthContainer = useRef<HTMLDivElement>(null);
     const headerInput = useRef<HTMLTextAreaElement>(null);
     const footerInput = useRef<HTMLTextAreaElement>(null);
 
@@ -284,6 +286,7 @@ const AtlCyaPageControllerFactory =
     const [noPIIUpdateTitleValue, setNoPIIUpdateTitleValue] = useState(cyaPage.noPIIUpdateTitle);
     const [continueLabelValue, setContinueLabelValue] = useState(cyaPage.continueLabel);
     const [displayWidthValue, setDisplayWidthValue] = useState(cyaPage.displayWidth);
+    const [keyDisplayWidthValue, setKeyDisplayWidthValue] = useState(cyaPage.keyDisplayWidth);
     const [removeItemIfValue, setRemoveItemIfValue] = useState(cyaPage.removeItemIf);
 
     const invisiblePageTitle = cyaPage.presentationHint === "invisiblePageTitle";
@@ -450,6 +453,7 @@ const AtlCyaPageControllerFactory =
       cyaPagePart["continueLabel"] = setValue(continueLabelInput);
       cyaPagePart["removeItemIf"] = setValueInput(removeItemIfInput);
       cyaPagePart["displayWidth"] = setValueSelect(displayWidthInput);
+      cyaPagePart["keyDisplayWidth"] = setValueSelect(keyDisplayWidthInput);
       cyaPagePart["presentationHint"] = setValueRadio(yesChecked);
       cyaPagePart["header"] = headerSignal.value;
       cyaPagePart["footer"] = footerSignal.value;
@@ -490,6 +494,13 @@ const AtlCyaPageControllerFactory =
             }
           }
 
+          if (keyDisplayWidthInput.current !== null) {
+            const keyDisplayWidthCurrent: HTMLSelectElement = keyDisplayWidthInput.current;
+            if (keyDisplayWidthCurrent.checkVisibility()) {
+              refreshLandingPageLayout(keyDisplayWidthCurrent.value);
+            }
+          }
+
           const continueLabelElem = document.querySelector("div.govuk-button-group button[type='submit']");
           if (continueLabelElem !== null) {
             continueLabelElem.innerHTML = response.continueLabel;
@@ -517,6 +528,12 @@ const AtlCyaPageControllerFactory =
     const onDisplayWidthBlur = (e: Event) => {
       if (displayWidthInput.current !== null) {
         setDisplayWidthValue(displayWidthInput.current.value);
+      }
+    };
+
+    const onKeyDisplayWidthBlur = (e: Event) => {
+      if (keyDisplayWidthInput.current !== null) {
+        setKeyDisplayWidthValue(keyDisplayWidthInput.current.value);
       }
     };
 
@@ -606,6 +623,21 @@ const AtlCyaPageControllerFactory =
             <option value="m">m - Medium</option>
             <option value="l">l - Large</option>
             <option value="xl">xl - Very large</option>
+          </select>
+        </div>
+        <div style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={keyDisplayWidthContainer}>
+          <label for="edit-keyDisplayWidth">Key display width</label>
+          <select
+            id="edit-keyDisplayWidth"
+            class="form-control"
+            value={keyDisplayWidthValue}
+            ref={keyDisplayWidthInput}
+            onChange={onDisplayWidthChange}
+            onBlur={onKeyDisplayWidthBlur}
+          >
+            <option value="">Default</option>
+            <option value="m">m - Medium</option>
+            <option value="l">l - Large</option>
           </select>
         </div>
         <div style={{ display: moreOptionsDisplayed ? "block" : "none" }}>

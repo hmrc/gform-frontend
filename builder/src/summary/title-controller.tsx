@@ -44,12 +44,14 @@ export const SummarySectionTitleControllerFactory =
     const footerInput = useRef<HTMLTextAreaElement>(null);
     const continueLabelInput = useRef<SmartStringDiv>(null);
     const displayWidthInput = useRef<HTMLSelectElement>(null);
+    const keyDisplayWidthInput = useRef<HTMLSelectElement>(null);
 
     const [windowDisplayed, setWindowDisplayed] = useState(false);
     const [titleValue, setTitleValue] = useState(summarySection.title);
     const [moreOptionsDisplayed, setMoreOptionsDisplayed] = useState(false);
     const [continueLabelValue, setContinueLabelValue] = useState(summarySection.continueLabel);
     const [displayWidthValue, setDisplayWidthValue] = useState(summarySection.displayWidth);
+    const [keyDisplayWidthValue, setKeyDisplayWidthValue] = useState(summarySection.keyDisplayWidth);
     const [buttonLabel, setButtonLabel] = useState("");
 
     updateTextArea(headerSignal, headerInput);
@@ -109,6 +111,9 @@ export const SummarySectionTitleControllerFactory =
         }
         if (displayWidthInput.current !== null) {
           summarySectionPart["displayWidth"] = displayWidthInput.current.value;
+        }
+        if (keyDisplayWidthInput.current !== null) {
+          summarySectionPart["keyDisplayWidth"] = keyDisplayWidthInput.current.value;
         }
 
         const summarySectionRequest: SummarySectionRequest = {
@@ -186,9 +191,40 @@ export const SummarySectionTitleControllerFactory =
       }
     };
 
+    const onKeyDisplayWidthChange = (e: Event) => {
+      refreshTitle(false);
+      if (keyDisplayWidthInput.current !== null) {
+        const keyElements = document
+          .querySelectorAll("#main-content dt.govuk-summary-list__key");
+
+        keyElements.forEach(function (keyEl) {
+          const list = keyEl.classList;
+          keyEl.classList.remove(...keyEl.classList);
+          list.add("govuk-summary-list__key")
+          switch (keyDisplayWidthInput.current.value) {
+            case "":
+            case "s":
+              break;
+            case "m":
+              list.add("summary-list__key_medium");
+              break;
+            case "l":
+              list.add("summary-list__key_large");
+              break;
+          }
+        });
+      }
+    }
+
     const onDisplayWidthBlur = (e: Event) => {
       if (displayWidthInput.current !== null) {
         setDisplayWidthValue(displayWidthInput.current.value);
+      }
+    };
+
+    const onKeyDisplayWidthBlur = (e: Event) => {
+      if (keyDisplayWidthInput.current !== null) {
+        setKeyDisplayWidthValue(keyDisplayWidthInput.current.value);
       }
     };
 
@@ -219,7 +255,7 @@ export const SummarySectionTitleControllerFactory =
           </SmartStringInputDeprecated>
         </SmartStringDiv>
         <div style={{ display: moreOptionsDisplayed ? "block" : "none" }}>
-          <label for="edit-displayWidth">DisplayWidth</label>
+          <label for="edit-displayWidth">Display width</label>
           <select
             id="edit-displayWidth"
             class="form-control"
@@ -232,6 +268,21 @@ export const SummarySectionTitleControllerFactory =
             <option value="m">m - Medium</option>
             <option value="l">l - Large</option>
             <option value="xl">xl - Very large</option>
+          </select>
+        </div>
+        <div style={{ display: moreOptionsDisplayed ? "block" : "none" }}>
+          <label for="edit-keyDisplayWidth">Key display width</label>
+          <select
+            id="edit-keyDisplayWidth"
+            class="form-control"
+            value={keyDisplayWidthValue}
+            ref={keyDisplayWidthInput}
+            onChange={onKeyDisplayWidthChange}
+            onBlur={onKeyDisplayWidthBlur}
+          >
+            <option value="">Default</option>
+            <option value="m">m - Medium</option>
+            <option value="l">l - Large</option>
           </select>
         </div>
         <button id="update-button" class="btn btn-success" onClick={updateHandler}>

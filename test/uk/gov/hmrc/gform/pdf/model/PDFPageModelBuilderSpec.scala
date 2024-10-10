@@ -80,7 +80,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
             None
           )
         ),
-        DisplayInSummary.Yes
+        DisplayInSummary.Yes,
+        None
       ),
       None
     )

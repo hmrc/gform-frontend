@@ -64,6 +64,15 @@ $govuk-new-typography-scale: true;
   }
 }
 
+@media (min-width: 40.0625em) {
+  .summary-list__key_medium {
+    width: 45%;
+  }
+  .summary-list__key_large {
+    width: 60%;
+  }
+}
+
 button.link {
     font-size: 1em;
     text-align: left;
