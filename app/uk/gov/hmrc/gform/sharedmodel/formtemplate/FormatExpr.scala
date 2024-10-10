@@ -396,6 +396,8 @@ sealed trait Register {
     case Register.IntentOther              => "intentOther"
     case Register.SicCode                  => "sicCode"
     case Register.SdltReliefType           => "sdltReliefType"
+    case Register.LocalAuthority           => "localAuthority"
+    case Register.VfrsTradeSector          => "vfrsTradeSector"
   }
 }
 
@@ -420,6 +422,8 @@ object Register {
   case object IntentLivingCostsAndFees extends Register
   case object SicCode extends Register
   case object SdltReliefType extends Register
+  case object LocalAuthority extends Register
+  case object VfrsTradeSector extends Register
 
   implicit val format: OFormat[Register] = derived.oformat()
 
@@ -444,6 +448,8 @@ object Register {
     case "intentBigPurchase"        => Some(Register.IntentBigPurchase)
     case "sicCode"                  => Some(Register.SicCode)
     case "sdltReliefType"           => Some(Register.SdltReliefType)
+    case "localAuthority"           => Some(Register.LocalAuthority)
+    case "vfrsTradeSector"          => Some(Register.VfrsTradeSector)
     case _                          => None
   }
 }
