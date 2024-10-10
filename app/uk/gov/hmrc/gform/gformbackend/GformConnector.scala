@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import org.apache.pekko.http.scaladsl.model.StatusCodes
 import cats.data.NonEmptyList
 import cats.implicits.none
 import cats.instances.future._
@@ -25,11 +24,12 @@ import cats.syntax.eq._
 import cats.syntax.functor._
 import cats.syntax.show._
 import org.apache.commons.text.StringEscapeUtils
+import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
-import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
+import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -39,11 +39,12 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
+import uk.gov.hmrc.gform.testonly.ExpressionsLookup
+import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
-import uk.gov.hmrc.gform.testonly.snapshot._
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -293,6 +294,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /** ****test-only******
     */
+
+  def getExpressions(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExpressionsLookup] =
+    ws.GET[ExpressionsLookup](s"$baseUrl/test-only/expressions/${formTemplateId.value}")
+
   def renderHandlebarPayload(
     formTemplateId: FormTemplateId,
     formId: FormId,
