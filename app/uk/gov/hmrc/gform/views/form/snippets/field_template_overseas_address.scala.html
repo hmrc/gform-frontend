@@ -129,6 +129,7 @@
                            class="govuk-input @widthClass@if(rowError.nonEmpty){ govuk-input--error }"
                            name="@htmlId(rowId)"
                            id="@htmlId(rowId)"
+                           aria-describedby="@if(rowError.nonEmpty){@row.value}"
                            value="@fetchValue(rowId, row)" />
                 </div>
             }

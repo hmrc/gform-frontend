@@ -66,6 +66,7 @@
       data-formTemplateId="@formTemplateId.value"
       data-show-all="@showAll"
       data-accessCode="@accessCode"
+      aria-describedby="@{if(hasErrors){errorMessage.map(_.id)}}"
       data-displayWidth="@displayWidth">
       </div>
       <noscript>
