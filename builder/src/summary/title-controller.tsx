@@ -197,9 +197,9 @@ export const SummarySectionTitleControllerFactory =
         const keyElements = document
           .querySelectorAll("#main-content dt.govuk-summary-list__key");
 
-        keyElements.forEach(function (keyEL, currentIndex, listObj) {
-          const list = keyEL.classList;
-          keyEL.classList.remove(...keyEL.classList);
+        keyElements.forEach(function (keyEl) {
+          const list = keyEl.classList;
+          keyEl.classList.remove(...keyEl.classList);
           list.add("govuk-summary-list__key")
           switch (keyDisplayWidthInput.current.value) {
             case "":
