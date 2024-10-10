@@ -2175,6 +2175,14 @@ class SectionRenderingService(
       fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.value()))
     maybeHelpText.map(h => Hint(content = content.HtmlContent(markDownParser(h))))
   }
+
+  private def hintTextForAutoSuggest(fc: FormComponent)(implicit messages: Messages, sse: SmartStringEvaluator) = {
+    val maybeHelpText: Option[String] =
+      fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.value()))
+    maybeHelpText.map(h =>
+      Hint(id = Some(s"${fc.id.value}__assistiveHint"), content = content.HtmlContent(markDownParser(h)))
+    )
+  }
   private def htmlForRevealingChoice(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -2367,7 +2375,7 @@ class SectionRenderingService(
           ei.maybeAccessCode,
           prepopValue,
           formFieldValidationResult,
-          hintText(formComponent),
+          hintTextForAutoSuggest(formComponent),
           getSelectItemsForLookup(formComponent, register, ei, options, prepopValue),
           errorMessage,
           text.displayWidth
