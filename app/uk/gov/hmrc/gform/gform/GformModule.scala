@@ -151,7 +151,9 @@ class GformModule(
   val bankAccountReputationConnector =
     new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
 
-  private val companyHouseBaseUrl = s"${configModule.serviceConfig.baseUrl("companies-house-api-proxy")}"
+  private val chBasePath =
+    configModule.serviceConfig.getString("microservice.services.companies-house-api-proxy.base-path")
+  private val companyHouseBaseUrl = s"${configModule.serviceConfig.baseUrl("companies-house-api-proxy")}$chBasePath"
 
   val companyInformationConnector =
     new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyHouseBaseUrl)
