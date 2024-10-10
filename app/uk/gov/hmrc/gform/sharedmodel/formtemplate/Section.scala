@@ -150,7 +150,6 @@ case class AcknowledgementSection(
   pdf: Option[PdfCxt],
   instructionPdf: Option[PdfCxt],
   displayFeedbackLink: Boolean,
-  notPII: Boolean,
   noPIITitle: Option[SmartString]
 ) {
 

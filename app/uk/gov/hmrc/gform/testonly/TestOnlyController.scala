@@ -16,64 +16,59 @@
 
 package uk.gov.hmrc.gform.testonly
 
-import cats.implicits.catsSyntaxEq
-import org.apache.pekko.stream.scaladsl.Source
-import org.apache.pekko.util.ByteString
 import cats.data.EitherT
 import cats.data.Validated.Valid
 import cats.implicits._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.libs.json.{ JsObject, JsValue }
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.twirl.api.{ Html, HtmlFormat }
-
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, CookieNames }
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, CookieNames }
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
-import uk.gov.hmrc.gform.objectStore.Attachments
-import uk.gov.hmrc.gform.gform.{ AcknowledgementController, CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, NewFormController, StructuredFormDataBuilder, SummaryController, UserSessionBuilder }
+import uk.gov.hmrc.gform.gform._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfContent, SubmissionData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, InProgress, UserData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId }
+import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
+import uk.gov.hmrc.gform.objectStore.Attachments
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
+import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
+import uk.gov.hmrc.gform.testonly.snapshot._
+import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
+import uk.gov.hmrc.gform.views.html.debug.{ toolbox, viewExpressions }
+import uk.gov.hmrc.gform.views.html.formatInstant
+import uk.gov.hmrc.gform.views.html.hardcoded.pages._
+import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
+import uk.gov.hmrc.gform.{ BuildInfo, FormTemplateKey }
+import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
-import uk.gov.hmrc.govukfrontend.views.html.components._
-import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
+import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ br, save_form_page, snapshot_delete_acknowledgement, snapshot_delete_confirmation, snapshot_page, snapshot_restore_options, snapshots_page, update_snapshot }
-import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
-import uk.gov.hmrc.gform.views.html.debug.toolbox
-import uk.gov.hmrc.gform.BuildInfo
-import snapshot._
-import SnapshotForms._
-import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
-import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
-import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 
 import java.time.Instant
+import scala.concurrent.{ ExecutionContext, Future }
 
 class TestOnlyController(
   i18nSupport: I18nSupport,
@@ -123,8 +118,8 @@ class TestOnlyController(
   ) =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
-        import i18nSupport._
         import cache._
+        import i18nSupport._
         val customerId =
           CustomerIdRecalculation
             .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
@@ -411,6 +406,11 @@ class TestOnlyController(
         .model(formTemplate._id)
     )
 
+    val viewAllExpressionsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View expressions",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showExpressions(formTemplate._id)
+    )
+
     val links = List(
       viewHandlebarModelLink,
       viewSourceTemplateLink,
@@ -419,6 +419,7 @@ class TestOnlyController(
       viewUploadedFilesLink,
       viewTranslationLink,
       viewExpressionsLink,
+      viewAllExpressionsLink,
       viewFormModelLink
     )
 
@@ -440,6 +441,127 @@ class TestOnlyController(
 
     HtmlFormat.fill(List(envelope, br(), bulletedList, br(), govukTable, tableInset))
   }
+
+  def showExpressions(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, None) {
+      implicit request => implicit langADT => cache => _ => formModelOptics =>
+        import i18nSupport._
+
+        showExpresionValues(formTemplateId, cache, formModelOptics)
+    }
+
+  private def showExpresionValues(
+    formTemplateId: FormTemplateId,
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit request: Request[AnyContent], lang: LangADT, hc: HeaderCarrier, message: Messages) =
+    for {
+      exprsFromTemplate <- gformConnector.getExpressions(formTemplateId)
+      rawTemplateJson   <- gformConnector.getFormTemplateRaw(formTemplateId)
+    } yield rawTemplateJson.asOpt[JsObject].fold[Result](NotFound("Form template not found")) { json =>
+      val expressions: JsObject =
+        (json \ "expressions").validate[JsObject].getOrElse(Json.obj())
+
+      val booleanExpressions: JsObject =
+        (json \ "booleanExpressions").validate[JsObject].getOrElse(Json.obj())
+
+      val expressionsTable = new GovukTable()(
+        Table(
+          caption = Some("expressions"),
+          captionClasses = "govuk-table__caption--m",
+          rows = expressions.value.map { case (key, value) =>
+            val maybeExpr: Option[Expr] = exprsFromTemplate.expressions
+              .get(ExpressionId(key))
+
+            val exprValue = maybeExpr.fold("not found")(expr =>
+              formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult.toString
+            )
+
+            val expr: String = value
+              .asOpt[String]
+              .orElse {
+                (value \ "value").asOpt[String]
+              }
+              .getOrElse(Json.prettyPrint(value))
+
+            Seq(
+              TableRow(
+                content = HtmlContent(key)
+              ),
+              TableRow(
+                content = Text(expr)
+              ),
+              TableRow(
+                content = Text(exprValue)
+              )
+            )
+          }.toSeq,
+          head = Some(
+            Seq(
+              HeadCell(
+                content = Text("Id")
+              ),
+              HeadCell(
+                content = Text("Expression")
+              ),
+              HeadCell(
+                content = Text("Value")
+              )
+            )
+          )
+        )
+      )
+
+      val booleanExpressionsTable = new GovukTable()(
+        Table(
+          caption = Some("booleanExpressions"),
+          captionClasses = "govuk-table__caption--m",
+          rows = booleanExpressions.value.map { case (key, value) =>
+            val maybeBooleanExpr = exprsFromTemplate.booleanExpressions.get(BooleanExprId(key))
+            val booleanExprValue: String =
+              maybeBooleanExpr.fold("not found")(be =>
+                formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(be).toString
+              )
+
+            val booleanExpr = value.asOpt[String].getOrElse(Json.prettyPrint(value))
+
+            Seq(
+              TableRow(
+                content = HtmlContent(key)
+              ),
+              TableRow(
+                content = Text(booleanExpr)
+              ),
+              TableRow(
+                content = Text(booleanExprValue)
+              )
+            )
+          }.toSeq,
+          head = Some(
+            Seq(
+              HeadCell(
+                content = Text("Id")
+              ),
+              HeadCell(
+                content = Text("Expression")
+              ),
+              HeadCell(
+                content = Text("Value")
+              )
+            )
+          )
+        )
+      )
+
+      Ok(
+        viewExpressions(
+          cache.formTemplate,
+          expressionsTable,
+          booleanExpressionsTable,
+          frontendAppConfig
+        )
+      )
+    }
 
   private def reportsTab(formTemplate: FormTemplate, accessCode: Option[AccessCode]) = {
     val viewFormTemplateDetailsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(

@@ -133,7 +133,6 @@ trait FormTemplateSample {
         pdf = None,
         instructionPdf = None,
         displayFeedbackLink = true,
-        notPII = false,
         noPIITitle = None
       ),
       declarationSection = Some(

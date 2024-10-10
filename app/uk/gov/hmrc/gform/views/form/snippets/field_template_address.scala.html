@@ -84,34 +84,32 @@
 
 	      <div class="govuk-radios govuk-radios--inline">
                   <div class="govuk-radios__item" data-target="@{fieldValue.id.value}-local">
-                      <input
-                        class="govuk-radios__input"
-                        id="@{fieldValue.id.value}-international-yes"
-                        type="radio"
-			name="@groupId(safeId(Address.uk))"
-                        value="true"
-                        data-address-choice="uk"
-                        aria-controls="@{fieldValue.id.value}-local"
-                        aria-expanded="true"
-                        @if(!internationalSelected) {
-                            checked="checked"
-                        }/>
+                      <input class="govuk-radios__input"
+                             id="@{fieldValue.id.value}-international-yes"
+                             type="radio"
+                             name="@groupId(safeId(Address.uk))"
+                             value="true"
+                             data-address-choice="uk"
+                             aria-controls="@{fieldValue.id.value}-local"
+                             aria-expanded="true"
+                             @if(!internationalSelected) {
+                                checked="checked"
+                             }/>
                       <label class="govuk-label govuk-radios__label" for="@{fieldValue.id.value}-international-yes">@messages("generic.Yes")</label>
                   </div>
 
                   <div class="govuk-radios__item" data-target="@{fieldValue.id.value}-international">
-                      <input
-                        class="govuk-radios__input"
-                        id="@{fieldValue.id.value}-international-no"
-                        type="radio"
-                        name="@groupId(safeId(Address.uk))"
-                        value="false"
-                        data-address-choice="international"
-                        aria-controls="@{fieldValue.id.value}-international"
-                        aria-expanded="false"
-                        @if(internationalSelected) {
-                            checked="checked"
-                        }/>
+                      <input class="govuk-radios__input"
+                             id="@{fieldValue.id.value}-international-no"
+                             type="radio"
+                             name="@groupId(safeId(Address.uk))"
+                             value="false"
+                             data-address-choice="international"
+                             aria-controls="@{fieldValue.id.value}-international"
+                             aria-expanded="false"
+                             @if(internationalSelected) {
+                                checked="checked"
+                             }/>
 
                       <label class="govuk-label govuk-radios__label" for="@{fieldValue.id.value}-international-no">@messages("generic.No")</label>
                   </div>
@@ -151,6 +149,7 @@
                  name="@groupId(street1Id)"
                  id="@groupId(street1Id)"
                  value="@validationResult.getCurrentValue(street1Id)"
+                 aria-describedby="@if(street1Error.nonEmpty){@Address.street1.value}"
                  autocomplete="address-line1" />
         </div>
       }
@@ -171,6 +170,7 @@
                  name="@groupId(street2Id)"
                  id="@groupId(street2Id)"
                  value="@validationResult.getCurrentValue(street2Id)"
+                 aria-describedby="@if(street2Error.nonEmpty){@Address.street2.value}"
                  autocomplete="address-line2" />
         </div>
       }
@@ -192,6 +192,7 @@
                  name="@groupId(street3Id)"
                  id="@groupId(street3Id)"
                  value="@validationResult.getCurrentValue(street3Id)"
+                 aria-describedby="@if(street3Error.nonEmpty){@Address.street3.value}"
                  autocomplete="address-level2" />
         </div>
       }
@@ -212,10 +213,11 @@
 
               @street4Error
               <input type="text"
-              class="govuk-input govuk-!-width-two-thirds@if(street4Error.nonEmpty) { govuk-input--error }"
-              name="@groupId(street4Id)"
-              id="@groupId(street4Id)"
-              value="@validationResult.getCurrentValue(street4Id)" />
+                     class="govuk-input govuk-!-width-two-thirds@if(street4Error.nonEmpty) { govuk-input--error }"
+                     name="@groupId(street4Id)"
+                     id="@groupId(street4Id)"
+                     aria-describedby="@if(street4Error.nonEmpty){@Address.street4.value}"
+                     value="@validationResult.getCurrentValue(street4Id)" />
           </div>
           }
       }
@@ -236,6 +238,7 @@
                      name="@groupId(postcodeId)"
                      id="@groupId(postcodeId)"
                      value="@validationResult.getCurrentValue(postcodeId)"
+                     aria-describedby="@if(postcodeError.nonEmpty){@Address.postcode.value}"
                      autocomplete="postal-code" />
             </div>
           </div>
@@ -255,6 +258,7 @@
                      class="govuk-input govuk-!-width-two-thirds@if(countryError.nonEmpty){ govuk-input--error }"
                      name="@groupId(coutryId)"
                      id="@groupId(coutryId)"
+                     aria-describedby="@if(countryError.nonEmpty){@Address.country.value}"
                      value="@validationResult.getCurrentValue(coutryId)" />
             </div>
           </div>
@@ -274,12 +278,13 @@
                    name="@groupId(postcodeId)"
                    id="@groupId(postcodeId)"
                    value="@validationResult.getCurrentValue(postcodeId)"
+                   aria-describedby="@if(postcodeError.nonEmpty){@Address.postcode.value}"
                    autocomplete="postal-code" />
           </div>
-	  <input type="hidden"
-               name="@groupId(safeId(Address.country))"
-               id="@groupId(safeId(Address.country))"
-               value="" />
-	}
-      }
+          <input type="hidden"
+                 name="@groupId(safeId(Address.country))"
+                 id="@groupId(safeId(Address.country))"
+                 value="" />
+	  }
+    }
 </fieldset>

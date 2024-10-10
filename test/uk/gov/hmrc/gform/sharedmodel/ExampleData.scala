@@ -150,7 +150,6 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       ),
       None,
       true,
-      false,
       None
     )
 
@@ -813,7 +812,6 @@ trait ExampleFormTemplate {
       None,
       None,
       true,
-      false,
       None
     )
 
