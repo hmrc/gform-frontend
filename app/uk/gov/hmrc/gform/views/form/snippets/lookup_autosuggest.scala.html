@@ -71,7 +71,7 @@
       </div>
       <noscript>
           @selectItems.zipWithIndex.map { case (items, index) =>
-            @govukSelect(Select(id = s"${fcId}_$index", name = s"${fcId}_$index",  items = items))
+            @govukSelect(Select(id = s"${fcId}", name = s"${fcId}_$index",  items = items))
           }
       </noscript>
     }
