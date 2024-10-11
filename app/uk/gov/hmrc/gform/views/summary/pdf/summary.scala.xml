@@ -14,7 +14,8 @@
   maybeDraftText: Option[String],
   includeSignatureBox: Boolean)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format"
-         xmlns:fox="http://xmlgraphics.apache.org/fop/extensions">
+         xmlns:fox="http://xmlgraphics.apache.org/fop/extensions"
+         language="@l.langADTToString">
     <fo:layout-master-set>
         <!-- fo:layout-master-set defines in its children the page layout:
              the pagination and layout specifications
