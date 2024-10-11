@@ -154,6 +154,7 @@ export interface SummarySection {
   header?: string;
   footer?: string;
   displayWidth?: string;
+  keyDisplayWidth?: string;
   continueLabel?: SmartString;
   note?: NoteInfo[] | string;
   fields?: FormComponent[];
@@ -255,6 +256,7 @@ export interface CyaPage {
   note?: NoteInfo[] | string;
   doneNote?: string[];
   displayWidth?: string;
+  keyDisplayWidth?: string;
 }
 
 export type CyaPagePart = Partial<CyaPage>;

@@ -18,10 +18,17 @@ package uk.gov.hmrc.gform.views.summary
 
 import play.api.mvc.Call
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist._
 
 object SummaryListRowHelper {
+  def getKeyDisplayWidthClass(keyDisplayWidth: KeyDisplayWidth): String = keyDisplayWidth match {
+    case KeyDisplayWidth.L => "summary-list__key_large"
+    case KeyDisplayWidth.M => "summary-list__key_medium"
+    case _                 => ""
+  }
 
   def summaryListRow(
     label: String,
