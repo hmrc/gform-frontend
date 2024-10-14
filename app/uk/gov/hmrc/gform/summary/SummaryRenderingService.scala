@@ -410,11 +410,11 @@ object SummaryRenderingService {
       } else {
         List(FastForward.CYA(SectionOrSummary.TaskSummary))
       }
-      page.fields
-        .filterNot(_.hideOnSummary)
-        .flatMap(formComponent =>
+
+      page.confirmation match {
+        case Some(confirmation) =>
           FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
-            formComponent,
+            confirmation.question,
             page.id.map(_.modelPageId),
             formTemplate._id,
             formModelOptics.formModelVisibilityOptics,
@@ -429,7 +429,29 @@ object SummaryRenderingService {
             Some(ff),
             keyDisplayWidth
           )
-        )
+        case _ =>
+          page.fields
+            .filterNot(_.hideOnSummary)
+            .flatMap(formComponent =>
+              FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
+                formComponent,
+                page.id.map(_.modelPageId),
+                formTemplate._id,
+                formModelOptics.formModelVisibilityOptics,
+                maybeAccessCode,
+                sectionNumber,
+                sectionTitle4Ga,
+                obligations,
+                validationResult,
+                envelope,
+                addressRecordLookup,
+                iterationTitle,
+                Some(ff),
+                keyDisplayWidth
+              )
+            )
+
+      }
     }
 
     def summaryList(begin: HtmlFormat.Appendable, rows: List[SummaryListRow], card: Option[Card]) =
