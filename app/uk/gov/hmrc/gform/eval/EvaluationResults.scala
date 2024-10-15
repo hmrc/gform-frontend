@@ -263,16 +263,16 @@ case class EvaluationResults(
               case o: OptionData.ValueBased =>
                 o.value match {
                   case OptionDataValue.StringBased(value) => if (allAnswers(value)) 1 else 0
-                  case OptionDataValue.FormCtxBased(formCtx) =>
+                  case OptionDataValue.ExprBased(FormCtx(formComponentId)) if o.dynamic.isDefined =>
                     val values: Iterable[(ModelComponentId, VariadicValue)] =
                       recData.variadicFormData
-                        .forBaseComponentId(formCtx.formComponentId.modelComponentId.baseComponentId)
+                        .forBaseComponentId(formComponentId.modelComponentId.baseComponentId)
 
                     val optionAnswers: Set[String] = values.flatMap { case (_, vv) => vv.toSeq.toSet }.toSet
                     optionAnswers.intersect(allAnswers).size
 
-                  case OptionDataValue.ExprBased(prefix, expr) =>
-                    val value = prefix + evalExprAsString(
+                  case OptionDataValue.ExprBased(expr) =>
+                    val value = evalExprAsString(
                       expr,
                       evaluationContext,
                       booleanExprResolver,
@@ -972,10 +972,8 @@ case class EvaluationResults(
         case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
         case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
           value -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
-          prefix + evalExprAsString(expr, evaluationContext, booleanExprResolver, recData) -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
-          evalExprAsString(formCtx, evaluationContext, booleanExprResolver, recData) -> label
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr)), _) =>
+          evalExprAsString(expr, evaluationContext, booleanExprResolver, recData) -> label
       }.toMap)
 
     val result = recData.variadicFormData

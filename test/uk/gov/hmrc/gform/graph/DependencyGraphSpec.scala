@@ -704,7 +704,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val emptyDestinationPrint = DestinationPrint(emptyPrintSectionPage, emptyPrintSectionPdf, None)
     val emptyDeclarationSection = DeclarationSection(emptySS, None, None, None, None, List.empty[FormComponent], None)
     val emptyAcknowledgementSection =
-      AcknowledgementSection(Some(emptySS), None, None, List.empty[FormComponent], true, None, None, true, None)
+      AcknowledgementSection(Some(emptySS), None, None, List.empty[FormComponent], true, None, None, true, None, true)
     val emptyHmrcDms =
       Destination.HmrcDms(
         DestinationId(""),

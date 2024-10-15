@@ -28,7 +28,8 @@
   heading: String,
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
-  accessCode: Option[AccessCode]
+  accessCode: Option[AccessCode],
+  showAcknowledgementPanel: Boolean
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -43,7 +44,9 @@
   accessCode = accessCode
 ) {
 
-  @{acknowledgementPanel}
+  @if(showAcknowledgementPanel) {
+    @{acknowledgementPanel}
+  }
 
   @{snippets}
 

@@ -150,7 +150,8 @@ case class AcknowledgementSection(
   pdf: Option[PdfCxt],
   instructionPdf: Option[PdfCxt],
   displayFeedbackLink: Boolean,
-  noPIITitle: Option[SmartString]
+  noPIITitle: Option[SmartString],
+  showBanner: Boolean
 ) {
 
   def toSection = Section.NonRepeatingPage(toPage)

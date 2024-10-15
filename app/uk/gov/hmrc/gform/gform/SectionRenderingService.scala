@@ -1114,6 +1114,7 @@ class SectionRenderingService(
     val acknowledgementSection = destinationList.acknowledgementSection
     val panelTitle = acknowledgementSection.title.map(_.value())
     val showReference = acknowledgementSection.showReference
+    val showBanner = acknowledgementSection.showBanner
     val heading =
       acknowledgementSection.noPIITitle.fold(
         acknowledgementSection.title.map(_.value()).getOrElse(acknowledgementHeading(formCategory))
@@ -1145,7 +1146,8 @@ class SectionRenderingService(
         heading,
         formTemplate,
         frontendAppConfig,
-        maybeAccessCode
+        maybeAccessCode,
+        showBanner
       )
   }
 

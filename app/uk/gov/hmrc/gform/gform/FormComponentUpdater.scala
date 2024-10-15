@@ -33,17 +33,11 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       o.copy(label = expandSmartString(o.label), includeIf = o.includeIf.map(expandIncludeIf))
     case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(_)) =>
       o.copy(label = expandSmartString(o.label), includeIf = o.includeIf.map(expandIncludeIf))
-    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr)) =>
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr)) =>
       o.copy(
         label = expandSmartString(o.label),
         includeIf = o.includeIf.map(expandIncludeIf),
-        value = OptionDataValue.ExprBased(prefix, expandExpr(expr))
-      )
-    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.FormCtxBased(formCtx)) =>
-      o.copy(
-        label = expandSmartString(o.label),
-        includeIf = o.includeIf.map(expandIncludeIf),
-        value = OptionDataValue.FormCtxBased(expandFormCtx(formCtx))
+        value = OptionDataValue.ExprBased(expandExpr(expr))
       )
   }
 

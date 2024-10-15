@@ -22,8 +22,7 @@ import play.api.libs.json.OFormat
 sealed trait OptionDataValue
 object OptionDataValue {
   case class StringBased(value: String) extends OptionDataValue
-  case class ExprBased(prefix: String, expr: Expr) extends OptionDataValue
-  case class FormCtxBased(formCtx: FormCtx) extends OptionDataValue
+  case class ExprBased(expr: Expr) extends OptionDataValue
 
   implicit val format: OFormat[OptionDataValue] = derived.oformat()
 }
