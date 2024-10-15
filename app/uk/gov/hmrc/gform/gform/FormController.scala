@@ -657,6 +657,41 @@ class FormController(
                     enteredVariadicFormData,
                     true
                   ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn =>
+                    def processRemoveItemIf() = {
+                      val formModel = formModelOptics.formModelRenderPageOptics.formModel
+                      val bracket = formModel.bracket(sectionNumber)
+
+                      bracket match {
+                        case bracket @ Bracket.AddToList(_, _) =>
+                          val iteration = bracket.iterationForSectionNumber(sectionNumber)
+                          val sectionNumbers = iteration.allSingletonSectionNumbers
+
+                          sectionNumbers.flatMap { sectionNumber =>
+                            maybeAtlRemoveIteration(bracket, sectionNumber)
+                          }.headOption
+                        case _ => None
+                      }
+                    }
+
+                    def maybeAtlRemoveIteration(bracket: Bracket[DataExpanded], sectionNumber: SectionNumber) =
+                      bracket
+                        .atlIterationToRemove(
+                          sectionNumber,
+                          processDataUpd.formModelOptics.formModelVisibilityOptics
+                        )
+                        .map { case (atlId, index) =>
+                          Redirect(
+                            routes.FormAddToListController
+                              .removeItem(
+                                formTemplateId,
+                                maybeAccessCode,
+                                sectionNumber,
+                                index,
+                                atlId
+                              )
+                          )
+                        }
+
                     def continueJourney =
                       maybeSn match {
                         case SectionOrSummary.Section(sn) =>
@@ -696,23 +731,7 @@ class FormController(
                               case _ => false
                             }
 
-                            bracket
-                              .atlIterationToRemove(
-                                sectionNumber,
-                                processDataUpd.formModelOptics.formModelVisibilityOptics
-                              )
-                              .map { case (atlId, index) =>
-                                Redirect(
-                                  routes.FormAddToListController
-                                    .removeItem(
-                                      formTemplateId,
-                                      maybeAccessCode,
-                                      sectionNumber,
-                                      index,
-                                      atlId
-                                    )
-                                )
-                              }
+                            maybeAtlRemoveIteration(bracket, sectionNumber)
                               .getOrElse(
                                 Redirect(
                                   routes.FormController
@@ -743,25 +762,29 @@ class FormController(
                               )
                           }
                         case SectionOrSummary.FormSummary =>
-                          Redirect(
-                            routes.SummaryController
-                              .summaryById(
-                                cache.formTemplateId,
-                                maybeAccessCode,
-                                sectionNumber.toCoordinates,
-                                None,
-                                true
-                              )
+                          processRemoveItemIf().getOrElse(
+                            Redirect(
+                              routes.SummaryController
+                                .summaryById(
+                                  cache.formTemplateId,
+                                  maybeAccessCode,
+                                  sectionNumber.toCoordinates,
+                                  None,
+                                  true
+                                )
+                            )
                           )
                         case SectionOrSummary.TaskSummary =>
-                          Redirect(
-                            routes.SummaryController
-                              .summaryById(
-                                cache.formTemplateId,
-                                maybeAccessCode,
-                                sectionNumber.toCoordinates,
-                                None
-                              )
+                          processRemoveItemIf().getOrElse(
+                            Redirect(
+                              routes.SummaryController
+                                .summaryById(
+                                  cache.formTemplateId,
+                                  maybeAccessCode,
+                                  sectionNumber.toCoordinates,
+                                  None
+                                )
+                            )
                           )
                       }
 
