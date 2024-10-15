@@ -161,11 +161,8 @@ class Recalculation[F[_]: Monad, E](
                       case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value))
                           if userResponse.contains(value) =>
                         o
-                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(prefix, expr))
-                          if userResponse.contains(prefix + evalExpr(expr)) =>
-                        o
-                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.FormCtxBased(formCtx))
-                          if userResponse.contains(evalExpr(formCtx)) =>
+                      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr))
+                          if userResponse.contains(evalExpr(expr)) =>
                         o
                       case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
                     }

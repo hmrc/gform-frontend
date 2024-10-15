@@ -121,10 +121,8 @@ object OptionDataUtils {
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
       value = od.value match {
         case OptionDataValue.StringBased(value) => OptionDataValue.StringBased(value + "_" + index)
-        case OptionDataValue.ExprBased(prefix, expr) =>
-          OptionDataValue.ExprBased(prefix + "_" + index, new ExprUpdater(index, baseIds).expandExpr(expr))
-        case OptionDataValue.FormCtxBased(formCtx) =>
-          OptionDataValue.FormCtxBased(new ExprUpdater(index, baseIds).expandFormCtx(formCtx))
+        case OptionDataValue.ExprBased(expr) =>
+          OptionDataValue.ExprBased(new ExprUpdater(index, baseIds).expandExpr(expr))
       }
     )
 
@@ -137,9 +135,8 @@ object OptionDataUtils {
       hint = od.hint.map(_.expandDataRetrieve(index)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
       value = od.value match {
-        case OptionDataValue.StringBased(value)      => OptionDataValue.StringBased(value + "_" + index)
-        case OptionDataValue.ExprBased(prefix, expr) => OptionDataValue.ExprBased(prefix + "_" + index, expr)
-        case OptionDataValue.FormCtxBased(formCtx)   => OptionDataValue.FormCtxBased(formCtx)
+        case OptionDataValue.StringBased(value) => OptionDataValue.StringBased(value + "_" + index)
+        case OptionDataValue.ExprBased(expr)    => OptionDataValue.ExprBased(expr)
       }
     )
 

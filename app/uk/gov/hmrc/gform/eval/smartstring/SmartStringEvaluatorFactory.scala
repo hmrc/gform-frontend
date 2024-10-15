@@ -178,13 +178,9 @@ private class Executor(
               case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
               case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
                 value -> label
-              case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(prefix, expr)), _) =>
-                prefix + formModelVisibilityOptics
-                  .evalAndApplyTypeInfoFirst(expr)
-                  .stringRepresentation(messages) -> label
-              case (OptionData.ValueBased(label, _, _, _, OptionDataValue.FormCtxBased(formCtx)), _) =>
+              case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr)), _) =>
                 formModelVisibilityOptics
-                  .evalAndApplyTypeInfoFirst(formCtx)
+                  .evalAndApplyTypeInfoFirst(expr)
                   .stringRepresentation(messages) -> label
             }
             .toList
