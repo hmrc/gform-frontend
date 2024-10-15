@@ -185,6 +185,14 @@ trait ExampleAuthConfig {
   def buildFormComponent(name: String, expr: Expr, instruction: Option[Instruction] = None): FormComponent =
     buildFormComponent(name, Text(TextConstraint.default, expr), instruction)
 
+  def buildFormComponent(
+    name: String,
+    expr: Expr,
+    instruction: Option[Instruction],
+    displayInSummary: Option[Boolean]
+  ): FormComponent =
+    buildFormComponent(name, Text(TextConstraint.default, expr), instruction, displayInSummary)
+
   def buildFormComponentWithTextConstraint(
     name: String,
     expr: Expr,
@@ -193,25 +201,37 @@ trait ExampleAuthConfig {
   ): FormComponent =
     buildFormComponent(name, Text(textConstraint, expr), instruction)
 
-  def buildFormComponent(name: String, componentType: ComponentType, instruction: Option[Instruction]): FormComponent =
+  def buildFormComponent(
+    name: String,
+    componentType: ComponentType,
+    instruction: Option[Instruction]
+  ): FormComponent =
+    buildFormComponent(name, componentType, instruction, None)
+
+  def buildFormComponent(
+    name: String,
+    componentType: ComponentType,
+    instruction: Option[Instruction],
+    displayInSummary: Option[Boolean]
+  ): FormComponent =
     FormComponent(
       FormComponentId(name),
       componentType,
       toSmartString(name),
-      false,
-      None,
-      None,
-      None,
-      None,
-      true,
-      false,
-      true,
-      false,
-      false,
-      None,
-      None,
-      Nil,
-      instruction
+      isPageHeading = false,
+      helpText = None,
+      shortName = None,
+      includeIf = None,
+      validIf = None,
+      mandatory = true,
+      editable = false,
+      submissible = true,
+      derived = false,
+      errorMessage = None,
+      presentationHint = None,
+      validators = Nil,
+      instruction = instruction,
+      displayInSummary = displayInSummary
     )
 
   def regimeId = RegimeId("TestRegimeId")
@@ -618,7 +638,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
     includeIf: Option[IncludeIf] = None,
     instruction: Option[Instruction] = None,
-    presentationHint: Option[PresentationHint] = None
+    presentationHint: Option[PresentationHint] = None,
+    confirmation: Option[Confirmation] = None
   ) =
     Section.NonRepeatingPage(
       Page(
@@ -635,7 +656,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         instruction,
         presentationHint,
         None,
-        None,
+        confirmation,
         None,
         None,
         None,

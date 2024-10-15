@@ -411,10 +411,13 @@ object SummaryRenderingService {
         List(FastForward.CYA(SectionOrSummary.TaskSummary))
       }
 
-      page.confirmation match {
-        case Some(confirmation) =>
+      val fieldsIncConf: List[FormComponent] = page.fields ++ page.confirmation.map(_.question)
+
+      fieldsIncConf
+        .filterNot(_.hideOnSummary)
+        .flatMap(formComponent =>
           FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
-            confirmation.question,
+            formComponent,
             page.id.map(_.modelPageId),
             formTemplate._id,
             formModelOptics.formModelVisibilityOptics,
@@ -429,29 +432,7 @@ object SummaryRenderingService {
             Some(ff),
             keyDisplayWidth
           )
-        case _ =>
-          page.fields
-            .filterNot(_.hideOnSummary)
-            .flatMap(formComponent =>
-              FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
-                formComponent,
-                page.id.map(_.modelPageId),
-                formTemplate._id,
-                formModelOptics.formModelVisibilityOptics,
-                maybeAccessCode,
-                sectionNumber,
-                sectionTitle4Ga,
-                obligations,
-                validationResult,
-                envelope,
-                addressRecordLookup,
-                iterationTitle,
-                Some(ff),
-                keyDisplayWidth
-              )
-            )
-
-      }
+        )
     }
 
     def summaryList(begin: HtmlFormat.Appendable, rows: List[SummaryListRow], card: Option[Card]) =
