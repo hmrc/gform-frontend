@@ -518,12 +518,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                     case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value))
                         if (value match {
                           case OptionDataValue.StringBased(v) => v === answer
-                          case OptionDataValue.ExprBased(prefix, expr) =>
-                            prefix + formModelVisibilityOptics
+                          case OptionDataValue.ExprBased(expr) =>
+                            formModelVisibilityOptics
                               .evalAndApplyTypeInfoFirst(expr)
                               .stringRepresentation === answer
-                          case OptionDataValue.FormCtxBased(formCtx) =>
-                            formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).stringRepresentation === answer
                           case _ => false
                         }) =>
                       selectedIndex -> pointer
@@ -535,12 +533,10 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                           OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), value)
                         ) if (value match {
                           case OptionDataValue.StringBased(v) => v === answer
-                          case OptionDataValue.ExprBased(prefix, expr) =>
-                            prefix + formModelVisibilityOptics
+                          case OptionDataValue.ExprBased(expr) =>
+                            formModelVisibilityOptics
                               .evalAndApplyTypeInfoFirst(expr)
                               .stringRepresentation === answer
-                          case OptionDataValue.FormCtxBased(formCtx) =>
-                            formModelVisibilityOptics.evalAndApplyTypeInfoFirst(formCtx).stringRepresentation === answer
                           case _ => false
                         }) =>
                       selectedIndex -> indexOfDataRetrieveCtx.ctx

@@ -24,6 +24,7 @@ import play.api.i18n.Messages
 import scala.util.Try
 
 import scala.util.matching.Regex
+import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, RoundingMode, Sterling, TextConstraint, WholeSterling }
 
@@ -181,12 +182,20 @@ sealed trait ExpressionResult extends Product with Serializable {
   }
 
   def >(er: ExpressionResult): Boolean = this match {
-    case t: Invalid         => false
-    case t: Hidden.type     => false
-    case t: Empty.type      => false
-    case t: NumberResult    => er.ifNumberResult(t.value > _)
-    case t: StringResult    => er.ifStringResult(t.value > _)
-    case t: OptionResult    => er.ifOptionResult(t.value.min > _.min)
+    case t: Invalid     => false
+    case t: Hidden.type => false
+    case t: Empty.type  => false
+    case t: NumberResult =>
+      er.ifNumberResult(t.value > _) ||
+        er.ifOptionResult { optionResult =>
+          compareOptionWithNumber(optionResult, t, _ > _)
+        }
+    case t: StringResult => er.ifStringResult(t.value > _)
+    case t: OptionResult =>
+      er.ifOptionResult(t.value.min > _.min) ||
+        er.ifNumberResult { numberResult =>
+          compareNumberWithOption(numberResult, t, _ > _)
+        }
     case t: DateResult      => false
     case t: TaxPeriodResult => false
     case t: PeriodResult    => er.ifPeriodResult(t.value.toTotalMonths > _.toTotalMonths)
@@ -195,12 +204,20 @@ sealed trait ExpressionResult extends Product with Serializable {
   }
 
   def >=(er: ExpressionResult): Boolean = this match {
-    case t: Invalid         => false
-    case t: Hidden.type     => false
-    case t: Empty.type      => false
-    case t: NumberResult    => er.ifNumberResult(t.value >= _)
-    case t: StringResult    => er.ifStringResult(t.value >= _)
-    case t: OptionResult    => er.ifOptionResult(t.value.min >= _.min)
+    case t: Invalid     => false
+    case t: Hidden.type => false
+    case t: Empty.type  => false
+    case t: NumberResult =>
+      er.ifNumberResult(t.value >= _) ||
+        er.ifOptionResult { optionResult =>
+          compareOptionWithNumber(optionResult, t, _ >= _)
+        }
+    case t: StringResult => er.ifStringResult(t.value >= _)
+    case t: OptionResult =>
+      er.ifOptionResult(t.value.min >= _.min) ||
+        er.ifNumberResult { numberResult =>
+          compareNumberWithOption(numberResult, t, _ >= _)
+        }
     case t: DateResult      => false
     case t: TaxPeriodResult => false
     case t: PeriodResult    => er.ifPeriodResult(t.value.toTotalMonths >= _.toTotalMonths)
@@ -209,12 +226,20 @@ sealed trait ExpressionResult extends Product with Serializable {
   }
 
   def <(er: ExpressionResult): Boolean = this match {
-    case t: Invalid         => false
-    case t: Hidden.type     => false
-    case t: Empty.type      => false
-    case t: NumberResult    => er.ifNumberResult(t.value < _)
-    case t: StringResult    => er.ifStringResult(t.value < _)
-    case t: OptionResult    => er.ifOptionResult(t.value.min < _.min)
+    case t: Invalid     => false
+    case t: Hidden.type => false
+    case t: Empty.type  => false
+    case t: NumberResult =>
+      er.ifNumberResult(t.value < _) ||
+        er.ifOptionResult { optionResult =>
+          compareOptionWithNumber(optionResult, t, _ < _)
+        }
+    case t: StringResult => er.ifStringResult(t.value < _)
+    case t: OptionResult =>
+      er.ifOptionResult(t.value.min < _.min) ||
+        er.ifNumberResult { numberResult =>
+          compareNumberWithOption(numberResult, t, _ < _)
+        }
     case t: DateResult      => false
     case t: TaxPeriodResult => false
     case t: PeriodResult    => er.ifPeriodResult(t.value.toTotalMonths < _.toTotalMonths)
@@ -223,12 +248,20 @@ sealed trait ExpressionResult extends Product with Serializable {
   }
 
   def <=(er: ExpressionResult): Boolean = this match {
-    case t: Invalid         => false
-    case t: Hidden.type     => false
-    case t: Empty.type      => false
-    case t: NumberResult    => er.ifNumberResult(t.value <= _)
-    case t: StringResult    => er.ifStringResult(t.value <= _)
-    case t: OptionResult    => er.ifOptionResult(t.value.min <= _.min)
+    case t: Invalid     => false
+    case t: Hidden.type => false
+    case t: Empty.type  => false
+    case t: NumberResult =>
+      er.ifNumberResult(t.value <= _) ||
+        er.ifOptionResult { optionResult =>
+          compareOptionWithNumber(optionResult, t, _ <= _)
+        }
+    case t: StringResult => er.ifStringResult(t.value <= _)
+    case t: OptionResult =>
+      er.ifOptionResult(t.value.min <= _.min) ||
+        er.ifNumberResult { numberResult =>
+          compareNumberWithOption(numberResult, t, _ <= _)
+        }
     case t: DateResult      => false
     case t: TaxPeriodResult => false
     case t: PeriodResult    => er.ifPeriodResult(t.value.toTotalMonths <= _.toTotalMonths)
@@ -262,6 +295,32 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: PeriodResult    => false
     case t: AddressResult   => false
     case t: ListResult      => t.list.exists(_ after er)
+  }
+
+  private def compareNumberWithOption(
+    numberResult: BigDecimal,
+    optionResult: OptionResult,
+    f: (BigDecimal, BigDecimal) => Boolean
+  ): Boolean = {
+    val bds = optionResult.value.flatMap(toBigDecimalSafe)
+    if (bds.isEmpty) {
+      false
+    } else {
+      f(bds.min, numberResult)
+    }
+  }
+
+  private def compareOptionWithNumber(
+    optionResult: Seq[String],
+    numberResult: NumberResult,
+    f: (BigDecimal, BigDecimal) => Boolean
+  ): Boolean = {
+    val bds = optionResult.flatMap(toBigDecimalSafe)
+    if (bds.isEmpty) {
+      false
+    } else {
+      f(numberResult.value, bds.min)
+    }
   }
 
   private def isEmpty: Boolean =
