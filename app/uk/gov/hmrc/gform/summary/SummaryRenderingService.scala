@@ -435,7 +435,11 @@ object SummaryRenderingService {
         )
     }
 
-    def summaryList(begin: HtmlFormat.Appendable, rows: List[SummaryListRow], card: Option[Card]) =
+    def summaryList(
+      heading: HtmlFormat.Appendable,
+      rows: List[SummaryListRow],
+      card: Option[Card]
+    ): List[HtmlFormat.Appendable] =
       if (rows.isEmpty) {
         Nil
       } else {
@@ -446,11 +450,33 @@ object SummaryRenderingService {
             classes = "govuk-!-margin-bottom-0"
           )
         )
-        List(begin, govukSummaryList)
+        List(heading, govukSummaryList)
       }
 
     def addToListSummary(bracket: Bracket.AddToList[Visibility]): Html =
       begin_section(bracket.source.summaryName)
+
+    def summarizeGroupedRows(
+      summaryTitleRows: List[(HtmlFormat.Appendable, List[SummaryListRow])]
+    ): List[(HtmlFormat.Appendable, List[SummaryListRow])] =
+      summaryTitleRows.foldLeft(
+        (
+          Option.empty[HtmlFormat.Appendable],
+          List.empty[SummaryListRow],
+          List.empty[(HtmlFormat.Appendable, List[SummaryListRow])]
+        )
+      ) { case ((currentHeading, accumulatedRows, resultBuffer), (heading, rows)) =>
+        if (heading != HtmlFormat.empty || accumulatedRows.isEmpty) {
+          val newResultBuffer =
+            currentHeading.map(ct => resultBuffer :+ (ct, accumulatedRows)).getOrElse(resultBuffer)
+          (Some(heading), rows, newResultBuffer)
+        } else {
+          (currentHeading, accumulatedRows ++ rows, resultBuffer)
+        }
+      } match {
+        case (currentHeading, accumulatedRows, resultBuffer) =>
+          currentHeading.map(ct => resultBuffer :+ (ct, accumulatedRows)).getOrElse(resultBuffer)
+      }
 
     def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
       val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
@@ -489,15 +515,19 @@ object SummaryRenderingService {
             )
           )
         } else {
+          val headingSummaryListRows = singletons.map { singletonWithNumber =>
+            val heading = getPageTitle(bracket.source, singletonWithNumber.singleton.page)
+            val middleRows = middleSummaryListRows(
+              singletonWithNumber.singleton,
+              singletonWithNumber.sectionNumber,
+              Some(iteration.repeater.repeater.expandedShortName.value())
+            )
+            heading -> middleRows
+          }
+
           begin_section(iteration.repeater.repeater.expandedShortName) ::
-            singletons.flatMap { singletonWithNumber =>
-              val begin = getPageTitle(bracket.source, singletonWithNumber.singleton.page)
-              val middleRows = middleSummaryListRows(
-                singletonWithNumber.singleton,
-                singletonWithNumber.sectionNumber,
-                Some(iteration.repeater.repeater.expandedShortName.value())
-              )
-              summaryList(begin, middleRows, None)
+            summarizeGroupedRows(headingSummaryListRows).flatMap { case (heading, middleRows) =>
+              summaryList(heading, middleRows, None)
             }
         }
       }
@@ -602,18 +632,54 @@ object SummaryRenderingService {
       }
     }
 
-    brackets.flatMap {
-      case bracket @ Bracket.AddToList(_, _) => List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket)
-      case Bracket.RepeatingPage(singletons, source) =>
-        singletons.toList.flatMap { singletonWithNumber =>
-          val middleRows = middleSummaryListRows(singletonWithNumber.singleton, singletonWithNumber.sectionNumber)
-          val begin = getPageTitle(source, singletonWithNumber.singleton.page)
-          summaryList(begin, middleRows, None)
-        }
-      case Bracket.NonRepeatingPage(singleton, sectionNumber, source) =>
-        val middleRows = middleSummaryListRows(singleton, sectionNumber)
-        val begin = getPageTitle(source, singleton.page)
-        summaryList(begin, middleRows, None)
+    val (accumulatedRows, summaryLists) =
+      brackets.foldLeft((Map.empty[HtmlFormat.Appendable, List[SummaryListRow]], List.empty[HtmlFormat.Appendable])) {
+        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _)) =>
+          accumulatedRows.headOption match {
+            case Some((heading, rows)) =>
+              val updatedList =
+                accList ++ summaryList(heading, rows, None) ++ List(
+                  addToListSummary(bracket)
+                ) ++ addToListRenderBracket(
+                  bracket
+                )
+              (Map.empty, updatedList)
+            case None =>
+              (accumulatedRows, accList ++ List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket))
+          }
+
+        case ((accumulatedRows, accList), Bracket.RepeatingPage(singletons, source)) =>
+          singletons.toList.foldLeft((accumulatedRows, accList)) { case ((accRows, acc), singletonWithNumber) =>
+            val middleRows = middleSummaryListRows(singletonWithNumber.singleton, singletonWithNumber.sectionNumber)
+            val pageTitle = getPageTitle(source, singletonWithNumber.singleton.page)
+
+            accRows.headOption match {
+              case Some((heading, rows)) if pageTitle.body === heading.body || pageTitle.body.isEmpty =>
+                (Map(heading -> (rows ++ middleRows)), acc)
+              case Some((heading, rows)) =>
+                (Map(pageTitle -> middleRows), acc ++ summaryList(heading, rows, None))
+              case None =>
+                (Map(pageTitle -> middleRows), acc)
+            }
+          }
+
+        case ((accumulatedRows, accList), Bracket.NonRepeatingPage(singleton, sectionNumber, source)) =>
+          val middleRows = middleSummaryListRows(singleton, sectionNumber)
+          val pageTitle = getPageTitle(source, singleton.page)
+
+          accumulatedRows.headOption match {
+            case Some((heading, rows)) if pageTitle.body === heading.body || pageTitle.body.isEmpty =>
+              (Map(heading -> (rows ++ middleRows)), accList)
+            case Some((heading, rows)) =>
+              (Map(pageTitle -> middleRows), accList ++ summaryList(heading, rows, None))
+            case None =>
+              (Map(pageTitle -> middleRows), accList)
+          }
+      }
+
+    accumulatedRows.headOption match {
+      case Some((heading, rows)) => summaryLists ++ summaryList(heading, rows, None)
+      case None                  => summaryLists
     }
   }
 
