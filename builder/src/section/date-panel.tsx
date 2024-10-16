@@ -19,7 +19,7 @@ import {
   DispatchTarget,
   FormComponentUpdateRequest,
 } from "../types";
-import { replaceUndefinedByEmptyString, isOptional } from "./pure-functions";
+import { replaceUndefinedByEmptyString, isOptional } from "../pure-functions";
 import { updateSmartString, SmartStringInput } from "./smart-string";
 import { VisibilityContext } from "./visibility-context";
 import { StateContext } from "./state-context";

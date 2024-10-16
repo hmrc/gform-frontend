@@ -16,7 +16,7 @@ import type {
 } from "../types";
 import { FieldVisibility, SmartString, FieldInteractionType } from "../types";
 import { mkFileUploadClickable } from "./fileupload-helper";
-import { removePreviousSiblings } from "./pure-functions";
+import { removePreviousSiblings } from "../pure-functions";
 import { initialSectionState, SectionProps } from "./section-panel";
 import { initialFileState, fileReducer, FileProps } from "./file-panel";
 import { mkStateReducer, SetVisibility } from "./main-panel";

@@ -18,7 +18,7 @@ import { useContext } from "preact/hooks";
 import { updateSmartString, SmartStringInput } from "./smart-string";
 import { VisibilityContext } from "./visibility-context";
 import { StateContext } from "./state-context";
-import { replaceUndefinedByEmptyString } from "./pure-functions";
+import { replaceUndefinedByEmptyString } from "../pure-functions";
 import { useUpdateComponent } from "./hooks/useUpdateComponent";
 
 export const sectionReducer = (state: SectionState, action: DispatchEvent<SectionUpdateEvent>): SectionState => {

@@ -14,7 +14,7 @@ import type {
 } from "../types";
 import { FieldVisibility, SmartString, FieldInteractionType } from "../types";
 import { mkDateClickable } from "./date-helper";
-import { removePreviousSiblings } from "./pure-functions";
+import { removePreviousSiblings } from "../pure-functions";
 import { initialSectionState, SectionProps } from "./section-panel";
 import { initialDateState, dateReducer, DateProps } from "./date-panel";
 import { mkStateReducer, SetVisibility } from "./main-panel";

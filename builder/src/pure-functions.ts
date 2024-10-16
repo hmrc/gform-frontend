@@ -21,8 +21,7 @@ export const fullFormComponentId = (formComponentId: FormComponentId, atlIterati
   return `${preffix}${formComponentId}`;
 };
 
-export const isOptional = (formComponent: FormComponent): boolean =>
-  formComponent.mandatory === "false" || formComponent.mandatory === "no";
+export const isOptional = (formComponent: FormComponent): boolean => formComponent.mandatory === false;
 
 export const findFirstField = (serverPageData: ServerPageData): FormComponent | null => {
   const applicableFields = findApplicableFields(serverPageData.section.fields);

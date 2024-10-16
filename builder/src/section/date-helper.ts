@@ -1,4 +1,4 @@
-import { mkLookup } from "./pure-functions";
+import { mkLookup } from "../pure-functions";
 import type { DateClickable, Section, FormComponent } from "../types";
 
 export const mkDateClickable = (formComponentId: string): DateClickable | undefined => {

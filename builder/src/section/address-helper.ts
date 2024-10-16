@@ -1,4 +1,4 @@
-import { mkLookup } from "./pure-functions";
+import { mkLookup } from "../pure-functions";
 import type { AddressClickable, Section, FormComponent } from "../types";
 
 export const mkAddressClickable = (inputFormComponentId: string): AddressClickable | undefined => {

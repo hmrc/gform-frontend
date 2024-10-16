@@ -17,7 +17,7 @@ import type {
 import { MessageKind, NoteUpdateKind, SectionNumber } from "../types";
 import { InfoComponentControllerFactory } from "../section/info-component-controller";
 import { NoteComponentControllerFactory } from "../section/note-component/note-component-controller";
-import { replaceWithEnglishValue, mkLookup, attachShadowDom } from "../section/pure-functions";
+import { replaceWithEnglishValue, mkLookup, attachShadowDom } from "../pure-functions";
 import { SummarySectionFooterControllerFactory } from "./footer-controller";
 import { SummarySectionHeaderControllerFactory } from "./header-controller";
 import { SummarySectionTitleControllerFactory } from "./title-controller";

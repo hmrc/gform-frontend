@@ -22,7 +22,7 @@ import {
   ChoiceComponentType,
   FieldVisibility,
 } from "../types";
-import { replaceUndefinedByEmptyString, isOptional, replaceWithEnglishValue } from "./pure-functions";
+import { replaceUndefinedByEmptyString, isOptional, replaceWithEnglishValue } from "../pure-functions";
 import { updateSmartString, SmartStringInput } from "./smart-string";
 import { useContext } from "preact/hooks";
 import { VisibilityContext } from "./visibility-context";
@@ -152,7 +152,7 @@ const getChoiceIncludeIfs = (formComponent: FormComponent): string[] => {
 
 const findType = (formComponent: FormComponent): ChoiceComponentType => {
   if (formComponent.format === ChoiceComponentType.YesNo) return ChoiceComponentType.YesNo;
-  else if (formComponent.multivalue === "true") return ChoiceComponentType.Checkboxes;
+  else if (formComponent.multivalue) return ChoiceComponentType.Checkboxes;
   else return ChoiceComponentType.Radios;
 };
 
@@ -259,7 +259,7 @@ export const ChoicePanelFactory =
           break;
         case ChoiceComponentType.Checkboxes:
           formComponentPart["format"] = "";
-          formComponentPart["multivalue"] = "true";
+          formComponentPart["multivalue"] = true;
           if (state.noneChoice !== "") {
             formComponentPart["noneChoice"] = state.noneChoice;
             formComponentPart["noneChoiceError"] = state.noneChoiceError;

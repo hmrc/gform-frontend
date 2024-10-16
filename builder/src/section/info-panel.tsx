@@ -16,7 +16,7 @@ import { VisibilityContext } from "./visibility-context";
 import { StateContext } from "./state-context";
 import { useUpdateComponent } from "./hooks/useUpdateComponent";
 import { updateSmartString, SmartStringInput } from "./smart-string";
-import { replaceUndefinedByEmptyString } from "./pure-functions";
+import { replaceUndefinedByEmptyString } from "../pure-functions";
 
 export const infoReducer = (state: InfoState, action: DispatchEvent<InfoUpdateEvent>): InfoState => {
   const record = action.record;
