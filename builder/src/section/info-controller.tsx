@@ -17,7 +17,7 @@ import { FieldInteractionType, ExclusiveFieldVisibility, FieldVisibility } from 
 import { findInfoElement } from "./info-component-helper";
 import { initialSectionState, SectionProps } from "./section-panel";
 import { infoReducer, initialInfoState, InfoProps } from "./info-panel";
-import { removePreviousSiblings } from "./pure-functions";
+import { removePreviousSiblings } from "../pure-functions";
 import { VisibilityContext } from "./visibility-context";
 import { StateContext } from "./state-context";
 import { mkStateReducer, SetVisibility } from "./main-panel";

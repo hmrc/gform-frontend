@@ -25,7 +25,7 @@ import { mkChoiceClickable } from "./choice-helper";
 import { mkDateClickable } from "./date-helper";
 import { mkTextClickable } from "./text-helper";
 import { mkFileUploadClickable } from "./fileupload-helper";
-import { fullFormComponentId, attachShadowDom, findApplicableFields, findInfoInteractionType } from "./pure-functions";
+import { fullFormComponentId, attachShadowDom, findApplicableFields, findInfoInteractionType } from "../pure-functions";
 import { findInfoElement, infoComponentLookup } from "./info-component-helper";
 import { MainPanelFactory } from "./main-panel";
 import { SectionControllerFactory } from "./section-panel";

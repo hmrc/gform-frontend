@@ -20,7 +20,7 @@ import {
   FormComponentUpdateRequest,
 } from "../types";
 import { updateSmartString, SmartStringInput } from "./smart-string";
-import { replaceUndefinedByEmptyString, isOptional } from "./pure-functions";
+import { replaceUndefinedByEmptyString, isOptional } from "../pure-functions";
 import { VisibilityContext } from "./visibility-context";
 import { StateContext } from "./state-context";
 import { useUpdateComponent } from "./hooks/useUpdateComponent";

@@ -26,7 +26,7 @@ import { mkTextClickable } from "./text-helper";
 import { initialSectionState, SectionProps } from "./section-panel";
 import { textReducer, initialTextState, TextProps } from "./text-panel";
 import { ErrorReportLink } from "./error-report-component";
-import { removePreviousSiblings } from "./pure-functions";
+import { removePreviousSiblings } from "../pure-functions";
 import { VisibilityContext } from "./visibility-context";
 import { StateContext } from "./state-context";
 import { mkStateReducer, SetVisibility } from "./main-panel";

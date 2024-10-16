@@ -13,7 +13,7 @@ import type {
   State,
 } from "../types";
 import { FieldVisibility, SmartString, FieldInteractionType } from "../types";
-import { removePreviousSiblings } from "./pure-functions";
+import { removePreviousSiblings } from "../pure-functions";
 import { initialSectionState, SectionProps } from "./section-panel";
 import { initialAddressState, addressReducer, AddressProps } from "./address-panel";
 import { mkStateReducer, SetVisibility } from "./main-panel";

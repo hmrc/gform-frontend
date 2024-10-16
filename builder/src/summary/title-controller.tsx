@@ -194,14 +194,15 @@ export const SummarySectionTitleControllerFactory =
     const onKeyDisplayWidthChange = (e: Event) => {
       refreshTitle(false);
       if (keyDisplayWidthInput.current !== null) {
-        const keyElements = document
-          .querySelectorAll("#main-content dt.govuk-summary-list__key");
+        const keyElements = document.querySelectorAll("#main-content dt.govuk-summary-list__key");
+
+        const displayWidthValue = keyDisplayWidthInput.current.value;
 
         keyElements.forEach(function (keyEl) {
           const list = keyEl.classList;
           keyEl.classList.remove(...keyEl.classList);
-          list.add("govuk-summary-list__key")
-          switch (keyDisplayWidthInput.current.value) {
+          list.add("govuk-summary-list__key");
+          switch (displayWidthValue) {
             case "":
             case "s":
               break;
@@ -214,7 +215,7 @@ export const SummarySectionTitleControllerFactory =
           }
         });
       }
-    }
+    };
 
     const onDisplayWidthBlur = (e: Event) => {
       if (displayWidthInput.current !== null) {

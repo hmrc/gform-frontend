@@ -15,7 +15,7 @@ import type {
 } from "../types";
 import { FieldInteractionType, ExclusiveFieldVisibility, FieldVisibility, SmartString } from "../types";
 import { mkChoiceClickable } from "./choice-helper";
-import { removePreviousSiblings } from "./pure-functions";
+import { removePreviousSiblings } from "../pure-functions";
 import { initialSectionState, SectionProps } from "./section-panel";
 import { choiceReducer, initialChoiceState, ChoiceProps } from "./choice-panel";
 import { VisibilityContext } from "./visibility-context";

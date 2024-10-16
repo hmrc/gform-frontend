@@ -2,7 +2,7 @@ import { render } from "preact";
 import type {
   ContentScriptRequest,
   FormTemplateId,
-  AcknowledgementPanelTitleClickable,
+  AcknowledgementTitleClickable,
   AcknowledgementSection,
   InfoRenderParam,
 } from "../types";
@@ -31,11 +31,11 @@ export const activateAcknowledgementBuilder = (urlMatch: RegExpMatchArray, url: 
 
   const initiateAcknowledgementSection = (
     acknowledgementSection: AcknowledgementSection,
-    acknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable,
+    acknowledgementPanelTitleClickable: AcknowledgementTitleClickable,
   ) => {
     const attachmentDiv = document.createElement("div");
     attachmentDiv.setAttribute("id", "acknowledgement-section-shadow-root");
-    acknowledgementPanelTitleClickable.panelTitle.insertAdjacentElement("afterend", attachmentDiv);
+    acknowledgementPanelTitleClickable.title.insertAdjacentElement("afterend", attachmentDiv);
     const content: HTMLDivElement | undefined = attachShadowDom(attachmentDiv);
 
     if (content !== undefined) {
@@ -81,14 +81,14 @@ export const activateAcknowledgementBuilder = (urlMatch: RegExpMatchArray, url: 
 
     initiateNote(acknowledgementSection);
 
-    const panelTitle: Element | null = document.querySelector(".govuk-panel.govuk-panel--confirmation");
+    const titleEl: Element | null = document.querySelector(".govuk-panel.govuk-panel--confirmation");
 
-    if (panelTitle instanceof HTMLElement) {
-      const acknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable = {
-        panelTitle: panelTitle,
+    if (titleEl instanceof HTMLElement) {
+      const acknowledgementPanelTitleClickable: AcknowledgementTitleClickable = {
+        title: titleEl,
       };
 
-      if (panelTitle instanceof HTMLDivElement) {
+      if (titleEl instanceof HTMLDivElement) {
         initiateAcknowledgementSection(acknowledgementSection, acknowledgementPanelTitleClickable);
 
         const sectionNumber: SectionNumber = SectionNumber.AcknowledgementSectionNumber();

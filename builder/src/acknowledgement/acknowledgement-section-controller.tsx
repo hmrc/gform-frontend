@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from "preact/hooks";
 import { Ref } from "preact";
 import type {
   ContentScriptRequest,
-  AcknowledgementPanelTitleClickable,
+  AcknowledgementTitleClickable,
   AcknowledgementSection,
   AcknowledgementRequest,
   UpdateAcknowledgementResponse,
@@ -17,12 +17,12 @@ export const AcknowledgementSectionFactory =
     host: string,
     formTemplateId: string,
     acknowledgementSection: AcknowledgementSection,
-    acknowledgementTitleClickable: AcknowledgementPanelTitleClickable,
+    acknowledgementTitleClickable: AcknowledgementTitleClickable,
     maybeAccessCode: string | null,
   ) =>
   () => {
     useEffect(() => {
-      registerPanelTitleClickHandler(acknowledgementTitleClickable.panelTitle);
+      registerPanelTitleClickHandler(acknowledgementTitleClickable.title);
     }, []);
 
     const serverError = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ export const AcknowledgementSectionFactory =
     const hideReferenceInput = useRef<HTMLInputElement>(null);
 
     const [windowDisplayed, setWindowDisplayed] = useState(false);
-    const [panelTitleValue, setPanelTitleValue] = useState(acknowledgementSection.panelTitle);
+    const [panelTitleValue, setPanelTitleValue] = useState(acknowledgementSection.title);
     const [titleValue, setTitleValue] = useState(acknowledgementSection.title);
     const showReference =
       acknowledgementSection.showReference === undefined ? false : !acknowledgementSection.showReference;
@@ -107,17 +107,17 @@ export const AcknowledgementSectionFactory =
     };
 
     const refreshComponentHtml = (title: string) => {
-      acknowledgementTitleClickable.panelTitle.insertAdjacentHTML("afterend", title);
-      acknowledgementTitleClickable.panelTitle.remove();
+      acknowledgementTitleClickable.title.insertAdjacentHTML("afterend", title);
+      acknowledgementTitleClickable.title.remove();
 
-      const panelTitle: Element | null = document.querySelector(".govuk-panel.govuk-panel--confirmation");
+      const titleEl: Element | null = document.querySelector(".govuk-panel.govuk-panel--confirmation");
 
-      if (panelTitle instanceof HTMLElement) {
-        const newAcknowledgementPanelTitleClickable: AcknowledgementPanelTitleClickable = {
-          panelTitle: panelTitle,
+      if (titleEl instanceof HTMLElement) {
+        const newAcknowledgementPanelTitleClickable: AcknowledgementTitleClickable = {
+          title: titleEl,
         };
         acknowledgementTitleClickable = newAcknowledgementPanelTitleClickable;
-        registerPanelTitleClickHandler(acknowledgementTitleClickable.panelTitle);
+        registerPanelTitleClickHandler(acknowledgementTitleClickable.title);
       }
     };
 

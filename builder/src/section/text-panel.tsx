@@ -13,7 +13,7 @@ import type {
   SmartString,
 } from "../types";
 import { DispatchTarget, TextUpdateEvent, FieldInteractionType, MessageKind, FieldVisibility } from "../types";
-import { replaceUndefinedByEmptyString, isOptional } from "./pure-functions";
+import { replaceUndefinedByEmptyString, isOptional } from "../pure-functions";
 import {
   extractFormatPrefix,
   extractFormatValues,
