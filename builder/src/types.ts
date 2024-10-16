@@ -460,6 +460,7 @@ export interface Task {
   sections: Section[];
   caption?: string;
   summarySection?: TaskSummarySection | string;
+  declarationSection?: TaskDeclarationSection | string;
 }
 
 export interface TaskSummarySection {
@@ -469,7 +470,14 @@ export interface TaskSummarySection {
   footer: string;
 }
 
+export interface TaskDeclarationSection {
+  title: string;
+  fields: FormComponent[];
+}
+
 export type TaskSummarySectionPart = Partial<TaskSummarySection>;
+
+export type TaskDeclarationSectionPart = Partial<TaskDeclarationSection>;
 
 export interface SubmitSection {
   label: SmartString;
@@ -594,7 +602,7 @@ export interface TemplateBatchUpdate {
 export interface UpdateByPath {
   payload: any;
   path: string;
-  focus: "taskSection" | "task" | "taskSummarySection" | "submitSection"; // Hint for the backend to indicate what is referred by path
+  focus: "taskSection" | "task" | "taskSummarySection" | "taskDeclarationSection" | "submitSection"; // Hint for the backend to indicate what is referred by path
 }
 
 export type UpdateTaskList = {

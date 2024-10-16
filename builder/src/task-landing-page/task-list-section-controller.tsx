@@ -10,6 +10,7 @@ import {
   Task,
   TaskSectionPart,
   TaskSummarySectionPart,
+  TaskDeclarationSectionPart,
   UpdateByPath,
   TemplateBatchUpdate,
 } from "../types";
@@ -39,6 +40,7 @@ export const TaskListSectionControllerFactory =
     const taskTitles: SmartString[] = tasks.map((task) => task.title);
     const taskCaptions: SmartString[] = tasks.map((task) => (task.caption !== undefined ? task.caption : ""));
     const taskSummarySections: boolean[] = tasks.map((task) => task.summarySection !== undefined);
+    const taskDeclarationSections: boolean[] = tasks.map((task) => task.declarationSection !== undefined);
 
     const content = useRef<HTMLDivElement>(null);
     const serverError = useRef<HTMLDivElement>(null);
@@ -47,11 +49,13 @@ export const TaskListSectionControllerFactory =
     const taskTitleInputs = taskTitles.map((task) => useRef<SmartStringDiv>(null));
     const taskCaptionInputs = taskCaptions.map((task) => useRef<SmartStringDiv>(null));
     const taskSummarySectionsInputs = taskSummarySections.map((task) => useRef<HTMLInputElement>(null));
+    const taskDeclarationSectionsInputs = taskDeclarationSections.map((task) => useRef<HTMLInputElement>(null));
 
     const [titleValue, setTitleValue] = useState(taskSection.title);
     const [taskTitlesValue, setTaskTitlesValue] = useState(taskTitles);
     const [taskCaptionsValue, setTaskCaptionsValue] = useState(taskCaptions);
     const [taskSummarySectionsValue, setTaskSummarySectionsValue] = useState(taskSummarySections);
+    const [taskDeclarationSectionsValue, setTaskDeclarationSectionsValue] = useState(taskDeclarationSections);
     const [buttonLabel, setButtonLabel] = useState("");
 
     const registerClickHandler = (element: HTMLHeadingElement) => {
@@ -117,6 +121,29 @@ export const TaskListSectionControllerFactory =
         },
       );
 
+      const taskDeclarationSectionUpdates: UpdateByPath[] = taskDeclarationSectionsInputs.map(
+        (taskDeclarationSectionInput, taskNumber) => {
+          const taskSectionPayload: TaskDeclarationSectionPart = {};
+          if (taskDeclarationSectionInput.current !== null) {
+            if(taskDeclarationSectionInput.current.checked) {
+              taskSectionPayload["title"] = "Declaration";
+              taskSectionPayload["fields"] = [];
+            } else {
+              taskSectionPayload["title"] = "";
+              taskSectionPayload["fields"] = "";
+            }
+          }
+
+          const sectionPath = taskPath(sectionNumber, taskNumber);
+          const payload: UpdateByPath = {
+            payload: taskSectionPayload,
+            path: sectionPath,
+            focus: "taskDeclarationSection",
+          };
+          return payload;
+        },
+      );
+
       const taskSectionPayload: TaskSectionPart = {};
       if (titleInput.current !== null) {
         const titleCurrent: SmartStringDiv = titleInput.current;
@@ -135,7 +162,8 @@ export const TaskListSectionControllerFactory =
         focus: "taskSection",
       };
 
-      const allUpdates = taskUpdates.concat(taskSummarySectionUpdates);
+      const allUpdates = taskUpdates.concat(taskSummarySectionUpdates)
+                                    .concat(taskDeclarationSectionUpdates);
       allUpdates.push(taskSectionUpdates);
 
       const batchUpdates: TemplateBatchUpdate = {
@@ -233,10 +261,20 @@ export const TaskListSectionControllerFactory =
       refreshTaskSection(false);
     };
 
+    const declarationIncludeToggle = (index: number) => (e: MouseEvent) => {
+      const current = taskDeclarationSectionsInputs[index].current;
+      if (current !== null) {
+        taskDeclarationSectionsValue[index] = current.checked;
+        setTaskDeclarationSectionsValue(taskDeclarationSectionsValue);
+      }
+      refreshTaskSection(false);
+    };
+
     const tasksControls = tasks.map((task, index) => {
       const editTitleId = `edit-title-${index}`;
       const editCaptionId = `edit-caption-${index}`;
       const includeSummaryId = `task-summary-section-${index}`;
+      const includeDeclarationId = `task-declaration-section-${index}`;
       return (
         <>
           <hr />
@@ -269,6 +307,16 @@ export const TaskListSectionControllerFactory =
               onClick={summaryIncludeToggle(index)}
             />
             <label for={includeSummaryId}>Include task summary page</label>
+          </div>
+          <div>
+            <input
+              type="checkbox"
+              id={includeDeclarationId}
+              ref={taskDeclarationSectionsInputs[index]}
+              checked={taskDeclarationSectionsValue[index]}
+              onClick={declarationIncludeToggle(index)}
+            />
+            <label for={includeDeclarationId}>Include declaration section page</label>
           </div>
         </>
       );
