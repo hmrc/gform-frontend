@@ -82,7 +82,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.listwithactions.{ ListWithActions, ListWithActionsAction, ListWithActionsItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow => GovukTableRow }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
@@ -3446,7 +3446,7 @@ object SectionRenderingService {
     sse: SmartStringEvaluator
   ): List[SummaryList] = {
     val hidePageTitleByCya = checkYourAnswers.presentationHint.filter(_ === InvisiblePageTitle).fold(false)(_ => true)
-    addToListIteration.singletons.toList
+    val headingSummaryListRows = addToListIteration.singletons.toList
       .map { singletonWithNumber =>
         val sectionTitle4Ga = sectionTitle4GaFactory(
           formModelVisibilityOptics.formModel(singletonWithNumber.sectionNumber),
@@ -3457,35 +3457,63 @@ object SectionRenderingService {
         val hidePageTitle = page.presentationHint.filter(_ === InvisiblePageTitle).fold(hidePageTitleByCya)(_ => true)
         val keyDisplayWidth = checkYourAnswers.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
 
-        SummaryList(
-          rows = page.fields
-            .filterNot(_.hideOnSummary)
-            .flatMap { fc =>
-              FormComponentSummaryRenderer
-                .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
-                  fc,
-                  page.id.map(_.modelPageId),
-                  formTemplateId,
-                  formModelVisibilityOptics,
-                  maybeAccessCode,
-                  singletonWithNumber.sectionNumber,
-                  sectionTitle4Ga,
-                  cache.form.thirdPartyData.obligations,
-                  validationResult,
-                  envelope,
-                  addressRecordLookup,
-                  None,
-                  Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward),
-                  keyDisplayWidth
-                )
-            },
-          classes = "govuk-!-margin-bottom-0",
-          attributes =
-            if (hidePageTitle) Map.empty[String, String]
-            else Map("title" -> page.shortName.getOrElse(page.title).value())
-        )
+        val rows = page.fields
+          .filterNot(_.hideOnSummary)
+          .flatMap { fc =>
+            FormComponentSummaryRenderer
+              .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
+                fc,
+                page.id.map(_.modelPageId),
+                formTemplateId,
+                formModelVisibilityOptics,
+                maybeAccessCode,
+                singletonWithNumber.sectionNumber,
+                sectionTitle4Ga,
+                cache.form.thirdPartyData.obligations,
+                validationResult,
+                envelope,
+                addressRecordLookup,
+                None,
+                Some(FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward),
+                keyDisplayWidth
+              )
+          }
+
+        val heading = if (hidePageTitle) "" else page.shortName.getOrElse(page.title).value()
+        heading -> rows
       }
-      .filterNot(_.rows.size === 0)
+      .filterNot(_._2.isEmpty)
+
+    def summarizeGroupedRows(
+      summaryTitleRows: List[(String, List[SummaryListRow])]
+    ): List[(String, List[SummaryListRow])] =
+      summaryTitleRows.foldLeft(
+        (
+          Option.empty[String],
+          List.empty[SummaryListRow],
+          List.empty[(String, List[SummaryListRow])]
+        )
+      ) { case ((currentHeading, accumulatedRows, resultBuffer), (heading, rows)) =>
+        if (heading.nonEmpty || accumulatedRows.isEmpty) {
+          val newResultBuffer = currentHeading.map(ct => resultBuffer :+ (ct, accumulatedRows)).getOrElse(resultBuffer)
+          (Some(heading), rows, newResultBuffer)
+        } else {
+          (currentHeading, accumulatedRows ++ rows, resultBuffer)
+        }
+      } match {
+        case (currentHeading, accumulatedRows, resultBuffer) =>
+          currentHeading.map(ct => resultBuffer :+ (ct, accumulatedRows)).getOrElse(resultBuffer)
+      }
+
+    summarizeGroupedRows(headingSummaryListRows).map { case (heading, rows) =>
+      SummaryList(
+        rows = rows,
+        classes = "govuk-!-margin-bottom-0",
+        attributes =
+          if (heading.isEmpty) Map.empty[String, String]
+          else Map("title" -> heading)
+      )
+    }
   }
 
   def determineContinueLabelKey(
