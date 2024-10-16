@@ -1039,7 +1039,7 @@ class BuilderController(
         val infoHtml = repeater.fields.fold(HtmlFormat.empty) { fieldsNel =>
           fieldsNel.toList
             .collectFirst {
-              case fc @ IsInformationMessage(info) if fc.id === formComponentId =>
+              case fc @ IsInformationMessage(info) if fc.id.baseComponentId === formComponentId.baseComponentId =>
                 renderer.htmlForInformationMessage(fc, info.infoType, info.infoText)
             }
             .getOrElse(HtmlFormat.empty)

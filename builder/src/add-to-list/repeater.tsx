@@ -73,6 +73,7 @@ export const atlRepeaterBootstrap = (
       formTemplateId,
       sectionNumber,
       kind: MessageKind.UpdateAtlRepeaterFormComponent,
+      atlIterationIndex,
       sectionNumberChange: sectionNumberChangeSignal,
       requestData: sectionPath,
     };
