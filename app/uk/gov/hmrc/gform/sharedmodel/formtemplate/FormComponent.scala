@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import ai.x.play.json.Encoders.encoder
-import ai.x.play.json.Jsonx
+import julienrf.json.derived
 import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
@@ -163,7 +162,7 @@ case class FormComponent(
 }
 
 object FormComponent {
-  implicit val format: OFormat[FormComponent] = Jsonx.formatCaseClass[FormComponent]
+  implicit val format: OFormat[FormComponent] = derived.oformat()
 }
 
 object IsText {

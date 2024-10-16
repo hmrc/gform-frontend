@@ -17,7 +17,6 @@ object Dependencies {
     "uk.gov.hmrc"                 %% "domain-play-30"             % "9.0.0",
     "org.playframework"           %% "play-json-joda"             % "3.0.2",
     "org.julienrf"                %% "play-json-derived-codecs"   % "11.0.0",
-    "ai.x"                        %% "play-json-extensions"       % "0.42.0",
     "org.typelevel"               %% "cats-core"                  % "2.10.0",
     "org.typelevel"               %% "cats-free"                  % "2.9.0",
     "org.typelevel"               %% "cats-mtl"                   % "1.4.0",
