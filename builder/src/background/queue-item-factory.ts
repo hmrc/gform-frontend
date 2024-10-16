@@ -143,10 +143,11 @@ export const atlRepeaterFormComponentQueueItem = (item: QueueItem): UpdateRender
   const formComponentId = payload.id;
   const sectionPath = encodeURIComponent(updateRequest.requestData as string);
   const formTemplateId = request.formTemplateId;
+  const renderComponentId = fullFormComponentId(formComponentId, request.data.atlIterationIndex);
 
   const updateUrl = `${request.host}/submissions/test-only/proxy-to-gform/gform/builder/update-atl-repeater/form-component/${formTemplateId}/${formComponentId}?sectionPath=${sectionPath}`;
   const renderUrlURL = new URL(
-    `${request.host}/submissions/test-only/builder/generate-component-html-atl-repeater/${formTemplateId}/${sectionNumber}/${formComponentId}`,
+    `${request.host}/submissions/test-only/builder/generate-component-html-atl-repeater/${formTemplateId}/${sectionNumber}/${renderComponentId}`,
   );
   if (updateRequest.maybeAccessCode !== undefined) {
     renderUrlURL.searchParams.set("a", updateRequest.maybeAccessCode);
