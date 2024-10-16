@@ -410,7 +410,10 @@ object SummaryRenderingService {
       } else {
         List(FastForward.CYA(SectionOrSummary.TaskSummary))
       }
-      page.fields
+
+      val fieldsIncConf: List[FormComponent] = page.fields ++ page.confirmation.map(_.question)
+
+      fieldsIncConf
         .filterNot(_.hideOnSummary)
         .flatMap(formComponent =>
           FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import julienrf.json.derived
 import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
@@ -47,7 +48,8 @@ case class FormComponent(
   errorShortName: Option[SmartString] = None,
   errorShortNameStart: Option[SmartString] = None,
   errorExample: Option[SmartString] = None,
-  extraLetterSpacing: Option[Boolean] = None
+  extraLetterSpacing: Option[Boolean] = None,
+  displayInSummary: Option[Boolean] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId
@@ -152,7 +154,7 @@ case class FormComponent(
 
   def hideOnSummary: Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) ||
-      IsInformationMessage.unapply(this).isDefined
+      IsInformationMessage.unapply(this).isDefined || !displayInSummary.getOrElse(true)
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 
@@ -160,7 +162,7 @@ case class FormComponent(
 }
 
 object FormComponent {
-  implicit val format: OFormat[FormComponent] = Json.format[FormComponent]
+  implicit val format: OFormat[FormComponent] = derived.oformat()
 }
 
 object IsText {

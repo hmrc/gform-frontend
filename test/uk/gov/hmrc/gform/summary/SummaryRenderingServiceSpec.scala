@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModel, Interim, SectionSe
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Coordinates, FileSizeLimit, FormPhase, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, FileSizeLimit, FormPhase, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
@@ -312,6 +312,97 @@ class SummaryRenderingServiceSpec
               override lazy val validationResult: ValidationResult = new ValidationResult(
                 Map(
                   page1Field.id -> FieldOk(page1Field, "page1Field-value")
+                ),
+                None
+              )
+            }
+            import testFixture._
+            summaryRenderingService
+              .getSummaryHTML(
+                maybeAccessCode,
+                cache,
+                SummaryPagePurpose.ForDms,
+                formModelOptics,
+                Option.empty[Coordinates],
+                Option.empty[SummarySection],
+                None
+              )
+              .futureValue
+              .summaryElements shouldBe expectedSummaryElements
+          }
+        }
+
+        "show confirmation question by default and hide based on displayInSummary" in {
+          val table = Table(
+            ("displayInSummary", "summaryElements"),
+            (
+              None,
+              List(
+                HeaderElement("Some page title"),
+                SummaryListElement(
+                  List(
+                    SummaryListRow("page1Field", "page1Field-value"),
+                    SummaryListRow("page3Field", "page3Field-value")
+                  )
+                ),
+                HeaderElement("declaration section"),
+                SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+              )
+            ),
+            (
+              Some(true),
+              List(
+                HeaderElement("Some page title"),
+                SummaryListElement(
+                  List(
+                    SummaryListRow("page1Field", "page1Field-value"),
+                    SummaryListRow("page3Field", "page3Field-value")
+                  )
+                ),
+                HeaderElement("declaration section"),
+                SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+              )
+            ),
+            (
+              Some(false),
+              List(
+                HeaderElement("Some page title"),
+                SummaryListElement(
+                  List(SummaryListRow("page1Field", "page1Field-value"))
+                ),
+                HeaderElement("declaration section"),
+                SummaryListElement(List(SummaryListRow("fieldInDeclarationSections", "")))
+              )
+            )
+          )
+
+          forAll(table) { (displayInSummary, expectedSummaryElements) =>
+            val page3Field = buildFormComponent("page3Field", Value, None, displayInSummary)
+
+            val testFixture: TestFixture = new TestFixture {
+              override lazy val formTemplate: FormTemplate = buildFormTemplate(
+                destinationList,
+                List(
+                  nonRepeatingPageSection(
+                    title = "Some page title",
+                    fields = List(page1Field),
+                    confirmation = Some(Confirmation(page3Field, None))
+                  )
+                )
+              )
+              override lazy val form: Form =
+                buildForm(
+                  FormData(
+                    List(
+                      FormField(page1Field.modelComponentId, "page1Field-value"),
+                      FormField(page3Field.modelComponentId, "page3Field-value")
+                    )
+                  )
+                )
+              override lazy val validationResult: ValidationResult = new ValidationResult(
+                Map(
+                  page1Field.id -> FieldOk(page1Field, "page1Field-value"),
+                  page3Field.id -> FieldOk(page3Field, "page3Field-value")
                 ),
                 None
               )
