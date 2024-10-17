@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
@@ -348,22 +347,26 @@ object FormComponentSummaryRenderer {
   ): List[SummaryListRow] =
     if (miniSummaryList.displayInSummary === DisplayInSummary.Yes) {
       miniSummaryList.rows
-        .map {
-          case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _)
+        .collect {
+          case MiniSummaryRow.ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _)
               if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
-            summaryListRow(
-              label.map(lise(_, false)).getOrElse(fcrd.label(fieldValue)),
-              Html(getFormattedExprStr(formModelVisibilityOptics, e)),
-              None,
-              SummaryListRowHelper.getKeyDisplayWidthClass(parentKeyDisplayWidth),
-              "",
-              "",
-              Nil,
-              ""
-            )
-          case _ => SummaryListRow()
+            label -> getFormattedExprStr(formModelVisibilityOptics, e)
+          case MiniSummaryRow.SmartStringRow(label, value, includeIf, _)
+              if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
+            label -> value.value()
         }
-        .filter(row => row != SummaryListRow())
+        .map { case (label, value) =>
+          summaryListRow(
+            label.map(lise(_, false)).getOrElse(fcrd.label(fieldValue)),
+            Html(value),
+            None,
+            SummaryListRowHelper.getKeyDisplayWidthClass(parentKeyDisplayWidth),
+            "",
+            "",
+            Nil,
+            ""
+          )
+        }
     } else {
       List[SummaryListRow]()
     }
