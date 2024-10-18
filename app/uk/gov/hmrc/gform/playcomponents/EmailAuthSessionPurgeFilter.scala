@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Composite, EmailAuthConfig, FormTemplate }
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Success, Try }
 
 /** This filter only applies to authConfig=email and triggered on the new form route only (/xxxx/new-form/formTemplateId)
   * It creates a new session when accessing a new instance of the form, following a successful form submission
@@ -60,16 +61,15 @@ class EmailAuthSessionPurgeFilter(
 
   def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     implicit val requestHeader: RequestHeader = rh
-    if (isNewFormRoute) {
-      val formTemplateContext = rh.attrs(FormTemplateKey)
-      val formTemplate = formTemplateContext.formTemplate
-      formTemplate.authConfig match {
-        case _: EmailAuthConfig => handleEmail(next, formTemplateContext)
-        case Composite(_)       => handleCompositeAuth(next, formTemplateContext)
-        case _                  => next(rh)
-      }
-    } else {
-      next(rh)
+    (isNewFormRoute, Try(rh.attrs(FormTemplateKey))) match {
+      case (true, Success(formTemplateContext)) =>
+        val formTemplate = formTemplateContext.formTemplate
+        formTemplate.authConfig match {
+          case _: EmailAuthConfig => handleEmail(next, formTemplateContext)
+          case Composite(_)       => handleCompositeAuth(next, formTemplateContext)
+          case _                  => next(rh)
+        }
+      case _ => next(rh)
     }
   }
 
