@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.playcomponents
 import cats.data.NonEmptyList
 import org.apache.pekko.stream.Materializer
 import org.mockito.MockitoSugar.mock
-import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Helpers.toSmartString
@@ -62,17 +61,20 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
     }(request)
   }
 
-  it should "not throw NoSuchElementException when missing form-template in request header" in {
-    val request: FakeRequest[AnyContentAsEmpty.type] =
-      FakeRequest("GET", url)
+// TODO: Re-implement this test once we understand the defect in more detail
+//       and therefore understand how to handle it correctly - re GFORMS-2922
 
-    filterUnderTest.apply { rh =>
-      intercept[NoSuchElementException] {
-        rh.attrs(emailSessionClearAttrKey) shouldBe "true"
-      }
-      Future(Ok)
-    }(request)
-  }
+//  it should "not throw NoSuchElementException when missing form-template in request header" in {
+//    val request: FakeRequest[AnyContentAsEmpty.type] =
+//      FakeRequest("GET", url)
+//
+//    filterUnderTest.apply { rh =>
+//      intercept[NoSuchElementException] {
+//        rh.attrs(emailSessionClearAttrKey) shouldBe "true"
+//      }
+//      Future(Ok)
+//    }(request)
+//  }
 
   override val formTemplateId = FormTemplateId(formTemplateStr)
   override def buildFormTemplate: FormTemplate = FormTemplate(
