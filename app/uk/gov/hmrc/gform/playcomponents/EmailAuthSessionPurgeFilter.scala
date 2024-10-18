@@ -16,29 +16,30 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
+import cats.syntax.eq._
 import org.apache.pekko.stream.Materializer
+import org.slf4j.{ Logger, LoggerFactory }
+import play.api.mvc.request.{ Cell, RequestAttrKey }
 import play.api.mvc.{ Filter, RequestHeader, Result }
+import play.api.routing.Router.Attrs
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.{ AuthConnector, AuthProvider, AuthProviders, AuthorisedFunctions }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, EmailRetrievals }
+import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ compositeAuthSessionClearAttrKey, compositeAuthSessionClearAttrKeyName, emailSessionClearAttrKey, emailSessionClearAttrKeyName }
+import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
+import uk.gov.hmrc.gform.gform.EmailAuthUtils
 import uk.gov.hmrc.gform.gform.EmailAuthUtils.isEmailConfirmed
+import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, Submitted }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContext
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Composite, EmailAuthConfig, FormTemplate, FormTemplateContext }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
-import cats.syntax.eq._
-import org.slf4j.{ Logger, LoggerFactory }
-import play.api.mvc.request.{ Cell, RequestAttrKey }
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.{ AuthConnector, AuthProvider, AuthProviders, AuthorisedFunctions }
-import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.{ compositeAuthSessionClearAttrKey, compositeAuthSessionClearAttrKeyName, emailSessionClearAttrKey, emailSessionClearAttrKeyName }
-import uk.gov.hmrc.gform.gform.EmailAuthUtils
-import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
-import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Composite, EmailAuthConfig, FormTemplate }
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 /** This filter only applies to authConfig=email and triggered on the new form route only (/xxxx/new-form/formTemplateId)
   * It creates a new session when accessing a new instance of the form, following a successful form submission
@@ -61,12 +62,21 @@ class EmailAuthSessionPurgeFilter(
   def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     implicit val requestHeader: RequestHeader = rh
     if (isNewFormRoute) {
-      val formTemplateContext = rh.attrs(FormTemplateKey)
-      val formTemplate = formTemplateContext.formTemplate
-      formTemplate.authConfig match {
-        case _: EmailAuthConfig => handleEmail(next, formTemplateContext)
-        case Composite(_)       => handleCompositeAuth(next, formTemplateContext)
-        case _                  => next(rh)
+      Try(rh.attrs(FormTemplateKey)) match {
+        case Success(formTemplateContext) =>
+          val formTemplate = formTemplateContext.formTemplate
+          formTemplate.authConfig match {
+            case _: EmailAuthConfig => handleEmail(next, formTemplateContext)
+            case Composite(_)       => handleCompositeAuth(next, formTemplateContext)
+            case _                  => next(rh)
+          }
+        case Failure(exception) =>
+          val handlerDef = requestHeader.attrs(Attrs.HandlerDef).toString
+          val sessionId = requestHeader.session.get("sessionId").getOrElse("unknown")
+          logger.error(
+            s"NoSuchElementException debug - HandlerDef: $handlerDef\nSession ID: $sessionId\nURI: ${requestHeader.uri}"
+          )
+          throw exception
       }
     } else {
       next(rh)
