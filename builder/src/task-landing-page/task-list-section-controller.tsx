@@ -125,12 +125,12 @@ export const TaskListSectionControllerFactory =
         (taskDeclarationSectionInput, taskNumber) => {
           const taskSectionPayload: TaskDeclarationSectionPart = {};
           if (taskDeclarationSectionInput.current !== null) {
-            if(taskDeclarationSectionInput.current.checked) {
+            if (taskDeclarationSectionInput.current.checked) {
               taskSectionPayload["title"] = "Declaration";
               taskSectionPayload["fields"] = [];
             } else {
               taskSectionPayload["title"] = "";
-              taskSectionPayload["fields"] = "";
+              taskSectionPayload["fields"] = [];
             }
           }
 
@@ -162,8 +162,7 @@ export const TaskListSectionControllerFactory =
         focus: "taskSection",
       };
 
-      const allUpdates = taskUpdates.concat(taskSummarySectionUpdates)
-                                    .concat(taskDeclarationSectionUpdates);
+      const allUpdates = taskUpdates.concat(taskSummarySectionUpdates).concat(taskDeclarationSectionUpdates);
       allUpdates.push(taskSectionUpdates);
 
       const batchUpdates: TemplateBatchUpdate = {
