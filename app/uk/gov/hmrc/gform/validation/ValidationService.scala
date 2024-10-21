@@ -156,20 +156,21 @@ class ValidationService(
   def validateATLs[D <: DataOrigin](
     pageModels: List[PageModel[Visibility]],
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
-  ): Future[ValidatedType[Unit]] =
+  ): ValidatedType[Unit] =
     pageModels
       .flatMap(_.allATLRepeatsWhiles)
-      .distinct
-      .traverse { includeIf =>
-        for {
-          result <- booleanExprEval.eval(formModelVisibilityOptics)(includeIf.booleanExpr)
-        } yield
-        // Returns invalid if the condition is met, otherwise valid for `repeatWhile`
-        if (result) {
+      .groupBy { case (key, _) => key }
+      .values
+      .map(_.flatMap(_._2))
+      .map { includeIfs =>
+        if (includeIfs.isEmpty || !includeIfs.forall(formModelVisibilityOptics.evalIncludeIfExpr(_, None))) {
+          ().valid
+        } else {
           GformError.emptyGformError.invalid
-        } else ().valid
+        }
       }
-      .map(Monoid[ValidatedType[Unit]].combineAll(_))
+      .toList
+      .combineAll
 
   def validatePageModelComponents[D <: DataOrigin](
     pageModel: PageModel[Visibility],
