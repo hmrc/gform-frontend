@@ -67,6 +67,17 @@
     safeErrorMessage(atom).map(e => new GovukErrorMessage()(e))
 }
 
+@autoCompleteValue(atom: Atom) = @{
+    atom match {
+        case OverseasAddress.line1    => "address-line1"
+        case OverseasAddress.line2    => "address-line2"
+        case OverseasAddress.line3    => "address-line3"
+        case OverseasAddress.city     => "address-level2"
+        case OverseasAddress.postcode => "postal-code"
+        case _                        => ""
+    }
+}
+
 <fieldset class="govuk-fieldset" id="@{formComponent.id.value}-fieldset" role="group" @if(formComponent.helpText.nonEmpty) { aria-describedby="@{formComponent.id.value}-hint" }>
     @(formLevelHeading, classes.nonEmpty) match {
         case (true, true) => {
@@ -130,6 +141,7 @@
                            name="@htmlId(rowId)"
                            id="@htmlId(rowId)"
                            aria-describedby="@if(rowError.nonEmpty){@row.value}"
+                           autocomplete="@autoCompleteValue(row)"
                            value="@fetchValue(rowId, row)" />
                 </div>
             }
