@@ -193,10 +193,10 @@ class TaskListRenderingService(
                 formModelOptics.formModelVisibilityOptics,
                 Some(coordinate)
               )
-            validatedATLs <- validationService.validateATLs(
-                               formModel.taskList.availablePages(coordinate),
-                               formModelOptics.formModelVisibilityOptics
-                             )
+            validatedATLs = validationService.validateATLs(
+                              formModel.taskList.availablePages(coordinate),
+                              formModelOptics.formModelVisibilityOptics
+                            )
           } yield {
             val taskStatus =
               if (dataForCoordinate.isEmpty) {

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId, MultiValueId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
@@ -72,8 +72,10 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
 
-  def allATLRepeatsWhiles: List[IncludeIf] =
-    fold(_ => List.empty[IncludeIf])(_ => List.empty[IncludeIf])(repeater => repeater.repeatsWhile.toList)
+  def allATLRepeatsWhiles =
+    fold(_ => List.empty[(BaseComponentId, List[IncludeIf])])(_ => List.empty[(BaseComponentId, List[IncludeIf])])(
+      repeater => List(repeater.addAnotherQuestion.id.baseComponentId -> repeater.repeatsWhile.toList)
+    )
 
   def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)
 
