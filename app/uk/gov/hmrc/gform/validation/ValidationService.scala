@@ -160,7 +160,8 @@ class ValidationService(
     pageModels
       .flatMap(_.allATLRepeatsWhiles)
       .groupBy { case (key, _) => key }
-      .map(_._2.flatMap(_._2))
+      .values
+      .map(_.flatMap(_._2))
       .map { includeIfs =>
         if (includeIfs.isEmpty || !includeIfs.forall(formModelVisibilityOptics.evalIncludeIfExpr(_, None))) {
           ().valid
