@@ -87,7 +87,7 @@ class FormAddToListController(
             .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
         val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
-          case Bracket.AddToList(iterations, source) =>
+          case bracket @ Bracket.AddToList(iterations, source) =>
             val (pageError, fieldErrors) = {
               val errorMessage =
                 source.errorMessage.fold(request.messages.messages("addToList.error.selectOption"))(error =>
@@ -118,24 +118,29 @@ class FormAddToListController(
                   )
               }
             }
-            val repeater =
-              if (iterations.size <= index)
-                iterations.last.repeater.repeater
-              else iterations.toList(index).repeater.repeater
 
-            Ok(
-              html.form
-                .addToList_requestRemoval(
-                  formTemplate,
-                  repeater,
-                  maybeAccessCode,
-                  sectionNumber,
-                  frontendAppConfig,
-                  formAction,
-                  pageError,
-                  fieldErrors
-                )
-            ).pure[Future]
+            iterations.toList.lift(index) match {
+              case Some(iteration) =>
+                val repeater = iteration.repeater.repeater
+                Ok(
+                  html.form
+                    .addToList_requestRemoval(
+                      formTemplate,
+                      repeater,
+                      maybeAccessCode,
+                      sectionNumber,
+                      frontendAppConfig,
+                      formAction,
+                      pageError,
+                      fieldErrors
+                    )
+                ).pure[Future]
+              case None =>
+                val lastSectionNumber = bracket.lastSectionNumber
+                Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, lastSectionNumber))
+                  .pure[Future]
+            }
+
           case _ =>
             throw new IllegalArgumentException(
               "FormAddToListController.requestRemoval can only be requested from AddToList section"
