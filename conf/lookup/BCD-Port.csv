@@ -15514,7 +15514,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 200002,UK,3,AVO,Portishead Royal Portbury Dock,Avonmouth - AVO,Avonmouth - AVO,,1,NULL,0,
 200003,UK,3,AYR,Girvan,Ayr - AYR,Ayr - AYR,,1,NULL,0,
 200004,UK,3,BAR,Millom,Barrow-In-Furness - BAR,Barrow-In-Furness - BAR,,1,NULL,0,
-200005,UK,3,BCC,,Beccles Airport - BCC,Beccles Airport - BCC,,1,NULL,0,
+200005,UK,2,BCC,,Beccles Airport - BCC,Beccles Airport - BCC,,1,NULL,0,
 200006,UK,3,BLY,Amble Berwick,Blyth - BLY,Blyth - BLY,,1,NULL,0,
 200007,UK,2,BOH,,Bournemouth (Hurn) Airport - BOH,Bournemouth (Hurn) Airport - BOH,,1,NULL,0,
 200008,UK,3,BOS,,Boston - BOS,Boston - BOS,,1,NULL,0,
