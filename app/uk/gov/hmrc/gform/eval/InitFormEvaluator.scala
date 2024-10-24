@@ -160,7 +160,8 @@ object InitFormEvaluator {
                              None,
                              Some(ninoInsightsConnector),
                              None,
-                             Some(gformConnector)
+                             Some(gformConnector),
+                             None
                            )
                            .map {
                              case Some(result) => results :+ result

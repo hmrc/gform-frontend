@@ -21,6 +21,7 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.lookup.FileSystemConnector
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,7 +38,8 @@ object DataRetrieveService {
     companyInformationConnector: Option[CompanyInformationConnector[Future]],
     ninoInsightsConnector: Option[NinoInsightsConnector[Future]],
     bankAccountInsightConnector: Option[BankAccountInsightsConnector[Future]],
-    gformConnector: Option[GformConnector]
+    gformConnector: Option[GformConnector],
+    fileSystemConnector: Option[FileSystemConnector]
   )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[Option[DataRetrieveResult]] = {
     val maybeRequestParams = form.flatMap(f => DataRetrieve.requestParamsFromCache(f, dataRetrieve.id))
     val maybeExecutor
@@ -57,6 +59,7 @@ object DataRetrieveService {
         case DataRetrieve.Type("employments")                => gformConnector.map(_.getEmployments)
         case DataRetrieve.Type("hmrcRosmRegistrationCheck")  => gformConnector.map(_.getDesOrganisation)
         case DataRetrieve.Type("agentDetails")               => gformConnector.map(_.getDesAgentDetails)
+        case DataRetrieve.Type("hmrcTaxRates")               => fileSystemConnector.map(_.getHmrcTaxRate)
         case _                                               => Option.empty
       }
     maybeExecutor.flatTraverse { executor =>
