@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 
 object PDFPageFieldBuilder {
   def build[T <: PDFType, D <: DataOrigin](
@@ -175,20 +174,28 @@ object PDFPageFieldBuilder {
 
       case IsMiniSummaryList(msl) =>
         if (msl.displayInSummary === DisplayInSummary.Yes) {
-          msl.rows.map {
-            case ValueRow(label, MiniSummaryListValue.AnyExpr(e), includeIf, _) =>
-              if (evaluateIncludeIf(includeIf, formModelVisibilityOptics)) {
-                SimpleField(
-                  label.map(lise(_, false)),
-                  List(Html(getFormattedExprStr(formModelVisibilityOptics, e)))
-                )
-              } else {
-                SimpleField(None, List.empty)
-              }
-            case _ => SimpleField(None, List.empty)
-          }
+          msl.rows
+            .collect {
+              case MiniSummaryRow.ValueRow(label, value, includeIf, _)
+                  if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
+                value match {
+                  case MiniSummaryListValue.AnyExpr(e) =>
+                    label -> getFormattedExprStr(formModelVisibilityOptics, e)
+                  case MiniSummaryListValue.Reference(e) =>
+                    label -> getFormattedExprStr(formModelVisibilityOptics, e)
+                }
+              case MiniSummaryRow.SmartStringRow(label, value, includeIf, _)
+                  if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
+                label -> value.value()
+            }
+            .map { case (label, value) =>
+              SimpleField(
+                label.map(lise(_, false)),
+                List(Html(value))
+              )
+            }
         } else {
-          List(SimpleField(None, List.empty))
+          List.empty[SimpleField]
         }
 
       case IsFileUpload(_) =>
