@@ -147,11 +147,6 @@ object PDFPageModelBuilder {
         PDFPageFieldBuilder
           .build(fc, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
       )
-      .filter {
-        case SimpleField(label, _) => label.isDefined
-        case ChoiceField(label, _) => label.isDefined
-        case _                     => true
-      }
 
     if (pageFields.isEmpty) {
       None
