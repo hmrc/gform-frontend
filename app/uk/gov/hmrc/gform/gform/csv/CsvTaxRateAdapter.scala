@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.lookup
+package uk.gov.hmrc.gform.gform.csv
 
 import julienrf.json.derived
-import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.libs.json.{ JsValue, Json, OFormat }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 
 import java.time.LocalDate
@@ -27,7 +27,8 @@ class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
   private val hmrcTaxRateDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val hmrcTaxRateRequestFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
-  override val data: List[TaxRate] = readCsvWithColumns("HMRCTaxRates.csv")
+  override val data: List[TaxRate] = CsvUtils
+    .readCsvWithColumns("HMRCTaxRates.csv")
     .map { row =>
       TaxRate(
         row("TaxRegime"),
@@ -68,5 +69,5 @@ object TaxRate {
 
 case class TaxRateRequest(regime: String, code: String, date: String)
 object TaxRateRequest {
-  implicit val format: OFormat[TaxRateRequest] = derived.oformat()
+  implicit val format: OFormat[TaxRateRequest] = Json.format[TaxRateRequest]
 }

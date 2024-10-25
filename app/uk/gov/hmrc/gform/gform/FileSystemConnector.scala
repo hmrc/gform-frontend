@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.lookup
+package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.JsValue
+import uk.gov.hmrc.gform.gform.csv.CsvTaxRateAdapter
 import uk.gov.hmrc.gform.sharedmodel._
 
 import scala.concurrent.Future

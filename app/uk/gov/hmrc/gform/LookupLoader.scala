@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform
 import com.miguelfonseca.completely.AutocompleteEngine
 import com.miguelfonseca.completely.text.analyze.transform.LowerCaseTransformer
 import kantan.csv._
-import kantan.csv.ops._
+import uk.gov.hmrc.gform.gform.csv.CsvUtils
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
-import uk.gov.hmrc.gform.lookup._
 
 class LookupLoader {
 
@@ -49,25 +49,13 @@ class LookupLoader {
 
   type LookupDetails = (LookupLabel, LookupInfo)
 
-  private def readCsv[A](filename: String, headerDecoder: HeaderDecoder[A]): List[A] = {
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-
-    lookup.unsafeReadCsv[List, A](rfc.withHeader)(headerDecoder, implicitly, implicitly)
-  }
-
-  private def readCsvWithColumns(filename: String): List[Map[String, String]] = {
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    val lines = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
-    lines.tail.map(lines.head.zip(_).toMap)
-  }
-
   private def getLocalisedLookupOptions[A](
     fileName: String,
     headerDecoder: HeaderDecoder[A],
     f: A => Int => (LookupDetails, LookupDetails)
   ): LocalisedLookupOptions = {
 
-    val csvData: List[A] = readCsv(fileName, headerDecoder)
+    val csvData: List[A] = CsvUtils.readCsv(fileName, headerDecoder)
 
     val (enOptions, cyOptions): (List[LookupDetails], List[LookupDetails]) =
       csvData.zipWithIndex.map { case (a, idx) =>
@@ -152,7 +140,7 @@ class LookupLoader {
         )
       )
 
-    val csvWithColumns = readCsvWithColumns(filename)
+    val csvWithColumns = CsvUtils.readCsvWithColumns(filename)
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords, priority, priorityUk, region, inGibraltarEuEeaEfta) = columnData
 
@@ -188,7 +176,7 @@ class LookupLoader {
         )
       )
 
-    val csvWithColumns = readCsvWithColumns(filename)
+    val csvWithColumns = CsvUtils.readCsvWithColumns(filename)
 
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords, priority) = columnData
@@ -325,7 +313,7 @@ class LookupLoader {
         )
       )
 
-    val csvWithColumns = readCsvWithColumns(filename)
+    val csvWithColumns = CsvUtils.readCsvWithColumns(filename)
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, keywords) = columnData
 

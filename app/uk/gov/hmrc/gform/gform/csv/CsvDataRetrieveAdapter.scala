@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.lookup
+package uk.gov.hmrc.gform.gform.csv
 
-import kantan.csv.ops.toCsvInputOps
-import kantan.csv.rfc
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 
-abstract class CsvDataRetrieveAdapter[T] {
+trait CsvDataRetrieveAdapter[T] {
   val data: List[T]
 
   def search(request: DataRetrieve.Request): Option[JsValue]
-
-  protected def readCsvWithColumns(filename: String): List[Map[String, String]] = {
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    val lines = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
-    lines.tail.map(lines.head.zip(_).toMap)
-  }
-
 }

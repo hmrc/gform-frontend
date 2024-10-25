@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormVali
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.lookup.{ FileSystemConnector, LocalisedLookupOptions, LookupRegistry }
+import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupRegistry }
 import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.pdf.PDFRenderService
