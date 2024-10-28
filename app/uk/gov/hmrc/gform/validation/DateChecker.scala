@@ -570,7 +570,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     val yearProgram: CheckProgram[Int] =
       ifProgram[Int](
-        cond = maybeYear.isDefined,
+        cond = maybeYear.exists(_ > 0),
         thenProgram = successProgram(maybeYear.getOrElse(1970)),
         elseProgram = errorProgram[Int](
           Map(
