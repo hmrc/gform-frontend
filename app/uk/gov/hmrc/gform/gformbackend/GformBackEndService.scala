@@ -28,6 +28,8 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmi
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.pdf.model.PDFCustomRender
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.InstructionPdfFields
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfContent, SourceOrigin, SubmissionData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateContext, FormTemplateId, InstructionPDF }
@@ -192,15 +194,26 @@ class GformBackEndService(
           maybePDFOptions,
           Some(cache.formTemplate.formName.value)
         )
-      htmlForInstructionPDF <- if (dmsDestinationWithIncludeInstructionPdf(cache.formTemplate))
-                                 createHTMLForInstructionPDF[SectionSelectorType.Normal, D](
-                                   maybeAccessCode,
-                                   cache,
-                                   submissionDetails,
-                                   formModelOptics
-                                 )
-                               else
-                                 Future.successful(None)
+      htmlForInstructionPDF <-
+        dmsDestinationWithIncludeInstructionPdf(cache.formTemplate) match {
+          case Some(InstructionPdfFields.Ordered) =>
+            createHTMLForInstructionPDF[SectionSelectorType.Normal, D, PDFType.Instruction](
+              maybeAccessCode,
+              cache,
+              submissionDetails,
+              formModelOptics,
+              None
+            )
+          case Some(InstructionPdfFields.All) =>
+            createHTMLForInstructionPDF[SectionSelectorType.Normal, D, PDFType.Summary](
+              maybeAccessCode,
+              cache,
+              submissionDetails,
+              formModelOptics,
+              Some(cache.formTemplate.formName.value)
+            )
+          case _ => Future.successful(None)
+        }
       structuredFormData <- StructuredFormDataBuilder(
                               formModelOptics.formModelVisibilityOptics,
                               cache.formTemplate.destinations,
@@ -231,12 +244,19 @@ class GformBackEndService(
     } yield response
   }
 
-  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
+  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
-    formModelOptics: FormModelOptics[D]
-  )(implicit messages: Messages, request: Request[_], l: LangADT, hc: HeaderCarrier): Future[Option[PdfContent]] = {
+    formModelOptics: FormModelOptics[D],
+    maybeFormName: Option[String]
+  )(implicit
+    messages: Messages,
+    request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    pdfFunctions: PDFCustomRender[P]
+  ): Future[Option[PdfContent]] = {
     val formModelOpticsUpdatedFuture = FormModelOptics.mkFormModelOptics[D, Future, SectionSelectorType.Normal](
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
@@ -253,7 +273,7 @@ class GformBackEndService(
         )
 
       pdfRenderService
-        .createPDFContent[D, U, PDFType.Instruction](
+        .createPDFContent[D, U, P](
           s"Instructions PDF - ${cache.formTemplate.formName.value}",
           None,
           cache,
@@ -265,7 +285,8 @@ class GformBackEndService(
           },
           submissionDetails,
           SummaryPagePurpose.ForDms,
-          None
+          None,
+          maybeFormName = maybeFormName
         )
         .map(Some(_))
     }
@@ -360,13 +381,13 @@ class GformBackEndService(
       userSession
     )
 
-  private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Boolean =
+  private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Option[InstructionPdfFields] =
     formTemplate.destinations match {
       case DestinationList(destinations, _, _) =>
-        destinations.exists {
-          case h: HmrcDms => h.includeInstructionPdf
-          case _          => false
+        destinations.collectFirst { case HmrcDms(_, _, _, _, _, _, _, _, _, _, Some(instructionPdfFields), _, _, _) =>
+          instructionPdfFields
         }
-      case _ => false
+
+      case _ => None
     }
 }

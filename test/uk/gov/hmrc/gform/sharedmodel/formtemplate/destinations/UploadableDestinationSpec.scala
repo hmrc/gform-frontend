@@ -117,7 +117,7 @@ class UploadableDestinationSpec extends Spec {
       dataOutputFormat,
       Some(formdataXml),
       backscan,
-      Some(includeInstructionPdf)
+      instructionPdfFields
     )
   }
 

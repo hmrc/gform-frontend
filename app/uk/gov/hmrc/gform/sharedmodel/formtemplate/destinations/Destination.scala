@@ -66,7 +66,7 @@ object Destination {
     dataOutputFormat: Option[DataOutputFormat],
     formdataXml: Boolean,
     backscan: Option[Boolean],
-    includeInstructionPdf: Boolean,
+    instructionPdfFields: Option[InstructionPdfFields],
     convertSingleQuotes: Option[Boolean],
     payload: Option[String],
     payloadType: TemplateType
@@ -180,7 +180,7 @@ case class UploadableHmrcDmsDestination(
   dataOutputFormat: Option[DataOutputFormat],
   formdataXml: Option[Boolean],
   closedStatus: Option[Boolean],
-  includeInstructionPdf: Option[Boolean] = None
+  instructionPdfFields: Option[InstructionPdfFields] = None
 ) {
 
   def toHmrcDmsDestination: Either[String, Destination.HmrcDms] =
@@ -197,7 +197,7 @@ case class UploadableHmrcDmsDestination(
       dataOutputFormat,
       formdataXml.getOrElse(false),
       closedStatus,
-      includeInstructionPdf.getOrElse(false),
+      instructionPdfFields,
       convertSingleQuotes,
       None,
       TemplateType.XML

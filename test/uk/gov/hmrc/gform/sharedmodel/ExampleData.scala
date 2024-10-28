@@ -127,7 +127,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     Some(DataOutputFormat.XML),
     true,
     Some(true),
-    false,
+    None,
     None,
     None,
     TemplateType.XML
