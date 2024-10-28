@@ -283,7 +283,11 @@ case class FormModel[A <: PageMode](
         TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isInteger(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isBigDecimal(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isInteger(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isBigDecimal(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isDate(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))

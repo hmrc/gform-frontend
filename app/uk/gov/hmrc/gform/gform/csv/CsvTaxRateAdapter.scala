@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc.gform.gform.csv
 
+import cats.implicits.catsSyntaxEq
 import julienrf.json.derived
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ JsValue, Json, OFormat }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import scala.util.{ Failure, Success, Try }
 
 class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
   private val hmrcTaxRateDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val hmrcTaxRateRequestFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
@@ -33,36 +38,33 @@ class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
       TaxRate(
         row("TaxRegime"),
         row("Code"),
-        row("Rate"),
+        BigDecimal(row("Rate")).setScale(2),
         LocalDate.parse(row("StartDate"), hmrcTaxRateDateFormat),
         LocalDate.parse(row("EndDate"), hmrcTaxRateDateFormat)
       )
     }
 
-  override def search(request: DataRetrieve.Request): Option[JsValue] = {
-    val taxRateRequest: TaxRateRequest = request.json.as[TaxRateRequest]
-    val regimeRates: Option[List[TaxRate]] = data.groupBy(_.regime).get(taxRateRequest.regime)
-    val requestedDate: LocalDate = LocalDate.parse(taxRateRequest.date, hmrcTaxRateRequestFormat)
+  override def search(request: DataRetrieve.Request): Option[JsValue] =
+    Try(request.json.as[TaxRateRequest]) match {
+      case Success(taxRateRequest: TaxRateRequest) =>
+        val regimeRates: Option[List[TaxRate]] = data.groupBy(_.regime).get(taxRateRequest.regime)
+        val requestedDate: LocalDate = LocalDate.parse(taxRateRequest.date, hmrcTaxRateRequestFormat)
 
-    val searchResult: Option[List[TaxRate]] = regimeRates.map(_.filter { rate =>
-      rate.code == taxRateRequest.code && (
-        rate.startDate.isEqual(requestedDate) || rate.startDate.isBefore(requestedDate)
-      ) && (
-        rate.endDate.isEqual(requestedDate) || rate.endDate.isAfter(requestedDate)
-      )
-    })
-
-    // There must be only one...
-    val response: Option[TaxRate] = searchResult match {
-      case Some(list) if list.size == 1 => Some(list.head)
-      case _                            => None
+        val response: Option[TaxRate] = regimeRates.flatMap(_.find { rate =>
+          rate.code === taxRateRequest.code && (
+            rate.startDate.isEqual(requestedDate) || rate.startDate.isBefore(requestedDate)
+          ) && (
+            rate.endDate.isEqual(requestedDate) || rate.endDate.isAfter(requestedDate)
+          )
+        })
+        response.map(rate => Json.toJson(rate))
+      case Failure(exception) =>
+        logger.error(s"An error occurred attempting to unmarshal request: ${request.json}")
+        throw exception
     }
-
-    response.map(rate => Json.toJson(rate))
-  }
 }
 
-case class TaxRate(regime: String, code: String, rate: String, startDate: LocalDate, endDate: LocalDate)
+case class TaxRate(regime: String, code: String, rate: BigDecimal, startDate: LocalDate, endDate: LocalDate)
 object TaxRate {
   implicit val format: OFormat[TaxRate] = derived.oformat()
 }

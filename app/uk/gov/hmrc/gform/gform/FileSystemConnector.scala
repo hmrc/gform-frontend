@@ -37,11 +37,11 @@ class FileSystemConnector {
   private def processResponse(
     dataRetrieve: DataRetrieve,
     response: Option[JsValue]
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    if (response.isDefined) {
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = response match {
+    case Some(jsValue) =>
       Future.successful {
         dataRetrieve
-          .processResponse(response.get)
+          .processResponse(jsValue)
           .fold(
             invalid => {
               logger.error(
@@ -55,8 +55,8 @@ class FileSystemConnector {
             }
           )
       }
-    } else {
+    case _ =>
       logger.error(s"Fetching ${dataRetrieve.tpe.name} returned no result.")
       Future.successful(NotFound)
-    }
+  }
 }

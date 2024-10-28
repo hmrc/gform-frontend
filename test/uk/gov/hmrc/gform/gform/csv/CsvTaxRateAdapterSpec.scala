@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.gform.csv.TaxRateRequest._
 
 import java.time.LocalDate
+import scala.math.BigDecimal.RoundingMode
 
 class CsvTaxRateAdapterSpec extends Spec {
 
@@ -30,7 +31,7 @@ class CsvTaxRateAdapterSpec extends Spec {
   val response: TaxRate = TaxRate(
     "APD",
     "BANDB-RDCD",
-    "87",
+    BigDecimal("87").setScale(2, RoundingMode.HALF_UP),
     LocalDate.parse("2023-04-01"),
     LocalDate.parse("2024-03-31")
   )

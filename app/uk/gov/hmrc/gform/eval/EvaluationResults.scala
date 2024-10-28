@@ -931,6 +931,8 @@ case class EvaluationResults(
       case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
           Size(_, _) | CsvCountryCountCheck(_, _, _) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isBigDecimal(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isInteger(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isDate(id, attribute) =>
