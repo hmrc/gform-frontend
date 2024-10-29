@@ -582,6 +582,54 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
     ),
     (
       DateConstraint(After, Today, OffsetDate(1)),
+      ("-11", "12", "2017"),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
+            "Enter real day"
+          )
+        )
+      ),
+      "Date -11-12-2017 should return is not Valid"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("11", "-12", "2017"),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
+            "Enter real month"
+          )
+        )
+      ),
+      "Date 11--12-2017 should return is not Valid"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("11", "12", "-111"),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
+            "Enter real year"
+          )
+        )
+      ),
+      "Date 11-12--111 should return is not Valid"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
       ("x", "12", "2017"),
       None,
       None,

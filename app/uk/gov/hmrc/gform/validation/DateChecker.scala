@@ -535,7 +535,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     val dayProgram: CheckProgram[Int] =
       ifProgram[Int](
-        cond = maybeDay.isDefined,
+        cond = maybeDay.exists(_ > 0),
         thenProgram = successProgram(maybeDay.getOrElse(1)),
         elseProgram = errorProgram[Int](
           Map(
@@ -552,7 +552,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     val monthProgram: CheckProgram[Int] =
       ifProgram[Int](
-        cond = maybeMonth.isDefined,
+        cond = maybeMonth.exists(_ > 0),
         thenProgram = successProgram(maybeMonth.getOrElse(1)),
         elseProgram = errorProgram[Int](
           Map(
