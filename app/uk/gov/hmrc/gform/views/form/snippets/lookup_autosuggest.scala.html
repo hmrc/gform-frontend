@@ -38,7 +38,7 @@
   selectItems: Option[List[SelectItem]],
   errorMessage: Option[ErrorMessage],
   displayWidth: DisplayWidth
-)
+)(implicit l: LangADT)
 
 @currentValue = @{validationResult.getCurrentValue}
 @accessCode = @{maybeAccessCode.fold("-")(_.value)}
@@ -67,6 +67,7 @@
       data-show-all="@showAll"
       data-accessCode="@accessCode"
       aria-describedby="@{if(hasErrors){errorMessage.map(_.id)}}"
+      data-language="@l.langADTToString"
       data-displayWidth="@displayWidth">
       </div>
       <noscript>
