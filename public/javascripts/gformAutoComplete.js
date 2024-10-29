@@ -26,21 +26,38 @@
       var showAll = $container.attr('data-show-all');
       var maybeAccessCode = $container.attr('data-accessCode');
       var displayWidth = $container.attr('data-displayWidth');
+      var lang = $container.attr('data-language');
 
+      var configurationOptions = {
+              selectElement: $container[0],
+              id: id,
+              name: id,
+              source: generateSourceFn(lookup, formTemplateId, formComponentId, maybeAccessCode),
+              showNoOptionsFound: true,
+              autoselect: false,
+              defaultValue: value,
+              showAllValues: showAll === "Enabled",
+              dropdownArrow: function(config) {
+                 return ''
+               },
+              onConfirm: function(){}
+      };
+
+     if (lang === 'cy') {
+       //copied from https://github.com/hmrc/hmrc-frontend/blob/main/src/components/accessible-autocomplete/accessible-autocomplete.js
+       configurationOptions.tAssistiveHint = function(){ return'Pan fydd canlyniadau awtogwblhau ar gael, defnyddiwch y saethau i fyny ac i lawr i’w hadolygu a phwyswch y fysell ’enter’ i’w dewis.'
+           + ' Gall defnyddwyr dyfeisiau cyffwrdd, archwilio drwy gyffwrdd â’r sgrin neu drwy sweipio.' };
+       configurationOptions.tStatusQueryTooShort = function(minQueryLength){ return 'Ysgrifennwch '+ minQueryLength + ' neu fwy o gymeriadau am ganlyniadau' };
+       configurationOptions.tNoResults = function(){ return 'Dim canlyniadau wedi’u darganfod' };
+       configurationOptions.tStatusNoResults = function(){ return 'Dim canlyniadau chwilio' };
+       configurationOptions.tStatusSelectedOption = function(selectedOption, length, index) { return 'Mae ' + selectedOption + (index + 1) + ' o '+ length +' wedi’i amlygu' };
+       configurationOptions.tStatusResults = function(length, contentSelectedOption) {
+         var resultOrResults = (length === 1) ? 'canlyniad' : 'o ganlyniadau';
+         return length + ' ' + resultOrResults +' ar gael. '+ contentSelectedOption;
+       };
+     }
       // this is the method provided by accessible-autocomplete.min.js
-      window.accessibleAutocomplete({
-        element: $container[0],
-        id: id,
-        name: id,
-        source: generateSourceFn(lookup, formTemplateId, formComponentId, maybeAccessCode),
-        showNoOptionsFound: true,
-        autoselect: false,
-        defaultValue: value,
-        showAllValues: showAll === "Enabled",
-        dropdownArrow: function(config) {
-           return ''
-         },
-      });
+     window.accessibleAutocomplete.enhanceSelectElement(configurationOptions);
 
       function getMaxWidth(displayWidth) {
         var maxWidth = null;
