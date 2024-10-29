@@ -717,7 +717,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         Some(DataOutputFormat.XML),
         false,
         Some(false),
-        false,
+        None,
         None,
         None,
         TemplateType.XML

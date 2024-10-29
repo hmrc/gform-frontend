@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.InstructionPdfFields
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, AuthInfo, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormKind, FormTemplate, FormTemplateId, FormTemplateVersion, KeyDisplayWidth, LayoutDisplayWidth, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
@@ -118,7 +119,7 @@ trait FormTemplateSample {
           dataOutputFormat = Some(DataOutputFormat.XML),
           formdataXml = false,
           backscan = None,
-          includeInstructionPdf = true,
+          instructionPdfFields = Some(InstructionPdfFields.Ordered),
           convertSingleQuotes = None,
           payload = None,
           payloadType = TemplateType.XML

@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId, TemplateType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId, InstructionPdfFields, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, AuthCtx, AuthInfo, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormKind, FormTemplate, FormTemplateId, FormTemplateVersion, KeyDisplayWidth, LayoutDisplayWidth, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, EmailVerifierService, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
@@ -164,7 +164,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
           dataOutputFormat = Some(DataOutputFormat.XML),
           formdataXml = false,
           backscan = None,
-          includeInstructionPdf = true,
+          instructionPdfFields = Some(InstructionPdfFields.Ordered),
           convertSingleQuotes = None,
           payload = None,
           payloadType = TemplateType.XML
