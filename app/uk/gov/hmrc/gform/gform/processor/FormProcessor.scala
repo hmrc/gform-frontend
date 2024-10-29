@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
-import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, routes }
+import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, FileSystemConnector, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
@@ -52,6 +52,7 @@ class FormProcessor(
   i18nSupport: I18nSupport,
   processDataService: ProcessDataService[Future],
   gformConnector: GformConnector,
+  fileSystemConnector: FileSystemConnector,
   validationService: ValidationService,
   fastForwardService: FastForwardService,
   recalculation: Recalculation[Future, Throwable],
@@ -284,7 +285,8 @@ class FormProcessor(
             Some(companyInformationConnector),
             Some(ninoInsightsConnector),
             Some(bankAccountInsightConnector),
-            Some(gformConnector)
+            Some(gformConnector),
+            Some(fileSystemConnector)
           )
           maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
         }

@@ -37,7 +37,8 @@ object DataRetrieveService {
     companyInformationConnector: Option[CompanyInformationConnector[Future]],
     ninoInsightsConnector: Option[NinoInsightsConnector[Future]],
     bankAccountInsightConnector: Option[BankAccountInsightsConnector[Future]],
-    gformConnector: Option[GformConnector]
+    gformConnector: Option[GformConnector],
+    fileSystemConnector: Option[FileSystemConnector]
   )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[Option[DataRetrieveResult]] = {
     val maybeRequestParams = form.flatMap(f => DataRetrieve.requestParamsFromCache(f, dataRetrieve.id))
     val maybeExecutor
@@ -57,6 +58,7 @@ object DataRetrieveService {
         case DataRetrieve.Type("employments")                => gformConnector.map(_.getEmployments)
         case DataRetrieve.Type("hmrcRosmRegistrationCheck")  => gformConnector.map(_.getDesOrganisation)
         case DataRetrieve.Type("agentDetails")               => gformConnector.map(_.getDesAgentDetails)
+        case DataRetrieve.Type("hmrcTaxRates")               => fileSystemConnector.map(_.getHmrcTaxRate)
         case _                                               => Option.empty
       }
     maybeExecutor.flatTraverse { executor =>

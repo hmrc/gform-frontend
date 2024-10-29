@@ -133,9 +133,9 @@ class CompanyInformationConnectorSpec
         )
       ),
       Map(
-        DataRetrieve.Attribute("activeDirectors")   -> DataRetrieve.AttrType.Integer,
-        DataRetrieve.Attribute("activeSecretaries") -> DataRetrieve.AttrType.Integer,
-        DataRetrieve.Attribute("activeLlpMembers")  -> DataRetrieve.AttrType.Integer
+        DataRetrieve.Attribute("activeDirectors")   -> DataRetrieve.AttrType.Number,
+        DataRetrieve.Attribute("activeSecretaries") -> DataRetrieve.AttrType.Number,
+        DataRetrieve.Attribute("activeLlpMembers")  -> DataRetrieve.AttrType.Number
       ),
       List.empty[DataRetrieve.ParamExpr],
       None

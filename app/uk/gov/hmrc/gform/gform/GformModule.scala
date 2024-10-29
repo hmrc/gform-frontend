@@ -174,10 +174,13 @@ class GformModule(
   val bankAccountInsightsConnector =
     new BankAccountInsightsAsyncConnector(wSHttpModule.auditableWSHttp, bankAccountInsightsUrl, authorizationToken)
 
+  val fileSystemConnector = new FileSystemConnector()
+
   val addToListProcessor = new FormProcessor(
     playBuiltInsModule.i18nSupport,
     processDataService,
     gformBackendModule.gformConnector,
+    fileSystemConnector,
     validationModule.validationService,
     fastForwardService,
     graphModule.recalculation,

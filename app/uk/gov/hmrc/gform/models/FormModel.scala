@@ -281,9 +281,9 @@ case class FormModel[A <: PageMode](
       case DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) |
           DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) =>
         TypeInfo(expr, StaticTypeData(ExprType.address, None))
-      case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isInteger(id, attribute) =>
+      case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isNumber(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isInteger(id, attribute) =>
+      case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isNumber(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isDate(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
