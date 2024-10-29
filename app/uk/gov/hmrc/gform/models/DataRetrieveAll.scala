@@ -20,16 +20,10 @@ import cats.syntax.eq._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 final case class DataRetrieveAll(lookup: Map[DataRetrieveId, DataRetrieve]) extends AnyVal {
-  def isBigDecimal(dataRetriveId: DataRetrieveId, attribute: DataRetrieve.Attribute): Boolean =
+  def isNumber(dataRetriveId: DataRetrieveId, attribute: DataRetrieve.Attribute): Boolean =
     lookup.get(dataRetriveId) match {
       case None     => false
-      case Some(dr) => dr.attrTypeMapping.get(attribute).fold(false)(_ === DataRetrieve.AttrType.BigDecimal)
-    }
-
-  def isInteger(dataRetriveId: DataRetrieveId, attribute: DataRetrieve.Attribute): Boolean =
-    lookup.get(dataRetriveId) match {
-      case None     => false
-      case Some(dr) => dr.attrTypeMapping.get(attribute).fold(false)(_ === DataRetrieve.AttrType.Integer)
+      case Some(dr) => dr.attrTypeMapping.get(attribute).fold(false)(_ === DataRetrieve.AttrType.Number)
     }
 
   def isDate(dataRetriveId: DataRetrieveId, attribute: DataRetrieve.Attribute): Boolean =

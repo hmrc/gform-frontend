@@ -18,16 +18,13 @@ package uk.gov.hmrc.gform.gform.csv
 
 import cats.implicits.catsSyntaxEq
 import julienrf.json.derived
-import org.slf4j.{ Logger, LoggerFactory }
-import play.api.libs.json.{ JsValue, Json, OFormat }
+import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import scala.util.{ Failure, Success, Try }
 
 class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   private val hmrcTaxRateDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
   private val hmrcTaxRateRequestFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
@@ -45,8 +42,8 @@ class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
     }
 
   override def search(request: DataRetrieve.Request): Option[JsValue] =
-    Try(request.json.as[TaxRateRequest]) match {
-      case Success(taxRateRequest: TaxRateRequest) =>
+    request.json.validate[TaxRateRequest] match {
+      case JsSuccess(taxRateRequest, _) =>
         val regimeRates: Option[List[TaxRate]] = data.groupBy(_.regime).get(taxRateRequest.regime)
         val requestedDate: LocalDate = LocalDate.parse(taxRateRequest.date, hmrcTaxRateRequestFormat)
 
@@ -58,9 +55,11 @@ class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
           )
         })
         response.map(rate => Json.toJson(rate))
-      case Failure(exception) =>
-        logger.error(s"An error occurred attempting to unmarshal request: ${request.json}")
-        throw exception
+      case JsError(e) =>
+        throw new Exception(
+          s"An error occurred attempting to unmarshal request: ${Json.stringify(request.json)}. Error: ${Json
+            .stringify(JsError.toJson(e))}"
+        )
     }
 }
 

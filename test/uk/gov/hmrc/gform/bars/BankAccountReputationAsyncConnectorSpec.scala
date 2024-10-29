@@ -172,7 +172,7 @@ class BankAccountReputationAsyncConnectorSpec
           AttributeInstruction(DataRetrieve.Attribute("director"), ConstructAttribute.AsIs(Fetch(List("director"))))
         )
       ),
-      Map(DataRetrieve.Attribute("sequenceNumber") -> DataRetrieve.AttrType.Integer),
+      Map(DataRetrieve.Attribute("sequenceNumber") -> DataRetrieve.AttrType.Number),
       List.empty[DataRetrieve.ParamExpr],
       None
     )

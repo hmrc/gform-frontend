@@ -208,9 +208,8 @@ object DataRetrieve {
 
   object AttrType {
     case object String extends AttrType
-    case object Integer extends AttrType
+    case object Number extends AttrType
     case object Date extends AttrType
-    case object BigDecimal extends AttrType
 
     implicit val format: OFormat[AttrType] = derived.oformat()
     implicit val equal: Eq[AttrType] = Eq.fromUniversalEquals
