@@ -14,24 +14,20 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
-@import uk.gov.hmrc.gform.sharedmodel.form.FormId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.routes.SummaryController
-@import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.summary.ExtraInfoSummary
 @import uk.gov.hmrc.gform.views.html.{page_heading, main_template}
-@import uk.gov.hmrc.gform.views.html.summary.snippets.alert
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components._
-@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.controllers.{Exit, SummaryContinue}
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.FormTemplateKey
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
 @(
     extraInfoSummary: ExtraInfoSummary
@@ -72,12 +68,15 @@
   title = extraInfoSummary.title,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
+  containsErrors = extraInfoSummary.pageLevelError.hasErrors,
   backLink = Some(backLink),
   isMainContentFullWidth = true,
   accessCode = extraInfoSummary.maybeAccessCode
 ) {
 
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
+
+    @extraInfoSummary.pageLevelError.render
 
     @twoThirdsMainContent {
         @page_heading(title, caption)
