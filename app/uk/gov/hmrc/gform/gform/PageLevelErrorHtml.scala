@@ -27,9 +27,10 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 
 object PageLevelErrorHtml {
-  def generatePageLevelErrorHtml(
+  private def generateErrorHtml(
     listValidation: List[FormFieldValidationResult],
-    globalErrors: List[ErrorLink]
+    globalErrors: List[ErrorLink],
+    summaryLevel: Boolean
   )(implicit
     messages: Messages
   ): HasErrors = {
@@ -53,7 +54,7 @@ object PageLevelErrorHtml {
                     case _                                  => HtmlFieldId.pure(formComponent.modelComponentId)
                   }
                 ErrorLink(
-                  href = Some("#" + multiFieldId.toHtmlId),
+                  href = Some("#" + multiFieldId.toHtmlId + (if (summaryLevel) "-error-message" else "")),
                   content = content.Text(errorMessage)
                 )
               }
@@ -73,6 +74,18 @@ object PageLevelErrorHtml {
     } else
       NoErrors
   }
+
+  def generatePageLevelErrorHtml(
+    listValidation: List[FormFieldValidationResult],
+    globalErrors: List[ErrorLink]
+  )(implicit messages: Messages): HasErrors =
+    generateErrorHtml(listValidation, globalErrors, summaryLevel = false)
+
+  def generateSummaryLevelErrorHtml(
+    listValidation: List[FormFieldValidationResult],
+    globalErrors: List[ErrorLink]
+  )(implicit messages: Messages): HasErrors =
+    generateErrorHtml(listValidation, globalErrors, summaryLevel = true)
 
   def noJSFileUploadError(message: String, fileId: Option[String])(implicit messages: Messages): HasErrors = {
     val errorSummary = ErrorSummary(

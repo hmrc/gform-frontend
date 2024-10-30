@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
-import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SectionRenderingService, SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, NoErrors, PageLevelErrorHtml, SectionRenderingService, SummaryPagePurpose, routes }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -279,6 +279,9 @@ object SummaryRenderingService {
       .reverse
       .head
 
+    val pageLevelErrorHtml =
+      PageLevelErrorHtml.generateSummaryLevelErrorHtml(validationResult.formFieldValidationResults, List.empty)
+
     val sfr =
       summaryRowsForRender(
         validationResult,
@@ -312,6 +315,7 @@ object SummaryRenderingService {
         footerHtml,
         formDataFingerprint,
         summarySection.displayWidth,
+        pageLevelErrorHtml,
         maybeCoordinates,
         taskCompleted
       )
@@ -371,6 +375,7 @@ object SummaryRenderingService {
         footerHtml,
         formDataFingerprint,
         formTemplate.summarySection.displayWidth,
+        NoErrors,
         None,
         None
       )
