@@ -23,6 +23,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ ExprGen, Primitiv
 
 class SmartStringSpec extends Spec {
 
+  def welsh: String = "Welsh"
+  def english: String = "English"
+
   "JSON" should "round trip" in {
     forAll(Gen.asciiStr, Gen.asciiStr, PrimitiveGen.zeroOrMoreGen(ExprGen.exprGen())) { (english, welsh, exprs) =>
       val cEnglish = condition(english)
@@ -33,6 +36,24 @@ class SmartStringSpec extends Spec {
       verifyRoundTrip(smartString)
 
     }
+  }
+
+  "SmartString when Welsh requested" should "return English if Welsh not defined" in {
+    implicit val l: LangADT = LangADT.Cy
+    val smartString = SmartString(LocalisedString(Map(LangADT.En -> english)), Nil)
+    smartString.rawDefaultValue shouldBe english
+  }
+
+  it should "return English if Welsh is defined and blank" in {
+    implicit val l: LangADT = LangADT.Cy
+    val smartString = SmartString(LocalisedString(Map(LangADT.En -> english, LangADT.Cy -> "")), Nil)
+    smartString.rawDefaultValue shouldBe english
+  }
+
+  it should "return Welsh if Welsh is defined and not blank" in {
+    implicit val l: LangADT = LangADT.Cy
+    val smartString = SmartString(LocalisedString(Map(LangADT.En -> english, LangADT.Cy -> welsh)), Nil)
+    smartString.rawDefaultValue shouldBe welsh
   }
 
   private def condition(s: String): String =
