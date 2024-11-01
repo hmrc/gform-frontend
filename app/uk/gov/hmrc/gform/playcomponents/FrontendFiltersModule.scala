@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import org.apache.pekko.stream.Materializer
-import play.api.mvc.{ CookieHeaderEncoding, DefaultCookieHeaderEncoding, EssentialFilter, SessionCookieBaker }
+import play.api.libs.json.{ JsObject, Json }
+import play.api.mvc.{ CookieHeaderEncoding, DefaultCookieHeaderEncoding, EssentialFilter, RequestHeader, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
 import play.filters.csrf.CSRFComponents
 import play.filters.headers.SecurityHeadersFilter
@@ -27,6 +28,8 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.crypto.ApplicationCrypto
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.model.{ ExtendedDataEvent, RedactionLog, TruncationLog }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.DefaultSessionCookieCryptoFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
@@ -96,6 +99,30 @@ class FrontendFiltersModule(
     materializer
   ) {
     override val maskedFormFields = Seq("password")
+
+    override def extendedDataEvent(
+      eventType: String,
+      transactionName: String,
+      request: RequestHeader,
+      detail: JsObject,
+      truncationLog: TruncationLog,
+      redactionLog: RedactionLog
+    )(implicit hc: HeaderCarrier): ExtendedDataEvent = {
+
+      val updatedDetail = RequestFormTemplateId.formTemplateId(request) match {
+        case Some(formTemplateId) => detail ++ Json.obj("formTemplateId" -> formTemplateId.value)
+        case None                 => detail
+      }
+
+      super.extendedDataEvent(
+        eventType,
+        transactionName,
+        request,
+        updatedDetail,
+        truncationLog,
+        redactionLog
+      )
+    }
   }
 
   private val hmrcSessionCookieCryptoFilter: SessionCookieCryptoFilter = {

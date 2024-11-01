@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import cats.syntax.eq._
 import play.api.mvc.RequestHeader
-import play.api.routing.Router.RequestImplicits._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateId }
@@ -29,20 +27,11 @@ final class RequestHeaderService(
   gformConnector: GformConnector
 )(implicit ec: ExecutionContext) {
 
-  def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] = {
-    val formTemplateIdParamIndex: Option[Int] = {
-      val mayContainsFormTemplateId: Option[Array[Boolean]] =
-        rh.handlerDef.map(_.path.split("/")).map(_.map(_.containsSlice("$formTemplateId")))
-      mayContainsFormTemplateId.map(_.indexOf(true))
-    }
-
-    formTemplateIdParamIndex match {
-      case Some(i) if i =!= -1 =>
-        val templateId = rh.uri.split("\\?")(0).split("/")(i)
+  def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] =
+    RequestFormTemplateId.formTemplateId(rh) match {
+      case Some(FormTemplateId(formTemplateId)) =>
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
-        gformConnector.getFormTemplateContext(FormTemplateId(templateId.toLowerCase)).map(Some(_))
-      case _ =>
-        Future.successful(None)
+        gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase)).map(Some(_))
+      case None => Future.successful(None)
     }
-  }
 }
