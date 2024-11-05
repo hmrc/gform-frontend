@@ -18,20 +18,19 @@ package uk.gov.hmrc.gform.gform.csv
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.gform.csv.TaxRateRequest._
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 
 import java.time.LocalDate
-import scala.math.BigDecimal.RoundingMode
 
 class CsvTaxRateAdapterSpec extends Spec {
 
   val csvTaxRateAdapter: CsvTaxRateAdapter = new CsvTaxRateAdapter()
-  val request: TaxRateRequest = TaxRateRequest("APD", "BANDB-RDCD", "25 October 2023")
+  val request: TaxRateRequest = TaxRateRequest("APD", "BANDB-RDCD", LocalDate.parse("2023-10-25"))
   val response: TaxRate = TaxRate(
     "APD",
     "BANDB-RDCD",
-    BigDecimal("87").setScale(2, RoundingMode.HALF_UP),
+    BigDecimal("87").setScale(2),
     LocalDate.parse("2023-04-01"),
     LocalDate.parse("2024-03-31")
   )
@@ -47,7 +46,7 @@ class CsvTaxRateAdapterSpec extends Spec {
   }
 
   it should "not find a rate for" in {
-    val request: TaxRateRequest = TaxRateRequest("APD", "NOT-EXISTS", "25 October 2023")
+    val request: TaxRateRequest = TaxRateRequest("APD", "NOT-EXISTS", LocalDate.parse("2023-10-25"))
     val dataRetrieveRequest: DataRetrieve.Request = DataRetrieve.Request(Json.toJson(request), List.empty)
     csvTaxRateAdapter.search(dataRetrieveRequest) shouldBe None
   }

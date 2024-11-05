@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.eval
 import cats.syntax.eq._
 import play.api.i18n.Messages
 
+import java.time.LocalDate
+
 case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
 
   def stringRepresentation(implicit messages: Messages): String =
@@ -29,6 +31,8 @@ case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, type
   def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
 
   def optionRepresentation: Option[Seq[String]] = expressionResult.optionRepresentation
+
+  def dateRepresentation: Option[LocalDate] = expressionResult.dateRepresentation(typeInfo)
 
   def listRepresentation(implicit messages: Messages): List[String] =
     expressionResult.listRepresentation(typeInfo, messages)
