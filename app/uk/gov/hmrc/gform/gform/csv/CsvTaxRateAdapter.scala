@@ -27,7 +27,6 @@ import java.time.format.DateTimeFormatter
 class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
 
   private val hmrcTaxRateDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-  private val hmrcTaxRateRequestFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
   override val data: List[TaxRate] = CsvUtils
     .readCsvWithColumns("HMRCTaxRates.csv")
@@ -43,18 +42,16 @@ class CsvTaxRateAdapter extends CsvDataRetrieveAdapter[TaxRate] {
 
   override def search(request: DataRetrieve.Request): Option[JsValue] =
     request.json.validate[TaxRateRequest] match {
-      case JsSuccess(taxRateRequest, _) =>
-        val regimeRates: Option[List[TaxRate]] = data.groupBy(_.regime).get(taxRateRequest.regime)
-        val requestedDate: LocalDate = LocalDate.parse(taxRateRequest.date, hmrcTaxRateRequestFormat)
-
+      case JsSuccess(params, _) =>
+        val regimeRates: Option[List[TaxRate]] = data.groupBy(_.regime).get(params.regime)
         val response: Option[TaxRate] = regimeRates.flatMap(_.find { rate =>
-          rate.code === taxRateRequest.code && (
-            rate.startDate.isEqual(requestedDate) || rate.startDate.isBefore(requestedDate)
+          rate.code === params.code && (
+            rate.startDate.isEqual(params.date) || rate.startDate.isBefore(params.date)
           ) && (
-            rate.endDate.isEqual(requestedDate) || rate.endDate.isAfter(requestedDate)
+            rate.endDate.isEqual(params.date) || rate.endDate.isAfter(params.date)
           )
         })
-        response.map(rate => Json.toJson(rate))
+        response.map(Json.toJson(_))
       case JsError(e) =>
         throw new Exception(
           s"An error occurred attempting to unmarshal request: ${Json.stringify(request.json)}. Error: ${Json
@@ -68,7 +65,7 @@ object TaxRate {
   implicit val format: OFormat[TaxRate] = derived.oformat()
 }
 
-case class TaxRateRequest(regime: String, code: String, date: String)
+case class TaxRateRequest(regime: String, code: String, date: LocalDate)
 object TaxRateRequest {
   implicit val format: OFormat[TaxRateRequest] = Json.format[TaxRateRequest]
 }

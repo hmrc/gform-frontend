@@ -20,11 +20,12 @@ import cats.Eq
 import julienrf.json.derived
 import play.api.i18n.Messages
 import play.api.libs.json._
-import scala.util.matching.Regex
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
+
+import scala.util.matching.Regex
 
 final case class Fetch(path: List[String]) extends AnyVal
 
@@ -219,12 +220,14 @@ object DataRetrieve {
     def asString(expressionResult: ExpressionResultWithTypeInfo)(implicit messages: Messages): String = this match {
       case ParamType.String  => expressionResult.stringRepresentation
       case ParamType.Integer => expressionResult.numberRepresentation.map(_.toInt.toString).getOrElse("")
+      case ParamType.Date    => expressionResult.dateRepresentation.map(_.toString).getOrElse("")
     }
   }
 
   object ParamType {
     case object String extends ParamType
     case object Integer extends ParamType
+    case object Date extends ParamType
 
     implicit val format: OFormat[ParamType] = derived.oformat()
   }
