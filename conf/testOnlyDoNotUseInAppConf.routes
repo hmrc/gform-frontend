@@ -79,10 +79,9 @@ GET           /submissions/test-only/object-store/zip/envelope/:envelopeId      
 GET           /submissions/test-only/form-template/extract/:formTemplateId/:accessCode               uk.gov.hmrc.gform.testonly.FormTemplateExtractController.extract(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 GET           /submissions/test-only/form-template/export/:formTemplateId/:accessCode                uk.gov.hmrc.gform.testonly.FormTemplateExtractController.exportToCSV(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 
-GET           /submissions/test-only/summary/pdf-content/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.generateSummaryContent(formTemplateId: FormTemplateId, a: Option[AccessCode])
-GET           /submissions/test-only/acknowledgement/pdf-content/:formTemplateId                    uk.gov.hmrc.gform.testonly.TestOnlyController.generateAcknowledgementContent(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/summary/pdf-content/:formTemplateId                             uk.gov.hmrc.gform.testonly.TestOnlyController.generateSummaryContent(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/acknowledgement/pdf-content/:formTemplateId                     uk.gov.hmrc.gform.testonly.TestOnlyController.generateAcknowledgementContent(formTemplateId: FormTemplateId, a: Option[AccessCode])
 
 GET           /submissions/test-only/return-to-cya/:formTemplateId/:accessCode                       uk.gov.hmrc.gform.testonly.TestOnlyController.changeStateAndRedirectToCYA(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
 
-GET           /submissions/test-only/finger-print/:formTemplateId                                    uk.gov.hmrc.gform.testonly.TestOnlyController.fingerPrint(formTemplateId: FormTemplateId, accessCode: Option[AccessCode] = None)
-GET           /submissions/test-only/finger-print/:formTemplateId/:accessCode                        uk.gov.hmrc.gform.testonly.TestOnlyController.fingerPrint(formTemplateId: FormTemplateId, accessCode: Option[AccessCode])
+POST          /submissions/test-only/summary/submit/:formTemplateId/:accessCode                      uk.gov.hmrc.gform.testonly.TestOnlyController.submitSummary(formTemplateId: FormTemplateId, accessCode: Option[AccessCode], save: Direction, coordinates: Option[Coordinates], taskCompleted: Option[Boolean])
