@@ -54,6 +54,7 @@ object ConcatFormatSubstituter {
         case e: LinkCtx                   => e
         case LangCtx                      => LangCtx
         case DateFunction(dateProjection) => DateFunction(dateProjection(substitutions))
+        case DateConstructFunction(d, y)  => DateConstructFunction(d, substitute(substitutions, y))
         case Period(field1, field2)       => Period(substitute(substitutions, field1), substitute(substitutions, field2))
         case PeriodExt(period, func)      => PeriodExt(substitute(substitutions, period), func)
         case e: AddressLens               => e

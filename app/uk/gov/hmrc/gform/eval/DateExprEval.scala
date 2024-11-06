@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, NumberResult, OptionResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, DataRetrieveDateCtx, Date, DateExpr, DateExprWithOffset, DateFormCtxVar, DateIfElse, DateOrElse, DateValueExpr, FormComponentId, FormCtx, HmrcTaxPeriodCtx, HmrcTaxPeriodInfo, OffsetUnit, OffsetYMD }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel._
 
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, ObligationDetail, SourceOrigin, VariadicValue }
-
 import scala.util.Try
 
 object DateExprEval {
@@ -60,6 +59,31 @@ object DateExprEval {
         )
 
     }
+
+  def evalDateConstructExpr(
+    recData: RecData[OutOfDate],
+    evaluationContext: EvaluationContext,
+    evaluationResults: EvaluationResults,
+    booleanExprResolver: BooleanExprResolver
+  )(
+    dayMonthExpr: DateExpr,
+    yearResult: ExpressionResult
+  ): ExpressionResult = {
+    val dayMonthResult: ExpressionResult =
+      evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dayMonthExpr)
+
+    (dayMonthResult, yearResult) match {
+      case (dm: DateResult, y: DateResult) =>
+        DateResult(LocalDate.of(y.value.getYear, dm.value.getMonthValue, dm.value.getDayOfMonth))
+      case (dm: DateResult, y: StringResult) =>
+        DateResult(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth))
+      case (dm: DateResult, y: NumberResult) =>
+        DateResult(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth))
+      case (dm: DateResult, y: OptionResult) =>
+        DateResult(LocalDate.of(y.value.head.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth))
+      case _ => ExpressionResult.empty
+    }
+  }
 
   def evalDateExpr(
     recData: RecData[OutOfDate],

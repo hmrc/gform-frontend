@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateExpr }
+import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateConstructExpr, evalDateExpr }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
@@ -348,10 +348,11 @@ case class EvaluationResults(
           case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
           case otherwise                              => otherwise
         }
-      case Period(_, _)      => unsupportedOperation("Number")(expr)
-      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodValue(_)    => unsupportedOperation("Number")(expr)
-      case AddressLens(_, _) => unsupportedOperation("Number")(expr)
+      case DateConstructFunction(_, _) => unsupportedOperation("Number")(expr)
+      case Period(_, _)                => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)             => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodValue(_)              => unsupportedOperation("Number")(expr)
+      case AddressLens(_, _)           => unsupportedOperation("Number")(expr)
       case d @ DataRetrieveCtx(_, _) =>
         evaluationContext.thirdPartyData.dataRetrieve
           .fold(Option.empty[ExpressionResult]) { dataRetrieve =>
@@ -608,8 +609,9 @@ case class EvaluationResults(
             ExpressionResult.StringResult(dateFunc.toValue(localDate).toString)
           case otherwise => otherwise
         }
-      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case DateConstructFunction(_, y) => loop(y)
+      case Period(_, _)                => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _)             => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
@@ -766,6 +768,11 @@ case class EvaluationResults(
       case DataRetrieveCtx(id, attribute) =>
         evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
           ExpressionResult.empty
+        )
+      case DateConstructFunction(dayMonth, _) =>
+        evalDateConstructExpr(recData, evaluationContext, this, booleanExprResolver)(
+          dayMonth,
+          evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
         )
       case _ => ExpressionResult.empty
     }

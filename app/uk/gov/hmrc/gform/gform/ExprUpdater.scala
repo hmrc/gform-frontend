@@ -40,6 +40,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Sum(expr)                             => Sum(expandExpr(expr))
     case DateCtx(dateExpr)                     => DateCtx(expandDateExpr(dateExpr))
     case DateFunction(dateFunc)                => DateFunction(expandDateFunc(dateFunc))
+    case DateConstructFunction(d, y)           => DateConstructFunction(d, expandExpr(y))
     case AddressLens(formComponentId, detail)  => AddressLens(expandFcId(formComponentId), detail)
     case LinkCtx(PageLink(id))                 => LinkCtx(PageLink(id.withIndex(index)))
     case DataRetrieveCtx(id, attribute)        => DataRetrieveCtx(id.withIndex(index), attribute)
