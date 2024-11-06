@@ -40,9 +40,19 @@ object PageLevelErrorHtml {
       .flatMap { formFieldValidationResult =>
         formFieldValidationResult match {
           case ComponentField(formComponent @ IsAddress(_), data) =>
-            addressFieldSorted(Address.fields(formComponent.modelComponentId.indexedComponentId), data)
+            val addressFields =
+              addressFieldSorted(Address.fields(formComponent.modelComponentId.indexedComponentId), data)
+            if (summaryLevel)
+              List(addressFields.head.copy(href = Some(s"#${formComponent.id.value}-error-message")))
+            else
+              addressFields
           case ComponentField(formComponent @ IsOverseasAddress(overseasAddress), data) =>
-            addressFieldSorted(OverseasAddress.fields(formComponent.modelComponentId.indexedComponentId), data)
+            val addressFields =
+              addressFieldSorted(OverseasAddress.fields(formComponent.modelComponentId.indexedComponentId), data)
+            if (summaryLevel)
+              List(addressFields.head.copy(href = Some(s"#${formComponent.id.value}-error-message")))
+            else
+              addressFields
           case ComponentField(_, data) => data.toList.collectFirst(toErrorLink)
           case otherwise =>
             otherwise.fieldErrors
