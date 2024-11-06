@@ -31,8 +31,9 @@ import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, CookieNames }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, CookieNames, Direction, Exit, SummaryContinue }
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.gform._
@@ -1455,15 +1456,35 @@ class TestOnlyController(
       } yield res
     }
 
-  def fingerPrint(
+  // This endpoint is used by performance test scripts to submit data for the summary page.
+  def submitSummary(
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    save: Direction,
+    maybeCoordinates: Option[Coordinates],
+    taskCompleted: Option[Boolean]
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.ForceReturnToCYA
-    ) { _ => _ => cache => _ => _ =>
-      Ok(cache.form.formData.fingerprint).pure[Future]
+      OperationWithForm.AcceptSummary
+    ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
+      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => _ => _ =>
+        save match {
+          case Exit =>
+            summaryController.handleExit(cache.formTemplateContext, maybeAccessCode, cache, maybeCoordinates)
+          case SummaryContinue =>
+            summaryController.handleSummaryContinue(
+              cache.form.formTemplateId,
+              maybeAccessCode,
+              cache,
+              formModelOptics,
+              cache.form.formData.fingerprint,
+              maybeCoordinates,
+              taskCompleted
+            )
+          case _ => BadRequest("Cannot determine action").pure[Future]
+        }
+      }
     }
 }

@@ -182,7 +182,7 @@ class SummaryController(
       }
     }
 
-  private def handleExit(
+  def handleExit(
     formTemplateContext: FormTemplateContext,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
@@ -243,7 +243,7 @@ class SummaryController(
       }
   }
 
-  private def handleSummaryContinue(
+  def handleSummaryContinue(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
