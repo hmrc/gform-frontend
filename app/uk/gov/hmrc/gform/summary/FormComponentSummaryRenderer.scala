@@ -320,7 +320,12 @@ object FormComponentSummaryRenderer {
     messages: Messages
   ) =
     formFieldValidationResult.fieldErrors.toList.map { e =>
-      errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
+      val multiFieldId =
+        fieldValue match {
+          case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(fieldValue.id, "0")
+          case _                                  => HtmlFieldId.pure(fieldValue.modelComponentId)
+        }
+      errorInline(s"${multiFieldId.toHtmlId}-error-message", e, Seq("error-message"))
     }
 
   private def getVisuallyHiddenText(fieldValue: FormComponent)(implicit lise: SmartStringEvaluator) =
@@ -1117,9 +1122,7 @@ object FormComponentSummaryRenderer {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
-    val errors = formFieldValidationResult.fieldErrors.toList.map { e =>
-      errorInline("summary", e, Seq("error-message"))
-    }
+    val errors = checkErrors(formComponent, formFieldValidationResult)
 
     val label = fcrd.label(formComponent)
 
@@ -1188,9 +1191,7 @@ object FormComponentSummaryRenderer {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
-    val errors = formFieldValidationResult.fieldErrors.toList.map { e =>
-      errorInline("summary", e, Seq())
-    }
+    val errors = checkErrors(fieldValue, formFieldValidationResult)
 
     val label = fcrd.label(fieldValue)
 
@@ -1267,9 +1268,7 @@ object FormComponentSummaryRenderer {
 
     val hasErrors = formFieldValidationResult.isNotOk
 
-    val errors = formFieldValidationResult.fieldErrors.toList.map { e =>
-      errorInline("summary", e, Seq())
-    }
+    val errors = checkErrors(formComponent, formFieldValidationResult)
 
     val label = fcrd.label(formComponent)
 
@@ -1363,9 +1362,7 @@ object FormComponentSummaryRenderer {
       .flatMap { case (element, index) =>
         val hasErrors = formFieldValidationResult.isNotOk
 
-        val errors: List[Html] = formFieldValidationResult.fieldErrors.toList.map { e =>
-          errorInline("summary", e, Seq())
-        }
+        val errors: List[Html] = checkErrors(fieldValue, formFieldValidationResult)
 
         val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
