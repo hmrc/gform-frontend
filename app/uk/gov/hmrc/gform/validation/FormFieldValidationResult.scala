@@ -20,8 +20,7 @@ import cats.implicits._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId, IsAddress, IsOverseasAddress, OverseasAddress }
 
 import scala.collection.mutable.LinkedHashSet
 
@@ -53,6 +52,27 @@ trait FormFieldValidationResult {
     case globalError: FieldGlobalError => globalError.errors
     case cf: ComponentField            => cf.data.values.foldLeft[LinkedHashSet[String]](LinkedHashSet())(_ ++ _.fieldErrors)
     case _                             => LinkedHashSet()
+  }
+
+  lazy val fieldErrorsOrdered: LinkedHashSet[String] = this match {
+    case e: FieldError                 => e.errors
+    case globalError: FieldGlobalError => globalError.errors
+    case ComponentField(formComponent @ IsAddress(_), data) =>
+      val orderedData =
+        Address.fields(formComponent.modelComponentId.indexedComponentId).toList.flatMap { modelComponentId =>
+          val multiFieldId = HtmlFieldId.pure(modelComponentId)
+          data.get(multiFieldId)
+        }
+      orderedData.foldLeft[LinkedHashSet[String]](LinkedHashSet())(_ ++ _.fieldErrors)
+    case ComponentField(formComponent @ IsOverseasAddress(_), data) =>
+      val orderedData =
+        OverseasAddress.fields(formComponent.modelComponentId.indexedComponentId).toList.flatMap { modelComponentId =>
+          val multiFieldId = HtmlFieldId.pure(modelComponentId)
+          data.get(multiFieldId)
+        }
+      orderedData.foldLeft[LinkedHashSet[String]](LinkedHashSet())(_ ++ _.fieldErrors)
+    case cf: ComponentField => cf.data.values.foldLeft[LinkedHashSet[String]](LinkedHashSet())(_ ++ _.fieldErrors)
+    case _                  => LinkedHashSet()
   }
 
   lazy val fieldErrorsByFieldValue: List[LinkedHashSet[String]] = this match {
