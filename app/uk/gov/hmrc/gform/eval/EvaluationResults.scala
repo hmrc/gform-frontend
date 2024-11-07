@@ -609,9 +609,8 @@ case class EvaluationResults(
             ExpressionResult.StringResult(dateFunc.toValue(localDate).toString)
           case otherwise => otherwise
         }
-      case DateConstructFunction(_, y) => loop(y)
-      case Period(_, _)                => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodExt(_, _)             => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
@@ -769,10 +768,11 @@ case class EvaluationResults(
         evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
           ExpressionResult.empty
         )
-      case DateConstructFunction(dayMonth, _) =>
+      case DateConstructFunction(dayMonth, yearExpr) =>
+        val rightTypeInfo = typeInfoForExpr(yearExpr, evaluationContext)
         evalDateConstructExpr(recData, evaluationContext, this, booleanExprResolver)(
           dayMonth,
-          evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
+          evalExpr(rightTypeInfo, recData, booleanExprResolver, evaluationContext)
         )
       case _ => ExpressionResult.empty
     }
