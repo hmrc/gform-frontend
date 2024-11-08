@@ -72,17 +72,19 @@ object DateExprEval {
     val dayMonthResult: ExpressionResult =
       evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dayMonthExpr)
 
-    (dayMonthResult, yearResult) match {
+    val dateOpt: Option[LocalDate] = (dayMonthResult, yearResult) match {
       case (dm: DateResult, y: DateResult) =>
-        DateResult(LocalDate.of(y.value.getYear, dm.value.getMonthValue, dm.value.getDayOfMonth))
+        Try(LocalDate.of(y.value.getYear, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
       case (dm: DateResult, y: StringResult) =>
-        DateResult(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth))
+        Try(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
       case (dm: DateResult, y: NumberResult) =>
-        DateResult(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth))
+        Try(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
       case (dm: DateResult, y: OptionResult) =>
-        DateResult(LocalDate.of(y.value.head.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth))
-      case _ => ExpressionResult.empty
+        Try(LocalDate.of(y.value.head.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
+      case _ => None
     }
+
+    dateOpt.fold(ExpressionResult.empty)(localDate => DateResult(localDate))
   }
 
   def evalDateExpr(

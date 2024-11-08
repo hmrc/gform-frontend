@@ -769,10 +769,10 @@ case class EvaluationResults(
           ExpressionResult.empty
         )
       case DateConstructFunction(dayMonth, yearExpr) =>
-        val rightTypeInfo = typeInfoForExpr(yearExpr, evaluationContext)
+        val yearExprTypeInfo: TypeInfo = typeInfoForExpr(yearExpr, evaluationContext)
         evalDateConstructExpr(recData, evaluationContext, this, booleanExprResolver)(
           dayMonth,
-          evalExpr(rightTypeInfo, recData, booleanExprResolver, evaluationContext)
+          evalExpr(yearExprTypeInfo, recData, booleanExprResolver, evaluationContext)
         )
       case _ => ExpressionResult.empty
     }
@@ -947,6 +947,7 @@ case class EvaluationResults(
       case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case DateConstructFunction(_, _)              => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
       case AuthCtx(AuthInfo.ItmpAddress)            => TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case IfElse(cond, field1: Expr, field2: Expr) => typeInfoForExpr(field1, evaluationContext)
       case _                                        => TypeInfo(expr, StaticTypeData(ExprType.string, None))
