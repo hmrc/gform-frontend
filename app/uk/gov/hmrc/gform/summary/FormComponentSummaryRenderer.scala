@@ -319,7 +319,7 @@ object FormComponentSummaryRenderer {
   private def checkErrors(fieldValue: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit
     messages: Messages
   ) =
-    formFieldValidationResult.fieldErrors.toList.map { e =>
+    formFieldValidationResult.fieldErrorsOrdered.toList.map { e =>
       val multiFieldId =
         fieldValue match {
           case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(fieldValue.id, "0")
