@@ -1472,7 +1472,10 @@ class TestOnlyController(
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => _ => _ =>
         save match {
           case Exit =>
-            summaryController.handleExit(cache.formTemplateContext, maybeAccessCode, cache, maybeCoordinates)
+            Redirect(
+              uk.gov.hmrc.gform.gform.routes.SaveAcknowledgementController
+                .saveAndExitFromSummary(cache.formTemplateContext.formTemplate._id, maybeAccessCode, maybeCoordinates)
+            ).pure[Future]
           case SummaryContinue =>
             summaryController.handleSummaryContinue(
               cache.form.formTemplateId,
