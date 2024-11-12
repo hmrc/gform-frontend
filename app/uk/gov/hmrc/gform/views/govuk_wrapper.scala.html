@@ -117,7 +117,6 @@
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gform.js")'></script>
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
-    <script @{CSPNonce.attr} src='@routes.Assets.versioned("javascripts/gformBackLink.js")'></script>
     <script @{CSPNonce.attr} src='@routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
     <script @{CSPNonce.attr} type="module" src='@routes.Assets.versioned("lib/govuk-frontend/dist/govuk/govuk-frontend.min.js")'></script>
     @if(!appConfig.isProd && requestHeader.cookies.get(CookieNames.formBuilderCookieName).isDefined){
