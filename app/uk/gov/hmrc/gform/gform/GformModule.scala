@@ -214,8 +214,7 @@ class GformModule(
     graphModule.recalculation,
     addToListProcessor,
     confirmationService,
-    controllersModule.messagesControllerComponents,
-    auditingModule.auditService
+    controllersModule.messagesControllerComponents
   )
 
   val addToListController = new FormAddToListController(
@@ -232,7 +231,12 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     configModule.frontendAppConfig,
     controllersModule.authenticatedRequestActions,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    processDataService,
+    gformBackendModule.gformConnector,
+    auditingModule.auditService,
+    confirmationService,
+    addToListProcessor
   )
 
   val summaryRenderingService = new SummaryRenderingService(
