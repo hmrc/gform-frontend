@@ -637,6 +637,14 @@ case class EvaluationResults(
             dataRetrieveId
           )
         )
+      case d @ DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) =>
+        evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+          DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
+            case Some(h :: Nil) => AddressResult(List(h))
+            case Some(xs)       => AddressResult(xs)
+            case None           => Empty
+          }
+        }
       case d @ DataRetrieveCtx(_, _) =>
         val exprResult =
           evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
