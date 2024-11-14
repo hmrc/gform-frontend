@@ -15525,7 +15525,6 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 200013,UK,3,COW,,Cowes - COW,Cowes - COW,,1,NULL,0,
 200014,UK,4,DAG,,Dagenham - DAG,Dagenham - DAG,,1,NULL,0,
 200015,UK,3,DEU,,Dover / Eurotunnel - DEU,Dover / Eurotunnel - DEU,,1,NULL,0,
-200016,UK,3,DEU,,Eurotunnel / Dover - DEU,Eurotunnel / Dover - DEU,,1,NULL,0,
 200017,UK,3,DGS,Castletown Peel Ramsey,Douglas - DGS,Douglas - DGS,,1,NULL,0,
 200018,UK,3,DUN,Arbroath Perth Tayport,Dundee - DUN,Dundee - DUN,,1,NULL,0,
 200019,UK,4,DVY,,Daventry - DVY,Daventry - DVY,,1,NULL,0,

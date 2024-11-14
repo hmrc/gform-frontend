@@ -22,15 +22,12 @@ import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
-import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -42,14 +39,11 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanAlgebra
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
-import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
-import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -70,8 +64,7 @@ class FormController(
   recalculation: Recalculation[Future, Throwable],
   formProcessor: FormProcessor,
   confirmationService: ConfirmationService,
-  messagesControllerComponents: MessagesControllerComponents,
-  auditService: AuditService
+  messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -807,67 +800,6 @@ class FormController(
                   }
               }
 
-            def processSaveAndExit(processData: ProcessData): Future[Result] = {
-
-              val purgeConfirmationData: PurgeConfirmationData =
-                confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
-
-              formProcessor.validateAndUpdateData(
-                cache,
-                purgeConfirmationData.f(processData),
-                sectionNumber,
-                sectionNumber,
-                maybeAccessCode,
-                fastForward,
-                formModelOptics,
-                purgeConfirmationData.enteredVariadicFormData,
-                false
-              ) { _ => _ => maybeSn =>
-                val formTemplate = cache.formTemplate
-                val envelopeExpiryDate = cache.form.envelopeExpiryDate
-                maybeAccessCode match {
-                  case Some(accessCode) =>
-                    val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
-                    Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
-                  case None =>
-                    formTemplate.authConfig match {
-                      case Composite(configs) =>
-                        val compositeAuthDetails =
-                          jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                            .get(cache.formTemplateContext)
-                        val config = AuthConfig
-                          .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-                        processSaveAndExitAcknowledgementPage(config, processData, maybeSn, envelopeExpiryDate)
-                      case config =>
-                        processSaveAndExitAcknowledgementPage(Some(config), processData, maybeSn, envelopeExpiryDate)
-                    }
-                }
-
-              }
-            }
-
-            def processSaveAndExitAcknowledgementPage(
-              config: Option[AuthConfig],
-              processData: ProcessData,
-              maybeSn: SectionOrSummary,
-              envelopeExpiryDate: Option[EnvelopeExpiryDate]
-            ): Result = {
-              val formTemplate = cache.formTemplate
-              config match {
-                case Some(EmailAuthConfig(_, _, _, _)) =>
-                  Redirect(gform.routes.SaveAcknowledgementController.show(cache.formTemplateId))
-                case _ =>
-                  showAcknowledgementPage(
-                    cache.formTemplateId,
-                    maybeAccessCode,
-                    processData,
-                    maybeSn,
-                    formTemplate,
-                    envelopeExpiryDate
-                  )
-              }
-            }
-
             def handleGroup(cacheUpd: AuthCacheWithForm, processData: ProcessData, anchor: String): Future[Result] =
               formProcessor.validateAndUpdateData(
                 cacheUpd,
@@ -967,13 +899,10 @@ class FormController(
               res <- save match {
                        case SaveAndContinue => processSaveAndContinue(processData)
                        case SaveAndExit =>
-                         processSaveAndExit(processData).map { result =>
-                           auditService.formSavedEvent(
-                             cache.form,
-                             cache.retrievals
-                           )
-                           result
-                         }
+                         Redirect(
+                           gform.routes.SaveAcknowledgementController
+                             .saveAndExit(formTemplateId, maybeAccessCode, browserSectionNumber, fastForward)
+                         ).pure[Future]
                        case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
                        case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
                        case _                             => throw new IllegalArgumentException(s"Direction $save is not supported here")
@@ -981,34 +910,6 @@ class FormController(
             } yield res
         }
     }
-
-  private def showAcknowledgementPage(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    processData: ProcessData,
-    maybeSn: SectionOrSummary,
-    formTemplate: FormTemplate,
-    envelopeExpiryDate: Option[EnvelopeExpiryDate]
-  )(implicit request: Request[AnyContent], lang: LangADT) = {
-    val call = maybeSn match {
-      case SectionOrSummary.Section(sn) =>
-        val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-        if (sn.isTaskList) {
-          uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
-        } else {
-          routes.FormController
-            .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, List(FastForward.Yes))
-        }
-      case _ =>
-        formTemplate.formKind.fold { _ =>
-          routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, Some(true))
-        } { _ =>
-          uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
-        }
-    }
-    val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
-    Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
-  }
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
   private val restrictedFileExtensions = appConfig.restrictedFileExtensions

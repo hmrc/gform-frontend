@@ -25,29 +25,25 @@ import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auditing.loggingHelpers
-import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
-import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
-import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ file_upload_limit_exceed, save_acknowledgement, save_with_access_code }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.file_upload_limit_exceed
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -166,7 +162,10 @@ class SummaryController(
         requestRelatedData => variadicFormData => _ =>
           save match {
             case Exit =>
-              handleExit(cache.formTemplateContext, maybeAccessCode, cache, maybeCoordinates)
+              Redirect(
+                gform.routes.SaveAcknowledgementController
+                  .saveAndExitFromSummary(cache.formTemplateContext.formTemplate._id, maybeAccessCode, maybeCoordinates)
+              ).pure[Future]
             case SummaryContinue =>
               handleSummaryContinue(
                 cache.form.formTemplateId,
@@ -181,67 +180,6 @@ class SummaryController(
           }
       }
     }
-
-  def handleExit(
-    formTemplateContext: FormTemplateContext,
-    maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm,
-    maybeCoordinates: Option[Coordinates]
-  )(implicit
-    request: Request[AnyContent],
-    l: LangADT
-  ): Future[Result] = {
-    val formTemplate = formTemplateContext.formTemplate
-    gformConnector
-      .updateUserData(
-        FormIdData(cache.retrievals, formTemplate._id, maybeAccessCode),
-        UserData(
-          cache.form.formData,
-          Validated,
-          cache.form.visitsIndex,
-          cache.form.thirdPartyData,
-          cache.form.componentIdToFileId
-        )
-      )
-      .flatMap { _ =>
-        maybeAccessCode match {
-          case Some(accessCode) =>
-            val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
-            Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig)).pure[Future]
-          case _ =>
-            val config: Option[AuthConfig] =
-              formTemplate.authConfig match {
-                case Composite(configs) =>
-                  val compositeAuthDetails =
-                    jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                      .get(formTemplateContext)
-                  AuthConfig
-                    .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-                case config => Some(config)
-              }
-
-            config match {
-              case Some(c) if c.isEmailAuthConfig =>
-                Redirect(gform.routes.SaveAcknowledgementController.show(formTemplate._id)).pure[Future]
-              case _ =>
-                val call = if (maybeCoordinates.isDefined) {
-                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                    .landingPage(cache.formTemplateId, maybeAccessCode)
-                } else {
-                  routes.SummaryController
-                    .summaryById(
-                      formTemplate._id,
-                      maybeAccessCode,
-                      None,
-                      None
-                    ) // TODO JoVl why are Coordinates needed here?
-                }
-                val saveAcknowledgement = new SaveAcknowledgement(formTemplate, cache.form.envelopeExpiryDate)
-                Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode)).pure[Future]
-            }
-        }
-      }
-  }
 
   def handleSummaryContinue(
     formTemplateId: FormTemplateId,
