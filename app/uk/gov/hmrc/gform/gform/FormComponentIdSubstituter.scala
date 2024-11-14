@@ -52,7 +52,6 @@ object FormComponentIdSubstituter {
         case e: LinkCtx                    => e
         case LangCtx                       => LangCtx
         case DateFunction(dateProjection)  => DateFunction(dateProjection(substitutions))
-        case DateConstructFunction(d, y)   => DateConstructFunction(d, substitute(substitutions, y))
         case Period(field1, field2)        => Period(substitute(substitutions, field1), substitute(substitutions, field2))
         case PeriodExt(period, func)       => PeriodExt(substitute(substitutions, period), func)
         case AddressLens(fcId, details)    => AddressLens(substitutions.updateFormComponentId(fcId), details)
@@ -120,6 +119,7 @@ object FormComponentIdSubstituter {
           DateIfElse(ifElse(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
         case DateOrElse(field1, field2) =>
           DateOrElse(substitute(substitutions, field1), substitute(substitutions, field2))
+        case DateConstructExpr(dm, year) => DateConstructExpr(dm, year(substitutions))
       }
 
     }

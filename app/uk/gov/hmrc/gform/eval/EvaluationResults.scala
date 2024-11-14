@@ -19,28 +19,25 @@ package uk.gov.hmrc.gform.eval
 import cats.Monoid
 import cats.syntax.eq._
 import play.api.i18n.Messages
-
-import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateConstructExpr, evalDateExpr }
-import uk.gov.hmrc.gform.gform.AuthContextPrepop
-import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
+import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateExpr }
+import uk.gov.hmrc.gform.gform.SummarySubstituter._
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, Substituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupLabel, LookupOptions }
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SmartString, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
-import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
-import SummarySubstituter._
+
+import scala.util.Try
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -348,11 +345,10 @@ case class EvaluationResults(
           case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
           case otherwise                              => otherwise
         }
-      case DateConstructFunction(_, _) => unsupportedOperation("Number")(expr)
-      case Period(_, _)                => unsupportedOperation("Number")(expr)
-      case PeriodExt(_, _)             => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-      case PeriodValue(_)              => unsupportedOperation("Number")(expr)
-      case AddressLens(_, _)           => unsupportedOperation("Number")(expr)
+      case Period(_, _)      => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case PeriodValue(_)    => unsupportedOperation("Number")(expr)
+      case AddressLens(_, _) => unsupportedOperation("Number")(expr)
       case d @ DataRetrieveCtx(_, _) =>
         evaluationContext.thirdPartyData.dataRetrieve
           .fold(Option.empty[ExpressionResult]) { dataRetrieve =>
@@ -768,12 +764,6 @@ case class EvaluationResults(
         evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
           ExpressionResult.empty
         )
-      case DateConstructFunction(dayMonth, yearExpr) =>
-        val yearExprTypeInfo: TypeInfo = typeInfoForExpr(yearExpr, evaluationContext)
-        evalDateConstructExpr(recData, evaluationContext, this, booleanExprResolver)(
-          dayMonth,
-          evalExpr(yearExprTypeInfo, recData, booleanExprResolver, evaluationContext)
-        )
       case _ => ExpressionResult.empty
     }
 
@@ -927,7 +917,7 @@ case class EvaluationResults(
     StringResult(concatValue)
   }
 
-  private def typeInfoForExpr(
+  def typeInfoForExpr(
     expr: Expr,
     evaluationContext: EvaluationContext
   ): TypeInfo =
@@ -947,7 +937,6 @@ case class EvaluationResults(
       case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case DateConstructFunction(_, _)              => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
       case AuthCtx(AuthInfo.ItmpAddress)            => TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case IfElse(cond, field1: Expr, field2: Expr) => typeInfoForExpr(field1, evaluationContext)
       case _                                        => TypeInfo(expr, StaticTypeData(ExprType.string, None))

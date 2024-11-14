@@ -40,7 +40,6 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Sum(expr)                             => Sum(expandExpr(expr))
     case DateCtx(dateExpr)                     => DateCtx(expandDateExpr(dateExpr))
     case DateFunction(dateFunc)                => DateFunction(expandDateFunc(dateFunc))
-    case DateConstructFunction(d, y)           => DateConstructFunction(d, expandExpr(y))
     case AddressLens(formComponentId, detail)  => AddressLens(expandFcId(formComponentId), detail)
     case LinkCtx(PageLink(id))                 => LinkCtx(PageLink(id.withIndex(index)))
     case DataRetrieveCtx(id, attribute)        => DataRetrieveCtx(id.withIndex(index), attribute)
@@ -85,6 +84,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
     case DateFormCtxVar(formCtx)             => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dateExr, offset) => DateExprWithOffset(expandDateExpr(dateExr), offset)
+    case DateConstructExpr(dm, year)         => DateConstructExpr(expandDateExpr(dm), expandExpr(year))
     case otherwise                           => otherwise
   }
 

@@ -54,7 +54,6 @@ object ConcatFormatSubstituter {
         case e: LinkCtx                   => e
         case LangCtx                      => LangCtx
         case DateFunction(dateProjection) => DateFunction(dateProjection(substitutions))
-        case DateConstructFunction(d, y)  => DateConstructFunction(d, substitute(substitutions, y))
         case Period(field1, field2)       => Period(substitute(substitutions, field1), substitute(substitutions, field2))
         case PeriodExt(period, func)      => PeriodExt(substitute(substitutions, period), func)
         case e: AddressLens               => e
@@ -113,6 +112,7 @@ object ConcatFormatSubstituter {
         case DateExprWithOffset(dExpr, o)                 => DateExprWithOffset(substitute(substitutions, dExpr), o)
         case HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo) => HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo)
         case d @ DataRetrieveDateCtx(_, _)                => d
+        case DateConstructExpr(dm, year)                  => DateConstructExpr(dm, year(substitutions))
         case DateIfElse(ifElse, field1, field2) =>
           DateIfElse(ifElse(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
         case DateOrElse(field1, field2) =>

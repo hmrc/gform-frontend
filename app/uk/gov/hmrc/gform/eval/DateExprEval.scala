@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, NumberResult, OptionResult, StringResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -57,7 +57,8 @@ object DateExprEval {
         eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field1).orElse(
           eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(field2)
         )
-
+      case d @ DateConstructExpr(_, _) =>
+        evalDateConstructExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(d)
     }
 
   def evalDateConstructExpr(
@@ -66,25 +67,27 @@ object DateExprEval {
     evaluationResults: EvaluationResults,
     booleanExprResolver: BooleanExprResolver
   )(
-    dayMonthExpr: DateExpr,
-    yearResult: ExpressionResult
-  ): ExpressionResult = {
-    val dayMonthResult: ExpressionResult =
-      evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dayMonthExpr)
+    dExpr: DateConstructExpr
+  ): Option[DateResult] = {
+    val yearExprTypeInfo: TypeInfo = evaluationResults.typeInfoForExpr(dExpr.year, evaluationContext)
+    val yearResult = evaluationResults.evalExpr(yearExprTypeInfo, recData, booleanExprResolver, evaluationContext)
 
-    val dateOpt: Option[LocalDate] = (dayMonthResult, yearResult) match {
-      case (dm: DateResult, y: DateResult) =>
-        Try(LocalDate.of(y.value.getYear, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
-      case (dm: DateResult, y: StringResult) =>
-        Try(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
-      case (dm: DateResult, y: NumberResult) =>
-        Try(LocalDate.of(y.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
-      case (dm: DateResult, y: OptionResult) =>
-        Try(LocalDate.of(y.value.head.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
+    val dayMonthResult: ExpressionResult =
+      evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dExpr.dayMonth)
+
+    val resultOpt: Option[LocalDate] = dayMonthResult match {
+      case dm: DateResult =>
+        yearResult.fold[Option[LocalDate]](_ => None)(_ => None)(_ => None)(d =>
+          Try(LocalDate.of(d.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
+        )(e => Try(LocalDate.of(e.value.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption)(f =>
+          Try(LocalDate.of(f.value.head.toInt, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption
+        )(g => Try(LocalDate.of(g.value.getYear, dm.value.getMonthValue, dm.value.getDayOfMonth)).toOption)(_ => None)(
+          _ => None
+        )(_ => None)(_ => None)
       case _ => None
     }
 
-    dateOpt.fold(ExpressionResult.empty)(localDate => DateResult(localDate))
+    resultOpt.map(DateResult)
   }
 
   def evalDateExpr(
@@ -143,6 +146,9 @@ object DateExprEval {
         evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1).orElse(
           evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field2)
         )
+      case d @ DateConstructExpr(_, _) =>
+        evalDateConstructExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(d)
+          .getOrElse(ExpressionResult.empty)
     }
 
   private def evalHmrcTaxPeriod(

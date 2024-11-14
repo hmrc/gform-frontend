@@ -71,7 +71,6 @@ object ExprPrettyPrint {
     case LangCtx                                 => "Lang"
     case DateCtx(dateExpr)                       => ExprPrettyPrint.prettyPrintDateExpr(dateExpr)
     case DateFunction(dateProjection)            => ExprPrettyPrint.prettyPrintDateFunction(dateProjection)
-    case DateConstructFunction(d, y)             => ExprPrettyPrint.prettyPrintDateConstructFunction(d, y)
     case Period(dateCtx1, dateCtx2)              => "period(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
     case PeriodExt(period, func)                 => period.prettyPrint
     case AddressLens(fcId, addressDetail) =>
@@ -131,7 +130,7 @@ object ExprPrettyPrint {
     case DateProjection.Year(dateExpr)  => prettyPrintDateExpr(dateExpr)
   }
 
-  def prettyPrintDateConstructFunction(dayMonthExpr: DateExpr, expr: Expr): String =
+  def prettyPrintDateConstructExpr(dayMonthExpr: DateExpr, expr: Expr): String =
     "date constructed from d/m from (" + prettyPrintDateExpr(
       dayMonthExpr
     ) + ") and year from (" + expr.prettyPrint + ")"
@@ -145,6 +144,7 @@ object ExprPrettyPrint {
     case DataRetrieveDateCtx(_, _)                                           => "data retrieve date"
     case DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) => "???"
     case DateOrElse(field1: DateExpr, field2: DateExpr)                      => "???"
+    case DateConstructExpr(d, y)                                             => prettyPrintDateConstructExpr(d, y)
   }
 
   def prettyPrintDateExprValue(dateExprValue: DateExprValue): String = dateExprValue match {
