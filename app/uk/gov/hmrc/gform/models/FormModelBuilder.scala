@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -43,7 +43,7 @@ object FormModelBuilder {
     cacheData: CacheData,
     recalculation: Recalculation[F, E],
     componentIdToFileId: FormComponentIdToFileIdMapping,
-    lookupOptions: LocalisedLookupOptions
+    lookupRegistry: LookupRegistry
   )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -56,7 +56,7 @@ object FormModelBuilder {
       cache.accessCode,
       recalculation,
       componentIdToFileId,
-      lookupOptions
+      lookupRegistry
     )
 
   def evalRemoveItemIf[T <: PageMode](
@@ -199,7 +199,7 @@ class FormModelBuilder[E, F[_]: Functor](
   maybeAccessCode: Option[AccessCode],
   recalculation: Recalculation[F, E],
   componentIdToFileId: FormComponentIdToFileIdMapping,
-  lookupOptions: LocalisedLookupOptions
+  lookupRegistry: LookupRegistry
 )(implicit
   hc: HeaderCarrier,
   me: MonadError[F, E]
@@ -233,11 +233,12 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.allIndexedComponentIds,
         formModel.taxPeriodDate,
         FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        lookupOptions,
         formModel.dataRetrieveAll,
         formModel.hideChoicesSelected,
         formModel.choiceLookup,
-        formModel.addToListIds
+        formModel.addToListIds,
+        lookupRegistry,
+        formModel.lookupRegister
       )
 
     recalculation

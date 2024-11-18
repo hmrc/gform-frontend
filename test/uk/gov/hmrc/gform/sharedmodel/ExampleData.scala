@@ -46,8 +46,7 @@ import org.typelevel.ci._
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 
-import scala.collection.immutable.List
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 
 object ExampleData extends ExampleData
@@ -82,11 +81,12 @@ trait ExampleEvaluationContext {
       List.empty,
       Set.empty,
       FileSizeLimit(1),
-      LocalisedLookupOptions(Map()),
       DataRetrieveAll.empty,
       Set.empty[ModelComponentId],
       Map.empty,
-      Set.empty
+      Set.empty,
+      new LookupRegistry(Map()),
+      Map.empty
     )
 }
 

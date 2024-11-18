@@ -50,9 +50,7 @@ import uk.gov.hmrc.gform.upscan.UpscanInitiate
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.collection.immutable.List
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
@@ -88,7 +86,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       Some(accessCode),
-      LocalisedLookupOptions(Map())
+      new LookupRegistry(Map())
     )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
@@ -129,11 +127,12 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           List.empty,
           Set.empty,
           FileSizeLimit(1),
-          LocalisedLookupOptions(Map()),
           DataRetrieveAll.empty,
           Set.empty[ModelComponentId],
           Map.empty,
-          Set.empty
+          Set.empty,
+          new LookupRegistry(Map()),
+          Map.empty
         )
       )
     )

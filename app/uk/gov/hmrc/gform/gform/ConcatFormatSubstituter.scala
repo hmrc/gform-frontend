@@ -59,8 +59,7 @@ object ConcatFormatSubstituter {
         case e: AddressLens               => e
         case e: DataRetrieveCtx           => e
         case e: DataRetrieveCount         => e
-        case e: CsvCountryCheck           => e
-        case e: CsvOverseasCountryCheck   => e
+        case e: LookupColumn              => e
         case e: CsvCountryCountCheck      => e
         case e: Size                      => e
         case Typed(e, tpe)                => Typed(substitute(substitutions, e), tpe)

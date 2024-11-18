@@ -53,10 +53,8 @@ import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
-import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 
@@ -93,7 +91,7 @@ class SummaryRenderingServiceSpec
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      LocalisedLookupOptions(Map())
+      new LookupRegistry(Map())
     )
     lazy val validationResult = ValidationResult.empty
 
@@ -148,11 +146,12 @@ class SummaryRenderingServiceSpec
           List.empty,
           Set.empty,
           FileSizeLimit(1),
-          LocalisedLookupOptions(Map()),
           DataRetrieveAll.empty,
           Set.empty[ModelComponentId],
           Map.empty,
-          Set.empty
+          Set.empty,
+          new LookupRegistry(Map()),
+          Map.empty
         )
       )
     )

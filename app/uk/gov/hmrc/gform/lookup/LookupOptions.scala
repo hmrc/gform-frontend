@@ -72,6 +72,10 @@ object LookupOptions {
       case (PortLookupInfo(_, _, _, _, _, _, countryCode, _), CsvColumnName.countryCode)  => Some(countryCode.countryCode)
       case (PortLookupInfo(_, _, _, _, _, _, _, portCode), CsvColumnName.portCode)        => Some(portCode.portCode)
       case (SicCodeLookupInfo(_, _, section), CsvColumnName.section)                      => Some(section.section)
+      case (AgentComplaintCategoriesLookupInfo(_, _, _, columns), column) =>
+        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
+      case (FiveColumnLookupInfo(_,_,_,_,columns), column)                                =>
+        Some (columns.getOrElse (column, throw new Exception (s"Invalid column name $column") ) )
       case _                                                                              => None
       // format: on
     }

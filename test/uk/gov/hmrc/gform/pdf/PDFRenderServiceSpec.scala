@@ -47,10 +47,9 @@ import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult, ValidationServi
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
-import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 
 class PDFRenderServiceSpec
     extends AnyFlatSpec with Matchers with ArgumentMatchersSugar with IdiomaticMockito with FormModelSupport
@@ -118,7 +117,7 @@ class PDFRenderServiceSpec
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      LocalisedLookupOptions(Map())
+      new LookupRegistry(Map())
     )
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, variadicFormData).asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
