@@ -368,7 +368,7 @@ case class EvaluationResults(
         NumberResult(count)
       case LookupColumn(_, _) => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
-        val count = evalLookupColumCount(fcId, column, value, evaluationContext, recData)
+        val count = evalLookupColumnCount(fcId, column, value, evaluationContext, recData)
         NumberResult(count)
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
@@ -686,7 +686,7 @@ case class EvaluationResults(
           evalLookupColumn(fcId, column, evaluationContext)
         }
       case CsvCountryCountCheck(fcId, column, value) =>
-        val count = evalLookupColumCount(fcId, column, value, evaluationContext, recData)
+        val count = evalLookupColumnCount(fcId, column, value, evaluationContext, recData)
         StringResult(count.toString)
       case IndexOf(fcId, index) =>
         loop(FormCtx(fcId)) match {
@@ -749,7 +749,7 @@ case class EvaluationResults(
       }
       .getOrElse(Empty)
 
-  private def evalLookupColumCount(
+  private def evalLookupColumnCount(
     fcId: FormComponentId,
     column: String,
     value: String,

@@ -267,11 +267,11 @@ object IsTelephone {
     }
 }
 
-object IsTextLookup {
-  def unapply(fc: FormComponent): Boolean =
+object HasLookupRegister {
+  def unapply(fc: FormComponent): Option[Register] =
     fc.`type` match {
-      case Text(Lookup(_, _), _, _, _, _, _, _) => true
-      case _                                    => false
+      case Text(Lookup(register, _), _, _, _, _, _, _) => Some(register)
+      case _                                           => None
     }
 }
 
