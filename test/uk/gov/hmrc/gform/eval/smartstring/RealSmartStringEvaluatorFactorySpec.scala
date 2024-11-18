@@ -43,7 +43,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 
 class RealSmartStringEvaluatorFactorySpec
     extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
@@ -408,7 +408,7 @@ class RealSmartStringEvaluatorFactorySpec
         FormTemplateContext.basicContext(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
-        LocalisedLookupOptions(Map())
+        new LookupRegistry(Map())
       )
     lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
@@ -451,11 +451,12 @@ class RealSmartStringEvaluatorFactorySpec
           indexedComponentIds,
           Set.empty,
           FileSizeLimit(1),
-          LocalisedLookupOptions(Map()),
           DataRetrieveAll.empty,
           Set.empty[ModelComponentId],
           Map.empty,
-          Set.empty
+          Set.empty,
+          new LookupRegistry(Map()),
+          Map.empty
         )
       )
     )

@@ -77,8 +77,7 @@ object ExprPrettyPrint {
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value
     case DataRetrieveCtx(_, _)         => "Data retrieve"
     case DataRetrieveCount(_)          => "Data retrieve count"
-    case CsvCountryCheck(_, _)         => "Country check"
-    case CsvOverseasCountryCheck(_, _) => "Overseas country check"
+    case LookupColumn(_, _)            => "Lookup column check"
     case CsvCountryCountCheck(_, _, _) => "Country count"
     case Size(_, _)                    => "Size"
     case Typed(e, _)                   => "Typed"

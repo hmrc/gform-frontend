@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.lookup.ShowAll.Enabled
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
@@ -49,7 +50,6 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty,
     indexedComponentIds: List[ModelComponentId] = List.empty,
     retrievals: MaterialisedRetrievals = authContext,
-    sortCodeLookup: Set[BaseComponentId] = Set.empty,
     thirdPartyData: ThirdPartyData = ThirdPartyData.empty
   ) =
     EvaluationContext(
@@ -87,11 +87,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       indexedComponentIds,
       Set.empty,
       FileSizeLimit(1),
-      LocalisedLookupOptions(Map()),
       DataRetrieveAll.empty,
       Set.empty[ModelComponentId],
       Map.empty,
-      Set.empty
+      Set.empty,
+      new LookupRegistry(Map.empty),
+      Map.empty
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -396,37 +397,46 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         "Third party data retrieval for id 'company' and attribute 'registeredOfficeAddress'"
       ),
       (
-        TypeInfo(CsvCountryCheck(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),
+        TypeInfo(LookupColumn(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
           VariadicFormData.create(
             (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
           )
         ),
-        evaluationContext.copy(lookupOptions =
-          LocalisedLookupOptions(
+        evaluationContext.copy(
+          lookupRegistry = new LookupRegistry(
             Map(
-              LangADT.En -> LookupOptions(
-                Map(
-                  LookupLabel("United Kingdom") -> CountryLookupInfo(
-                    LookupId("GB"),
-                    0,
-                    LookupKeywords(Some("England Great Britain")),
-                    LookupPriority(1),
-                    LookupPriority(1),
-                    LookupRegion("1"),
-                    LookupInGibraltarEuEeaEfta("1"),
-                    Map("InEU" -> "1")
+              Register.Country -> AjaxLookup(
+                LocalisedLookupOptions(
+                  Map(
+                    LangADT.En -> LookupOptions(
+                      Map(
+                        LookupLabel("United Kingdom") -> CountryLookupInfo(
+                          LookupId("GB"),
+                          0,
+                          LookupKeywords(Some("England Great Britain")),
+                          LookupPriority(1),
+                          LookupPriority(1),
+                          LookupRegion("1"),
+                          LookupInGibraltarEuEeaEfta("1"),
+                          Map("InEU" -> "1")
+                        )
+                      )
+                    )
                   )
-                )
+                ),
+                Map.empty,
+                Enabled
               )
             )
-          )
+          ),
+          lookupRegister = Map(FormComponentId("selectedCountry").baseComponentId -> Register.Country)
         ),
         StringResult("1"),
         "CsvCountryCheck eval to string with matching LookupInfo"
       ),
       (
-        TypeInfo(CsvCountryCheck(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),
+        TypeInfo(LookupColumn(FormComponentId("selectedCountry"), "InEU"), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
           VariadicFormData.create(
             (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
@@ -446,25 +456,34 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("selectedCountry"), VariadicValue.One("United Kingdom"))
           )
         ),
-        evaluationContext.copy(lookupOptions =
-          LocalisedLookupOptions(
+        evaluationContext.copy(
+          lookupRegistry = new LookupRegistry(
             Map(
-              LangADT.En -> LookupOptions(
-                Map(
-                  LookupLabel("United Kingdom") -> CountryLookupInfo(
-                    LookupId("GB"),
-                    0,
-                    LookupKeywords(Some("England Great Britain")),
-                    LookupPriority(1),
-                    LookupPriority(1),
-                    LookupRegion("1"),
-                    LookupInGibraltarEuEeaEfta("1"),
-                    Map("InEU" -> "1")
+              Register.Country -> AjaxLookup(
+                LocalisedLookupOptions(
+                  Map(
+                    LangADT.En -> LookupOptions(
+                      Map(
+                        LookupLabel("United Kingdom") -> CountryLookupInfo(
+                          LookupId("GB"),
+                          0,
+                          LookupKeywords(Some("England Great Britain")),
+                          LookupPriority(1),
+                          LookupPriority(1),
+                          LookupRegion("1"),
+                          LookupInGibraltarEuEeaEfta("1"),
+                          Map("InEU" -> "1")
+                        )
+                      )
+                    )
                   )
-                )
+                ),
+                Map.empty,
+                Enabled
               )
             )
-          )
+          ),
+          lookupRegister = Map(FormComponentId("selectedCountry").baseComponentId -> Register.Country)
         ),
         NumberResult(1),
         "CsvCountryCountCheck eval to number with matching LookupInfo"
@@ -485,7 +504,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          CsvOverseasCountryCheck(FormComponentId("selectedCountry"), "InEU"),
+          LookupColumn(FormComponentId("selectedCountry"), "InEU"),
           StaticTypeData(ExprType.string, None)
         ),
         RecData[OutOfDate](
@@ -494,22 +513,30 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           )
         ),
         evaluationContext
-          .copy(lookupOptions =
-            LocalisedLookupOptions(
+          .copy(lookupRegistry =
+            new LookupRegistry(
               Map(
-                LangADT.En -> LookupOptions(
-                  Map(
-                    LookupLabel("United Kingdom") -> CountryLookupInfo(
-                      LookupId("GB"),
-                      0,
-                      LookupKeywords(Some("England Great Britain")),
-                      LookupPriority(1),
-                      LookupPriority(1),
-                      LookupRegion("1"),
-                      LookupInGibraltarEuEeaEfta("1"),
-                      Map("InEU" -> "1")
+                Register.Country -> AjaxLookup(
+                  LocalisedLookupOptions(
+                    Map(
+                      LangADT.En -> LookupOptions(
+                        Map(
+                          LookupLabel("United Kingdom") -> CountryLookupInfo(
+                            LookupId("GB"),
+                            0,
+                            LookupKeywords(Some("England Great Britain")),
+                            LookupPriority(1),
+                            LookupPriority(1),
+                            LookupRegion("1"),
+                            LookupInGibraltarEuEeaEfta("1"),
+                            Map("InEU" -> "1")
+                          )
+                        )
+                      )
                     )
-                  )
+                  ),
+                  Map.empty,
+                  Enabled
                 )
               )
             )
@@ -520,7 +547,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          CsvOverseasCountryCheck(FormComponentId("selectedCountry"), "InEU"),
+          LookupColumn(FormComponentId("selectedCountry"), "InEU"),
           StaticTypeData(ExprType.string, None)
         ),
         RecData[OutOfDate](
@@ -528,8 +555,37 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             (toModelComponentId("selectedCountry-country"), VariadicValue.One("United Kingdom"))
           )
         ),
-        evaluationContext.copy(overseasAddressLookup = Set(BaseComponentId("selectedCountry"))),
-        Empty,
+        evaluationContext.copy(
+          overseasAddressLookup = Set(BaseComponentId("selectedCountry")),
+          lookupRegistry = new LookupRegistry(
+            Map(
+              Register.Country -> AjaxLookup(
+                LocalisedLookupOptions(
+                  Map(
+                    LangADT.En -> LookupOptions(
+                      Map(
+                        LookupLabel("United Kingdom") -> CountryLookupInfo(
+                          LookupId("GB"),
+                          0,
+                          LookupKeywords(Some("England Great Britain")),
+                          LookupPriority(1),
+                          LookupPriority(1),
+                          LookupRegion("1"),
+                          LookupInGibraltarEuEeaEfta("1"),
+                          Map("InEU" -> "0")
+                        )
+                      )
+                    )
+                  )
+                ),
+                Map.empty,
+                Enabled
+              )
+            )
+          ),
+          lookupRegister = Map(FormComponentId("selectedCountry").baseComponentId -> Register.Country)
+        ),
+        StringResult("0"),
         "CsvOverseasCountryCheck eval to string without matching LookupInfo"
       ),
       (

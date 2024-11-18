@@ -40,10 +40,9 @@ import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LocalisedLookupOptions, LookupRegistry }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RequestHeaderService, RoutingModule }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.tasklist.TaskListModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.upscan.UpscanModule
@@ -107,11 +106,6 @@ class ApplicationModule(context: Context)
 
   private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
 
-  private val countryLookupOptions: LocalisedLookupOptions = lookupRegistry
-    .get(Register.Country)
-    .collect { case AjaxLookup(lookupOptions, _, _) => lookupOptions }
-    .get
-
   private val hmrcSessionCookieBaker: SessionCookieBaker = {
     val httpConfiguration: HttpConfiguration =
       new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
@@ -154,7 +148,7 @@ class ApplicationModule(context: Context)
     this,
     errResponder,
     graphModule,
-    countryLookupOptions
+    lookupRegistry
   )
 
   val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
@@ -201,7 +195,6 @@ class ApplicationModule(context: Context)
     playBuiltInsModule,
     graphModule,
     lookupRegistry,
-    countryLookupOptions,
     englishMessages,
     this
   )

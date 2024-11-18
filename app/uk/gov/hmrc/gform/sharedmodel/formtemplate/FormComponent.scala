@@ -267,6 +267,14 @@ object IsTelephone {
     }
 }
 
+object IsTextLookup {
+  def unapply(fc: FormComponent): Boolean =
+    fc.`type` match {
+      case Text(Lookup(_, _), _, _, _, _, _, _) => true
+      case _                                    => false
+    }
+}
+
 object HasDynamicChoice {
   def unapply(fc: FormComponent): Option[(FormComponentId, Set[BaseComponentId])] =
     fc.`type` match {

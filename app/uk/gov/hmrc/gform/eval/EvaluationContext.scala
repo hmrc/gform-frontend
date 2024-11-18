@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.eval
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
@@ -48,9 +48,10 @@ final case class EvaluationContext(
   indexedComponentIds: List[ModelComponentId],
   taxPeriodYear: Set[BaseComponentId],
   fileSizeLimit: FileSizeLimit,
-  lookupOptions: LocalisedLookupOptions,
   dataRetrieveAll: DataRetrieveAll,
   hideChoicesSelected: Set[ModelComponentId], // ids of choices with "hideChoicesSelected": true
   choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]],
-  addToListIds: Set[AddToListId]
+  addToListIds: Set[AddToListId],
+  lookupRegistry: LookupRegistry,
+  lookupRegister: Map[BaseComponentId, Register]
 )

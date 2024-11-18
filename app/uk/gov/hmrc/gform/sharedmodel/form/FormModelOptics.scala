@@ -76,11 +76,12 @@ object FormModelOptics {
         List.empty,
         Set.empty[BaseComponentId],
         FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        cache.countryLookupOptions,
         DataRetrieveAll.empty,
         Set.empty[ModelComponentId],
         Map.empty,
-        Set.empty
+        Set.empty,
+        cache.lookupRegistry,
+        Map.empty
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -106,7 +107,13 @@ object FormModelOptics {
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] = {
     val formModelBuilder =
-      FormModelBuilder.fromCache(cache, cacheData, recalculation, componentIdToFileId, cache.countryLookupOptions)
+      FormModelBuilder.fromCache(
+        cache,
+        cacheData,
+        recalculation,
+        componentIdToFileId,
+        cache.lookupRegistry
+      )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
       formModelBuilder.visibilityModel(data, phase)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>

@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.syntax.eq._
+import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
@@ -150,6 +151,10 @@ case class FormModel[A <: PageMode](
   val overseasAddressLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsOverseasAddress(_) =>
     fc.id.baseComponentId
   }.toSet
+
+  val lookupRegister: Map[BaseComponentId, Register] = allFormComponents.collect { case fc @ IsTextLookup() =>
+    fc.id.baseComponentId -> fc.`type`.cast[Text].map(_.constraint.cast[Lookup].map(_.register)).get.get
+  }.toMap
 
   val postcodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup(_) =>
     fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).baseComponentId

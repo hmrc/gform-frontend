@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, Seis
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
@@ -89,7 +89,7 @@ class AuthenticatedRequestActions(
   errResponder: ErrResponder,
   recalculation: Recalculation[Future, Throwable],
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  lookupOptions: LocalisedLookupOptions
+  lookupRegistry: LookupRegistry
 )(implicit
   ec: ExecutionContext,
   messagesApi: MessagesApi
@@ -268,7 +268,8 @@ class AuthenticatedRequestActions(
                   formTemplate,
                   onSuccess = retrievals =>
                     role => {
-                      val cache = AuthCacheWithoutForm(retrievals, formTemplate, role, lookupOptions)
+                      val cache =
+                        AuthCacheWithoutForm(retrievals, formTemplate, role, None, lookupRegistry)
                       Permissions.apply(operation, cache.role) match {
                         case PermissionResult.Permitted => f(request)(lang)(cache)
                         case PermissionResult.NotPermitted =>
@@ -307,7 +308,7 @@ class AuthenticatedRequestActions(
         result <- authResult match {
                     case AuthSuccessful(retrievals, role) =>
                       f(request)(getCurrentLanguage(request))(
-                        AuthCacheWithoutForm(retrievals, formTemplate, role, lookupOptions)
+                        AuthCacheWithoutForm(retrievals, formTemplate, role, None, lookupRegistry)
                       )
                     case _ =>
                       errResponder.forbidden("Access denied - Unsuccessful GGAuth", Some(formTemplate))
@@ -424,7 +425,7 @@ class AuthenticatedRequestActions(
                   FormTemplateContext.basicContext(formTemplateForForm, specimenSource),
                   role,
                   maybeAccessCode,
-                  lookupOptions
+                  lookupRegistry
                 )
 
         formModelOptics <-
@@ -597,7 +598,7 @@ sealed trait AuthCache {
   def formTemplate: FormTemplate
   def role: Role
   def accessCode: Option[AccessCode]
-  def countryLookupOptions: LocalisedLookupOptions
+  def lookupRegistry: LookupRegistry
 }
 
 case class AuthCacheWithForm(
@@ -606,7 +607,7 @@ case class AuthCacheWithForm(
   formTemplateContext: FormTemplateContext,
   role: Role,
   accessCode: Option[AccessCode],
-  countryLookupOptions: LocalisedLookupOptions
+  lookupRegistry: LookupRegistry
 ) extends AuthCache {
   val formTemplate: FormTemplate = formTemplateContext.formTemplate
   val formTemplateId: FormTemplateId = formTemplate._id
@@ -625,7 +626,7 @@ case class AuthCacheWithForm(
           (s: GraphException) => new IllegalArgumentException(s.reportProblem)
         ),
         form.componentIdToFileId,
-        countryLookupOptions
+        lookupRegistry
       )
       .dependencyGraphValidation
   }
@@ -646,8 +647,8 @@ case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
   role: Role,
-  countryLookupOptions: LocalisedLookupOptions,
-  dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]] = None
+  dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]],
+  lookupRegistry: LookupRegistry
 ) extends AuthCache {
   override val accessCode: Option[AccessCode] = None
   def toCacheData: CacheData = new CacheData(
@@ -662,7 +663,7 @@ case class AuthCacheWithoutForm(
       FormTemplateContext.basicContext(formTemplate, None),
       role,
       accessCode,
-      countryLookupOptions
+      lookupRegistry
     )
 }
 
