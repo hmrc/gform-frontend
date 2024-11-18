@@ -19,28 +19,25 @@ package uk.gov.hmrc.gform.eval
 import cats.Monoid
 import cats.syntax.eq._
 import play.api.i18n.Messages
-
-import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateExpr }
-import uk.gov.hmrc.gform.gform.AuthContextPrepop
-import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
+import uk.gov.hmrc.gform.gform.SummarySubstituter._
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, Substituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupLabel, LookupOptions }
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SmartString, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
-import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
-import SummarySubstituter._
+
+import scala.util.Try
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -928,7 +925,7 @@ case class EvaluationResults(
     StringResult(concatValue)
   }
 
-  private def typeInfoForExpr(
+  def typeInfoForExpr(
     expr: Expr,
     evaluationContext: EvaluationContext
   ): TypeInfo =

@@ -112,6 +112,7 @@ object ConcatFormatSubstituter {
         case DateExprWithOffset(dExpr, o)                 => DateExprWithOffset(substitute(substitutions, dExpr), o)
         case HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo) => HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo)
         case d @ DataRetrieveDateCtx(_, _)                => d
+        case DateConstructExpr(dm, year)                  => DateConstructExpr(dm, year(substitutions))
         case DateIfElse(ifElse, field1, field2) =>
           DateIfElse(ifElse(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
         case DateOrElse(field1, field2) =>

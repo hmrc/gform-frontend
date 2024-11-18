@@ -147,6 +147,7 @@ object SummarySubstituter {
           DateIfElse(ifElse(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
         case DateOrElse(field1, field2) =>
           DateOrElse(substitute(substitutions, field1), substitute(substitutions, field2))
+        case DateConstructExpr(dm, year) => DateConstructExpr(dm, year(substitutions))
       }
 
     }

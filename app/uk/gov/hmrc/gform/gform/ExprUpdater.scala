@@ -84,6 +84,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
     case DateFormCtxVar(formCtx)             => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dateExr, offset) => DateExprWithOffset(expandDateExpr(dateExr), offset)
+    case DateConstructExpr(dm, year)         => DateConstructExpr(expandDateExpr(dm), expandExpr(year))
     case otherwise                           => otherwise
   }
 

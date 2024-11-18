@@ -130,6 +130,11 @@ object ExprPrettyPrint {
     case DateProjection.Year(dateExpr)  => prettyPrintDateExpr(dateExpr)
   }
 
+  def prettyPrintDateConstructExpr(dayMonthExpr: DateExpr, expr: Expr): String =
+    "date constructed from d/m from (" + prettyPrintDateExpr(
+      dayMonthExpr
+    ) + ") and year from (" + expr.prettyPrint + ")"
+
   def prettyPrintDateExpr(dateExpr: DateExpr): String = dateExpr match {
     case DateValueExpr(dateExprValue)                           => prettyPrintDateExprValue(dateExprValue)
     case DateFormCtxVar(FormCtx(formComponentId))               => "date from " + formComponentId.value + " component"
@@ -139,6 +144,7 @@ object ExprPrettyPrint {
     case DataRetrieveDateCtx(_, _)                                           => "data retrieve date"
     case DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) => "???"
     case DateOrElse(field1: DateExpr, field2: DateExpr)                      => "???"
+    case DateConstructExpr(d, y)                                             => prettyPrintDateConstructExpr(d, y)
   }
 
   def prettyPrintDateExprValue(dateExprValue: DateExprValue): String = dateExprValue match {
