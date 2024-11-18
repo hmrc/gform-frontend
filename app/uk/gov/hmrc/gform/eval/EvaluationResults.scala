@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SmartString, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SourceOrigin, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -730,7 +730,7 @@ case class EvaluationResults(
           StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
         )
       case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
-      case ChoiceLabel(fcId)          => evalChoiceLabel(evaluationContext, fcId, booleanExprResolver, recData)
+      case ChoiceLabel(exprs)         => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
       case _                          => unsupportedOperation("String")(expr)
     }
 
@@ -966,37 +966,6 @@ case class EvaluationResults(
       booleanExprResolver,
       evaluationContext
     ).stringRepresentation(typeInfo, evaluationContext.messages)
-  }
-
-  private def evalChoiceLabel(
-    evaluationContext: EvaluationContext,
-    fcId: FormComponentId,
-    booleanExprResolver: BooleanExprResolver,
-    recData: RecData[SourceOrigin.OutOfDate]
-  ) = {
-    val maybeChoiceM: Option[Map[String, SmartString]] = evaluationContext.choiceLookup
-      .get(fcId.modelComponentId)
-      .map(_.toList.zipWithIndex.collect {
-        case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
-          value -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr)), _) =>
-          evalExprAsString(expr, evaluationContext, booleanExprResolver, recData) -> label
-      }.toMap)
-
-    val result = recData.variadicFormData
-      .many(fcId.modelComponentId)
-      .map(
-        _.map(value =>
-          maybeChoiceM.fold("")(choiceM =>
-            choiceM(value).rawValue(booleanExprResolver.resolve(_))(evaluationContext.lang)
-          )
-        )
-          .mkString("")
-      )
-      .getOrElse("")
-
-    StringResult(result)
   }
 
   def evalExpr(

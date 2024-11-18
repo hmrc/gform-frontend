@@ -131,8 +131,7 @@ private class Executor(
                   .mkString(", ")
               }
               .getOrElse("")
-          case ChoiceLabel(fcId) => evalChoice(fcId, typeInfo, markDown)
-          case _                 => stringRepresentation(typeInfo)
+          case _ => stringRepresentation(typeInfo)
         }
     }
 
@@ -159,8 +158,13 @@ private class Executor(
     }
   }
 
-  private def formatConcatExpr(concatExpr: Concat, markDown: Boolean): String = {
-    val exprsFormatted = concatExpr.exprs.map {
+  private def formatConcatExpr(expr: Expr, markDown: Boolean): String = {
+    val exprs = expr match {
+      case e: Concat      => e.exprs
+      case e: ChoiceLabel => e.exprs
+      case _              => Nil
+    }
+    val exprsFormatted = exprs.map {
       case c @ Constant(_) => c
       case expr            => Constant(formatExpr(expr, markDown))
     }

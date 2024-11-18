@@ -144,7 +144,7 @@ sealed trait Expr extends Product with Serializable {
     case Concat(exprs)                            => exprs.flatMap(_.leafs(formModel))
     case CountryOfItmpAddress                     => this :: Nil
     case ChoicesRevealedField(formComponentId)    => FormCtx(formComponentId) :: Nil
-    case ChoiceLabel(formComponentId)             => FormCtx(formComponentId) :: Nil
+    case ChoiceLabel(exprs)                       => exprs.flatMap(_.leafs(formModel))
     case ChoicesSelected(formComponentId)         => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)        => FormCtx(formComponentId) :: Nil
   }
@@ -239,7 +239,7 @@ sealed trait Expr extends Product with Serializable {
     case Concat(exprs)                             => exprs.flatMap(_.leafs())
     case CountryOfItmpAddress                      => this :: Nil
     case ChoicesRevealedField(formComponentId)     => FormCtx(formComponentId) :: Nil
-    case ChoiceLabel(formComponentId)              => FormCtx(formComponentId) :: Nil
+    case ChoiceLabel(exprs)                        => exprs.flatMap(_.leafs())
     case ChoicesSelected(formComponentId)          => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)         => FormCtx(formComponentId) :: Nil
   }
@@ -287,7 +287,7 @@ final case class StringOps(field1: Expr, stringFnc: StringFnc) extends Expr
 final case class Concat(exprs: List[Expr]) extends Expr
 final case object CountryOfItmpAddress extends Expr
 final case class ChoicesRevealedField(formComponentId: FormComponentId) extends Expr
-final case class ChoiceLabel(formComponentId: FormComponentId) extends Expr
+final case class ChoiceLabel(exprs: List[Expr]) extends Expr
 final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
 final case class ChoicesAvailable(formComponentId: FormComponentId) extends Expr
 

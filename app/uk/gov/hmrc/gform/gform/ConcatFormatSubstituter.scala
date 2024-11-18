@@ -72,7 +72,7 @@ object ConcatFormatSubstituter {
         case e: Concat                    => Constant(substitutions.formatConcat(e))
         case CountryOfItmpAddress         => CountryOfItmpAddress
         case e: ChoicesRevealedField      => e
-        case e: ChoiceLabel               => e
+        case e: ChoiceLabel               => Constant(substitutions.formatConcat(e))
         case e: ChoicesSelected           => e
         case e: ChoicesAvailable          => e
       }
@@ -130,6 +130,6 @@ object ConcatFormatSubstituter {
     }
 }
 
-case class ConcatFormatSubstitutions(concatFormatFunction: Concat => String) {
-  def formatConcat(conc: Concat): String = concatFormatFunction(conc)
+case class ConcatFormatSubstitutions(concatFormatFunction: Expr => String) {
+  def formatConcat(conc: Expr): String = concatFormatFunction(conc)
 }

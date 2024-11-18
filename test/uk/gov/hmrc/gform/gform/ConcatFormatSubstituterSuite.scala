@@ -38,12 +38,12 @@ class ConcatFormatSubstituterSuite extends FunSuite with VariadicFormDataSupport
       ("expr", "concatFormatFunction", "expected"),
       (
         IfElse(IsFalse, Constant("1"), Concat(List(Constant("1000")))),
-        (_: Concat) => "1.000",
+        (_: Expr) => "1.000",
         IfElse(IsFalse, Constant("1"), Constant("1.000"))
       ),
       (
         IfElse(IsFalse, Constant("1"), Constant("2")),
-        (_: Concat) => "nothing",
+        (_: Expr) => "nothing",
         IfElse(IsFalse, Constant("1"), Constant("2"))
       )
     )

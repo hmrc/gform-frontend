@@ -70,7 +70,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case Concat(exprs)                         => Concat(exprs.map(expandExpr))
     case CountryOfItmpAddress                  => expr
     case ChoicesRevealedField(formComponentId) => ChoicesRevealedField(expandFcId(formComponentId))
-    case ChoiceLabel(formComponentId)          => ChoiceLabel(expandFcId(formComponentId))
+    case ChoiceLabel(exprs)                    => ChoiceLabel(exprs.map(expandExpr))
     case ChoicesSelected(formComponentId)      => ChoicesSelected(expandFcId(formComponentId))
     case ChoicesAvailable(formComponentId)     => ChoicesAvailable(expandFcId(formComponentId))
   }
