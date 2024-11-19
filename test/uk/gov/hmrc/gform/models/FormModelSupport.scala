@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToF
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, Section }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 
 trait FormModelSupport extends GraphSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -87,7 +87,7 @@ trait FormModelSupport extends GraphSpec {
     formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
     role = Role.Customer,
     accessCode = maybeAccessCode,
-    LocalisedLookupOptions(Map())
+    new LookupRegistry(Map())
   )
 
   def mkFormModelBuilder(formTemplate: FormTemplate): FormModelBuilder[Throwable, Id] =
@@ -99,7 +99,7 @@ trait FormModelSupport extends GraphSpec {
       maybeAccessCode,
       recalculation,
       FormComponentIdToFileIdMapping.empty,
-      LocalisedLookupOptions(Map())
+      new LookupRegistry(Map())
     )
 
   def mkFormModelOptics(

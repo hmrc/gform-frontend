@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, FormModel, FormModelBuilder, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.monoidHtml
@@ -59,7 +59,7 @@ class AddressLookupController(
   formControllerRequestHandler: FormControllerRequestHandler,
   validationService: ValidationService,
   fastForwardService: FastForwardService,
-  lookupOptions: LocalisedLookupOptions
+  lookupRegistry: LookupRegistry
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -790,7 +790,7 @@ class AddressLookupController(
       maybeAccessCode,
       recalculation,
       FormComponentIdToFileIdMapping.empty,
-      lookupOptions
+      lookupRegistry
     )
 
     val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]

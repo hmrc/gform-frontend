@@ -151,6 +151,11 @@ case class FormModel[A <: PageMode](
     fc.id.baseComponentId
   }.toSet
 
+  val lookupRegister: Map[BaseComponentId, Register] = allFormComponents.collect {
+    case fc @ HasLookupRegister(register) =>
+      fc.id.baseComponentId -> register
+  }.toMap
+
   val postcodeLookup: Set[BaseComponentId] = allFormComponents.collect { case fc @ IsPostcodeLookup(_) =>
     fc.modelComponentId.toAtomicFormComponentId(PostcodeLookup.postcode).baseComponentId
   }.toSet

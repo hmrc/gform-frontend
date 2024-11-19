@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
@@ -62,7 +62,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      LocalisedLookupOptions(Map())
+      new LookupRegistry(Map())
     )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =

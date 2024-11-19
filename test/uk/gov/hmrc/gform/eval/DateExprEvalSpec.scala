@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.gform.eval
 
-import java.time.LocalDate
-
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDateConstructExpr, evalDateExpr }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, OptionResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExprValue
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DateProjection.Year
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateConstructExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateFunction, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleEvaluationContext, VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateExprWithOffset, DateFormCtxVar, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
+
+import java.time.LocalDate
 
 class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleEvaluationContext {
 
@@ -141,6 +141,58 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
       )(DateExprWithOffset(DateValueExpr(exactDate), offset))
 
       val expected = DateResult(localDate)
+      actual shouldBe expected
+    }
+  }
+
+  it should "evaluate a date construct function" in {
+    val formComponentId = FormComponentId("taxYear")
+    val todayYear = LocalDate.now().getYear
+
+    val table = Table(
+      ("dateConstructExpr", "actual", "expected"),
+      (
+        DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
+        StringResult("2020"),
+        Some(DateResult(LocalDate.of(2020, 2, 1)))
+      ),
+      (
+        DateConstructExpr(
+          DateValueExpr(ExactDateExprValue(1900, 2, 1)),
+          DateFunction(Year(DateValueExpr(TodayDateExprValue)))
+        ),
+        ExpressionResult.empty,
+        Some(DateResult(LocalDate.of(todayYear, 2, 1)))
+      ),
+      (
+        DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
+        DateResult(LocalDate.of(2016, 10, 10)),
+        Some(DateResult(LocalDate.of(2016, 2, 1)))
+      ),
+      (
+        DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
+        NumberResult(2021),
+        Some(DateResult(LocalDate.of(2021, 2, 1)))
+      ),
+      (
+        DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
+        OptionResult(Seq("2022")),
+        Some(DateResult(LocalDate.of(2022, 2, 1)))
+      ),
+      (
+        DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
+        StringResult("BAD"),
+        None
+      )
+    )
+    forAll(table) { (dExpr: DateConstructExpr, exprResult: ExpressionResult, expected: Option[DateResult]) =>
+      val actual = evalDateConstructExpr(
+        RecData[OutOfDate](VariadicFormData.empty),
+        evaluationContext,
+        EvaluationResults.one(FormCtx(formComponentId), exprResult),
+        booleanExprResolver
+      )(dExpr)
+
       actual shouldBe expected
     }
   }

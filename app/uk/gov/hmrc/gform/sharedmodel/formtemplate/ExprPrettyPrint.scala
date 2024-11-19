@@ -77,8 +77,7 @@ object ExprPrettyPrint {
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value
     case DataRetrieveCtx(_, _)         => "Data retrieve"
     case DataRetrieveCount(_)          => "Data retrieve count"
-    case CsvCountryCheck(_, _)         => "Country check"
-    case CsvOverseasCountryCheck(_, _) => "Overseas country check"
+    case LookupColumn(_, _)            => "Lookup column check"
     case CsvCountryCountCheck(_, _, _) => "Country count"
     case Size(_, _)                    => "Size"
     case Typed(e, _)                   => "Typed"
@@ -130,6 +129,11 @@ object ExprPrettyPrint {
     case DateProjection.Year(dateExpr)  => prettyPrintDateExpr(dateExpr)
   }
 
+  def prettyPrintDateConstructExpr(dayMonthExpr: DateExpr, expr: Expr): String =
+    "date constructed from d/m from (" + prettyPrintDateExpr(
+      dayMonthExpr
+    ) + ") and year from (" + expr.prettyPrint + ")"
+
   def prettyPrintDateExpr(dateExpr: DateExpr): String = dateExpr match {
     case DateValueExpr(dateExprValue)                           => prettyPrintDateExprValue(dateExprValue)
     case DateFormCtxVar(FormCtx(formComponentId))               => "date from " + formComponentId.value + " component"
@@ -139,6 +143,7 @@ object ExprPrettyPrint {
     case DataRetrieveDateCtx(_, _)                                           => "data retrieve date"
     case DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) => "???"
     case DateOrElse(field1: DateExpr, field2: DateExpr)                      => "???"
+    case DateConstructExpr(d, y)                                             => prettyPrintDateConstructExpr(d, y)
   }
 
   def prettyPrintDateExprValue(dateExprValue: DateExprValue): String = dateExprValue match {

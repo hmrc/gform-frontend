@@ -44,8 +44,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case LinkCtx(PageLink(id))                 => LinkCtx(PageLink(id.withIndex(index)))
     case DataRetrieveCtx(id, attribute)        => DataRetrieveCtx(id.withIndex(index), attribute)
     case DataRetrieveCount(id)                 => DataRetrieveCount(id.withIndex(index))
-    case CsvCountryCheck(formComponentId, c)   => CsvCountryCheck(expandFcId(formComponentId), c)
-    case CsvOverseasCountryCheck(fcId, c)      => CsvOverseasCountryCheck(expandFcId(fcId), c)
+    case LookupColumn(fcId, c)                 => LookupColumn(expandFcId(fcId), c)
     case CsvCountryCountCheck(fcId, c, v)      => CsvCountryCountCheck(expandFcId(fcId), c, v)
     case Size(formComponentId, index)          => Size(expandFcId(formComponentId), index)
     case Typed(expr, tpe)                      => Typed(expandExpr(expr), tpe)
@@ -84,6 +83,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
     case DateFormCtxVar(formCtx)             => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dateExr, offset) => DateExprWithOffset(expandDateExpr(dateExr), offset)
+    case DateConstructExpr(dm, year)         => DateConstructExpr(expandDateExpr(dm), expandExpr(year))
     case otherwise                           => otherwise
   }
 

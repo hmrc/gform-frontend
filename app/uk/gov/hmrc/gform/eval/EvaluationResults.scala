@@ -19,28 +19,25 @@ package uk.gov.hmrc.gform.eval
 import cats.Monoid
 import cats.syntax.eq._
 import play.api.i18n.Messages
-
-import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.DateExprEval.{ evalDataRetrieveDate, evalDateExpr }
-import uk.gov.hmrc.gform.gform.AuthContextPrepop
-import uk.gov.hmrc.gform.gform.{ Substituter, SummarySubstituter, SummarySubstitutions }
+import uk.gov.hmrc.gform.gform.SummarySubstituter._
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, Substituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupLabel, LookupOptions }
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, LangADT, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
-import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupOptions }
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
-import SummarySubstituter._
+
+import scala.util.Try
 
 case class EvaluationResults(
   exprMap: Map[Expr, ExpressionResult],
@@ -366,15 +363,9 @@ case class EvaluationResults(
       case d @ DataRetrieveCount(_) =>
         val count = getDataRetrieveCount(evaluationContext, d).getOrElse(0)
         NumberResult(count)
-      case CsvCountryCheck(_, _)         => unsupportedOperation("Number")(expr)
-      case CsvOverseasCountryCheck(_, _) => unsupportedOperation("Number")(expr)
+      case LookupColumn(_, _) => unsupportedOperation("Number")(expr)
       case CsvCountryCountCheck(fcId, column, value) =>
-        val count = addToListValues(fcId, recData).count(str =>
-          countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
-            case StringResult(r) => r === value
-            case _               => false
-          }
-        )
+        val count = evalLookupColumnCount(fcId, column, value, evaluationContext, recData)
         NumberResult(count)
       case Size(formComponentId, index) => evalSize(formComponentId, recData, index)
       case Typed(expr, tpe)             => evalTyped(loop(expr), tpe)
@@ -671,33 +662,29 @@ case class EvaluationResults(
             )
           case _ => loop(expr)
         }
-      case CsvCountryCheck(fcId, column) =>
-        loop(FormCtx(fcId)) match {
-          case StringResult(value) =>
-            countryLookup(value, column, evaluationContext.lookupOptions, evaluationContext.lang)
-          case _ => Empty
-        }
 
-      case CsvOverseasCountryCheck(fcId, column) if evaluationContext.overseasAddressLookup(fcId.baseComponentId) =>
+      case LookupColumn(fcId, column) if evaluationContext.overseasAddressLookup(fcId.baseComponentId) =>
         whenVisible(fcId) {
           val indexedComponentId = fcId.modelComponentId.indexedComponentId
           val addressAtoms: List[ModelComponentId.Atomic] = OverseasAddress.fields(indexedComponentId).toList
           val variadicValues: List[Option[VariadicValue]] =
             addressAtoms.filter(_.atom === OverseasAddress.country).map(atom => recData.variadicFormData.get(atom))
+          val lookupOptions = evaluationContext.lookupRegistry
+            .get(Register.Country)
+            .collect { case uk.gov.hmrc.gform.lookup.AjaxLookup(lookupOptions, _, _) => lookupOptions }
+            .get
           variadicValues
             .collectFirst { case Some(VariadicValue.One(value)) if value.nonEmpty => value }
-            .map(country => countryLookup(country, column, evaluationContext.lookupOptions, evaluationContext.lang))
+            .map(country => evalLookup(country, column, lookupOptions, evaluationContext.lang))
             .getOrElse(Empty)
         }
-      case CsvOverseasCountryCheck(fcId, column) => Empty
+      case LookupColumn(fcId, column) =>
+        whenVisible(fcId) {
+          evalLookupColumn(fcId, column, evaluationContext)
+        }
       case CsvCountryCountCheck(fcId, column, value) =>
-        val count = addToListValues(fcId, recData).count(str =>
-          countryLookup(str, column, evaluationContext.lookupOptions, evaluationContext.lang) match {
-            case StringResult(r) => r === value
-            case _               => false
-          }
-        )
-        StringResult(s"$count")
+        val count = evalLookupColumnCount(fcId, column, value, evaluationContext, recData)
+        StringResult(count.toString)
       case IndexOf(fcId, index) =>
         loop(FormCtx(fcId)) match {
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
@@ -736,6 +723,53 @@ case class EvaluationResults(
 
     loop(typeInfo.expr)
   }
+
+  private def evalLookupColumn(
+    fcId: FormComponentId,
+    column: String,
+    evaluationContext: EvaluationContext
+  ): ExpressionResult =
+    evaluationContext.lookupRegister
+      .get(fcId.baseComponentId)
+      .map { register =>
+        val variadicValues = recData.variadicFormData.get(fcId.modelComponentId)
+        variadicValues
+          .collectFirst { case VariadicValue.One(value) if value.nonEmpty => value }
+          .map { lookup =>
+            val lookupOptions = evaluationContext.lookupRegistry
+              .get(register)
+              .collect { case uk.gov.hmrc.gform.lookup.AjaxLookup(lookupOptions, _, _) => lookupOptions }
+              .get
+            evalLookup(lookup, column, lookupOptions, evaluationContext.lang)
+          }
+          .getOrElse(Empty)
+      }
+      .getOrElse(Empty)
+
+  private def evalLookupColumnCount(
+    fcId: FormComponentId,
+    column: String,
+    value: String,
+    evaluationContext: EvaluationContext,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): Int =
+    evaluationContext.lookupRegister
+      .get(fcId.baseComponentId)
+      .flatMap { register =>
+        val count = addToListValues(fcId, recData).count { str =>
+          val lookupOptions = evaluationContext.lookupRegistry
+            .get(register)
+            .collect { case uk.gov.hmrc.gform.lookup.AjaxLookup(lookupOptions, _, _) => lookupOptions }
+            .get
+
+          evalLookup(str, column, lookupOptions, evaluationContext.lang) match {
+            case StringResult(r) => r === value
+            case _               => false
+          }
+        }
+        Some(count)
+      }
+      .getOrElse(0)
 
   private def computePageLink(forPageId: PageId, evaluationContext: EvaluationContext) = {
     val forModelPageId = forPageId.modelPageId
@@ -882,7 +916,7 @@ case class EvaluationResults(
     }
   }
 
-  private def countryLookup(
+  private def evalLookup(
     value: String,
     column: String,
     lookupOptions: LocalisedLookupOptions,
@@ -928,7 +962,7 @@ case class EvaluationResults(
     StringResult(concatValue)
   }
 
-  private def typeInfoForExpr(
+  def typeInfoForExpr(
     expr: Expr,
     evaluationContext: EvaluationContext
   ): TypeInfo =

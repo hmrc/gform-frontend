@@ -267,6 +267,14 @@ object IsTelephone {
     }
 }
 
+object HasLookupRegister {
+  def unapply(fc: FormComponent): Option[Register] =
+    fc.`type` match {
+      case Text(Lookup(register, _), _, _, _, _, _, _) => Some(register)
+      case _                                           => None
+    }
+}
+
 object HasDynamicChoice {
   def unapply(fc: FormComponent): Option[(FormComponentId, Set[BaseComponentId])] =
     fc.`type` match {

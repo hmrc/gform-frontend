@@ -59,8 +59,7 @@ object ConcatFormatSubstituter {
         case e: AddressLens               => e
         case e: DataRetrieveCtx           => e
         case e: DataRetrieveCount         => e
-        case e: CsvCountryCheck           => e
-        case e: CsvOverseasCountryCheck   => e
+        case e: LookupColumn              => e
         case e: CsvCountryCountCheck      => e
         case e: Size                      => e
         case Typed(e, tpe)                => Typed(substitute(substitutions, e), tpe)
@@ -112,6 +111,7 @@ object ConcatFormatSubstituter {
         case DateExprWithOffset(dExpr, o)                 => DateExprWithOffset(substitute(substitutions, dExpr), o)
         case HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo) => HmrcTaxPeriodCtx(formCtx, hmrcTaxPeriodInfo)
         case d @ DataRetrieveDateCtx(_, _)                => d
+        case DateConstructExpr(dm, year)                  => DateConstructExpr(dm, year(substitutions))
         case DateIfElse(ifElse, field1, field2) =>
           DateIfElse(ifElse(substitutions), substitute(substitutions, field1), substitute(substitutions, field2))
         case DateOrElse(field1, field2) =>

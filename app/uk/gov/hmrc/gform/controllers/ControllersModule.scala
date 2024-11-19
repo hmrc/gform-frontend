@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.lookup.LocalisedLookupOptions
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 import scala.concurrent.ExecutionContext
@@ -36,7 +36,7 @@ class ControllersModule(
   builtInComponents: BuiltInComponents,
   errResponder: ErrResponder,
   graphModule: GraphModule,
-  lookupOptions: LocalisedLookupOptions
+  lookupRegistry: LookupRegistry
 )(implicit
   ec: ExecutionContext
 ) {
@@ -59,7 +59,7 @@ class ControllersModule(
     errResponder,
     graphModule.recalculation,
     graphModule.smartStringEvaluatorFactory,
-    lookupOptions
+    lookupRegistry
   )
 
   val messagesControllerComponents: MessagesControllerComponents = DefaultMessagesControllerComponents(
