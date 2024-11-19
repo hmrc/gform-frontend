@@ -71,7 +71,6 @@ object FormComponentIdSubstituter {
         case Concat(exprs)                => Concat(exprs.map(substitute(substitutions, _)))
         case CountryOfItmpAddress         => CountryOfItmpAddress
         case ChoicesRevealedField(fcId)   => ChoicesRevealedField(substitutions.updateFormComponentId(fcId))
-        case ChoiceLabel(exprs)           => ChoiceLabel(exprs.map(substitute(substitutions, _)))
         case ChoicesSelected(fcId)        => ChoicesSelected(substitutions.updateFormComponentId(fcId))
         case ChoicesAvailable(fcId)       => ChoicesAvailable(substitutions.updateFormComponentId(fcId))
       }

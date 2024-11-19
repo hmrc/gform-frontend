@@ -89,7 +89,6 @@ object ExprPrettyPrint {
     case Concat(_)                     => "Concat"
     case CountryOfItmpAddress          => "CountryOfItmpAddress"
     case ChoicesRevealedField(_)       => "ChoicesRevealedField"
-    case ChoiceLabel(_)                => "ChoiceLabel"
     case ChoicesSelected(_)            => "ChoicesSelected"
     case ChoicesAvailable(_)           => "ChoicesAvailable"
   }

@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, ChoiceLabel, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IsFalse, Number, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IsFalse, Number, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -625,48 +625,5 @@ class RealSmartStringEvaluatorFactorySpec
       )
 
     result shouldBe "Smart string result = £1,000.00"
-  }
-
-  "evaluate SmartString using ChoiceLabel function with choice component" in new TestFixture {
-    lazy val choiceField: FormComponent = buildFormComponent(
-      "choiceField",
-      Choice(
-        Radio,
-        toOptionData(NonEmptyList.of("Yes", "No")),
-        Horizontal,
-        List.empty,
-        None,
-        None,
-        None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
-        None,
-        None,
-        false
-      ),
-      None
-    )
-    override lazy val form: Form =
-      buildForm(
-        FormData(
-          List(
-            FormField(choiceField.modelComponentId, "0")
-          )
-        )
-      )
-    override lazy val formTemplate: FormTemplate = buildFormTemplate(
-      destinationList,
-      sections = List(nonRepeatingPageSection(title = "page1", fields = List(choiceField)))
-    )
-
-    val result: String = smartStringEvaluator
-      .apply(
-        toSmartStringExpression(
-          "Smart string {0}",
-          ChoiceLabel(List(Constant("result = "), FormCtx(FormComponentId("choiceField"))))
-        ),
-        false
-      )
-
-    result shouldBe "Smart string result = Yes"
   }
 }

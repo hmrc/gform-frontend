@@ -385,7 +385,6 @@ case class EvaluationResults(
       case Concat(_)                        => unsupportedOperation("Number")(expr)
       case CountryOfItmpAddress             => unsupportedOperation("Number")(expr)
       case ChoicesRevealedField(_)          => unsupportedOperation("Number")(expr)
-      case ChoiceLabel(_)                   => unsupportedOperation("Number")(expr)
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
@@ -717,7 +716,6 @@ case class EvaluationResults(
           StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
         )
       case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
-      case ChoiceLabel(exprs)         => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
       case _                          => unsupportedOperation("String")(expr)
     }
 
