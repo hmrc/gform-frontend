@@ -1062,7 +1062,6 @@ trait ExampleFrontendAppConfig {
       uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguageDataChange,
     routeToSwitchLanguageNoDataChange =
       uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguageNoDataChange,
-    optimizelyUrl = None,
     trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
     emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com")),
     accessibilityStatementConfig = new AccessibilityStatementConfig(context.initialConfiguration),

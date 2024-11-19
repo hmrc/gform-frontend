@@ -98,10 +98,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       availableLanguages = availableLanguages,
       routeToSwitchLanguageDataChange = routeToSwitchLanguageDataChange,
       routeToSwitchLanguageNoDataChange = routeToSwitchLanguageNoDataChange,
-      optimizelyUrl = for {
-        url       <- playConfiguration.getOptional[String]("optimizely.url")
-        projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
-      } yield s"$url$projectId.js",
       trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration)),
       emailAuthStaticCodeEmails =
         getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails")),

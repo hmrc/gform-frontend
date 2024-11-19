@@ -37,7 +37,6 @@ case class FrontendAppConfig(
   availableLanguages: Map[String, Lang],
   routeToSwitchLanguageDataChange: (FormTemplateId, Option[AccessCode], String) => play.api.mvc.Call,
   routeToSwitchLanguageNoDataChange: String => play.api.mvc.Call,
-  optimizelyUrl: Option[String],
   trackingConsentSnippet: HmrcTrackingConsentSnippet,
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
   accessibilityStatementConfig: AccessibilityStatementConfig,
