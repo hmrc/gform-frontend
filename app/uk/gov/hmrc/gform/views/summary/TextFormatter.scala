@@ -85,7 +85,7 @@ object TextFormatter {
       // format: on
     }
 
-  private def stripDecimal(currentValue: String): String =
+  def stripDecimal(currentValue: String): String =
     if (currentValue.contains(".")) {
       currentValue.substring(0, currentValue.indexOf('.'))
     } else {

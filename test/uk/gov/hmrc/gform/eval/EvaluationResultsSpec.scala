@@ -676,6 +676,17 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         evaluationContext,
         Empty,
         "Be empty when no credential role is found"
+      ),
+      (
+        TypeInfo(HideZeroDecimals(FormCtx(FormComponentId("numberField"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("numberField"), VariadicValue.One("100000.00"))
+          )
+        ),
+        evaluationContext,
+        StringResult("100000"),
+        "Should format without trailing zeros"
       )
     )
     forAll(table) {

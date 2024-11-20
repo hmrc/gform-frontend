@@ -463,12 +463,23 @@ case class EvaluationResults(
       ExpressionResult.AddressResult(addressLines)
     }
 
+    def formatWithoutTrailingZeros(expr: Expr): ExpressionResult = {
+      val stringResult = loop(expr).stringRepresentation(typeInfo, m)
+      val parts = stringResult.split("\\.")
+      val formatted =
+        if (parts.length == 2 && parts(1).forall(_ == '0'))
+          TextFormatter.stripDecimal(stringResult)
+        else
+          stringResult
+      nonEmptyStringResult(StringResult(formatted))
+    }
+
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
       case Subtraction(field1: Expr, field2: Expr) => unsupportedOperation("String")(expr)
       case Divide(field1: Expr, field2: Expr)      => unsupportedOperation("String")(expr)
-      case HideZeroDecimals(field1)                => loop(field1)
+      case HideZeroDecimals(field1: Expr)          => formatWithoutTrailingZeros(field1)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
