@@ -106,7 +106,7 @@ class TaskListRenderingService(
                 href = taskUrl(coordinates, status)
               )
           }
-          TaskListView(taskSection.title, TaskList(taskListItems))
+          TaskListView(taskSection.title, TaskList(items = taskListItems, idPrefix = s"task-list-$taskSectionIndex"))
       }
 
       val submitSection = formTemplate.submitSection.map { submitSection =>
@@ -126,7 +126,7 @@ class TaskListRenderingService(
           status = taskListStatus(status),
           href = href
         )
-        TaskListView(submitSection.label, new TaskList(List(taskListItem)))
+        TaskListView(submitSection.label, new TaskList(items = List(taskListItem), idPrefix = "submit-section"))
       }
 
       val taskListViews = taskLists ++ submitSection
