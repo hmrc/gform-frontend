@@ -71,7 +71,6 @@ object ConcatFormatSubstituter {
         case e: Concat                    => Constant(substitutions.formatConcat(e))
         case CountryOfItmpAddress         => CountryOfItmpAddress
         case e: ChoicesRevealedField      => e
-        case e: ChoiceLabel               => e
         case e: ChoicesSelected           => e
         case e: ChoicesAvailable          => e
       }

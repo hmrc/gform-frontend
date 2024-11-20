@@ -385,7 +385,6 @@ case class EvaluationResults(
       case Concat(_)                        => unsupportedOperation("Number")(expr)
       case CountryOfItmpAddress             => unsupportedOperation("Number")(expr)
       case ChoicesRevealedField(_)          => unsupportedOperation("Number")(expr)
-      case ChoiceLabel(_)                   => unsupportedOperation("Number")(expr)
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
@@ -728,7 +727,6 @@ case class EvaluationResults(
           StringResult(itmpRetrievals.flatMap(_.itmpAddress).flatMap(_.countryName).getOrElse(""))
         )
       case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
-      case ChoiceLabel(fcId)          => evalChoiceLabel(evaluationContext, fcId, booleanExprResolver, recData)
       case _                          => unsupportedOperation("String")(expr)
     }
 
@@ -1011,37 +1009,6 @@ case class EvaluationResults(
       booleanExprResolver,
       evaluationContext
     ).stringRepresentation(typeInfo, evaluationContext.messages)
-  }
-
-  private def evalChoiceLabel(
-    evaluationContext: EvaluationContext,
-    fcId: FormComponentId,
-    booleanExprResolver: BooleanExprResolver,
-    recData: RecData[SourceOrigin.OutOfDate]
-  ) = {
-    val maybeChoiceM: Option[Map[String, SmartString]] = evaluationContext.choiceLookup
-      .get(fcId.modelComponentId)
-      .map(_.toList.zipWithIndex.collect {
-        case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
-          value -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr)), _) =>
-          evalExprAsString(expr, evaluationContext, booleanExprResolver, recData) -> label
-      }.toMap)
-
-    val result = recData.variadicFormData
-      .many(fcId.modelComponentId)
-      .map(
-        _.map(value =>
-          maybeChoiceM.fold("")(choiceM =>
-            choiceM(value).rawValue(booleanExprResolver.resolve(_))(evaluationContext.lang)
-          )
-        )
-          .mkString("")
-      )
-      .getOrElse("")
-
-    StringResult(result)
   }
 
   def evalExpr(

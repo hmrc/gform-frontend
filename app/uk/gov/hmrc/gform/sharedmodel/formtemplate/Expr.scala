@@ -82,7 +82,6 @@ sealed trait Expr extends Product with Serializable {
       case Concat(_)                               => expr :: Nil
       case CountryOfItmpAddress                    => expr :: Nil
       case ChoicesRevealedField(_)                 => expr :: Nil
-      case ChoiceLabel(_)                          => expr :: Nil
       case ChoicesSelected(_)                      => expr :: Nil
       case ChoicesAvailable(_)                     => expr :: Nil
 
@@ -142,7 +141,6 @@ sealed trait Expr extends Product with Serializable {
     case Concat(exprs)                            => exprs.flatMap(_.leafs(formModel))
     case CountryOfItmpAddress                     => this :: Nil
     case ChoicesRevealedField(formComponentId)    => FormCtx(formComponentId) :: Nil
-    case ChoiceLabel(formComponentId)             => FormCtx(formComponentId) :: Nil
     case ChoicesSelected(formComponentId)         => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)        => FormCtx(formComponentId) :: Nil
   }
@@ -188,7 +186,6 @@ sealed trait Expr extends Product with Serializable {
     case Concat(_)                                => Nil
     case CountryOfItmpAddress                     => Nil
     case ChoicesRevealedField(_)                  => Nil
-    case ChoiceLabel(_)                           => Nil
     case ChoicesSelected(_)                       => Nil
     case ChoicesAvailable(_)                      => Nil
   }
@@ -235,7 +232,6 @@ sealed trait Expr extends Product with Serializable {
     case Concat(exprs)                             => exprs.flatMap(_.leafs())
     case CountryOfItmpAddress                      => this :: Nil
     case ChoicesRevealedField(formComponentId)     => FormCtx(formComponentId) :: Nil
-    case ChoiceLabel(formComponentId)              => FormCtx(formComponentId) :: Nil
     case ChoicesSelected(formComponentId)          => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)         => FormCtx(formComponentId) :: Nil
   }
@@ -282,7 +278,6 @@ final case class StringOps(field1: Expr, stringFnc: StringFnc) extends Expr
 final case class Concat(exprs: List[Expr]) extends Expr
 final case object CountryOfItmpAddress extends Expr
 final case class ChoicesRevealedField(formComponentId: FormComponentId) extends Expr
-final case class ChoiceLabel(formComponentId: FormComponentId) extends Expr
 final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
 final case class ChoicesAvailable(formComponentId: FormComponentId) extends Expr
 

@@ -102,7 +102,6 @@ object SummarySubstituter {
       case Concat(exprs)                => Concat(exprs.map(substitute(substitutions, _)))
       case CountryOfItmpAddress         => CountryOfItmpAddress
       case e: ChoicesRevealedField      => e
-      case e: ChoiceLabel               => e
       case e: ChoicesSelected           => e
       case e: ChoicesAvailable          => e
     }

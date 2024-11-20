@@ -131,8 +131,7 @@ private class Executor(
                   .mkString(", ")
               }
               .getOrElse("")
-          case ChoiceLabel(fcId) => evalChoice(fcId, typeInfo, markDown)
-          case _                 => stringRepresentation(typeInfo)
+          case _ => stringRepresentation(typeInfo)
         }
     }
 
