@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.models.{ DataExpanded, EnteredVariadicFormData, ExpandU
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber, TimeFormat }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Date, FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber, TimeFormat }
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.validation.{ PostcodeLookupValidation, TextChecker, TimeFormatter }
 
@@ -234,6 +234,13 @@ object FormDataHelpers {
       case Some(formComponent) if formComponent.isNino   => value.toUpperCase.trim
       case Some(formComponent) if formComponent.isEORI   => value.toUpperCase.trim
       case Some(formComponent) if formComponent.isUkEORI => value.toUpperCase.trim
+      case None if formComponentId.modelComponentId.fold(_ => false)({
+            case ModelComponentId.Atomic(_, Date.day)   => true
+            case ModelComponentId.Atomic(_, Date.month) => true
+            case ModelComponentId.Atomic(_, Date.year)  => true
+            case _                                      => false
+          }) =>
+        value.replaceAll(" ", "")
       case None
           if formModel
             .addressLookup(formComponentId.baseComponentId) && formComponentId.modelComponentId.fold(_ => false)({
