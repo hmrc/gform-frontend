@@ -154,7 +154,8 @@ case class FormComponent(
 
   def hideOnSummary: Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) ||
-      IsInformationMessage.unapply(this).isDefined || !displayInSummary.getOrElse(true)
+      IsInformationMessage.unapply(this).fold(false)(info => info.summaryValue.isEmpty) ||
+      !displayInSummary.getOrElse(true)
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 

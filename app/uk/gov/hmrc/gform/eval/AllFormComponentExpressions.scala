@@ -79,8 +79,8 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
           hints.fold(List.empty[Expr])(fromNel),
           optionHelpText.fold(List.empty[Expr])(fromNel)
         )
-      case IsInformationMessage(InformationMessage(_, infoText)) =>
-        toPlainExprs(infoText.allInterpolations)
+      case IsInformationMessage(InformationMessage(_, infoText, valueSummary)) =>
+        toPlainExprs(infoText.allInterpolations, valueSummary.fold(List.empty[Expr])(_.allInterpolations))
       case HasExpr(expr) => toPlainExprs(expr :: Nil)
       case IsMiniSummaryList(MiniSummaryList(rows, _, _)) =>
         toPlainExprs(

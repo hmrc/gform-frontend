@@ -139,16 +139,20 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     includeIf = formComponent.includeIf.map(expandIncludeIf),
     validIf = formComponent.validIf.map(expandValidIf),
     `type` = formComponent.`type` match {
-      case t: Text               => expandText(t)
-      case t: TextArea           => t.copy(value = expandExpr(t.value))
-      case t: HmrcTaxPeriod      => t.copy(idNumber = expandExpr(t.idNumber))
-      case t: Choice             => expandChoice(t)
-      case t: RevealingChoice    => expandRevealingChoice(t)
-      case t: Group              => expandGroup(t)
-      case t: InformationMessage => t.copy(infoText = expandSmartString(t.infoText))
-      case t: MiniSummaryList    => expandSummaryList(t)
-      case t: TableComp          => expandTableComp(t)
-      case otherwise             => otherwise
+      case t: Text            => expandText(t)
+      case t: TextArea        => t.copy(value = expandExpr(t.value))
+      case t: HmrcTaxPeriod   => t.copy(idNumber = expandExpr(t.idNumber))
+      case t: Choice          => expandChoice(t)
+      case t: RevealingChoice => expandRevealingChoice(t)
+      case t: Group           => expandGroup(t)
+      case t: InformationMessage =>
+        t.copy(
+          infoText = expandSmartString(t.infoText),
+          summaryValue = t.summaryValue.fold[Option[SmartString]](None)(sv => Some(expandSmartString(sv)))
+        )
+      case t: MiniSummaryList => expandSummaryList(t)
+      case t: TableComp       => expandTableComp(t)
+      case otherwise          => otherwise
     },
     label = expandSmartString(formComponent.label),
     helpText = formComponent.helpText.map(expandSmartString),

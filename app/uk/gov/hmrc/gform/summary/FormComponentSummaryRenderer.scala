@@ -200,8 +200,20 @@ object FormComponentSummaryRenderer {
           keyDisplayWidth
         )
 
-      case IsInformationMessage(_) =>
-        List(SummaryListRow())
+      case IsInformationMessage(infoMessage) =>
+        getInfoMessageSummaryListRows(
+          infoMessage,
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult,
+          envelope,
+          iterationTitle,
+          fastForward,
+          keyDisplayWidth
+        )
 
       case IsTableComp(table) =>
         getTableSummaryListRows(
@@ -1050,6 +1062,57 @@ object FormComponentSummaryRenderer {
           ""
       )
     )
+  }
+
+  private def getInfoMessageSummaryListRows[T <: RenderType](
+    infoMessage: InformationMessage,
+    formComponent: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult,
+    envelope: EnvelopeWithMapping,
+    iterationTitle: Option[String],
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
+  )(implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+    val label = fcrd.label(formComponent)
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+    val viewLabel = messages("summary.view")
+    val keyClasses = getKeyClasses(hasErrors = false, keyDisplayWidth)
+
+    List(
+      summaryListRow(
+        label,
+        Html(infoMessage.summaryValue.getOrElse(infoMessage.infoText).value()),
+        visuallyHiddenText,
+        keyClasses,
+        "",
+        "",
+        List(
+          (
+            uk.gov.hmrc.gform.gform.routes.FormController
+              .form(
+                formTemplateId,
+                maybeAccessCode,
+                sectionNumber,
+                sectionTitle4Ga,
+                SuppressErrors.Yes,
+                fastForward
+              ),
+            viewLabel,
+            iterationTitle.fold(viewLabel + " " + label)(it => viewLabel + " " + it + " " + label)
+          )
+        ),
+        ""
+      )
+    )
+
   }
 
   private def getTableSummaryListRows[T <: RenderType](
