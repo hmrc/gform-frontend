@@ -206,7 +206,8 @@ class TestOnlyController(
   private def formTab(
     formTemplateId: FormTemplateId,
     accessCode: Option[AccessCode],
-    isFormBuilderEnabled: Boolean
+    isFormBuilderEnabled: Boolean,
+    isSpecimen: Boolean
   ): HtmlFormat.Appendable = {
     val returnToSummaryLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "Return to summary page",
@@ -233,6 +234,22 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.getSnapshots(formTemplateId, accessCode, UserInputs())
     )
 
+    val toggleSpecimen = if (isSpecimen) {
+      uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+        "Start non specimen form",
+        routes.NewFormController.dashboard(
+          FormTemplateId(
+            formTemplateId.value.replace("specimen-", "")
+          )
+        )
+      )
+    } else {
+      uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+        "Start specimen form",
+        routes.NewFormController.dashboard(FormTemplateId("specimen-" + formTemplateId.value))
+      )
+    }
+
     val toggleFormBuilder = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       if (isFormBuilderEnabled) "Disable form builder" else "Enable form builder",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.toggleFormBuilder(formTemplateId, accessCode)
@@ -245,6 +262,7 @@ class TestOnlyController(
         viewSourceJsonTemplateLink,
         saveCurrentFormLink,
         restoreFormLink,
+        toggleSpecimen,
         toggleFormBuilder
       )
 
@@ -593,6 +611,7 @@ class TestOnlyController(
       import i18nSupport._
 
       val isFormBuilderEnabled = request.cookies.get(CookieNames.formBuilderCookieName).isDefined
+      val isSpecimen = cache.formTemplate.isSpecimen
 
       val govukTabs = new GovukTabs()(
         Tabs(
@@ -601,7 +620,7 @@ class TestOnlyController(
               id = Some("form"),
               label = "Form",
               panel = TabPanel(
-                content = HtmlContent(formTab(formTemplateId, accessCode, isFormBuilderEnabled))
+                content = HtmlContent(formTab(formTemplateId, accessCode, isFormBuilderEnabled, isSpecimen))
               )
             ),
             TabItem(
