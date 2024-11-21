@@ -41,6 +41,13 @@ object TimeFormatter {
         .replaceAll("P\\.", "P")
         .replaceAll("AM\\.", "AM")
         .replaceAll("PM\\.", "PM")
+        .replaceAll("Y\\.", "Y")
+        .replaceAll("YB\\.", "AM")
+        .replaceAll("YP\\.", "PM")
+        .replace("YB", "AM")
+        .replace("yb", "AM")
+        .replace("YP", "PM")
+        .replace("yp", "PM")
     }
     val patterns = List(
       "H",

@@ -573,7 +573,7 @@ object TextChecker {
                 formattedTime => if (timeStr === "12") formattedTime.replace(":00", "") else formattedTime
               )
             }
-            validationFailure(fieldValue, genericErrorTimeConfusingNoon, placeHolder)
+            validationFailure(fieldValue, genericErrorTimeConfusingNoon, updateTimePeriodLanguage(placeHolder))
           }
         ),
         switchCase(
@@ -582,13 +582,22 @@ object TextChecker {
             val placeHolder = localTime.map(t =>
               List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t))
             )
-            validationFailure(fieldValue, genericErrorTimeConfusingNoonRange, placeHolder)
+            validationFailure(
+              fieldValue,
+              genericErrorTimeConfusingNoonRange,
+              updateTimePeriodLanguage(placeHolder)
+            )
           }
         )
       )(
         elseProgram = successProgram(())
       )
     }
+
+    def updateTimePeriodLanguage(placeholder: Option[List[String]]) =
+      l.fold(_ => placeholder)(_ =>
+        placeholder.map(timeList => timeList.map(timeString => timeString.replace("am", "yb").replace("pm", "yp")))
+      )
 
     def catchAllCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(fieldValue, genericErrorRequired, None),
