@@ -479,8 +479,9 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     val fieldIdList = formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one)
 
     val (day, month, year) = fieldIdList match {
-      case Some(d) :: Some(m) :: Some(y) :: Nil => (Some(d), Some(m), Some(y))
-      case _                                    => (None, None, None)
+      case Some(d) :: Some(m) :: Some(y) :: Nil =>
+        (Some(d.replaceAll(" ", "")), Some(m.replaceAll(" ", "")), Some(y.replaceAll(" ", "")))
+      case _ => (None, None, None)
     }
 
     val dateProgram = (day, month, year)
