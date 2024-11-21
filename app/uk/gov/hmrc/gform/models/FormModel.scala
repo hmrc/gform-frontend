@@ -185,6 +185,11 @@ case class FormModel[A <: PageMode](
     )
   }.toMap
 
+  val constraints: Map[BaseComponentId, TextConstraint] = allFormComponents.collect {
+    case fc @ HasConstraint(constraint) =>
+      fc.id.baseComponentId -> constraint
+  }.toMap
+
   def map[B <: PageMode](
     e: Singleton[A] => Singleton[B]
   )(

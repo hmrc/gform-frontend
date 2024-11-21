@@ -81,6 +81,7 @@ object FormModelOptics {
         Map.empty,
         Set.empty,
         cache.lookupRegistry,
+        Map.empty,
         Map.empty
       )
     FormModelOptics[D](
