@@ -102,7 +102,7 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
 
   it should "return empty options when no selection field does not match any value in lookupOptions" in {
     val result = LookupOptions.filterBySelectionCriteria(
-      List(SimplifiedSelectionCriteria(CsvColumnName("region"), List("region-value"))),
+      List(SimplifiedSelectionCriteria(CsvColumnName("Region"), List("region-value"))),
       countryLookupOptions
     )
     result shouldBe Map.empty
@@ -110,7 +110,7 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
 
   it should "return matching options, when selection field matches corresponding field in given option" in {
     val result = LookupOptions.filterBySelectionCriteria(
-      List(SimplifiedSelectionCriteria(CsvColumnName("region"), List("1"))),
+      List(SimplifiedSelectionCriteria(CsvColumnName("Region"), List("1"))),
       countryLookupOptions
     )
     result shouldBe countryLookupOptions.toList.take(1).toMap
@@ -119,9 +119,9 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
   it should "return matching options, when selection fields(multiple) matches corresponding field in given option" in {
     val result = LookupOptions.filterBySelectionCriteria(
       List(
-        SimplifiedSelectionCriteria(CsvColumnName("region"), List("1")),
-        SimplifiedSelectionCriteria(CsvColumnName("countrycode"), List("GB")),
-        SimplifiedSelectionCriteria(CsvColumnName("porttype"), List("T2"))
+        SimplifiedSelectionCriteria(CsvColumnName("Region"), List("1")),
+        SimplifiedSelectionCriteria(CsvColumnName("CountryCode"), List("GB")),
+        SimplifiedSelectionCriteria(CsvColumnName("PortType"), List("T2"))
       ),
       portLookupOptions
     )

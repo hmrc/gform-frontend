@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform
 
 import com.miguelfonseca.completely.AutocompleteEngine
-import com.miguelfonseca.completely.text.analyze.transform.LowerCaseTransformer
 import kantan.csv._
 import uk.gov.hmrc.gform.gform.csv.CsvUtils
 import uk.gov.hmrc.gform.lookup._
@@ -330,22 +329,22 @@ class LookupLoader {
   private def mkRadioLookup(m: LocalisedLookupOptions): RadioLookup = RadioLookup(m)
 
   // format: off
-  private val cashType                 = read("BCD-CashType.csv",                 "ID",           "en",   "cy",   mkRadioLookup)
-  private val intent                   = read("BCD-Intent.csv",                   "ID",           "en",   "cy",   mkRadioLookup)
-  private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", "Name", mkRadioLookup)
-  private val transportMode            = read("BCD-TransportMode.csv",            "ID",           "Name", "Name", mkRadioLookup)
-  private val intentBuyingWhat         = read("BCD-IntentBuyingWhat.csv",         "id",           "en",   "cy",   mkRadioLookup)
-  private val intentBigPurchase        = read("BCD-IntentBigPurchase.csv",        "id",           "en",   "cy",   mkRadioLookup)
-  private val intentLivingCostsAndFees = read("BCD-IntentLivingCostsAndFees.csv", "id",           "en",   "cy",   mkRadioLookup)
-  private val intentBusiness           = read("BCD-IntentBusiness.csv",           "id",           "en",   "cy",   mkRadioLookup)
-  private val intentOther              = read("BCD-IntentOther.csv",              "id",           "en",   "cy",   mkRadioLookup)
-  private val originWho                = read("BCD-OriginWho.csv",                "id",           "en",   "cy",   mkRadioLookup)
-  private val originSellingSomething   = read("BCD-OriginSellingSomething.csv",   "id",           "en",   "cy",   mkRadioLookup)
-  private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "en",   "cy",   mkRadioLookup)
-  private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "en",   "cy",   mkRadioLookup)
-  private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
+  private val cashType                 = read("BCD-CashType.csv",                 "Id",           "En",   "Cy",   mkRadioLookup)
+  private val intent                   = read("BCD-Intent.csv",                   "Id",           "En",   "Cy",   mkRadioLookup)
+  private val intercept                = read("BCD-Intercept.csv",                "Id",           "Name", "Name", mkRadioLookup)
+  private val transportMode            = read("BCD-TransportMode.csv",            "Id",           "Name", "Name", mkRadioLookup)
+  private val intentBuyingWhat         = read("BCD-IntentBuyingWhat.csv",         "Id",           "En",   "Cy",   mkRadioLookup)
+  private val intentBigPurchase        = read("BCD-IntentBigPurchase.csv",        "Id",           "En",   "Cy",   mkRadioLookup)
+  private val intentLivingCostsAndFees = read("BCD-IntentLivingCostsAndFees.csv", "Id",           "En",   "Cy",   mkRadioLookup)
+  private val intentBusiness           = read("BCD-IntentBusiness.csv",           "Id",           "En",   "Cy",   mkRadioLookup)
+  private val intentOther              = read("BCD-IntentOther.csv",              "Id",           "En",   "Cy",   mkRadioLookup)
+  private val originWho                = read("BCD-OriginWho.csv",                "Id",           "En",   "Cy",   mkRadioLookup)
+  private val originSellingSomething   = read("BCD-OriginSellingSomething.csv",   "Id",           "En",   "Cy",   mkRadioLookup)
+  private val originMainPart           = read("BCD-OriginMainPart.csv",           "Id",           "En",   "Cy",   mkRadioLookup)
+  private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "Id",           "En",   "Cy",   mkRadioLookup)
+  private val origin                   = read("BCD-Origin.csv",                   "Id",           "En",   "Cy",   mkAjaxLookup(ShowAll.Enabled))
   private val agentComplaintCategories = readAgentComplaintCategories("BCD-AgentComplaintCategories.csv", "Code",         "Name", "Name-cy", "KeyWords",   mkAjaxLookup(ShowAll.Enabled))
-  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "PriorityUK", "Region", "inGibraltarEuEeaEfta", mkAjaxLookup(ShowAll.Enabled))
+  private val country                  = readCountries("BCD-Country.csv",         "CountryCode",  "Name", "Name-cy", "KeyWords", "Priority", "PriorityUK", "Region", "InGibraltarEuEeaEfta", mkAjaxLookup(ShowAll.Enabled))
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode", "Name", "Name-cy", "KeyWords", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",     "Name", "Name-cy", "KeyWords", "Priority", "Region", "PortType", "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled))
   private val sicCode                  = readSicCode("SicCode.csv",               "SicCode",      "Name", "Name-cy", "Section", mkAjaxLookup(ShowAll.Disabled))
@@ -386,7 +385,7 @@ object LookupLoader {
     options.m.map { case (l, m) =>
       val engine: AutocompleteEngine[LookupRecord] = new AutocompleteEngine.Builder[LookupRecord]()
         .setIndex(new LookupAdapter[LookupRecord]())
-        .setAnalyzers(new LowerCaseTransformer(), new CustomWordTokenizer())
+        .setAnalyzers(new CustomWordTokenizer())
         .build()
 
       m.options map {

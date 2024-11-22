@@ -74,7 +74,7 @@ class LookupControllerSpec
   it should "lookup options when no query provided, but selection criteria provided" in new TestFixture {
     override lazy val showAll: ShowAll = ShowAll.Enabled
     override lazy val countryLookupSelectionCriteria: Option[List[SelectionCriteria]] =
-      Some(SelectionCriteria(CsvColumnName("region"), SelectionCriteriaSimpleValue(List("1"))) :: Nil)
+      Some(SelectionCriteria(CsvColumnName("Region"), SelectionCriteriaSimpleValue(List("1"))) :: Nil)
 
     val future = lookupController
       .lookupWithSelectionCriteria(
@@ -133,7 +133,7 @@ class LookupControllerSpec
   it should "lookup options for given query and SelectionCriteriaSimpleValue" in new TestFixture {
 
     override lazy val countryLookupSelectionCriteria: Option[List[SelectionCriteria]] =
-      Some(SelectionCriteria(CsvColumnName("region"), SelectionCriteriaSimpleValue(List("1"))) :: Nil)
+      Some(SelectionCriteria(CsvColumnName("Region"), SelectionCriteriaSimpleValue(List("1"))) :: Nil)
 
     val future = lookupController
       .lookupWithSelectionCriteria(
@@ -158,7 +158,7 @@ class LookupControllerSpec
         Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One("US"))
       )
     override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(
-      SelectionCriteria(CsvColumnName("countrycode"), SelectionCriteriaExpr(FormCtx(FormComponentId("country")))) :: Nil
+      SelectionCriteria(CsvColumnName("CountryCode"), SelectionCriteriaExpr(FormCtx(FormComponentId("country")))) :: Nil
     )
 
     val future = lookupController
@@ -189,8 +189,8 @@ class LookupControllerSpec
       )
     override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(
       SelectionCriteria(
-        CsvColumnName("region"),
-        SelectionCriteriaReference(FormCtx(FormComponentId("country")), CsvColumnName("region"))
+        CsvColumnName("Region"),
+        SelectionCriteriaReference(FormCtx(FormComponentId("country")), CsvColumnName("Region"))
       ) :: Nil
     )
 

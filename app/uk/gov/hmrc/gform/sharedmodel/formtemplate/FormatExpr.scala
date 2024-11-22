@@ -460,15 +460,14 @@ object CsvColumnName {
 
   implicit val format: OFormat[CsvColumnName] = derived.oformat()
 
-  val countryCode = "countrycode"
-  val currencyCode = "currencycode"
-  val portCode = "portcode"
-  val portId = "portid"
-  val portType = "porttype"
-  val region = "region"
-  val columns = "columns"
-  val section = "section"
-  val inGibraltarEuEeaEfta = "ingibraltareueeaefta"
+  val countryCode = "CountryCode"
+  val currencyCode = "CurrencyCode"
+  val portCode = "PortCode"
+  val portId = "PortId"
+  val portType = "PortType"
+  val region = "Region"
+  val section = "Section"
+  val inGibraltarEuEeaEfta = "InGibraltarEuEeaEfta"
 }
 
 sealed trait SelectionCriteriaValue
@@ -522,7 +521,7 @@ object SimplifiedSelectionCriteria {
             val oLi = options.lookupInfo(
               LookupLabel(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation)
             )
-            oLi.flatMap(getLookupValue(_, cName.column.toLowerCase)).toList
+            oLi.flatMap(getLookupValue(_, cName.column)).toList
           case _ => Nil
         }
       }

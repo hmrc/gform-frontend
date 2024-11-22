@@ -59,10 +59,10 @@ object LookupOptions {
   def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
     (lookupInfo, columnName) match {
       // format: off
-      case (CountryLookupInfo(_, _, _, _, _, region, _, _), CsvColumnName.region)               => Some(region.region)
-      case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)              => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, _, region, _, _), CsvColumnName.region)          => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)         => Some(id.id)
       case (CountryLookupInfo(_, _, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta)               => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
-      case (CountryLookupInfo(_, _, _, _, _, _, _, columns), column)                            =>
+      case (CountryLookupInfo(_, _, _, _, _, _, _, columns), column)                       =>
         Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
@@ -90,7 +90,7 @@ object LookupOptions {
       selectionCriteria match {
         case Nil => lookupOptions
         case head :: tail =>
-          val (column, values) = (head.column.column.toLowerCase, head.value)
+          val (column, values) = (head.column.column, head.value)
           filterBySelectionCriteria(
             tail,
             lookupOptions.filter(r => values.contains(getLookupValue(r._2, column).getOrElse("")))
