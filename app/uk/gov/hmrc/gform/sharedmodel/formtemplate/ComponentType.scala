@@ -520,7 +520,7 @@ case class Group(
   repeatAddAnotherText: Option[SmartString] = None
 ) extends ComponentType
 
-case class InformationMessage(infoType: InfoType, infoText: SmartString, summaryValue: Option[SmartString])
+case class InformationMessage(infoType: InfoType, infoText: SmartString, summaryValue: Option[SmartString] = None)
     extends ComponentType
 
 case class FileUpload(
