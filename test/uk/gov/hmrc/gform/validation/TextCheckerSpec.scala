@@ -476,6 +476,105 @@ class TextCheckerSpec
     }
   }
 
+  it should "validate when FormComponent constraint is TimeFormat (Welsh)" in {
+    val constraint = TimeFormat
+    val fc = textComponent.copy(`type` = Text(constraint, Value))
+    val table = TableDrivenPropertyChecks.Table(
+      ("input", "expected"),
+      ("00", ().asRight.asRight),
+      ("12yb", ().asRight.asRight),
+      ("12YB", ().asRight.asRight),
+      ("12yp", ().asRight.asRight),
+      ("12YP", ().asRight.asRight),
+      ("00:59", ().asRight.asRight),
+      ("00.59", ().asRight.asRight),
+      ("00:59yb", ().asRight.asRight),
+      ("0059YB", ().asRight.asRight),
+      ("12.59yb", ().asRight.asRight),
+      ("12.59yp", ().asRight.asRight),
+      ("12:59yp", ().asRight.asRight),
+      ("1259yp", ().asRight.asRight),
+      ("2359", ().asRight.asRight),
+      ("23:59", ().asRight.asRight),
+      ("23.59", ().asRight.asRight),
+      ("2359yp", ().asRight.asRight),
+      ("2020", ().asRight.asRight),
+      ("05.15", ().asRight.asRight),
+      ("0515", ().asRight.asRight),
+      ("05 15", ().asRight.asRight),
+      ("5:yb", ().asRight.asRight),
+      ("5.yb", ().asRight.asRight),
+      ("515yb", ().asRight.asRight),
+      ("515.yb", ().asRight.asRight),
+      ("5 15", ().asRight.asRight),
+      ("5:15", ().asRight.asRight),
+      ("515", ().asRight.asRight),
+      ("0515yp", ().asRight.asRight),
+      ("05:15yb", ().asRight.asRight),
+      ("05:15y.b", ().asRight.asRight),
+      ("05:15y.p.", ().asRight.asRight),
+      ("05.15yb", ().asRight.asRight),
+      ("5:00yb	", ().asRight.asRight),
+      ("13", ().asRight.asRight),
+      ("00", ().asRight.asRight),
+      ("05", ().asRight.asRight),
+      ("5.", ().asRight.asRight),
+      ("3", ().asRight.asRight),
+      (
+        "1899",
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time yn y fformat cywir")))
+      ),
+      (
+        "foo",
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time yn y fformat cywir")))
+      ),
+      (
+        "",
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time")))
+      ),
+      (
+        "12",
+        Left(
+          Map(textComponent.id.modelComponentId -> Set("Nodwch 12yb ar gyfer hanner nos neu 12yp ar gyfer hanner dydd"))
+        )
+      ),
+      (
+        "12.00",
+        Left(
+          Map(
+            textComponent.id.modelComponentId -> Set(
+              "Nodwch 12:00yb ar gyfer hanner nos neu 12:00yp ar gyfer hanner dydd"
+            )
+          )
+        )
+      ),
+      (
+        "12:30",
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch 12:30yb neu 12:30yp")))
+      ),
+      (
+        "12:49",
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch 12:49yb neu 12:49yp")))
+      ),
+      (
+        "0",
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time yn y fformat cywir")))
+      )
+    )
+
+    TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
+      val formModelOptics = mkFormModelOptics(
+        mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
+        mkDataOutOfDate(textComponent.id.value -> inputData)
+      )
+      val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
+        formModelOptics.formModelVisibilityOptics,
+        new LookupRegistry(Map.empty)
+      )(messagesApi.preferred(Seq(Lang("cy"))), LangADT.Cy, smartStringEvaluator)
+      result.foldMap(ShortCircuitInterpreter) shouldBe expected
+    }
+  }
+
   it should "validate when FormComponent constraint is lookup(country)" in new WithLookupData {
     val table = TableDrivenPropertyChecks.Table(
       ("input", "expected", "label", "shortName", "errorShortName"),
