@@ -42,7 +42,8 @@ final case class SectionRenderingInformation(
   restrictedFileExtensions: List[FileExtension],
   upscanData: Map[FormComponentId, UpscanData] = Map.empty,
   fileUploadMaxSize: Map[FormComponentId, Int] = Map.empty,
-  displayWidth: Option[LayoutDisplayWidth] = None
+  displayWidth: Option[LayoutDisplayWidth] = None,
+  hasGroupComponent: Boolean
 )
 
 final case class SectionHeader(

@@ -631,6 +631,11 @@ class SectionRenderingService(
       if (tableComps.nonEmpty || miniSummaryListComps.nonEmpty) Some(page.displayWidth.getOrElse(LayoutDisplayWidth.M))
       else None
 
+    val hasGroupComponent: Boolean = formComponents.exists {
+      case IsGroup(_) => true
+      case _          => false
+    }
+
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -658,7 +663,8 @@ class SectionRenderingService(
       restrictedFileExtensions,
       ei.isFileUploadOnlyPage(validationResult).fold(upscanData)(_ => Map.empty[FormComponentId, UpscanData]),
       fileUploadMaxSize,
-      maybeDisplayWidth
+      maybeDisplayWidth,
+      hasGroupComponent
     )
 
     val mainForm: Html = html.form.form_standard(
@@ -900,7 +906,11 @@ class SectionRenderingService(
       continueLabel,
       0,
       FileInfoConfig.allAllowedFileTypes,
-      Nil
+      Nil,
+      Map.empty,
+      Map.empty,
+      None,
+      false
     )
     val mainForm = html.form.form_standard(
       renderingInfo,
@@ -997,7 +1007,11 @@ class SectionRenderingService(
       continueLabel,
       0,
       FileInfoConfig.allAllowedFileTypes,
-      Nil
+      Nil,
+      Map.empty,
+      Map.empty,
+      None,
+      false
     )
     val mainForm = html.form.form_standard(
       renderingInfo,
@@ -1246,7 +1260,11 @@ class SectionRenderingService(
       ),
       0,
       FileInfoConfig.allAllowedFileTypes,
-      Nil
+      Nil,
+      Map.empty,
+      Map.empty,
+      None,
+      false
     )
     val mainForm = html.form.form_standard(
       renderingInfo,
