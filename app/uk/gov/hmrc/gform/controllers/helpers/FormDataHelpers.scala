@@ -253,7 +253,7 @@ object FormDataHelpers {
 
   private def normalizeMonth(
     value: String
-  ): String = value.toLowerCase() match {
+  ): String = value.replaceAll(" ", "").toLowerCase() match {
     case "jan" | "january"   => "1"
     case "feb" | "february"  => "2"
     case "mar" | "march"     => "3"
