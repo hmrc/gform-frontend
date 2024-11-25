@@ -59,8 +59,10 @@
 }
 
 @body = {
-  @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
-  @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
+  @if(renderingInfo.hasGroupComponent) {
+      @* this is here for the sole purpose of making it the default submit button, when fields of group exist *@
+      @displaySaveContinueButton("defaultsink", Map("tabindex" -> "-1", "aria-hidden" -> "true"))
+  }
 
   @{renderingInfo.snippets}
 
