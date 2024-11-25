@@ -1,4 +1,4 @@
-PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Location,Validated,inGibraltarEuEeaEfta
+PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Location,Validated,InGibraltarEuEeaEfta
 13,AE,2,DOH,,Hamad International Airport (Doha) - DOH,Hamad International Airport (Doha) - DOH,,4,NULL,0,
 90,AZ,2,BAK,,Baku Airport - BAK,Baku Airport - BAK,,4,NULL,0,
 112,BE,3,LIE,,Lier Seaport - LIE,Lier Seaport - LIE,,3,NULL,0,1
