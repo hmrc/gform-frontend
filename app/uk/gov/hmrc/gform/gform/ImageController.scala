@@ -49,7 +49,7 @@ class ImageController(
       OperationWithForm.ViewImageByInternalLink
     ) { _ => _ => _ => _ => formModelOptics =>
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
-      val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      val allExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
 
       Future.successful {
         if (!allExprs.contains(LinkCtx(InternalLink.Image(fileName)))) {

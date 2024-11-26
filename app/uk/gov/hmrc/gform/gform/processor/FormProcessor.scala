@@ -117,9 +117,6 @@ class FormProcessor(
 
       val isLastIteration = addToListBracket.iterations.size === 1
 
-      val visitsIndex: VisitIndex = VisitIndex
-        .updateSectionVisits(updFormModel, processData.formModel, processData.visitsIndex)
-
       val visitsIndexUpd =
         if (isLastIteration) {
           val iterationForSectionNumber: Bracket.AddToListIteration[DataExpanded] = addToListBracket
@@ -129,8 +126,8 @@ class FormProcessor(
             .map(_.sectionNumber)
             .toList ++ iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber)
 
-          visitsIndex.fold[VisitIndex] { classic =>
-            val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic.sectionNumber)
+          processData.visitsIndex.fold[VisitIndex] { classic =>
+            val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic)
             VisitIndex.Classic(
               classic.visitsIndex -- toBeRemoved
             )
@@ -138,7 +135,7 @@ class FormProcessor(
             val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToTaskList.sectionNumber)
             val coordinates = sn.toCoordinatesUnsafe
 
-            val indexes =
+            val indexes: Set[SectionNumber.Classic] =
               taskList.visitsIndex
                 .getOrElse(coordinates, throw new Exception(s"No VisitIndex found for coordinates $coordinates"))
 
@@ -149,7 +146,7 @@ class FormProcessor(
             )
           }
         } else
-          visitsIndex
+          processData.visitsIndex
 
       val processDataUpd = processData.copy(
         formModelOptics = updFormModelOptics,
@@ -391,15 +388,16 @@ class FormProcessor(
                                 gformConnector.getAllTaxPeriods,
                                 NoSpecificAction
                               )
-          res <- fastForwardService
-                   .updateUserData(
-                     cacheUpd,
-                     newProcessData,
-                     maybeAccessCode,
-                     fastForward,
-                     envelopeWithMapping,
-                     Some(sectionNumber)
-                   )((a, b) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(a))
+          res <-
+            fastForwardService
+              .updateUserData(
+                cacheUpd,
+                newProcessData,
+                maybeAccessCode,
+                fastForward,
+                envelopeWithMapping,
+                Some(sectionNumber)
+              )((sectionOrSummary, _) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(sectionOrSummary))
         } yield res
       }
     } yield res

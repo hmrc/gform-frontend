@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.models.{ BracketPlain, DataExpanded, FormModel, PageMode, Singleton }
+import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, PageMode, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, Expr }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.CheckYourAnswersPage
 
@@ -24,13 +24,13 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
   /*
    * Returns list of every single expression in a bracket
    */
-  def allExprs[A <: PageMode](formModel: FormModel[DataExpanded])(bracketPlain: BracketPlain[A]): List[Expr] = {
+  def allExprs[A <: PageMode](formModel: FormModel[DataExpanded])(bracket: Bracket[A]): List[Expr] = {
     val bracketExprs =
-      bracketPlain match {
+      bracket match {
         case AllPageModelExpressions(exprMetadatas) => exprMetadatas.map(_.expr)
         case otherwise                              => List.empty[Expr]
       }
-    bracketExprs ++ formComponentsExprs(formModel)(bracketPlain)
+    bracketExprs ++ formComponentsExprs(formModel)(bracket)
 
   }
 
@@ -78,16 +78,17 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
 
   private def formComponentsExprs[A <: PageMode](
     formModel: FormModel[DataExpanded]
-  )(bracketPlain: BracketPlain[A]): List[Expr] =
-    bracketPlain.fold { nonRepeatingPage =>
-      fromSingleton(formModel)(nonRepeatingPage.singleton)
+  )(bracket: Bracket[A]): List[Expr] =
+    bracket.fold { nonRepeatingPage =>
+      fromSingleton(formModel)(nonRepeatingPage.singleton.singleton)
     } { repeatingPage =>
-      repeatingPage.singletons.toList.flatMap(fromSingleton(formModel))
+      repeatingPage.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel))
     } { addToList =>
-      addToList.iterations.toList.flatMap { iteration =>
-        iteration.singletons.toList.flatMap(fromSingleton(formModel)) ++
-          addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil)
-      }
+      addToList.defaultPage.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
+        addToList.iterations.toList.flatMap { iteration =>
+          iteration.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
+            addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil)
+        }
     }
 
 }

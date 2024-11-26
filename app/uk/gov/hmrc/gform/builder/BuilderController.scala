@@ -67,9 +67,6 @@ class BuilderController(
     final def apply(html: Html): Json = Json.fromString(html.toString)
   }
 
-  private val compatibilityVersion =
-    21 // This is managed manually. Increase it any time API used by builder extension is changed.
-
   // Returns section from raw json which correspond to runtime sectionNumber parameter.
   def originalSection(
     formTemplateId: FormTemplateId,
@@ -89,7 +86,7 @@ class BuilderController(
             val bracket = formModel.bracket(sectionNumber)
 
             bracket.fold { nonRepeatingPage =>
-              val pageModel = nonRepeatingPage.singleton
+              val pageModel = nonRepeatingPage.singleton.singleton
 
               pageModel.allFormComponentIds match {
                 case Nil => None
@@ -97,8 +94,9 @@ class BuilderController(
                   val compName = head.baseComponentId
 
                   sectionNumber match {
-                    case SectionNumber.Classic(value) =>
+                    case SectionNumber.Classic.NormalPage(value) =>
                       originalNonRepeatingPageJson(json.hcursor, compName, Nil)
+
                     case SectionNumber.TaskList(coordinates, sn) =>
                       val acursor: ACursor = json.hcursor
                         .downField("sections")
@@ -113,11 +111,18 @@ class BuilderController(
                           List(DownArray, DownField("sections"))
 
                       originalNonRepeatingPageJson(acursor, compName, historySuffix)
+                    case _ => Option.empty[Json]
                   }
               }
             }(repeatingPage => Option.empty[Json]) { addToList =>
               sectionNumber match {
-                case SectionNumber.Classic(value) =>
+                case SectionNumber.Legacy(_) => Option.empty[Json]
+                case SectionNumber.Classic.NormalPage(_) | SectionNumber.Classic.RepeatedPage(_, _) =>
+                  Option.empty[Json]
+                case SectionNumber.Classic.AddToListPage.DefaultPage(_) |
+                    SectionNumber.Classic.AddToListPage.Page(_, _, _) |
+                    SectionNumber.Classic.AddToListPage.CyaPage(_, _) |
+                    SectionNumber.Classic.AddToListPage.RepeaterPage(_, _) =>
                   originalSectionInAddToList(json, addToList, formModel, sectionNumber, Nil)
                 case SectionNumber.TaskList(coordinates, sn) =>
                   json.hcursor
@@ -152,8 +157,7 @@ class BuilderController(
               _.deepMerge(
                 Json.obj(
                   "hiddenComponentIds" := hiddenComponentIds,
-                  "hiddenChoicesLookup" := hiddenChoiceIndexes(formModelOptics, sectionNumber),
-                  "version" := compatibilityVersion
+                  "hiddenChoicesLookup" := hiddenChoiceIndexes(formModelOptics, sectionNumber)
                 )
               )
             )
@@ -202,8 +206,7 @@ class BuilderController(
           json
             .map(json =>
               Json.obj(
-                "formTemplate" := json,
-                "version" := compatibilityVersion
+                "formTemplate" := json
               )
             )
             .fold(BadRequest(s"Form template not found for $formTemplateId"))(json => Ok(json))
@@ -1064,11 +1067,11 @@ class BuilderController(
         val bracket: Bracket[DataExpanded] = formModel.bracket(sectionNumber)
 
         bracket match {
-          case Bracket.NonRepeatingPage(_, _, _) =>
+          case Bracket.NonRepeatingPage(_, _) =>
             badRequest("Expected AddToList bracket, but got NonRepeatingPage").pure[Future]
           case Bracket.RepeatingPage(_, _) =>
             badRequest("Expected AddToList bracket, but got RepeatingPage").pure[Future]
-          case bracket @ Bracket.AddToList(_, _) =>
+          case bracket @ Bracket.AddToList(_, _, _) =>
             pageModel
               .fold(singleton => badRequest("Invalid page model. Expected Repeater got Singleton"))(checkYourAnswers =>
                 badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")

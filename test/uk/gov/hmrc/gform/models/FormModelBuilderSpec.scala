@@ -71,16 +71,28 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "NotX", "b" -> "B", "c" -> "C"),
         variadicFormData[SourceOrigin.Current]("a"   -> "NotX", "b" -> "B", "c" -> "C"),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB1), SectionNumber.Classic(1), section2)
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageA), SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))),
+            section1
+          ),
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageB1), SectionNumber.Classic.NormalPage(TemplateSectionIndex(1))),
+            section2
+          )
         )
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "X", "b" -> "B", "c" -> "C"),
         variadicFormData[SourceOrigin.Current]("a"   -> "X", "b" -> "B", "c" -> "C"),
         NonEmptyList.of(
-          Bracket.NonRepeatingPage(Singleton(expectedPageA), SectionNumber.Classic(0), section1),
-          Bracket.NonRepeatingPage(Singleton(expectedPageB2), SectionNumber.Classic(1), section2)
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageA), SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))),
+            section1
+          ),
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageB2), SectionNumber.Classic.NormalPage(TemplateSectionIndex(1))),
+            section2
+          )
         )
       )
     )

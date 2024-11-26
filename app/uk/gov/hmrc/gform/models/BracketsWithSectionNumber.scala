@@ -33,14 +33,9 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
     )(identity)
 
   def toBracketPlainCoordinated: BracketPlainCoordinated[A] = fold[BracketPlainCoordinated[A]] { classic =>
-    val bracketPlains: NonEmptyList[BracketPlain[A]] = classic.brackets.map(_.toPlainBracket)
-    BracketPlainCoordinated.Classic(bracketPlains)
+    BracketPlainCoordinated.Classic(classic.brackets)
   } { taskList =>
-    val bracketPlains: NonEmptyList[(Coordinates, TaskModelCoordinated[A])] = taskList.brackets.map {
-      case (coor, taskModel) =>
-        (coor, taskModel.toTaskModelCoordinated)
-    }
-    BracketPlainCoordinated.TaskList(bracketPlains)
+    BracketPlainCoordinated.TaskList(taskList.brackets)
   }
 
   def map[B <: PageMode](
@@ -106,8 +101,8 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
     }
   }
 
-  def toBracketsPlains: NonEmptyList[BracketPlain[A]] =
-    fold(_.brackets)(_.allBrackets).map(_.toPlainBracket)
+  def toBrackets: NonEmptyList[Bracket[A]] =
+    fold(_.brackets)(_.allBrackets)
 
   def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] =
     fold { classic =>
@@ -136,44 +131,14 @@ object BracketsWithSectionNumber {
     )
   }
 
-  def fromBracketsPlains[A <: PageMode](bracketPlains: BracketPlainCoordinated[A]): BracketsWithSectionNumber[A] =
+  def fromBracketCoordinated[A <: PageMode](bracketPlains: BracketPlainCoordinated[A]): BracketsWithSectionNumber[A] =
     bracketPlains match {
-      case BracketPlainCoordinated.Classic(bracketPlains) =>
-        val iterator: Iterator[SectionNumber] = LazyList.from(0).map(SectionNumber.Classic(_)).iterator
-        val res: NonEmptyList[Bracket[A]] = mkBrackets(iterator, bracketPlains)
-        Classic(res)
-      case BracketPlainCoordinated.TaskList(coordinatedBracketPlains) =>
+      case BracketPlainCoordinated.Classic(brackets) => Classic(brackets)
+      case BracketPlainCoordinated.TaskList(coordinatedBrackets) =>
         val res: NonEmptyList[(Coordinates, TaskModel[A])] =
-          coordinatedBracketPlains.map { case (coordinated, taskModelCoordinated) =>
-            val mkSectionNumber =
-              SectionNumber.TaskList(Coordinates(coordinated.taskSectionNumber, coordinated.taskNumber), _)
-            val iterator: Iterator[SectionNumber] = LazyList.from(0).map(mkSectionNumber).iterator
-            val taskModel: TaskModel[A] = taskModelCoordinated.toTaskModel(mkBrackets(iterator, _))
-            (coordinated, taskModel)
+          coordinatedBrackets.map { case (coordinated, taskModelCoordinated) =>
+            (coordinated, taskModelCoordinated.toTaskModel())
           }
         TaskList(res)
-    }
-
-  private def mkBrackets[A <: PageMode](
-    iterator: Iterator[SectionNumber],
-    brackets: NonEmptyList[BracketPlain[A]]
-  ): NonEmptyList[Bracket[A]] =
-    brackets.map {
-      case BracketPlain.AddToList(iterations, source) =>
-        Bracket.AddToList(
-          iterations.map { it =>
-            Bracket
-              .AddToListIteration(
-                it.singletons.map(singleton => SingletonWithNumber(singleton, iterator.next())),
-                it.checkYourAnswers.map(CheckYourAnswersWithNumber(_, iterator.next())),
-                RepeaterWithNumber(it.repeater, iterator.next())
-              )
-          },
-          source
-        )
-      case BracketPlain.RepeatingPage(singletons, source) =>
-        Bracket.RepeatingPage(singletons.map(singleton => SingletonWithNumber(singleton, iterator.next())), source)
-      case BracketPlain.NonRepeatingPage(singleton, source) =>
-        Bracket.NonRepeatingPage(singleton, iterator.next(), source)
     }
 }

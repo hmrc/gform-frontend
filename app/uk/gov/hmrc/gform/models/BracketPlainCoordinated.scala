@@ -28,7 +28,7 @@ sealed trait BracketPlainCoordinated[A <: PageMode] extends Product with Seriali
 }
 
 object BracketPlainCoordinated {
-  case class Classic[A <: PageMode](bracketPlains: NonEmptyList[BracketPlain[A]]) extends BracketPlainCoordinated[A]
-  case class TaskList[A <: PageMode](bracketPlains: NonEmptyList[(Coordinates, TaskModelCoordinated[A])])
+  case class Classic[A <: PageMode](brackets: NonEmptyList[Bracket[A]]) extends BracketPlainCoordinated[A]
+  case class TaskList[A <: PageMode](coordinatedBrackets: NonEmptyList[(Coordinates, TaskModel[A])])
       extends BracketPlainCoordinated[A]
 }

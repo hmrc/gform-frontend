@@ -160,7 +160,7 @@ class FastForwardService(
             )
         )
       case _ =>
-        val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
+        val maybeCoordinates = maybeSectionNumber.flatMap(_.maybeCoordinates)
         Redirect(
           routes.SummaryController
             .summaryById(cache.formTemplate._id, maybeAccessCode, maybeCoordinates, None, ff = fastForward.headOption)

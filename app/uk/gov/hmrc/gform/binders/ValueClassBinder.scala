@@ -61,8 +61,11 @@ object ValueClassBinder {
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
     override def bind(key: String, value: String): Either[String, SectionNumber] = {
-      val sectionNumber: Try[SectionNumber] = SectionNumber.parse(value)
-      sectionNumber.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
+      val sectionNumber: Option[SectionNumber] = SectionNumber.parse(value)
+      sectionNumber
+        .map(_.asRight)
+        .getOrElse(SectionNumber.Legacy(value).asRight)
+      //.getOrElse(s"No valid value in path $key: $value".asLeft)
     }
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value
   }
@@ -173,7 +176,7 @@ object ValueClassBinder {
         case "-" => Right(None)
         case a =>
           Try(value.toInt) match {
-            case Success(a)     => Right(Some(SectionNumber.Classic(a)))
+            case Success(a)     => Right(Some(SectionNumber.Classic.NormalPage(TemplateSectionIndex(a))))
             case Failure(error) => Left(("No valid value in url binding: " + value + ". Error: " + error))
           }
       }
@@ -191,7 +194,8 @@ object ValueClassBinder {
         SectionNumber
           .parse(value)
           .map(_.asRight)
-          .getOrElse(s"No valid value in path $key: $value".asLeft)
+          .getOrElse(SectionNumber.Legacy(value).asRight)
+      //.getOrElse(s"No valid value in path $key: $value".asLeft)
       }
 
     override def unbind(key: String, sectionNumber: SectionNumber): String =
@@ -232,21 +236,20 @@ object ValueClassBinder {
       private def toSectionNumber(key: String, value: String): Either[String, SectionNumber] =
         SectionNumber
           .parse(value)
-          .toOption
-          .fold[Either[String, SectionNumber]](s"No valid value in path $key: $value".asLeft)(sn => sn.asRight)
+          .fold[Either[String, SectionNumber]](SectionNumber.Legacy(value).asRight)(sn => sn.asRight)
+      //.fold[Either[String, SectionNumber]](s"No valid value in path $key: $value".asLeft)(sn => sn.asRight)
 
-      private val cyaPat = raw"cya([\d,]+)".r
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
         params.get(key).flatMap(_.headOption).map {
           case FastForward.ffYes            => FastForward.Yes.asRight
           case FastForward.ffCYAFormSummary => FastForward.CYA(SectionOrSummary.FormSummary).asRight
           case FastForward.ffCYATaskSummary => FastForward.CYA(SectionOrSummary.TaskSummary).asRight
-          case cyaPat(from) =>
+          case value if value.startsWith("cya:") =>
             for {
-              sn2 <- toSectionNumber(key, from)
+              sn2 <- toSectionNumber(key, value.drop(4))
             } yield FastForward.CYA(SectionOrSummary.Section(sn2))
-          case value if value.startsWith("back") =>
-            toSectionNumber(key, value.replace("back", "")).map(FastForward.BackUntil)
+          case value if value.startsWith("back:") =>
+            toSectionNumber(key, value.replace("back:", "")).map(FastForward.BackUntil)
           case value => toSectionNumber(key, value).map(FastForward.StopAt)
         }
 
