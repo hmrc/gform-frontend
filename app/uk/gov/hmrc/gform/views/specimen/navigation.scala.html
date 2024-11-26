@@ -15,8 +15,8 @@
  *@
 
 @import cats.syntax.eq._
-@import cats.instances.int._
 @import views.html.helper.CSPNonce
+@import uk.gov.hmrc.gform.gform.SpecimenLinks
 @import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExprPrettyPrint, IncludeIf, FormTemplate, SectionNumber, SectionTitle4Ga }
@@ -24,56 +24,50 @@
 @(formTemplate: FormTemplate,
   sectionNumber: SectionNumber.Classic,
   pages: List[(PageModel[DataExpanded], SectionNumber.Classic)],
+  specimenLinks: SpecimenLinks,
   maybeIncludeIf: Option[IncludeIf]
 )(implicit l: LangADT, sse: SmartStringEvaluator, requestHeader: RequestHeader)
 
-@navigationLink(sectionIndex: Int, label: String, templateId: String) = {
-  @defining(pages(sectionIndex)) { case (page, sectionNumber) =>
-    @defining(SectionTitle4Ga.sectionTitle4GaFactory(page, sectionNumber).value) { sectionTitle4Ga =>
-      <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionIndex&se=t&ff=t" class="govuk-link">@label</a>
-    }
+@navigationLink(page: PageModel[DataExpanded], sectionNumber: SectionNumber.Classic, label: String, templateId: String) = {
+  @defining(SectionTitle4Ga.sectionTitle4GaFactory(page, sectionNumber).value) { sectionTitle4Ga =>
+    <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionNumber.value&se=t&ff=t" class="govuk-link">@label</a>
   }
 }
 
 @defining(
   formTemplate._id.value,
-  pages(sectionNumber.sectionNumber),
-  sectionNumber.sectionNumber,
-  pages.size) { case (templateId, section, sectionNumber, total) =>
-
+  pages.find(sn => sn._2 === sectionNumber),
+  pages.size
+) { case (templateId, Some((pageModel, _)), total) =>
   <div class="govuk-body">
-    @if(sectionNumber >= 1) {
-      @navigationLink(sectionNumber - 1, "Previous", templateId)
-    } else {
-      Previous
+    @specimenLinks.previous.fold(Html("Previous")) { previous =>
+      @navigationLink(pageModel, previous, "Previous", templateId)
     }
 
     <select id="specimenNavigation" class="govuk-select">
-      @pages.map { case (pageModel, sectionIndex) =>
-        @defining(pageModel.title.value, if(sectionNumber === sectionIndex.sectionNumber) "selected" else "") { case (title, selected) =>
+      @pages.zipWithIndex.map { case ((pageModel, sn), index) =>
+        @defining(pageModel.title.value, if(sectionNumber === sn) "selected" else "") { case (title, selected) =>
           @defining(
-            SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sectionIndex).value,
+            SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sn).value,
             title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
-              <option value="@{sectionIndex.sectionNumber}" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex.sectionNumber + 1}/@total - @titleTrimmed</option>
+              <option value="@{sn.value}" data-title="@sectionTitle4Ga" @selected>@{index + 1}/@total - @titleTrimmed</option>
             }
           }
       }
     </select>
 
-    @if(sectionNumber < total - 1) {
-      @navigationLink(sectionNumber + 1, "Next", templateId)
-    } else {
-      Next
+    @specimenLinks.next.fold(Html("Next")) { next =>
+      @navigationLink(pageModel, next, "Next", templateId)
     }
   </div>
   <div class="govuk-body">@maybeIncludeIf.fold("")(includeIf => "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr))</div>
 
   <script @{CSPNonce.attr}>
     document.getElementById("specimenNavigation").addEventListener("change", function(el) {
-      var index = el.target.value;
-      var sectionTitle4Ga = el.target.options[index].getAttribute("data-title");
+      const index = el.target.value;
+      const selectedOption = Array.from(el.target.options).find((option) => option.value == index);
+      const sectionTitle4Ga = selectedOption.getAttribute("data-title");
       window.location.href = '/submissions/form/@templateId/' + sectionTitle4Ga + '?n=' + index + '&se=t&ff=t';
     });
   </script>
-
-  }
+}

@@ -220,7 +220,7 @@ trait PdfRenderServiceExpectations {
   def nonRepeatingPageSummaryPDFHTML(signatureBox: String = "")(implicit time: LocalDateTime) =
     htmlBase(
       """
-        |<h2 id="0">Section Name</h2>
+        |<h2 id="n0">Section Name</h2>
         |<dl>
         |   <h3>
         |     name
@@ -234,7 +234,7 @@ trait PdfRenderServiceExpectations {
       """
         |<meta name="subject" content="Some form template"></meta>
         |<bookmarks>
-        |  <bookmark name="Section Name" href="#0"/>
+        |  <bookmark name="Section Name" href="#n0"/>
         |</bookmarks>
         |""".stripMargin,
       signatureBox
@@ -243,7 +243,7 @@ trait PdfRenderServiceExpectations {
   def nonRepeatingPageTabularSummaryPDFHTML(signatureBox: String = "")(implicit time: LocalDateTime) =
     htmlTabularBase(
       s"""
-         |<div id="0">
+         |<div id="n0">
          |   <div class="row">
          |      <div class="col-lg-12 heading-1">
          |         Section Name
@@ -263,7 +263,7 @@ trait PdfRenderServiceExpectations {
       """
         |<meta name="subject" content="Some form template"></meta>
         |<bookmarks>
-        |  <bookmark name="Section Name" href="#0"/>
+        |  <bookmark name="Section Name" href="#n0"/>
         |</bookmarks>
         |""".stripMargin,
       s"""
@@ -288,7 +288,7 @@ trait PdfRenderServiceExpectations {
   def nonRepeatingPageInstructionPDFHTML(signatureBox: String = "") =
     htmlTabularBase(
       """
-        |<div id="0">
+        |<div id="n0">
         |   <div class="row">
         |      <div class="col-lg-12 heading-1">
         |         page1-instruction
@@ -307,7 +307,7 @@ trait PdfRenderServiceExpectations {
       """
         |<meta name="subject" content="Some form template"></meta>
         |<bookmarks>
-        |  <bookmark name="page1-instruction" href="#0"/>
+        |  <bookmark name="page1-instruction" href="#n0"/>
         |</bookmarks>
         |""".stripMargin,
       "",

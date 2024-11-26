@@ -28,8 +28,9 @@ trait FormModelExpander[T <: PageMode] {
   def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[T]
   def liftRepeating(
     section: Section.RepeatingPage,
+    templateSectionIndex: TemplateSectionIndex,
     data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): Option[BracketPlain.RepeatingPage[T]]
+  ): Option[Bracket.RepeatingPage[T]]
 }
 
 object FormModelExpander {
@@ -56,8 +57,9 @@ object FormModelExpander {
       // Perfect we have access to FormModelVisibilityOptics, so we can evaluate 'section.repeats' expression
       def liftRepeating(
         section: Section.RepeatingPage,
+        templateSectionIndex: TemplateSectionIndex,
         data: VariadicFormData[SourceOrigin.OutOfDate]
-      ): Option[BracketPlain.RepeatingPage[DataExpanded]] = {
+      ): Option[Bracket.RepeatingPage[DataExpanded]] = {
         val repeats = section.repeats
         val bdRepeats: Option[BigDecimal] = fmvo.evalAndApplyTypeInfoFirst(repeats).numberRepresentation
         val repeatCount = Math.min(bdRepeats.fold(0)(_.toInt), repeatsLimit)
@@ -65,7 +67,16 @@ object FormModelExpander {
           val pageBasic: Page[Basic] = mkSingleton(section.page, index)(section)
           Singleton(pageBasic.asInstanceOf[Page[DataExpanded]])
         }
-        NonEmptyList.fromList(singletons).map(BracketPlain.RepeatingPage(_, section))
+        NonEmptyList
+          .fromList(singletons)
+          .map(xs =>
+            Bracket.RepeatingPage(
+              xs.zipWithIndex.map { case (s, i) =>
+                SingletonWithNumber(s, SectionNumber.Classic.RepeatedPage(templateSectionIndex, i))
+              },
+              section
+            )
+          )
       }
     }
 
@@ -82,8 +93,9 @@ object FormModelExpander {
     // Expand by data, we don't know value of 'section.repeats' expression here
     def liftRepeating(
       section: Section.RepeatingPage,
+      templateSectionIndex: TemplateSectionIndex,
       data: VariadicFormData[SourceOrigin.OutOfDate]
-    ): Option[BracketPlain.RepeatingPage[Interim]] = {
+    ): Option[Bracket.RepeatingPage[Interim]] = {
       val baseIds: Set[BaseComponentId] =
         section.allIds.map(_.baseComponentId).toSet
 
@@ -103,13 +115,25 @@ object FormModelExpander {
         Singleton(pageBasic.asInstanceOf[Page[Interim]])
       }
 
-      NonEmptyList.fromList(singletons).map(BracketPlain.RepeatingPage(_, section))
+      NonEmptyList
+        .fromList(singletons)
+        .map(xs =>
+          Bracket.RepeatingPage(
+            xs.zipWithIndex.map { case (s, i) =>
+              SingletonWithNumber(s, SectionNumber.Classic.RepeatedPage(templateSectionIndex, i))
+            },
+            section
+          )
+        )
     }
   }
 
   implicit val dependencyGraphVerification: FormModelExpander[DependencyGraphVerification] =
     new FormModelExpander[DependencyGraphVerification] {
-      def lift(page: Page[Basic], data: VariadicFormData[SourceOrigin.OutOfDate]): Page[DependencyGraphVerification] = {
+      def lift(
+        page: Page[Basic],
+        data: VariadicFormData[SourceOrigin.OutOfDate]
+      ): Page[DependencyGraphVerification] = {
         val expanded = page.fields.flatMap {
           case fc @ IsRevealingChoice(revealingChoice) =>
             fc :: revealingChoice.options.flatMap(_.revealingFields)
@@ -120,11 +144,21 @@ object FormModelExpander {
       }
       def liftRepeating(
         section: Section.RepeatingPage,
+        templateSectionIndex: TemplateSectionIndex,
         data: VariadicFormData[SourceOrigin.OutOfDate]
-      ): Option[BracketPlain.RepeatingPage[DependencyGraphVerification]] = {
+      ): Option[Bracket.RepeatingPage[DependencyGraphVerification]] = {
         val pageBasic = mkSingleton(section.page, 1)(section)
-        val singletons = NonEmptyList.one(Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]]))
-        Some(BracketPlain.RepeatingPage(singletons, section))
+        val singletons = NonEmptyList.one(
+          Singleton(pageBasic.asInstanceOf[Page[DependencyGraphVerification]])
+        )
+        Some(
+          Bracket.RepeatingPage(
+            singletons.zipWithIndex.map { case (s, i) =>
+              SingletonWithNumber(s, SectionNumber.Classic.RepeatedPage(templateSectionIndex, i))
+            },
+            section
+          )
+        )
       }
 
     }

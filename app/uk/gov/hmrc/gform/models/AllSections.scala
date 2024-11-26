@@ -17,11 +17,20 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Section, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Section, TaskNumber, TaskSectionNumber, TemplateSectionIndex }
+
+sealed trait IndexedSection {
+  def section: Section // Section which knows its position in json template
+}
+
+object IndexedSection {
+  case class SectionIndex(section: Section, index: TemplateSectionIndex) extends IndexedSection
+  case class SectionNoIndex(section: Section.NonRepeatingPage) extends IndexedSection
+}
 
 sealed trait AllSections extends Product with Serializable {
 
-  def sections: List[Section]
+  def sections: List[IndexedSection]
 
   def fold[B](f: AllSections.Classic => B)(g: AllSections.TaskList => B): B =
     this match {
@@ -29,9 +38,11 @@ sealed trait AllSections extends Product with Serializable {
       case r: AllSections.TaskList => g(r)
     }
 
-  def mapSection[A <: PageMode](f: Section => Option[BracketPlain[A]]): BracketPlainCoordinated[A] =
+  def mapSection[A <: PageMode](
+    f: Option[Coordinates] => IndexedSection => Option[Bracket[A]]
+  ): BracketPlainCoordinated[A] =
     fold[BracketPlainCoordinated[A]] { classic =>
-      val xs: List[BracketPlain[A]] = classic.sections.map(f).collect { case Some(bracket) =>
+      val xs: List[Bracket[A]] = classic.sections.map(f(None)).collect { case Some(bracket) =>
         bracket
       }
       NonEmptyList
@@ -40,37 +51,44 @@ sealed trait AllSections extends Product with Serializable {
           BracketPlainCoordinated.Classic(_)
         }
     } { taskList =>
-      val xs: NonEmptyList[(Coordinates, TaskModelCoordinated[A])] = taskList.coordSections.map {
-        case (coordinates, sections) =>
-          val xs: List[BracketPlain[A]] = sections.map(f).collect { case Some(bracket) =>
-            bracket
-          }
+      val xs: NonEmptyList[(Coordinates, TaskModel[A])] = taskList.coordSections.map { case (coordinates, sections) =>
+        val xs: List[Bracket[A]] = sections.map(f(Some(coordinates))).collect { case Some(bracket) =>
+          bracket
+        }
 
-          val taskModelCoordinated: TaskModelCoordinated[A] = NonEmptyList
-            .fromList(xs)
-            .fold(TaskModelCoordinated.allHidden[A])(brackets => TaskModelCoordinated.editable[A](brackets))
+        val taskModelCoordinated: TaskModel[A] = NonEmptyList
+          .fromList(xs)
+          .fold(TaskModel.allHidden[A])(brackets => TaskModel.editable[A](brackets))
 
-          coordinates -> taskModelCoordinated
+        coordinates -> taskModelCoordinated
 
       }
       BracketPlainCoordinated.TaskList(xs)
     }
 
-  def +(others: List[Section]) = fold[AllSections](_.copy(others = others))(_.copy(others = others))
+  def +(others: List[Section.NonRepeatingPage]) = fold[AllSections](_.copy(others = others))(_.copy(others = others))
 }
 
 object AllSections {
-  case class Classic(sections0: List[Section], others: List[Section] = Nil) extends AllSections {
-    val sections = sections0 ++ others
-  }
-  case class TaskList(sections0: NonEmptyList[(Coordinates, List[Section])], others: List[Section] = Nil)
+  case class Classic(sections0: List[IndexedSection], others: List[Section.NonRepeatingPage] = Nil)
       extends AllSections {
-    val coordSections: NonEmptyList[(Coordinates, List[Section])] = {
+    val sections = sections0 ++ others.map(section => IndexedSection.SectionNoIndex(section))
+  }
+  case class TaskList(
+    sections0: NonEmptyList[(Coordinates, List[IndexedSection])],
+    others: List[Section.NonRepeatingPage] = Nil
+  ) extends AllSections {
+    val coordSections: NonEmptyList[(Coordinates, List[IndexedSection])] = {
       if (others.isEmpty) {
         sections0
       } else
-        sections0.append((Coordinates(TaskSectionNumber(999999), TaskNumber(999999)), others))
+        sections0.append(
+          (
+            Coordinates(TaskSectionNumber(999999), TaskNumber(999999)),
+            others.map(section => IndexedSection.SectionNoIndex(section))
+          )
+        )
     }
-    val sections = sections0.toList.flatMap(_._2) ++ others
+    val sections = sections0.toList.flatMap(_._2) ++ others.map(section => IndexedSection.SectionNoIndex(section))
   }
 }

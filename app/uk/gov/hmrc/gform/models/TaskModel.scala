@@ -34,11 +34,11 @@ sealed trait TaskModel[A <: PageMode] extends Product with Serializable {
   def mapBracket[B <: PageMode](f: Bracket[A] => Bracket[B]): TaskModel[B] =
     fold(_ => TaskModel.allHidden[B])(editable => TaskModel.editable(editable.brackets.map(f)))
 
-  val toTaskModelCoordinated: TaskModelCoordinated[A] =
-    fold[TaskModelCoordinated[A]](_ => TaskModelCoordinated.allHidden)(editable =>
-      TaskModelCoordinated.editable(editable.brackets.map(_.toPlainBracket))
-    )
+  def toTaskModel(): TaskModel[A] =
+    fold(_ => TaskModel.allHidden[A])(editable => TaskModel.editable[A](editable.brackets))
 
+  def modifyBrackets(f: NonEmptyList[Bracket[A]] => NonEmptyList[Bracket[A]]): TaskModel[A] =
+    fold(_ => TaskModel.allHidden[A])(editable => TaskModel.editable[A](f(editable.brackets)))
 }
 
 object TaskModel {

@@ -18,9 +18,16 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, TemplateSectionIndex }
 
 trait VisitIndexGen {
-  def visitIndexGen = Gen.containerOf[Set, Int](Gen.posNum[Int]).map(VisitIndex.Classic(_))
+  def visitIndexGen =
+    Gen
+      .oneOf(
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(1))
+      )
+      .map(sn => VisitIndex.Classic(Set(sn)))
 }
 
 object VisitIndexGen extends VisitIndexGen

@@ -40,7 +40,7 @@ object SectionSelector {
     new SectionSelector[SectionSelectorType.WithDeclaration] {
 
       def getSections(formTemplate: FormTemplate): AllSections = {
-        val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
+        val destinationSections: List[Section.NonRepeatingPage] = formTemplate.destinations.fold(destinationList =>
           destinationList.declarationSection.toList.map(_.toSection)
         )(destinationPrint => Nil)
 
@@ -63,7 +63,7 @@ object SectionSelector {
     new SectionSelector[SectionSelectorType.WithAcknowledgement] {
 
       def getSections(formTemplate: FormTemplate): AllSections = {
-        val destinationSections: List[Section] = formTemplate.destinations.fold(destinationList =>
+        val destinationSections: List[Section.NonRepeatingPage] = formTemplate.destinations.fold(destinationList =>
           destinationList.declarationSection.toList.map(_.toSection) ++ List(
             destinationList.acknowledgementSection.toSection
           )

@@ -92,7 +92,7 @@ object CannotStartYetResolver {
     val dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets.toList.map {
       case (coordinates, brackets) =>
         val allExprs: List[Expr] =
-          brackets.toBracketsList.flatMap(_.toPlainBracket.allExprs(formModel))
+          brackets.toBracketsList.flatMap(_.allExprs(formModel))
 
         val baseComponentIds: List[BaseComponentId] =
           allExprs.flatMap(_.leafs(formModel)).collect {

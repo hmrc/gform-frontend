@@ -592,7 +592,7 @@ class NewFormController(
     def formHasAuthItmpReferences(): Boolean = {
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
-      val allBracketExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      val allBracketExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
       val allCustomExprs = cache.formTemplateContext.formTemplate.formKind.allCustomExprs
       val expressionsOutExprs =
         cache.formTemplateContext.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.values.toList)
@@ -611,7 +611,7 @@ class NewFormController(
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val modelComponentIds = formModel.confirmationPageMap.flatMap { case (sectionNumber, confirmation) =>
           val allBracketExprs =
-            formModel.brackets.withSectionNumber(sectionNumber).toPlainBracket.allExprs(formModel)
+            formModel.brackets.withSectionNumber(sectionNumber).allExprs(formModel)
 
           if (cacheItmpRetrievals.flatMap(_.itmpName) != itmpRetrievals.itmpName && hasItmpNameExpr(allBracketExprs)) {
             Some(confirmation.question.id.modelComponentId)

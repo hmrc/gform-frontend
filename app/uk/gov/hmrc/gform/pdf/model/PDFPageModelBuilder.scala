@@ -53,8 +53,8 @@ object PDFPageModelBuilder {
         buildFromSingleton(
           cache,
           envelopeWithMapping,
-          nonRepeatingPage.singleton,
-          nonRepeatingPage.sectionNumber,
+          nonRepeatingPage.singleton.singleton,
+          nonRepeatingPage.singleton.sectionNumber,
           nonRepeatingPage.source,
           validationResult,
           formModelOptics.formModelVisibilityOptics

@@ -123,7 +123,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     val singleSection = makeSection(toSmartString("Single Page"), mkFormComponent(single))
     val result = getAvailableSectionNumbers(singleSection :: Nil, mkVariadicFormData())
 
-    result shouldBe List(Classic(0))
+    result shouldBe List(Classic.NormalPage(TemplateSectionIndex(0)))
   }
 
   "Chain of section" should "hide all dependent section in the chain" in {
@@ -146,20 +146,24 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     )
 
     result1 shouldBe List(
-      Classic(0),
-      Classic(1),
-      Classic(2),
-      Classic(3),
-      Classic(4)
+      Classic.NormalPage(TemplateSectionIndex(0)),
+      Classic.NormalPage(TemplateSectionIndex(1)),
+      Classic.NormalPage(TemplateSectionIndex(2)),
+      Classic.NormalPage(TemplateSectionIndex(3)),
+      Classic.NormalPage(TemplateSectionIndex(4))
     )
     result2 shouldBe List(
-      Classic(0),
-      Classic(1),
-      Classic(2),
-      Classic(4)
+      Classic.NormalPage(TemplateSectionIndex(0)),
+      Classic.NormalPage(TemplateSectionIndex(1)),
+      Classic.NormalPage(TemplateSectionIndex(2)),
+      Classic.NormalPage(TemplateSectionIndex(4))
     )
-    result3 shouldBe List(Classic(0), Classic(1), Classic(4))
-    result4 shouldBe List(Classic(0), Classic(4))
+    result3 shouldBe List(
+      Classic.NormalPage(TemplateSectionIndex(0)),
+      Classic.NormalPage(TemplateSectionIndex(1)),
+      Classic.NormalPage(TemplateSectionIndex(4))
+    )
+    result4 shouldBe List(Classic.NormalPage(TemplateSectionIndex(0)), Classic.NormalPage(TemplateSectionIndex(4)))
   }
 
   "Navigator.nextSectionNumber" should "skip ATL non repeater section and jump to RepeaterSection" in {
@@ -169,13 +173,29 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
         mkVariadicFormData("fcId1" -> One("1"), "fcId2" -> One("1"), "fcIdATL" -> One("1"))
       )
 
-    val ffNavigator = Navigator(Classic(0), formModel)
-    ffNavigator.availableSectionNumbers shouldBe List(Classic(0), Classic(1), Classic(2), Classic(3))
-    ffNavigator.addToListRepeaterSectionNumbers shouldBe List(Classic(3))
-    ffNavigator.addToListNonRepeaterSectionNumbers shouldBe List(Classic(2))
-    ffNavigator.addToListSectionNumbers shouldBe List(Classic(2), Classic(3))
-    Navigator(Classic(0), formModel).nextSectionNumber shouldBe (Classic(1))
-    Navigator(Classic(1), formModel).nextSectionNumber shouldBe (Classic(3))
+    val ffNavigator = Navigator(Classic.NormalPage(TemplateSectionIndex(0)), formModel)
+    ffNavigator.availableSectionNumbers shouldBe List(
+      Classic.NormalPage(TemplateSectionIndex(0)),
+      Classic.NormalPage(TemplateSectionIndex(1)),
+      Classic.AddToListPage.Page(TemplateSectionIndex(2), 1, 0),
+      Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(2), 1)
+    )
+
+    ffNavigator.addToListRepeaterSectionNumbers shouldBe List(
+      Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(2), 1)
+    )
+    ffNavigator.addToListNonRepeaterSectionNumbers shouldBe List(
+      Classic.AddToListPage.Page(TemplateSectionIndex(2), 1, 0)
+    )
+    ffNavigator.addToListSectionNumbers shouldBe List(
+      Classic.AddToListPage.Page(TemplateSectionIndex(2), 1, 0),
+      Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(2), 1)
+    )
+    Navigator(Classic.NormalPage(TemplateSectionIndex(0)), formModel).nextSectionNumber shouldBe (Classic.NormalPage(
+      TemplateSectionIndex(1)
+    ))
+    Navigator(Classic.NormalPage(TemplateSectionIndex(1)), formModel).nextSectionNumber shouldBe (Classic.AddToListPage
+      .RepeaterPage(TemplateSectionIndex(2), 1))
   }
 
 }

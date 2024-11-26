@@ -216,8 +216,12 @@ export const activateSummaryBuilder = (urlMatch: RegExpMatchArray, url: string) 
         if (summarySection.fields !== undefined) {
           const sectionNumber =
             coordinates === null
-              ? SectionNumber.RegularSectionNumber(0)
-              : SectionNumber.TaskListSectionNumber(coordinates.taskSectionNumber + "," + coordinates.taskNumber);
+              ? SectionNumber.NormalPage(0)
+              : SectionNumber.TaskListSectionNumber(
+                  coordinates.taskSectionNumber,
+                  coordinates.taskNumber,
+                  SectionNumber.NormalPage(0),
+                );
           const params: InfoRenderParam = {
             host,
             formTemplateId,

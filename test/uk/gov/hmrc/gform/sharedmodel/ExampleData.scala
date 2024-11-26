@@ -792,11 +792,11 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 }
 
 trait ExampleSectionNumber {
-  val `sectionNumber-1` = SectionNumber.Classic(-1)
-  val sectionNumber0 = SectionNumber.Classic(0)
-  val sectionNumber1 = SectionNumber.Classic(1)
-  val sectionNumber2 = SectionNumber.Classic(2)
-  val sectionNumber3 = SectionNumber.Classic(3)
+  val `sectionNumber-1` = SectionNumber.Classic.NormalPage(TemplateSectionIndex(-1))
+  val sectionNumber0 = SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))
+  val sectionNumber1 = SectionNumber.Classic.NormalPage(TemplateSectionIndex(1))
+  val sectionNumber2 = SectionNumber.Classic.NormalPage(TemplateSectionIndex(2))
+  val sectionNumber3 = SectionNumber.Classic.NormalPage(TemplateSectionIndex(3))
 }
 
 trait ExampleFormTemplate {

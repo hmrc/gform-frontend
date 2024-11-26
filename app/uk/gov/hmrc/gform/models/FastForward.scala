@@ -39,8 +39,8 @@ sealed trait FastForward extends Product with Serializable {
       case FastForward.CYA(SectionOrSummary.FormSummary) => FastForward.ffCYAFormSummary
       case FastForward.CYA(SectionOrSummary.TaskSummary) => FastForward.ffCYATaskSummary
       case FastForward.CYA(SectionOrSummary.Section(to)) =>
-        FastForward.ffCYA + to.value
-    }("back" + _.until.value)
+        FastForward.ffCYA + ":" + to.value
+    }("back:" + _.until.value)
 
   def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =
     fold[FastForward](identity) { st =>

@@ -74,17 +74,10 @@ case class FormModel[A <: PageMode](
 
     def allFormComponents(coordinates: Coordinates): List[FormComponent] =
       availablePages(coordinates).flatMap(_.allFormComponents)
-
-    def nextVisibleSectionNumber(
-      tlSectionNumber: SectionNumber.TaskList
-    ): SectionNumber.TaskList =
-      availableSectionNumbers
-        .collect { case t: SectionNumber.TaskList => t }
-        .find(sn => tlSectionNumber.coordinates === sn.coordinates && sn.sectionNumber >= tlSectionNumber.sectionNumber)
-        .getOrElse(throw new Exception("No more visible section numbers in the task"))
   }
 
   val nextVisibleSectionNumber: SectionNumber => Option[SectionNumber] = {
+    case r: SectionNumber.Legacy => availableSectionNumbers.headOption
     case sectionNumber: SectionNumber.TaskList =>
       availableSectionNumbers
         .collect { case t: SectionNumber.TaskList => t }
@@ -170,7 +163,7 @@ case class FormModel[A <: PageMode](
       fc.modelComponentId
   }.toSet
 
-  val exprsMetadata: List[ExprMetadata] = brackets.toBracketsPlains.toList.flatMap {
+  val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil
   }
@@ -207,22 +200,23 @@ case class FormModel[A <: PageMode](
 
   def flatMapRepeater(
     f: (
-      NonEmptyList[BracketPlain.AddToListIteration[A]],
+      NonEmptyList[Bracket.AddToListIteration[A]],
       Section.AddToList
-    ) => NonEmptyList[BracketPlain.AddToListIteration[A]]
+    ) => NonEmptyList[Bracket.AddToListIteration[A]]
   ): FormModel[A] = {
 
-    def applyFToRepeater(bracketPlains: NonEmptyList[BracketPlain[A]]): NonEmptyList[BracketPlain[A]] =
-      bracketPlains.map {
-        case BracketPlain.AddToList(iterations, source) => BracketPlain.AddToList(f(iterations, source), source)
-        case o                                          => o
+    def applyFToRepeater(brackets: NonEmptyList[Bracket[A]]): NonEmptyList[Bracket[A]] =
+      brackets.map {
+        case Bracket.AddToList(defaultPage, iterations, source) =>
+          Bracket.AddToList(defaultPage, f(iterations, source), source)
+        case o => o
       }
 
     def bracketPlainCoordinated: BracketPlainCoordinated[A] =
       brackets.toBracketPlainCoordinated.fold[BracketPlainCoordinated[A]] { classic =>
-        BracketPlainCoordinated.Classic[A](applyFToRepeater(classic.bracketPlains))
+        BracketPlainCoordinated.Classic[A](applyFToRepeater(classic.brackets))
       } { taskList =>
-        BracketPlainCoordinated.TaskList[A](taskList.bracketPlains.map { case (coor, taskModelCoordinated) =>
+        BracketPlainCoordinated.TaskList[A](taskList.coordinatedBrackets.map { case (coor, taskModelCoordinated) =>
           coor -> taskModelCoordinated.modifyBrackets(applyFToRepeater)
         })
       }
@@ -230,7 +224,8 @@ case class FormModel[A <: PageMode](
     FormModel.fromPages(bracketPlainCoordinated, staticTypeInfo, revealingChoiceInfo, sumInfo, dataRetrieve)
   }
 
-  def apply(sectionNumber: SectionNumber): PageModel[A] = pageModelLookup(sectionNumber)
+  def apply(sectionNumber: SectionNumber): PageModel[A] =
+    pageModelLookup(sectionNumber)
 
   def bracket(sectionNumber: SectionNumber): Bracket[A] =
     brackets.withSectionNumber(sectionNumber)
@@ -372,7 +367,12 @@ object FormModel {
     val singleton = Singleton(enrolmentSection.toPage).asInstanceOf[Singleton[A]]
     FormModel.fromPages(
       BracketPlainCoordinated.Classic(
-        NonEmptyList.one(BracketPlain.NonRepeatingPage(singleton, enrolmentSection.toSection))
+        NonEmptyList.one(
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(singleton, SectionNumber.classicZero),
+            enrolmentSection.toSection
+          )
+        )
       ),
       StaticTypeInfo.empty,
       RevealingChoiceInfo.empty,
@@ -382,16 +382,16 @@ object FormModel {
   }
 
   def fromPages[A <: PageMode](
-    bracketPlains: BracketPlainCoordinated[A],
+    brackets: BracketPlainCoordinated[A],
     staticTypeInfo: StaticTypeInfo,
     revealingChoiceInfo: RevealingChoiceInfo,
     sumInfo: SumInfo,
     dataRetrieve: Option[NonEmptyList[DataRetrieve]]
   ): FormModel[A] = {
 
-    def standaloneSumInfo: StandaloneSumInfo = StandaloneSumInfo.from(bracketPlains, sumInfo)
+    def standaloneSumInfo: StandaloneSumInfo = StandaloneSumInfo.from(brackets, sumInfo)
 
-    val bracketsWithSectionNumber = BracketsWithSectionNumber.fromBracketsPlains(bracketPlains)
+    val bracketsWithSectionNumber = BracketsWithSectionNumber.fromBracketCoordinated(brackets)
 
     FormModel(
       bracketsWithSectionNumber,
