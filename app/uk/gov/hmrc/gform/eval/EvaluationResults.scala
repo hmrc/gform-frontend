@@ -464,13 +464,21 @@ case class EvaluationResults(
 
     def formatWithoutTrailingZeros(expr: Expr): ExpressionResult = {
       val stringResult = loop(expr).stringRepresentation(typeInfo, m)
-      val parts = stringResult.split("\\.")
-      val formatted =
-        if (parts.length == 2 && parts(1).forall(_ == '0'))
-          TextFormatter.stripDecimal(stringResult)
+      val formatted = expr match {
+        case FormCtx(formComponentId) =>
+          evaluationContext.constraints.get(formComponentId.baseComponentId) match {
+            case Some(constraint) => TextFormatter.componentTextReadonly(stringResult, constraint)(LangADT.En)
+            case _                => stringResult
+          }
+        case _ => stringResult
+      }
+      val parts = formatted.split("\\.")
+      val striped =
+        if (parts.length == 2 && parts(1).forall(_ === '0'))
+          TextFormatter.stripDecimal(formatted)
         else
-          stringResult
-      nonEmptyStringResult(StringResult(formatted))
+          formatted
+      nonEmptyStringResult(StringResult(striped))
     }
 
     def loop(expr: Expr): ExpressionResult = expr match {

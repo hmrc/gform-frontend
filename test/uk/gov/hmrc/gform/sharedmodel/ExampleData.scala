@@ -86,6 +86,7 @@ trait ExampleEvaluationContext {
       Map.empty,
       Set.empty,
       new LookupRegistry(Map()),
+      Map.empty,
       Map.empty
     )
 }

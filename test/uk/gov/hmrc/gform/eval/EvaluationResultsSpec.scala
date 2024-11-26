@@ -92,6 +92,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       Map.empty,
       Set.empty,
       new LookupRegistry(Map.empty),
+      Map.empty,
       Map.empty
     )
 
@@ -678,15 +679,52 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         "Be empty when no credential role is found"
       ),
       (
+        TypeInfo(HideZeroDecimals(FormCtx(FormComponentId("sterlingField"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("sterlingField"), VariadicValue.One("14500099.00"))
+          )
+        ),
+        evaluationContext.copy(constraints =
+          Map(FormComponentId("sterlingField").baseComponentId -> Sterling(RoundingMode.defaultRoundingMode, false))
+        ),
+        StringResult("£14,500,099"),
+        "Should format without trailing zeros when type is sterling"
+      ),
+      (
+        TypeInfo(HideZeroDecimals(FormCtx(FormComponentId("sterlingField"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("sterlingField"), VariadicValue.One("14500099.00"))
+          )
+        ),
+        evaluationContext.copy(constraints =
+          Map(FormComponentId("sterlingField").baseComponentId -> Sterling(RoundingMode.defaultRoundingMode, false))
+        ),
+        StringResult("£14,500,099"),
+        "Should format without trailing zeros when type is sterling"
+      ),
+      (
         TypeInfo(HideZeroDecimals(FormCtx(FormComponentId("numberField"))), StaticTypeData(ExprType.string, None)),
         RecData[OutOfDate](
           VariadicFormData.create(
-            (toModelComponentId("numberField"), VariadicValue.One("100000.00"))
+            (toModelComponentId("numberField"), VariadicValue.One("14500099.00"))
           )
         ),
-        evaluationContext,
-        StringResult("100000"),
-        "Should format without trailing zeros"
+        evaluationContext.copy(constraints = Map(FormComponentId("numberField").baseComponentId -> Number())),
+        StringResult("14,500,099"),
+        "Should format without trailing zeros when type is number"
+      ),
+      (
+        TypeInfo(HideZeroDecimals(FormCtx(FormComponentId("numberField"))), StaticTypeData(ExprType.string, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("numberField"), VariadicValue.One("14500099.01"))
+          )
+        ),
+        evaluationContext.copy(constraints = Map(FormComponentId("numberField").baseComponentId -> Number())),
+        StringResult("14,500,099.01"),
+        "Should format with trailing zeros when type is number"
       )
     )
     forAll(table) {

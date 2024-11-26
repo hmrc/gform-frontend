@@ -76,6 +76,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Map.empty,
       Set.empty,
       new LookupRegistry(Map()),
+      Map.empty,
       Map.empty
     )
 

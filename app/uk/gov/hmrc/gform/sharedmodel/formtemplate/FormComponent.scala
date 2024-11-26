@@ -275,6 +275,14 @@ object HasLookupRegister {
     }
 }
 
+object HasConstraint {
+  def unapply(fc: FormComponent): Option[TextConstraint] =
+    fc.`type` match {
+      case Text(constraint, _, _, _, _, _, _) => Some(constraint)
+      case _                                  => None
+    }
+}
+
 object HasDynamicChoice {
   def unapply(fc: FormComponent): Option[(FormComponentId, Set[BaseComponentId])] =
     fc.`type` match {

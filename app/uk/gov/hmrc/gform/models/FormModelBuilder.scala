@@ -238,7 +238,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.choiceLookup,
         formModel.addToListIds,
         lookupRegistry,
-        formModel.lookupRegister
+        formModel.lookupRegister,
+        formModel.constraints
       )
 
     recalculation

@@ -53,5 +53,6 @@ final case class EvaluationContext(
   choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]],
   addToListIds: Set[AddToListId],
   lookupRegistry: LookupRegistry,
-  lookupRegister: Map[BaseComponentId, Register]
+  lookupRegister: Map[BaseComponentId, Register],
+  constraints: Map[BaseComponentId, TextConstraint]
 )

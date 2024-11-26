@@ -456,6 +456,7 @@ class RealSmartStringEvaluatorFactorySpec
           Map.empty,
           Set.empty,
           new LookupRegistry(Map()),
+          Map.empty,
           Map.empty
         )
       )
