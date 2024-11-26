@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.{ BracketPlainCoordinated, PageMode, TaskModelCoordinated }
+import uk.gov.hmrc.gform.models.{ BracketPlainCoordinated, PageMode, TaskModel }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, Sum }
 
 /** This represents \${abc.sum} expression, where this expression
@@ -41,13 +41,13 @@ object StandaloneSumInfo {
 
     val allSums: List[Set[Sum]] =
       brackets.fold { classic =>
-        classic.bracketPlains.collect { case AllPageModelSums(sums) =>
+        classic.brackets.collect { case AllPageModelSums(sums) =>
           sums
         }
       } { taskList =>
-        taskList.bracketPlains
+        taskList.coordinatedBrackets
           .map(_._2)
-          .collect { case TaskModelCoordinated.Editable(brackets) => brackets.toList }
+          .collect { case TaskModel.Editable(brackets) => brackets.toList }
           .flatten
           .collect { case AllPageModelSums(sums) => sums }
       }

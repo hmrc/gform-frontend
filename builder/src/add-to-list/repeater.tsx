@@ -448,18 +448,6 @@ const RepeaterControllerFactory =
       setWindowDisplayed(false);
     };
 
-    const increaseSectionNumber = (): SectionNumber => {
-      const updatedsectionNumber: SectionNumber = SectionNumber.increase(sectionNumber, atlIterationIndex);
-      sectionNumberChangeSignal.value = updatedsectionNumber;
-      return updatedsectionNumber;
-    };
-
-    const descreaseSectionNumber = (): SectionNumber => {
-      const updatedsectionNumber: SectionNumber = SectionNumber.decrease(sectionNumber, atlIterationIndex);
-      sectionNumberChangeSignal.value = updatedsectionNumber;
-      return updatedsectionNumber;
-    };
-
     const addDefaultPage = (e: MouseEvent) => {
       const atlRepeaterPart: AtlRepeater = {};
 
@@ -478,11 +466,8 @@ const RepeaterControllerFactory =
 
       repeater.defaultPage = atlRepeaterPart["defaultPage"]; // Update local model
 
-      const sectionNumberAfterUpdate: SectionNumber = increaseSectionNumber();
+      refreshRepeaterWith(false, atlRepeaterPart, sectionNumber);
 
-      refreshRepeaterWith(false, atlRepeaterPart, sectionNumberAfterUpdate);
-
-      sectionNumber = sectionNumberAfterUpdate;
       setDefaultPageExists(true);
     };
 
@@ -493,11 +478,8 @@ const RepeaterControllerFactory =
 
       repeater.defaultPage = undefined; // Update local model
 
-      const sectionNumberAfterUpdate = descreaseSectionNumber();
+      refreshRepeaterWith(false, atlRepeaterPart, sectionNumber);
 
-      refreshRepeaterWith(false, atlRepeaterPart, sectionNumberAfterUpdate);
-
-      sectionNumber = sectionNumberAfterUpdate;
       setDefaultPageExists(false);
     };
 
@@ -511,11 +493,8 @@ const RepeaterControllerFactory =
 
       repeater.cyaPage = atlRepeaterPart["cyaPage"]; // Update local model
 
-      const sectionNumberAfterUpdate = increaseSectionNumber();
+      refreshRepeaterWith(false, atlRepeaterPart, sectionNumber);
 
-      refreshRepeaterWith(false, atlRepeaterPart, sectionNumberAfterUpdate);
-
-      sectionNumber = sectionNumberAfterUpdate;
       setCyaPageExists(true);
     };
 
@@ -526,11 +505,8 @@ const RepeaterControllerFactory =
 
       repeater.cyaPage = undefined; // Update local model
 
-      const sectionNumberAfterUpdate = descreaseSectionNumber();
+      refreshRepeaterWith(false, atlRepeaterPart, sectionNumber);
 
-      refreshRepeaterWith(false, atlRepeaterPart, sectionNumberAfterUpdate);
-
-      sectionNumber = sectionNumberAfterUpdate;
       setCyaPageExists(false);
     };
 

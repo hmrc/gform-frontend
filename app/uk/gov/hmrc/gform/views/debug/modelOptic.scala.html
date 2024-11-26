@@ -21,37 +21,77 @@
 
 <thead>
     <tr>
-	<td colspan="@totalColumns">
-	    <h2>@modelName</h2>
-	</td>
+    <td colspan="@totalColumns">
+        <h2>@modelName</h2>
+    </td>
     </tr>
 </thead>
 <tbody>
     <tr>
-	@for(columnNumber <- 0 until totalColumns) {
-	    @defining(SectionNumber.Classic(columnNumber)) { sectionNumber =>
-		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
-		    @defining(formModel(sectionNumber)) { pageModel =>
-			@pageModelHeader(pageModel)
-		    }
-		} else {
-		    <td> - hidden - </td>
-		}
-	    }
-	}
+      @formModel.brackets.fold { classic =>
+        @classic.brackets.toList.map { bracket =>
+          @bracket.fold { nonRepeatingPage =>
+            <td>@nonRepeatingPage.singleton.sectionNumber.value</td>
+          } { repeatingPage =>
+            <td>RepeatingPage TODO implement me</td>
+          } { addToList =>
+            @addToList.defaultPage.map { dp => <td>@dp.sectionNumber.value</td>}.getOrElse("")
+            @addToList.iterations.toList.map { it =>
+              @it.singletons.toList.map{singleton => <td>@singleton.sectionNumber.value</td>}
+              @it.checkYourAnswers.map{cya => <td>@cya.sectionNumber.value</td>}.getOrElse("")
+              <td>@it.repeater.sectionNumber.value</td>
+            }
+          }
+        }
+      } { taskList =>
+        <td>TaskList TODO implement me</td>
+      }
+    </tr>
+    <tr>
+      @formModel.brackets.fold { classic =>
+        @classic.brackets.toList.map { bracket =>
+          @bracket.fold { nonRepeatingPage =>
+            @pageModelHeader(nonRepeatingPage.singleton.singleton)
+          } { repeatingPage =>
+            <td>RepeatingPage TODO implement me</td>
+          } { addToList =>
+            @addToList.defaultPage.map { dp => @pageModelHeader(dp.singleton)}.getOrElse("")
+            @addToList.iterations.toList.map { it =>
+              @it.singletons.toList.map{singleton => @pageModelHeader(singleton.singleton)}
+              @it.checkYourAnswers.map{cya => @pageModelHeader(cya.checkYourAnswers)}.getOrElse("")
+                @pageModelHeader(it.repeater.repeater)
+            }
+          }
+        }
+      } { taskList =>
+        <td>TaskList TODO implement me</td>
+      }
+    </tr>
+    <tr>
+    @for(columnNumber <- 0 until totalColumns) {
+        @defining(SectionNumber.Classic.NormalPage(TemplateSectionIndex(columnNumber))) { sectionNumber =>
+        @if(formModel.availableSectionNumbers.contains(sectionNumber)) {
+            @defining(formModel(sectionNumber)) { pageModel =>
+            @pageModelHeader(pageModel)
+            }
+        } else {
+            <td> - hidden - </td>
+        }
+        }
+    }
     </tr>
 
     <tr>
-	@for(columnNumber <- 0 until totalColumns) {
-	    @defining(SectionNumber.Classic(columnNumber)) { sectionNumber =>
-		@if(formModel.availableSectionNumbers.contains(sectionNumber)) {
-		    @defining(formModel(sectionNumber)) { pageModel =>
-			@pageModelBody(pageModel)
-		    }
-		} else {
-		    <td></td>
-		}
-	    }
-	}
+    @for(columnNumber <- 0 until totalColumns) {
+        @defining(SectionNumber.Classic.NormalPage(TemplateSectionIndex(columnNumber))) { sectionNumber =>
+        @if(formModel.availableSectionNumbers.contains(sectionNumber)) {
+            @defining(formModel(sectionNumber)) { pageModel =>
+            @pageModelBody(pageModel)
+            }
+        } else {
+            <td></td>
+        }
+        }
+    }
     </tr>
 </tbody>

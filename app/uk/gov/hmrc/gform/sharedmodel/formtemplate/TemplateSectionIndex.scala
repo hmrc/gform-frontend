@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+import cats.Eq
 
-case class SingletonWithNumber[A <: PageMode](
-  singleton: Singleton[A],
-  sectionNumber: SectionNumber
-) {
-  def map[B <: PageMode](f: Singleton[A] => Singleton[B]): SingletonWithNumber[B] =
-    SingletonWithNumber(f(singleton), sectionNumber)
+final case class TemplateSectionIndex(index: Int) extends AnyVal
 
-  def toPageModelWithNumber4: (PageModel[A], SectionNumber) = (singleton, sectionNumber)
+object TemplateSectionIndex {
+  implicit val equal: Eq[TemplateSectionIndex] = Eq.fromUniversalEquals
 }

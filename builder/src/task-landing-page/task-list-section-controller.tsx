@@ -1,6 +1,7 @@
 import * as styles from "bundle-text:../section/content.css";
 import { useEffect, useRef, useState } from "preact/hooks";
 import {
+  Coordinates,
   ContentScriptRequest,
   UpdateTaskList,
   TaskSection,
@@ -18,8 +19,8 @@ import { MessageKind, SmartString } from "../types";
 import { SmartStringDiv, SmartStringInputDeprecated } from "../section/useSmartString";
 import { onMessageHandler } from "../background/index";
 
-const taskPath = (sectionNumber: SectionNumber, taskNumber: number): string => {
-  return ".sections[" + SectionNumber.asString(sectionNumber) + "].tasks[" + taskNumber.toString() + "]";
+const taskPath = (coordinates: Coordinates): string => {
+  return ".sections[" + coordinates.taskSectionNumber.toString() + "].tasks[" + coordinates.taskNumber.toString() + "]";
 };
 
 export const TaskListSectionControllerFactory =
@@ -28,7 +29,7 @@ export const TaskListSectionControllerFactory =
     host: string,
     taskSection: TaskSection,
     taskSectionHeadingElement: HTMLHeadingElement,
-    sectionNumber: SectionNumber,
+    taskSectionNumber: number,
     maybeAccessCode: string | null,
   ) =>
   () => {
@@ -95,7 +96,11 @@ export const TaskListSectionControllerFactory =
           if (taskCaptionInput.current !== null) {
             taskSectionPayload["caption"] = taskCaptionInput.current.value;
           }
-          const sectionPath = taskPath(sectionNumber, taskNumber);
+          const coordinates: Coordinates = {
+            taskSectionNumber: taskSectionNumber,
+            taskNumber: taskNumber,
+          };
+          const sectionPath = taskPath(coordinates);
           const payload: UpdateByPath = {
             payload: taskSectionPayload,
             path: sectionPath,
@@ -111,7 +116,11 @@ export const TaskListSectionControllerFactory =
             taskSectionPayload["title"] = taskSummarySectionInput.current.checked ? "Check your answers" : "";
           }
 
-          const sectionPath = taskPath(sectionNumber, taskNumber);
+          const coordinates: Coordinates = {
+            taskSectionNumber: taskSectionNumber,
+            taskNumber: taskNumber,
+          };
+          const sectionPath = taskPath(coordinates);
           const payload: UpdateByPath = {
             payload: taskSectionPayload,
             path: sectionPath,
@@ -133,8 +142,11 @@ export const TaskListSectionControllerFactory =
               taskSectionPayload["fields"] = [];
             }
           }
-
-          const sectionPath = taskPath(sectionNumber, taskNumber);
+          const coordinates: Coordinates = {
+            taskSectionNumber: taskSectionNumber,
+            taskNumber: taskNumber,
+          };
+          const sectionPath = taskPath(coordinates);
           const payload: UpdateByPath = {
             payload: taskSectionPayload,
             path: sectionPath,
@@ -152,9 +164,13 @@ export const TaskListSectionControllerFactory =
         taskSectionPayload["title"] = value;
       }
 
-      const sectionPath = ".sections[" + SectionNumber.asString(sectionNumber) + "]";
+      const sectionPath = ".sections[" + taskSectionNumber + "]";
 
-      const taskListSectionNumber = SectionNumber.TaskListSectionNumber(`${SectionNumber.asString(sectionNumber)},0,0`);
+      const taskListSectionNumber = SectionNumber.TaskListSectionNumber(
+        taskSectionNumber,
+        0,
+        SectionNumber.NormalPage(0),
+      ); // only taskSectionNumber matters
 
       const taskSectionUpdates: UpdateByPath = {
         payload: taskSectionPayload,
@@ -191,8 +207,7 @@ export const TaskListSectionControllerFactory =
           if (response.taskTitles !== undefined) {
             response.taskTitles.map((taskTitle, index) => {
               const liIndex = index + 1;
-              const ulIndex = SectionNumber.asString(SectionNumber.increase(sectionNumber, 1));
-              const selector = `div > :nth-child(${ulIndex} of ul) > :nth-child(${liIndex} of li) > .govuk-task-list__name-and-hint`;
+              const selector = `div > :nth-child(${taskSectionNumber + 1} of ul) > :nth-child(${liIndex} of li) > .govuk-task-list__name-and-hint`;
               const taskListNameAndHint: Element | null = document.querySelector(selector);
 
               if (taskListNameAndHint !== null) {

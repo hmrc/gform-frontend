@@ -160,7 +160,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val generatedHtml = testService
       .renderSection(
         Some(accessCode),
-        SectionNumber.Classic(0),
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
         FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
         formTemplate,
         None,
@@ -201,7 +201,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val generatedHtml = testService
       .renderSection(
         Some(accessCode),
-        SectionNumber.Classic(0),
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
         FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
         formTemplate,
         None,
@@ -241,7 +241,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val generatedHtml = testService
       .renderSection(
         Some(accessCode),
-        SectionNumber.Classic(0),
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
         FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
         formTemplate.copy(draftRetrievalMethod = NotPermitted),
         None,
@@ -286,7 +286,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     val generatedHtml = testService
       .renderSection(
         Some(accessCode),
-        SectionNumber.Classic(0),
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
         FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
         formTemplate.copy(draftRetrievalMethod = NotPermitted),
         None,

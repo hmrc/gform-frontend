@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.models.SingletonWithNumber
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ Bracket, BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
@@ -377,8 +378,7 @@ class FormDataHelpersSpec extends Spec {
       BracketsWithSectionNumber.Classic[DataExpanded](
         NonEmptyList.one(
           Bracket.NonRepeatingPage[DataExpanded](
-            Singleton(section.page.asInstanceOf[Page[DataExpanded]]),
-            SectionNumber.classicZero,
+            SingletonWithNumber(Singleton(section.page.asInstanceOf[Page[DataExpanded]]), SectionNumber.classicZero),
             section
           )
         )

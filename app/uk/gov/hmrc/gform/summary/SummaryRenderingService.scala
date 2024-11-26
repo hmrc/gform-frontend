@@ -639,7 +639,7 @@ object SummaryRenderingService {
 
     val (accumulatedRows, summaryLists) =
       brackets.foldLeft((Map.empty[HtmlFormat.Appendable, List[SummaryListRow]], List.empty[HtmlFormat.Appendable])) {
-        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _)) =>
+        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _, _)) =>
           accumulatedRows.headOption match {
             case Some((heading, rows)) =>
               val updatedList =
@@ -668,7 +668,10 @@ object SummaryRenderingService {
             }
           }
 
-        case ((accumulatedRows, accList), Bracket.NonRepeatingPage(singleton, sectionNumber, source)) =>
+        case (
+              (accumulatedRows, accList),
+              Bracket.NonRepeatingPage(SingletonWithNumber(singleton, sectionNumber), source)
+            ) =>
           val middleRows = middleSummaryListRows(singleton, sectionNumber)
           val pageTitle = getPageTitle(source, singleton.page)
 

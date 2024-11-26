@@ -123,7 +123,7 @@ class AddressCheckerSpec
     data: VariadicFormData[SourceOrigin.OutOfDate]
   ) = {
 
-    val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections)
+    val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
     val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
 

@@ -88,7 +88,6 @@ class ProcessDataService[F[_]: Monad](
 
     val cachedObligations: Obligations = cache.form.thirdPartyData.obligations
 
-    val mongoData = formModelOptics
     for {
 
       browserFormModelOptics <- FormModelOptics
@@ -106,16 +105,9 @@ class ProcessDataService[F[_]: Monad](
       val dataUpd: FormModelOptics[DataOrigin.Browser] = new ObligationValidator {}
         .validateWithDes(browserFormModelOptics, cachedObligations, obligations)
 
-      val newVisitIndex =
-        VisitIndex.updateSectionVisits(
-          browserFormModelOptics.formModelRenderPageOptics.formModel,
-          mongoData.formModelRenderPageOptics.formModel,
-          cache.form.visitsIndex
-        )
-
       ProcessData(
         dataUpd,
-        newVisitIndex,
+        cache.form.visitsIndex,
         obligations,
         browserFormModelOptics.formModelVisibilityOptics.booleanExprCache
       )

@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.models.AllSections
+import uk.gov.hmrc.gform.models.{ AllSections, IndexedSection }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils._
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import com.softwaremill.quicklens._
@@ -44,7 +44,9 @@ sealed trait FormKind extends Product with Serializable {
     }
 
   val allSections: AllSections = fold[AllSections] { classic =>
-    AllSections.Classic(classic.sections)
+    AllSections.Classic(classic.sections.zipWithIndex.map { case (s, i) =>
+      IndexedSection.SectionIndex(s, TemplateSectionIndex(i))
+    })
   } { taskList =>
     AllSections.TaskList {
       taskList.sections.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
@@ -52,7 +54,7 @@ sealed trait FormKind extends Product with Serializable {
           Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex)) -> updateIncludeIf(
             task.sections.toList,
             task.includeIf
-          )
+          ).zipWithIndex.map { case (s, i) => IndexedSection.SectionIndex(s, TemplateSectionIndex(i)) }
         }
       }
     }
@@ -62,9 +64,12 @@ sealed trait FormKind extends Product with Serializable {
     case _                    => Map.empty
   }.toMap
   private val repeatingMap =
-    allSections.sections.collect { case Section.RepeatingPage(page, _) => page.allIds.map(i => (i, i)) }.flatten.toMap
+    allSections.sections
+      .collect { case IndexedSection.SectionIndex(Section.RepeatingPage(page, _), _) => page.allIds.map(i => (i, i)) }
+      .flatten
+      .toMap
   private val groupMap = allSections.sections
-    .collect { case Section.NonRepeatingPage(page) => page.allFieldsNested }
+    .collect { case IndexedSection.SectionIndex(Section.NonRepeatingPage(page), _) => page.allFieldsNested }
     .flatten
     .collect { case fc @ IsGroup(_) => fc.childrenFormComponents.map(c => (c.id, fc.id)) }
     .flatten

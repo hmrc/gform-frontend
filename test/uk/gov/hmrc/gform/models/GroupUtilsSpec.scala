@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, Section, SectionNumber, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, Section, SectionNumber, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
@@ -118,7 +118,12 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
     forAll(variations) { case (index, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) =>
       val modelComponentId: ModelComponentId = FormComponentId(s"${index}_group").modelComponentId
       val (updatedVariadicData, updatedMapping, filesToDelete) =
-        GroupUtils.removeRecord(processData, modelComponentId, SectionNumber.Classic(1), originalMapping)
+        GroupUtils.removeRecord(
+          processData,
+          modelComponentId,
+          SectionNumber.Classic.NormalPage(TemplateSectionIndex(1)),
+          originalMapping
+        )
 
       updatedMapping shouldBe expectedMapping
       filesToDelete shouldBe expectedFilesToDelete
