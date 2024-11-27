@@ -1888,22 +1888,24 @@ class SectionRenderingService(
   )(implicit
     sse: SmartStringEvaluator
   ): SmartString = {
-    var lString: LocalisedString =
+    val lString: LocalisedString =
       sString.localised(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
-    var index: Long = 0
-    sString.allInterpolations.foreach { expr =>
-      expr match {
-        case formCtx: FormCtx =>
+    SmartString(
+      sString.allInterpolations.zipWithIndex.foldLeft(
+        lString
+      ) {
+        case (accumulatedString, (formCtx: FormCtx, index)) =>
           formModelOptics.formModelVisibilityOptics.fcLookup(formCtx.formComponentId) match {
             case IsText(text) =>
-              lString = text.suffix.fold(lString)(ss => lString.replace(s"{$index}", s"{$index} ${ss.value()}"))
-            case _ =>
+              text.suffix.fold(accumulatedString)(ss =>
+                accumulatedString.replace(s"{$index}", s"{$index} ${ss.value()}")
+              )
+            case _ => accumulatedString
           }
-        case _ =>
-      }
-      index += 1
-    }
-    SmartString(lString, sString.allInterpolations)
+        case _ => lString
+      },
+      sString.allInterpolations
+    )
   }
 
   private def htmlForFileUpload(
