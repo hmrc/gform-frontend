@@ -148,7 +148,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       case t: InformationMessage =>
         t.copy(
           infoText = expandSmartString(t.infoText),
-          summaryValue = t.summaryValue.fold[Option[SmartString]](None)(sv => Some(expandSmartString(sv)))
+          summaryValue = t.summaryValue.map(expandSmartString)
         )
       case t: MiniSummaryList => expandSummaryList(t)
       case t: TableComp       => expandTableComp(t)
