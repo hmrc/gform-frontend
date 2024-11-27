@@ -18,10 +18,13 @@ package uk.gov.hmrc.gform.models.helpers
 
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, TypeInfo }
+import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, IncludeIf, IsText }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 object MiniSummaryListHelper {
@@ -45,4 +48,14 @@ object MiniSummaryListHelper {
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): Boolean =
     includeIf.forall(incI => formModelVisibilityOptics.evalIncludeIfExpr(incI, None))
+
+  def checkAndReturnSuffix(expr: Expr, formModel: FormModel[Visibility])(implicit sse: SmartStringEvaluator): String =
+    expr match {
+      case formCtx: FormCtx =>
+        formModel.fcLookup(formCtx.formComponentId) match {
+          case IsText(text) => text.suffix.fold("")(" " + _.value())
+          case _            => ""
+        }
+      case _ => ""
+    }
 }
