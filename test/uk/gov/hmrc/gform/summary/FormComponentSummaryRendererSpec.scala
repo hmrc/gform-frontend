@@ -31,9 +31,9 @@ import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelector
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DisplayInSummary, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, KeyDisplayWidth, MiniSummaryList, MiniSummaryListValue, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DisplayInSummary, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, InformationMessage, KeyDisplayWidth, MiniSummaryList, MiniSummaryListValue, NoFormat, SectionNumber, SectionOrSummary, SectionTitle4Ga, Value }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, NotChecked, SmartString }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Empty, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
@@ -215,5 +215,91 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       }
     }
   }
+
+  test("summaryListRows should return correct list of summary list rows from informationMessage components") {
+    val table = Table(
+      ("infoMessage", "key", "value", "count"),
+      (
+        mkInfoMessageComponent(
+          "id1",
+          "information text",
+          Some(toSmartString("summary information text")),
+          toSmartString("keyLabel")
+        ),
+        "keyLabel",
+        "summary information text",
+        1
+      )
+    )
+
+    forAll(table) { (infoMessage, key, value, count) =>
+      val testFixture: TestFixture = new TestFixture {
+        override lazy val formTemplate: FormTemplate = buildFormTemplate(
+          destinationList,
+          sections = List(nonRepeatingPageSection(title = "page1", fields = List(infoMessage)))
+        )
+      }
+      import testFixture._
+      val rows: List[SummaryListRow] =
+        FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+          infoMessage,
+          None,
+          formTemplate._id,
+          formModelOptics.formModelVisibilityOptics,
+          None,
+          SectionNumber.Classic(0),
+          SectionTitle4Ga("page1"),
+          NotChecked,
+          ValidationResult.empty,
+          envelopeWithMapping,
+          AddressRecordLookup.from(cache.form.thirdPartyData),
+          None,
+          Some(List(FastForward.CYA(SectionOrSummary.FormSummary))),
+          KeyDisplayWidth.S
+        )
+      assertEquals(rows.length, count)
+
+      if (rows.nonEmpty) {
+        assertEquals(
+          rows.head.key.content,
+          if (key.isEmpty) { Empty }
+          else { Text(key) }
+        )
+        assertEquals(
+          rows.head.value.content,
+          if (value.isEmpty) { Empty }
+          else { HtmlContent(value) }
+        )
+      }
+    }
+  }
+
+  def mkInfoMessageComponent(
+    id: String,
+    infoText: String,
+    summaryValue: Option[SmartString] = None,
+    label: SmartString = SmartString(LocalisedString(Map()), List())
+  ): FormComponent =
+    FormComponent(
+      FormComponentId(id),
+      InformationMessage(
+        NoFormat,
+        toSmartString(infoText),
+        summaryValue
+      ),
+      label,
+      false,
+      None,
+      None,
+      None,
+      None,
+      true,
+      false,
+      false,
+      false,
+      false,
+      None,
+      None
+    )
 
 }

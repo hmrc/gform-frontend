@@ -18,7 +18,10 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
+
+import org.scalatest.prop.Tables.Table
 
 class FormComponentSpec extends Spec {
   /* private val exprText = Text(BasicText, Add(Constant("1"), FormCtx(FormComponentId("other-field-id"))))
@@ -37,6 +40,58 @@ class FormComponentSpec extends Spec {
   "FormComponent" should "round trip derived JSON" in {
     forAll(FormComponentGen.formComponentGen()) { value =>
       FormComponent.format.reads(FormComponent.format.writes(value)) should beJsSuccess(value)
+    }
+  }
+
+  it should "correctly determine hide on summary value" in {
+    val table = Table(
+      ("formComponent", "expectedResult"),
+      (
+        mkInfoMessageComponent(
+          "id1",
+          "Some text",
+          Some(toSmartString("Summary text"))
+        ),
+        false
+      ),
+      (
+        mkInfoMessageComponent(
+          "id1",
+          "Some text"
+        ),
+        true
+      ),
+      (
+        mkFormComponent(
+          "anything",
+          Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
+          "anything",
+          "anything"
+        ),
+        false
+      ),
+      (
+        mkFormComponent(
+          "anything",
+          Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
+          "anything",
+          "anything"
+        ).copy(displayInSummary = Some(false)),
+        true
+      ),
+      (
+        mkFormComponent(
+          "anything",
+          Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
+          "anything",
+          "anything"
+        ).copy(presentationHint = Some(List(InvisibleInSummary))),
+        true
+      )
+    )
+
+    org.scalatest.prop.TableDrivenPropertyChecks.forAll(table) { (formComponent, expected) =>
+      formComponent.hideOnSummary shouldBe expected
     }
   }
 
@@ -186,4 +241,33 @@ class FormComponentSpec extends Spec {
       None,
       None
     )
+
+  def mkInfoMessageComponent(
+    id: String,
+    infoText: String,
+    summaryValue: Option[SmartString] = None,
+    label: SmartString = SmartString(LocalisedString(Map()), List())
+  ): FormComponent =
+    FormComponent(
+      FormComponentId(id),
+      InformationMessage(
+        NoFormat,
+        toSmartString(infoText),
+        summaryValue
+      ),
+      label,
+      false,
+      None,
+      None,
+      None,
+      None,
+      true,
+      false,
+      false,
+      false,
+      false,
+      None,
+      None
+    )
+
 }

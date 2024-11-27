@@ -156,7 +156,7 @@ class SectionRenderingService(
             }
           }
           .map {
-            case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
+            case info @ IsInformationMessage(InformationMessage(infoType, infoText, _)) =>
               htmlForInformationMessage(info, infoType, infoText)
             case fc @ IsTableComp(table) =>
               htmlForTableComp(fc, table, formModelOptics)
@@ -365,7 +365,7 @@ class SectionRenderingService(
             }
           }
           .map {
-            case info @ IsInformationMessage(InformationMessage(infoType, infoText)) =>
+            case info @ IsInformationMessage(InformationMessage(infoType, infoText, _)) =>
               htmlForInformationMessage(info, infoType, infoText)
             case fc @ IsTableComp(table) =>
               htmlForTableComp(fc, table, formModelOptics)
@@ -1411,7 +1411,7 @@ class SectionRenderingService(
                 htmlForFileUploadSingle(formComponent, ei, upscanData, additionalAttributes)
             }
 
-          case InformationMessage(infoType, infoText) =>
+          case InformationMessage(infoType, infoText, _) =>
             htmlForInformationMessage(formComponent, infoType, infoText)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
             htmlForHmrcTaxPeriod(
