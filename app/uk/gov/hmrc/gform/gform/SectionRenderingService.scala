@@ -342,7 +342,7 @@ class SectionRenderingService(
       name = formComponent.id.value,
       items = items.toList,
       hint = hintText(formComponent),
-      classes = "govuk-radios--inline"
+      classes = if (choice.orientation === Horizontal) "govuk-radios--inline" else ""
     )
 
     val addAnotherQuestion: Html =
