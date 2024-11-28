@@ -94,7 +94,7 @@ import MiniSummaryRow._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
-import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper.getFormattedExprStr
+import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
 
 import scala.annotation.tailrec
 
@@ -1671,14 +1671,18 @@ class SectionRenderingService(
 
       val slRows = rows.flatMap {
         case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, maybePageId) =>
-          val formattedExprStr = getFormattedExprStr(ei.formModelOptics.formModelVisibilityOptics, e)
+          val formattedExprStr =
+            MiniSummaryListHelper.getFormattedExprStr(ei.formModelOptics.formModelVisibilityOptics, e)
           maybePageId match {
             case Some(pageId) => summaryListRowByPageId(key, formattedExprStr, pageId)
             case None =>
               List(
                 SummaryListRowHelper.summaryListRow(
                   key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-                  Html(formattedExprStr),
+                  Html(
+                    formattedExprStr + MiniSummaryListHelper
+                      .checkAndReturnSuffix(e, ei.formModelOptics.formModelVisibilityOptics.formModel)
+                  ),
                   Some(""),
                   SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                   "",
@@ -1724,7 +1728,7 @@ class SectionRenderingService(
               List(
                 SummaryListRowHelper.summaryListRow(
                   key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-                  Html(ss.value()),
+                  Html(getSmartStringWithInjectedSuffixes(ss, ei.formModelOptics).value()),
                   Some(""),
                   SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                   "",
@@ -1850,7 +1854,7 @@ class SectionRenderingService(
             if (isNumeric(v)) "govuk-table__cell--numeric" else ""
           }
           GovukTableRow(
-            content = HtmlContent(sse(v.value, false)),
+            content = HtmlContent(sse(getSmartStringWithInjectedSuffixes(v.value, formModelOptics), false)),
             colspan = v.colspan,
             rowspan = v.rowspan,
             classes = classes.mkString(" ")
@@ -1893,6 +1897,32 @@ class SectionRenderingService(
         classes = table.classes,
         firstCellIsHeader = table.firstCellIsHeader
       )
+    )
+  }
+
+  private def getSmartStringWithInjectedSuffixes(
+    sString: SmartString,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    sse: SmartStringEvaluator
+  ): SmartString = {
+    val lString: LocalisedString =
+      sString.localised(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+    SmartString(
+      sString.allInterpolations.zipWithIndex.foldLeft(
+        lString
+      ) {
+        case (accumulatedString, (formCtx: FormCtx, index)) =>
+          formModelOptics.formModelVisibilityOptics.fcLookup(formCtx.formComponentId) match {
+            case IsText(text) =>
+              text.suffix.fold(accumulatedString)(ss =>
+                accumulatedString.replace(s"{$index}", s"{$index} ${ss.value()}")
+              )
+            case _ => accumulatedString
+          }
+        case _ => lString
+      },
+      sString.allInterpolations
     )
   }
 
