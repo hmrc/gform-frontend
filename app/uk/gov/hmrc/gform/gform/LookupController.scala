@@ -92,7 +92,7 @@ class LookupController(
               autocomplete
                 .get(l)
                 .fold(List.empty[LookupLabel])(
-                  _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
+                  _.search(query.toLowerCase).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
                 )
             options.m
               .get(l)
@@ -108,7 +108,7 @@ class LookupController(
               autocomplete
                 .get(l)
                 .fold(List.empty[LookupLabel])(
-                  _.search(query).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
+                  _.search(query.toLowerCase).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
                 )
             showAll match {
               case ShowAll.Enabled =>
