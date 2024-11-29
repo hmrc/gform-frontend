@@ -276,7 +276,7 @@ class FormProcessor(
         )(implicit
           message: Messages
         ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser])] = {
-          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(formModelVisibilityOptics)
+          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(visibilityOptics)
           val maybeRetrieveResultF = DataRetrieveService.retrieveDataResult(
             dataRetrieve,
             Some(cache.form),
