@@ -71,8 +71,8 @@
       data-displayWidth="@displayWidth">
       </div>
       <noscript>
-          @selectItems.zipWithIndex.map { case (items, index) =>
-            @govukSelect(Select(id = s"${fcId}", name = s"${fcId}_$index",  items = items))
+          @selectItems.map { case items =>
+            @govukSelect(Select(id = fcId, name = fcId,  items = items))
           }
       </noscript>
     }
