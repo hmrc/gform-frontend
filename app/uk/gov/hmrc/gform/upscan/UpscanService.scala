@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.upscan
 
 import cats.implicits._
 import org.apache.commons.codec.net.URLCodec
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.crypto.Crypted
@@ -37,6 +38,7 @@ class UpscanService(
     extends UpscanAlgebra[Future] {
 
   private val gformBaseUrl = configModule.serviceConfig.baseUrl("gform") + "/gform"
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def upscanInitiate(
     fileUploadIds: List[FormComponentId],
@@ -62,7 +64,12 @@ class UpscanService(
                 formIdDataCrypted
               )
             )
-            .map(formComponentId -> _)
+            .map { response =>
+              logger.info(
+                s"Upscan information, envelopeId: ${form.envelopeId.value} formTemplateId: ${formTemplateId.value} formComponentId: ${formComponentId.value} reference: ${response.reference.value}"
+              )
+              formComponentId -> response
+            }
         )
     } yield UpscanInitiate(fcIdWithResponse.toMap)
 
