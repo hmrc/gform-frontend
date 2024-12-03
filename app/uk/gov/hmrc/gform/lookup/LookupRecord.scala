@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters._
 
 class LookupRecord(val value: String, val priority: LookupPriority, val keywords: LookupKeywords) extends Indexable {
   override val getFields: jList[String] =
-    List(value.toLowerCase, value, keywords.keywords.getOrElse("")).asJava
+    List(value.toLowerCase, keywords.keywords.map(_.toLowerCase).getOrElse("")).asJava
 
   def toLookupLabel = LookupLabel(value)
 }
