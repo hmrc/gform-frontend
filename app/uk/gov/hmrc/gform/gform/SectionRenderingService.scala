@@ -3367,7 +3367,7 @@ class SectionRenderingService(
   private def dataLabelAttribute(label: SmartString, resolver: BooleanExpr => Boolean): Map[String, String] =
     dataLabelAttribute(label.localised(resolver).value(LangADT.En))
   private def dataLabelAttribute(label: String): Map[String, String] =
-    Map("data-label" -> label.replaceAll("''", "'")) // Unescape single-quote
+    Map("aria-label" -> label.replaceAll("''", "'")) // Unescape single-quote
 
   private def getSelectItemsForLookup(
     formComponent: FormComponent,
