@@ -232,6 +232,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(new TimeChecker[D]().runCheck(checkerDependency))
       case MiniSummaryList(_, _, _) => validationSuccess.pure[F]
       case _: TableComp             => validationSuccess.pure[F]
+      case _: Button                => validationSuccess.pure[F]
     }
   }
 

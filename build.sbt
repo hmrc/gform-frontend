@@ -55,7 +55,8 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.upscan.UpscanReference",
       "uk.gov.hmrc.gform.testonly.snapshot.SnapshotId",
       "uk.gov.hmrc.gform.testonly.snapshot.UserInputs",
-      "uk.gov.hmrc.play.bootstrap.binders.RedirectUrl"
+      "uk.gov.hmrc.play.bootstrap.binders.RedirectUrl",
+      "uk.gov.hmrc.gform.payment.PaymentReference"
     ),
     TwirlKeys.templateImports ++= Seq(
       "play.twirl.api.Html",

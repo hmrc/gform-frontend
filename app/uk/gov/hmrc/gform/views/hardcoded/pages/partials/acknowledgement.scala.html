@@ -14,13 +14,14 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate, FormTemplateId}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormTemplateId}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
-@import uk.gov.hmrc.gform.models.SectionRenderingInformation
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default => FormCatDefault }
+@import uk.gov.hmrc.gform.views.html.form.FormWithoutCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukPanel
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 
 @* NOTE!!!! formTemplateId may not be the same as formTemplate._id due to versioning *@
+
 @(
   formTemplateId: FormTemplateId,
   snippets: List[Html],
@@ -36,6 +37,7 @@
   l: LangADT)
 
 @govukPanel = @{new GovukPanel()}
+@formWithoutCSRF = @{new FormWithoutCSRF()}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -48,7 +50,9 @@
     @{acknowledgementPanel}
   }
 
-  @{snippets}
+  @formWithoutCSRF(action = Call("POST", ""), args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+      @snippets
+  }
 
   @if(formTemplate.destinations.displayFeedbackLink) {
     <h2 class="govuk-heading-m">

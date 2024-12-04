@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInforma
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
+import uk.gov.hmrc.gform.payment.PaymentController
 import uk.gov.hmrc.gform.capture.CaptureController
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
@@ -438,6 +439,14 @@ class GformModule(
       fastForwardService,
       lookupRegistry
     )
+
+  val buttonController: PaymentController = new PaymentController(
+    controllersModule.authenticatedRequestActions,
+    wSHttpModule.auditableWSHttp,
+    controllersModule.messagesControllerComponents,
+    configModule.appConfig,
+    configModule.serviceConfig
+  )
 
   val captureController: CaptureController = new CaptureController(
     playBuiltInsModule.i18nSupport,
