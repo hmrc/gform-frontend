@@ -19,10 +19,12 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
+
 import scala.util.{ Failure, Success }
 import uk.gov.hmrc.gform.controllers.{ AddGroup, Back, Direction, EditAddToList, Exit, RemoveGroup, SaveAndContinue, SaveAndExit, SummaryContinue }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
+import uk.gov.hmrc.gform.payment.PaymentReference
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
@@ -89,6 +91,14 @@ object ValueClassBinder {
 
     override def unbind(key: String, value: AddToListId): String = s"$key=${value.formComponentId.value}"
   }
+
+  implicit val paymentReferenceQueryBindable: QueryStringBindable[PaymentReference] =
+    new QueryStringBindable[PaymentReference] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, PaymentReference]] =
+        params.get(key).flatMap(_.headOption).map(reference => Right(PaymentReference(reference)))
+
+      override def unbind(key: String, value: PaymentReference): String = s"$key=${value.value}"
+    }
 
   implicit val formDirectionQueryBindable: QueryStringBindable[Direction] =
     new QueryStringBindable[Direction] {

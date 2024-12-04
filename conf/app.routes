@@ -122,3 +122,5 @@ GET           /capture/sectionNumbers/:formTemplateId/:maybeAccessCode          
 GET           /download-file/:formTemplateId/:maybeAccessCode                                                    uk.gov.hmrc.gform.gform.DownloadController.downloadFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileName: String)
 GET           /image-file/:formTemplateId/:maybeAccessCode                                                       uk.gov.hmrc.gform.gform.ImageController.image(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileName: String)
 GET           /redirect                                                                                          uk.gov.hmrc.gform.gform.RedirectController.redirect(redirectUrl: RedirectUrl)
+
+POST          /pay-api/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.payment.PaymentController.pay(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], reference: PaymentReference, amountInPence: String, backPath: String)

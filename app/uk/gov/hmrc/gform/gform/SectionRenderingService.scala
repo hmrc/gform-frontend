@@ -67,7 +67,7 @@ import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukPanel, Panel }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
-import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
+import uk.gov.hmrc.govukfrontend.views.viewmodels.button.{ Button => GovukButton }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes, ExclusiveCheckbox }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Empty, HtmlContent }
@@ -95,6 +95,7 @@ import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
+import uk.gov.hmrc.gform.payment.PaymentReference
 
 import scala.annotation.tailrec
 
@@ -1433,6 +1434,7 @@ class SectionRenderingService(
               keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
             )
           case t: TableComp => htmlForTableComp(formComponent, t, ei.formModelOptics)
+          case b: Button    => htmlForButton(formComponent, b, ei)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -1926,6 +1928,44 @@ class SectionRenderingService(
     )
   }
 
+  private def htmlForButton(
+    formComponent: FormComponent,
+    btn: Button,
+    ei: ExtraInfo
+  )(implicit
+    request: RequestHeader,
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+    val label = content.Text(formComponent.label.value())
+
+    val reference = ei.formModelOptics.formModelVisibilityOptics
+      .evalAndApplyTypeInfoFirst(btn.reference)
+      .stringRepresentation
+
+    val amountInPence = ei.formModelOptics.formModelVisibilityOptics
+      .evalAndApplyTypeInfoFirst(btn.amountInPence)
+      .stringRepresentation
+
+    val govukButton = GovukButton(
+      id = Some(formComponent.id.value),
+      inputType = Some("submit"),
+      name = Some(formComponent.id.value),
+      content = label,
+      classes = btn.classes.getOrElse(""),
+      isStartButton = btn.isStartButton,
+      attributes = Map(
+        "formaction" -> uk.gov.hmrc.gform.payment.routes.PaymentController
+          .pay(ei.formTemplateId, ei.maybeAccessCode, PaymentReference(reference), amountInPence, request.uri)
+          .url
+      )
+    )
+
+    new components.GovukButton()(govukButton)
+
+  }
+
   private def htmlForFileUpload(
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1983,7 +2023,7 @@ class SectionRenderingService(
 
     val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
 
-    val submitButton: Button = Button(
+    val submitButton: GovukButton = GovukButton(
       name = Some(s"${formComponent.id}-uploadButton"),
       content = content.Text(messages("file.upload")),
       inputType = Some("submit"),

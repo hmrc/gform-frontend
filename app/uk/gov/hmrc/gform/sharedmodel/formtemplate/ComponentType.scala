@@ -21,7 +21,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit.MINUTES
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.foldable._
 import julienrf.json.derived
 import play.api.i18n.Messages
 import play.api.libs.json._
@@ -37,7 +36,6 @@ import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, St
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 
 import scala.annotation.tailrec
-import scala.collection.immutable.List
 
 sealed trait MultiField {
 
@@ -66,6 +64,7 @@ sealed trait ComponentType {
     case _: FileUpload         => "fileUpload"
     case _: MiniSummaryList    => "miniSummaryList"
     case _: TableComp          => "table"
+    case _: Button             => "button"
   }
 }
 
@@ -668,6 +667,17 @@ case class TableComp(
 
 object TableComp {
   implicit val format: Format[TableComp] = derived.oformat()
+}
+
+case class Button(
+  reference: Expr,
+  amountInPence: Expr,
+  isStartButton: Boolean,
+  classes: Option[String]
+) extends ComponentType
+
+object Button {
+  implicit val format: Format[Button] = derived.oformat()
 }
 
 object ComponentType {
