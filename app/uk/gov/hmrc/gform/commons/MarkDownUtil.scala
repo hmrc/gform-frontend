@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.commons
 
+import cats.implicits._
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.entities.EntityConverter
@@ -67,12 +68,50 @@ object MarkDownUtil {
     doc
   }
 
+  private def addDefaultClassesToHeaders(doc: Document) = {
+    val headings = Seq("h1" -> "govuk-heading-l", "h2" -> "govuk-heading-m", "h3" -> "govuk-heading-s")
+
+    headings.foreach { case (tag, className) =>
+      val element = doc.select(tag)
+      val existingClass = element.attr("class")
+      if (existingClass.isEmpty)
+        element.attr("class", s"$className")
+    }
+    doc
+  }
+
   private def enhanceHtml(html: String): String = {
     val doc: Document = Jsoup.parse(html)
     addTargetToLinks(doc)
     addDefaultClassesToLists(doc)
+    addDefaultClassesToHeaders(doc)
     doc.body().html()
   }
+
+  private def replaceHashesForAcknowledgementSection(input: String): String =
+    input
+      .split("\n")
+      .map { line =>
+        val pattern = "(@####|@###|@##|@#)".r
+        val index = pattern.findFirstIn(line).map(line.indexOf).getOrElse(-1)
+
+        if (index =!= -1) {
+          val matchedLength = pattern.findFirstIn(line).getOrElse("").length
+          val text = line.substring(index + matchedLength).replaceAll("#*$", "")
+
+          val classIndex = matchedLength - 1
+          classIndex match {
+            case 1 => s"""<h1 class="govuk-heading-xl">$text</h1>"""
+            case 2 => s"""<h2 class="govuk-heading-l">$text</h2>"""
+            case 3 => s"""<h3 class="govuk-heading-m">$text</h3>"""
+            case 4 => s"""<h4 class="govuk-heading-s">$text</h4>"""
+            case _ => s"""$text"""
+          }
+        } else {
+          line
+        }
+      }
+      .mkString("\n")
 
   def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
 
@@ -82,7 +121,8 @@ object MarkDownUtil {
   }
 
   def markDownParser(markDownText0: String): Html = {
-    val markDownText = markDownText0.trim.replaceAll(" +", " ")
+    val normalizedMarkdownText = markDownText0.trim.replaceAll(" +", " ")
+    val markDownText = replaceHashesForAcknowledgementSection(normalizedMarkdownText)
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
