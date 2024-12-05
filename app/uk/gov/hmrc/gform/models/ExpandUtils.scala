@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, ExprUpdater, FormComponentU
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -112,6 +112,12 @@ object ExpandUtils {
       Dynamic.ATLBased(ExpandUtils.addPrefix(n, formComponentId))
     case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, _)) =>
       Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, n))
+  }
+
+  def expandOptionDataDynamicDataRetrieveCtx(n: Int, dynamic: Dynamic) = dynamic match {
+    case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, index)) =>
+      Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx.copy(id = DataRetrieveId(s"${n}_${ctx.id.value}")), index))
+    case _ => dynamic
   }
 
 }

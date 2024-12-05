@@ -59,7 +59,7 @@ object OptionDataUtils {
       case Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
         val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
         val optionDatas: List[OptionData.ValueBased] = expressionResult.listRepresentation.zipWithIndex.map {
-          case (answer, index) =>
+          case (_, index) =>
             updateDataRetrieveValueBased(index, valueBased)
         }
         NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(valueBased))
