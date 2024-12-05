@@ -198,7 +198,7 @@ class EmailFieldIdChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   ): CheckProgram[Unit] = {
     val formComponent = context.formComponent
     val emailCodeFieldMatcher: EmailCodeFieldMatcher = context.getEmailCodeFieldMatcher(formComponent)
-    formComponent match {
+    formComponent.`type` match {
       case emailCodeFieldMatcher.EmailCodeField(emailField) =>
         validateEmailCode(formComponent, emailField, context.formModelVisibilityOptics, context.cache.thirdPartyData)
       case _ => throw new IllegalArgumentException("FormComponent is not a EmailFieldId")
