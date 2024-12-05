@@ -1795,7 +1795,7 @@ class SectionRenderingService(
       .foldLeft(List(List[MiniSummaryRow]()))((acc, row) =>
         row match {
           case _: HeaderRow      => List(row) :: acc
-          case _: SmartStringRow => List(row) :: acc
+          case _: SmartStringRow => (row :: acc.head) :: acc.tail
           case _: ValueRow       => (row :: acc.head) :: acc.tail
           case _: ATLRow         => List(row) :: acc
         }
