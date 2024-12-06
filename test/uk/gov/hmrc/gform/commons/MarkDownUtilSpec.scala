@@ -58,8 +58,25 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
   "markDownParser" should "convert markdown text to HTML, handling special characters" in {
     val data = Table(
       ("input", "expected"),
-      ("""## Heading (h2) #""", """<h2>Heading (h2)</h2>"""),
-      ("""## \#Heading (h2) #""", """<h2>#Heading (h2)</h2>"""),
+      ("""## Heading (h2) #""", """<h2 class="govuk-heading-m">Heading (h2)</h2>"""),
+      ("""## \#Heading (h2) #""", """<h2 class="govuk-heading-m">#Heading (h2)</h2>"""),
+      (
+        """1. Total is 1\.00 and 2\.00""",
+        """<ol class="govuk-list govuk-list--number">
+          | <li>Total is 1.00 and 2.00</li>
+          |</ol>""".stripMargin
+      )
+    )
+    forAll(data) { (input, expected) =>
+      MarkDownUtil.markDownParser(toSmartString(input)) shouldBe Html(expected)
+    }
+  }
+
+  "markDownParser" should "convert markdown text to HTML, handling special characters on the acknowledgement section" in {
+    val data = Table(
+      ("input", "expected"),
+      ("""@## Heading (h2) #""", """<h2 class="govuk-heading-l">Heading (h2)</h2>"""),
+      ("""@## \#Heading (h2) #""", """<h2 class="govuk-heading-l">#Heading (h2)</h2>"""),
       (
         """1. Total is 1\.00 and 2\.00""",
         """<ol class="govuk-list govuk-list--number">
