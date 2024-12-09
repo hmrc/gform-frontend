@@ -1915,7 +1915,7 @@ class SectionRenderingService(
         lString
       ) {
         case (accumulatedString, (formCtx: FormCtx, index)) =>
-          formModelOptics.formModelVisibilityOptics.fcLookup(formCtx.formComponentId) match {
+          formModelOptics.formModelRenderPageOptics.formModel.fcLookup(formCtx.formComponentId) match {
             case IsText(text) =>
               text.suffix.fold(accumulatedString)(ss =>
                 accumulatedString.replace(s"{$index}", s"{$index} ${ss.value()}")
