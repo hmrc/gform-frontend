@@ -319,11 +319,21 @@ class FormProcessor(
 
       updatePostcodeLookup <-
         if (isValid) {
+          val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
+            .updateFrom(validatorsResult)
+          val cacheUpd =
+            cache.copy(
+              form = cache.form
+                .copy(
+                  thirdPartyData = updatedThirdPartyData
+                )
+            )
+
           handler
             .handleFormValidation(
               processData.formModelOptics,
               validationSectionNumber,
-              cache.toCacheData,
+              cacheUpd.toCacheData,
               envelopeWithMapping,
               validationService.validatePageModel,
               enteredVariadicFormData
