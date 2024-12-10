@@ -116,7 +116,9 @@ object ExpandUtils {
 
   def expandOptionDataDynamicDataRetrieveCtx(n: Int, dynamic: Dynamic) = dynamic match {
     case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, index)) =>
-      Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx.copy(id = DataRetrieveId(s"${n}_${ctx.id.value}")), index))
+      Dynamic.DataRetrieveBased(
+        IndexOfDataRetrieveCtx(ctx.copy(id = DataRetrieveId(addPrefixToString(n, ctx.id.value))), index)
+      )
     case _ => dynamic
   }
 
