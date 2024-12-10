@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
-import uk.gov.hmrc.gform.models.ids.ModelPageId
+import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -237,6 +237,22 @@ class FormProcessor(
     } yield redirect
   }
 
+  private def getComponentsWithUpdatedValues(
+    oldMap: Map[ModelComponentId, VariadicValue],
+    newMap: Map[ModelComponentId, VariadicValue]
+  ): Set[ModelComponentId] = {
+    val commonKeys = newMap.keySet.intersect(oldMap.keySet)
+    val oldKeysDiff = oldMap.keySet.diff(newMap.keySet)
+    val newKeysDiff = newMap.keySet.diff(oldMap.keySet)
+
+    val removed: Map[ModelComponentId, VariadicValue] = oldKeysDiff.map(k => k -> oldMap(k)).toMap
+    val added: Map[ModelComponentId, VariadicValue] = newKeysDiff.map(k => k -> newMap(k)).toMap
+    val updated: Map[ModelComponentId, VariadicValue] =
+      commonKeys.iterator.filter(k => oldMap(k).toSeq =!= newMap(k).toSeq).map(k => k -> newMap(k)).toMap
+
+    removed.keySet ++ added.keySet ++ updated.keySet
+  }
+
   def validateAndUpdateData(
     cache: AuthCacheWithForm,
     processData: ProcessData,
@@ -363,10 +379,36 @@ class FormProcessor(
           }
         } else None
 
+        val formComponentsUpdated: Set[ModelComponentId] =
+          getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
+
+        val pageList: Set[(List[PageId], Option[Int])] = formComponentsUpdated.flatMap(updated =>
+          pageModel.allFormComponents
+            .filter(fc => fc.baseComponentId === updated.baseComponentId)
+            .flatMap(fc => fc.pageIdsToDisplayOnChange.map(p => p -> updated.indexedComponentId.maybeIndex))
+        )
+
+        val sectionsToRevisit: Set[SectionNumber] = pageList.flatMap {
+          case (pageList: List[PageId], maybeIndex: Option[Int]) =>
+            pageList.map { pageId =>
+              val pageIdWithMaybeIndex: PageId = maybeIndex.map(idx => pageId.withIndex(idx)).getOrElse(pageId)
+              val maybeSectionNumber: Option[SectionNumber] =
+                formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap
+                  .get(pageIdWithMaybeIndex.modelPageId)
+              maybeSectionNumber.getOrElse(
+                formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap(pageId.modelPageId)
+              )
+            }.toSet
+        }
+
         val visitsIndex =
           if (visitPage && redirectUrl.isEmpty)
             processData.visitsIndex.visit(sectionNumber)
           else processData.visitsIndex.unvisit(sectionNumber)
+
+        val updatedVisitsIndex = sectionsToRevisit.foldLeft(visitsIndex) { case (acc, sn) =>
+          acc.unvisit(sn)
+        }
 
         val cacheUpd =
           cache.copy(
@@ -374,7 +416,7 @@ class FormProcessor(
               .copy(
                 thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
                 formData = formDataU,
-                visitsIndex = visitsIndex
+                visitsIndex = updatedVisitsIndex
               )
           )
 
