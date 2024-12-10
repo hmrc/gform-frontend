@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.Helpers.toSmartStringExpression
+
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, LangADT, LocalisedString }
 
 class FormComponentUpdaterSpec extends Spec {
 
@@ -76,6 +80,21 @@ class FormComponentUpdaterSpec extends Spec {
     res should containsExpr(expected)
   }
 
+  it should "update dynamic, label and hint in DataRetrieveBased choice option" in {
+    val formComponent = mkFormComponent(
+      "choice1",
+      mkChoice("individualsEmploymentsAtl")
+    )
+
+    val expected = mkFormComponent(
+      "11_choice1",
+      mkChoice("11_individualsEmploymentsAtl")
+    )
+
+    val res = updateSection(formComponent)
+    res shouldBe expected
+  }
+
   private def updateGroup(formComponent: FormComponent) = {
     val group = mkGroup(2, List(mkFormComponent("choice", Value)))
 
@@ -87,4 +106,45 @@ class FormComponentUpdaterSpec extends Spec {
 
     new FormComponentUpdater(formComponent, 11, section.page.fields.map(_.id)).updatedWithId
   }
+
+  private def mkChoice(dataRetrieveId: String) =
+    Choice(
+      Checkbox,
+      mkChoiceOptions(dataRetrieveId),
+      Horizontal,
+      List.empty,
+      None,
+      None,
+      None,
+      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+      None,
+      None,
+      false
+    )
+
+  private def mkChoiceOptions(dataRetrieveId: String) =
+    NonEmptyList.of(
+      OptionData.ValueBased(
+        label = toSmartStringExpression(
+          "{0}",
+          DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("employerName"))
+        ),
+        hint = Option(
+          toSmartStringExpression(
+            "{0}",
+            DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("worksNumber"))
+          )
+        ),
+        includeIf = None,
+        value = OptionDataValue.StringBased("EMP"),
+        dynamic = Option(
+          Dynamic.DataRetrieveBased(
+            IndexOfDataRetrieveCtx(
+              DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("employerName")),
+              0
+            )
+          )
+        )
+      )
+    )
 }
