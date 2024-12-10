@@ -52,7 +52,16 @@ sealed trait VisitIndex extends Product with Serializable {
     fold[VisitIndex](classic => VisitIndex.Classic(classic.visitsIndex - sectionNumber.sectionNumber))(identity)
 
   private def unvisitTaskList(sectionNumber: SectionNumber.TaskList): VisitIndex =
-    fold[VisitIndex](identity)(identity)
+    fold[VisitIndex](identity) { taskList =>
+      val update =
+        taskList.visitsIndex.get(sectionNumber.coordinates).fold(Set(sectionNumber.sectionNumber)) { alreadyVisited =>
+          alreadyVisited - sectionNumber.sectionNumber
+        }
+
+      val visitsIndexUpd = taskList.visitsIndex ++ Map(sectionNumber.coordinates -> update)
+
+      VisitIndex.TaskList(visitsIndexUpd)
+    }
 
   private def containsClassic(sectionNumber: SectionNumber.Classic): Boolean =
     fold[Boolean](classic => classic.visitsIndex.contains(sectionNumber.sectionNumber))(_ => false)
