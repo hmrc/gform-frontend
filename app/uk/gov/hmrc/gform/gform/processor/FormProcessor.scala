@@ -248,9 +248,42 @@ class FormProcessor(
     val removed: Map[ModelComponentId, VariadicValue] = oldKeysDiff.map(k => k -> oldMap(k)).toMap
     val added: Map[ModelComponentId, VariadicValue] = newKeysDiff.map(k => k -> newMap(k)).toMap
     val updated: Map[ModelComponentId, VariadicValue] =
-      commonKeys.iterator.filter(k => oldMap(k).toSeq =!= newMap(k).toSeq).map(k => k -> newMap(k)).toMap
+      commonKeys.filter(k => oldMap(k).toSeq =!= newMap(k).toSeq).map(k => k -> newMap(k)).toMap
 
     removed.keySet ++ added.keySet ++ updated.keySet
+  }
+
+  private def checkForRevisits(
+    pageModel: PageModel[Visibility],
+    visitsIndex: VisitIndex,
+    formModelOptics: FormModelOptics[Mongo],
+    enteredVariadicFormData: EnteredVariadicFormData
+  ): VisitIndex = {
+    val formComponentsUpdated: Set[ModelComponentId] =
+      getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
+
+    val pageList: Set[(List[PageId], Option[Int])] = formComponentsUpdated.flatMap(updated =>
+      pageModel.allFormComponents
+        .filter(fc => fc.baseComponentId === updated.baseComponentId)
+        .flatMap(fc => fc.pageIdsToDisplayOnChange.map(p => p -> updated.indexedComponentId.maybeIndex))
+    )
+
+    val sectionsToRevisit: Set[SectionNumber] = pageList.flatMap {
+      case (pageList: List[PageId], maybeIndex: Option[Int]) =>
+        pageList.map { pageId =>
+          val pageIdWithMaybeIndex: PageId = maybeIndex.map(idx => pageId.withIndex(idx)).getOrElse(pageId)
+          val maybeSectionNumber: Option[SectionNumber] =
+            formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap
+              .get(pageIdWithMaybeIndex.modelPageId)
+          maybeSectionNumber.getOrElse(
+            formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap(pageId.modelPageId)
+          )
+        }.toSet
+    }
+
+    sectionsToRevisit.foldLeft(visitsIndex) { case (acc, sn) =>
+      acc.unvisit(sn)
+    }
   }
 
   def validateAndUpdateData(
@@ -379,36 +412,12 @@ class FormProcessor(
           }
         } else None
 
-        val formComponentsUpdated: Set[ModelComponentId] =
-          getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
-
-        val pageList: Set[(List[PageId], Option[Int])] = formComponentsUpdated.flatMap(updated =>
-          pageModel.allFormComponents
-            .filter(fc => fc.baseComponentId === updated.baseComponentId)
-            .flatMap(fc => fc.pageIdsToDisplayOnChange.map(p => p -> updated.indexedComponentId.maybeIndex))
-        )
-
-        val sectionsToRevisit: Set[SectionNumber] = pageList.flatMap {
-          case (pageList: List[PageId], maybeIndex: Option[Int]) =>
-            pageList.map { pageId =>
-              val pageIdWithMaybeIndex: PageId = maybeIndex.map(idx => pageId.withIndex(idx)).getOrElse(pageId)
-              val maybeSectionNumber: Option[SectionNumber] =
-                formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap
-                  .get(pageIdWithMaybeIndex.modelPageId)
-              maybeSectionNumber.getOrElse(
-                formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap(pageId.modelPageId)
-              )
-            }.toSet
-        }
-
         val visitsIndex =
           if (visitPage && redirectUrl.isEmpty)
             processData.visitsIndex.visit(sectionNumber)
           else processData.visitsIndex.unvisit(sectionNumber)
 
-        val updatedVisitsIndex = sectionsToRevisit.foldLeft(visitsIndex) { case (acc, sn) =>
-          acc.unvisit(sn)
-        }
+        val updatedVisitsIndex = checkForRevisits(pageModel, visitsIndex, formModelOptics, enteredVariadicFormData)
 
         val cacheUpd =
           cache.copy(
