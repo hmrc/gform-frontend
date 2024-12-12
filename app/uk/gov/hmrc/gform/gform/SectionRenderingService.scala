@@ -1908,23 +1908,27 @@ class SectionRenderingService(
   )(implicit
     sse: SmartStringEvaluator
   ): SmartString = {
+    val resolver = formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
     val lString: LocalisedString =
       sString.localised(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
     SmartString(
-      sString.allInterpolations.zipWithIndex.foldLeft(
-        lString
-      ) {
-        case (accumulatedString, (formCtx: FormCtx, index)) =>
-          formModelOptics.formModelRenderPageOptics.formModel.fcLookup(formCtx.formComponentId) match {
-            case IsText(text) =>
-              text.suffix.fold(accumulatedString)(ss =>
-                accumulatedString.replace(s"{$index}", s"{$index} ${ss.value()}")
-              )
-            case _ => accumulatedString
-          }
-        case _ => lString
-      },
-      sString.allInterpolations
+      sString
+        .interpolations(resolver)
+        .zipWithIndex
+        .foldLeft(
+          lString
+        ) {
+          case (accumulatedString, (formCtx: FormCtx, index)) =>
+            formModelOptics.formModelRenderPageOptics.formModel.fcLookup(formCtx.formComponentId) match {
+              case IsText(text) =>
+                text.suffix.fold(accumulatedString)(ss =>
+                  accumulatedString.replace(s"{$index}", s"{$index} ${ss.value()}")
+                )
+              case _ => accumulatedString
+            }
+          case _ => lString
+        },
+      sString.interpolations(resolver)
     )
   }
 
