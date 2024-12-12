@@ -87,7 +87,8 @@ trait ExampleEvaluationContext {
       Set.empty,
       new LookupRegistry(Map()),
       Map.empty,
-      Map.empty
+      Map.empty,
+      TaskIdTaskStatusMapping.empty
     )
 }
 
@@ -1004,7 +1005,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     VisitIndex.Classic(Set.empty),
     ThirdPartyData.empty,
     envelopeExpiryDate,
-    FormComponentIdToFileIdMapping.empty
+    FormComponentIdToFileIdMapping.empty,
+    TaskIdTaskStatusMapping.empty
   )
 }
 

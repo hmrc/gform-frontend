@@ -71,6 +71,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case ChoicesRevealedField(formComponentId) => ChoicesRevealedField(expandFcId(formComponentId))
     case ChoicesSelected(formComponentId)      => ChoicesSelected(expandFcId(formComponentId))
     case ChoicesAvailable(formComponentId)     => ChoicesAvailable(expandFcId(formComponentId))
+    case TaskStatus(_)                         => expr
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {

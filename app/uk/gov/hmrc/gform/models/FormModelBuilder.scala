@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -43,7 +43,8 @@ object FormModelBuilder {
     cacheData: CacheData,
     recalculation: Recalculation[F, E],
     componentIdToFileId: FormComponentIdToFileIdMapping,
-    lookupRegistry: LookupRegistry
+    lookupRegistry: LookupRegistry,
+    taskIdTaskStatus: TaskIdTaskStatusMapping
   )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -56,7 +57,8 @@ object FormModelBuilder {
       cache.accessCode,
       recalculation,
       componentIdToFileId,
-      lookupRegistry
+      lookupRegistry,
+      taskIdTaskStatus
     )
 
   def evalRemoveItemIf[T <: PageMode](
@@ -199,7 +201,8 @@ class FormModelBuilder[E, F[_]: Functor](
   maybeAccessCode: Option[AccessCode],
   recalculation: Recalculation[F, E],
   componentIdToFileId: FormComponentIdToFileIdMapping,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  taskIdTaskStatus: TaskIdTaskStatusMapping
 )(implicit
   hc: HeaderCarrier,
   me: MonadError[F, E]
@@ -239,7 +242,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.addToListIds,
         lookupRegistry,
         formModel.lookupRegister,
-        formModel.constraints
+        formModel.constraints,
+        taskIdTaskStatus
       )
 
     recalculation

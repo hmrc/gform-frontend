@@ -47,7 +47,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, FileSizeLimit, FormPhase, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
@@ -55,8 +55,6 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 
 class SummaryRenderingServiceSpec
     extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
@@ -152,7 +150,8 @@ class SummaryRenderingServiceSpec
           Set.empty,
           new LookupRegistry(Map()),
           Map.empty,
-          Map.empty
+          Map.empty,
+          TaskIdTaskStatusMapping.empty
         )
       )
     )

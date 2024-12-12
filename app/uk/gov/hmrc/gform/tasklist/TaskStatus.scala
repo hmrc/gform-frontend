@@ -17,8 +17,19 @@
 package uk.gov.hmrc.gform.tasklist
 
 import cats.Eq
+import play.api.libs.json.Format
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
+import uk.gov.hmrc.gform.tasklist.TaskStatus.{ CannotStartYet, Completed, InProgress, NotRequired, NotStarted }
 
-sealed trait TaskStatus extends Product with Serializable
+sealed trait TaskStatus extends Product with Serializable {
+  val asString = this match {
+    case NotStarted     => "Not started"
+    case InProgress     => "In progress"
+    case Completed      => "Completed"
+    case CannotStartYet => "Cannot start yet"
+    case NotRequired    => "Not required"
+  }
+}
 
 object TaskStatus {
   implicit val equal: Eq[TaskStatus] = Eq.fromUniversalEquals
@@ -27,4 +38,13 @@ object TaskStatus {
   case object Completed extends TaskStatus
   case object CannotStartYet extends TaskStatus
   case object NotRequired extends TaskStatus
+
+  implicit val format: Format[TaskStatus] = ADTFormat.formatEnumeration(
+    "NotStarted"     -> NotStarted,
+    "InProgress"     -> InProgress,
+    "Completed"      -> Completed,
+    "CannotStartYet" -> CannotStartYet,
+    "NotRequired"    -> NotRequired
+  )
+
 }

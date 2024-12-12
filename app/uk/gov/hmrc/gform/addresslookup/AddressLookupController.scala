@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, FormModel, FormModelBuilder, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.monoidHtml
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics, TaskIdTaskStatusMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
@@ -790,7 +790,8 @@ class AddressLookupController(
       maybeAccessCode,
       recalculation,
       FormComponentIdToFileIdMapping.empty,
-      lookupRegistry
+      lookupRegistry,
+      TaskIdTaskStatusMapping.empty
     )
 
     val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]

@@ -118,7 +118,8 @@ class LanguageSwitchController(
               formStatus = form.status,
               visitsIndex = form.visitsIndex,
               thirdPartyData = form.thirdPartyData,
-              componentIdToFileId = form.componentIdToFileId
+              componentIdToFileId = form.componentIdToFileId,
+              taskIdTaskStatus = form.taskIdTaskStatus
             )
             gformConnector.updateUserData(formIdData, userData).flatMap { _ =>
               switchToLanguage(language)(request)

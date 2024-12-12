@@ -21,17 +21,19 @@ import cats.syntax.eq._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
-import scala.concurrent.{ ExecutionContext, Future }
 
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, ProcessDataService, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, TaskIdTaskStatusMapping, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, TaskNumber, TaskSectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
@@ -42,12 +44,14 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class TaskListRenderingService(
   frontendAppConfig: FrontendAppConfig,
-  validationService: ValidationService
+  validationService: ValidationService,
+  gformConnector: GformConnector,
+  processDataService: ProcessDataService[Future]
 )(implicit ec: ExecutionContext) {
   def renderTaskList(
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
-    cache: CacheData,
+    cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
@@ -58,7 +62,44 @@ class TaskListRenderingService(
     sse: SmartStringEvaluator
   ): Future[Html] =
     for {
-      statusesLookup <- statuses(cache, envelope, formModelOptics)
+      statusesLookup <- statuses(cache.toCacheData, envelope, formModelOptics)
+      taskIdTaskStatus = TaskListUtils
+                           .withTaskList(formTemplate) { taskList =>
+                             taskList.sections.toList.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
+                               taskSection.tasks.toList.zipWithIndex.collect { case (task, taskIndex) =>
+                                 val coordinate = evalCoordinates(taskSectionIndex, taskIndex)
+                                 val taskStatus = statusesLookup.toList.find(_._1 === coordinate).map(_._2)
+
+                                 (task.id, taskStatus) match {
+                                   case (Some(taskId), Some(status)) => Some(taskId -> status)
+                                   case _                            => None
+                                 }
+                               }.flatten
+                             }
+                           }
+                           .toMap
+      _ <-
+        gformConnector.updateUserData(
+          FormIdData(cache.retrievals, cache.formTemplateId, maybeAccessCode),
+          UserData(
+            cache.form.formData,
+            Validated,
+            cache.form.visitsIndex,
+            cache.form.thirdPartyData,
+            cache.form.componentIdToFileId,
+            TaskIdTaskStatusMapping(taskIdTaskStatus)
+          )
+        )
+      cacheUpd = cache.copy(form = cache.form.copy(taskIdTaskStatus = TaskIdTaskStatusMapping(taskIdTaskStatus)))
+      newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
+      processData <- processDataService
+                       .getProcessData[SectionSelectorType.Normal](
+                         newDataRaw,
+                         cacheUpd,
+                         formModelOptics,
+                         gformConnector.getAllTaxPeriods,
+                         NoSpecificAction
+                       )
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
       val visibleTaskCoordinates: List[Coordinates] = taskList.sections.toList.zipWithIndex.flatMap {
         case (taskSection, taskSectionIndex) =>
@@ -68,9 +109,17 @@ class TaskListRenderingService(
               evalCoordinates(taskSectionIndex, taskIndex)
           }
       }
+
+      val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
+      val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+
+      implicit val sse: SmartStringEvaluator =
+        smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, LangADT.En)
+
       val visibleTaskStatusesLookup = statusesLookup.filter { case (coord, _) =>
         visibleTaskCoordinates.contains(coord)
       }
+
       val completedTasks = completedTasksCount(visibleTaskStatusesLookup)
 
       def taskUrl(coordinates: Coordinates, taskStatus: TaskStatus) =
@@ -84,7 +133,7 @@ class TaskListRenderingService(
                   maybeAccessCode,
                   coordinates.taskSectionNumber,
                   coordinates.taskNumber,
-                  taskStatus == TaskStatus.Completed
+                  taskStatus === TaskStatus.Completed
                 )
                 .url
             )

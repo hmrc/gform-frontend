@@ -68,7 +68,8 @@ trait GFormStubs extends FormTemplateSample {
                 VisitIndex.Classic(Set.empty),
                 ThirdPartyData.empty,
                 None,
-                FormComponentIdToFileIdMapping.empty
+                FormComponentIdToFileIdMapping.empty,
+                TaskIdTaskStatusMapping.empty
               )
             )
           )

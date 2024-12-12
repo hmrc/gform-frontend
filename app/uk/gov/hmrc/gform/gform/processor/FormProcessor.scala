@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform.processor
 
+import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.all._
@@ -25,7 +26,7 @@ import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -40,9 +41,11 @@ import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.tasklist.TaskStatus.NotStarted
+import uk.gov.hmrc.gform.tasklist.{ CannotStartYetResolver, NotRequiredResolver, TaskListUtils, TaskStatus }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -395,6 +398,14 @@ class FormProcessor(
             }
         } else Option.empty.pure[Future]
 
+      taskIdTaskStatusMapping <- if (sectionNumber.isTaskList) {
+                                   evalTaskIdTaskStatus(
+                                     cache.toCacheData,
+                                     envelopeWithMapping,
+                                     processData.formModelOptics
+                                   )
+                                 } else Future.successful(TaskIdTaskStatusMapping.empty)
+
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
@@ -425,7 +436,8 @@ class FormProcessor(
               .copy(
                 thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
                 formData = formDataU,
-                visitsIndex = updatedVisitsIndex
+                visitsIndex = updatedVisitsIndex,
+                taskIdTaskStatus = taskIdTaskStatusMapping
               )
           )
 
@@ -453,6 +465,109 @@ class FormProcessor(
       }
     } yield res
   }
+
+  private def evalTaskIdTaskStatus(
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    formModelOptics: FormModelOptics[DataOrigin.Browser]
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[TaskIdTaskStatusMapping] = {
+
+    val taskIdCoordinates: Map[Coordinates, TaskId] = TaskListUtils
+      .withTaskList(cache.formTemplate) { taskList =>
+        taskList.sections.toList.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
+          taskSection.tasks.toList.zipWithIndex.collect { case (task, taskIndex) =>
+            task.id match {
+              case Some(taskId) => Some(evalCoordinates(taskSectionIndex, taskIndex) -> taskId)
+              case _            => None
+            }
+          }.flatten
+        }
+      }
+      .toMap
+
+    NonEmptyList.fromList(taskIdCoordinates.keys.toList) match {
+      case Some(coordinates) =>
+        for {
+          statusesLookup <- evalStatusLookup(coordinates, cache, envelope, formModelOptics)
+        } yield {
+          val taskIdStatus = taskIdCoordinates.map { case (coordinates, taskId) =>
+            taskId -> statusesLookup.toList.toMap.getOrElse(coordinates, NotStarted)
+          }
+          TaskIdTaskStatusMapping(taskIdStatus)
+        }
+      case _ => TaskIdTaskStatusMapping(Map.empty).pure[Future]
+    }
+
+  }
+
+  private def evalStatusLookup(
+    coordinates: NonEmptyList[Coordinates],
+    cache: CacheData,
+    envelope: EnvelopeWithMapping,
+    formModelOptics: FormModelOptics[DataOrigin.Browser]
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ) = {
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+    val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
+    val notRequiredResolver = NotRequiredResolver.create(formModelOptics.formModelVisibilityOptics)
+    for {
+      statusesLookup <- coordinates
+                          .traverse { coordinate =>
+                            val dataForCoordinate: Set[VariadicValue] =
+                              formModelOptics.formModelVisibilityOptics.data
+                                .forCoordinate(coordinate)
+                            val hasTerminationPage = formModel.taskList
+                              .availablePages(coordinate)
+                              .exists(_.isTerminationPage)
+
+                            for {
+                              formHandlerResult <-
+                                validationService.validateFormModel(
+                                  cache,
+                                  envelope,
+                                  formModelOptics.formModelVisibilityOptics,
+                                  Some(coordinate)
+                                )
+                              validatedATLs =
+                                validationService.validateATLs(
+                                  formModel.taskList.availablePages(
+                                    coordinate
+                                  ),
+                                  formModelOptics.formModelVisibilityOptics
+                                )
+                            } yield {
+                              val taskStatus =
+                                if (dataForCoordinate.isEmpty) {
+                                  TaskStatus.NotStarted
+                                } else if (
+                                  formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid
+                                ) {
+                                  TaskStatus.Completed
+                                } else {
+                                  TaskStatus.InProgress
+                                }
+                              coordinate -> taskStatus
+                            }
+                          }
+                          .map(notRequiredResolver.resolveNotRequired)
+                          .map(
+                            cannotStartYetResolver.resolveCannotStartYet
+                          )
+
+    } yield statusesLookup
+  }
+
+  private def evalCoordinates(taskSectionIndex: Int, taskIndex: Int) =
+    Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex))
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
     messages: Messages
