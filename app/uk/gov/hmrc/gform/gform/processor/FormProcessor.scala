@@ -253,7 +253,7 @@ class FormProcessor(
     removed.keySet ++ added.keySet ++ updated.keySet
   }
 
-  private def checkForRevisits(
+  def checkForRevisits(
     pageModel: PageModel[Visibility],
     visitsIndex: VisitIndex,
     formModelOptics: FormModelOptics[Mongo],

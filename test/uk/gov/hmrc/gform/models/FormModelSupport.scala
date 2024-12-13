@@ -43,13 +43,13 @@ trait FormModelSupport extends GraphSpec {
   val thirdPartyData: ThirdPartyData = ThirdPartyData.empty
   val envelopeId: EnvelopeId = EnvelopeId("dummy")
 
-  private def eligibilityStatusTrue[F[_]: Monad]: SeissEligibilityChecker[F] =
+  protected def eligibilityStatusTrue[F[_]: Monad]: SeissEligibilityChecker[F] =
     new SeissEligibilityChecker[F]((_, _) => true.pure[F])
 
-  private def delegatedEnrolmentCheckStatus[F[_]: Monad]: DelegatedEnrolmentChecker[F] =
+  protected def delegatedEnrolmentCheckStatus[F[_]: Monad]: DelegatedEnrolmentChecker[F] =
     new DelegatedEnrolmentChecker(delegatedEnrolmentCheckStatusTrue[F])
 
-  private def dbLookupCheckStatus[F[_]: Monad]: DbLookupChecker[F] =
+  protected def dbLookupCheckStatus[F[_]: Monad]: DbLookupChecker[F] =
     new DbLookupChecker(dbLookupStatusTrue[F])
 
   val recalculation: Recalculation[Id, Throwable] =
