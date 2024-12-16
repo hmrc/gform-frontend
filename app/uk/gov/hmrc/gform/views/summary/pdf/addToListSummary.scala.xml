@@ -14,16 +14,12 @@
                           font-weight="bold"
                           font-size="11pt"
                           line-height="11pt">
-                    <fo:inline>
-                        <fo:wrapper role="artifact">
-                            @value._1 -
-                        </fo:wrapper>
-                    </fo:inline>
+                    <fo:inline>@value._1.</fo:inline>
                 </fo:block>
             </fo:list-item-label>
             <fo:list-item-body role="LBody" start-indent="0.8cm" >
-                <fo:block>
-                    @{SummaryRenderingService.renderAddToListSummaryItemBody(value._2)}
+                <fo:block margin-left="-5px" padding-left="-5px">
+                     @{SummaryRenderingService.renderAddToListSummaryItemBody(value._2)}
                 </fo:block>
             </fo:list-item-body>
         </fo:list-item>

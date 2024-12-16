@@ -2,6 +2,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
+@import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 @(pageData: PageData)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 @if(pageData.title.isDefined){
@@ -19,7 +20,7 @@
                                       padding-after="0.1cm"
                                       border-color="#D3D3D3"
                                       linefeed-treatment="treat-as-space">
-                                @pageData.title.map(t => unescapeXml(t))
+                                @pageData.title.map(t => PdfHelper.sanitizeContent(t))
                             </fo:block>
                         } else {
                             <fo:block> </fo:block>
