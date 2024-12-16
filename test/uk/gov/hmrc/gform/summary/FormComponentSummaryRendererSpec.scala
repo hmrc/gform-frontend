@@ -247,7 +247,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
           formTemplate._id,
           formModelOptics.formModelVisibilityOptics,
           None,
-          SectionNumber.Classic(0),
+          SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
           SectionTitle4Ga("page1"),
           NotChecked,
           ValidationResult.empty,
