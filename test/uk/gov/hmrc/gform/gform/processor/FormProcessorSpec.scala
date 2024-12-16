@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, PageId, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, PageId, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 
@@ -142,7 +142,9 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     val formModelOpticsMongo =
       fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOpticsMongo, None)
     val visibilityFormModelVisibility: FormModel[Visibility] = formModelOpticsMongo.formModelVisibilityOptics.formModel
-    val initialVisitsIndex = VisitIndex.Classic(Set(0, 1, 2, 3, 4))
+    val initialVisitsIndex = VisitIndex.Classic(
+      (0 to 4).map(pageIdx => Classic.NormalPage(TemplateSectionIndex(pageIdx))).toSet
+    )
 
     val table = Table(
       ("enteredData", "pageIdxToValidate", "expected"),
@@ -155,7 +157,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
           "comp4" -> "val4"
         ),
         1,
-        VisitIndex.Classic(Set(0, 1, 2, 3, 4))
+        Set(0, 1, 2, 3, 4)
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate](
@@ -166,7 +168,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
           "comp4" -> "val4"
         ),
         2,
-        VisitIndex.Classic(Set(0, 1, 2, 4))
+        Set(0, 1, 2, 4)
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate](
@@ -177,7 +179,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
           "comp4" -> "val4"
         ),
         0,
-        VisitIndex.Classic(Set(0, 3))
+        Set(0, 3)
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate](
@@ -188,13 +190,18 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
           "comp4" -> "val4"
         ),
         0,
-        VisitIndex.Classic(Set(0, 1, 2, 3, 4))
+        Set(0, 1, 2, 3, 4)
       )
     )
-    TableDrivenPropertyChecks.forAll(table) { (enteredFormData, pageIdxToValidate, expected) =>
+    TableDrivenPropertyChecks.forAll(table) { (enteredFormData, pageIdxToValidate, expectedPageSet) =>
       val enteredVariadicFormData: EnteredVariadicFormData = EnteredVariadicFormData(enteredFormData)
 
-      val visibilityPageModel: PageModel[Visibility] = visibilityFormModelVisibility(Classic(pageIdxToValidate))
+      val expected = VisitIndex.Classic(
+        expectedPageSet.map(pageIdx => Classic.NormalPage(TemplateSectionIndex(pageIdx)))
+      )
+
+      val visibilityPageModel: PageModel[Visibility] =
+        visibilityFormModelVisibility(Classic.NormalPage(TemplateSectionIndex(pageIdxToValidate)))
       val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
         fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOpticsMongo, None)
 
