@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.models.{ BracketPlain, PageMode, Repeater, Singleton }
+import uk.gov.hmrc.gform.models.{ Bracket, PageMode, Repeater, SingletonWithNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
 
 /*
@@ -24,10 +24,10 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
  * This doesn't include expressions in fields
  */
 object AllPageModelExpressions extends ExprExtractorHelpers {
-  def unapply[A <: PageMode](bracket: BracketPlain[A]): Option[List[ExprMetadata]] = {
+  def unapply[A <: PageMode](bracket: Bracket[A]): Option[List[ExprMetadata]] = {
 
-    def fromSingleton(singleton: Singleton[_]): List[Expr] = {
-      val page = singleton.page
+    def fromSingleton(singleton: SingletonWithNumber[_]): List[Expr] = {
+      val page = singleton.singleton.page
       val pageExprs = page.title.allInterpolations ++ fromOption(
         page.description,
         page.shortName,
@@ -51,13 +51,13 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         repeater.expandedSummaryName
       )
 
-    def fromNonRepeatingBracket(bracket: BracketPlain.NonRepeatingPage[A]): List[Expr] =
+    def fromNonRepeatingBracket(bracket: Bracket.NonRepeatingPage[A]): List[Expr] =
       fromSingleton(bracket.singleton)
 
-    def fromRepeatedBracket(bracket: BracketPlain.RepeatingPage[A]): List[Expr] =
+    def fromRepeatedBracket(bracket: Bracket.RepeatingPage[A]): List[Expr] =
       bracket.source.repeats :: bracket.singletons.toList.flatMap(fromSingleton)
 
-    def fromAddToListBracket(bracket: BracketPlain.AddToList[A]): List[Expr] =
+    def fromAddToListBracket(bracket: Bracket.AddToList[A]): List[Expr] =
       fromSmartStrings(
         bracket.source.summaryName,
         bracket.source.addAnotherQuestion.label,
@@ -66,7 +66,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         bracket.source.infoMessage,
         bracket.source.addAnotherQuestion.helpText
       ) ++ bracket.iterations.toList.flatMap { iteration =>
-        iteration.singletons.toList.flatMap(fromSingleton) ::: fromRepeater(iteration.repeater)
+        iteration.singletons.toList.flatMap(fromSingleton) ::: fromRepeater(iteration.repeater.repeater)
       }
 
     val pageExprs: List[Expr] = bracket.fold(fromNonRepeatingBracket)(fromRepeatedBracket)(fromAddToListBracket)

@@ -87,7 +87,7 @@ class TaskListController(
             sectionNumber,
             sectionTitle4Ga,
             SuppressErrors.Yes,
-            List(FastForward.StopAt(sectionNumber.increment))
+            List(FastForward.StopAt(sectionNumber.increment(formModelOptics.formModelVisibilityOptics.formModel)))
           )
 
           if (isCompleted) {
@@ -106,10 +106,18 @@ class TaskListController(
                   )
               ).pure[Future]
             } else {
+              val coordinates = Coordinates(taskSectionNumber, taskNumber)
               val formModel = formModelOptics.formModelVisibilityOptics.formModel
-              val nextVisibleSectionNumber = formModel.taskList.nextVisibleSectionNumber(
-                SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
-              )
+
+              val maybeSn: Option[SectionNumber] = formModel.availableSectionNumbers.collectFirst {
+                case sectionNumber if sectionNumber.maybeCoordinates.contains(coordinates) => sectionNumber
+              }
+
+              val nextVisibleSectionNumber =
+                maybeSn.getOrElse(
+                  throw new Exception(s"Cannot determine first sectionNumber for task with $coordinates")
+                )
+
               val isAddToListSectionNumber = formModel.addToListSectionNumbers.contains(nextVisibleSectionNumber)
 
               val sn =
@@ -122,7 +130,17 @@ class TaskListController(
               Redirect(sectionUrl(sn)).pure[Future]
             }
           } else {
-            val sn = SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), 0)
+
+            val coordinates = Coordinates(taskSectionNumber, taskNumber)
+
+            val formModel = formModelOptics.formModelVisibilityOptics.formModel
+
+            val maybeSn: Option[SectionNumber] = formModel.availableSectionNumbers.collectFirst {
+              case sectionNumber if sectionNumber.maybeCoordinates.contains(coordinates) => sectionNumber
+            }
+            val sn =
+              maybeSn.getOrElse(throw new Exception(s"Cannot determine first sectionNumber for task with $coordinates"))
+
             if (cache.formTemplate.isSpecimen) {
 
               Redirect(sectionUrl(sn)).pure[Future]

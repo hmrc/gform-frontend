@@ -56,6 +56,7 @@ import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentRenderDetails, FormComponentSummaryRenderer, SummaryRender }
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.HtmlFieldId
 import uk.gov.hmrc.gform.validation._
@@ -91,7 +92,6 @@ import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcCharacterCount
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukInput, GovukSummaryList, GovukTable }
 import MiniSummaryRow._
-import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
@@ -219,10 +219,11 @@ class SectionRenderingService(
       SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers, formModelOptics)
 
     val ff = fastForward match {
-      case Nil                                     => Nil
-      case FastForward.CYA(to) :: xs               => FastForward.CYA(to) :: xs
-      case FastForward.StopAt(sectionNumber) :: xs => FastForward.StopAt(sectionNumber.increment) :: xs
-      case otherwise                               => otherwise
+      case Nil                       => Nil
+      case FastForward.CYA(to) :: xs => FastForward.CYA(to) :: xs
+      case FastForward.StopAt(sectionNumber) :: xs =>
+        FastForward.StopAt(sectionNumber.increment(formModelOptics.formModelVisibilityOptics.formModel)) :: xs
+      case otherwise => otherwise
     }
     html.form.addToListCheckYourAnswers(
       title,
@@ -751,18 +752,36 @@ class SectionRenderingService(
           }
 
         val classicPages: List[(PageModel[DataExpanded], SectionNumber.Classic)] =
-          pages.toList.collect { case (pageModel, c @ SectionNumber.Classic(_)) =>
+          pages.toList.collect { case (pageModel, c: SectionNumber.Classic) =>
             pageModel -> c
           }
+
+        val specimenLinks: SpecimenLinks = SpecimenLinks.from(classicPages.map(_._2), classic)
+
         specimen.navigation(
           formTemplate,
           classic,
           classicPages,
+          specimenLinks,
           maybeIncludeIf
         )
       } { taskList =>
+        val coordinates: Coordinates = taskList.coordinates
+        val classic: SectionNumber.Classic = taskList.sectionNumber
+
         val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
           formModelRenderPageOptics.formModel.pagesWithIndex
+
+        val allSectionNumbers: List[SectionNumber] =
+          pages.map(_._2).filter(_.maybeCoordinates.exists(_.taskSectionNumber === coordinates.taskSectionNumber))
+
+        val distinctCoordinates: List[Coordinates] = allSectionNumbers.flatMap(_.maybeCoordinates).distinct
+
+        val isFirstSectionNumber: Set[SectionNumber] = distinctCoordinates.flatMap { coordinates =>
+          allSectionNumbers.find(_.maybeCoordinates.contains(coordinates))
+        }.toSet
+
+        val firstSectionNumbers: List[SectionNumber] = allSectionNumbers.filter(isFirstSectionNumber)
 
         val taskListPages: List[(PageModel[DataExpanded], SectionNumber.TaskList)] =
           pages.toList.collect {
@@ -770,14 +789,21 @@ class SectionRenderingService(
               pageModel -> c
           }
 
-        val tasks = TaskListUtils.withTaskSection(formTemplate, taskList.coordinates.taskSectionNumber)(section =>
-          section.tasks.toList
-        )
+        val tasks: List[uk.gov.hmrc.gform.sharedmodel.formtemplate.Task] =
+          TaskListUtils.withTaskSection(formTemplate, taskList.coordinates.taskSectionNumber)(section =>
+            section.tasks.toList
+          )
+
+        val tasksWithFirstSectionNumber = tasks.zip(firstSectionNumbers)
+
+        val specimenLinks: SpecimenLinks = SpecimenLinks.from(taskListPages.map(_._2.sectionNumber), classic)
+
         specimen.navigation_tasklist(
           formTemplate,
           taskList,
           taskListPages,
-          tasks
+          tasksWithFirstSectionNumber,
+          specimenLinks
         )
       }
     } else HtmlFormat.empty

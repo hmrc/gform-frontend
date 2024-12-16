@@ -19,18 +19,16 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.freespec.AnyFreeSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, TemplateSectionIndex, Value }
 
 class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with VariadicFormDataSupport with Matchers {
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
@@ -47,8 +45,8 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
             )
           ),
           List("1_fc1" -> "a"),
-          1,
-          2
+          SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(0), 1, 0),
+          SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(0), 1, 1)
         ),
         (
           "next section is visible (includeIf)",
@@ -62,8 +60,8 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
             )
           ),
           List("1_fc1" -> "a"),
-          1,
-          2
+          SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(0), 1, 0),
+          SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(0), 1, 1)
         ),
         (
           "next section is hidden (includeIf)",
@@ -77,20 +75,17 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
             )
           ),
           List("1_fc1" -> "a"),
-          1,
-          3
+          SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(0), 1, 0),
+          SectionNumber.Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(0), 1)
         )
       )
 
       forAll(table) { (description, sections, data, stopAt, expectedStopAt) =>
         description in {
-          logger.info(description)
           val fmb = mkFormModelFromSections(sections)
           val variadicData = variadicFormData[SourceOrigin.OutOfDate](data: _*)
           val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](variadicData, None)
-          StopAt(SectionNumber.Classic(stopAt)).next(fmvo.formModel, SectionNumber.Classic(stopAt)) shouldBe StopAt(
-            SectionNumber.Classic(expectedStopAt)
-          )
+          StopAt(stopAt).next(fmvo.formModel, stopAt) shouldBe StopAt(expectedStopAt)
         }
       }
     }

@@ -11,16 +11,38 @@ export const activateSectionBuilder = (urlMatch: RegExpMatchArray, url: string) 
   const host = urlMatch![1];
   const formTemplateId: FormTemplateId = urlMatch![2];
 
-  const constructPageIdFromString = (s: string): SectionNumber => {
-    const pattern = /^\d+,\d+,\d+$/;
-    const parsedNumber = parseInt(s);
+  const normalPagePattern = /^n(\d+)$/;
+  const atlPagePattern = /^ap(\d+).(\d+).(\d+)$/;
+  const atlDefaultPagePattern = /^ad(\d+)$/;
+  const atlCyaPagePattern = /^ac(\d+).(\d+)$/;
+  const atlRepeaterPagePattern = /^ar(\d+).(\d+)$/;
 
-    if (pattern.test(s)) {
-      return SectionNumber.TaskListSectionNumber(s);
-    } else if (!isNaN(parsedNumber)) {
-      return SectionNumber.RegularSectionNumber(parsedNumber);
+  const toSectionNumber = (s: string): SectionNumber => {
+    let match;
+    if ((match = normalPagePattern.exec(s)) !== null) {
+      return SectionNumber.NormalPage(parseInt(match[1]));
+    } else if ((match = atlPagePattern.exec(s)) !== null) {
+      return SectionNumber.AddToListPage(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+    } else if ((match = atlDefaultPagePattern.exec(s)) !== null) {
+      return SectionNumber.AddToListDefaultPage(parseInt(match[1]));
+    } else if ((match = atlCyaPagePattern.exec(s)) !== null) {
+      return SectionNumber.AddToListCyaPage(parseInt(match[1]), parseInt(match[2]));
+    } else if ((match = atlRepeaterPagePattern.exec(s)) !== null) {
+      return SectionNumber.AddToListRepeaterPage(parseInt(match[1]), parseInt(match[2]));
     } else {
       throw new Error(`Cannot convert ${s} into SectionNumber`);
+    }
+  };
+
+  const constructPageIdFromString = (s: string): SectionNumber => {
+    const taskListPattern = /^(\d+),(\d+),([a-z.0-9]+)$/;
+
+    let match;
+    if ((match = taskListPattern.exec(s)) !== null) {
+      const sn = toSectionNumber(match[3]);
+      return SectionNumber.TaskListSectionNumber(parseInt(match[1]), parseInt(match[2]), sn);
+    } else {
+      return toSectionNumber(s);
     }
   };
 

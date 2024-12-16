@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.implicits._
 import play.api.libs.json.{ JsArray, JsError, JsObject, JsSuccess, JsValue, Json, OFormat }
 import scala.util.Try
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, SectionNumber, TaskNumber, TaskSectionNumber }
 
 sealed trait VisitIndex extends Product with Serializable {
@@ -31,7 +30,10 @@ sealed trait VisitIndex extends Product with Serializable {
     }
 
   private def visitClassic(sectionNumber: SectionNumber.Classic): VisitIndex =
-    fold[VisitIndex](classic => VisitIndex.Classic(classic.visitsIndex + sectionNumber.sectionNumber))(identity)
+    fold[VisitIndex] { classic =>
+      val updatedVisits = VisitIndex.Classic(classic.visitsIndex + sectionNumber)
+      updatedVisits
+    }(identity)
 
   private def visitTaskList(sectionNumber: SectionNumber.TaskList): VisitIndex =
     fold[VisitIndex](identity) { taskList =>
@@ -49,13 +51,16 @@ sealed trait VisitIndex extends Product with Serializable {
   def unvisit(sectionNumber: SectionNumber): VisitIndex = sectionNumber.fold(unvisitClassic)(unvisitTaskList)
 
   private def unvisitClassic(sectionNumber: SectionNumber.Classic): VisitIndex =
-    fold[VisitIndex](classic => VisitIndex.Classic(classic.visitsIndex - sectionNumber.sectionNumber))(identity)
+    fold[VisitIndex] { classic =>
+      val updatedVisits = VisitIndex.Classic(classic.visitsIndex - sectionNumber)
+      updatedVisits
+    }(identity)
 
   private def unvisitTaskList(sectionNumber: SectionNumber.TaskList): VisitIndex =
     fold[VisitIndex](identity)(identity)
 
   private def containsClassic(sectionNumber: SectionNumber.Classic): Boolean =
-    fold[Boolean](classic => classic.visitsIndex.contains(sectionNumber.sectionNumber))(_ => false)
+    fold[Boolean](classic => classic.visitsIndex.contains(sectionNumber))(_ => false)
 
   private def containsTaskList(sectionNumber: SectionNumber.TaskList): Boolean =
     fold[Boolean](_ => false)(taskList =>
@@ -67,8 +72,8 @@ sealed trait VisitIndex extends Product with Serializable {
 
 object VisitIndex {
 
-  final case class Classic(visitsIndex: Set[Int]) extends VisitIndex
-  final case class TaskList(visitsIndex: Map[Coordinates, Set[Int]]) extends VisitIndex
+  final case class Classic(visitsIndex: Set[SectionNumber.Classic]) extends VisitIndex
+  final case class TaskList(visitsIndex: Map[Coordinates, Set[SectionNumber.Classic]]) extends VisitIndex
 
   val key: String = "visitsIndex"
 
@@ -77,68 +82,38 @@ object VisitIndex {
   implicit val format: OFormat[VisitIndex] = OFormat(
     (jsValue: JsValue) =>
       (jsValue \ key).toOption match {
-        case None             => JsError(s"Missing '$key' field. Failed to decode VisitIndex from: $jsValue")
-        case Some(a: JsArray) => JsSuccess(Classic(a.value.map(_.as[Int]).toSet))
+        case None => JsError(s"Missing '$key' field. Failed to decode VisitIndex from: $jsValue")
+        case Some(a: JsArray) =>
+          a.validate[Set[SectionNumber.Classic]] match {
+            case JsSuccess(visits, _) => JsSuccess(Classic(visits))
+            case JsError(errors)      => JsSuccess(Classic(Set.empty[SectionNumber.Classic]))
+          }
         case Some(o: JsObject) =>
-          val res: Try[List[(Coordinates, Set[Int])]] =
-            o.value.toList.traverse { case (k, v) =>
-              Try(k.split(",").toList.map(_.toInt)).collect { case taskSectionNumber :: taskNumber :: Nil =>
-                (Coordinates(TaskSectionNumber(taskSectionNumber), TaskNumber(taskNumber))) -> v.as[Set[Int]]
+          o.value.toList
+            .traverse { case (k, v) =>
+              Try(k.split(",").toList).collect { case taskSectionNumber :: taskNumber :: Nil =>
+                val key = Coordinates(TaskSectionNumber(taskSectionNumber.toInt), TaskNumber(taskNumber.toInt))
+                val visits = v.validate[Set[SectionNumber.Classic]].getOrElse(Set.empty[SectionNumber.Classic])
+                key -> visits
               }
             }
-          res.fold(
-            error => JsError("Failed to decode VisitIndex for TaskList from json: " + jsValue),
-            xs => JsSuccess(TaskList(xs.toMap))
-          )
+            .fold(
+              error => JsError("Failed to decode VisitIndex for TaskList from json: " + jsValue),
+              xs => JsSuccess(TaskList(xs.toMap))
+            )
         case Some(unexpected) => JsError("Unknown type. Failed to decode VisitIndex from json: " + unexpected)
       },
     (visitIndex: VisitIndex) =>
       visitIndex match {
         case Classic(visitsIndex) => Json.obj(key -> Json.toJson(visitsIndex))
         case TaskList(visitsIndex) =>
-          val s: Map[String, JsValue] = visitsIndex.toList.map {
-            case (Coordinates(TaskSectionNumber(tsc), TaskNumber(tn)), indexes) =>
-              List(tsc, tn).mkString(",") -> Json.toJson(indexes)
-          }.toMap
+          val s: Map[String, JsValue] =
+            visitsIndex.toList.map { case (Coordinates(TaskSectionNumber(tsc), TaskNumber(tn)), indexes) =>
+              List(tsc, tn).mkString(",") -> {
+                Json.toJson(indexes)
+              }
+            }.toMap
           Json.obj(key -> Json.toJson(s))
       }
   )
-
-  def updateSectionVisits(
-    formModel: FormModel[DataExpanded],
-    mongoFormModel: FormModel[DataExpanded],
-    visitsIndex: VisitIndex
-  ): VisitIndex = {
-    def update(
-      xs: Set[Int],
-      f: Int => SectionNumber,
-      pages: FormModel[DataExpanded] => List[PageModel[DataExpanded]]
-    ): Set[Int] =
-      xs.map { index =>
-        Try(mongoFormModel(f(index))).toOption.fold(-1) { page =>
-          page.allFormComponents.headOption.fold(-1) { mongoHead =>
-            val firstComponentId = mongoHead.id
-            pages(formModel).indexWhere { pageModel =>
-              pageModel.allFormComponents.headOption.fold(false)(_.id === firstComponentId)
-            }
-
-          }
-        }
-      }.filterNot(_ === -1)
-
-    visitsIndex.fold[VisitIndex] { classic =>
-      VisitIndex.Classic(update(classic.visitsIndex, SectionNumber.Classic(_), _.pages.toList))
-    } { taskList =>
-      VisitIndex.TaskList {
-        taskList.visitsIndex.map { case (coordinates, indexes) =>
-          coordinates ->
-            update(
-              indexes,
-              SectionNumber.TaskList(coordinates, _),
-              _.taskList.availablePages(coordinates).toList
-            )
-        }
-      }
-    }
-  }
 }

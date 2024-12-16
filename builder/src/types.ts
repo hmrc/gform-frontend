@@ -3,66 +3,131 @@ import { Signal } from "@preact/signals";
 export type FormTemplateId = string;
 export type FormComponentId = string;
 
-interface RegularSectionNumber {
-  n: number;
+interface NormalPage {
+  type: "normalPage";
+  sectionNumber: number;
+}
+
+interface AddToListPage {
+  type: "addToListPage";
+  sectionNumber: number;
+  iterationNumber: number;
+  pageNumber: number;
+}
+
+interface AddToListDefaultPage {
+  type: "addToListDefaultPage";
+  sectionNumber: number;
+}
+
+interface AddToListCyaPage {
+  type: "addToListCyaPage";
+  sectionNumber: number;
+  iterationNumber: number;
+}
+
+interface AddToListRepeaterPage {
+  type: "addToListRepeaterPage";
+  sectionNumber: number;
+  iterationNumber: number;
+}
+
+interface RepeatedPage {
+  type: "repeatedPage";
+  sectionNumber: number;
+  pageNumber: number;
 }
 
 interface TaskListSectionNumber {
-  s: string;
+  type: "taskListSectionNumber";
+  taskSectionNumber: number;
+  taskNumber: number;
+  sectionNumber: SectionNumber;
 }
 
 interface AcknowledgementSectionNumber {
-  a: "acknowledgement";
+  type: "acknowledgement";
 }
 
-export type SectionNumber = RegularSectionNumber | TaskListSectionNumber | AcknowledgementSectionNumber;
+export type SectionNumber =
+  | NormalPage
+  | AddToListDefaultPage
+  | AddToListPage
+  | AddToListCyaPage
+  | AddToListRepeaterPage
+  | RepeatedPage
+  | TaskListSectionNumber
+  | AcknowledgementSectionNumber;
 
 export const SectionNumber = {
-  RegularSectionNumber: (n: number): RegularSectionNumber => ({ n }),
-  TaskListSectionNumber: (s: string): TaskListSectionNumber => ({ s }),
+  NormalPage: (n: number): NormalPage => ({ type: "normalPage", sectionNumber: n }),
+  AddToListDefaultPage: (n: number): AddToListDefaultPage => ({
+    type: "addToListDefaultPage",
+    sectionNumber: n,
+  }),
+  AddToListPage: (n: number, iteration: number, page: number): AddToListPage => ({
+    type: "addToListPage",
+    sectionNumber: n,
+    iterationNumber: iteration,
+    pageNumber: page,
+  }),
+  AddToListCyaPage: (n: number, iteration: number): AddToListCyaPage => ({
+    type: "addToListCyaPage",
+    sectionNumber: n,
+    iterationNumber: iteration,
+  }),
+  AddToListRepeaterPage: (n: number, iteration: number): AddToListRepeaterPage => ({
+    type: "addToListRepeaterPage",
+    sectionNumber: n,
+    iterationNumber: iteration,
+  }),
+  RepeatedPage: (n: number, page: number): RepeatedPage => ({
+    type: "repeatedPage",
+    sectionNumber: n,
+    pageNumber: page,
+  }),
+  TaskListSectionNumber: (
+    taskSectionNumber: number,
+    taskNumber: number,
+    sectionNumber: SectionNumber,
+  ): TaskListSectionNumber => ({ type: "taskListSectionNumber", taskSectionNumber, taskNumber, sectionNumber }),
   AcknowledgementSectionNumber: (): AcknowledgementSectionNumber => ({
-    a: "acknowledgement",
+    type: "acknowledgement",
   }),
 
   asString: (sn: SectionNumber): string => {
-    if ("n" in sn) {
-      return sn.n.toString();
-    } else if ("a" in sn) {
-      return sn.a;
+    if (sn.type === "normalPage") {
+      return "n" + sn.sectionNumber;
+    } else if (sn.type === "addToListDefaultPage") {
+      return "ad" + sn.sectionNumber;
+    } else if (sn.type === "addToListPage") {
+      return "ap" + sn.sectionNumber + "." + sn.iterationNumber + "." + sn.pageNumber;
+    } else if (sn.type === "addToListCyaPage") {
+      return "ac" + sn.sectionNumber + "." + sn.iterationNumber;
+    } else if (sn.type === "addToListRepeaterPage") {
+      return "ar" + sn.sectionNumber + "." + sn.iterationNumber;
+    } else if (sn.type === "repeatedPage") {
+      return "r" + sn.sectionNumber + "." + sn.pageNumber;
+    } else if (sn.type === "taskListSectionNumber") {
+      return sn.taskSectionNumber + "," + sn.taskNumber + "," + SectionNumber.asString(sn.sectionNumber);
     } else {
-      return sn.s;
+      return "";
     }
   },
 
-  increase: (sn: SectionNumber, offset: number) => {
-    if ("n" in sn) {
-      return SectionNumber.RegularSectionNumber(sn.n + offset);
-    } else if ("a" in sn) {
-      return sn;
-    } else {
-      const lastCommaIndex = sn.s.lastIndexOf(",");
-      const sectionNumberOnly = parseInt(sn.s.slice(lastCommaIndex + 1));
-      const newSectionNumber = sn.s.slice(0, lastCommaIndex + 1) + (sectionNumberOnly + offset);
-      return SectionNumber.TaskListSectionNumber(newSectionNumber);
-    }
+  isRegularListSectionNumber: (sn: SectionNumber): boolean => {
+    const t = sn.type;
+    return (
+      t === "normalPage" ||
+      t === "addToListDefaultPage" ||
+      t === "addToListPage" ||
+      t === "addToListCyaPage" ||
+      t === "addToListRepeaterPage" ||
+      t === "repeatedPage"
+    );
   },
-
-  decrease: (sn: SectionNumber, offset: number) => {
-    if ("n" in sn) {
-      return SectionNumber.RegularSectionNumber(sn.n - offset);
-    } else if ("a" in sn) {
-      return sn;
-    } else {
-      const lastCommaIndex = sn.s.lastIndexOf(",");
-      const sectionNumberOnly = parseInt(sn.s.slice(lastCommaIndex + 1));
-      const newSectionNumber = sn.s.slice(0, lastCommaIndex + 1) + (sectionNumberOnly - offset);
-      return SectionNumber.TaskListSectionNumber(newSectionNumber);
-    }
-  },
-
-  isRegularListSectionNumber: (sn: SectionNumber): boolean => "n" in sn,
   isTaskListSectionNumber: (sn: SectionNumber): boolean => !SectionNumber.isRegularListSectionNumber(sn),
-  isAcknowledgementSectionNumber: (sn: SectionNumber): boolean => "a" in sn && sn.a === "acknowledgement",
+  //isAcknowledgementSectionNumber: (sn: SectionNumber): boolean => "a" in sn && sn.a === "acknowledgement",
 };
 
 export enum MessageKind {

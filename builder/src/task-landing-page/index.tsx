@@ -33,11 +33,11 @@ export const activateTaskLandingPageBuilder = (urlMatch: RegExpMatchArray, url: 
     inputFormComponentId: string,
     taskSectionHeadingEl: HTMLHeadingElement,
     taskSection: TaskSection,
-    sectionNumber: SectionNumber,
+    taskSectionNumber: number,
     maybeAccessCode: string | null,
   ) => {
     const attachmentDiv = document.createElement("div");
-    attachmentDiv.setAttribute("id", `task-list-section-${SectionNumber.asString(sectionNumber)}-shadow-root`);
+    attachmentDiv.setAttribute("id", `task-list-section-${taskSectionNumber}-shadow-root`);
     taskSectionHeadingEl.insertAdjacentElement("afterend", attachmentDiv);
     const content: HTMLDivElement | undefined = attachShadowDom(attachmentDiv);
     if (content !== undefined) {
@@ -46,7 +46,7 @@ export const activateTaskLandingPageBuilder = (urlMatch: RegExpMatchArray, url: 
         host,
         taskSection,
         taskSectionHeadingEl,
-        sectionNumber,
+        taskSectionNumber,
         maybeAccessCode,
       );
       render(<TaskListSectionFactory />, content);
@@ -108,17 +108,16 @@ export const activateTaskLandingPageBuilder = (urlMatch: RegExpMatchArray, url: 
         const formTemplateData: FormTemplate = replaceWithEnglishValue(formTemplate) as FormTemplate;
 
         const taskListSectionNl: NodeListOf<HTMLUListElement> = document.querySelectorAll(".govuk-task-list");
-        formTemplateData.sections.forEach((section, index) => {
-          const taskListSectionEl = taskListSectionNl.item(index);
+        formTemplateData.sections.forEach((section, taskSectionNumnber) => {
+          const taskListSectionEl = taskListSectionNl.item(taskSectionNumnber);
           const taskSection = section as TaskSection;
 
-          const sectionNumber = SectionNumber.TaskListSectionNumber(index.toString());
           if (taskListSectionEl.previousElementSibling) {
             initiateTaskListSection(
               formTemplateId,
               taskListSectionEl.previousElementSibling as HTMLHeadingElement,
               taskSection,
-              sectionNumber,
+              taskSectionNumnber,
               accessCode,
             );
           }

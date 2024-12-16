@@ -137,7 +137,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     currentSectionNumber: Option[SectionNumber],
     formModelOptics: FormModelOptics[DataOrigin.Browser]
   ): List[SectionNumber] = {
-    val maybeCoordinates = currentSectionNumber.flatMap(_.toCoordinates)
+    val maybeCoordinates = currentSectionNumber.flatMap(_.maybeCoordinates)
 
     val availableSectionNumbers: List[SectionNumber] = Origin(
       formModelOptics.formModelVisibilityOptics.formModel
@@ -157,7 +157,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] = {
 
-    val maybeCoordinates = maybeSectionNumber.flatMap(_.toCoordinates)
+    val maybeCoordinates = maybeSectionNumber.flatMap(_.maybeCoordinates)
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
     def atlHasSectionNumber(sectionNumber: SectionNumber): Boolean =
@@ -190,7 +190,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       maybeSectionNumber
     )
 
-    lazy val nextFrom = for {
+    val nextFrom = for {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next

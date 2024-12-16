@@ -453,40 +453,80 @@ class FormModelBuilder[E, F[_]: Functor](
     includeIf = Some(page.includeIf.fold(includeIf)(inIf => IncludeIf(And(inIf.booleanExpr, includeIf.booleanExpr))))
   )
 
+  private def basicDefaultPage[T <: PageMode: FormModelExpander](
+    s: Section.AddToList,
+    templateSectionIndex: TemplateSectionIndex,
+    maybeCoordinates: Option[Coordinates],
+    data: VariadicFormData[SourceOrigin.OutOfDate]
+  ): Option[SingletonWithNumber[T]] = {
+    val addToListPages: Option[Page[Basic]] = s.defaultPage
+
+    addToListPages.map { page =>
+      val page2: Page[Basic] = mkSingleton(page, 1)(s)
+      val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
+      val sectionNumber = mkSectionNumber(
+        SectionNumber.Classic.AddToListPage.DefaultPage(templateSectionIndex),
+        maybeCoordinates
+      )
+      SingletonWithNumber[T](Singleton(page3), sectionNumber)
+    }
+  }
+
   private def basicAddToList[T <: PageMode: FormModelExpander](
     s: Section.AddToList,
-    index: Int,
+    templateSectionIndex: TemplateSectionIndex,
+    maybeCoordinates: Option[Coordinates],
+    iterationIndex: Int,
     data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): Option[BracketPlain.AddToListIteration[T]] = {
-    val singletons: List[Singleton[T]] = {
-      val addToListPages: NonEmptyList[Page[Basic]] =
-        s.defaultPage.fold(s.pages) { dp =>
-          val defaultIncludeIf = IncludeIf(Equals(Constant("1"), Count(s.addAnotherQuestion.id)))
-          s.pages.prepend(
-            dp.copy(includeIf =
-              Some(
-                dp.includeIf.fold(defaultIncludeIf)(inIf =>
-                  IncludeIf(And(inIf.booleanExpr, defaultIncludeIf.booleanExpr))
-                )
-              )
-            )
-          )
-        }
+  ): Option[Bracket.AddToListIteration[T]] = {
+    val singletons: List[SingletonWithNumber[T]] = {
+      val addToListPages: NonEmptyList[Page[Basic]] = s.pages
 
-      addToListPages.map { page =>
+      addToListPages.zipWithIndex.map { case (page, pageIndex) =>
         val page1: Page[Basic] = s.includeIf.fold(page)(includeIf => mergeIncludeIfs(includeIf, page))
-        val page2: Page[Basic] = mkSingleton(page1, index)(s)
+        val page2: Page[Basic] = mkSingleton(page1, iterationIndex)(s)
         val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
-        Singleton[T](page3)
+        val sectionNumber = mkSectionNumber(
+          SectionNumber.Classic.AddToListPage.Page(templateSectionIndex, iterationIndex, pageIndex),
+          maybeCoordinates
+        )
+        SingletonWithNumber[T](Singleton(page3), sectionNumber)
       }.toList
     }
 
-    val repeater: Repeater[T] = mkRepeater(s, index)
+    val repeater: Repeater[T] = mkRepeater(s, iterationIndex)
 
-    val checkYourAnswers: Option[CheckYourAnswers[T]] = s.cyaPage.map(c => mkCheckYourAnswers(c, s, index))
+    val checkYourAnswers: Option[CheckYourAnswersWithNumber[T]] = s.cyaPage.map(c =>
+      CheckYourAnswersWithNumber(
+        mkCheckYourAnswers(c, s, iterationIndex),
+        mkSectionNumber(
+          SectionNumber.Classic.AddToListPage.CyaPage(templateSectionIndex, iterationIndex),
+          maybeCoordinates
+        )
+      )
+    )
 
-    NonEmptyList.fromList(singletons).map(BracketPlain.AddToListIteration(_, checkYourAnswers, repeater))
+    NonEmptyList
+      .fromList(singletons)
+      .map(
+        Bracket.AddToListIteration(
+          _,
+          checkYourAnswers,
+          RepeaterWithNumber(
+            repeater,
+            mkSectionNumber(
+              SectionNumber.Classic.AddToListPage.RepeaterPage(templateSectionIndex, iterationIndex),
+              maybeCoordinates
+            )
+          )
+        )
+      )
   }
+
+  private def mkSectionNumber(
+    sn: SectionNumber.Classic,
+    coordinates: Option[Coordinates]
+  ): SectionNumber = coordinates.fold[SectionNumber](sn)(coordinates => SectionNumber.TaskList(coordinates, sn))
 
   private def basic[T <: PageMode, U <: SectionSelectorType](
     data: VariadicFormData[SourceOrigin.OutOfDate]
@@ -495,21 +535,33 @@ class FormModelBuilder[E, F[_]: Functor](
     val allSections: AllSections = sectionIncluder.getSections(formTemplate)
 
     val staticTypeInfo: StaticTypeInfo =
-      allSections.sections.foldLeft(StaticTypeInfo.empty)(_ ++ _.staticTypeInfo)
+      allSections.sections.foldLeft(StaticTypeInfo.empty)(_ ++ _.section.staticTypeInfo)
 
     val revealingChoiceInfo: RevealingChoiceInfo =
-      allSections.sections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
+      allSections.sections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.section.revealingChoiceInfo)
 
-    val brackets: BracketPlainCoordinated[T] = allSections.mapSection {
-      case s: Section.NonRepeatingPage =>
-        val page = formModelExpander.lift(s.page, data)
-        Some(BracketPlain.NonRepeatingPage(Singleton[T](page), s))
-      case s: Section.RepeatingPage => formModelExpander.liftRepeating(s, data)
-      case s: Section.AddToList =>
-        basicAddToList(s, 1, data).map(atl => BracketPlain.AddToList(NonEmptyList.one(atl), s))
+    val brackets: BracketPlainCoordinated[T] = allSections.mapSection { maybeCoordinates => indexedSection =>
+      indexedSection match {
+        case IndexedSection.SectionNoIndex(s) =>
+          val page = formModelExpander.lift(s.page, data)
+          val sectionNumber =
+            mkSectionNumber(SectionNumber.classicZero, maybeCoordinates)
+          Some(Bracket.NonRepeatingPage(SingletonWithNumber[T](Singleton(page), sectionNumber), s))
+        case IndexedSection.SectionIndex(s: Section.NonRepeatingPage, index) =>
+          val page = formModelExpander.lift(s.page, data)
+          val sectionNumber = mkSectionNumber(SectionNumber.Classic.NormalPage(index), maybeCoordinates)
+          Some(Bracket.NonRepeatingPage(SingletonWithNumber[T](Singleton(page), sectionNumber), s))
+        case IndexedSection.SectionIndex(s: Section.RepeatingPage, index) =>
+          formModelExpander.liftRepeating(s, index, data)
+        case IndexedSection.SectionIndex(s: Section.AddToList, index) =>
+          val defaultPage: Option[SingletonWithNumber[T]] = basicDefaultPage(s, index, maybeCoordinates, data)
+          basicAddToList(s, index, maybeCoordinates, 1, data).map(atl =>
+            Bracket.AddToList(defaultPage, NonEmptyList.one(atl), s)
+          )
+      }
     }
 
-    val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
+    val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.section.sumInfo)
 
     FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo, formTemplate.dataRetrieve)
   }
@@ -524,16 +576,25 @@ class FormModelBuilder[E, F[_]: Functor](
   }
 
   private def answeredAddToListIterations[T <: PageMode: FormModelExpander](
-    iteration: BracketPlain.AddToListIteration[T],
+    iteration: Bracket.AddToListIteration[T],
     data: VariadicFormData[SourceOrigin.OutOfDate],
     source: Section.AddToList
-  ): NonEmptyList[BracketPlain.AddToListIteration[T]] = {
+  ): NonEmptyList[Bracket.AddToListIteration[T]] = {
     def loop(
-      repeater: Repeater[T],
-      acc: NonEmptyList[BracketPlain.AddToListIteration[T]]
-    ): NonEmptyList[BracketPlain.AddToListIteration[T]] =
-      if (repeaterIsYes(repeater.addAnotherQuestion.modelComponentId, data)) {
-        val maybeBracket = basicAddToList(source, repeater.index + 1, data)
+      repeater: RepeaterWithNumber[T],
+      acc: NonEmptyList[Bracket.AddToListIteration[T]]
+    ): NonEmptyList[Bracket.AddToListIteration[T]] =
+      if (repeaterIsYes(repeater.repeater.addAnotherQuestion.modelComponentId, data)) {
+        val templateSectionIndex: TemplateSectionIndex = repeater.sectionNumber.templateSectionIndex
+        val maybeCoordinates: Option[Coordinates] = repeater.sectionNumber.maybeCoordinates
+        val maybeBracket =
+          basicAddToList(
+            source,
+            templateSectionIndex,
+            maybeCoordinates,
+            repeater.repeater.index + 1,
+            data
+          ) // Add next iteration
         maybeBracket
           .map { bracket =>
             loop(bracket.repeater, acc ::: NonEmptyList.one(bracket))

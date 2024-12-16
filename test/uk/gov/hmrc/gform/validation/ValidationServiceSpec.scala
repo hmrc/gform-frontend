@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -190,7 +190,9 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   ): ValidationResult = {
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, variadicFormData)
     val visibilityFormModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
-    val visibilityPageModel: PageModel[Visibility] = visibilityFormModel(Classic(pageToValidate))
+    val visibilityPageModel: PageModel[Visibility] = visibilityFormModel(
+      Classic.NormalPage(TemplateSectionIndex(pageToValidate))
+    )
     val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, icludeEmailAndCodeMap, pageToValidate)
 
     ValidationUtil.evaluateValidationResult(
@@ -213,7 +215,9 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, variadicFormData)
     val visibilityFormModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
-    val visibilityPageModel: PageModel[Visibility] = visibilityFormModel(Classic(pageToValidate))
+    val visibilityPageModel: PageModel[Visibility] = visibilityFormModel(
+      Classic.NormalPage(TemplateSectionIndex(pageToValidate))
+    )
 
     val emailAndCodeMap: Map[EmailFieldId, EmailAndCode] =
       if (includeEmailAndCodeMap)

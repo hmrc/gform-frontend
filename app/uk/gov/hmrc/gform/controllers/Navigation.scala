@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.controllers
 
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.{ Bracket, Visibility }
+import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.FormModel
 
@@ -28,23 +28,24 @@ trait Navigation {
   val availableSectionNumbers: List[SectionNumber] =
     formModel.availableSectionNumbers
 
-  val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).numberValue))
+  val minSectionNumber: SectionNumber = availableSectionNumbers.min
 
-  val addToListBrackets: List[Bracket.AddToList[Visibility]] =
-    formModel.brackets.addToListBrackets
+  val addToListSectionNumbers: List[SectionNumber] = availableSectionNumbers.filter(_.isAddToList)
 
-  val addToListSectionNumbers: List[SectionNumber] =
-    addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
-
-  val addToListRepeaterSectionNumbers: List[SectionNumber] =
-    addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
+  val addToListRepeaterSectionNumbers: List[SectionNumber] = availableSectionNumbers.filter(_.isAddToListRepeaterPage)
 
   val addToListNonRepeaterSectionNumbers: List[SectionNumber] =
     addToListSectionNumbers.filterNot(addToListRepeaterSectionNumbers.toSet)
 
   val samePageRepeatersSectionNumbers: List[List[SectionNumber]] =
-    formModel.brackets.addToListBrackets
-      .map(_.iterations.toList.map(_.repeater.sectionNumber))
+    addToListRepeaterSectionNumbers
+      .groupBy(
+        _.fold(a => (Coordinates(TaskSectionNumber(0), TaskNumber(0)), a.sectionIndex))(a =>
+          (a.coordinates, a.sectionNumber.sectionIndex)
+        )
+      )
+      .values
+      .toList
 
   val filteredSectionNumbers: SectionNumber => List[SectionNumber] = sectionNumber => {
     val availableSn = availableSectionNumbers.filter(
@@ -70,32 +71,21 @@ case class Navigator(
   sectionNumber: SectionNumber,
   formModel: FormModel[Visibility]
 ) extends Navigation {
-  private val maxSectionNumber: SectionNumber =
-    availableSectionNumbers.max(Ordering.by((_: SectionNumber).numberValue))
 
   val previousSectionNumber: Option[SectionNumber] =
     filteredSectionNumbers(sectionNumber).findLast(_ < sectionNumber)
 
   val nextSectionNumber: SectionNumber = {
-    val sn = sectionNumber.increment
+    val sn = sectionNumber.increment(formModel)
     if (addToListSectionNumbers.contains(sectionNumber)) {
       sn
     } else {
-      addToListRepeaterSectionNumbers
+      val repeaters = addToListRepeaterSectionNumbers
         .filter(_.fold(_ => true)(taskList => taskList.coordinates === sn.toCoordinatesUnsafe))
         .find(_ >= sn)
-        .fold(sn) { nrsn =>
-          filteredSectionNumbers(nrsn).filter(_ < nrsn).find(_ >= sn).getOrElse(nrsn)
-        }
+      repeaters.fold(sn) { nrsn =>
+        filteredSectionNumbers(nrsn).filter(_ < nrsn).find(_ >= sn).getOrElse(nrsn)
+      }
     }
   }
-
-  require(
-    sectionNumber >= minSectionNumber,
-    s"section number is too low: $sectionNumber is not >= $minSectionNumber"
-  )
-  require(
-    sectionNumber <= maxSectionNumber,
-    s"section number is too big: $sectionNumber is not <= $maxSectionNumber"
-  )
 }

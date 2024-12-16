@@ -52,7 +52,7 @@ class DownloadController(
       OperationWithForm.DownloadFileByInternalLink
     ) { _ => _ => _ => _ => formModelOptics =>
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
-      val allExprs = formModel.brackets.toBracketsPlains.toList.flatMap(_.allExprs(formModel))
+      val allExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
       val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
 
       if (!allExprs.contains(LinkCtx(InternalLink.Download(fileName)))) {

@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, Seis
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, Section }
@@ -75,7 +75,7 @@ trait FormModelSupport extends GraphSpec {
     formTemplateVersion = None,
     formData = FormData(List.empty[FormField]),
     status = InProgress,
-    visitsIndex = VisitIndex.Classic(Set.empty[Int]),
+    visitsIndex = VisitIndex.Classic(Set.empty[SectionNumber.Classic]),
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
     componentIdToFileId = FormComponentIdToFileIdMapping.empty
@@ -129,7 +129,7 @@ trait FormModelSupport extends GraphSpec {
     formModelOptics: FormModelOptics[DataOrigin.Browser]
   ): ProcessData = {
 
-    val visitsIndex: VisitIndex = VisitIndex.Classic(Set.empty[Int])
+    val visitsIndex: VisitIndex = VisitIndex.Classic(Set.empty[SectionNumber.Classic])
     val booleanExprCache: BooleanExprCache = BooleanExprCache.empty
     val obligations: Obligations = NotChecked
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
-case class SingletonWithNumber[A <: PageMode](
-  singleton: Singleton[A],
-  sectionNumber: SectionNumber
-) {
-  def map[B <: PageMode](f: Singleton[A] => Singleton[B]): SingletonWithNumber[B] =
-    SingletonWithNumber(f(singleton), sectionNumber)
+final case class SpecimenLinks(previous: Option[SectionNumber.Classic], next: Option[SectionNumber.Classic])
 
-  def toPageModelWithNumber4: (PageModel[A], SectionNumber) = (singleton, sectionNumber)
+object SpecimenLinks {
+  def from(sectionNumbers: List[SectionNumber.Classic], currentSectionNumber: SectionNumber.Classic): SpecimenLinks = {
+
+    val previous: Option[SectionNumber.Classic] = sectionNumbers.filter(_ < currentSectionNumber).maxOption
+    val next: Option[SectionNumber.Classic] = sectionNumbers.filter(_ > currentSectionNumber).minOption
+
+    SpecimenLinks(previous, next)
+  }
 }
