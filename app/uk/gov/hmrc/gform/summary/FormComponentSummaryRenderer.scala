@@ -1350,7 +1350,7 @@ object FormComponentSummaryRenderer {
           uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list(renderedValues.map(v => HtmlFormat.escape(v)))
         } else {
           HtmlFormat.fill(
-            renderedValues.map(v => uk.gov.hmrc.gform.views.html.hardcoded.pages.pWrapper(HtmlFormat.escape(v)))
+            renderedValues.map(v => HtmlFormat.escape(v))
           )
         }
       }
@@ -1510,12 +1510,7 @@ object FormComponentSummaryRenderer {
       val squashedOptionsContent = if (optionsSelectionsRows.size > 1) {
         uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list(optionsSelectionsRowsHtml)
       } else {
-        HtmlFormat.fill(
-          optionsSelectionsRows.map(row =>
-            uk.gov.hmrc.gform.views.html.hardcoded.pages
-              .pWrapper(HtmlFormat.fill(optionsSelectionsRowsHtml))
-          )
-        )
+        HtmlFormat.fill(optionsSelectionsRows.map(row => HtmlFormat.fill(optionsSelectionsRowsHtml)))
       }
 
       optionsSelectionsRows.headOption
