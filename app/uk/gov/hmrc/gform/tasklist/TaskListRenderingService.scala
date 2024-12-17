@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.tasklist
 
-import cats.data.NonEmptyList
 import cats.syntax.eq._
 import play.api.i18n.Messages
 import play.api.mvc.Request
@@ -25,16 +24,15 @@ import play.twirl.api.Html
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, ProcessDataService, SectionSelectorType, Visibility }
+import uk.gov.hmrc.gform.models.{ ProcessDataService, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, TaskIdTaskStatusMapping, UserData, Validated }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle }
@@ -62,22 +60,10 @@ class TaskListRenderingService(
     sse: SmartStringEvaluator
   ): Future[Html] =
     for {
-      statusesLookup <- statuses(cache.toCacheData, envelope, formModelOptics)
-      taskIdTaskStatus = TaskListUtils
-                           .withTaskList(formTemplate) { taskList =>
-                             taskList.sections.toList.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
-                               taskSection.tasks.toList.zipWithIndex.collect { case (task, taskIndex) =>
-                                 val coordinate = evalCoordinates(taskSectionIndex, taskIndex)
-                                 val taskStatus = statusesLookup.toList.find(_._1 === coordinate).map(_._2)
-
-                                 (task.id, taskStatus) match {
-                                   case (Some(taskId), Some(status)) => Some(taskId -> status)
-                                   case _                            => None
-                                 }
-                               }.flatten
-                             }
-                           }
-                           .toMap
+      statusesLookup <- TaskListUtils.evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService)
+      taskIdTaskStatusMapping = if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics)) {
+                                  TaskListUtils.evalTaskIdTaskStatusMapping(cache, statusesLookup)
+                                } else TaskIdTaskStatusMapping.empty
       _ <-
         gformConnector.updateUserData(
           FormIdData(cache.retrievals, cache.formTemplateId, maybeAccessCode),
@@ -87,10 +73,10 @@ class TaskListRenderingService(
             cache.form.visitsIndex,
             cache.form.thirdPartyData,
             cache.form.componentIdToFileId,
-            TaskIdTaskStatusMapping(taskIdTaskStatus)
+            taskIdTaskStatusMapping
           )
         )
-      cacheUpd = cache.copy(form = cache.form.copy(taskIdTaskStatus = TaskIdTaskStatusMapping(taskIdTaskStatus)))
+      cacheUpd = cache.copy(form = cache.form.copy(taskIdTaskStatus = taskIdTaskStatusMapping))
       newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
       processData <- processDataService
                        .getProcessData[SectionSelectorType.Normal](
@@ -106,7 +92,7 @@ class TaskListRenderingService(
           taskSection.tasks.toList.zipWithIndex.collect {
             case (task, taskIndex)
                 if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
-              evalCoordinates(taskSectionIndex, taskIndex)
+              TaskListUtils.evalCoordinates(taskSectionIndex, taskIndex)
           }
       }
 
@@ -142,8 +128,9 @@ class TaskListRenderingService(
       val taskLists: List[TaskListView] = taskList.sections.toList.zipWithIndex.map {
         case (taskSection, taskSectionIndex) =>
           val taskListItems = taskSection.tasks.toList.zipWithIndex.collect {
-            case (task, taskIndex) if visibleTaskCoordinates.contains(evalCoordinates(taskSectionIndex, taskIndex)) =>
-              val coordinates = evalCoordinates(taskSectionIndex, taskIndex)
+            case (task, taskIndex)
+                if visibleTaskCoordinates.contains(TaskListUtils.evalCoordinates(taskSectionIndex, taskIndex)) =>
+              val coordinates = TaskListUtils.evalCoordinates(taskSectionIndex, taskIndex)
               val status: TaskStatus = statusesLookup.toList.toMap.getOrElse(
                 coordinates,
                 TaskStatus.NotStarted
@@ -190,9 +177,6 @@ class TaskListRenderingService(
         )
     }
 
-  private def evalCoordinates(taskSectionIndex: Int, taskIndex: Int) =
-    Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex))
-
   private def taskListStatus(taskStatus: TaskStatus)(implicit messages: Messages): TaskListItemStatus = {
     val statusContent = content.Text(messages(s"taskList.$taskStatus"))
     val statusTag = taskStatus match {
@@ -207,62 +191,6 @@ class TaskListRenderingService(
     }
 
     new TaskListItemStatus(tag = statusTag, content = statusContent, classes = statusClasses)
-  }
-
-  private def statuses(
-    cache: CacheData,
-    envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(implicit
-    hc: HeaderCarrier,
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator
-  ): Future[NonEmptyList[(Coordinates, TaskStatus)]] = {
-    val formModel = formModelOptics.formModelVisibilityOptics.formModel
-    val taskList: BracketsWithSectionNumber.TaskList[Visibility] = formModel.brackets.unsafeToTaskList
-    val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
-
-    if (cache.formTemplate.isSpecimen) {
-      Future.successful(coordinates.map(coordinates => coordinates -> TaskStatus.NotStarted))
-    } else {
-      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
-      val notRequiredResolver = NotRequiredResolver.create(formModelOptics.formModelVisibilityOptics)
-      coordinates
-        .traverse { coordinate =>
-          val dataForCoordinate: Set[VariadicValue] =
-            formModelOptics.formModelVisibilityOptics.data.forCoordinate(coordinate)
-          val hasTerminationPage = formModel.taskList.availablePages(coordinate).exists(_.isTerminationPage)
-
-          for {
-            formHandlerResult <-
-              validationService.validateFormModel(
-                cache,
-                envelope,
-                formModelOptics.formModelVisibilityOptics,
-                Some(coordinate)
-              )
-            validatedATLs = validationService.validateATLs(
-                              formModel.taskList.availablePages(coordinate),
-                              formModelOptics.formModelVisibilityOptics
-                            )
-          } yield {
-            val taskStatus =
-              if (dataForCoordinate.isEmpty) {
-                TaskStatus.NotStarted
-              } else if (formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid) {
-                TaskStatus.Completed
-              } else {
-                TaskStatus.InProgress
-              }
-            coordinate -> taskStatus
-          }
-
-        }
-        .map(notRequiredResolver.resolveNotRequired)
-        .map(cannotStartYetResolver.resolveCannotStartYet)
-    }
-
   }
 
   private def completedTasksCount(statuses: List[(Coordinates, TaskStatus)]): Int =
