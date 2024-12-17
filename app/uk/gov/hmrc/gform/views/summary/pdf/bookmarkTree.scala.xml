@@ -1,0 +1,33 @@
+@import uk.gov.hmrc.gform.pdf.model.PDFModel._
+
+@(formName: Option[String], summaryDatas: List[SummaryData])
+<fo:bookmark-tree>
+    <fo:bookmark internal-destination="title">
+        @formName.map{ title =>
+            <fo:bookmark-title>@title</fo:bookmark-title>
+        }
+        @for(summaryData <- summaryDatas) {
+                @summaryData match {
+                    case p: PageData => {
+                        @for(title <- p.title) {
+                            <fo:bookmark internal-destination="@{p.id}">
+                                <fo:bookmark-title>@{title}</fo:bookmark-title>
+                            </fo:bookmark>
+                        }
+                    }
+                case AddToListData(title, _, pageGroups, id) => {
+                    @if(title.nonEmpty) {
+                        <fo:bookmark internal-destination="@{id}">
+                            <fo:bookmark-title>@{title}</fo:bookmark-title>
+                            @for(pageGroup <- pageGroups) {
+                                <fo:bookmark internal-destination="@{pageGroup.id}">
+                                    <fo:bookmark-title>@{title}</fo:bookmark-title>
+                                </fo:bookmark>
+                            }
+                        </fo:bookmark>
+                    }
+                }
+            }
+        }
+    </fo:bookmark>
+</fo:bookmark-tree>

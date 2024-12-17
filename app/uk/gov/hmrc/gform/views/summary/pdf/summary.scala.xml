@@ -58,6 +58,8 @@
     </fo:declarations>
     <!-- end Document metadata -->
 
+    @bookmarkTree(maybeFormName, summaryDataList)
+
 
     <!-- start page-sequence
          here comes the text (contained in flow objects)
@@ -119,7 +121,8 @@
             <!-- form name -->
             @maybeFormName.map{ formName =>
                 <fo:block role="Div" space-before="0.5cm">
-                    <fo:block role="H1"
+                    <fo:block id="title"
+                              role="H1"
                               font-size="22px"
                               font-family="arial-bold"
                               font-weight="bold"
