@@ -1,10 +1,12 @@
 @import play.twirl.api.XmlFormat
 @import uk.gov.hmrc.gform.pdf.model.PDFModel.{ AddToListSummary, AddToListPageGroup }
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
+@import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
-@(title: String, summaryTitle: Option[String], summaryValue: XmlFormat.Appendable,  pageGroups: List[AddToListPageGroup])(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+@(id: String, title: String, summaryTitle: Option[String], summaryValue: XmlFormat.Appendable,  pageGroups: List[AddToListPageGroup])(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 <fo:block role="Div" padding-before="1cm">
-    <fo:block role="H2"
+    <fo:block id="@id"
+              role="H2"
               font-size="16px"
               font-family="arial-bold"
               font-weight="bold"
@@ -22,7 +24,8 @@
     </fo:list-block>
     @pageGroups.map { pageGroup =>
         <fo:block role="Div">
-            <fo:block role="H3"
+            <fo:block id="@{pageGroup.id}"
+                      role="H3"
                       font-size="14px"
                       font-family="arial-bold"
                       font-weight="bold"
@@ -33,14 +36,15 @@
             @pageGroup.pages.map { page =>
                 <fo:block role="Div">
                         @if(page.title.isDefined){
-                            <fo:block role="H4"
+                            <fo:block id="@{page.id}"
+                                      role="H4"
                                       font-size="12px"
                                       font-family="arial-bold"
                                       font-weight="bold"
                                       line-height="12pt"
                                       padding-bottom="5mm"
                                       padding-before="1cm">
-                                @page.title.map(t => unescapeXml(t))
+                                @page.title.map(t => PdfHelper.sanitizeContent(t))
                             </fo:block>
                         } else {
                             <fo:block> </fo:block>

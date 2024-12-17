@@ -807,10 +807,10 @@ object SummaryRenderingService {
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
     summaryDataList.map {
       case pageData: PageData => summaryPage(pageData)
-      case AddToListData(title, summary, pageGroups, _) =>
+      case AddToListData(title, summary, pageGroups, id) =>
         val summaryValues = summary.values.zipWithIndex.map { case (v, idx) => (idx + 1) -> v }
         val addToListSummaryPage = addToListSummary(summaryValues)
-        addToList(title, Some(summary.title), addToListSummaryPage, pageGroups)
+        addToList(id, title, Some(summary.title), addToListSummaryPage, pageGroups)
     }
 
   def renderPageField(field: PageField): XmlFormat.Appendable = field match {

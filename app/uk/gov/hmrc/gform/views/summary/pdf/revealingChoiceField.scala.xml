@@ -1,3 +1,5 @@
+@import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
+
 @(values: List[Html])
 @if(values.size > 1) {
 <fo:inline>
@@ -24,7 +26,7 @@
                           font-family="arial"
                           font-weight="normal"
                           line-height="11pt">
-                     @unescapeXml(value.body)
+                     @PdfHelper.sanitizeContent(value.body)
                 </fo:block>
             </fo:list-item-body>
         </fo:list-item>
@@ -34,7 +36,7 @@
 } else {
     @values.map{ value =>
         <fo:block role="P">
-            @unescapeXml(value.body)
+            @PdfHelper.sanitizeContent(value.body)
         </fo:block>
     }
 }

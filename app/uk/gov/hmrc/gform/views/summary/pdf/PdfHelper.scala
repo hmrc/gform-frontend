@@ -21,16 +21,27 @@ import play.twirl.api.{ Html, XmlFormat }
 import uk.gov.hmrc.gform.views.xml.summary.pdf.simpleField
 
 object PdfHelper {
+  private val replacements =
+    Map('<' -> "&lt;", '>' -> "&gt;", '&' -> "&#38;", ']' -> "&#93;", '\'' -> "&#39;", '"' -> "&#34;")
+
   def renderHtml(value: String): XmlFormat.Appendable = {
     val newLineDelimiters = List("<br>", "\n\n")
     val maybeDelimiter = newLineDelimiters.find(value.contains)
 
     val lines = maybeDelimiter match {
       case Some(delimiter) => value.split(delimiter)
-      case None            => return XmlFormat.raw(StringEscapeUtils.unescapeXml(value))
+      case None            => return XmlFormat.raw(sanitizeContent(value))
     }
 
-    simpleField(lines.map(StringEscapeUtils.unescapeXml).map(Html(_)).toList)
+    simpleField(lines.map(sanitizeContent).map(Html(_)).toList)
   }
+
+  def sanitizeContent(content: String): String =
+    StringEscapeUtils.unescapeXml(content.foldLeft("") { (acc, char) =>
+      replacements.getOrElse(char, char.toString) match {
+        case replacement: String => acc + replacement
+        case _                   => acc
+      }
+    })
 
 }
