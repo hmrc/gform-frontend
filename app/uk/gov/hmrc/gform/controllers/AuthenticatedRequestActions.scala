@@ -659,7 +659,10 @@ case class AuthCacheWithoutForm(
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
     AuthCacheWithForm(
       retrievals,
-      dataRetrieve.fold(form)(_ => form.copy(thirdPartyData = form.thirdPartyData.copy(dataRetrieve = dataRetrieve))),
+      dataRetrieve.fold(form) { dr =>
+        val combined: Map[DataRetrieveId, DataRetrieveResult] = form.thirdPartyData.dataRetrieve.fold(dr)(_ ++ dr)
+        form.copy(thirdPartyData = form.thirdPartyData.copy(dataRetrieve = Some(combined)))
+      },
       FormTemplateContext.basicContext(formTemplate, None),
       role,
       accessCode,
