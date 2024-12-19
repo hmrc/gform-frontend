@@ -73,6 +73,7 @@ object FormComponentIdSubstituter {
         case ChoicesRevealedField(fcId)   => ChoicesRevealedField(substitutions.updateFormComponentId(fcId))
         case ChoicesSelected(fcId)        => ChoicesSelected(substitutions.updateFormComponentId(fcId))
         case ChoicesAvailable(fcId)       => ChoicesAvailable(substitutions.updateFormComponentId(fcId))
+        case e: TaskStatus                => e
       }
     }
 

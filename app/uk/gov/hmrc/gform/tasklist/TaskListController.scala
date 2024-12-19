@@ -61,7 +61,7 @@ class TaskListController(
               .renderTaskList(
                 cache.formTemplate,
                 maybeAccessCode,
-                cache.toCacheData,
+                cache,
                 EnvelopeWithMapping(envelope, cache.form),
                 formModelOptics
               )

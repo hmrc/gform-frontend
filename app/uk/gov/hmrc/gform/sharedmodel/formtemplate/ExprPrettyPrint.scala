@@ -91,6 +91,7 @@ object ExprPrettyPrint {
     case ChoicesRevealedField(_)       => "ChoicesRevealedField"
     case ChoicesSelected(_)            => "ChoicesSelected"
     case ChoicesAvailable(_)           => "ChoicesAvailable"
+    case TaskStatus(_)                 => "TaskStatus"
   }
 
   def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {

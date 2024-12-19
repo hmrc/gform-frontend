@@ -38,7 +38,8 @@ case class Form(
   visitsIndex: VisitIndex,
   thirdPartyData: ThirdPartyData,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
-  componentIdToFileId: FormComponentIdToFileIdMapping
+  componentIdToFileId: FormComponentIdToFileIdMapping,
+  taskIdTaskStatus: TaskIdTaskStatusMapping
 )
 
 object Form {
@@ -46,11 +47,14 @@ object Form {
   private val thirdPartyData = "thirdPartyData"
   private val componentIdToFileId = "componentIdToFileId"
   private val formTemplateVersion = "version"
+  private val taskIdTaskStatus = "taskIdTaskStatus"
 
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ thirdPartyData).read[ThirdPartyData]
   private val componentIdToFileIdReads: Reads[FormComponentIdToFileIdMapping] =
     (__ \ componentIdToFileId).read[FormComponentIdToFileIdMapping]
+  private val taskIdTaskStatusMappingReads: Reads[TaskIdTaskStatusMapping] =
+    (__ \ taskIdTaskStatus).read[TaskIdTaskStatusMapping]
 
   private val formTemplateVersionWithFallback: Reads[Option[FormTemplateVersion]] =
     (__ \ formTemplateVersion)
@@ -74,7 +78,8 @@ object Form {
       VisitIndex.format and
       thirdPartyDataWithFallback and
       EnvelopeExpiryDate.optionFormat and
-      componentIdToFileIdReads
+      componentIdToFileIdReads and
+      taskIdTaskStatusMappingReads
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](form =>
@@ -88,7 +93,8 @@ object Form {
       VisitIndex.format.writes(form.visitsIndex) ++
       Json.obj(thirdPartyData -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
       EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
-      Json.obj(componentIdToFileId -> FormComponentIdToFileIdMapping.format.writes(form.componentIdToFileId))
+      Json.obj(componentIdToFileId -> FormComponentIdToFileIdMapping.format.writes(form.componentIdToFileId)) ++
+      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus))
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)

@@ -36,7 +36,8 @@ object FileUploadUtils {
       InProgress,
       form.visitsIndex,
       form.thirdPartyData,
-      mappingUpd
+      mappingUpd,
+      form.taskIdTaskStatus
     )
   }
 

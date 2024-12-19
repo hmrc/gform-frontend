@@ -133,7 +133,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           Set.empty,
           new LookupRegistry(Map()),
           Map.empty,
-          Map.empty
+          Map.empty,
+          TaskIdTaskStatusMapping.empty
         )
       )
     )

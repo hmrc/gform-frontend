@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, Section }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
@@ -78,7 +78,8 @@ trait FormModelSupport extends GraphSpec {
     visitsIndex = VisitIndex.Classic(Set.empty[SectionNumber.Classic]),
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
-    componentIdToFileId = FormComponentIdToFileIdMapping.empty
+    componentIdToFileId = FormComponentIdToFileIdMapping.empty,
+    taskIdTaskStatus = TaskIdTaskStatusMapping.empty
   )
 
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
@@ -99,7 +100,8 @@ trait FormModelSupport extends GraphSpec {
       maybeAccessCode,
       recalculation,
       FormComponentIdToFileIdMapping.empty,
-      new LookupRegistry(Map())
+      new LookupRegistry(Map()),
+      TaskIdTaskStatusMapping.empty
     )
 
   def mkFormModelOptics(

@@ -82,7 +82,8 @@ object FormModelOptics {
         Set.empty,
         cache.lookupRegistry,
         Map.empty,
-        Map.empty
+        Map.empty,
+        TaskIdTaskStatusMapping.empty
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -100,7 +101,8 @@ object FormModelOptics {
     cacheData: CacheData,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase],
-    componentIdToFileId: FormComponentIdToFileIdMapping
+    componentIdToFileId: FormComponentIdToFileIdMapping,
+    taskIdTaskStatusMapping: TaskIdTaskStatusMapping
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -113,7 +115,8 @@ object FormModelOptics {
         cacheData,
         recalculation,
         componentIdToFileId,
-        cache.lookupRegistry
+        cache.lookupRegistry,
+        taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
       formModelBuilder.visibilityModel(data, phase)
@@ -133,5 +136,13 @@ object FormModelOptics {
     hc: HeaderCarrier,
     me: MonadError[F, Throwable]
   ): F[FormModelOptics[D]] =
-    mkFormModelOptics(data, cache, cache.toCacheData, recalculation, phase, cache.form.componentIdToFileId)
+    mkFormModelOptics(
+      data,
+      cache,
+      cache.toCacheData,
+      recalculation,
+      phase,
+      cache.form.componentIdToFileId,
+      cache.form.taskIdTaskStatus
+    )
 }

@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -93,7 +93,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       Set.empty,
       new LookupRegistry(Map.empty),
       Map.empty,
-      Map.empty
+      Map.empty,
+      TaskIdTaskStatusMapping.empty
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()

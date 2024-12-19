@@ -104,6 +104,7 @@ object SummarySubstituter {
       case e: ChoicesRevealedField      => e
       case e: ChoicesSelected           => e
       case e: ChoicesAvailable          => e
+      case e: TaskStatus                => e
     }
   }
 

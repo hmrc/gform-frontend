@@ -19,11 +19,9 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormField, QueryParams }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, FileId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, UserId }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, FileId, Form, FormData, FormId, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
 class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
@@ -51,7 +49,8 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None
       ),
       None,
-      mapping
+      mapping,
+      TaskIdTaskStatusMapping.empty
     )
 
     val mapping1 = FormComponentIdToFileIdMapping.empty
@@ -97,7 +96,8 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None
       ),
       None,
-      mapping
+      mapping,
+      TaskIdTaskStatusMapping.empty
     )
 
     val mapping2 = Map("file" -> "x_file").toMapping

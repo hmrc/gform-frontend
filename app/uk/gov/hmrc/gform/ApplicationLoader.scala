@@ -176,7 +176,9 @@ class ApplicationModule(context: Context)
 
   private val taskListModule = new TaskListModule(
     configModule,
-    validationModule
+    validationModule,
+    gformBackendModule,
+    graphModule
   )
 
   private val gformModule = new GformModule(

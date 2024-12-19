@@ -40,9 +40,10 @@ import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -395,6 +396,14 @@ class FormProcessor(
             }
         } else Option.empty.pure[Future]
 
+      taskIdTaskStatusMapping <- if (sectionNumber.isTaskList) {
+                                   evalTaskIdTaskStatus(
+                                     cache,
+                                     envelopeWithMapping,
+                                     DataOrigin.swapDataOrigin(processData.formModelOptics)
+                                   )
+                                 } else TaskIdTaskStatusMapping.empty.pure[Future]
+
       res <- {
         val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
 
@@ -425,7 +434,8 @@ class FormProcessor(
               .copy(
                 thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
                 formData = formDataU,
-                visitsIndex = updatedVisitsIndex
+                visitsIndex = updatedVisitsIndex,
+                taskIdTaskStatus = taskIdTaskStatusMapping
               )
           )
 
@@ -453,6 +463,24 @@ class FormProcessor(
       }
     } yield res
   }
+
+  private def evalTaskIdTaskStatus(
+    cache: AuthCacheWithForm,
+    envelope: EnvelopeWithMapping,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit
+    hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[TaskIdTaskStatusMapping] =
+    if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics))
+      for {
+        statusesLookup <-
+          TaskListUtils.evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService)
+      } yield TaskListUtils.evalTaskIdTaskStatusMapping(cache, statusesLookup)
+    else
+      TaskIdTaskStatusMapping.empty.pure[Future]
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
     messages: Messages

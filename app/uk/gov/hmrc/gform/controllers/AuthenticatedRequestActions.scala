@@ -626,7 +626,8 @@ case class AuthCacheWithForm(
           (s: GraphException) => new IllegalArgumentException(s.reportProblem)
         ),
         form.componentIdToFileId,
-        lookupRegistry
+        lookupRegistry,
+        form.taskIdTaskStatus
       )
       .dependencyGraphValidation
   }

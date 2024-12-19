@@ -318,7 +318,8 @@ class GformBackEndService(
           updatedForm.status,
           updatedForm.visitsIndex,
           updatedForm.thirdPartyData,
-          updatedForm.componentIdToFileId
+          updatedForm.componentIdToFileId,
+          updatedForm.taskIdTaskStatus
         )
       )
 

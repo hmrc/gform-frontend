@@ -1461,7 +1461,8 @@ class TestOnlyController(
                 InProgress,
                 cache.form.visitsIndex,
                 cache.form.thirdPartyData,
-                cache.form.componentIdToFileId
+                cache.form.componentIdToFileId,
+                cache.form.taskIdTaskStatus
               )
             )
             .flatMap { _ =>

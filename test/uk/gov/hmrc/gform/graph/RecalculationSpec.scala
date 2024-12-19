@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModelSupport, Interim, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.GraphSpec
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -77,7 +77,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Set.empty,
       new LookupRegistry(Map()),
       Map.empty,
-      Map.empty
+      Map.empty,
+      TaskIdTaskStatusMapping.empty
     )
 
   "recalculation" should "recalculate single dependency" in {
