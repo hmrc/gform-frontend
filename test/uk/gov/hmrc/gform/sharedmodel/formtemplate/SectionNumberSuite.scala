@@ -209,6 +209,16 @@ class SectionNumberSuite extends FunSuite {
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 1, 0),
         Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
         GT
+      ),
+      (
+        Classic.AddToListPage.CyaPage(TemplateSectionIndex(0), 1),
+        Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
+        LT
+      ),
+      (
+        Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
+        Classic.AddToListPage.CyaPage(TemplateSectionIndex(0), 1),
+        GT
       )
     )
 

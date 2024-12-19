@@ -60,8 +60,8 @@ sealed trait FormKind extends Product with Serializable {
     }
   }
   private val atlMap = allSections.sections.flatMap {
-    case s: Section.AddToList => s.atlMap
-    case _                    => Map.empty
+    case IndexedSection.SectionIndex(s: Section.AddToList, _) => s.atlMap
+    case _                                                    => Map.empty
   }.toMap
   private val repeatingMap =
     allSections.sections
