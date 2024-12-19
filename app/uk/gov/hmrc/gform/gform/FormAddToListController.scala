@@ -87,7 +87,7 @@ class FormAddToListController(
             .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
         val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
-          case bracket @ Bracket.AddToList(defaultPage, iterations, source) =>
+          case bracket @ Bracket.AddToList(iterations, source) =>
             val (pageError, fieldErrors) = {
               val errorMessage =
                 source.errorMessage.fold(request.messages.messages("addToList.error.selectOption"))(error =>

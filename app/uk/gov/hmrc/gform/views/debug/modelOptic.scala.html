@@ -35,8 +35,8 @@
           } { repeatingPage =>
             <td>RepeatingPage TODO implement me</td>
           } { addToList =>
-            @addToList.defaultPage.map { dp => <td>@dp.sectionNumber.value</td>}.getOrElse("")
             @addToList.iterations.toList.map { it =>
+              @it.defaultPage.map { dp => <td>@dp.sectionNumber.value</td>}.getOrElse("")
               @it.singletons.toList.map{singleton => <td>@singleton.sectionNumber.value</td>}
               @it.checkYourAnswers.map{cya => <td>@cya.sectionNumber.value</td>}.getOrElse("")
               <td>@it.repeater.sectionNumber.value</td>
@@ -55,8 +55,8 @@
           } { repeatingPage =>
             <td>RepeatingPage TODO implement me</td>
           } { addToList =>
-            @addToList.defaultPage.map { dp => @pageModelHeader(dp.singleton)}.getOrElse("")
             @addToList.iterations.toList.map { it =>
+              @it.defaultPage.map { dp => @pageModelHeader(dp.singleton)}.getOrElse("")
               @it.singletons.toList.map{singleton => @pageModelHeader(singleton.singleton)}
               @it.checkYourAnswers.map{cya => @pageModelHeader(cya.checkYourAnswers)}.getOrElse("")
                 @pageModelHeader(it.repeater.repeater)

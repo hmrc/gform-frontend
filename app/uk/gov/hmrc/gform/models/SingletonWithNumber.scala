@@ -25,5 +25,5 @@ case class SingletonWithNumber[A <: PageMode](
   def map[B <: PageMode](f: Singleton[A] => Singleton[B]): SingletonWithNumber[B] =
     SingletonWithNumber(f(singleton), sectionNumber)
 
-  def toPageModelWithNumber4: (PageModel[A], SectionNumber) = (singleton, sectionNumber)
+  def toPageModelWithNumber: (PageModel[A], SectionNumber) = (singleton, sectionNumber)
 }

@@ -196,12 +196,7 @@ class FormController(
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)
                 )
-              case bracket @ Bracket.AddToList(Some(defaultPage), _, _)
-                  if defaultPage.sectionNumber === sectionNumber =>
-                validateSections(suppressErrors, sectionNumber)(
-                  renderSingleton(defaultPage.singleton, sectionNumber, _)
-                )
-              case bracket @ Bracket.AddToList(_, iterations, _) =>
+              case bracket @ Bracket.AddToList(iterations, _) =>
                 val iteration: Bracket.AddToListIteration[DataExpanded] =
                   bracket.iterationForSectionNumber(sectionNumber)
                 val (repeater, repeaterSectionNumber) =
@@ -490,7 +485,7 @@ class FormController(
             bracket match {
               case Bracket.NonRepeatingPage(_, _) => goBack(toSectionNumber)
               case Bracket.RepeatingPage(_, _)    => goBack(toSectionNumber)
-              case bracket @ Bracket.AddToList(defaultPage, iterations, _) =>
+              case bracket @ Bracket.AddToList(iterations, _) =>
                 val iteration: Bracket.AddToListIteration[DataExpanded] =
                   bracket.iterationForSectionNumber(toSectionNumber)
                 val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
@@ -693,10 +688,7 @@ class FormController(
                         val bracket = formModel.bracket(sectionNumber)
 
                         bracket match {
-                          case bracket @ Bracket.AddToList(Some(defaultPage), _, _)
-                              if defaultPage.sectionNumber === sectionNumber =>
-                            None
-                          case bracket @ Bracket.AddToList(_, _, _) =>
+                          case bracket @ Bracket.AddToList(_, _) =>
                             val iteration = bracket.iterationForSectionNumber(sectionNumber)
                             val sectionNumbers = iteration.allSingletonSectionNumbers
 
@@ -762,10 +754,7 @@ class FormController(
                               val bracket = formModel.bracket(sectionNumber)
 
                               val isLastBracketIteration = bracket match {
-                                case bracket @ Bracket.AddToList(Some(defaultPage), _, _)
-                                    if defaultPage.sectionNumber === sectionNumber =>
-                                  false
-                                case bracket @ Bracket.AddToList(_, _, _) =>
+                                case bracket @ Bracket.AddToList(_, _) =>
                                   val iteration = bracket.iterationForSectionNumber(sectionNumber)
                                   sectionNumber === iteration.lastSectionNumber
                                 case _ => false

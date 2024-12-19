@@ -1071,7 +1071,7 @@ class BuilderController(
             badRequest("Expected AddToList bracket, but got NonRepeatingPage").pure[Future]
           case Bracket.RepeatingPage(_, _) =>
             badRequest("Expected AddToList bracket, but got RepeatingPage").pure[Future]
-          case bracket @ Bracket.AddToList(_, _, _) =>
+          case bracket @ Bracket.AddToList(_, _) =>
             pageModel
               .fold(singleton => badRequest("Invalid page model. Expected Repeater got Singleton"))(checkYourAnswers =>
                 badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")
