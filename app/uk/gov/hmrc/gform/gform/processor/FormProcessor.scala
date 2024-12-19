@@ -27,9 +27,7 @@ import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationC
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
-import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, FileSystemConnector, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -37,10 +35,11 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
 import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
-import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
+import uk.gov.hmrc.gform.models.optics.DataOrigin.{ Browser, Mongo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
@@ -405,7 +404,11 @@ class FormProcessor(
                                  } else TaskIdTaskStatusMapping.empty.pure[Future]
 
       res <- {
-        val oldData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
+        val oldData: VariadicFormData[SourceOrigin.Current] = maybeRemoveVerifiedCode(
+          validatorsResult,
+          formModelVisibilityOptics,
+          processData.formModelOptics.pageOpticsData
+        )
 
         val formDataU = oldData.toFormData ++ formData
         val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
@@ -492,5 +495,27 @@ class FormProcessor(
     val sse: SmartStringEvaluator =
       smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, LangADT.En)
     sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)(sse)
+  }
+
+  private def maybeRemoveVerifiedCode(
+    validatorsResult: Option[ValidatorsResult],
+    formModelVisibilityOptics: FormModelVisibilityOptics[Browser],
+    oldData: VariadicFormData[SourceOrigin.Current]
+  ): VariadicFormData[SourceOrigin.Current] = {
+    val maybeVerifiedBy: Option[FormComponentId] = validatorsResult.flatMap { result =>
+      result.emailVerification.keySet
+        .flatMap { emailFieldId =>
+          formModelVisibilityOptics.formModel.allFormComponents
+            .collectFirst {
+              case IsEmailVerifier(emailId, emailVerifiedBy)
+                  if emailId.baseComponentId === emailFieldId.baseComponentId =>
+                emailVerifiedBy.formComponentId
+            }
+        }
+        .toList
+        .headOption
+    }
+
+    maybeVerifiedBy.map(fcId => oldData - fcId.modelComponentId).getOrElse(oldData)
   }
 }
