@@ -639,7 +639,7 @@ object SummaryRenderingService {
 
     val (accumulatedRows, summaryLists) =
       brackets.foldLeft((Map.empty[HtmlFormat.Appendable, List[SummaryListRow]], List.empty[HtmlFormat.Appendable])) {
-        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _, _)) =>
+        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _)) =>
           accumulatedRows.headOption match {
             case Some((heading, rows)) =>
               val updatedList =

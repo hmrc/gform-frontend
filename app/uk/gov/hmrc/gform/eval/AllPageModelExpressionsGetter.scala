@@ -84,11 +84,11 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
     } { repeatingPage =>
       repeatingPage.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel))
     } { addToList =>
-      addToList.defaultPage.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
-        addToList.iterations.toList.flatMap { iteration =>
+      addToList.iterations.toList.flatMap { iteration =>
+        iteration.defaultPage.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
           iteration.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
-            addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil)
-        }
+          addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil)
+      }
     }
 
 }

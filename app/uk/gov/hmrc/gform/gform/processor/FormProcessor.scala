@@ -123,9 +123,10 @@ class FormProcessor(
           val iterationForSectionNumber: Bracket.AddToListIteration[DataExpanded] = addToListBracket
             .iterationForSectionNumber(sn)
 
-          val visitsIndexForLastIteration: List[SectionNumber] = iterationForSectionNumber.singletons
-            .map(_.sectionNumber)
-            .toList ++ iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber)
+          val visitsIndexForLastIteration: List[SectionNumber] =
+            iterationForSectionNumber.defaultPage.map(_.sectionNumber).toList ++
+              iterationForSectionNumber.singletons.map(_.sectionNumber).toList ++
+              iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber)
 
           processData.visitsIndex.fold[VisitIndex] { classic =>
             val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic)

@@ -477,6 +477,7 @@ class FormModelBuilder[E, F[_]: Functor](
   }
 
   private def basicAddToList[T <: PageMode: FormModelExpander](
+    defaultPage: Option[SingletonWithNumber[T]],
     s: Section.AddToList,
     templateSectionIndex: TemplateSectionIndex,
     maybeCoordinates: Option[Coordinates],
@@ -514,6 +515,7 @@ class FormModelBuilder[E, F[_]: Functor](
       .fromList(singletons)
       .map(
         Bracket.AddToListIteration(
+          defaultPage,
           _,
           checkYourAnswers,
           RepeaterWithNumber(
@@ -559,8 +561,8 @@ class FormModelBuilder[E, F[_]: Functor](
           formModelExpander.liftRepeating(s, index, data)
         case IndexedSection.SectionIndex(s: Section.AddToList, index) =>
           val defaultPage: Option[SingletonWithNumber[T]] = basicDefaultPage(s, index, maybeCoordinates, data)
-          basicAddToList(s, index, maybeCoordinates, 1, data).map(atl =>
-            Bracket.AddToList(defaultPage, NonEmptyList.one(atl), s)
+          basicAddToList(defaultPage, s, index, maybeCoordinates, 1, data).map(atl =>
+            Bracket.AddToList(NonEmptyList.one(atl), s)
           )
       }
     }
@@ -593,6 +595,7 @@ class FormModelBuilder[E, F[_]: Functor](
         val maybeCoordinates: Option[Coordinates] = repeater.sectionNumber.maybeCoordinates
         val maybeBracket =
           basicAddToList(
+            None, // next iteration has no default page
             source,
             templateSectionIndex,
             maybeCoordinates,

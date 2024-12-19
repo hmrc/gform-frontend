@@ -207,8 +207,8 @@ case class FormModel[A <: PageMode](
 
     def applyFToRepeater(brackets: NonEmptyList[Bracket[A]]): NonEmptyList[Bracket[A]] =
       brackets.map {
-        case Bracket.AddToList(defaultPage, iterations, source) =>
-          Bracket.AddToList(defaultPage, f(iterations, source), source)
+        case Bracket.AddToList(iterations, source) =>
+          Bracket.AddToList(f(iterations, source), source)
         case o => o
       }
 
