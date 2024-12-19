@@ -172,5 +172,7 @@ object InitFormEvaluator {
                      }
                    }
                  }
-    } yield cache.copy(dataRetrieve = Some(results.map(r => r.id -> r).toMap))
+    } yield
+      if (results.isEmpty) cache
+      else cache.copy(dataRetrieve = Some(results.map(r => r.id -> r).toMap))
 }
