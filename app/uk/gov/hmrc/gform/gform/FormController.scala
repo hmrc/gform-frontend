@@ -711,27 +711,23 @@ class FormController(
                         bracket: Bracket[DataExpanded],
                         sectionNumber: SectionNumber
                       ): Option[Result] =
-                        sectionNumber match {
-                          case SectionNumber.Classic.AddToListPage.Page(_, _, _) =>
-                            bracket
-                              .atlIterationToRemove(
-                                sectionNumber,
-                                processDataUpd.formModelOptics.formModelVisibilityOptics
-                              )
-                              .map { case (atlId, index) =>
-                                Redirect(
-                                  routes.FormAddToListController
-                                    .removeItem(
-                                      formTemplateId,
-                                      maybeAccessCode,
-                                      sectionNumber,
-                                      index,
-                                      atlId
-                                    )
+                        bracket
+                          .atlIterationToRemove(
+                            sectionNumber,
+                            processDataUpd.formModelOptics.formModelVisibilityOptics
+                          )
+                          .map { case (atlId, index) =>
+                            Redirect(
+                              routes.FormAddToListController
+                                .removeItem(
+                                  formTemplateId,
+                                  maybeAccessCode,
+                                  sectionNumber,
+                                  index,
+                                  atlId
                                 )
-                              }
-                          case _ => None
-                        }
+                            )
+                          }
 
                       def continueJourney: Result =
                         maybeSn match {

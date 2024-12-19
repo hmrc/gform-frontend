@@ -164,7 +164,7 @@ object SectionNumber {
         case (AddToListPage.DefaultPage(sn0), AddToListPage.Page(sn1, _, _))              => compDef(-1, sn0, sn1)
         case (AddToListPage.Page(sn0, _, _), AddToListPage.DefaultPage(sn1))              => compDef(1, sn0, sn1)
         case (AddToListPage.DefaultPage(sn0), AddToListPage.CyaPage(sn1, _))              => compDef(-1, sn0, sn1)
-        case (AddToListPage.CyaPage(sn1, _), AddToListPage.DefaultPage(sn0))              => compDef(1, sn0, sn1)
+        case (AddToListPage.CyaPage(sn0, _), AddToListPage.DefaultPage(sn1))              => compDef(1, sn0, sn1)
         case (AddToListPage.DefaultPage(sn0), AddToListPage.RepeaterPage(sn1, _))         => compDef(-1, sn0, sn1)
         case (AddToListPage.RepeaterPage(sn0, _), AddToListPage.DefaultPage(sn1))         => compDef(1, sn0, sn1)
         case (AddToListPage.CyaPage(sn0, in0), AddToListPage.Page(sn1, in1, _))           => comp(1, sn0, in0, sn1, in1)

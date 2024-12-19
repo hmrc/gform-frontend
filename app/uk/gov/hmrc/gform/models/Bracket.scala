@@ -261,14 +261,18 @@ object Bracket {
 
       }
 
-    def iterationForSectionNumberWithIndex(sectionNumber: SectionNumber): (Bracket.AddToListIteration[A], Int) =
-      iterations.zipWithIndex.toList
-        .collectFirst {
-          case (iteration, i) if iteration.hasSectionNumber(sectionNumber) => (iteration, i)
-        }
-        .getOrElse(
-          throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.AddToListIteration")
-        )
+    private def iterationForSectionNumberWithIndex(sectionNumber: SectionNumber): (Bracket.AddToListIteration[A], Int) =
+      if (defaultPage.exists(_.sectionNumber === sectionNumber)) {
+        (iterations.head, 0)
+      } else {
+        iterations.zipWithIndex.toList
+          .collectFirst {
+            case (iteration, i) if iteration.hasSectionNumber(sectionNumber) => (iteration, i)
+          }
+          .getOrElse(
+            throw new IllegalArgumentException(s"Invalid sectionNumber: $sectionNumber for Bracket.AddToListIteration")
+          )
+      }
 
     def repeaters: NonEmptyList[Repeater[A]] = iterations.map(_.repeater.repeater)
 
