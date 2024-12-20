@@ -24,17 +24,13 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.{ COMPOSITE_AUTH_DETAILS_SESSION_KEY, EMAIL_AUTH_DETAILS_SESSION_KEY }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, Coordinates, EmailAuthConfig, FormTemplate, FormTemplateId, SectionNumber, SectionOrSummary, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, Coordinates, EmailAuthConfig, FormTemplate, FormTemplateId, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_acknowledgement_email_auth, save_with_access_code }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import cats.implicits._
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.gform.NoSpecificAction
-import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelectorType }
+import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeExpiryDate, FormIdData, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
@@ -47,11 +43,7 @@ class SaveAcknowledgementController(
   frontendAppConfig: FrontendAppConfig,
   auth: AuthenticatedRequestActions,
   messagesControllerComponents: MessagesControllerComponents,
-  processDataService: ProcessDataService[Future],
-  gformConnector: GformConnector,
-  auditService: AuditService,
-  confirmationService: ConfirmationService,
-  formProcessor: FormProcessor
+  gformConnector: GformConnector
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -112,126 +104,85 @@ class SaveAcknowledgementController(
 
   def saveAndExit(
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    browserSectionNumber: SectionNumber,
-    fastForward: List[FastForward]
+    accessCode: Option[AccessCode],
+    sectionNumber: Option[SectionNumber],
+    sectionTitle4Ga: Option[SectionTitle4Ga]
   ): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        val formModel = formModelOptics.formModelVisibilityOptics.formModel
-        val sectionNumber: SectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
-        processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, Some(browserSectionNumber)) {
-          _ => variadicFormData => enteredVariadicFormData =>
-            {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, accessCode, OperationWithForm.EditForm) {
+      implicit request => implicit l => cache => _ => formModelOptics =>
+        def processSaveAndExitAcknowledgementPage(
+          config: Option[AuthConfig],
+          sectionNumber: Option[SectionNumber],
+          sectionTitle4Ga: Option[SectionTitle4Ga]
+        ): Result = {
+          val formTemplate = cache.formTemplate
+          config match {
+            case Some(EmailAuthConfig(_, _, _, _)) =>
+              Redirect(gform.routes.SaveAcknowledgementController.saveAndExitWithEmailAuth(cache.formTemplateId))
+            case _ =>
+              showAcknowledgementPage(
+                cache.formTemplateId,
+                accessCode,
+                sectionNumber,
+                formTemplate,
+                cache.form.envelopeExpiryDate,
+                sectionTitle4Ga
+              )
+          }
+        }
 
-              def processSaveAndExit(processData: ProcessData): Future[Result] = {
-
-                val purgeConfirmationData: PurgeConfirmationData =
-                  confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
-
-                formProcessor.validateAndUpdateData(
-                  cache,
-                  purgeConfirmationData.f(processData),
-                  sectionNumber,
-                  sectionNumber,
-                  maybeAccessCode,
-                  fastForward,
-                  formModelOptics,
-                  purgeConfirmationData.enteredVariadicFormData,
-                  false
-                ) { _ => _ => maybeSn =>
-                  val formTemplate = cache.formTemplate
-                  maybeAccessCode match {
-                    case Some(accessCode) =>
-                      Redirect(
-                        gform.routes.SaveAcknowledgementController
-                          .saveAndExitWithAccessCode(cache.formTemplateId, accessCode)
-                      )
-                    case None =>
-                      formTemplate.authConfig match {
-                        case Composite(configs) =>
-                          val compositeAuthDetails =
-                            jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
-                              .get(cache.formTemplateContext)
-                          val config = AuthConfig
-                            .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
-                          processSaveAndExitAcknowledgementPage(config, processData, maybeSn)
-                        case config =>
-                          processSaveAndExitAcknowledgementPage(Some(config), processData, maybeSn)
-                      }
-                  }
-
-                }
+        def showAcknowledgementPage(
+          formTemplateId: FormTemplateId,
+          accessCode: Option[AccessCode],
+          sectionNumber: Option[SectionNumber],
+          formTemplate: FormTemplate,
+          envelopeExpiryDate: Option[EnvelopeExpiryDate],
+          sectionTitle4Ga: Option[SectionTitle4Ga]
+        )(implicit request: Request[AnyContent]) = {
+          val call = sectionNumber match {
+            case Some(sn) =>
+              if (sn.isTaskList) {
+                uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, accessCode)
+              } else {
+                routes.FormController
+                  .form(
+                    formTemplateId,
+                    None,
+                    sn,
+                    sectionTitle4Ga.getOrElse(SectionTitle4Ga("")),
+                    SuppressErrors.Yes,
+                    List(FastForward.Yes)
+                  )
               }
-
-              def processSaveAndExitAcknowledgementPage(
-                config: Option[AuthConfig],
-                processData: ProcessData,
-                maybeSn: SectionOrSummary
-              ): Result = {
-                val formTemplate = cache.formTemplate
-                config match {
-                  case Some(EmailAuthConfig(_, _, _, _)) =>
-                    Redirect(gform.routes.SaveAcknowledgementController.saveAndExitWithEmailAuth(cache.formTemplateId))
-                  case _ =>
-                    showAcknowledgementPage(
-                      cache.formTemplateId,
-                      maybeAccessCode,
-                      processData,
-                      maybeSn,
-                      formTemplate,
-                      cache.form.envelopeExpiryDate
-                    )
-                }
+            case _ =>
+              formTemplate.formKind.fold { _ =>
+                routes.SummaryController.summaryById(formTemplateId, accessCode, None, Some(true))
+              } { _ =>
+                uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, accessCode)
               }
+          }
+          val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
+          Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, accessCode))
+        }
 
-              def showAcknowledgementPage(
-                formTemplateId: FormTemplateId,
-                maybeAccessCode: Option[AccessCode],
-                processData: ProcessData,
-                maybeSn: SectionOrSummary,
-                formTemplate: FormTemplate,
-                envelopeExpiryDate: Option[EnvelopeExpiryDate]
-              )(implicit request: Request[AnyContent]) = {
-                val call = maybeSn match {
-                  case SectionOrSummary.Section(sn) =>
-                    val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-                    if (sn.isTaskList) {
-                      uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
-                    } else {
-                      routes.FormController
-                        .form(formTemplateId, None, sn, sectionTitle4Ga, SuppressErrors.Yes, List(FastForward.Yes))
-                    }
-                  case _ =>
-                    formTemplate.formKind.fold { _ =>
-                      routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, None, Some(true))
-                    } { _ =>
-                      uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, maybeAccessCode)
-                    }
-                }
-                val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
-                Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
-              }
-
-              for {
-                processData <- processDataService
-                                 .getProcessData[SectionSelectorType.Normal](
-                                   variadicFormData,
-                                   cache,
-                                   formModelOptics,
-                                   gformConnector.getAllTaxPeriods,
-                                   NoSpecificAction
-                                 )
-                res <- processSaveAndExit(processData).map { result =>
-                         auditService.formSavedEvent(
-                           cache.form,
-                           cache.retrievals
-                         )
-                         result
-                       }
-
-              } yield res
-
+        val formTemplate = cache.formTemplate
+        accessCode match {
+          case Some(accessCode) =>
+            Redirect(
+              gform.routes.SaveAcknowledgementController
+                .saveAndExitWithAccessCode(cache.formTemplateId, accessCode)
+            ).pure[Future]
+          case None =>
+            formTemplate.authConfig match {
+              case Composite(configs) =>
+                val compositeAuthDetails =
+                  jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+                    .get(cache.formTemplateContext)
+                val config = AuthConfig
+                  .getAuthConfig(compositeAuthDetails.getOrElse(hmrcSimpleModule), configs)
+                processSaveAndExitAcknowledgementPage(config, sectionNumber, sectionTitle4Ga).pure[Future]
+              case config =>
+                processSaveAndExitAcknowledgementPage(Some(config), sectionNumber, sectionTitle4Ga).pure[Future]
             }
         }
     }

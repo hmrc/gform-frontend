@@ -214,7 +214,8 @@ class GformModule(
     graphModule.recalculation,
     addToListProcessor,
     confirmationService,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    auditingModule.auditService
   )
 
   val addToListController = new FormAddToListController(
@@ -232,11 +233,7 @@ class GformModule(
     configModule.frontendAppConfig,
     controllersModule.authenticatedRequestActions,
     controllersModule.messagesControllerComponents,
-    processDataService,
-    gformBackendModule.gformConnector,
-    auditingModule.auditService,
-    confirmationService,
-    addToListProcessor
+    gformBackendModule.gformConnector
   )
 
   val summaryRenderingService = new SummaryRenderingService(
