@@ -45,10 +45,11 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
             case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
             case _                  => (priority, label)
           }
-        case (label, NationalityLookupInfo(_, _, _, priority, priorityUk, _, _)) =>
+        case (_, NationalityLookupInfo(LookupId(id), _, _, priority, priorityUk, _, _)) =>
           priorityType match {
-            case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
-            case _                  => (priority, label)
+            case Some(priorityType) =>
+              if (priorityType === Uk) (priorityUk, LookupLabel(id)) else (priority, LookupLabel(id))
+            case _ => (priority, LookupLabel(id))
           }
         case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _))  => (priority, label)
