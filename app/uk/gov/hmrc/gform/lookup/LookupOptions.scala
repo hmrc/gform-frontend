@@ -45,6 +45,11 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
             case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
             case _                  => (priority, label)
           }
+        case (label, NationalityLookupInfo(_, _, _, priority, priorityUk, _, _)) =>
+          priorityType match {
+            case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
+            case _                  => (priority, label)
+          }
         case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _))  => (priority, label)
         case (label, SicCodeLookupInfo(_, _, _))                     => (LookupPriority(1), label)
@@ -63,6 +68,9 @@ object LookupOptions {
       case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)         => Some(id.id)
       case (CountryLookupInfo(_, _, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta)               => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
       case (CountryLookupInfo(_, _, _, _, _, _, _, columns), column)                       =>
+        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
+      case (NationalityLookupInfo(_, _, _, _, _, region, _), CsvColumnName.region)         => Some(region.region)
+      case (NationalityLookupInfo(_, _, _, _, _, _, columns), column)                      =>
         Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
       case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)

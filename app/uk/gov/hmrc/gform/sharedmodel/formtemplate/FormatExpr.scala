@@ -379,6 +379,7 @@ sealed trait Register {
     case Register.AgentComplaintCategories => "agentComplaintCategories"
     case Register.CashType                 => "cashType"
     case Register.Country                  => "country"
+    case Register.Nationality              => "nationality"
     case Register.Currency                 => "currency"
     case Register.Intent                   => "intent"
     case Register.Intercept                => "intercept"
@@ -405,6 +406,7 @@ object Register {
   case object AgentComplaintCategories extends Register
   case object CashType extends Register
   case object Country extends Register
+  case object Nationality extends Register
   case object Currency extends Register
   case object Intent extends Register
   case object Intercept extends Register
@@ -431,6 +433,7 @@ object Register {
     case "agentComplaintCategories" => Some(Register.AgentComplaintCategories)
     case "cashType"                 => Some(Register.CashType)
     case "country"                  => Some(Register.Country)
+    case "nationality"              => Some(Register.Nationality)
     case "currency"                 => Some(Register.Currency)
     case "intent"                   => Some(Register.Intent)
     case "intercept"                => Some(Register.Intercept)
