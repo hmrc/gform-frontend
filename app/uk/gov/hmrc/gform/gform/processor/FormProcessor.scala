@@ -289,7 +289,7 @@ class FormProcessor(
                                                                       validationService.validatePageModelWithoutCustomValidators,
                                                                       enteredVariadicFormData
                                                                     )
-      dataRetrieveResult <- {
+      (dataRetrieveResult, updatedFormVisibilityOptics) <- {
         def retrieveWithState(
           dataRetrieve: DataRetrieve,
           visibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
@@ -312,11 +312,25 @@ class FormProcessor(
         }
 
         if (isValid) {
+          val updatedComponents =
+            getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
+              .map(_.baseComponentId)
+
+          val dataRetrievesRequiringRecall = processData.formModel.dataRetrieveAll.lookup.values.flatMap { dr =>
+            dr.params.flatMap { paramExpr =>
+              paramExpr.expr.leafs().collect {
+                case FormCtx(fcId) if updatedComponents.contains(fcId.baseComponentId) => dr
+              }
+            }
+          }
+
           val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
           pageModel
             .fold { singleton =>
-              singleton.page
-                .dataRetrieves()
+              val dataRetrieves: List[DataRetrieve] =
+                singleton.page.dataRetrieves() ++ dataRetrievesRequiringRecall.toList
+
+              dataRetrieves
                 .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) {
                   case (acc, r) =>
                     acc.flatMap {
@@ -333,8 +347,7 @@ class FormProcessor(
             }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
               Future.successful(List() -> initialVisibilityOptics)
             )
-            .map(_._1)
-        } else List.empty.pure[Future]
+        } else Future.successful(List() -> processData.formModelOptics.formModelVisibilityOptics)
       }
 
       updatePostcodeLookup <-
@@ -384,16 +397,21 @@ class FormProcessor(
           processData.formModelOptics.pageOpticsData
         )
 
+        val dataRetrievesToRemove = processData.formModel.dataRetrieveAll.lookup.values.collect {
+          case dr if !dr.`if`.forall(updatedFormVisibilityOptics.evalIncludeIfExpr(_, None)) =>
+            dr.id
+        }.toList
+
         val formDataU = oldData.toFormData ++ formData
         val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
           .updateFrom(validatorsResult)
           .updateDataRetrieve(dataRetrieveResult)
+          .removeDataRetrieves(dataRetrievesToRemove)
           .updatePostcodeLookup(updatePostcodeLookup)
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {
-            case redirect
-                if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+            case redirect if updatedFormVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
               redirect.redirectUrl
           }
         } else None
