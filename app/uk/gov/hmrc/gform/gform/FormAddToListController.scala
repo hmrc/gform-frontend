@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, TemplateSectionIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 import uk.gov.hmrc.gform.views.html
@@ -176,7 +176,14 @@ class FormAddToListController(
                 .pure[Future],
             {
               case "Yes" =>
-                removeAndRedirect(formModelOptics, cache, maybeAccessCode, index, addToListId)
+                removeAndRedirect(
+                  formModelOptics,
+                  cache,
+                  maybeAccessCode,
+                  sectionNumber.templateSectionIndex,
+                  index,
+                  addToListId
+                )
                   .map(_.flashing("success" -> request.messages.messages("generic.successfullyRemoved")))
               case "No" =>
                 Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber)).pure[Future]
@@ -188,6 +195,7 @@ class FormAddToListController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
+    templateSectionIndex: TemplateSectionIndex,
     index: Int,
     addToListId: AddToListId
   )(implicit
@@ -212,6 +220,7 @@ class FormAddToListController(
                     List(FastForward.Yes),
                     formModelOptics,
                     processData,
+                    templateSectionIndex,
                     index,
                     addToListId
                   )
@@ -226,6 +235,13 @@ class FormAddToListController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
-        removeAndRedirect(formModelOptics, cache, maybeAccessCode, index, addToListId)
+        removeAndRedirect(
+          formModelOptics,
+          cache,
+          maybeAccessCode,
+          sectionNumber.templateSectionIndex,
+          index,
+          addToListId
+        )
     }
 }

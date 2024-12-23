@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.implicits._
 import play.api.libs.json.{ JsArray, JsError, JsObject, JsSuccess, JsValue, Json, OFormat }
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, SectionNumber, TaskNumber, TaskSectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, SectionNumber, TaskNumber, TaskSectionNumber, TemplateSectionIndex }
 
 sealed trait VisitIndex extends Product with Serializable {
 
@@ -49,6 +49,63 @@ sealed trait VisitIndex extends Product with Serializable {
 
   def visit(sectionNumber: SectionNumber): VisitIndex = sectionNumber.fold(visitClassic)(visitTaskList)
   def unvisit(sectionNumber: SectionNumber): VisitIndex = sectionNumber.fold(unvisitClassic)(unvisitTaskList)
+
+  def removeIteration(
+    sectionIndexToRemove: TemplateSectionIndex,
+    iterationIndexToRemove: Int,
+    isLastIteration: Boolean, // This indicates that we are removing last iteration
+    maybeCoordinates: Option[Coordinates]
+  ): VisitIndex = {
+    import SectionNumber.Classic.AddToListPage
+
+    def removeIterationClassic(classics: Set[SectionNumber.Classic]): Set[SectionNumber.Classic] =
+      // not matched cases are removed
+      classics.collect {
+        case a @ AddToListPage.Page(sectionIndex, iterationIndex, pageNumber)
+            if iterationIndex =!= iterationIndexToRemove && sectionIndexToRemove === sectionIndex =>
+          if (iterationIndex > iterationIndexToRemove) {
+            AddToListPage.Page(sectionIndex, iterationIndex - 1, pageNumber)
+          } else {
+            a
+          }
+        case a @ AddToListPage.CyaPage(sectionIndex, iterationIndex)
+            if iterationIndex =!= iterationIndexToRemove && sectionIndexToRemove === sectionIndex =>
+          if (iterationIndex > iterationIndexToRemove) {
+            AddToListPage.CyaPage(sectionIndex, iterationIndex - 1)
+          } else {
+            a
+          }
+        case a @ AddToListPage.RepeaterPage(sectionIndex, iterationIndex)
+            if iterationIndex =!= iterationIndexToRemove && sectionIndexToRemove === sectionIndex =>
+          if (iterationIndex > iterationIndexToRemove) {
+            AddToListPage.RepeaterPage(sectionIndex, iterationIndex - 1)
+          } else {
+            a
+          }
+        case p @ AddToListPage.DefaultPage(sectionIndex) if !isLastIteration || sectionIndexToRemove =!= sectionIndex =>
+          p
+        case p @ AddToListPage.Page(sectionIndex, _, _) if sectionIndexToRemove =!= sectionIndex      => p
+        case p @ AddToListPage.CyaPage(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex      => p
+        case p @ AddToListPage.RepeaterPage(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex => p
+        case np @ SectionNumber.Classic.NormalPage(_)                                                 => np
+        case rp @ SectionNumber.Classic.RepeatedPage(_, _)                                            => rp
+      }
+
+    fold[VisitIndex] { classic =>
+      val updatedVisitsIndex = removeIterationClassic(classic.visitsIndex)
+      classic.copy(visitsIndex = updatedVisitsIndex)
+    } { taskList =>
+      maybeCoordinates.fold(taskList) { coordinatesToModify =>
+        VisitIndex.TaskList(taskList.visitsIndex.map { case (coordinates, sectionNumbers) =>
+          if (coordinates === coordinatesToModify) {
+            (coordinates, removeIterationClassic(sectionNumbers))
+          } else {
+            (coordinates, sectionNumbers)
+          }
+        })
+      }
+    }
+  }
 
   private def unvisitClassic(sectionNumber: SectionNumber.Classic): VisitIndex =
     fold[VisitIndex] { classic =>

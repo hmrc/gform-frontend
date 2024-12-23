@@ -516,6 +516,7 @@ class FormController(
                                     List(FastForward.Yes),
                                     formModelOptics,
                                     processData,
+                                    sectionNumber.templateSectionIndex,
                                     bracket.iterations.size - 1,
                                     bracket.source.id
                                   )

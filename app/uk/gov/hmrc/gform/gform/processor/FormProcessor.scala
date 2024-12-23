@@ -74,6 +74,7 @@ class FormProcessor(
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics[Mongo],
     processData: ProcessData,
+    templateSectionIndex: TemplateSectionIndex,
     idx: Int,
     addToListId: AddToListId
   )(implicit
@@ -118,36 +119,7 @@ class FormProcessor(
       val isLastIteration = addToListBracket.iterations.size === 1
 
       val visitsIndexUpd =
-        if (isLastIteration) {
-          val iterationForSectionNumber: Bracket.AddToListIteration[DataExpanded] = addToListBracket
-            .iterationForSectionNumber(sn)
-
-          val visitsIndexForLastIteration: List[SectionNumber] =
-            iterationForSectionNumber.defaultPage.map(_.sectionNumber).toList ++
-              iterationForSectionNumber.singletons.map(_.sectionNumber).toList ++
-              iterationForSectionNumber.checkYourAnswers.map(_.sectionNumber)
-
-          processData.visitsIndex.fold[VisitIndex] { classic =>
-            val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToClassic)
-            VisitIndex.Classic(
-              classic.visitsIndex -- toBeRemoved
-            )
-          } { taskList =>
-            val toBeRemoved = visitsIndexForLastIteration.map(_.unsafeToTaskList.sectionNumber)
-            val coordinates = sn.toCoordinatesUnsafe
-
-            val indexes: Set[SectionNumber.Classic] =
-              taskList.visitsIndex
-                .getOrElse(coordinates, throw new Exception(s"No VisitIndex found for coordinates $coordinates"))
-
-            val updated = indexes -- toBeRemoved
-
-            VisitIndex.TaskList(
-              taskList.visitsIndex + (coordinates -> updated)
-            )
-          }
-        } else
-          processData.visitsIndex
+        processData.visitsIndex.removeIteration(templateSectionIndex, idx + 1, isLastIteration, sn.maybeCoordinates)
 
       val processDataUpd = processData.copy(
         formModelOptics = updFormModelOptics,
@@ -179,8 +151,9 @@ class FormProcessor(
           if (isLastIteration) {
             pageIdToRemove.fold(
               maybeSectionNumber match {
-                case SectionOrSummary.Section(s) => addToListBracket.iterationForSectionNumber(s).firstSectionNumber
-                case _                           => sn
+                case SectionOrSummary.Section(s) =>
+                  addToListBracket.iterationForSectionNumber(s).defaultPageOrFirstSectionNumber
+                case _ => sn
               }
             )(pageId =>
               computePageLink(pageId, pageIdSectionNumberMap).getOrElse(
