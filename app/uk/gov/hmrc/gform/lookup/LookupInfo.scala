@@ -44,6 +44,7 @@ final case class NationalityLookupInfo(
   priority: LookupPriority,
   priorityUk: LookupPriority,
   region: LookupRegion,
+  countryCode: LookupCountryCode,
   columns: Map[String, String]
 ) extends LookupInfo
 
