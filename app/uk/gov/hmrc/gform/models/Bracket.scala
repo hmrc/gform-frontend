@@ -149,6 +149,8 @@ object Bracket {
       NonEmptyList.fromList(filtered).map(AddToListIteration(defaultPage, _, checkYourAnswers, repeater))
     }
 
+    def defaultPageOrFirstSectionNumber: SectionNumber = defaultPage.map(_.sectionNumber).getOrElse(firstSectionNumber)
+
     def firstSectionNumber: SectionNumber = singletons.head.sectionNumber
 
     def lastSectionNumber: SectionNumber = singletons.last.sectionNumber
