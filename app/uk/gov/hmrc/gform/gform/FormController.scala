@@ -22,6 +22,7 @@ import cats.syntax.eq._
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
@@ -64,7 +65,8 @@ class FormController(
   recalculation: Recalculation[Future, Throwable],
   formProcessor: FormProcessor,
   confirmationService: ConfirmationService,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -837,6 +839,38 @@ class FormController(
                     }
                 }
 
+              def processSaveAndExit(processData: ProcessData): Future[Result] = {
+
+                val purgeConfirmationData: PurgeConfirmationData =
+                  confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
+
+                formProcessor.validateAndUpdateData(
+                  cache,
+                  purgeConfirmationData.f(processData),
+                  sectionNumber,
+                  sectionNumber,
+                  maybeAccessCode,
+                  fastForward,
+                  formModelOptics,
+                  purgeConfirmationData.enteredVariadicFormData,
+                  false
+                ) { _ => _ => maybeSn =>
+                  val (sectionTitle4Ga, sectionNumber) = maybeSn match {
+                    case SectionOrSummary.Section(sn) =>
+                      (
+                        Some(formProcessor.getSectionTitle4Ga(processData, sn)),
+                        Some(sn)
+                      )
+                    case _ => (None, None)
+                  }
+
+                  Redirect(
+                    gform.routes.SaveAcknowledgementController
+                      .saveAndExit(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga)
+                  )
+                }
+              }
+
               def handleGroup(cacheUpd: AuthCacheWithForm, processData: ProcessData, anchor: String): Future[Result] =
                 formProcessor.validateAndUpdateData(
                   cacheUpd,
@@ -936,10 +970,13 @@ class FormController(
                 res <- save match {
                          case SaveAndContinue => processSaveAndContinue(processData)
                          case SaveAndExit =>
-                           Redirect(
-                             gform.routes.SaveAcknowledgementController
-                               .saveAndExit(formTemplateId, maybeAccessCode, browserSectionNumber, fastForward)
-                           ).pure[Future]
+                           processSaveAndExit(processData).map { result =>
+                             auditService.formSavedEvent(
+                               cache.form,
+                               cache.retrievals
+                             )
+                             result
+                           }
                          case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
                          case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
                          case _                             => throw new IllegalArgumentException(s"Direction $save is not supported here")
