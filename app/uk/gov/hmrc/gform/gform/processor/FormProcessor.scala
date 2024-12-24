@@ -315,38 +315,35 @@ class FormProcessor(
           val updatedComponents =
             getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
               .map(_.baseComponentId)
+          val dataRetrievesOnThisPage: List[DataRetrieve] = pageModel
+            .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
+          val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)
+          val dataRetrievesRequiringRecall: List[DataRetrieve] =
+            processData.formModel.dataRetrieveAll.lookup.values.flatMap { dr =>
+              dr.params.flatMap { paramExpr =>
+                paramExpr.expr.leafs().collect {
+                  case FormCtx(fcId)
+                      if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(dr.id) =>
+                    dr
+                }
+              }
+            }.toList
 
-          val dataRetrievesRequiringRecall = processData.formModel.dataRetrieveAll.lookup.values.flatMap { dr =>
-            dr.params.flatMap { paramExpr =>
-              paramExpr.expr.leafs().collect {
-                case FormCtx(fcId) if updatedComponents.contains(fcId.baseComponentId) => dr
+          (dataRetrievesOnThisPage ++ dataRetrievesRequiringRecall)
+            .foldLeft(
+              Future.successful(List.empty[DataRetrieveResult] -> processData.formModelOptics.formModelVisibilityOptics)
+            ) { case (acc, r) =>
+              acc.flatMap {
+                case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
+                  retrieveWithState(r, optics).map {
+                    case (Some(result), updatedOptics) =>
+                      (results :+ result) -> updatedOptics
+                    case (None, _) =>
+                      results -> optics
+                  }
+                case (results, optics) => Future.successful(results -> optics)
               }
             }
-          }
-
-          val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-          pageModel
-            .fold { singleton =>
-              val dataRetrieves: List[DataRetrieve] =
-                singleton.page.dataRetrieves() ++ dataRetrievesRequiringRecall.toList
-
-              dataRetrieves
-                .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) {
-                  case (acc, r) =>
-                    acc.flatMap {
-                      case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
-                        retrieveWithState(r, optics).map {
-                          case (Some(result), updatedOptics) =>
-                            (results :+ result) -> updatedOptics
-                          case (None, _) =>
-                            results -> optics
-                        }
-                      case (results, optics) => Future.successful(results -> optics)
-                    }
-                }
-            }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
-              Future.successful(List() -> initialVisibilityOptics)
-            )
         } else Future.successful(List() -> processData.formModelOptics.formModelVisibilityOptics)
       }
 
