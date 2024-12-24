@@ -277,7 +277,10 @@ object SummaryRenderingService {
       }
       .getOrElse(formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers)
       .reverse
-      .head
+      .headOption
+      .getOrElse(
+        formTemplate.formKind.fold[SectionNumber](_ => SectionNumber.classicZero)(_ => SectionNumber.taskListZero)
+      )
 
     val pageLevelErrorHtml =
       PageLevelErrorHtml.generateSummaryLevelErrorHtml(validationResult.formFieldValidationResults, List.empty)
