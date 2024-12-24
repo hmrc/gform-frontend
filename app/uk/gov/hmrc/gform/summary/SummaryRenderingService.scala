@@ -275,9 +275,12 @@ object SummaryRenderingService {
       .map { c =>
         formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.filter(_.toCoordinatesUnsafe === c)
       }
-      .getOrElse(formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers)
+      .getOrElse(formModelOptics.formModelRenderPageOptics.formModel.availableSectionNumbers)
       .reverse
-      .head
+      .headOption
+      .getOrElse(
+        formTemplate.formKind.fold[SectionNumber](_ => SectionNumber.classicZero)(_ => SectionNumber.taskListZero)
+      )
 
     val pageLevelErrorHtml =
       PageLevelErrorHtml.generateSummaryLevelErrorHtml(validationResult.formFieldValidationResults, List.empty)
