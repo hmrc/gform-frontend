@@ -289,7 +289,7 @@ class FormProcessor(
                                                                       validationService.validatePageModelWithoutCustomValidators,
                                                                       enteredVariadicFormData
                                                                     )
-      dataRetrieveResult <- {
+      (dataRetrieveResult, updatedFormVisibilityOptics) <- {
         def retrieveWithState(
           dataRetrieve: DataRetrieve,
           visibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
@@ -312,29 +312,39 @@ class FormProcessor(
         }
 
         if (isValid) {
-          val initialVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-          pageModel
-            .fold { singleton =>
-              singleton.page
-                .dataRetrieves()
-                .foldLeft(Future.successful(List.empty[DataRetrieveResult] -> initialVisibilityOptics)) {
-                  case (acc, r) =>
-                    acc.flatMap {
-                      case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
-                        retrieveWithState(r, optics).map {
-                          case (Some(result), updatedOptics) =>
-                            (results :+ result) -> updatedOptics
-                          case (None, _) =>
-                            results -> optics
-                        }
-                      case (results, optics) => Future.successful(results -> optics)
-                    }
+          val updatedComponents =
+            getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
+              .map(_.baseComponentId)
+          val dataRetrievesOnThisPage: List[DataRetrieve] = pageModel
+            .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
+          val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)
+          val dataRetrievesRequiringRecall: List[DataRetrieve] =
+            processData.formModel.dataRetrieveAll.lookup.values.flatMap { dr =>
+              dr.params.flatMap { paramExpr =>
+                paramExpr.expr.leafs().collect {
+                  case FormCtx(fcId)
+                      if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(dr.id) =>
+                    dr
                 }
-            }(_ => Future.successful(List() -> initialVisibilityOptics))(_ =>
-              Future.successful(List() -> initialVisibilityOptics)
-            )
-            .map(_._1)
-        } else List.empty.pure[Future]
+              }
+            }.toList
+
+          (dataRetrievesOnThisPage ++ dataRetrievesRequiringRecall)
+            .foldLeft(
+              Future.successful(List.empty[DataRetrieveResult] -> processData.formModelOptics.formModelVisibilityOptics)
+            ) { case (acc, r) =>
+              acc.flatMap {
+                case (results, optics) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
+                  retrieveWithState(r, optics).map {
+                    case (Some(result), updatedOptics) =>
+                      (results :+ result) -> updatedOptics
+                    case (None, _) =>
+                      results -> optics
+                  }
+                case (results, optics) => Future.successful(results -> optics)
+              }
+            }
+        } else Future.successful(List() -> processData.formModelOptics.formModelVisibilityOptics)
       }
 
       updatePostcodeLookup <-
@@ -384,16 +394,21 @@ class FormProcessor(
           processData.formModelOptics.pageOpticsData
         )
 
+        val dataRetrievesToRemove = processData.formModel.dataRetrieveAll.lookup.values.collect {
+          case dr if !dr.`if`.forall(updatedFormVisibilityOptics.evalIncludeIfExpr(_, None)) =>
+            dr.id
+        }.toList
+
         val formDataU = oldData.toFormData ++ formData
         val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
           .updateFrom(validatorsResult)
           .updateDataRetrieve(dataRetrieveResult)
+          .removeDataRetrieves(dataRetrievesToRemove)
           .updatePostcodeLookup(updatePostcodeLookup)
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {
-            case redirect
-                if processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+            case redirect if updatedFormVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
               redirect.redirectUrl
           }
         } else None
