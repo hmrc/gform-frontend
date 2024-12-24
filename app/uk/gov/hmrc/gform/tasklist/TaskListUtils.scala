@@ -93,7 +93,7 @@ object TaskListUtils {
     } else {
       val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
-      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
+      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics, cache.formTemplate)
       val notRequiredResolver = NotRequiredResolver.create(formModelVisibilityOptics)
       for {
         statusesLookup <- coordinates
