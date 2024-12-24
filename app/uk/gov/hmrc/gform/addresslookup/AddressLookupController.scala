@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
-import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService }
+import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, Errors, FastForwardService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -85,7 +85,10 @@ class AddressLookupController(
             addressLookupResult.response.addresses
               .fold {
                 val renderComeBackLater =
-                  cache.retrievals.renderSaveAndComeBackLater && !cache.formTemplate.draftRetrievalMethod.isNotPermitted
+                  cache.retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(
+                    cache.formTemplate,
+                    cache.retrievals
+                  )
                 Ok(
                   addresslookup.no_address_found(
                     cache.formTemplate,
@@ -412,7 +415,8 @@ class AddressLookupController(
                 )
               )
               val renderComeBackLater =
-                cache.retrievals.renderSaveAndComeBackLater && !cache.formTemplate.draftRetrievalMethod.isNotPermitted
+                cache.retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper
+                  .isNotPermitted(cache.formTemplate, cache.retrievals)
               Ok(
                 addresslookup.no_address_found(
                   cache.formTemplate,

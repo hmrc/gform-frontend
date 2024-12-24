@@ -89,14 +89,20 @@ class NewFormController(
     ) { implicit request => implicit lang => cache =>
       val cookie = formTemplateIdCookie(formTemplateId)
 
-      val result =
-        (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+      def checkDraftRetrievalMethod(draftRetrievalMethod: DraftRetrievalMethod) =
+        (draftRetrievalMethod, cache.retrievals) match {
           case (BySubmissionReference, _) => showAccesCodePage(cache, cache.formTemplate)
-          case (drm @ FormAccessCodeForAgents(_), IsAgent()) =>
+          case (FormAccessCodeForAgents(_), IsAgent()) | (FormAccessCode(_), _) =>
             exitPageHandler(cache, cache.formTemplate, showAccesCodePage)
           case _ =>
             Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
         }
+
+      val result =
+        cache.formTemplate.draftRetrieval
+          .flatMap(dr => cache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+          .collect { case drm => checkDraftRetrievalMethod(drm) }
+          .getOrElse(checkDraftRetrievalMethod(cache.formTemplate.draftRetrievalMethod))
 
       result.map(_.withCookies(cookie))
     }
@@ -147,9 +153,14 @@ class NewFormController(
     val userId = UserId(cache.retrievals)
     val formTemplateId = cache.formTemplate._id
     val formIdData = FormIdData.Plain(userId, formTemplateId)
-    val draftRetrievalMethod = formTemplate.draftRetrievalMethod
 
-    def showAccessCodePage =
+    def showAccessCodePage: Future[Result] =
+      cache.formTemplate.draftRetrieval
+        .flatMap(dr => cache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+        .collect { case drm => checkDraftRetrievalMethod(drm) }
+        .getOrElse(checkDraftRetrievalMethod(cache.formTemplate.draftRetrievalMethod))
+
+    def checkDraftRetrievalMethod(draftRetrievalMethod: DraftRetrievalMethod): Future[Result] =
       draftRetrievalMethod match {
         case BySubmissionReference => showAccessCodeList(cache, userId, formTemplateId)
         case _ =>
@@ -262,31 +273,53 @@ class NewFormController(
                               formTemplate.pure[Future]
                             else gformConnector.getFormTemplate(form.formTemplateId)
 
-            res <-
-              formTemplate.draftRetrievalMethod match {
-                case NotPermitted =>
-                  fastForwardService.deleteForm(
-                    formTemplate._id,
-                    cache.toAuthCacheWithForm(form, noAccessCode),
-                    queryParams
-                  )
-                case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-                  auditService.sendFormResumeEvent(form, cache.retrievals)
-                  redirectContinue[SectionSelectorType.Normal](
-                    cache.copy(formTemplate = formTemplate),
-                    form,
-                    noAccessCode,
-                    request
-                  )
-                case _ =>
-                  auditService.sendFormResumeEvent(form, cache.retrievals)
-                  val continueFormPage = new ContinueFormPage(formTemplate, choice)
-                  Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
-              }
+            res <- cache.formTemplate.draftRetrieval
+                     .flatMap(dr => cache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+                     .collect { case drm => checkDraftRetrievalMethod(drm, formTemplate, cache, form, queryParams) }
+                     .getOrElse(
+                       checkDraftRetrievalMethod(
+                         formTemplate.draftRetrievalMethod,
+                         formTemplate,
+                         cache,
+                         form,
+                         queryParams
+                       )
+                     )
+
           } yield res
         }
     } yield res
   }
+
+  private def checkDraftRetrievalMethod(
+    draftRetrievalMethod: DraftRetrievalMethod,
+    formTemplate: FormTemplate,
+    cache: AuthCacheWithoutForm,
+    form: Form,
+    queryParams: QueryParams
+  )(implicit request: Request[AnyContent], lang: LangADT) =
+    draftRetrievalMethod match {
+      case NotPermitted =>
+        fastForwardService.deleteForm(
+          formTemplate._id,
+          cache.toAuthCacheWithForm(form, noAccessCode),
+          queryParams
+        )
+      case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCode(ContinueOrDeletePage.Skip) | FormAccessCode(
+            ContinueOrDeletePage.Skip
+          ) =>
+        auditService.sendFormResumeEvent(form, cache.retrievals)
+        redirectContinue[SectionSelectorType.Normal](
+          cache.copy(formTemplate = formTemplate),
+          form,
+          noAccessCode,
+          request
+        )
+      case _ =>
+        auditService.sendFormResumeEvent(form, cache.retrievals)
+        val continueFormPage = new ContinueFormPage(formTemplate, choice)
+        Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
+    }
 
   def newOrContinue(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
@@ -401,16 +434,24 @@ class NewFormController(
                 gformConnector,
                 ninoInsightsConnector
               )
-          res <- (newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
-                   case (BySubmissionReference, _)                    => processSubmittedData(newCache, BySubmissionReference)
-                   case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(newCache, drm)
-                   case otherwise =>
-                     Future.failed(
-                       new Exception(
-                         s"newFormPost endpoind called, but draftRetrievalMethod is not allowed for a user or formTemplate: $otherwise"
+          res <- newCache.formTemplate.draftRetrieval
+                   .flatMap(dr => newCache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+                   .collect {
+                     case BySubmissionReference => processSubmittedData(cache, BySubmissionReference)
+                     case FormAccessCode(continueOrDeletePage) =>
+                       processSubmittedData(newCache, FormAccessCodeForAgents(continueOrDeletePage))
+                   }
+                   .getOrElse((cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+                     case (BySubmissionReference, _)                    => processSubmittedData(cache, BySubmissionReference)
+                     case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(cache, drm)
+                     case otherwise =>
+                       Future.failed(
+                         new Exception(
+                           s"newFormPost endpoind called, but draftRetrievalMethod is not allowed for a user or formTemplate: $otherwise"
+                         )
                        )
-                     )
-                 }
+                   })
+
         } yield res
     }
   }

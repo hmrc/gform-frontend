@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AvailableLanguages, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 trait FormTemplateGen {
@@ -41,6 +41,20 @@ trait FormTemplateGen {
         Gen
           .oneOf(OnePerUser(continueOrDeletePage), FormAccessCodeForAgents(continueOrDeletePage), BySubmissionReference)
     } yield draftRetrievalMethod
+
+  def draftRetrievalGen: Gen[DraftRetrieval] =
+    for {
+      affinityGroup        <- Gen.oneOf(List(AffinityGroup.Individual, AffinityGroup.Agent, AffinityGroup.Organisation))
+      continueOrDeletePage <- ContinueOrDeletePageGen.continueOrDeletePageGen
+      draftRetrievalMethod <-
+        Gen
+          .oneOf(
+            OnePerUser(continueOrDeletePage),
+            FormAccessCode(continueOrDeletePage),
+            BySubmissionReference,
+            NotPermitted
+          )
+    } yield DraftRetrieval(mapping = Map(affinityGroup -> draftRetrievalMethod))
 
   def emailTemplateIdGen: Gen[Option[LocalisedEmailTemplateId]] =
     Gen.option(LocalisedEmailTemplateIdGen.localisedEmailTemplateIdGen)
@@ -93,6 +107,7 @@ trait FormTemplateGen {
       developmentPhase         <- Gen.option(developmentPhaseGen)
       category                 <- formCategoryGen
       draftRetrievalMethod     <- draftRetrievalMethodGen
+      draftRetrieval           <- Gen.option(draftRetrievalGen)
       destinations             <- DestinationsGen.destinationsGen
       authConfig               <- AuthConfigGen.authConfigGen
       emailTemplateId          <- emailTemplateIdGen
@@ -116,6 +131,7 @@ trait FormTemplateGen {
       developmentPhase,
       category,
       draftRetrievalMethod,
+      draftRetrieval,
       destinations,
       authConfig,
       emailTemplateId,

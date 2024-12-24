@@ -31,6 +31,7 @@ case class OnePerUser(continueOrDeletePage: ContinueOrDeletePage) extends DraftR
 case class FormAccessCodeForAgents(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
 case object BySubmissionReference extends DraftRetrievalMethod
 case object NotPermitted extends DraftRetrievalMethod
+case class FormAccessCode(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
 
 object DraftRetrievalMethod {
   implicit val format: OFormat[DraftRetrievalMethod] = derived.oformat()

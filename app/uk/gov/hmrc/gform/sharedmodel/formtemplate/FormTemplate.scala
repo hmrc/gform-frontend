@@ -33,6 +33,7 @@ case class FormTemplate(
   developmentPhase: Option[DevelopmentPhase],
   formCategory: FormCategory,
   draftRetrievalMethod: DraftRetrievalMethod,
+  draftRetrieval: Option[DraftRetrieval],
   destinations: Destinations,
   authConfig: formtemplate.AuthConfig,
   emailTemplateId: Option[LocalisedEmailTemplateId],

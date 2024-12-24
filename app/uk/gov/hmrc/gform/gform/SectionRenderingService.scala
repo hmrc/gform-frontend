@@ -132,7 +132,10 @@ class SectionRenderingService(
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val renderComeBackLater =
-      cache.retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+      cache.retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(
+        formTemplate,
+        cache.retrievals
+      )
 
     val summaryListRecords: List[SummaryList] = SectionRenderingService.summaryList(
       formTemplate._id,
@@ -236,7 +239,7 @@ class SectionRenderingService(
       frontendAppConfig,
       SectionRenderingService.determineContinueLabelKey(
         cache.retrievals.continueLabelKey,
-        formTemplate.draftRetrievalMethod.isNotPermitted,
+        DraftRetrievalHelper.isNotPermitted(formTemplate, cache.retrievals),
         checkYourAnswers.expandedContinueLabel,
         false
       ),
@@ -502,7 +505,7 @@ class SectionRenderingService(
     )
 
     val renderComeBackLater =
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+      retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals)
 
     html.form.addToList(
       repeater.title.value(),
@@ -521,7 +524,7 @@ class SectionRenderingService(
       renderComeBackLater,
       SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
-        formTemplate.draftRetrievalMethod.isNotPermitted,
+        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         bracket.source.repeaterContinueLabel,
         false
       ),
@@ -624,7 +627,7 @@ class SectionRenderingService(
       )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       _ === Continue
-    ) && !formTemplate.draftRetrievalMethod.isNotPermitted && !singleton.page.isHideSaveAndComeBackButton
+    ) && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals) && !singleton.page.isHideSaveAndComeBackButton
 
     val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
     val miniSummaryListComps = formComponents.collect { case IsMiniSummaryList(tc) => tc }
@@ -656,7 +659,7 @@ class SectionRenderingService(
       renderComeBackLater,
       SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
-        formTemplate.draftRetrievalMethod.isNotPermitted,
+        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
         ei.isFileUploadOnlyPage(validationResult).isDefined
       ),
@@ -1281,7 +1284,7 @@ class SectionRenderingService(
       false,
       SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
-        formTemplate.draftRetrievalMethod.isNotPermitted,
+        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
         false
       ),
