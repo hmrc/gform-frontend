@@ -38,7 +38,8 @@ sealed trait FormKind extends Product with Serializable {
     fold(_ => List.empty[Expr]) { taskList =>
       taskList.sections.toList.flatMap { taskSection =>
         taskSection.title.allInterpolations ++ taskSection.tasks.toList.flatMap { task =>
-          task.title.allInterpolations ++ task.includeIf.toList.flatMap(_.booleanExpr.allExpressions)
+          task.title.allInterpolations ++ task.includeIf.toList.flatMap(_.booleanExpr.allExpressions) ++
+            task.startIf.toList.flatMap(_.booleanExpr.allExpressions)
         }
       }
     }
@@ -130,7 +131,8 @@ final case class Task(
   summarySection: Option[SummarySection],
   declarationSection: Option[DeclarationSection],
   includeIf: Option[IncludeIf],
-  caption: Option[SmartString]
+  caption: Option[SmartString],
+  startIf: Option[IncludeIf]
 )
 
 object Task {

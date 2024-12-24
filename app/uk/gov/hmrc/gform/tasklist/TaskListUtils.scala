@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMap
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ TaskStatus => TaskStatusExpr }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber }
+import uk.gov.hmrc.gform.tasklist.TaskStatus.NotStarted
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -61,6 +62,16 @@ object TaskListUtils {
     formTemplate.formKind
       .fold(_ => throw new Exception(s"Form template: ${formTemplate._id.value} is not task list"))(f)
 
+  def toTaskCoordinatesMap[A](formTemplate: FormTemplate): Map[Task, Coordinates] =
+    withTaskList(formTemplate) { taskList =>
+      taskList.sections.toList.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
+        taskSection.tasks.toList.zipWithIndex.collect { case (task, taskIndex) =>
+          val coordinates = evalCoordinates(taskSectionIndex, taskIndex)
+          task -> coordinates
+        }
+      }
+    }.toMap
+
   private def invalidTaskSectionNumber(formTemplate: FormTemplate, taskSectionNumber: TaskSectionNumber) =
     throw new Exception(s"Task List: ${formTemplate._id.value} does not contains task section $taskSectionNumber")
 
@@ -77,7 +88,8 @@ object TaskListUtils {
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    validationService: ValidationService
+    validationService: ValidationService,
+    taskCoordinatesMap: Map[Task, Coordinates]
   )(implicit
     hc: HeaderCarrier,
     messages: Messages,
@@ -93,7 +105,7 @@ object TaskListUtils {
     } else {
       val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
-      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics.formModelRenderPageOptics.formModel)
+      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics, taskCoordinatesMap)
       val notRequiredResolver = NotRequiredResolver.create(formModelVisibilityOptics)
       for {
         statusesLookup <- coordinates
@@ -147,22 +159,15 @@ object TaskListUtils {
     Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex))
 
   def evalTaskIdTaskStatusMapping(
-    cache: AuthCacheWithForm,
+    taskCoordinatesMap: Map[Task, Coordinates],
     statusesLookup: NonEmptyList[(Coordinates, TaskStatus)]
   ): TaskIdTaskStatusMapping = {
-    val mapping = withTaskList(cache.formTemplate) { taskList =>
-      taskList.sections.toList.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
-        taskSection.tasks.toList.zipWithIndex.collect { case (task, taskIndex) =>
-          val coordinate = evalCoordinates(taskSectionIndex, taskIndex)
-          val taskStatus = statusesLookup.toList.find(_._1 === coordinate).map(_._2)
+    val statusesMap = statusesLookup.toList.toMap
 
-          (task.id, taskStatus) match {
-            case (Some(taskId), Some(status)) => Some(taskId -> status)
-            case _                            => None
-          }
-        }.flatten
-      }
-    }.toMap
+    val mapping = taskCoordinatesMap.collect {
+      case (task, coordinates) if task.id.isDefined =>
+        task.id.get -> statusesMap.getOrElse(coordinates, NotStarted)
+    }
 
     TaskIdTaskStatusMapping(mapping)
   }

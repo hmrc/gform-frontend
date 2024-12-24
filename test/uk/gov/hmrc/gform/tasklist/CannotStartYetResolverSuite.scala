@@ -28,19 +28,74 @@ class CannotStartYetResolverSuite extends FunSuite {
 
   val initialStatuses = NonEmptyList.of((task0 -> TaskStatus.InProgress), (task1 -> TaskStatus.NotStarted))
 
-  val cannotStartYetResolver = new CannotStartYetResolver(
-    Map(
-      task0 -> Set(BaseComponentId("foo")),
-      task1 -> Set(BaseComponentId("bar"))
-    ),
-    Map(
-      task0 -> Set.empty,
-      task1 -> Set(BaseComponentId("foo"))
+  test("no tasks marked as startable, task1 cannot start due to unresolved dependencies") {
+    val cannotStartYetResolver = new CannotStartYetResolver(
+      Map(
+        task0 -> Set(BaseComponentId("foo")),
+        task1 -> Set(BaseComponentId("bar"))
+      ),
+      Map(
+        task0 -> Set.empty,
+        task1 -> Set(BaseComponentId("foo"))
+      ),
+      Map.empty
     )
-  )
-  test("lookup") {
+
     val finalStatuses = cannotStartYetResolver.resolveCannotStartYet(initialStatuses)
     assertEquals(finalStatuses, NonEmptyList.of((task0 -> TaskStatus.InProgress), (task1 -> TaskStatus.CannotStartYet)))
+  }
 
+  test("task1 can start immediately because 'startIf' is true and no dependencies exist") {
+    val cannotStartYetResolver = new CannotStartYetResolver(
+      Map(
+        task0 -> Set(BaseComponentId("foo")),
+        task1 -> Set(BaseComponentId("bar"))
+      ),
+      Map.empty,
+      Map(
+        task1 -> true
+      )
+    )
+
+    val finalStatuses = cannotStartYetResolver.resolveCannotStartYet(initialStatuses)
+    assertEquals(finalStatuses, NonEmptyList.of((task0 -> TaskStatus.InProgress), (task1 -> TaskStatus.NotStarted)))
+  }
+
+  test("task1 cannot start due to dependencies exist") {
+    val cannotStartYetResolver = new CannotStartYetResolver(
+      Map(
+        task0 -> Set(BaseComponentId("foo")),
+        task1 -> Set(BaseComponentId("bar"))
+      ),
+      Map(
+        task0 -> Set.empty,
+        task1 -> Set(BaseComponentId("foo"))
+      ),
+      Map(
+        task1 -> false
+      )
+    )
+
+    val finalStatuses = cannotStartYetResolver.resolveCannotStartYet(initialStatuses)
+    assertEquals(finalStatuses, NonEmptyList.of((task0 -> TaskStatus.InProgress), (task1 -> TaskStatus.CannotStartYet)))
+  }
+
+  test("task1 cannot start immediately because 'startIf' is false and no dependencies exist") {
+    val cannotStartYetResolver = new CannotStartYetResolver(
+      Map(
+        task0 -> Set(BaseComponentId("foo")),
+        task1 -> Set(BaseComponentId("bar"))
+      ),
+      Map(
+        task0 -> Set.empty,
+        task1 -> Set.empty
+      ),
+      Map(
+        task1 -> false
+      )
+    )
+
+    val finalStatuses = cannotStartYetResolver.resolveCannotStartYet(initialStatuses)
+    assertEquals(finalStatuses, NonEmptyList.of((task0 -> TaskStatus.InProgress), (task1 -> TaskStatus.CannotStartYet)))
   }
 }
