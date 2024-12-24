@@ -18,10 +18,12 @@ package uk.gov.hmrc.gform.tasklist
 
 import cats.implicits._
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded, FormModel }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormCtx }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddressLens
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddressLens, Coordinates, Expr, FormCtx, FormTemplate }
+import uk.gov.hmrc.gform.tasklist.TaskListUtils.withTaskList
 
 import scala.annotation.tailrec
 
@@ -29,7 +31,9 @@ final class CannotStartYetResolver(
   // Return FormComponentIds which are defined in given task
   formComponentIdsLookup: Map[Coordinates, Set[BaseComponentId]],
   // Return FormComponentIds which are referred to in given task
-  dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]]
+  dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]],
+  // Return startIf evaluation which are referred to in given task
+  startIfEvalLookup: Map[Coordinates, Boolean]
 ) {
   // What task given BaseComponentId belongs to.
   private val fcIdToTaskMapping: Map[BaseComponentId, Coordinates] = formComponentIdsLookup.flatMap {
@@ -63,7 +67,8 @@ final class CannotStartYetResolver(
           )
           initialStatus === TaskStatus.Completed || initialStatus === TaskStatus.NotRequired
         }
-      val statusUpd = if (canStart) status else TaskStatus.CannotStartYet
+      val evalStartIf = startIfEvalLookup.getOrElse(coordinates, true)
+      val statusUpd = if (canStart && evalStartIf) status else TaskStatus.CannotStartYet
       coordinates -> statusUpd
     }
 
@@ -77,8 +82,10 @@ final class CannotStartYetResolver(
 }
 
 object CannotStartYetResolver {
-  def create(formModel: FormModel[DataExpanded]): CannotStartYetResolver = {
+  def create(formModelOptics: FormModelOptics[DataOrigin.Mongo], formTemplate: FormTemplate): CannotStartYetResolver = {
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
     val taskList: BracketsWithSectionNumber.TaskList[DataExpanded] = formModel.brackets.unsafeToTaskList
+
     val formComponentIdsLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets
       .map { case (coordinates, brackets) =>
         coordinates -> brackets.toBracketsList.flatMap { bracket =>
@@ -88,6 +95,19 @@ object CannotStartYetResolver {
       }
       .toList
       .toMap
+
+    val startIfEvalLookup = withTaskList(formTemplate) { taskList =>
+      taskList.sections.toList.zipWithIndex.flatMap { case (taskSection, taskSectionIndex) =>
+        taskSection.tasks.toList.zipWithIndex.collect { case (task, taskIndex) =>
+          val coordinate = TaskListUtils.evalCoordinates(taskSectionIndex, taskIndex)
+          (coordinate, task.startIf) match {
+            case (coordinate, Some(startIf)) =>
+              Some(coordinate -> formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(startIf, None))
+            case _ => None
+          }
+        }.flatten
+      }
+    }.toMap
 
     val dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets.toList.map {
       case (coordinates, brackets) =>
@@ -109,7 +129,8 @@ object CannotStartYetResolver {
 
     new CannotStartYetResolver(
       formComponentIdsLookup,
-      dependingFcIdLookup
+      dependingFcIdLookup,
+      startIfEvalLookup
     )
   }
 }
