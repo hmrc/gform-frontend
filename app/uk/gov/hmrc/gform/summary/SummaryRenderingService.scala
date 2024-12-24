@@ -275,7 +275,7 @@ object SummaryRenderingService {
       .map { c =>
         formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.filter(_.toCoordinatesUnsafe === c)
       }
-      .getOrElse(formModelOptics.formModelRenderPageOptics.formModel.availableSectionNumbers)
+      .getOrElse(formModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers)
       .reverse
       .headOption
       .getOrElse(
