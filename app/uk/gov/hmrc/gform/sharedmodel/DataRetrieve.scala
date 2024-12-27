@@ -39,6 +39,7 @@ object ConstructAttribute {
   final case class AsIs(value: Fetch) extends ConstructAttribute
   final case class Concat(value: List[Fetch]) extends ConstructAttribute
   final case class Combine(value: List[(DataRetrieve.Attribute, Fetch)]) extends ConstructAttribute
+  final case class ExtractAtIndex(value: Fetch, index: Int) extends ConstructAttribute
 
   implicit val format: OFormat[ConstructAttribute] = derived.oformat()
 }
@@ -108,10 +109,11 @@ case class DataRetrieve(
 
   def fromObject(json: JsValue, instructions: List[AttributeInstruction]): List[(DataRetrieve.Attribute, String)] =
     instructions.flatMap { x =>
+      def extractJsPath(fetch: Fetch): JsPath =
+        fetch.path.foldLeft(JsPath: JsPath)((acc, next) => acc \ next)
+
       def fromFetch(fetch: Fetch): String = {
-        val jsPath = fetch.path.foldLeft(JsPath: JsPath) { case (acc, next) =>
-          acc \ next
-        }
+        val jsPath = extractJsPath(fetch)
         jsPath.json.pick[JsValue].reads(json) match {
           case JsSuccess(JsString(attributeValue), _)  => attributeValue
           case JsSuccess(JsNumber(attributeValue), _)  => attributeValue.toString
@@ -119,8 +121,17 @@ case class DataRetrieve(
           case _                                       => ""
         }
       }
+      def fetchArray(fetch: Fetch): List[String] = {
+        val jsPath = extractJsPath(fetch)
+        jsPath.json.pick[JsValue].reads(json) match {
+          case JsSuccess(JsArray(attributeValues), _) => attributeValues.toList.map(_.as[String])
+          case _                                      => List.empty
+        }
+      }
       x.from match {
         case ConstructAttribute.AsIs(fetch) => List(x.attribute -> fromFetch(fetch))
+        case ConstructAttribute.ExtractAtIndex(fetch, index) =>
+          List(x.attribute -> fetchArray(fetch).lift(index).getOrElse(""))
         case ConstructAttribute.Concat(fetches) =>
           val res = fetches
             .map { fetch =>
