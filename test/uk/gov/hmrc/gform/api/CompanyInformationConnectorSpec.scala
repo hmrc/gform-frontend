@@ -105,6 +105,26 @@ class CompanyInformationConnectorSpec
                 Fetch(List("registered_office_address", "country"))
               )
             )
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("dateOfCreation"),
+            ConstructAttribute.AsIs(Fetch(List("date_of_creation")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sicCode1"),
+            ConstructAttribute.ExtractAtIndex(Fetch(List("sic_codes")), 0)
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sicCode2"),
+            ConstructAttribute.ExtractAtIndex(Fetch(List("sic_codes")), 1)
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sicCode3"),
+            ConstructAttribute.ExtractAtIndex(Fetch(List("sic_codes")), 2)
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sicCode4"),
+            ConstructAttribute.ExtractAtIndex(Fetch(List("sic_codes")), 3)
           )
         )
       ),
@@ -255,7 +275,8 @@ class CompanyInformationConnectorSpec
                                               |  },
                                               |  "registered_office_is_in_dispute": "boolean",
                                               |  "sic_codes": [
-                                              |    ""
+                                              |    "1234",
+                                              |    "2345"
                                               |  ],
                                               |  "type": "",
                                               |  "undeliverable_registered_office_address": false
@@ -280,7 +301,12 @@ class CompanyInformationConnectorSpec
             Attribute("companyStatus") -> "Active",
             Attribute(
               "registeredOfficeAddress"
-            ) -> "test address line 1 test address line 2 test po box test locality test region test postal code test country"
+            )                           -> "test address line 1 test address line 2 test po box test locality test region test postal code test country",
+            Attribute("dateOfCreation") -> "2024-01-01",
+            Attribute("sicCode1")       -> "1234",
+            Attribute("sicCode2")       -> "2345",
+            Attribute("sicCode3")       -> "",
+            Attribute("sicCode4")       -> ""
           )
         )
       )
