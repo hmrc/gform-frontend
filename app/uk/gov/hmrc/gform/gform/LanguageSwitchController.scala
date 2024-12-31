@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.implicits._
-import play.api.Configuration
 import play.api.i18n.{ I18nSupport, Lang }
 import play.api.mvc.{ Action, ActionBuilder, AnyContent, ControllerComponents, Request }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -37,7 +36,6 @@ import uk.gov.hmrc.gform.lookup.{ AjaxLookup, RadioLookup }
 
 class LanguageSwitchController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  configuration: Configuration,
   languageUtils: LanguageUtils,
   lookupRegistry: LookupRegistry,
   gformConnector: GformConnector,

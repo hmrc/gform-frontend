@@ -26,13 +26,14 @@ import uk.gov.hmrc.gform.gform.SummarySubstituter._
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, Substituter, SummarySubstitutions }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupLabel, LookupOptions }
+import uk.gov.hmrc.gform.lookup.{ LocalisedLookupOptions, LookupLabel, LookupOptions, LookupRegistry }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.getMonthValue
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LookupFnc.{ CountryName, SicDescription }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
@@ -388,7 +389,8 @@ case class EvaluationResults(
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
-      case TaskStatus(_) => unsupportedOperation("Number")(expr)
+      case TaskStatus(_)   => unsupportedOperation("Number")(expr)
+      case LookupOps(_, _) => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -729,6 +731,16 @@ case class EvaluationResults(
           }
         )
         StringResult(str)
+      case LookupOps(expr, lookupFnc) =>
+        loop(expr).withStringResult(ExpressionResult.empty)(value =>
+          lookupFnc match {
+            case CountryName =>
+              getLookupLabelById(value, Register.Country, evaluationContext.lookupRegistry, evaluationContext.lang)
+            case SicDescription =>
+              getLookupLabelById(value, Register.SicCode, evaluationContext.lookupRegistry, evaluationContext.lang)
+          }
+        )
+
       case Concat(exprs) => evalConcat(exprs, recData, booleanExprResolver, evaluationContext)
       case CountryOfItmpAddress =>
         val itmpRetrievals = evaluationContext.thirdPartyData.itmpRetrievals
@@ -765,6 +777,19 @@ case class EvaluationResults(
           .getOrElse(Empty)
       }
       .getOrElse(Empty)
+
+  private def getLookupLabelById(value: String, register: Register, lookupRegistry: LookupRegistry, lang: LangADT) = {
+    val lookupOptions: LocalisedLookupOptions = lookupRegistry
+      .get(register)
+      .collect { case uk.gov.hmrc.gform.lookup.AjaxLookup(lookupOptions, _, _) => lookupOptions }
+      .get
+
+    lookupOptions.fold[ExpressionResult](Empty) { options =>
+      options.options
+        .collectFirst { case (l, lo) if lo.id.id === value => StringResult(l.label) }
+        .getOrElse(Empty)
+    }(lang)
+  }
 
   private def evalLookupColumnCount(
     fcId: FormComponentId,
