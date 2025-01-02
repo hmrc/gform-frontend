@@ -164,6 +164,16 @@ case class ThirdPartyData(
     case Nil => this
   }
 
+  def removeDataRetrieves(dataRetrieves: List[DataRetrieveId]): ThirdPartyData = dataRetrieves match {
+    case (drId @ DataRetrieveId(_)) :: drs =>
+      val updatedThirdPartyData = this.copy(dataRetrieve = dataRetrieve match {
+        case None      => None
+        case Some(map) => Some(map - drId)
+      })
+      updatedThirdPartyData.removeDataRetrieves(drs)
+    case Nil => this
+  }
+
   def updatePostcodeLookup(postcodeLookupData: Option[(FormComponentId, AddressLookupResult)]): ThirdPartyData =
     postcodeLookupData.fold(this) { case (formComponentId, response) =>
       val updatedPostcodeLookup = postcodeLookup.getOrElse(Map.empty) + (formComponentId -> response)
