@@ -74,6 +74,7 @@ object FormComponentIdSubstituter {
         case ChoicesSelected(fcId)        => ChoicesSelected(substitutions.updateFormComponentId(fcId))
         case ChoicesAvailable(fcId)       => ChoicesAvailable(substitutions.updateFormComponentId(fcId))
         case e: TaskStatus                => e
+        case LookupOps(e, lookupFnc)      => LookupOps(substitute(substitutions, e), lookupFnc)
       }
     }
 

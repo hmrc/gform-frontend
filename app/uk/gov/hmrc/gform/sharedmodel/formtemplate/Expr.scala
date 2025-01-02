@@ -85,6 +85,7 @@ sealed trait Expr extends Product with Serializable {
       case ChoicesSelected(_)                      => expr :: Nil
       case ChoicesAvailable(_)                     => expr :: Nil
       case TaskStatus(_)                           => expr :: Nil
+      case LookupOps(_, _)                         => expr :: Nil
 
     }
     loop(this).headOption
@@ -145,6 +146,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesSelected(formComponentId)         => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)        => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                            => this :: Nil
+    case LookupOps(expr, _)                       => expr.leafs(formModel)
   }
 
   def sums: List[Sum] = this match {
@@ -191,6 +193,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesSelected(_)                       => Nil
     case ChoicesAvailable(_)                      => Nil
     case TaskStatus(_)                            => Nil
+    case LookupOps(_, _)                          => Nil
   }
 
   def leafs(): List[Expr] = this match {
@@ -238,6 +241,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesSelected(formComponentId)          => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)         => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                             => this :: Nil
+    case LookupOps(expr, _)                        => expr.leafs()
   }
 
   def allFormComponentIds(): List[FormComponentId] =
@@ -271,6 +275,7 @@ final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
 final case class LookupColumn(formComponentId: FormComponentId, column: String) extends Expr
+final case class LookupOps(expr: Expr, lookupFnc: LookupFnc) extends Expr
 final case class CsvCountryCountCheck(formComponentId: FormComponentId, column: String, value: String) extends Expr
 final case class Size(formComponentId: FormComponentId, index: SizeRefType) extends Expr
 final case class Typed(expr: Expr, tpe: ExplicitExprType) extends Expr
@@ -490,4 +495,11 @@ object LoginInfo {
   final case object GGLogin extends LoginInfo
 
   implicit val format: OFormat[LoginInfo] = derived.oformat()
+}
+
+sealed trait LookupFnc
+object LookupFnc {
+  case object CountryName extends LookupFnc
+  case object SicDescription extends LookupFnc
+  implicit val format: OFormat[LookupFnc] = derived.oformat()
 }

@@ -74,6 +74,7 @@ object ConcatFormatSubstituter {
         case e: ChoicesSelected           => e
         case e: ChoicesAvailable          => e
         case e: TaskStatus                => e
+        case LookupOps(e, lookupFnc)      => LookupOps(substitute(substitutions, e), lookupFnc)
       }
     }
 

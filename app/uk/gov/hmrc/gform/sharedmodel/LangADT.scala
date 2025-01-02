@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel
+import cats.Eq
 import play.api.i18n.{ Lang, Langs, MessagesApi }
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -61,5 +62,6 @@ object LangADT {
 
   implicit val langADTReads: Reads[LangADT] = Reads.apply[LangADT](convertToLang)
   implicit val format: OFormat[LangADT] = OFormatWithTemplateReadFallback(langADTReads)
+  implicit val equal: Eq[LangADT] = Eq.fromUniversalEquals
 
 }
