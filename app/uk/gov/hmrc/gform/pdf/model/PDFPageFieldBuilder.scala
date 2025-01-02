@@ -161,8 +161,15 @@ object PDFPageFieldBuilder {
           )
         )
 
-      case IsInformationMessage(_) =>
-        List(SimpleField(None, List.empty))
+      case IsInformationMessage(InformationMessage(_, _, summaryValue)) =>
+        summaryValue.fold(List(SimpleField(None, List.empty)))(sv =>
+          List(
+            SimpleField(
+              getFormComponentLabel(formComponent),
+              List(Html(sv.value()))
+            )
+          )
+        )
 
       case IsTableComp(TableComp(_, _, summaryValue, _, _, _, _)) =>
         List(
