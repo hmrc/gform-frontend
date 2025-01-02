@@ -58,11 +58,14 @@ class TaskListRenderingService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[Html] =
+  ): Future[Html] = {
+    val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate)
     for {
-      statusesLookup <- TaskListUtils.evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService)
+      statusesLookup <-
+        TaskListUtils
+          .evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService, taskCoordinatesMap)
       taskIdTaskStatusMapping = if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics)) {
-                                  TaskListUtils.evalTaskIdTaskStatusMapping(cache, statusesLookup)
+                                  TaskListUtils.evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookup)
                                 } else TaskIdTaskStatusMapping.empty
       _ <-
         gformConnector.updateUserData(
@@ -87,14 +90,11 @@ class TaskListRenderingService(
                          NoSpecificAction
                        )
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
-      val visibleTaskCoordinates: List[Coordinates] = taskList.sections.toList.zipWithIndex.flatMap {
-        case (taskSection, taskSectionIndex) =>
-          taskSection.tasks.toList.zipWithIndex.collect {
-            case (task, taskIndex)
-                if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
-              TaskListUtils.evalCoordinates(taskSectionIndex, taskIndex)
-          }
-      }
+      val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.collect {
+        case (task, coordinates)
+            if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
+          coordinates
+      }.toList
 
       val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
       val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -176,6 +176,7 @@ class TaskListRenderingService(
           frontendAppConfig
         )
     }
+  }
 
   private def taskListStatus(taskStatus: TaskStatus)(implicit messages: Messages): TaskListItemStatus = {
     val statusContent = content.Text(messages(s"taskList.$taskStatus"))

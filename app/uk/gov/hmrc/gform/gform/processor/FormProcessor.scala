@@ -451,12 +451,19 @@ class FormProcessor(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[TaskIdTaskStatusMapping] =
-    if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics))
+    if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics)) {
+      val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate)
       for {
         statusesLookup <-
-          TaskListUtils.evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService)
-      } yield TaskListUtils.evalTaskIdTaskStatusMapping(cache, statusesLookup)
-    else
+          TaskListUtils.evalStatusLookup(
+            cache.toCacheData,
+            envelope,
+            formModelOptics,
+            validationService,
+            taskCoordinatesMap
+          )
+      } yield TaskListUtils.evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookup)
+    } else
       TaskIdTaskStatusMapping.empty.pure[Future]
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
