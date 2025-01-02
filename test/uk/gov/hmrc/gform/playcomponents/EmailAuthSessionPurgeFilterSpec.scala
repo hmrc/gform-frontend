@@ -86,6 +86,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
     developmentPhase = None,
     webChat = None,
     draftRetrievalMethod = OnePerUser(ContinueOrDeletePage.Show),
+    draftRetrieval = None,
     formCategory = uk.gov.hmrc.gform.sharedmodel.formtemplate.Default,
     languages = AvailableLanguages.default,
     parentFormSubmissionRefs = List.empty,
