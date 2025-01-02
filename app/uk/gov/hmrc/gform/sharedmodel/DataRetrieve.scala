@@ -21,6 +21,7 @@ import julienrf.json.derived
 import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
+import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
@@ -62,7 +63,8 @@ object Attr {
   implicit val format: OFormat[Attr] = derived.oformat()
 }
 
-case class DataRetrieveId(value: String) extends AnyVal {
+case class DataRetrieveId(value: String) {
+  val modelPageId = ModelDataRetrieveId.fromId(this)
   def withIndex(index: Int): DataRetrieveId =
     DataRetrieveId(s"${index}_$value")
 }

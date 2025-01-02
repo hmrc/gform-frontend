@@ -26,15 +26,21 @@ object DataRetrieveEval {
   private[eval] def getDataRetrieveAttribute(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
     dataRetrieveCtx: DataRetrieveCtx
-  ): Option[List[String]] =
-    dataRetrieve
-      .get(dataRetrieveCtx.id)
-      .flatMap { case DataRetrieveResult(_, data, _) =>
-        data match {
-          case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
-          case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
+  ): Option[List[String]] = {
+    def getAttributes(id: DataRetrieveId) =
+      dataRetrieve
+        .get(id)
+        .flatMap { case DataRetrieveResult(_, data, _) =>
+          data match {
+            case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
+            case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
+          }
         }
-      }
+
+    getAttributes(dataRetrieveCtx.id).orElse(
+      getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
+    )
+  }
 
   private[eval] def getDataRetrieveAddressAttribute(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
