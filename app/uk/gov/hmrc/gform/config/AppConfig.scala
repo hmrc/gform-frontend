@@ -22,6 +22,8 @@ import pureconfig.generic.auto._
 import pureconfig.generic.ProductHint
 import uk.gov.hmrc.gform.sharedmodel.config.FileExtension
 
+import scala.concurrent.duration.FiniteDuration
+
 case class AppConfig(
   appName: String,
   `government-gateway-sign-in-url`: String,
@@ -34,7 +36,8 @@ case class AppConfig(
   restrictedFileExtensionList: List[String],
   albAdminIssuerUrl: String,
   `case-worker-assumed-identity-cookie`: String,
-  fileMaxUploadedSizeMB: Long
+  fileMaxUploadedSizeMB: Long,
+  `proxy-timeout`: FiniteDuration
 ) {
 
   def restrictedFileExtensions: List[FileExtension] =

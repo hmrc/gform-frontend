@@ -44,8 +44,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
 
   val mode: Mode = environment.mode
 
-  val timeOut: Int = typesafeConfig.getInt("future.timeout")
-
   val appConfig: AppConfig = AppConfig.loadOrThrow()
 
   val serviceConfig = new ServicesConfig(playConfiguration)

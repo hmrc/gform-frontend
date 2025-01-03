@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
 import Function.const
+import scala.concurrent.duration.{ FiniteDuration, SECONDS }
 
 class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChecks {
 
@@ -50,7 +51,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     restrictedFileExtensionList = List("JFIF", "PNG"),
     albAdminIssuerUrl = "",
     `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity",
-    fileMaxUploadedSizeMB = 145
+    fileMaxUploadedSizeMB = 145,
+    `proxy-timeout` = FiniteDuration.apply(120, SECONDS)
   )
 
   implicit val request: Request[AnyContent] = null
