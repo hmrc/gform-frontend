@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 import scala.util.matching.Regex
 
@@ -117,8 +118,9 @@ case class DataRetrieve(
       def fromFetch(fetch: Fetch): String = {
         val jsPath = extractJsPath(fetch)
         jsPath.json.pick[JsValue].reads(json) match {
-          case JsSuccess(JsString(attributeValue), _)  => attributeValue
-          case JsSuccess(JsNumber(attributeValue), _)  => attributeValue.toString
+          case JsSuccess(JsString(attributeValue), _) => attributeValue
+          case JsSuccess(JsNumber(attributeValue), _) =>
+            TextFormatter.stripTrailingZeros(attributeValue.toString)
           case JsSuccess(JsBoolean(attributeValue), _) => attributeValue.toString
           case _                                       => ""
         }

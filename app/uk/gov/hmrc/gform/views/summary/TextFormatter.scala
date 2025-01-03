@@ -92,7 +92,7 @@ object TextFormatter {
       currentValue
     }
 
-  private def stripTrailingZeros(currentValue: String): String =
+  def stripTrailingZeros(currentValue: String): String =
     if (currentValue.contains(".")) {
       currentValue.reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
     } else currentValue
