@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
+import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode, DownloadOrNewFormPage }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -260,6 +260,34 @@ class NewFormController(
           )
     }
 
+  private val downloadOrNewChoice: data.Form[String] = play.api.data.Form(
+    play.api.data.Forms.single(
+      "downloadOrNew" -> play.api.data.Forms.nonEmptyText
+    )
+  )
+
+  def downloadDecision(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      noAccessCode,
+      OperationWithForm.DownloadSummaryPdf
+    ) { implicit request => implicit l => cache => sse => formModelOptics =>
+//        val queryParams = QueryParams.fromRequest(request)
+      downloadOrNewChoice
+        .bindFromRequest()
+        .fold(
+          errorForm => {
+            val downloadOrNewFormPage = new DownloadOrNewFormPage(cache.formTemplate, errorForm)
+            BadRequest(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
+          },
+          {
+            case "download" => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+            case "startNew" => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+            case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+          }
+        )
+    }
+
   def newSubmissionReference(formTemplateId: FormTemplateId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
@@ -275,7 +303,7 @@ class NewFormController(
       formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
       res <-
         handleForm(formIdData, formTemplate)(
-          newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
+          downloadOldOrNewForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
         ) { form =>
           for {
             formTemplate <- if (formTemplate._id === form.formTemplateId)
@@ -337,6 +365,25 @@ class NewFormController(
           exitPageHandler(cache, formTemplate, continue)
         }
     }
+
+  private def downloadOldOrNewForm(
+    formTemplateId: FormTemplateId,
+    cache: AuthCacheWithoutForm,
+    queryParams: QueryParams
+  )(implicit
+    request: Request[AnyContent],
+    l: LangADT
+  ) =
+    for {
+      formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
+      maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
+      maybeFormSubmitted = maybeForm.filter(_.status === Submitted)
+//      queryParams = QueryParams.fromRequest(request)
+      res <- maybeFormSubmitted.fold(newForm(formTemplateId, cache, queryParams)) { form =>
+               val downloadOrNewFormPage = new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice)
+               Ok(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
+             }
+    } yield res
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
     request: Request[AnyContent],
