@@ -509,6 +509,15 @@ continueDelete.title=Do you want to continue your saved version?
 continueDelete.continue=Yes
 continueDelete.delete=No, delete the saved version and start again
 
+# Download last submission or new form
+downloadOrNew.title=What do you want to do?
+downloadOrNew.helpText=You can only get a copy of a previously submitted form in the 24 hours after it has been submitted.
+downloadOrNew.download.text=Get a copy of the form that you submitted
+downloadOrNew.download.helpText=This is the form that you submitted on {0} at {1}.
+downloadOrNew.startNew.text=Start a new form
+downloadOrNew.startNew.helpText=Once you start a new form you cannot download your previously submitted form.
+downloadOrNew.error.required=Select what you want to do
+
 # Agent services prologue
 agentsPrologue.title=Create an agent services account to access this service
 agentsPrologue.p1=Before you can start your {0} for {1} you will need to create an agent services account. You can do this now
