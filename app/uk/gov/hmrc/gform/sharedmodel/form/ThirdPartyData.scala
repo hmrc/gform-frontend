@@ -77,6 +77,35 @@ case class ThirdPartyData(
     )
   }
 
+  def removeDataRetrieveData(idx: Int, dataRetrieveIds: Set[DataRetrieveId]): ThirdPartyData = {
+    def decrementKeyIfNeeded(drId: DataRetrieveId): DataRetrieveId = {
+      val drIdArr = drId.value.split("_", 2)
+      val drIndex = drIdArr.head.toInt
+      if (drIndex - 1 > idx) {
+        DataRetrieveId(drIdArr.last).withIndex(drIndex - 1)
+      } else drId
+    }
+
+    def decrementIdInDrResultIfNeeded(dr: DataRetrieveResult): DataRetrieveResult =
+      dr.copy(
+        id = decrementKeyIfNeeded(dr.id)
+      )
+
+    def decrementIfNeeded(
+      maybeMap: Option[Map[DataRetrieveId, DataRetrieveResult]]
+    ): Option[Map[DataRetrieveId, DataRetrieveResult]] =
+      maybeMap.map { map =>
+        val u = map -- dataRetrieveIds
+        u.map { case (k, v) =>
+          decrementKeyIfNeeded(k) -> decrementIdInDrResultIfNeeded(v)
+        }
+      }
+
+    this.copy(
+      dataRetrieve = decrementIfNeeded(dataRetrieve)
+    )
+  }
+
   def addressesFor(
     formComponentId: FormComponentId
   ): Option[(NonEmptyList[PostcodeLookupRetrieve.AddressRecord], AddressLookupResult)] = for {

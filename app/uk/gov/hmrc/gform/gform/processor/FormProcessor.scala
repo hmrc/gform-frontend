@@ -107,7 +107,8 @@ class FormProcessor(
     def saveAndRedirect(
       updFormModelOptics: FormModelOptics[DataOrigin.Browser],
       componentIdToFileId: FormComponentIdToFileIdMapping,
-      postcodeLookupIds: Set[FormComponentId]
+      postcodeLookupIds: Set[FormComponentId],
+      dataRetrieveIds: Set[DataRetrieveId]
     ): Future[Result] = {
       val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
 
@@ -127,11 +128,14 @@ class FormProcessor(
       )
 
       val cacheUpd = cache.copy(
-        form = cache.form.copy(
-          visitsIndex = visitsIndexUpd,
-          thirdPartyData = cache.form.thirdPartyData.removePostcodeData(idx, postcodeLookupIds),
-          componentIdToFileId = componentIdToFileId
-        )
+        form = cache.form
+          .copy(
+            visitsIndex = visitsIndexUpd,
+            thirdPartyData = cache.form.thirdPartyData
+              .removePostcodeData(idx, postcodeLookupIds)
+              .removeDataRetrieveData(idx, dataRetrieveIds),
+            componentIdToFileId = componentIdToFileId
+          )
       )
 
       validateAndUpdateData(
@@ -199,6 +203,16 @@ class FormProcessor(
       }
       .toSet
 
+    val dataRetrieveIds: Set[DataRetrieveId] = bracket.iterations
+      .toList(idx)
+      .toPageModel
+      .toList
+      .flatMap(_.dataRetrieves)
+      .collect { case DataRetrieve(_, id, _, _, _, _) =>
+        id
+      }
+      .toSet
+
     for {
       updFormModelOptics <- FormModelOptics
                               .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
@@ -206,7 +220,7 @@ class FormProcessor(
                                 cache,
                                 recalculation
                               )
-      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds)
+      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds, dataRetrieveIds)
       _        <- objectStoreService.deleteFiles(cache.form.envelopeId, filesToDelete)
     } yield redirect
   }
