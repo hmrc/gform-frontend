@@ -61,7 +61,9 @@ class TestOnlyModule(
     lookupRegistry
   )
 
-  private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
+  private val proxyActions = new ProxyActions(ahcWSComponents.wsClient, configModule.appConfig.`proxy-timeout`)(
+    controllersModule.messagesControllerComponents
+  )
 
   val validationReportService = new ValidationService(
     graphModule.booleanExprEval,

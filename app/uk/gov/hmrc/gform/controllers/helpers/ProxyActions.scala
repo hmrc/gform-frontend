@@ -23,10 +23,10 @@ import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.mvc._
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(implicit
+class ProxyActions(wsClient: WSClient, timeout: FiniteDuration)(controllerComponents: ControllerComponents)(implicit
   ec: ExecutionContext
 ) {
 
@@ -68,7 +68,7 @@ class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponent
       .withHttpHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
       .withQueryStringParameters(inboundRequest.queryString.view.mapValues(_.head).toSeq: _*)
       .withBody(inboundRequest.body)
-      .withRequestTimeout(30.seconds)
+      .withRequestTimeout(timeout)
   )
 
   private def processHeaders(inboundHeaders: Headers, extraHeaders: Seq[(String, String)]): Seq[(String, String)] =
