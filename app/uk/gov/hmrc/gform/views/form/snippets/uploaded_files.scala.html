@@ -15,9 +15,7 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, LayoutDisplayWidth}
-@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
@@ -27,7 +25,6 @@
 
 @(
   formComponentId: FormComponentId,
-  displayWidth:  Option[LayoutDisplayWidth],
   sectionHeader: SectionHeader,
   shouldDisplayHeading: Boolean,
   isMainContentFullWidth: Boolean,
@@ -40,17 +37,6 @@
 @govukButton = @{new GovukButton()}
 
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
-@fullMainContent = @{new FullMainContent}
-@threeQuartersMainContent = @{new ThreeQuartersMainContent}
-
-@fieldsContent = @{
-    contentBlock: Html => displayWidth match {
-        case Some(LayoutDisplayWidth.M)  => twoThirdsMainContent(contentBlock)
-        case Some(LayoutDisplayWidth.L)  => threeQuartersMainContent(contentBlock)
-        case Some(LayoutDisplayWidth.XL) => fullMainContent(contentBlock)
-        case _                           => contentBlock
-    }
-}
 
 @titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
 

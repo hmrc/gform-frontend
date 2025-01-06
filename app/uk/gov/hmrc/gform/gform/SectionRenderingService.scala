@@ -2035,15 +2035,7 @@ class SectionRenderingService(
     val singleton = ei.singleton
     val page = singleton.page
 
-    val formComponents = ei.formModelOptics.formModelVisibilityOptics.formModel(ei.sectionNumber).allFormComponents
-
-    val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
-    val miniSummaryListComps = formComponents.collect { case IsMiniSummaryList(tc) => tc }
-
-    val maybeDisplayWidth: Option[LayoutDisplayWidth] =
-      if (tableComps.nonEmpty || miniSummaryListComps.nonEmpty)
-        Some(page.displayWidth.getOrElse(LayoutDisplayWidth.M))
-      else None
+    val maybeDisplayWidth: Option[LayoutDisplayWidth] = None
 
     val formLevelHeading = shouldDisplayHeading(singleton)
 
@@ -2090,7 +2082,6 @@ class SectionRenderingService(
       html.form.snippets
         .uploaded_files(
           formComponent.id,
-          maybeDisplayWidth,
           page.sectionHeader(),
           formLevelHeading,
           maybeDisplayWidth.nonEmpty,
