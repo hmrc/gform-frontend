@@ -770,7 +770,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     title: String,
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
-    presentationHint: Option[PresentationHint] = None
+    presentationHint: Option[PresentationHint] = None,
+    dataRetrieve: Option[NonEmptyList[DataRetrieve]] = None
   ): Page[T] = Page[T](
     toSmartString(title),
     None,
@@ -784,7 +785,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
-    None,
+    dataRetrieve,
     None,
     None,
     None,
@@ -995,7 +996,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def buildForm: Form = buildForm(formData)
 
-  def buildForm(formData: FormData): Form = Form(
+  def buildForm(formData: FormData, thirdPartyData: ThirdPartyData = ThirdPartyData.empty): Form = Form(
     formIdData.toFormId,
     envelopeId,
     userId,
@@ -1004,7 +1005,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     formData,
     InProgress,
     VisitIndex.Classic(Set.empty),
-    ThirdPartyData.empty,
+    thirdPartyData,
     envelopeExpiryDate,
     FormComponentIdToFileIdMapping.empty,
     TaskIdTaskStatusMapping.empty
