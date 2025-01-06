@@ -48,7 +48,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EmailAndCode, EnvelopeId, Form, FormData, FormField, FormModelOptics, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Coordinates, FileSizeLimit, FormComponent, FormComponentId, FormPhase, FormTemplate, FormTemplateContext, PageId, Section, ShortText, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Coordinates, FileSizeLimit, FormComponent, FormComponentId, FormPhase, FormTemplate, FormTemplateContext, PageId, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, BooleanExprCache, ConstructAttribute, DataRetrieve, DataRetrieveId, DataRetrieveResult, Fetch, LangADT, NotChecked, RetrieveDataType, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -236,7 +236,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     }
   }
 
-  "processRemoveAddToList" should "remove and re-key third party data" in {
+  "processRemoveAddToList" should "remove and re-key data retrieves" in {
     val thirdPartyData = ThirdPartyData(
       obligations = NotChecked,
       emailVerification = Map.empty[EmailFieldId, EmailAndCode],
@@ -268,7 +268,8 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
       thirdPartyData
     )
 
-    val sections: List[Section] =
+    lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
       List(
         addToListSection(
           "addToList",
@@ -291,10 +292,6 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
           None
         )
       )
-
-    lazy val formTemplate: FormTemplate = buildFormTemplate(
-      destinationList,
-      sections
     )
 
     val cache = AuthCacheWithForm(
@@ -368,9 +365,8 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
       )
       .futureValue
 
-    val formModelOpticsBrowser: FormModelOptics[DataOrigin.Browser] =
-      mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.Normal])
-    val processData: ProcessData = mkProcessData(formModelOpticsBrowser)
+    val processData: ProcessData =
+      mkProcessData(mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.Normal]))
 
     formProcessor.processRemoveAddToList(
       cache = cache,
