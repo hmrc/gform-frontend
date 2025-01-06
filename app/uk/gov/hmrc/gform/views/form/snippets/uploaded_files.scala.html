@@ -27,7 +27,6 @@
   formComponentId: FormComponentId,
   sectionHeader: SectionHeader,
   shouldDisplayHeading: Boolean,
-  isMainContentFullWidth: Boolean,
   fileId: FileId,
   maybeCurrentValue: Option[String],
   deleteUrl: Call,
@@ -36,13 +35,7 @@
 
 @govukButton = @{new GovukButton()}
 
-@twoThirdsMainContent = @{new TwoThirdsMainContent}
-
-@titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
-
-@titleContent {
-    @section_header(sectionHeader, shouldDisplayHeading)
-}
+@section_header(sectionHeader, shouldDisplayHeading)
 
 @uploaded_files_wrapper(formComponentId){
   @maybeCurrentValue.map { currentValue =>

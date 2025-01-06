@@ -96,7 +96,6 @@ import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
 import uk.gov.hmrc.gform.payment.PaymentReference
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 import scala.annotation.tailrec
 
@@ -2034,9 +2033,6 @@ class SectionRenderingService(
 
     val singleton = ei.singleton
     val page = singleton.page
-
-    val maybeDisplayWidth: Option[LayoutDisplayWidth] = None
-
     val formLevelHeading = shouldDisplayHeading(singleton)
 
     val label = Label(
@@ -2084,7 +2080,6 @@ class SectionRenderingService(
           formComponent.id,
           page.sectionHeader(),
           formLevelHeading,
-          maybeDisplayWidth.nonEmpty,
           fileId,
           currentValue,
           deleteUrl,
