@@ -14,12 +14,23 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, LayoutDisplayWidth}
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
+@import uk.gov.hmrc.govukfrontend.views.html.components.TwoThirdsMainContent
+@import uk.gov.hmrc.gform.views.html.form.section_header
+@import uk.gov.hmrc.gform.models.SectionHeader
 
 @(
   formComponentId: FormComponentId,
+  displayWidth:  Option[LayoutDisplayWidth],
+  sectionHeader: SectionHeader,
+  shouldDisplayHeading: Boolean,
+  isMainContentFullWidth: Boolean,
   fileId: FileId,
   maybeCurrentValue: Option[String],
   deleteUrl: Call,
@@ -27,6 +38,25 @@
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new GovukButton()}
+
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@fieldsContent = @{
+    contentBlock: Html => displayWidth match {
+        case Some(LayoutDisplayWidth.M)  => twoThirdsMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.L)  => threeQuartersMainContent(contentBlock)
+        case Some(LayoutDisplayWidth.XL) => fullMainContent(contentBlock)
+        case _                           => contentBlock
+    }
+}
+
+@titleContent =  @{contentBlock: Html => if (isMainContentFullWidth) twoThirdsMainContent(contentBlock) else contentBlock}
+
+@titleContent {
+    @section_header(sectionHeader, shouldDisplayHeading)
+}
 
 @uploaded_files_wrapper(formComponentId){
   @maybeCurrentValue.map { currentValue =>

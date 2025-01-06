@@ -96,6 +96,7 @@ import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
 import uk.gov.hmrc.gform.payment.PaymentReference
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 import scala.annotation.tailrec
 
@@ -2031,6 +2032,21 @@ class SectionRenderingService(
 
     val isPageHeading = ei.formLevelHeading
 
+    val singleton = ei.singleton
+    val page = singleton.page
+
+    val formComponents = ei.formModelOptics.formModelVisibilityOptics.formModel(ei.sectionNumber).allFormComponents
+
+    val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
+    val miniSummaryListComps = formComponents.collect { case IsMiniSummaryList(tc) => tc }
+
+    val maybeDisplayWidth: Option[LayoutDisplayWidth] =
+      if (tableComps.nonEmpty || miniSummaryListComps.nonEmpty)
+        Some(page.displayWidth.getOrElse(LayoutDisplayWidth.M))
+      else None
+
+    val formLevelHeading = shouldDisplayHeading(singleton)
+
     val label = Label(
       isPageHeading = isPageHeading,
       classes = getLabelClasses(isPageHeading, formComponent.labelSize),
@@ -2074,6 +2090,10 @@ class SectionRenderingService(
       html.form.snippets
         .uploaded_files(
           formComponent.id,
+          maybeDisplayWidth,
+          page.sectionHeader(),
+          formLevelHeading,
+          maybeDisplayWidth.nonEmpty,
           fileId,
           currentValue,
           deleteUrl,
