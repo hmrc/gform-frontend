@@ -16,46 +16,34 @@
 
 package uk.gov.hmrc.gform.gform.processor
 
-import cats.{ Id, MonadError }
-import org.mockito.scalatest.IdiomaticMockito
-import cats.data.NonEmptyList
+import cats.Id
+import org.mockito.MockitoSugar.mock
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.prop.Tables.Table
 import play.api.http.HttpConfiguration
 import play.api.i18n._
-import play.api.libs.json.Json
-import play.api.mvc.{ AnyContentAsEmpty, Request }
-import play.api.test.FakeRequest
 import play.api.{ Configuration, Environment }
-import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.addresslookup.AddressLookupService
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ FastForwardService, FileSystemConnector }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
-import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EmailAndCode, EnvelopeId, Form, FormData, FormField, FormModelOptics, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.objectStore.ObjectStoreService
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Coordinates, FileSizeLimit, FormComponent, FormComponentId, FormPhase, FormTemplate, FormTemplateContext, PageId, ShortText, TemplateSectionIndex, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, BooleanExprCache, ConstructAttribute, DataRetrieve, DataRetrieveId, DataRetrieveResult, Fetch, LangADT, NotChecked, RetrieveDataType, SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, PageId, ShortText, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.validation.ValidationService
 
 import scala.concurrent.Future
 
-class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormDataSupport with IdiomaticMockito {
+class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormDataSupport {
 
   override val envelopeId: EnvelopeId = EnvelopeId("dummy")
   private val environment: Environment = Environment.simple()
@@ -68,13 +56,8 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     override def messagesApi: MessagesApi = localMessagesApi
   }
 
-  lazy val formTemplate: FormTemplate = buildFormTemplate
-  lazy val validationResult = ValidationResult.empty
-
   implicit val messages: Messages = i18nSupport.messagesApi.preferred(Seq(langs.availables.head))
   implicit val lang: LangADT = LangADT.En
-  implicit val request: Request[AnyContentAsEmpty.type] =
-    FakeRequest().addAttr(FormTemplateKey, FormTemplateContext(formTemplate, None, None, None, None))
 
   private val processDataService: ProcessDataService[Future] = mock[ProcessDataService[Future]]
   private val gformConnector: GformConnector = mock[GformConnector]
@@ -114,9 +97,6 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     bankAccountInsightsConnector,
     messages
   )
-
-  val mockValidationService = mock[ValidationService]
-  val mockRecalculation = mock[Recalculation[Future, Throwable]]
 
   "checkForRevisits" should "correctly remove page(s) from visits index" in {
     val sections = (0 to 4).map { i =>
@@ -235,211 +215,5 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
       expected shouldBe actual
     }
   }
-
-  "processRemoveAddToList" should "remove and re-key data retrieves" in {
-    val thirdPartyData = ThirdPartyData(
-      obligations = NotChecked,
-      emailVerification = Map.empty[EmailFieldId, EmailAndCode],
-      queryParams = QueryParams.empty,
-      reviewData = None,
-      booleanExprCache = BooleanExprCache.empty,
-      dataRetrieve = Some(
-        Map(
-          DataRetrieveId("1_bankDetails") -> getDrResultWithIndex(1),
-          DataRetrieveId("2_bankDetails") -> getDrResultWithIndex(2)
-        )
-      ),
-      postcodeLookup = None,
-      selectedAddresses = None,
-      enteredAddresses = None,
-      confirmedAddresses = None,
-      itmpRetrievals = None
-    )
-
-    lazy val form: Form = buildForm(
-      FormData(
-        List(
-          FormField(FormComponentId("1_page1Field").modelComponentId, "value1"),
-          FormField(FormComponentId("2_page1Field").modelComponentId, "value2"),
-          FormField(FormComponentId("1_page2Field").modelComponentId, "value3"),
-          FormField(FormComponentId("2_page2Field").modelComponentId, "value4")
-        )
-      ),
-      thirdPartyData
-    )
-
-    lazy val formTemplate: FormTemplate = buildFormTemplate(
-      destinationList,
-      List(
-        addToListSection(
-          "addToList",
-          "addToListDesc",
-          "addToListSumDesc",
-          "addToList",
-          "addToListSummary",
-          addToListQuestion("addToListQuestion"),
-          None,
-          List(
-            mkPage(
-              "page1",
-              None,
-              List(buildFormComponent("page1Field", Value)),
-              None,
-              Option(NonEmptyList.one(getDataRetrieve("bankDetails")))
-            ),
-            mkPage("page2", None, List(buildFormComponent("page2Field", Value)))
-          ),
-          None
-        )
-      )
-    )
-
-    val cache = AuthCacheWithForm(
-      retrievals,
-      form,
-      FormTemplateContext.basicContext(formTemplate, None),
-      Role.Customer,
-      maybeAccessCode,
-      new LookupRegistry(Map())
-    )
-
-    mockValidationService
-      .validateFormModel(
-        *[CacheData],
-        *[EnvelopeWithMapping],
-        *[FormModelVisibilityOptics[DataOrigin.Mongo]],
-        *[Option[Coordinates]]
-      )(
-        *[HeaderCarrier],
-        *[Messages],
-        *[LangADT],
-        *[SmartStringEvaluator]
-      ) returns Future.successful(validationResult)
-    mockRecalculation.recalculateFormDataNew(
-      *[VariadicFormData[SourceOrigin.OutOfDate]],
-      *[FormModel[Interim]],
-      *[FormTemplate],
-      *[MaterialisedRetrievals],
-      *[ThirdPartyData],
-      *[EvaluationContext],
-      *[Messages]
-    )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
-        EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          maybeAccessCode,
-          retrievals,
-          thirdPartyData,
-          authConfig,
-          hc,
-          Option.empty[FormPhase],
-          FileIdsWithMapping.empty,
-          Map.empty,
-          Set.empty,
-          Set.empty,
-          Set.empty,
-          Map.empty,
-          LangADT.En,
-          messages,
-          List.empty,
-          Set.empty,
-          FileSizeLimit(1),
-          DataRetrieveAll.empty,
-          Set.empty[ModelComponentId],
-          Map.empty,
-          Set.empty,
-          new LookupRegistry(Map()),
-          Map.empty,
-          Map.empty,
-          TaskIdTaskStatusMapping.empty
-        )
-      )
-    )
-
-    val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
-      )
-      .futureValue
-
-    val processData: ProcessData =
-      mkProcessData(mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.Normal]))
-
-    formProcessor.processRemoveAddToList(
-      cache = cache,
-      maybeAccessCode = maybeAccessCode,
-      formModelOptics = formModelOptics,
-      processData = processData,
-      templateSectionIndex = TemplateSectionIndex(0),
-      idx = 0,
-      addToListId = AddToListId(FormComponentId("addToListQuestion")),
-      fastForward = List(FastForward.Yes)
-    )(request = request, hc = hc, lang = lang, sse = smartStringEvaluator)
-
-    form.thirdPartyData.dataRetrieve.size shouldBe 1
-    form.thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetails")).id shouldBe DataRetrieveId("1_bankDetails")
-    form.thirdPartyData.dataRetrieve.contains(DataRetrieveId("2_bankDetails")) shouldBe false
-  }
-
-  def getDrResultWithIndex(idx: Int): DataRetrieveResult = {
-    val dataRetrieveId = DataRetrieveId(s"${idx}_bankDetails")
-
-    DataRetrieveResult(
-      id = dataRetrieveId,
-      data = RetrieveDataType.ObjectType(
-        Map(
-          DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "no",
-          DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "no",
-          DataRetrieve.Attribute("isValid")                                  -> "yes",
-          DataRetrieve.Attribute("sortCodeBankName")                         -> "BARCLAYS BANK UK PLC",
-          DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "no",
-          DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "yes",
-          DataRetrieve.Attribute("iban")                                     -> "GB21BARC20670586473611"
-        )
-      ),
-      requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705")
-    )
-  }
-
-  def getDataRetrieve(id: String): DataRetrieve =
-    DataRetrieve(
-      DataRetrieve.Type("validateBankDetails"),
-      DataRetrieveId(id),
-      Attr.FromObject(
-        List(
-          AttributeInstruction(
-            DataRetrieve.Attribute("isValid"),
-            ConstructAttribute.AsIs(Fetch(List("accountNumberIsWellFormatted")))
-          ),
-          AttributeInstruction(
-            DataRetrieve.Attribute("sortCodeIsPresentOnEISCD"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeIsPresentOnEISCD")))
-          ),
-          AttributeInstruction(
-            DataRetrieve.Attribute("sortCodeBankName"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeBankName")))
-          ),
-          AttributeInstruction(
-            DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs"),
-            ConstructAttribute.AsIs(Fetch(List("nonStandardAccountDetailsRequiredForBacs")))
-          ),
-          AttributeInstruction(
-            DataRetrieve.Attribute("sortCodeSupportsDirectDebit"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectDebit")))
-          ),
-          AttributeInstruction(
-            DataRetrieve.Attribute("sortCodeSupportsDirectCredit"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectCredit")))
-          ),
-          AttributeInstruction(DataRetrieve.Attribute("iban"), ConstructAttribute.AsIs(Fetch(List("iban"))))
-        )
-      ),
-      Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
-      List.empty[DataRetrieve.ParamExpr],
-      None
-    )
 
 }

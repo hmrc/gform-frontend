@@ -80,10 +80,13 @@ case class ThirdPartyData(
   def removeDataRetrieveData(idx: Int, dataRetrieveIds: Set[DataRetrieveId]): ThirdPartyData = {
     def decrementKeyIfNeeded(drId: DataRetrieveId): DataRetrieveId = {
       val drIdArr = drId.value.split("_", 2)
-      val drIndex = drIdArr.head.toInt
-      if (drIndex - 1 > idx) {
-        DataRetrieveId(drIdArr.last).withIndex(drIndex - 1)
-      } else drId
+      drIdArr.head.toIntOption match {
+        case Some(i) =>
+          if (i - 1 > idx) {
+            DataRetrieveId(drIdArr.last).withIndex(i - 1)
+          } else drId
+        case _ => drId
+      }
     }
 
     def decrementIdInDrResultIfNeeded(dr: DataRetrieveResult): DataRetrieveResult =
