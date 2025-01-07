@@ -19,17 +19,26 @@ package uk.gov.hmrc.gform.views.hardcoded
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.form.SubmittedDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorLink, ErrorMessage, ErrorSummary, Fieldset, GovukErrorMessage, GovukFieldset, GovukHint, GovukLabel, GovukRadios, Legend, RadioItem, Radios, Text }
+import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 
-class DownloadOrNewFormPage(val formTemplate: FormTemplate, form: Form[String])(implicit messages: Messages)
-    extends CommonPageProperties(formTemplate) {
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+class DownloadOrNewFormPage(val formTemplate: FormTemplate, form: Form[String], submittedDate: Option[SubmittedDate])(
+  implicit messages: Messages
+) extends CommonPageProperties(formTemplate) {
 
   private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
   private val govukFieldset: GovukFieldset = new GovukFieldset()
   private val govukHint: GovukHint = new GovukHint()
   private val govukLabel: GovukLabel = new GovukLabel()
+
+  private val dateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy", messages.lang.locale)
+  private val timeFormat = DateTimeFormatter.ofPattern("HH:mm", messages.lang.locale)
+  private val submittedDateTime = submittedDate.getOrElse(SubmittedDate(LocalDateTime.MIN)).submittedAt
 
   val errorSummary: ErrorSummary = {
 
@@ -72,7 +81,17 @@ class DownloadOrNewFormPage(val formTemplate: FormTemplate, form: Form[String])(
     val download = RadioItem(
       value = Some("download"),
       content = Text(messages("downloadOrNew.download.text")),
-      hint = Some(Hint(content = Text(messages("downloadOrNew.download.helpText"))))
+      hint = Some(
+        Hint(content =
+          Text(
+            messages(
+              "downloadOrNew.download.helpText",
+              submittedDateTime.format(dateFormat),
+              submittedDateTime.format(timeFormat)
+            )
+          )
+        )
+      )
     )
 
     val startNew = RadioItem(

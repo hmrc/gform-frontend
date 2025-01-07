@@ -16,43 +16,42 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
+import cats.syntax.eq._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.FormTemplateKey
+import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.eval.InitFormEvaluator
-import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
-import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
-import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
+import uk.gov.hmrc.gform.eval.InitFormEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.views.hardcoded._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode, DownloadOrNewFormPage }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
+import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
-import uk.gov.hmrc.auth.core.ConfidenceLevel
-import uk.gov.hmrc.gform.api.NinoInsightsConnector
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -272,17 +271,17 @@ class NewFormController(
       noAccessCode,
       OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => sse => formModelOptics =>
-//        val queryParams = QueryParams.fromRequest(request)
+      val queryParams: QueryParams = QueryParams.fromRequest(request)
       downloadOrNewChoice
         .bindFromRequest()
         .fold(
           errorForm => {
-            val downloadOrNewFormPage = new DownloadOrNewFormPage(cache.formTemplate, errorForm)
-            BadRequest(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
+            val dlOrNewPage = new DownloadOrNewFormPage(cache.formTemplate, errorForm, cache.form.submitted)
+            BadRequest(download_or_new(frontendAppConfig, dlOrNewPage)).pure[Future]
           },
           {
             case "download" => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
-            case "startNew" => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+            case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
             case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
           }
         )
@@ -377,11 +376,16 @@ class NewFormController(
     for {
       formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
       maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
-      maybeFormSubmitted = maybeForm.filter(_.status === Submitted)
-//      queryParams = QueryParams.fromRequest(request)
+      maybeFormSubmitted =
+        maybeForm.filter { form =>
+          (form.status, form.submitted) match {
+            case (Submitted, Some(date)) if date.submittedAt.isAfter(LocalDateTime.now().minusHours(24)) => true
+            case _                                                                                       => false
+          }
+        }
       res <- maybeFormSubmitted.fold(newForm(formTemplateId, cache, queryParams)) { form =>
-               val downloadOrNewFormPage = new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice)
-               Ok(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
+               val dlOrNewPage = new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice, form.submitted)
+               Ok(download_or_new(frontendAppConfig, dlOrNewPage)).pure[Future]
              }
     } yield res
 

@@ -39,7 +39,8 @@ case class Form(
   thirdPartyData: ThirdPartyData,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
   componentIdToFileId: FormComponentIdToFileIdMapping,
-  taskIdTaskStatus: TaskIdTaskStatusMapping
+  taskIdTaskStatus: TaskIdTaskStatusMapping,
+  submitted: Option[SubmittedDate]
 )
 
 object Form {
@@ -79,7 +80,8 @@ object Form {
       thirdPartyDataWithFallback and
       EnvelopeExpiryDate.optionFormat and
       componentIdToFileIdReads and
-      taskIdTaskStatusMappingReads
+      taskIdTaskStatusMappingReads and
+      SubmittedDate.optionFormat
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](form =>
@@ -94,7 +96,8 @@ object Form {
       Json.obj(thirdPartyData -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
       EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
       Json.obj(componentIdToFileId -> FormComponentIdToFileIdMapping.format.writes(form.componentIdToFileId)) ++
-      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus))
+      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus)) ++
+      SubmittedDate.optionFormat.writes(form.submitted)
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
