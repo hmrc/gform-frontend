@@ -503,7 +503,6 @@ class BuilderController(
 
   private def toSectionHtml(formModelOptics: FormModelOptics[DataOrigin.Mongo], sectionNumber: SectionNumber)(implicit
     sse: SmartStringEvaluator,
-    request: Request[_],
     messages: Messages,
     l: LangADT
   ): Html = {

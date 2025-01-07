@@ -14,12 +14,19 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
+@import uk.gov.hmrc.govukfrontend.views.html.components.TwoThirdsMainContent
+@import uk.gov.hmrc.gform.views.html.form.section_header
+@import uk.gov.hmrc.gform.models.SectionHeader
 
 @(
   formComponentId: FormComponentId,
+  sectionHeader: SectionHeader,
+  shouldDisplayHeading: Boolean,
   fileId: FileId,
   maybeCurrentValue: Option[String],
   deleteUrl: Call,
@@ -27,6 +34,8 @@
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new GovukButton()}
+
+@section_header(sectionHeader, shouldDisplayHeading)
 
 @uploaded_files_wrapper(formComponentId){
   @maybeCurrentValue.map { currentValue =>

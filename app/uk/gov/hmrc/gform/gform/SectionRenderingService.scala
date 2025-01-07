@@ -2031,6 +2031,10 @@ class SectionRenderingService(
 
     val isPageHeading = ei.formLevelHeading
 
+    val singleton = ei.singleton
+    val page = singleton.page
+    val formLevelHeading = shouldDisplayHeading(singleton)
+
     val label = Label(
       isPageHeading = isPageHeading,
       classes = getLabelClasses(isPageHeading, formComponent.labelSize),
@@ -2074,6 +2078,8 @@ class SectionRenderingService(
       html.form.snippets
         .uploaded_files(
           formComponent.id,
+          page.sectionHeader(),
+          formLevelHeading,
           fileId,
           currentValue,
           deleteUrl,
