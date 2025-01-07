@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.models
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
+import scala.collection.immutable.ListMap
+
 final case class DataRetrieveAll(lookup: Map[DataRetrieveId, DataRetrieve]) extends AnyVal {
   def isNumber(dataRetriveId: DataRetrieveId, attribute: DataRetrieve.Attribute): Boolean =
     lookup.get(dataRetriveId) match {
@@ -38,9 +40,9 @@ object DataRetrieveAll {
 
   def from[A <: PageMode](formModel: FormModel[A]): DataRetrieveAll =
     DataRetrieveAll(
-      formModel.pages.map(_.dataRetrieves).flatMap(drs => drs.map(dr => dr.id -> dr)).toMap ++
+      ListMap(formModel.pages.map(_.dataRetrieves).flatMap(drs => drs.map(dr => dr.id -> dr)): _*) ++
         formModel.dataRetrieve.fold(Map.empty[DataRetrieveId, DataRetrieve])(drs =>
-          drs.toList.map(dr => dr.id -> dr).toMap
+          ListMap(drs.toList.map(dr => dr.id -> dr): _*)
         )
     )
 
