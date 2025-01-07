@@ -155,9 +155,16 @@ class ThirdPartyDataSuite extends FunSuite {
       booleanExprCache = BooleanExprCache.empty,
       dataRetrieve = Some(
         Map(
-          DataRetrieveId("bankDetails")   -> getDrResultWithIndex(id = "bankDetails"),
-          DataRetrieveId("1_bankDetails") -> getDrResultWithIndex(Option(1), "bankDetails"),
-          DataRetrieveId("2_bankDetails") -> getDrResultWithIndex(Option(2), "bankDetails")
+          //Non-ATL
+          DataRetrieveId("bankDetails") -> getDrResultWithIndex(id = "bankDetails"),
+          //ATL 1
+          DataRetrieveId("1_bankDetails")      -> getDrResultWithIndex(Option(1), "bankDetails"),
+          DataRetrieveId("2_bankDetails")      -> getDrResultWithIndex(Option(2), "bankDetails"),
+          DataRetrieveId("1_bankDetailsOther") -> getDrResultWithIndex(Option(1), "bankDetailsOther"),
+          DataRetrieveId("2_bankDetailsOther") -> getDrResultWithIndex(Option(2), "bankDetailsOther"),
+          //ATL 2
+          DataRetrieveId("1_bankDetails2") -> getDrResultWithIndex(Option(1), "bankDetails2"),
+          DataRetrieveId("2_bankDetails2") -> getDrResultWithIndex(Option(2), "bankDetails2")
         )
       ),
       postcodeLookup = None,
@@ -167,10 +174,22 @@ class ThirdPartyDataSuite extends FunSuite {
       itmpRetrievals = None
     )
 
-    thirdPartyData = thirdPartyData.removeDataRetrieveData(0, Set(DataRetrieveId("1_bankDetails")))
-    assertEquals(thirdPartyData.dataRetrieve.get.size, 2)
+    thirdPartyData = thirdPartyData.removeDataRetrieveData(
+      0,
+      Set(DataRetrieveId("1_bankDetails"), DataRetrieveId("1_bankDetailsOther"))
+    )
+    assertEquals(thirdPartyData.dataRetrieve.get.size, 5)
+    //Non-ATL
     assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("bankDetails")).id, DataRetrieveId("bankDetails"))
+    //ATL 1
     assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetails")).id, DataRetrieveId("1_bankDetails"))
+    assertEquals(
+      thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetailsOther")).id,
+      DataRetrieveId("1_bankDetailsOther")
+    )
+    //ATL 2
+    assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetails2")).id, DataRetrieveId("1_bankDetails2"))
+    assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("2_bankDetails2")).id, DataRetrieveId("2_bankDetails2"))
   }
 
   def getDrResultWithIndex(idx: Option[Int] = None, id: String): DataRetrieveResult = {
