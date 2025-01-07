@@ -308,7 +308,7 @@ class FormProcessor(
             Some(gformConnector),
             Some(fileSystemConnector)
           )
-          maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetreiveResults(r.toList))
+          maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetrieveResults(r.toList))
         }
 
         if (isValid) {
@@ -318,18 +318,25 @@ class FormProcessor(
           val dataRetrievesOnThisPage: List[DataRetrieve] = pageModel
             .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
           val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)
-          val dataRetrievesRequiringRecall: List[DataRetrieve] =
-            processData.formModel.dataRetrieveAll.lookup.values.flatMap { dr =>
-              dr.params.flatMap { paramExpr =>
-                paramExpr.expr.leafs().collect {
-                  case FormCtx(fcId)
-                      if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(dr.id) =>
-                    dr
-                }
-              }
-            }.toList
+          val dataRetrievesRequiringReeval: List[DataRetrieve] =
+            processData.formModel.dataRetrieveAll.lookup.toList.flatMap { case (drId, dataRetrieve) =>
+              val ifLeafs = dataRetrieve.`if`.map(_.booleanExpr.allExpressions.flatMap(_.leafs())).toList.flatten
+              val paramLeafs = dataRetrieve.params.flatMap(_.expr.leafs())
 
-          (dataRetrievesOnThisPage ++ dataRetrievesRequiringRecall)
+              (ifLeafs ++ paramLeafs)
+                .map {
+                  case FormCtx(fcId)         => Some(fcId)
+                  case LookupColumn(fcId, _) => Some(fcId)
+                  case _                     => None
+                }
+                .collect {
+                  case Some(fcId)
+                      if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(drId) =>
+                    dataRetrieve
+                }
+            }
+
+          (dataRetrievesOnThisPage ++ dataRetrievesRequiringReeval)
             .foldLeft(
               Future.successful(List.empty[DataRetrieveResult] -> processData.formModelOptics.formModelVisibilityOptics)
             ) { case (acc, r) =>
@@ -394,10 +401,14 @@ class FormProcessor(
           processData.formModelOptics.pageOpticsData
         )
 
-        val dataRetrievesToRemove = processData.formModel.dataRetrieveAll.lookup.values.collect {
-          case dr if !dr.`if`.forall(updatedFormVisibilityOptics.evalIncludeIfExpr(_, None)) =>
-            dr.id
-        }.toList
+        val (upToDateOptics, dataRetrievesToRemove) = processData.formModel.dataRetrieveAll.lookup.toList
+          .foldLeft[(FormModelVisibilityOptics[DataOrigin.Browser], List[DataRetrieveId])](
+            updatedFormVisibilityOptics -> List.empty[DataRetrieveId]
+          ) { case ((optics, removeList), (drId, dataRetrieve)) =>
+            if (!dataRetrieve.`if`.forall(optics.evalIncludeIfExpr(_, None)))
+              optics.removeDataRetrieveResults(List(drId)) -> (removeList :+ drId)
+            else optics                                    -> removeList
+          }
 
         val formDataU = oldData.toFormData ++ formData
         val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
@@ -408,7 +419,7 @@ class FormProcessor(
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {
-            case redirect if updatedFormVisibilityOptics.evalIncludeIfExpr(redirect.`if`, None) =>
+            case redirect if upToDateOptics.evalIncludeIfExpr(redirect.`if`, None) =>
               redirect.redirectUrl
           }
         } else None
