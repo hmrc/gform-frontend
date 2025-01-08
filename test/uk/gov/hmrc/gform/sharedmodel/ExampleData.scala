@@ -881,6 +881,7 @@ trait ExampleFormTemplate {
       Some(ResearchBanner),
       Default,
       OnePerUser(ContinueOrDeletePage.Show),
+      None,
       destinationList,
       authConfig,
       emailTemplateId,

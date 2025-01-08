@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
-import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, NoErrors, PageLevelErrorHtml, SectionRenderingService, SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, HtmlSanitiser, NoErrors, PageLevelErrorHtml, SectionRenderingService, SummaryPagePurpose, routes }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -269,7 +269,7 @@ object SummaryRenderingService {
     val envelopeUpd = envelope.byPurpose(summaryPagePurpose)
 
     val renderComeBackLater =
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+      retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals)
 
     val lastSectionNumber = maybeCoordinates
       .map { c =>
@@ -303,7 +303,7 @@ object SummaryRenderingService {
         renderComeBackLater,
         determineContinueLabelKey(
           retrievals.continueLabelKey,
-          formTemplate.draftRetrievalMethod.isNotPermitted,
+          DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
           summarySection.continueLabel
         ),
         frontendAppConfig,
@@ -346,7 +346,7 @@ object SummaryRenderingService {
     val title = formTemplate.summarySection.title.value()
     val caption = formTemplate.summarySection.caption.map(_.value())
     val renderComeBackLater =
-      retrievals.renderSaveAndComeBackLater && !formTemplate.draftRetrievalMethod.isNotPermitted
+      retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals)
     val sfr: List[Html] =
       summaryForNotificationPdf(
         validationResult,
@@ -365,7 +365,11 @@ object SummaryRenderingService {
         maybeAccessCode,
         formTemplate.sectionNumberZero,
         renderComeBackLater,
-        determineContinueLabelKey(retrievals.continueLabelKey, formTemplate.draftRetrievalMethod.isNotPermitted, None),
+        determineContinueLabelKey(
+          retrievals.continueLabelKey,
+          DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
+          None
+        ),
         frontendAppConfig,
         summaryPagePurpose,
         title,

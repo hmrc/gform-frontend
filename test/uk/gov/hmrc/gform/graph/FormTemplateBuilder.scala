@@ -275,6 +275,7 @@ object FormTemplateBuilder {
     Some(BetaBanner),
     Default,
     OnePerUser(ContinueOrDeletePage.Show),
+    None,
     DestinationList(
       NonEmptyList.of(
         Log(DestinationId("TestHmrcDmsId"))

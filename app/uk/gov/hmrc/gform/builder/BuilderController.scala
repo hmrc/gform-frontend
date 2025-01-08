@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
+import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ CheckYourAnswers, FastForward, PageModel, Repeater, Visibility }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
@@ -880,7 +880,7 @@ class BuilderController(
 
         val continueLabel = SectionRenderingService.determineContinueLabelKey(
           cache.retrievals.continueLabelKey,
-          cache.formTemplate.draftRetrievalMethod.isNotPermitted,
+          DraftRetrievalHelper.isNotPermitted(cache.formTemplate, cache.retrievals),
           singleton.page.continueLabel,
           false
         )
@@ -925,7 +925,7 @@ class BuilderController(
 
         val continueLabel = SectionRenderingService.determineContinueLabelKey(
           cache.retrievals.continueLabelKey,
-          cache.formTemplate.draftRetrievalMethod.isNotPermitted,
+          DraftRetrievalHelper.isNotPermitted(cache.formTemplate, cache.retrievals),
           checkYourAnswers.expandedContinueLabel,
           false
         )
