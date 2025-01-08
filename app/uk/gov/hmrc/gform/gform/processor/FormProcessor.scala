@@ -242,21 +242,24 @@ class FormProcessor(
         .flatMap(fc => fc.pageIdsToDisplayOnChange.map(p => p -> updated.indexedComponentId.maybeIndex))
     )
 
-    val sectionsToRevisit: Set[SectionNumber] = pageList.flatMap {
+    val sectionsToRevisit: Set[Option[SectionNumber]] = pageList.flatMap {
       case (pageList: List[PageId], maybeIndex: Option[Int]) =>
         pageList.map { pageId =>
           val pageIdWithMaybeIndex: PageId = maybeIndex.map(idx => pageId.withIndex(idx)).getOrElse(pageId)
           val maybeSectionNumber: Option[SectionNumber] =
             formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap
               .get(pageIdWithMaybeIndex.modelPageId)
-          maybeSectionNumber.getOrElse(
-            formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap(pageId.modelPageId)
-          )
+
+          if (maybeSectionNumber.isDefined)
+            maybeSectionNumber
+          else
+            formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap.get(pageId.modelPageId)
         }.toSet
     }
 
-    sectionsToRevisit.foldLeft(visitsIndex) { case (acc, sn) =>
-      acc.unvisit(sn)
+    sectionsToRevisit.foldLeft(visitsIndex) {
+      case (acc, Some(sn)) => acc.unvisit(sn)
+      case (acc, None)     => acc
     }
   }
 
