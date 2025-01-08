@@ -25,31 +25,13 @@ class ThirdPartyDataSuite extends FunSuite {
 
   test("Roundtrip of RetrieveDataType.ObjectType") {
 
-    val dataRetrieveId = DataRetrieveId("bankDetails")
-
-    val dataRetrieveResult = DataRetrieveResult(
-      id = dataRetrieveId,
-      data = RetrieveDataType.ObjectType(
-        Map(
-          DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "no",
-          DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "no",
-          DataRetrieve.Attribute("isValid")                                  -> "yes",
-          DataRetrieve.Attribute("sortCodeBankName")                         -> "BARCLAYS BANK UK PLC",
-          DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "no",
-          DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "yes",
-          DataRetrieve.Attribute("iban")                                     -> "GB21BARC20670586473611"
-        )
-      ),
-      requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705")
-    )
-
     val thirdPartyData = ThirdPartyData(
       obligations = NotChecked,
       emailVerification = Map.empty[EmailFieldId, EmailAndCode],
       queryParams = QueryParams.empty,
       reviewData = None,
       booleanExprCache = BooleanExprCache.empty,
-      dataRetrieve = Some(Map(dataRetrieveId -> dataRetrieveResult)),
+      dataRetrieve = Some(Map(DataRetrieveId("bankDetails") -> getDrResultWithIndex(id = "bankDetails"))),
       postcodeLookup = None,
       selectedAddresses = None,
       enteredAddresses = None,
@@ -162,5 +144,73 @@ class ThirdPartyDataSuite extends FunSuite {
 
     assertEquals(asJson, Json.parse(expected))
     assertEquals(asCaseClass, thirdPartyData)
+  }
+
+  test("removeDataRetrieve ATL data and re-key whilst ignoring other data retrieves") {
+    var thirdPartyData = ThirdPartyData(
+      obligations = NotChecked,
+      emailVerification = Map.empty[EmailFieldId, EmailAndCode],
+      queryParams = QueryParams.empty,
+      reviewData = None,
+      booleanExprCache = BooleanExprCache.empty,
+      dataRetrieve = Some(
+        Map(
+          //Non-ATL
+          DataRetrieveId("bankDetails") -> getDrResultWithIndex(id = "bankDetails"),
+          //ATL 1
+          DataRetrieveId("1_bankDetails")      -> getDrResultWithIndex(Option(1), "bankDetails"),
+          DataRetrieveId("2_bankDetails")      -> getDrResultWithIndex(Option(2), "bankDetails"),
+          DataRetrieveId("1_bankDetailsOther") -> getDrResultWithIndex(Option(1), "bankDetailsOther"),
+          DataRetrieveId("2_bankDetailsOther") -> getDrResultWithIndex(Option(2), "bankDetailsOther"),
+          //ATL 2
+          DataRetrieveId("1_bankDetails2") -> getDrResultWithIndex(Option(1), "bankDetails2"),
+          DataRetrieveId("2_bankDetails2") -> getDrResultWithIndex(Option(2), "bankDetails2")
+        )
+      ),
+      postcodeLookup = None,
+      selectedAddresses = None,
+      enteredAddresses = None,
+      confirmedAddresses = None,
+      itmpRetrievals = None
+    )
+
+    thirdPartyData = thirdPartyData.removeDataRetrieveData(
+      0,
+      Set(DataRetrieveId("1_bankDetails"), DataRetrieveId("1_bankDetailsOther"))
+    )
+    assertEquals(thirdPartyData.dataRetrieve.get.size, 5)
+    //Non-ATL
+    assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("bankDetails")).id, DataRetrieveId("bankDetails"))
+    //ATL 1
+    assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetails")).id, DataRetrieveId("1_bankDetails"))
+    assertEquals(
+      thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetailsOther")).id,
+      DataRetrieveId("1_bankDetailsOther")
+    )
+    //ATL 2
+    assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetails2")).id, DataRetrieveId("1_bankDetails2"))
+    assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("2_bankDetails2")).id, DataRetrieveId("2_bankDetails2"))
+  }
+
+  def getDrResultWithIndex(idx: Option[Int] = None, id: String): DataRetrieveResult = {
+    val dataRetrieveId = idx match {
+      case Some(i) => DataRetrieveId(s"${i}_$id")
+      case _       => DataRetrieveId(id)
+    }
+    DataRetrieveResult(
+      id = dataRetrieveId,
+      data = RetrieveDataType.ObjectType(
+        Map(
+          DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "no",
+          DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "no",
+          DataRetrieve.Attribute("isValid")                                  -> "yes",
+          DataRetrieve.Attribute("sortCodeBankName")                         -> "BARCLAYS BANK UK PLC",
+          DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "no",
+          DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "yes",
+          DataRetrieve.Attribute("iban")                                     -> "GB21BARC20670586473611"
+        )
+      ),
+      requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705")
+    )
   }
 }
