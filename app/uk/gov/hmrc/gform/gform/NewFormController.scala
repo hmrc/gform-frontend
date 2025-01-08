@@ -166,7 +166,16 @@ class NewFormController(
         case _ =>
           val form = AccessCodePage.form(draftRetrievalMethod)
           val accessCodeStart = new AccessCodeStart(cache.formTemplate, form)
-          Ok(access_code_start(frontendAppConfig, accessCodeStart))
+          def switchLanguageForAgentCodeStart: (FormTemplateId, Option[AccessCode], String) => Call =
+            (formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: String) =>
+              uk.gov.hmrc.gform.gform.routes.LanguageSwitchController
+                .switchToLanguageNoDataChange(lang)
+          Ok(
+            access_code_start(
+              frontendAppConfig.copy(routeToSwitchLanguageDataChange = switchLanguageForAgentCodeStart),
+              accessCodeStart
+            )
+          )
             .pure[Future]
       }
 
