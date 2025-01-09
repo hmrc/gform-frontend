@@ -494,6 +494,18 @@ downloadOrNew.startNew.text=Dechrau ffurflen newydd
 downloadOrNew.startNew.helpText=Unwaith eich bod wedi dechrau ffurflen newydd, ni allwch lawrlwytho’r ffurflen a gyflwynwyd gennych yn flaenorol.
 downloadOrNew.error.required=Dewiswch yr hyn rydych am ei wneud
 
+downloadThenNew.title=Lawrlwytho copi o’r ffurflen y gwnaethoch ei chyflwyno
+downloadThenNew.table.caption.submissionRef=Cyfeirnod cyflwyno
+downloadThenNew.table.caption.submittedOn=Dyddiad cyflwyno
+downloadThenNew.table.value.submittedOn={0} am {1}
+downloadThenNew.table.caption.fileType=Math o ffeil
+downloadThenNew.table.caption.fileSize=Maint y ffeil
+downloadThenNew.download.info=Bydd y ffeil yn cael ei chadw yn y man arferol ar gyfer eich lawrlwythiadau.
+downloadThenNew.download.buttonText=Lawrlwytho PDF
+downloadThenNew.whatNext.title=Beth ydych am ei wneud nawr?
+downloadThenNew.whatNext.startNew=Dechrau ffurflen newydd
+downloadThenNew.whatNext.signOut=Allgofnodi
+
 # Agent services prologue
 agentsPrologue.title=Creu cyfrif gwasanaethau asiant i gyrchu’r gwasanaeth hwn
 agentsPrologue.p1=Cyn i chi allu dechrau eich {0} ar gyfer {1} bydd angen i chi greu cyfrif gwasanaethau asiant. Gallwch wneud hyn nawr

@@ -110,6 +110,9 @@ class AcknowledgementController(
       }
     }
 
+  def renderPdf(content: String) = fopService.render(content)
+  def generatePdf(content: PdfContent) = pdfService.generateByteArrayPDF(content)
+
   def createPDFContent(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],

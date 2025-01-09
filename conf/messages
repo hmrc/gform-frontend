@@ -518,6 +518,18 @@ downloadOrNew.startNew.text=Start a new form
 downloadOrNew.startNew.helpText=Once you start a new form you cannot download your previously submitted form.
 downloadOrNew.error.required=Select what you want to do
 
+downloadThenNew.title=Download a copy of the form that you submitted
+downloadThenNew.table.caption.submissionRef=Submission reference
+downloadThenNew.table.caption.submittedOn=Submitted on
+downloadThenNew.table.value.submittedOn={0} at {1}
+downloadThenNew.table.caption.fileType=File type
+downloadThenNew.table.caption.fileSize=File size
+downloadThenNew.download.info=The file will be saved to your downloads folder or wherever you usually download files.
+downloadThenNew.download.buttonText=Download PDF
+downloadThenNew.whatNext.title=What do you want to do now?
+downloadThenNew.whatNext.startNew=Start a new form
+downloadThenNew.whatNext.signOut=Sign out
+
 # Agent services prologue
 agentsPrologue.title=Create an agent services account to access this service
 agentsPrologue.p1=Before you can start your {0} for {1} you will need to create an agent services account. You can do this now

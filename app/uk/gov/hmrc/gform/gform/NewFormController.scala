@@ -67,7 +67,8 @@ class NewFormController(
   messagesControllerComponents: MessagesControllerComponents,
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
-  englishMessages: Messages
+  englishMessages: Messages,
+  acknowledgementController: AcknowledgementController
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -77,6 +78,8 @@ class NewFormController(
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
 
   private val noAccessCode = Option.empty[AccessCode]
+
+  private val submittedAgeHours = 24L
 
   private def formTemplateIdCookie(formTemplateId: FormTemplateId) =
     Cookie(formTemplateIdCookieName, formTemplateId.value, secure = true)
@@ -280,7 +283,7 @@ class NewFormController(
             BadRequest(download_or_new(frontendAppConfig, dlOrNewPage)).pure[Future]
           },
           {
-            case "download" => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+            case "download" => Redirect(routes.NewFormController.lastSubmission(formTemplateId)).pure[Future]
             case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
             case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
           }
@@ -379,8 +382,10 @@ class NewFormController(
       maybeFormSubmitted =
         maybeForm.filter { form =>
           (form.status, form.submitted) match {
-            case (Submitted, Some(date)) if date.submittedAt.isAfter(LocalDateTime.now().minusHours(24)) => true
-            case _                                                                                       => false
+            case (Submitted, Some(date))
+                if date.submittedAt.isAfter(LocalDateTime.now().minusHours(submittedAgeHours)) =>
+              true
+            case _ => false
           }
         }
       res <- maybeFormSubmitted.fold(newForm(formTemplateId, cache, queryParams)) { form =>
@@ -388,6 +393,47 @@ class NewFormController(
                Ok(download_or_new(frontendAppConfig, dlOrNewPage)).pure[Future]
              }
     } yield res
+
+  private val startNewOrLogout: data.Form[String] = play.api.data.Form(
+    play.api.data.Forms.single(
+      "newOrLogout" -> play.api.data.Forms.nonEmptyText
+    )
+  )
+
+  def lastSubmission(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      noAccessCode,
+      OperationWithForm.ViewAcknowledgement
+    ) { implicit request => implicit l => cache => ss => formModelOptics =>
+      val queryParams = QueryParams.fromRequest(request)
+      for {
+        submission <- gformConnector.submissionDetails(
+                        FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                        cache.form.envelopeId
+                      )
+        pdfContentF =
+          acknowledgementController
+            .createPDFContent(cache, Option.empty[AccessCode], formModelOptics, sendAuditEvent = false)(request, l, ss)
+        pdfSize <- if (cache.formTemplate.accessiblePdf) {
+                     for {
+                       pdfContent <- pdfContentF
+                       pdfSource  <- acknowledgementController.renderPdf(pdfContent.content)
+                     } yield pdfSource.length
+                   } else {
+                     for {
+                       pdfContent <- pdfContentF
+                       pdfSource  <- acknowledgementController.generatePdf(pdfContent)
+                     } yield pdfSource.toByteArray.length
+                   }
+        downloadThenNew =
+          new DownloadThenNewFormPage(cache.formTemplate, startNewOrLogout, submission, pdfSize)
+        res <- if (submission.submittedDate.isAfter(LocalDateTime.now().minusHours(submittedAgeHours)))
+                 Ok(download_then_new(frontendConfig, downloadThenNew)).pure[Future]
+               else
+                 newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
+      } yield res
+    }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
     request: Request[AnyContent],
