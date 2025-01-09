@@ -50,7 +50,8 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ),
       None,
       mapping,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      None
     )
 
     val mapping1 = FormComponentIdToFileIdMapping.empty
@@ -97,7 +98,8 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ),
       None,
       mapping,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      None
     )
 
     val mapping2 = Map("file" -> "x_file").toMapping

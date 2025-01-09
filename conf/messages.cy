@@ -505,6 +505,7 @@ downloadThenNew.download.buttonText=Lawrlwytho PDF
 downloadThenNew.whatNext.title=Beth ydych am ei wneud nawr?
 downloadThenNew.whatNext.startNew=Dechrau ffurflen newydd
 downloadThenNew.whatNext.signOut=Allgofnodi
+downloadThenNew.error.required=Dewiswch yr hyn rydych am ei wneud
 
 # Agent services prologue
 agentsPrologue.title=Creu cyfrif gwasanaethau asiant i gyrchu’r gwasanaeth hwn

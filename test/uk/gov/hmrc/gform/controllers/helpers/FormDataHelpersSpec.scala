@@ -79,7 +79,8 @@ class FormDataHelpersSpec extends Spec {
       ),
       None,
       FormComponentIdToFileIdMapping.empty,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      None
     )
 
     val updatedForm =

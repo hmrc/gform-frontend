@@ -19,28 +19,17 @@ package uk.gov.hmrc.gform.gform
 import org.apache.xmlgraphics.util.MimeConstants
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
-import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, ResponseHeader, Result }
+import play.api.i18n.I18nSupport
+import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
-import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
-import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
-import uk.gov.hmrc.gform.pdf.PDFRenderService
-import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
-import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -49,14 +38,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 class AcknowledgementController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  pdfService: PdfGeneratorService,
-  fopService: FopService,
-  pdfRenderService: PDFRenderService,
+  acknowledgementPdfService: AcknowledgementPdfService,
   renderer: SectionRenderingService,
-  gformConnector: GformConnector,
-  nonRepudiationHelpers: NonRepudiationHelpers,
-  messagesControllerComponents: MessagesControllerComponents,
-  auditService: AuditService
+  messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -110,101 +94,24 @@ class AcknowledgementController(
       }
     }
 
-  def renderPdf(content: String) = fopService.render(content)
-  def generatePdf(content: PdfContent) = pdfService.generateByteArrayPDF(content)
-
-  def createPDFContent(
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    sendAuditEvent: Boolean
-  )(implicit
-    request: Request[_],
-    l: LangADT,
-    ss: SmartStringEvaluator
-  ): Future[PdfContent] = {
-    import i18nSupport._
-    val messages: Messages = request2Messages(request)
-    val formString = nonRepudiationHelpers.formDataToJson(cache.form)
-    val hashedValue = nonRepudiationHelpers.computeHash(formString)
-
-    val maybePDFHeaderFooter = cache.formTemplate.destinations match {
-      case d: DestinationList => d.acknowledgementSection.pdf.map(p => (p.header, p.footer))
-      case _                  => None
-    }
-
-    val maybePdfOptions = cache.formTemplate.destinations match {
-      case d: DestinationList =>
-        d.acknowledgementSection.pdf.map(p => PDFModel.Options(p.tabularFormat, p.includeSignatureBox))
-      case _ => None
-    }
-
-    val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
-      cache,
-      formModelOptics,
-      maybeAccessCode,
-      None
-    )
-
-    for {
-      _ <- if (sendAuditEvent) {
-             val customerId = CustomerIdRecalculation
-               .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
-                 cache,
-                 formModelOptics.formModelVisibilityOptics
-               )
-             val eventId = auditService
-               .calculateSubmissionEvent(
-                 cache.form,
-                 formModelOptics.formModelVisibilityOptics,
-                 cache.retrievals,
-                 customerId
-               )
-               .eventId
-
-             nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
-           } else Future.unit
-      submission <- gformConnector.submissionDetails(
-                      FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
-                      cache.form.envelopeId
-                    )
-      pdfContent <-
-        pdfRenderService
-          .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
-            s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
-            None,
-            cache,
-            formModelOptics,
-            maybePDFHeaderFooter.map { case (maybeHeader, maybeFooter) =>
-              PDFModel.HeaderFooter(maybeHeader, maybeFooter)
-            },
-            Some(SubmissionDetails(submission, hashedValue)),
-            SummaryPagePurpose.ForUser,
-            Some(summarySectionDeclaration),
-            None,
-            maybePdfOptions,
-            Some(cache.formTemplate.formName.value)
-          )
-    } yield pdfContent
-  }
-
   def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithAcknowledgement](
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      val pdfContentF = createPDFContent(cache, maybeAccessCode, formModelOptics, sendAuditEvent = true)
+      val pdfContentF =
+        acknowledgementPdfService.createPDFContent(cache, maybeAccessCode, formModelOptics, sendAuditEvent = true)
 
       if (cache.formTemplate.accessiblePdf) {
         for {
           pdfContent <- pdfContentF
-          pdfSource  <- fopService.render(pdfContent.content)
+          pdfSource  <- acknowledgementPdfService.renderFop(pdfContent)
         } yield Ok(pdfSource).as(MimeConstants.MIME_PDF)
       } else {
         for {
           pdfContent <- pdfContentF
-          pdfSource  <- pdfService.generatePDF(pdfContent)
+          pdfSource  <- acknowledgementPdfService.generatePDF(pdfContent)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
           body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))

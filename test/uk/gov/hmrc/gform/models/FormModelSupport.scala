@@ -17,24 +17,23 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import cats.{ Id, Monad }
 import cats.syntax.applicative._
+import cats.{ Id, Monad }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, OptionData, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BooleanExprCache, LangADT, NotChecked, Obligations, SourceOrigin, UserId, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, FormModelOptics, InProgress, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, Section }
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
-import uk.gov.hmrc.gform.lookup.LookupRegistry
 
 trait FormModelSupport extends GraphSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -79,7 +78,8 @@ trait FormModelSupport extends GraphSpec {
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
     componentIdToFileId = FormComponentIdToFileIdMapping.empty,
-    taskIdTaskStatus = TaskIdTaskStatusMapping.empty
+    taskIdTaskStatus = TaskIdTaskStatusMapping.empty,
+    None
   )
 
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(

@@ -529,6 +529,7 @@ downloadThenNew.download.buttonText=Download PDF
 downloadThenNew.whatNext.title=What do you want to do now?
 downloadThenNew.whatNext.startNew=Start a new form
 downloadThenNew.whatNext.signOut=Sign out
+downloadThenNew.error.required=Select what you want to do
 
 # Agent services prologue
 agentsPrologue.title=Create an agent services account to access this service

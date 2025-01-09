@@ -97,7 +97,7 @@ class DownloadThenNewFormPage(val formTemplate: FormTemplate, form: Form[String]
           content = Text(messages("downloadThenNew.table.caption.fileSize"))
         ),
         TableRow(
-          content = Text(s"≈ $fileSize KB")
+          content = Text(s"$fileSize KB")
         )
       )
     ),
@@ -140,7 +140,7 @@ class DownloadThenNewFormPage(val formTemplate: FormTemplate, form: Form[String]
     val radios = Radios(
       fieldset = fieldset,
       errorMessage = errorMessage,
-      name = "newOrLogout",
+      name = "downloadThenNew",
       items = List(startNew, signOut)
     )
 

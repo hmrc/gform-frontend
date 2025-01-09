@@ -68,7 +68,7 @@ class NewFormController(
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
   englishMessages: Messages,
-  acknowledgementController: AcknowledgementController
+  acknowledgementPdfService: AcknowledgementPdfService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -396,9 +396,39 @@ class NewFormController(
 
   private val startNewOrLogout: data.Form[String] = play.api.data.Form(
     play.api.data.Forms.single(
-      "newOrLogout" -> play.api.data.Forms.nonEmptyText
+      "downloadThenNew" -> play.api.data.Forms.nonEmptyText
     )
   )
+
+  def newOrSignout(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      noAccessCode,
+      OperationWithForm.DownloadSummaryPdf
+    ) { implicit request => implicit l => cache => ss => formModelOptics =>
+      val queryParams: QueryParams = QueryParams.fromRequest(request)
+      startNewOrLogout
+        .bindFromRequest()
+        .fold(
+          errorForm =>
+            for {
+              submission <- gformConnector.submissionDetails(
+                              FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                              cache.form.envelopeId
+                            )
+              pdfSize <- acknowledgementPdfService
+                           .getRenderedPdfSize(cache, Option.empty[AccessCode], formModelOptics)(request, l, ss)
+              downloadThenNew =
+                new DownloadThenNewFormPage(cache.formTemplate, errorForm, submission, pdfSize)
+              res <- BadRequest(download_then_new(frontendConfig, downloadThenNew)).pure[Future]
+            } yield res,
+          {
+            case "signOut"  => Redirect(routes.SignOutController.signOut(formTemplateId)).pure[Future]
+            case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
+            case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+          }
+        )
+    }
 
   def lastSubmission(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
@@ -412,20 +442,8 @@ class NewFormController(
                         FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
                         cache.form.envelopeId
                       )
-        pdfContentF =
-          acknowledgementController
-            .createPDFContent(cache, Option.empty[AccessCode], formModelOptics, sendAuditEvent = false)(request, l, ss)
-        pdfSize <- if (cache.formTemplate.accessiblePdf) {
-                     for {
-                       pdfContent <- pdfContentF
-                       pdfSource  <- acknowledgementController.renderPdf(pdfContent.content)
-                     } yield pdfSource.length
-                   } else {
-                     for {
-                       pdfContent <- pdfContentF
-                       pdfSource  <- acknowledgementController.generatePdf(pdfContent)
-                     } yield pdfSource.toByteArray.length
-                   }
+        pdfSize <-
+          acknowledgementPdfService.getRenderedPdfSize(cache, Option.empty[AccessCode], formModelOptics)(request, l, ss)
         downloadThenNew =
           new DownloadThenNewFormPage(cache.formTemplate, startNewOrLogout, submission, pdfSize)
         res <- if (submission.submittedDate.isAfter(LocalDateTime.now().minusHours(submittedAgeHours)))
