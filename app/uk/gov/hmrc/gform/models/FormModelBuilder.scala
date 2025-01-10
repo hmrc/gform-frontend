@@ -431,12 +431,18 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val expandedFields = s.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId))
 
+    def expandAtlDescription(atlDescription: AtlDescription) =
+      atlDescription match {
+        case s: AtlDescription.SmartStringBased => s.copy(value = expand(s.value))
+        case k: AtlDescription.KeyValueBased    => k.copy(key = expand(k.key), value = expand(k.value))
+      }
+
     Repeater[T](
       expand(s.title),
       s.caption.map(expand),
       s.pageId.withIndex(index),
       s.noPIITitle.map(expand),
-      expand(s.description),
+      expandAtlDescription(s.description),
       expand(s.summaryDescription),
       expand(s.shortName),
       expand(s.summaryName),

@@ -1,4 +1,10 @@
-import type { FormComponent, FormComponentId, ServerPageData } from "./types";
+import type {
+  AtlDescription,
+  FormComponent,
+  FormComponentId,
+  ServerPageData,
+  SmartString
+} from "./types";
 import { FieldInteractionType } from "./types";
 
 export const mkLookup = (acc: any, cur: FormComponent, index: number) => {
@@ -103,4 +109,8 @@ export const removePreviousSiblings = (form: HTMLFormElement) => {
     prev.remove();
     removePreviousSiblings(form);
   }
+};
+
+export const isSmartStringDesc = (description: SmartString | AtlDescription | undefined) => {
+  return (description as AtlDescription).key === undefined;
 };

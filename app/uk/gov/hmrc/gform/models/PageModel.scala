@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, AtlDescription, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
@@ -125,7 +125,7 @@ case class Repeater[A <: PageMode](
   expandedCaption: Option[SmartString],
   expandedId: PageId,
   expandedNoPIITitle: Option[SmartString],
-  expandedDescription: SmartString,
+  expandedDescription: AtlDescription,
   expandedSummaryDescription: SmartString,
   expandedShortName: SmartString,
   expandedSummaryName: SmartString,

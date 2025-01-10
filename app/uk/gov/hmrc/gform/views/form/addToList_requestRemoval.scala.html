@@ -26,9 +26,12 @@
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AtlDescription.SmartStringBased
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AtlDescription.KeyValueBased
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 @(
   formTemplate: FormTemplate,
-  repeater: Repeater[DataExpanded],
+  description: Html,
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
   frontendAppConfig: FrontendAppConfig,
@@ -69,7 +72,7 @@
             )),
             hint = Some(Hint(
                classes = "unhintify",
-               content = HtmlContent(markDownParser(repeater.expandedDescription))
+               content = HtmlContent(description)
             )),
             errorMessage = fieldErrors.get("remove"),
             name = "remove",

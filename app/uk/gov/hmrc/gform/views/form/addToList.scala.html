@@ -14,23 +14,16 @@
  * limitations under the License.
  *@
 
-@import cats.data.NonEmptyList
-@import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
-@import uk.gov.hmrc.gform.views.html.{main_template, specimen, page_heading}
+@import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{SectionNumber, AddToListId}
-@import uk.gov.hmrc.gform.controllers.{EditAddToList, SaveAndExit}
-@import uk.gov.hmrc.gform.controllers.Back
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+@import uk.gov.hmrc.gform.controllers.SaveAndExit
 @import uk.gov.hmrc.gform.commons.MarkDownUtil._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
 @import uk.gov.hmrc.gform.FormTemplateKey
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcListWithActions
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.listwithactions.ListWithActions
 
 @(
     title: String,
@@ -38,7 +31,6 @@
     noPIITitle: String,
     bracket: Bracket.AddToList[DataExpanded],
     formTemplate: FormTemplate,
-    recordTable: NonEmptyList[AddToListSummaryRecord],
     pageLevelError: HasErrors,
     frontendAppConfig: FrontendAppConfig,
     formAction: Call,
@@ -50,7 +42,7 @@
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     fastForward: List[FastForward],
-    listWithActions: ListWithActions
+    summaryList: Html
 )(
     implicit
     request: Request[_],
@@ -67,8 +59,6 @@
   new BackLink(href = uk.gov.hmrc.gform.gform.routes.FormController.backAction(formTemplate._id, maybeAccessCode, sectionNumber, FastForward.StopAt(sectionNumber)::fastForward).path,
                content = new Text(messages("linkText.back")))
 }
-
-@hmrcListWithActions = @{new HmrcListWithActions()}
 
 @main_template(
   title = noPIITitle,
@@ -97,12 +87,12 @@
 
     <div class="govuk-form-group">
 
-        @hmrcListWithActions(listWithActions)
-        @for(infoMessage <- bracket.source.infoMessage) {
-           <div class="govuk-body">
-            @markDownParser(infoMessage)
-           </div>
-        }
+        <div class="govuk-body">
+            @summaryList
+            @for(infoMessage <- bracket.source.infoMessage) {
+                @markDownParser(infoMessage)
+            }
+        </div>
     </div>
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
