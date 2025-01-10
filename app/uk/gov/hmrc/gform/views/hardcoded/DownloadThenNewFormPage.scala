@@ -16,18 +16,25 @@
 
 package uk.gov.hmrc.gform.views.hardcoded
 
+import cats.implicits.catsSyntaxEq
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.govukfrontend.views.html.components._
 
 import java.time.format.DateTimeFormatter
 
-class DownloadThenNewFormPage(val formTemplate: FormTemplate, form: Form[String], submission: Submission, size: Int)(
-  implicit messages: Messages
+class DownloadThenNewFormPage(
+  val formTemplate: FormTemplate,
+  form: Form[String],
+  submission: Submission,
+  size: Int,
+  se: SuppressErrors
+)(implicit
+  messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
   private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
@@ -58,7 +65,10 @@ class DownloadThenNewFormPage(val formTemplate: FormTemplate, form: Form[String]
     )
   }
 
-  val hasErrors: Boolean = errorSummary.errorList.nonEmpty
+  val hasErrors: Boolean =
+    if (se === SuppressErrors.No)
+      errorSummary.errorList.nonEmpty
+    else false
 
   val table = Table(
     rows = Seq(
@@ -139,7 +149,7 @@ class DownloadThenNewFormPage(val formTemplate: FormTemplate, form: Form[String]
 
     val radios = Radios(
       fieldset = fieldset,
-      errorMessage = errorMessage,
+      errorMessage = if (hasErrors) errorMessage else None,
       name = "downloadThenNew",
       items = List(startNew, signOut)
     )

@@ -16,19 +16,25 @@
 
 package uk.gov.hmrc.gform.views.hardcoded
 
+import cats.implicits.catsSyntaxEq
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.form.SubmittedDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class DownloadOrNewFormPage(val formTemplate: FormTemplate, form: Form[String], submittedDate: Option[SubmittedDate])(
-  implicit messages: Messages
+class DownloadOrNewFormPage(
+  val formTemplate: FormTemplate,
+  form: Form[String],
+  submittedDate: Option[SubmittedDate],
+  se: SuppressErrors
+)(implicit
+  messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
   private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
@@ -55,7 +61,10 @@ class DownloadOrNewFormPage(val formTemplate: FormTemplate, form: Form[String], 
     )
   }
 
-  val hasErrors: Boolean = errorSummary.errorList.nonEmpty
+  val hasErrors: Boolean =
+    if (se === SuppressErrors.No)
+      errorSummary.errorList.nonEmpty
+    else false
 
   val render: Html = {
 
@@ -103,7 +112,7 @@ class DownloadOrNewFormPage(val formTemplate: FormTemplate, form: Form[String], 
     val radios = Radios(
       fieldset = fieldset,
       hint = Some(Hint(content = Text(messages("downloadOrNew.helpText")))),
-      errorMessage = errorMessage,
+      errorMessage = if (hasErrors) errorMessage else None,
       name = "downloadOrNew",
       items = List(download, startNew)
     )

@@ -59,7 +59,8 @@ case class FormTemplate(
   dataRetrieve: Option[NonEmptyList[DataRetrieve]],
   accessiblePdf: Boolean,
   displayAccountHeader: Boolean,
-  serviceStartPageUrl: Option[ServiceStartPageUrl]
+  serviceStartPageUrl: Option[ServiceStartPageUrl],
+  downloadPreviousSubmissionPdf: Boolean
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
