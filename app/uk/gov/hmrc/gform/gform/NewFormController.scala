@@ -446,13 +446,13 @@ class NewFormController(
           res <- newCache.formTemplate.draftRetrieval
                    .flatMap(dr => newCache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
                    .collect {
-                     case BySubmissionReference => processSubmittedData(cache, BySubmissionReference)
+                     case BySubmissionReference => processSubmittedData(newCache, BySubmissionReference)
                      case FormAccessCode(continueOrDeletePage) =>
                        processSubmittedData(newCache, FormAccessCodeForAgents(continueOrDeletePage))
                    }
-                   .getOrElse((cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-                     case (BySubmissionReference, _)                    => processSubmittedData(cache, BySubmissionReference)
-                     case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(cache, drm)
+                   .getOrElse((newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
+                     case (BySubmissionReference, _)                    => processSubmittedData(newCache, BySubmissionReference)
+                     case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(newCache, drm)
                      case otherwise =>
                        Future.failed(
                          new Exception(
