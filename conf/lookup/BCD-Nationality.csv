@@ -1,223 +1,223 @@
-NationalityId,Keywords,Name,Name-cy,Priority,PriorityUK,Region,CountryCode,Country,Country-cy
-N0010,,Afghan,Affganaidd,,,4,AF,Afghanistan,Afghanistan
-N0020,,Albanian,Albanaidd,,,4,AL,Albania,Albania
-N0030,,Algerian,Algeraidd,,,4,DZ,Algeria,Algeria
-N0040,,American,Americanaidd,,,4,US,United States,Yr Unol Daleithiau
-N0050,,Andorran,Andorraidd,,,4,AD,Andorra,Andorra
-N0060,,Angolan,Angolaidd,,,4,AO,Angola,Angola
-N0070,,Anguillan,Un o Anguilla,,,4,AI,Anguilla,Anguilla
-N0080,,Citizen of Antigua and Barbuda,Dinesydd o Antigua a Barbuda,,,4,AG,Antigua and Barbuda,Antigua a Barbuda
-N0090,,Argentine,Archentwr,,,4,AR,Argentina,Yr Ariannin
-N0100,,Armenian,Armenaidd,,,4,AM,Armenia,Armenia
-N0110,,Australian,Awstraliaidd,,,4,AU,Australia,Awstralia
-N0120,,Austrian,Awstriaidd,,,3,AT,Austria,Awstria
-N0130,,Azerbaijani,Un o Azerbaijan,,,4,AZ,Azerbaijan,Azerbaijan
-N0140,,Bahamian,Bahamaidd,,,4,BS,Bahamas,Bahamas
-N0150,,Bahraini,Bahrainaidd,,,4,BH,Bahrain,Bahrain
-N0160,,Bangladeshi,Bangladeshaidd,,,4,BD,Bangladesh,Bangladesh
-N0170,,Barbadian,Barbadaidd,,,4,BB,Barbados,Barbados
-N0180,,Belarusian,Belarwsaidd,,,4,BY,Belarus,Belarus
-N0190,,Belgian,Belgaidd,,,3,BE,Belgium,Gwlad Belg
-N0200,,Belizean,Belizeaidd,,,4,BZ,Belize,Belize
-N0210,,Beninese,Beninaidd,,,4,BJ,Benin,Benin
-N0220,,Bermudian,Bermudaidd,,,4,BM,Bermuda,Bermuda
-N0230,,Bhutanese,Bhutanaidd,,,4,BT,Bhutan,Bhutan
-N0240,,Bolivian,Boliviaidd,,,4,BO,Bolivia,Bolivia
-N0250,,Citizen of Bosnia and Herzegovina,Dinesydd Bosnia a Herzegovina,,,4,BA,Bosnia and Herzegovina,Bosnia-Herzegovina
-N0260,,Botswanan,Botswanaidd,,,4,BW,Botswana,Botswana
-N0270,,Brazilian,Brasilaidd,,,4,BR,Brazil,Brasil
-N0280,UK United Kingdom,British,Prydeinig,,100,1,UK,United Kingdom,Y Deyrnas Unedig
-N0290,,British Virgin Islander,Un o Ynysoedd Prydeinig y Wyryf,,,4,VG,"Virgin Islands, British","Ynysoedd y Wyryf, Prydeinig"
-N0300,,Bruneian,Bruneiaidd,,,4,BN,Brunei,Brunei
-N0310,,Bulgarian,Bwlgaraidd,,,3,BG,Bulgaria,Bwlgaria
-N0320,,Burkinan,Burkinaidd,,,4,BF,Burkina Faso,Bwrcina Faso
-N0330,,Burmese,Byrmanaidd,,,4,MM,Myanmar (Burma),Myanmar
-N0340,,Burundian,Burundaidd,,,4,BI,Burundi,Bwrwndi
-N0350,,Cambodian,Cambodiaidd,,,4,KH,Cambodia,Cambodia
-N0360,,Cameroonian,Cameroonaidd,,,4,CM,Cameroon,Camerwn
-N0370,,Canadian,Canadaidd,,,4,CA,Canada,Canada
-N0380,,Cape Verdean,Un o Ynysoedd Cape Verde,,,4,CV,Cape Verde,Cabo Verde
-N0390,,Cayman Islander,Un o Ynysoedd Cayman,,,4,KY,Cayman Islands,Ynysoedd Caiman
-N0400,,Central African,Un o Weriniaeth Canolbarth Affrica,,,4,CF,Central Africa Republic,Gweriniaeth Canol Affrica
-N0410,,Chadian,Tsiadaidd,,,4,TD,Chad,Tchad
-N0420,,Chilean,Chileaidd,,,4,CL,Chile,Chile
-N0430,,Chinese,Tsieineaidd,,,4,CN,China,Tsieina
-N0440,,Colombian,Colombiaidd,,,4,CO,Colombia,Colombia
-N0450,,Comoran,Comoraidd,,,4,KM,Comoros,Comoros
-N0460,,Congolese (Congo),Congolaidd (Congo),,,4,CG,Congo,Congo
-N0470,,Congolese (DRC),Congolaidd (DRC),,,4,CG,Congo,Congo
-N0480,,Cook Islander,Un o Ynysoedd Cook,,,4,CK,Cook Islands,Ynysoedd Cook
-N0490,,Costa Rican,Un o Gosta Rica,,,4,CR,Costa Rica,Costa Rica
-N0500,,Croatian,Croataidd,,,3,HR,Croatia,Croatia
-N0510,,Cuban,Ciwbaidd,,,4,CU,Cuba,Cuba
-N0520,,Cypriot,Cypraidd,,,3,CY,Cyprus,Cyprus
-N0530,,Czech,Tsiecaidd,,,3,CZ,Czech Republic,Y Weriniaeth Tsiec
-N0540,,Danish,Danaidd,,,3,DK,Denmark,Denmarc
-N0550,,Djiboutian,Djiboutiaidd,,,4,DJ,Djibouti,Djibouti
-N0560,,Dominican,Dominicaidd,,,4,DM,Dominica,Dominica
-N0570,,Citizen of the Dominican Republic,Dinesydd o Weriniaeth Dominica,,,4,DO,Dominican Republic,Gweriniaeth Dominica
-N0580,,Dutch,Iseldiraidd,,,3,NL,Netherlands,Yr Iseldiroedd
-N0590,,East Timorese,Dwyrain Timoraidd,,,4,TP,East Timor,Timor-Leste
-N0600,,Ecuadorean,Ecuadoraidd,,,4,EC,Ecuador,Ecuador
-N0610,,Egyptian,Eifftiad,,,4,EG,Egypt,Yr Aifft
-N0620,,Emirati,Emiratiaidd,,,4,AE,United Arab Emirates,Yr Emiraethau Arabaidd Unedig
-N0630,,English,Seisnig,,,2,UK,United Kingdom,Y Deyrnas Unedig
-N0640,,Equatorial Guinean,Un o Guinea Gyhydeddol,,,4,GQ,Equatorial Guinea,Guinea Gyhydeddol
-N0650,,Eritrean,Eritreaidd,,,4,ER,Eritrea,Eritrea
-N0660,,Estonian,Estonaidd,,,3,EE,Estonia,Estonia
-N0670,,Ethiopian,Ethiopiad,,,4,ET,Ethiopia,Ethiopia
-N0680,,Faroese,Ffaroaidd,,,4,FO,Faroe Islands,Ynysoedd FÃ¸royar
-N0690,,Fijian,Ffijïaidd,,,4,FJ,Fiji,Ffiji
-N0700,,Filipino,Ffilipinaidd,,,4,PH,Philippines,Pilipinas
-N0710,,Finnish,Ffinnaidd,,,3,FI,Finland,Y Ffindir
-N0720,,French,Ffrengig,,,3,FR,France,Ffrainc
-N0730,,Gabonese,Gabonaidd,,,4,GA,Gabon,Gabon
-N0740,,Gambian,Gambiaidd,,,4,GM,The Gambia,Gambia
-N0750,,Georgian,Georgiaidd,,,4,GE,Georgia,Georgia
-N0760,,German,Almaenaidd,,,3,DE,Germany,Yr Almaen
-N0770,,Ghanaian,Ghanaidd,,,4,GH,Ghana,Ghana
-N0780,,Gibraltarian,Gibraltaraidd,,,4,GI,Gibraltar,Gibraltar
-N0790,,Greek,Groegaidd,,,3,GR,Greece,Gwlad Groeg
-N0800,,Greenlandic,Un o’r Ynys Las,,,4,GL,Greenland,Yr Ynys Las
-N0810,,Grenadian,Grenadaidd,,,4,GD,Grenada,Grenada
-N0820,,Guamanian,Guamaidd,,,4,GU,Guam,Gwam
-N0830,,Guatemalan,Guatemalaidd,,,4,GT,Guatemala,Gwatemala
-N0840,,Citizen of Guinea-Bissau,Dinesydd o Guinea-Bissau,,,4,GW,Guinea Bissau,Guinea-Bissau
-N0850,,Guinean,Guinïaidd,,,4,GN,Guinea,GuinÃ©e
-N0860,,Guyanese,Guyanaidd,,,4,GY,Guyana,Guyana
-N0870,,Haitian,Haitïaidd,,,4,HT,Haiti,Haiti
-N0880,,Honduran,Un o Honduras,,,4,HN,Honduras,Honduras
-N0890,,Hong Konger,Un o Hong Kong,,,4,HK,Hong Kong,Hong Kong
-N0900,,Hungarian,Hwngaraidd,,,3,HU,Hungary,Hwngari
-N0910,,Icelandic,Un o Wlad yr Iâ,,,5,IS,Iceland,Gwlad yr Iâ
-N0920,,Indian,Indiaidd,,,4,IN,India,India
-N0930,,Indonesian,Indonesaidd,,,4,ID,Indonesia,Indonesia
-N0940,,Iranian,Iranaidd,,,4,IR,Iran,Iran
-N0950,,Iraqi,Iracaidd,,,4,IQ,Iraq,Irac
-N0960,,Irish,Gwyddelig,,,3,IE,Ireland,Iwerddon
-N0970,,Israeli,Israelaidd,,,4,IL,Israel,Israel
-N0980,,Italian,Eidalaidd,,,3,IT,Italy,Yr Eidal
-N0990,,Ivorian,Iforaidd,,,4,CI,Cote D'Ivoire,Côte D'Ivoire
-N1000,,Jamaican,Jamaicaidd,,,4,JM,Jamaica,Jamaica
-N1010,,Japanese,Japanaidd,,,4,JP,Japan,Japan
-N1020,,Jordanian,Iorddonaidd,,,4,JO,Jordan,Gwlad yr Iorddonen
-N1030,,Kazakh,Kazakh,,,4,KZ,Kazakhstan,Kazakhstan
-N1040,,Kenyan,Un o Kenya,,,4,KE,Kenya,Kenya
-N1050,,Kittitian,Un o Saint Kitts a Nevis,,,4,KN,St Kitts and Nevis,St Kitts a Nevis
-N1060,,Citizen of Kiribati,Dinesydd o Kiribati,,,4,KI,Kiribati,Kiribati
-N1070,,Kosovan,Un o Kosovo,,,4,XK,Kosovo,Kosovo
-N1080,,Kuwaiti,Un o Kuwait,,,4,KW,Kuwait,Kuwait
-N1090,,Kyrgyz,Un o Kyrgyzstan,,,4,KG,Kyrgyzstan,Kyrgyzstan
-N1100,,Lao,Un o Laos,,,4,LA,Laos,Laos
-N1110,,Latvian,Latfiaidd,,,3,LV,Latvia,Latvia
-N1120,,Lebanese,Libanaidd,,,4,LB,Lebanon,Libanus
-N1130,,Liberian,Liberaidd,,,4,LR,Liberia,Liberia
-N1140,,Libyan,Libiaidd,,,4,LY,Libya,Libya
-N1150,,Liechtenstein citizen,Dinesydd o Liechtenstein,,,5,LI,Liechtenstein,Liechtenstein
-N1160,,Lithuanian,Lithwaniaidd,,,3,LT,Lithuania,Lithuania
-N1170,,Luxembourger,Lwcsembwrgiad,,,3,LU,Luxembourg,Lwcsembwrg
-N1180,,Macanese,Macanaidd,,,4,MO,Macao,Macau
-N1190,,Macedonian,Macedoniaidd,,,4,MK,North Macedonia,Macedonia
-N1200,,Malagasy,Malagasaidd,,,4,MG,Madagascar,Madagascar
-N1210,,Malawian,Malawaidd,,,4,MW,Malawi,Malawi
-N1220,,Malaysian,Malaysiaidd,,,4,MY,Malaysia,Malaysia
-N1230,,Maldivian,Un o’r Maldives,,,4,MV,Maldives,Maldives
-N1240,,Malian,Maliaidd,,,4,ML,Mali,Mali
-N1250,,Maltese,Maltaidd,,,3,MT,Malta,Malta
-N1260,,Marshallese,Un o Ynysoedd Marshall,,,4,MH,Marshall Islands,Ynysoedd Marshall
-N1270,,Martiniquais,Martiniquais,,,4,MQ,Martinique,Martinique
-N1280,,Mauritanian,Mauritaniaidd,,,4,MR,Mauritania,Mauritania
-N1290,,Mauritian,Un o Mauritius,,,4,MU,Mauritius,Mauritius
-N1300,,Mexican,Mecsicanaidd,,,4,MX,Mexico,Mecsico
-N1310,,Micronesian,Micronesaidd,,,4,FM,Micronesia,Micronesia
-N1320,,Moldovan,Moldofaidd,,,4,MD,Moldova,Moldova
-N1330,,Monegasque,Monegasque,,,4,MC,Monaco,Monaco
-N1340,,Mongolian,Mongolaidd,,,4,MN,Mongolia,Mongolia
-N1350,,Montenegrin,Montenegroaidd,,,4,ME,Montenegro,Montenegro
-N1360,,Montserratian,Montserrataidd,,,4,MS,Montserrat,Montserrat
-N1370,,Moroccan,Morocaidd,,,4,MA,Morocco,Moroco
-N1380,,Mosotho,Mosotho,,,4,LS,Lesotho,Lesotho
-N1390,,Mozambican,Mozambicaidd,,,4,MZ,Mozambique,MoÃ§ambique
-N1400,,Namibian,Namibiaidd,,,4,NA,Namibia,Namibia
-N1410,,Nauruan,Un o Nauru,,,4,NR,Nauru,Nauru
-N1420,,Nepalese,Nepalaidd,,,4,NP,Nepal,Nepal
-N1430,,New Zealander,Un o Seland Newydd,,,4,NZ,New Zealand,Seland Newydd
-N1440,,Nicaraguan,Nicaragwaidd,,,4,NI,Nicaragua,Nicaragua
-N1450,,Nigerian,Nigeriaidd,,,4,NE,Niger,Niger
-N1460,,Nigerien,Nigerien,,,4,NG,Nigeria,Nigeria
-N1470,,Niuean,Niueaidd,,,4,NU,Niue,Niue
-N1480,,North Korean,Gogledd Koreaidd,,,4,KP,North Korea,Gogledd Korea
-N1490,,Northern Irish,Un o Ogledd Iwerddon,,,2,UK,United Kingdom,Y Deyrnas Unedig
-N1500,,Norwegian,Norwyaidd,,,5,NO,Norway,Norwy
-N1510,,Omani,Omanaidd,,,4,OM,Oman,Oman
-N1520,,Pakistani,Pacistanaidd,,,4,PK,Pakistan,Pakistan
-N1530,,Palauan,Un o Palau,,,4,PW,Palau,Palau
-N1540,,Palestinian,Palesteinaidd,,,4,PS,Occupied Palestinian Territories,Tiriogaeth Palesteina
-N1550,,Panamanian,Panamaidd,,,4,PA,Panama,Panamá
-N1560,,Papua New Guinean,Un o Papua Guinea Newydd,,,4,PG,Papua New Guinea,Papua Guinea Newydd
-N1570,,Paraguayan,Un o Paraguay,,,4,PY,Paraguay,Paraguay
-N1580,,Peruvian,Periwaidd,,,4,PE,Peru,Periw
-N1590,,Pitcairn Islander,Un o Ynys Pitcairn,,,4,PN,Pitcairn,Pitcairn
-N1600,,Polish,Pwylaidd,,,3,PL,Poland,Gwlad Pwyl
-N1610,,Portuguese,Portiwgeaidd,,,3,PT,Portugal,Portiwgal
-N1620,,Puerto Rican,Puerto Ricaidd,,,4,PR,Puerto Rico,Puerto Rico
-N1630,,Qatari,Qataraidd,,,4,QA,Qatar,Qatar
-N1640,,Romanian,Rwmanaidd,,,3,RO,Romania,RomÃ¢nia
-N1650,,Russian,Rwsiad,,,4,RU,Russia,Rwsia
-N1660,,Rwandan,Rwandaidd,,,4,RW,Rwanda,Rwanda
-N1670,,Salvadorean,Salvadoraidd,,,4,SV,El Salvador,El Salvador
-N1680,,Sammarinese,Sammarinaidd,,,4,SM,San Marino,San Marino
-N1690,,Samoan,Samoaidd,,,4,WS,Samoa,Samoa
-N1700,,Sao Tomean,Un o Sao Tome a Principe,,,4,ST,Sao Tome and Principe,São Tomé a Príncipe
-N1710,,Saudi Arabian,Un o Saudi Arabia,,,4,SA,Saudi Arabia,Saudi Arabia
-N1720,,Scottish,Albanaidd,,,2,UK,United Kingdom,Y Deyrnas Unedig
-N1730,,Senegalese,Senegalaidd,,,4,SN,Senegal,Senegal
-N1740,,Serbian,Serbaidd,,,4,RS,Serbia,Serbia
-N1750,,Citizen of Seychelles,Dinesydd o’r Seychelles,,,4,SC,Seychelles,Seychelles
-N1760,,Sierra Leonean,Sierra Leonaidd,,,4,SL,Sierra Leone,Sierra Leone
-N1770,,Singaporean,Singaporaidd,,,4,SG,Singapore,Singapôr
-N1780,,Slovak,Slofacaidd,,,3,SK,Slovakia,Slovakia
-N1790,,Slovenian,Slofenaidd,,,3,SI,Slovenia,Slovenia
-N1800,,Solomon Islander,Un o Ynysoedd Solomon,,,4,SB,Solomon Islands,Ynysoedd Solomon
-N1810,,Somali,Somalïaidd,,,4,SO,Somalia,Somalia
-N1820,,South African,De Affricanaidd,,,4,ZA,South Africa,De Affrica
-N1830,,South Korean,De Koreaidd,,,4,KR,South Korea,De Korea
-N1840,,South Sudanese,De Sudanaidd,,,4,SS,South Sudan,De Swdan
-N1850,,Spanish,Sbaenaidd,,,3,ES,Spain,Sbaen
-N1860,,Sri Lankan,Un o Sri Lanka,,,4,LK,Sri Lanka,Sri Lanka
-N1870,,St Helenian,Un o St Helena,,,4,SH,"St Helena, Ascension and Tristan da Cunha","Saint Helena, Ynys y Dyrchafael a Tristan da Cunha"
-N1880,,St Lucian,Un o St Lucia,,,4,LC,St Lucia,St Lucia
-N1890,,Stateless,Heb wladwriaeth,,,4,ZZ,Stateless,Stateless
-N1900,,Sudanese,Un o Sudan,,,4,SD,Sudan,Swdan
-N1910,,Surinamese,Surinamaidd,,,4,SR,Suriname,Suriname
-N1920,,Swazi,Un o Eswatini,,,4,SZ,Eswatini,Eswatini
-N1930,,Swedish,Swedaidd,,,3,SE,Sweden,Sweden
-N1940,,Swiss,Swisaidd,,,5,CH,Switzerland,Y Swistir
-N1950,,Syrian,Syriaidd,,,4,SY,Syria,Syria
-N1960,,Taiwanese,Taiwanaidd,,,4,TW,Taiwan,Taiwan
-N1970,,Tajik,Tajik,,,4,TJ,Tajikistan,Tajikistan
-N1980,,Tanzanian,Un o Tanzania,,,4,TZ,Tanzania,Tanzania
-N1990,,Thai,Un o Wlad Thai,,,4,TH,Thailand,Gwlad Thai
-N2000,,Togolese,Togoaidd,,,4,TG,Togo,Togo
-N2010,,Tongan,Tongaidd,,,4,TO,Tonga,Tonga
-N2020,,Trinidadian,Trinidadaidd,,,4,TT,Trinidad and Tobago,Trinidad a Thobago
-N2030,,Tristanian,Tristanaidd,,,4,SH,"St Helena, Ascension and Tristan da Cunha","Saint Helena, Ynys y Dyrchafael a Tristan da Cunha"
-N2040,,Tunisian,Un o Tunisia,,,4,TN,Tunisia,Tunisia
-N2050,,Turkish,Twrcaidd,,,4,TR,Turkey,Twrci
-N2060,,Turkmen,Un o Turkmenistan,,,4,TM,Turkmenistan,Turkmenistan
-N2070,,Turks and Caicos Islander,Un o Ynysoedd Turks a Caicos,,,4,TC,Turks and Caicos Islands,Ynysoedd Turks a Caicos
-N2080,,Tuvaluan,Un o Tuvalu,,,4,TV,Tuvalu,Tuvalu
-N2090,,Ugandan,Un o Uganda,,,4,UG,Uganda,Uganda
-N2100,,Ukrainian,Wcreinaidd,,,4,UA,Ukraine,Ukrain
-N2110,,Uruguayan,Un o Uruguay,,,4,UY,Uruguay,Uruguay
-N2120,,Uzbek,Un o Uzbekistan,,,4,UZ,Uzbekistan,Uzbekistan
-N2130,,Vatican citizen,Dinesydd o’r Fatican,,,4,VA,Vatican City State,Gwladwriaeth Dinas y Fatican
-N2140,,Citizen of Vanuatu,Dinesydd o Vanuatu,,,4,VU,Vanuatu,Vanuatu
-N2150,,Venezuelan,Un o Venezuela,,,4,VE,Venezuela,Venezuela
-N2160,,Vietnamese,Fietnamaidd,,,4,VN,Vietnam,Viet Nam
-N2170,,Vincentian,Un o St Vincent,,,4,VC,St Vincent and the Grenadines,Saint Vincent a’r Grenadines
-N2180,,Wallisian,Un o Wallis a Futuna,,,4,WF,Wallis and Futuna,Wallis a Futuna
-N2190,,Welsh,Cymreig,,,2,UK,United Kingdom,Y Deyrnas Unedig
-N2200,,Yemeni,Yemeni,,,4,YE,Yemen,Yemen
-N2210,,Zambian,Un o Zambia,,,4,ZM,Zambia,Zambia
-N2220,,Zimbabwean,Un o Zimbabwe,,,4,ZW,Zimbabwe,Zimbabwe
+NationalityId,Keywords,Name,Name-cy,Priority,PriorityUK,Region,CountryCode
+N0010,,Afghan,Affganaidd,,,4,AF
+N0020,,Albanian,Albanaidd,,,4,AL
+N0030,,Algerian,Algeraidd,,,4,DZ
+N0040,,American,Americanaidd,,,4,US
+N0050,,Andorran,Andorraidd,,,4,AD
+N0060,,Angolan,Angolaidd,,,4,AO
+N0070,,Anguillan,Un o Anguilla,,,4,AI
+N0080,,Citizen of Antigua and Barbuda,Dinesydd o Antigua a Barbuda,,,4,AG
+N0090,,Argentine,Archentwr,,,4,AR
+N0100,,Armenian,Armenaidd,,,4,AM
+N0110,,Australian,Awstraliaidd,,,4,AU
+N0120,,Austrian,Awstriaidd,,,3,AT
+N0130,,Azerbaijani,Un o Azerbaijan,,,4,AZ
+N0140,,Bahamian,Bahamaidd,,,4,BS
+N0150,,Bahraini,Bahrainaidd,,,4,BH
+N0160,,Bangladeshi,Bangladeshaidd,,,4,BD
+N0170,,Barbadian,Barbadaidd,,,4,BB
+N0180,,Belarusian,Belarwsaidd,,,4,BY
+N0190,,Belgian,Belgaidd,,,3,BE
+N0200,,Belizean,Belizeaidd,,,4,BZ
+N0210,,Beninese,Beninaidd,,,4,BJ
+N0220,,Bermudian,Bermudaidd,,,4,BM
+N0230,,Bhutanese,Bhutanaidd,,,4,BT
+N0240,,Bolivian,Boliviaidd,,,4,BO
+N0250,,Citizen of Bosnia and Herzegovina,Dinesydd Bosnia a Herzegovina,,,4,BA
+N0260,,Botswanan,Botswanaidd,,,4,BW
+N0270,,Brazilian,Brasilaidd,,,4,BR
+N0280,UK United Kingdom,British,Prydeinig,,100,1,UK
+N0290,,British Virgin Islander,Un o Ynysoedd Prydeinig y Wyryf,,,4,VG
+N0300,,Bruneian,Bruneiaidd,,,4,BN
+N0310,,Bulgarian,Bwlgaraidd,,,3,BG
+N0320,,Burkinan,Burkinaidd,,,4,BF
+N0330,,Burmese,Byrmanaidd,,,4,MM
+N0340,,Burundian,Burundaidd,,,4,BI
+N0350,,Cambodian,Cambodiaidd,,,4,KH
+N0360,,Cameroonian,Cameroonaidd,,,4,CM
+N0370,,Canadian,Canadaidd,,,4,CA
+N0380,,Cape Verdean,Un o Ynysoedd Cape Verde,,,4,CV
+N0390,,Cayman Islander,Un o Ynysoedd Cayman,,,4,KY
+N0400,,Central African,Un o Weriniaeth Canolbarth Affrica,,,4,CF
+N0410,,Chadian,Tsiadaidd,,,4,TD
+N0420,,Chilean,Chileaidd,,,4,CL
+N0430,,Chinese,Tsieineaidd,,,4,CN
+N0440,,Colombian,Colombiaidd,,,4,CO
+N0450,,Comoran,Comoraidd,,,4,KM
+N0460,,Congolese (Congo),Congolaidd (Congo),,,4,CG
+N0470,,Congolese (DRC),Congolaidd (DRC),,,4,CG
+N0480,,Cook Islander,Un o Ynysoedd Cook,,,4,CK
+N0490,,Costa Rican,Un o Gosta Rica,,,4,CR
+N0500,,Croatian,Croataidd,,,3,HR
+N0510,,Cuban,Ciwbaidd,,,4,CU
+N0520,,Cypriot,Cypraidd,,,3,CY
+N0530,,Czech,Tsiecaidd,,,3,CZ
+N0540,,Danish,Danaidd,,,3,DK
+N0550,,Djiboutian,Djiboutiaidd,,,4,DJ
+N0560,,Dominican,Dominicaidd,,,4,DM
+N0570,,Citizen of the Dominican Republic,Dinesydd o Weriniaeth Dominica,,,4,DO
+N0580,,Dutch,Iseldiraidd,,,3,NL
+N0590,,East Timorese,Dwyrain Timoraidd,,,4,TP
+N0600,,Ecuadorean,Ecuadoraidd,,,4,EC
+N0610,,Egyptian,Eifftiad,,,4,EG
+N0620,,Emirati,Emiratiaidd,,,4,AE
+N0630,,English,Seisnig,,,2,UK
+N0640,,Equatorial Guinean,Un o Guinea Gyhydeddol,,,4,GQ
+N0650,,Eritrean,Eritreaidd,,,4,ER
+N0660,,Estonian,Estonaidd,,,3,EE
+N0670,,Ethiopian,Ethiopiad,,,4,ET
+N0680,,Faroese,Ffaroaidd,,,4,FO
+N0690,,Fijian,FfijÃ¯aidd,,,4,FJ
+N0700,,Filipino,Ffilipinaidd,,,4,PH
+N0710,,Finnish,Ffinnaidd,,,3,FI
+N0720,,French,Ffrengig,,,3,FR
+N0730,,Gabonese,Gabonaidd,,,4,GA
+N0740,,Gambian,Gambiaidd,,,4,GM
+N0750,,Georgian,Georgiaidd,,,4,GE
+N0760,,German,Almaenaidd,,,3,DE
+N0770,,Ghanaian,Ghanaidd,,,4,GH
+N0780,,Gibraltarian,Gibraltaraidd,,,4,GI
+N0790,,Greek,Groegaidd,,,3,GR
+N0800,,Greenlandic,Un oâ€™r Ynys Las,,,4,GL
+N0810,,Grenadian,Grenadaidd,,,4,GD
+N0820,,Guamanian,Guamaidd,,,4,GU
+N0830,,Guatemalan,Guatemalaidd,,,4,GT
+N0840,,Citizen of Guinea-Bissau,Dinesydd o Guinea-Bissau,,,4,GW
+N0850,,Guinean,GuinÃ¯aidd,,,4,GN
+N0860,,Guyanese,Guyanaidd,,,4,GY
+N0870,,Haitian,HaitÃ¯aidd,,,4,HT
+N0880,,Honduran,Un o Honduras,,,4,HN
+N0890,,Hong Konger,Un o Hong Kong,,,4,HK
+N0900,,Hungarian,Hwngaraidd,,,3,HU
+N0910,,Icelandic,Un o Wlad yr IÃ¢,,,5,IS
+N0920,,Indian,Indiaidd,,,4,IN
+N0930,,Indonesian,Indonesaidd,,,4,ID
+N0940,,Iranian,Iranaidd,,,4,IR
+N0950,,Iraqi,Iracaidd,,,4,IQ
+N0960,,Irish,Gwyddelig,,,3,IE
+N0970,,Israeli,Israelaidd,,,4,IL
+N0980,,Italian,Eidalaidd,,,3,IT
+N0990,,Ivorian,Iforaidd,,,4,CI
+N1000,,Jamaican,Jamaicaidd,,,4,JM
+N1010,,Japanese,Japanaidd,,,4,JP
+N1020,,Jordanian,Iorddonaidd,,,4,JO
+N1030,,Kazakh,Kazakh,,,4,KZ
+N1040,,Kenyan,Un o Kenya,,,4,KE
+N1050,,Kittitian,Un o Saint Kitts a Nevis,,,4,KN
+N1060,,Citizen of Kiribati,Dinesydd o Kiribati,,,4,KI
+N1070,,Kosovan,Un o Kosovo,,,4,XK
+N1080,,Kuwaiti,Un o Kuwait,,,4,KW
+N1090,,Kyrgyz,Un o Kyrgyzstan,,,4,KG
+N1100,,Lao,Un o Laos,,,4,LA
+N1110,,Latvian,Latfiaidd,,,3,LV
+N1120,,Lebanese,Libanaidd,,,4,LB
+N1130,,Liberian,Liberaidd,,,4,LR
+N1140,,Libyan,Libiaidd,,,4,LY
+N1150,,Liechtenstein citizen,Dinesydd o Liechtenstein,,,5,LI
+N1160,,Lithuanian,Lithwaniaidd,,,3,LT
+N1170,,Luxembourger,Lwcsembwrgiad,,,3,LU
+N1180,,Macanese,Macanaidd,,,4,MO
+N1190,,Macedonian,Macedoniaidd,,,4,MK
+N1200,,Malagasy,Malagasaidd,,,4,MG
+N1210,,Malawian,Malawaidd,,,4,MW
+N1220,,Malaysian,Malaysiaidd,,,4,MY
+N1230,,Maldivian,Un oâ€™r Maldives,,,4,MV
+N1240,,Malian,Maliaidd,,,4,ML
+N1250,,Maltese,Maltaidd,,,3,MT
+N1260,,Marshallese,Un o Ynysoedd Marshall,,,4,MH
+N1270,,Martiniquais,Martiniquais,,,4,MQ
+N1280,,Mauritanian,Mauritaniaidd,,,4,MR
+N1290,,Mauritian,Un o Mauritius,,,4,MU
+N1300,,Mexican,Mecsicanaidd,,,4,MX
+N1310,,Micronesian,Micronesaidd,,,4,FM
+N1320,,Moldovan,Moldofaidd,,,4,MD
+N1330,,Monegasque,Monegasque,,,4,MC
+N1340,,Mongolian,Mongolaidd,,,4,MN
+N1350,,Montenegrin,Montenegroaidd,,,4,ME
+N1360,,Montserratian,Montserrataidd,,,4,MS
+N1370,,Moroccan,Morocaidd,,,4,MA
+N1380,,Mosotho,Mosotho,,,4,LS
+N1390,,Mozambican,Mozambicaidd,,,4,MZ
+N1400,,Namibian,Namibiaidd,,,4,NA
+N1410,,Nauruan,Un o Nauru,,,4,NR
+N1420,,Nepalese,Nepalaidd,,,4,NP
+N1430,,New Zealander,Un o Seland Newydd,,,4,NZ
+N1440,,Nicaraguan,Nicaragwaidd,,,4,NI
+N1450,,Nigerian,Nigeriaidd,,,4,NE
+N1460,,Nigerien,Nigerien,,,4,NG
+N1470,,Niuean,Niueaidd,,,4,NU
+N1480,,North Korean,Gogledd Koreaidd,,,4,KP
+N1490,,Northern Irish,Un o Ogledd Iwerddon,,,2,UK
+N1500,,Norwegian,Norwyaidd,,,5,NO
+N1510,,Omani,Omanaidd,,,4,OM
+N1520,,Pakistani,Pacistanaidd,,,4,PK
+N1530,,Palauan,Un o Palau,,,4,PW
+N1540,,Palestinian,Palesteinaidd,,,4,PS
+N1550,,Panamanian,Panamaidd,,,4,PA
+N1560,,Papua New Guinean,Un o Papua Guinea Newydd,,,4,PG
+N1570,,Paraguayan,Un o Paraguay,,,4,PY
+N1580,,Peruvian,Periwaidd,,,4,PE
+N1590,,Pitcairn Islander,Un o Ynys Pitcairn,,,4,PN
+N1600,,Polish,Pwylaidd,,,3,PL
+N1610,,Portuguese,Portiwgeaidd,,,3,PT
+N1620,,Puerto Rican,Puerto Ricaidd,,,4,PR
+N1630,,Qatari,Qataraidd,,,4,QA
+N1640,,Romanian,Rwmanaidd,,,3,RO
+N1650,,Russian,Rwsiad,,,4,RU
+N1660,,Rwandan,Rwandaidd,,,4,RW
+N1670,,Salvadorean,Salvadoraidd,,,4,SV
+N1680,,Sammarinese,Sammarinaidd,,,4,SM
+N1690,,Samoan,Samoaidd,,,4,WS
+N1700,,Sao Tomean,Un o Sao Tome a Principe,,,4,ST
+N1710,,Saudi Arabian,Un o Saudi Arabia,,,4,SA
+N1720,,Scottish,Albanaidd,,,2,UK
+N1730,,Senegalese,Senegalaidd,,,4,SN
+N1740,,Serbian,Serbaidd,,,4,RS
+N1750,,Citizen of Seychelles,Dinesydd oâ€™r Seychelles,,,4,SC
+N1760,,Sierra Leonean,Sierra Leonaidd,,,4,SL
+N1770,,Singaporean,Singaporaidd,,,4,SG
+N1780,,Slovak,Slofacaidd,,,3,SK
+N1790,,Slovenian,Slofenaidd,,,3,SI
+N1800,,Solomon Islander,Un o Ynysoedd Solomon,,,4,SB
+N1810,,Somali,SomalÃ¯aidd,,,4,SO
+N1820,,South African,De Affricanaidd,,,4,ZA
+N1830,,South Korean,De Koreaidd,,,4,KR
+N1840,,South Sudanese,De Sudanaidd,,,4,SS
+N1850,,Spanish,Sbaenaidd,,,3,ES
+N1860,,Sri Lankan,Un o Sri Lanka,,,4,LK
+N1870,,St Helenian,Un o St Helena,,,4,SH
+N1880,,St Lucian,Un o St Lucia,,,4,LC
+N1890,,Stateless,Heb wladwriaeth,,,4,ZZ
+N1900,,Sudanese,Un o Sudan,,,4,SD
+N1910,,Surinamese,Surinamaidd,,,4,SR
+N1920,,Swazi,Un o Eswatini,,,4,SZ
+N1930,,Swedish,Swedaidd,,,3,SE
+N1940,,Swiss,Swisaidd,,,5,CH
+N1950,,Syrian,Syriaidd,,,4,SY
+N1960,,Taiwanese,Taiwanaidd,,,4,TW
+N1970,,Tajik,Tajik,,,4,TJ
+N1980,,Tanzanian,Un o Tanzania,,,4,TZ
+N1990,,Thai,Un o Wlad Thai,,,4,TH
+N2000,,Togolese,Togoaidd,,,4,TG
+N2010,,Tongan,Tongaidd,,,4,TO
+N2020,,Trinidadian,Trinidadaidd,,,4,TT
+N2030,,Tristanian,Tristanaidd,,,4,SH
+N2040,,Tunisian,Un o Tunisia,,,4,TN
+N2050,,Turkish,Twrcaidd,,,4,TR
+N2060,,Turkmen,Un o Turkmenistan,,,4,TM
+N2070,,Turks and Caicos Islander,Un o Ynysoedd Turks a Caicos,,,4,TC
+N2080,,Tuvaluan,Un o Tuvalu,,,4,TV
+N2090,,Ugandan,Un o Uganda,,,4,UG
+N2100,,Ukrainian,Wcreinaidd,,,4,UA
+N2110,,Uruguayan,Un o Uruguay,,,4,UY
+N2120,,Uzbek,Un o Uzbekistan,,,4,UZ
+N2130,,Vatican citizen,Dinesydd oâ€™r Fatican,,,4,VA
+N2140,,Citizen of Vanuatu,Dinesydd o Vanuatu,,,4,VU
+N2150,,Venezuelan,Un o Venezuela,,,4,VE
+N2160,,Vietnamese,Fietnamaidd,,,4,VN
+N2170,,Vincentian,Un o St Vincent,,,4,VC
+N2180,,Wallisian,Un o Wallis a Futuna,,,4,WF
+N2190,,Welsh,Cymreig,,,2,UK
+N2200,,Yemeni,Yemeni,,,4,YE
+N2210,,Zambian,Un o Zambia,,,4,ZM
+N2220,,Zimbabwean,Un o Zimbabwe,,,4,ZW
