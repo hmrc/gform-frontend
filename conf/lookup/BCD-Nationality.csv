@@ -67,7 +67,7 @@ N0650,,Eritrean,Eritreaidd,,,4,ER
 N0660,,Estonian,Estonaidd,,,3,EE
 N0670,,Ethiopian,Ethiopiad,,,4,ET
 N0680,,Faroese,Ffaroaidd,,,4,FO
-N0690,,Fijian,FfijÃ¯aidd,,,4,FJ
+N0690,,Fijian,Ffijïaidd,,,4,FJ
 N0700,,Filipino,Ffilipinaidd,,,4,PH
 N0710,,Finnish,Ffinnaidd,,,3,FI
 N0720,,French,Ffrengig,,,3,FR
@@ -78,18 +78,18 @@ N0760,,German,Almaenaidd,,,3,DE
 N0770,,Ghanaian,Ghanaidd,,,4,GH
 N0780,,Gibraltarian,Gibraltaraidd,,,4,GI
 N0790,,Greek,Groegaidd,,,3,GR
-N0800,,Greenlandic,Un oâ€™r Ynys Las,,,4,GL
+N0800,,Greenlandic,Un o’r Ynys Las,,,4,GL
 N0810,,Grenadian,Grenadaidd,,,4,GD
 N0820,,Guamanian,Guamaidd,,,4,GU
 N0830,,Guatemalan,Guatemalaidd,,,4,GT
 N0840,,Citizen of Guinea-Bissau,Dinesydd o Guinea-Bissau,,,4,GW
-N0850,,Guinean,GuinÃ¯aidd,,,4,GN
+N0850,,Guinean,Guinïaidd,,,4,GN
 N0860,,Guyanese,Guyanaidd,,,4,GY
-N0870,,Haitian,HaitÃ¯aidd,,,4,HT
+N0870,,Haitian,Haitïaidd,,,4,HT
 N0880,,Honduran,Un o Honduras,,,4,HN
 N0890,,Hong Konger,Un o Hong Kong,,,4,HK
 N0900,,Hungarian,Hwngaraidd,,,3,HU
-N0910,,Icelandic,Un o Wlad yr IÃ¢,,,5,IS
+N0910,,Icelandic,Un o Wlad yr Iâ,,,5,IS
 N0920,,Indian,Indiaidd,,,4,IN
 N0930,,Indonesian,Indonesaidd,,,4,ID
 N0940,,Iranian,Iranaidd,,,4,IR
@@ -121,7 +121,7 @@ N1190,,Macedonian,Macedoniaidd,,,4,MK
 N1200,,Malagasy,Malagasaidd,,,4,MG
 N1210,,Malawian,Malawaidd,,,4,MW
 N1220,,Malaysian,Malaysiaidd,,,4,MY
-N1230,,Maldivian,Un oâ€™r Maldives,,,4,MV
+N1230,,Maldivian,Un o’r Maldives,,,4,MV
 N1240,,Malian,Maliaidd,,,4,ML
 N1250,,Maltese,Maltaidd,,,3,MT
 N1260,,Marshallese,Un o Ynysoedd Marshall,,,4,MH
@@ -173,13 +173,13 @@ N1710,,Saudi Arabian,Un o Saudi Arabia,,,4,SA
 N1720,,Scottish,Albanaidd,,,2,UK
 N1730,,Senegalese,Senegalaidd,,,4,SN
 N1740,,Serbian,Serbaidd,,,4,RS
-N1750,,Citizen of Seychelles,Dinesydd oâ€™r Seychelles,,,4,SC
+N1750,,Citizen of Seychelles,Dinesydd o’r Seychelles,,,4,SC
 N1760,,Sierra Leonean,Sierra Leonaidd,,,4,SL
 N1770,,Singaporean,Singaporaidd,,,4,SG
 N1780,,Slovak,Slofacaidd,,,3,SK
 N1790,,Slovenian,Slofenaidd,,,3,SI
 N1800,,Solomon Islander,Un o Ynysoedd Solomon,,,4,SB
-N1810,,Somali,SomalÃ¯aidd,,,4,SO
+N1810,,Somali,Somalïaidd,,,4,SO
 N1820,,South African,De Affricanaidd,,,4,ZA
 N1830,,South Korean,De Koreaidd,,,4,KR
 N1840,,South Sudanese,De Sudanaidd,,,4,SS
@@ -211,7 +211,7 @@ N2090,,Ugandan,Un o Uganda,,,4,UG
 N2100,,Ukrainian,Wcreinaidd,,,4,UA
 N2110,,Uruguayan,Un o Uruguay,,,4,UY
 N2120,,Uzbek,Un o Uzbekistan,,,4,UZ
-N2130,,Vatican citizen,Dinesydd oâ€™r Fatican,,,4,VA
+N2130,,Vatican citizen,Dinesydd o’r Fatican,,,4,VA
 N2140,,Citizen of Vanuatu,Dinesydd o Vanuatu,,,4,VU
 N2150,,Venezuelan,Un o Venezuela,,,4,VE
 N2160,,Vietnamese,Fietnamaidd,,,4,VN
