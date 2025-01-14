@@ -19,7 +19,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukButton
-@import uk.gov.hmrc.govukfrontend.views.html.components.TwoThirdsMainContent
 @import uk.gov.hmrc.gform.views.html.form.section_header
 @import uk.gov.hmrc.gform.models.SectionHeader
 
@@ -35,10 +34,9 @@
 
 @govukButton = @{new GovukButton()}
 
-@section_header(sectionHeader, shouldDisplayHeading)
-
 @uploaded_files_wrapper(formComponentId){
   @maybeCurrentValue.map { currentValue =>
+    @section_header(sectionHeader.copy(caption = None), shouldDisplayHeading)
     @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
       @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
         <dl class="govuk-summary-list--no-border app-file-upload__list">
