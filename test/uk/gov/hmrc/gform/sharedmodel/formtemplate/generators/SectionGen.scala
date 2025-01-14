@@ -160,7 +160,7 @@ trait SectionGen {
         title,
         caption,
         noPIITitle,
-        description,
+        AtlDescription.SmartStringBased(description),
         summaryDescription,
         shortName,
         summaryName,

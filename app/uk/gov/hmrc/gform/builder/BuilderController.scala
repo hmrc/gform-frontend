@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.builder
 
-import cats.data.NonEmptyList
 import cats.implicits._
 import io.circe.CursorOp._
 import io.circe._
@@ -40,7 +39,7 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -982,19 +981,18 @@ class BuilderController(
     maybeAccessCode: Option[AccessCode]
   ) =
     fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) { _ => implicit sse => repeater => bracket =>
-      val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
-
-      val recordTable: NonEmptyList[Html] = descriptions.zipWithIndex.map { case (description, index) =>
-        val html = markDownParser(description)
-        html
-      }
+      val descriptions = bracket.repeaters.map(_.expandedDescription match {
+        case AtlDescription.SmartStringBased(ss) => Json.fromString(markDownParser(ss).toString())
+        case AtlDescription.KeyValueBased(k, v) =>
+          Json.obj("key" := markDownParser(k), "value" := markDownParser(v))
+      })
 
       val pageHeading: Html = uk.gov.hmrc.gform.views.html
         .page_heading(repeater.expandedTitle.value(), repeater.expandedCaption.map(_.value()))
 
       Json.obj(
         "pageHeading" := pageHeading,
-        "descriptions" := recordTable
+        "descriptions" := descriptions
       )
     }
 

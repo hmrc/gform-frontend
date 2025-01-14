@@ -740,7 +740,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       toSmartString(title),
       None,
       Some(toSmartString(title)),
-      toSmartString(description),
+      AtlDescription.SmartStringBased(toSmartString(description)),
       toSmartString(summaryDescription),
       toSmartString(shortName),
       toSmartString(summaryName),

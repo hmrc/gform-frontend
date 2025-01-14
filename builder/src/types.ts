@@ -326,10 +326,15 @@ export interface CyaPage {
 
 export type CyaPagePart = Partial<CyaPage>;
 
+export interface AtlDescription{
+  key: SmartString,
+  value: SmartString
+}
+
 export interface AtlRepeater {
   title?: SmartString;
   caption?: SmartString;
-  description?: SmartString;
+  description?: SmartString | AtlDescription;
   shortName?: SmartString;
   summaryName?: SmartString;
   summaryDescription?: SmartString;
@@ -595,7 +600,7 @@ export interface UpdateAtlCyaPageHeaderResponse {
 export interface UpdateAtlRepeaterResponse {
   error?: string;
   pageHeading?: string;
-  descriptions?: [string];
+  descriptions?: [string] | [{key: string, value: string}];
 }
 
 export interface UpdateAtlRepeaterAddAnotherQuestionResponse {
