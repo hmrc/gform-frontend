@@ -113,6 +113,11 @@ button.defaultsink {
 .app-summary-list__spinner {
     @extend .govuk-summary-list__actions;
     border-top: 1px solid #b1b4b6;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    line-height:30px;
+    text-align: left;
+    align-items: center;
 }
 
 .govuk-fieldset__legend + div.unhintify {
@@ -136,7 +141,7 @@ button.defaultsink {
     width: 19px;
     height: 19px;
     float:left;
-    margin-right:10px;
+    margin-right:20px;
     -webkit-animation: spin 2s linear infinite;
     animation: spin 2s linear infinite;
   }
