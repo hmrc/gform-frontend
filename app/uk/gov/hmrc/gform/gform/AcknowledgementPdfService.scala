@@ -51,10 +51,10 @@ class AcknowledgementPdfService(
 )(implicit ec: ExecutionContext)
     extends FrontendHeaderCarrierProvider {
 
-  def renderFop(pdfContent: PdfContent): Future[Array[Byte]] =
+  def getByteArrayFop(pdfContent: PdfContent): Future[Array[Byte]] =
     fopService.render(pdfContent.content)
 
-  def getPdf(pdfContent: PdfContent): Future[Array[Byte]] =
+  def getByteArrayPdf(pdfContent: PdfContent): Future[Array[Byte]] =
     for {
       pdfF <- pdfGeneratorService.generateByteArrayPDF(pdfContent)
     } yield pdfF.toByteArray
@@ -75,11 +75,11 @@ class AcknowledgementPdfService(
       pdfContent <- createPDFContent(cache, maybeAccessCode, formModelOptics, sendAuditEvent = false)
       pdfSize <- if (cache.formTemplate.accessiblePdf) {
                    for {
-                     pdfSource <- renderFop(pdfContent)
+                     pdfSource <- getByteArrayFop(pdfContent)
                    } yield pdfSource.length
                  } else {
                    for {
-                     pdfSource <- getPdf(pdfContent)
+                     pdfSource <- getByteArrayPdf(pdfContent)
                    } yield pdfSource.length
                  }
     } yield pdfSize
@@ -134,6 +134,7 @@ class AcknowledgementPdfService(
                .eventId
 
              nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
+             Future.unit
            } else Future.unit
       submission <- gformConnector.submissionDetails(
                       FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),

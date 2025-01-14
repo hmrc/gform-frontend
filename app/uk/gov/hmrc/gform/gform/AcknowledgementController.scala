@@ -106,7 +106,7 @@ class AcknowledgementController(
       if (cache.formTemplate.accessiblePdf) {
         for {
           pdfContent <- pdfContentF
-          pdfSource  <- acknowledgementPdfService.renderFop(pdfContent)
+          pdfSource  <- acknowledgementPdfService.getByteArrayFop(pdfContent)
         } yield Ok(pdfSource).as(MimeConstants.MIME_PDF)
       } else {
         for {
@@ -114,7 +114,7 @@ class AcknowledgementController(
           pdfSource  <- acknowledgementPdfService.generatePDF(pdfContent)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
-          body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
+          body = HttpEntity.Streamed(pdfSource, None, Some(MimeConstants.MIME_PDF))
         )
       }
     }

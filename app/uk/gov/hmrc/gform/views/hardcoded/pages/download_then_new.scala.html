@@ -52,7 +52,7 @@
     @govukTable(downloadThenNewFormPage.table)
 
     <p class="govuk-body">@messages("downloadThenNew.download.info")</p>
-    <a href="@{downloadThenNewFormPage.downloadUrl}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button" target="_blank">
+    <a href="@{downloadThenNewFormPage.downloadUrl}" role="button" draggable="false" download="@downloadThenNewFormPage.filename" class="govuk-button govuk-button--secondary" data-module="govuk-button" target="_blank">
         @download
     </a>
 

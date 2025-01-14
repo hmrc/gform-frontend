@@ -211,7 +211,8 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
     dataRetrieve = None,
     accessiblePdf = false,
     displayAccountHeader = false,
-    serviceStartPageUrl = None
+    serviceStartPageUrl = None,
+    downloadPreviousSubmissionPdf = true
   )
 
 }
