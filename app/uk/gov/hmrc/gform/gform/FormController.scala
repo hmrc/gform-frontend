@@ -719,7 +719,8 @@ class FormController(
                                   maybeAccessCode,
                                   sectionNumber,
                                   index,
-                                  atlId
+                                  atlId,
+                                  fastForward
                                 )
                             )
                           }

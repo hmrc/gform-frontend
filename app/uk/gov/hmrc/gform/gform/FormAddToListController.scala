@@ -74,7 +74,8 @@ class FormAddToListController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     index: Int,
-    addToListId: AddToListId
+    addToListId: AddToListId,
+    fastForward: List[FastForward]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => _ => implicit sse => formModelOptics =>
@@ -84,7 +85,7 @@ class FormAddToListController(
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val formAction =
           routes.FormAddToListController
-            .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
+            .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId, fastForward)
         val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
           case bracket @ Bracket.AddToList(iterations, source) =>
@@ -176,7 +177,8 @@ class FormAddToListController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     index: Int,
-    addToListId: AddToListId
+    addToListId: AddToListId,
+    fastForward: List[FastForward]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
@@ -186,7 +188,7 @@ class FormAddToListController(
             _ =>
               Redirect(
                 routes.FormAddToListController
-                  .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId)
+                  .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId, fastForward)
               )
                 .flashing("removeParamMissing" -> "true")
                 .pure[Future],
@@ -198,7 +200,8 @@ class FormAddToListController(
                   maybeAccessCode,
                   sectionNumber.templateSectionIndex,
                   index,
-                  addToListId
+                  addToListId,
+                  fastForward
                 )
                   .map(_.flashing("success" -> request.messages.messages("generic.successfullyRemoved")))
               case "No" =>
@@ -213,7 +216,8 @@ class FormAddToListController(
     maybeAccessCode: Option[AccessCode],
     templateSectionIndex: TemplateSectionIndex,
     index: Int,
-    addToListId: AddToListId
+    addToListId: AddToListId,
+    fastForward: List[FastForward]
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -233,7 +237,7 @@ class FormAddToListController(
       redirect <- addToListProcessor.processRemoveAddToList(
                     cache,
                     maybeAccessCode,
-                    List(FastForward.Yes),
+                    fastForward,
                     formModelOptics,
                     processData,
                     templateSectionIndex,
@@ -247,7 +251,8 @@ class FormAddToListController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     index: Int,
-    addToListId: AddToListId
+    addToListId: AddToListId,
+    fastForward: List[FastForward]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
@@ -257,7 +262,8 @@ class FormAddToListController(
           maybeAccessCode,
           sectionNumber.templateSectionIndex,
           index,
-          addToListId
+          addToListId,
+          fastForward
         )
     }
 }

@@ -279,7 +279,20 @@ class SectionRenderingService(
     val listResult = validationResult.formFieldValidationResults
     val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
-      .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
+      .updateFormData(
+        formTemplate._id,
+        maybeAccessCode,
+        sectionNumber,
+        if (
+          fastForward.contains(FastForward.Yes) && fastForward
+            .contains(FastForward.CYA(SectionOrSummary.FormSummary))
+        ) {
+          List(FastForward.CYA(SectionOrSummary.FormSummary))
+        } else {
+          fastForward
+        },
+        SaveAndContinue
+      )
 
     val formComponent = repeater.addAnotherQuestion
 
@@ -494,7 +507,8 @@ class SectionRenderingService(
                   maybeAccessCode,
                   sectionNumber,
                   index,
-                  AddToListId(bracket.source.id.formComponentId)
+                  AddToListId(bracket.source.id.formComponentId),
+                  fastForward
                 )
                 .url,
               visuallyHiddenText = Some(messages("addToList.change.visually.hidden", text)),
@@ -538,7 +552,8 @@ class SectionRenderingService(
                 maybeAccessCode,
                 sectionNumber,
                 index,
-                AddToListId(bracket.source.id.formComponentId)
+                AddToListId(bracket.source.id.formComponentId),
+                fastForward
               )
               .url,
             visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
