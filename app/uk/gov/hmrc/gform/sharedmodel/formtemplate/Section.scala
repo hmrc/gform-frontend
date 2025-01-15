@@ -55,7 +55,7 @@ object Section {
     title: SmartString,
     caption: Option[SmartString],
     noPIITitle: Option[SmartString],
-    description: SmartString,
+    description: AtlDescription,
     summaryDescription: SmartString,
     shortName: SmartString,
     summaryName: SmartString,
@@ -101,6 +101,15 @@ object Section {
   }
 
   implicit val format: OFormat[Section] = derived.oformat()
+}
+
+sealed trait AtlDescription extends Product with Serializable
+
+object AtlDescription {
+  case class SmartStringBased(value: SmartString) extends AtlDescription
+  case class KeyValueBased(key: SmartString, value: SmartString) extends AtlDescription
+
+  implicit val format: OFormat[AtlDescription] = derived.oformat()
 }
 
 case class DeclarationSection(

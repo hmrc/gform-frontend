@@ -107,7 +107,8 @@ class FormProcessor(
     def saveAndRedirect(
       updFormModelOptics: FormModelOptics[DataOrigin.Browser],
       componentIdToFileId: FormComponentIdToFileIdMapping,
-      postcodeLookupIds: Set[FormComponentId]
+      postcodeLookupIds: Set[FormComponentId],
+      dataRetrieveIds: Set[DataRetrieveId]
     ): Future[Result] = {
       val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
 
@@ -127,11 +128,14 @@ class FormProcessor(
       )
 
       val cacheUpd = cache.copy(
-        form = cache.form.copy(
-          visitsIndex = visitsIndexUpd,
-          thirdPartyData = cache.form.thirdPartyData.removePostcodeData(idx, postcodeLookupIds),
-          componentIdToFileId = componentIdToFileId
-        )
+        form = cache.form
+          .copy(
+            visitsIndex = visitsIndexUpd,
+            thirdPartyData = cache.form.thirdPartyData
+              .removePostcodeData(idx, postcodeLookupIds)
+              .removeDataRetrieveData(idx, dataRetrieveIds),
+            componentIdToFileId = componentIdToFileId
+          )
       )
 
       validateAndUpdateData(
@@ -199,6 +203,16 @@ class FormProcessor(
       }
       .toSet
 
+    val dataRetrieveIds: Set[DataRetrieveId] = bracket.iterations
+      .toList(idx)
+      .toPageModel
+      .toList
+      .flatMap(_.dataRetrieves)
+      .collect { case DataRetrieve(_, id, _, _, _, _) =>
+        id
+      }
+      .toSet
+
     for {
       updFormModelOptics <- FormModelOptics
                               .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
@@ -206,7 +220,7 @@ class FormProcessor(
                                 cache,
                                 recalculation
                               )
-      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds)
+      redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds, dataRetrieveIds)
       _        <- objectStoreService.deleteFiles(cache.form.envelopeId, filesToDelete)
     } yield redirect
   }
@@ -242,21 +256,24 @@ class FormProcessor(
         .flatMap(fc => fc.pageIdsToDisplayOnChange.map(p => p -> updated.indexedComponentId.maybeIndex))
     )
 
-    val sectionsToRevisit: Set[SectionNumber] = pageList.flatMap {
+    val sectionsToRevisit: Set[Option[SectionNumber]] = pageList.flatMap {
       case (pageList: List[PageId], maybeIndex: Option[Int]) =>
         pageList.map { pageId =>
           val pageIdWithMaybeIndex: PageId = maybeIndex.map(idx => pageId.withIndex(idx)).getOrElse(pageId)
           val maybeSectionNumber: Option[SectionNumber] =
             formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap
               .get(pageIdWithMaybeIndex.modelPageId)
-          maybeSectionNumber.getOrElse(
-            formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap(pageId.modelPageId)
-          )
+
+          if (maybeSectionNumber.isDefined)
+            maybeSectionNumber
+          else
+            formModelOptics.formModelVisibilityOptics.formModel.pageIdSectionNumberMap.get(pageId.modelPageId)
         }.toSet
     }
 
-    sectionsToRevisit.foldLeft(visitsIndex) { case (acc, sn) =>
-      acc.unvisit(sn)
+    sectionsToRevisit.foldLeft(visitsIndex) {
+      case (acc, Some(sn)) => acc.unvisit(sn)
+      case (acc, None)     => acc
     }
   }
 

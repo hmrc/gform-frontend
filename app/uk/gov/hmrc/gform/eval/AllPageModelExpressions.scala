@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.{ Bracket, PageMode, Repeater, SingletonWithNumber }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Expr }
 
 /*
  * Extracts metadata for all expressions of a Page.
@@ -46,10 +46,12 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
     def fromRepeater(repeater: Repeater[_]): List[Expr] =
       fromSmartStrings(
         repeater.expandedTitle,
-        repeater.expandedDescription,
         repeater.expandedShortName,
         repeater.expandedSummaryName
-      )
+      ) ++ (repeater.expandedDescription match {
+        case AtlDescription.SmartStringBased(ss) => fromSmartStrings(ss)
+        case AtlDescription.KeyValueBased(k, v)  => fromSmartStrings(k) ++ fromSmartStrings(v)
+      })
 
     def fromNonRepeatingBracket(bracket: Bracket.NonRepeatingPage[A]): List[Expr] =
       fromSingleton(bracket.singleton)

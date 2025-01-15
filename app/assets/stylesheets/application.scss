@@ -44,6 +44,18 @@ $govuk-new-typography-scale: true;
     margin-bottom: 0em;
 }
 
+//extra whitespaces after 'English' in lang select header
+.hmrc-language-select__list-item {
+  &:first-child{
+    border-right: 0.09375em solid black;
+    line-height: 0.9em;
+    padding-right: 0.22em;
+  }
+  &:first-child::after {
+    display:none !important;
+  }
+}
+
 .hmrc-page-heading {
     margin-top: 0em;
     margin-bottom: 0.75em;
@@ -113,6 +125,11 @@ button.defaultsink {
 .app-summary-list__spinner {
     @extend .govuk-summary-list__actions;
     border-top: 1px solid #b1b4b6;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    line-height:30px;
+    text-align: left;
+    align-items: center;
 }
 
 .govuk-fieldset__legend + div.unhintify {
@@ -136,7 +153,7 @@ button.defaultsink {
     width: 19px;
     height: 19px;
     float:left;
-    margin-right:10px;
+    margin-right:20px;
     -webkit-animation: spin 2s linear infinite;
     animation: spin 2s linear infinite;
   }

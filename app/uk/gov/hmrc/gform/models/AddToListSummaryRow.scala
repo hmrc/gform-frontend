@@ -18,4 +18,10 @@ package uk.gov.hmrc.gform.models
 
 import play.twirl.api.Html
 
-case class AddToListSummaryRecord(summary: Html, index: Int, summaryText: String)
+sealed trait AddToListSummaryRow
+
+object AddToListSummaryRow {
+  case class ListWithActionsRow(index: Int, name: Html, text: String) extends AddToListSummaryRow
+
+  case class SummaryListRow(index: Int, key: Html, value: Html) extends AddToListSummaryRow
+}

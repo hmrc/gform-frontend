@@ -20,6 +20,7 @@ import cats.Id
 import cats.data.NonEmptyList
 import munit.FunSuite
 import play.api.i18n.Messages
+
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
@@ -27,10 +28,9 @@ import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder, Interim, VariadicForm
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, Section, Sum, ValidIf, Value, Vertical }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, FormTemplate, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, RevealingChoice, RevealingChoiceElement, Section, Sum, ValidIf, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, RevealingChoice, RevealingChoiceElement }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import FormTemplateBuilder._
 
@@ -64,7 +64,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     toSmartString(""),
     Some(toSmartString("")),
     Some(toSmartString("")),
-    toSmartString(""),
+    AtlDescription.SmartStringBased(toSmartString("")),
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),

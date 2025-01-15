@@ -30,7 +30,7 @@ import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.Basic
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Basic, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, EditAddToList, GformFl
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRecord, Atom, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -83,12 +82,12 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.listwithactions.{ ListWithActions, ListWithActionsAction, ListWithActionsItem }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.{ Select, SelectItem }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ ActionItem, Actions, SummaryList, SummaryListRow, Value }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow => GovukTableRow }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.Textarea
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
-import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcCharacterCount
+import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcListWithActions }
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukInput, GovukSummaryList, GovukTable }
 import MiniSummaryRow._
@@ -96,6 +95,7 @@ import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
 import uk.gov.hmrc.gform.payment.PaymentReference
+import uk.gov.hmrc.govukfrontend.views.Aliases.Key
 
 import scala.annotation.tailrec
 
@@ -296,12 +296,7 @@ class SectionRenderingService(
 
     val formComponent = repeater.addAnotherQuestion
 
-    val descriptions: NonEmptyList[SmartString] = bracket.repeaters.map(_.expandedDescription)
-
-    val recordTable: NonEmptyList[AddToListSummaryRecord] = descriptions.zipWithIndex.map { case (description, index) =>
-      val html = markDownParser(description)
-      AddToListSummaryRecord(html, index, Jsoup.parse(html.body).text())
-    }
+    val descriptions: NonEmptyList[AtlDescription] = bracket.repeaters.map(_.expandedDescription)
 
     val choice = formComponent.`type`.cast[Choice].get
 
@@ -475,22 +470,54 @@ class SectionRenderingService(
           .exists(_ < sectionNumber)
     }
 
-    val listWithActionsItems = recordTable.map { record =>
-      val changeAction = ListWithActionsAction(
-        content = content.Text(messages("addToList.change")),
-        href = uk.gov.hmrc.gform.gform.routes.FormController
-          .addToListAction(
-            formTemplate._id,
-            maybeAccessCode,
-            sectionNumber,
-            FastForward.Yes :: FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward,
-            EditAddToList(record.index, AddToListId(bracket.source.id.formComponentId))
-          )
-          .url,
-        visuallyHiddenText = Some(messages("addToList.change.visually.hidden", record.summaryText)),
-        attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", record.summaryText))
-      )
+    val recordTable: NonEmptyList[AddToListSummaryRow] = descriptions.zipWithIndex.map { case (description, index) =>
+      description match {
+        case AtlDescription.SmartStringBased(ss) =>
+          val html = markDownParser(ss)
+          AddToListSummaryRow.ListWithActionsRow(index, html, Jsoup.parse(html.body).text())
+        case AtlDescription.KeyValueBased(k, v) =>
+          AddToListSummaryRow.SummaryListRow(index, markDownParser(k), markDownParser(v))
+      }
+    }
 
+    val summaryList = recordTable.collectFirst {
+      case l: AddToListSummaryRow.ListWithActionsRow =>
+        val listWithActionsItems = recordTable.collect {
+          case AddToListSummaryRow.ListWithActionsRow(index, name, text) =>
+            val changeAction = ListWithActionsAction(
+              content = content.Text(messages("addToList.change")),
+              href = uk.gov.hmrc.gform.gform.routes.FormController
+                .addToListAction(
+                  formTemplate._id,
+                  maybeAccessCode,
+                  sectionNumber,
+                  FastForward.Yes :: FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward,
+                  EditAddToList(index, AddToListId(bracket.source.id.formComponentId))
+                )
+                .url,
+              visuallyHiddenText = Some(messages("addToList.change.visually.hidden", text)),
+              attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", text))
+            )
+
+            val removeAction = ListWithActionsAction(
+              content = content.Text(messages("addToList.remove")),
+              href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
+                .requestRemoval(
+                  formTemplate._id,
+                  maybeAccessCode,
+                  sectionNumber,
+                  index,
+                  AddToListId(bracket.source.id.formComponentId),
+                  fastForward
+                )
+                .url,
+              visuallyHiddenText = Some(messages("addToList.change.visually.hidden", text)),
+              attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", text))
+            )
+            ListWithActionsItem(
+              name = HtmlContent(name),
+              actions = List(changeAction, removeAction)
+            )
       val removeAction = ListWithActionsAction(
         content = content.Text(messages("addToList.remove")),
         href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
@@ -511,12 +538,59 @@ class SectionRenderingService(
         actions = List(changeAction, removeAction)
       )
 
-    }
+        }
+        new HmrcListWithActions()(
+          ListWithActions(
+            items = listWithActionsItems,
+            classes = "hmrc-add-to-a-list--wide"
+          )
+        )
 
-    val listWithActions = ListWithActions(
-      items = listWithActionsItems.toList,
-      classes = "hmrc-add-to-a-list--wide"
-    )
+      case s: AddToListSummaryRow.SummaryListRow =>
+        val summaryRows = recordTable.collect { case AddToListSummaryRow.SummaryListRow(index, key, value) =>
+          val changeAction = ActionItem(
+            content = content.Text(messages("addToList.change")),
+            href = uk.gov.hmrc.gform.gform.routes.FormController
+              .addToListAction(
+                formTemplate._id,
+                maybeAccessCode,
+                sectionNumber,
+                FastForward.Yes :: FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward,
+                EditAddToList(index, AddToListId(bracket.source.id.formComponentId))
+              )
+              .url,
+            visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
+            attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text()))
+          )
+
+          val removeAction = ActionItem(
+            content = content.Text(messages("addToList.remove")),
+            href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
+              .requestRemoval(
+                formTemplate._id,
+                maybeAccessCode,
+                sectionNumber,
+                index,
+                AddToListId(bracket.source.id.formComponentId)
+              )
+              .url,
+            visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
+            attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text()))
+          )
+
+          val summaryListRowClasses = "hmrc-add-to-a-list--wide"
+
+          SummaryListRow(
+            key = Key(HtmlContent(key), classes = summaryListRowClasses),
+            value = Value(HtmlContent(value), classes = summaryListRowClasses),
+            actions = Some(Actions(items = List(changeAction, removeAction), classes = summaryListRowClasses))
+          )
+
+        }
+        new GovukSummaryList()(
+          SummaryList(rows = summaryRows)
+        )
+    }
 
     val renderComeBackLater =
       retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals)
@@ -531,7 +605,6 @@ class SectionRenderingService(
       )(_.value()),
       bracket,
       formTemplate,
-      recordTable,
       pageLevelErrorHtml,
       frontendAppConfig,
       actionForm,
@@ -548,7 +621,7 @@ class SectionRenderingService(
       maybeAccessCode,
       sectionNumber,
       fastForward,
-      listWithActions
+      summaryList.getOrElse(HtmlFormat.empty)
     )
   }
 

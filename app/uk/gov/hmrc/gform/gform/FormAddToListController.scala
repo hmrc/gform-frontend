@@ -25,6 +25,7 @@ import play.api.mvc.MessagesControllerComponents
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
@@ -40,14 +41,13 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, TemplateSectionIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, AtlDescription, FormTemplateId, SectionNumber, TemplateSectionIndex }
 import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ Table, TableRow }
 import uk.gov.hmrc.govukfrontend.views.html.components
-import uk.gov.hmrc.govukfrontend.views.html.components.ErrorMessage
-import uk.gov.hmrc.govukfrontend.views.html.components.Text
+import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, GovukTable, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorSummary
 import uk.gov.hmrc.http.HeaderCarrier
@@ -123,11 +123,27 @@ class FormAddToListController(
             iterations.toList.lift(index) match {
               case Some(iteration) =>
                 val repeater = iteration.repeater.repeater
+                val description = repeater.expandedDescription match {
+                  case AtlDescription.SmartStringBased(ss) => markDownParser(ss)
+                  case AtlDescription.KeyValueBased(k, v) =>
+                    new GovukTable()(
+                      Table(
+                        head = None,
+                        rows = Seq(
+                          Seq(
+                            TableRow(content = HtmlContent(markDownParser(k))),
+                            TableRow(content = HtmlContent(markDownParser(v)))
+                          )
+                        ),
+                        firstCellIsHeader = true
+                      )
+                    )
+                }
                 Ok(
                   html.form
                     .addToList_requestRemoval(
                       formTemplate,
-                      repeater,
+                      description,
                       maybeAccessCode,
                       sectionNumber,
                       frontendAppConfig,

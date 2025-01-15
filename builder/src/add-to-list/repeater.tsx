@@ -15,9 +15,11 @@ import type {
   AtlRepeaterAddAnotherQuestionRequest,
   ContentScriptRequest,
   InfoRenderParam,
+  AtlDescription,
+  SmartString,
 } from "../types";
 import { SectionNumber, MessageKind, NoteUpdateKind } from "../types";
-import { attachShadowDom } from "../pure-functions";
+import {attachShadowDom, isSmartStringDesc} from "../pure-functions";
 import { NoteComponentControllerFactory } from "../section/note-component/note-component-controller";
 import { initiateInfoComponents } from "../section/info-component-helper";
 import { SmartStringDiv, SmartStringInputDeprecated, SmartStringTextArea } from "../section/useSmartString";
@@ -310,6 +312,8 @@ const RepeaterControllerFactory =
     const summaryDescriptionInput = useRef<HTMLInputElement>(null);
     const shortNameInput = useRef<HTMLInputElement>(null);
     const descriptionInput = useRef<HTMLTextAreaElement>(null);
+    const descriptionKeyInput = useRef<HTMLTextAreaElement>(null);
+    const descriptionValueInput = useRef<HTMLTextAreaElement>(null);
     const presentationHintContainer = useRef<HTMLDivElement>(null);
     const repeatsWhileInput = useRef<HTMLInputElement>(null);
     const repeatsUntilInput = useRef<HTMLInputElement>(null);
@@ -326,7 +330,7 @@ const RepeaterControllerFactory =
     const [summaryNameValue, setSummaryNameValue] = useState(repeater.summaryName);
     const [summaryDescriptionValue, setSummaryDescriptionValue] = useState(repeater.summaryDescription);
     const [shortNameValue, setShortNameValue] = useState(repeater.shortName);
-    const [descriptionValue, setDescriptionValue] = useState(repeater.description);
+    const [descriptionValue, setDescriptionValue] = useState(repeater.description,);
     const [repeatsWhileValue, setRepeatsWhileValue] = useState(repeater.repeatsWhile);
     const [repeatsUntilValue, setRepeatsUntilValue] = useState(repeater.repeatsUntil);
     const [pageIdToDisplayAfterRemoveValue, setPageIdToDisplayAfterRemoveValue] = useState(
@@ -405,6 +409,17 @@ const RepeaterControllerFactory =
     const descriptionKeyUp = (e: KeyboardEvent) => {
       if (descriptionInput.current !== null) {
         setDescriptionValue(descriptionInput.current.value);
+      }
+      refreshRepeater(false);
+    };
+
+    const descriptionKeyValueKeyUp = (e: KeyboardEvent) => {
+      if (descriptionKeyInput.current !== null && descriptionValueInput.current !== null) {
+        const atlDesc: AtlDescription = {
+          key: descriptionKeyInput.current.value,
+          value: descriptionValueInput.current.value,
+        };
+        setDescriptionValue(atlDesc);
       }
       refreshRepeater(false);
     };
@@ -561,9 +576,22 @@ const RepeaterControllerFactory =
         atlRepeaterPart["shortName"] = shortNameCurrent.value;
       }
 
-      if (descriptionInput.current !== null) {
-        const descriptionCurrent: HTMLTextAreaElement = descriptionInput.current;
+      if (isSmartStringDesc(descriptionValue) && descriptionInput.current !== null) {
+        const descriptionCurrent: HTMLTextAreaElement =
+          descriptionInput.current;
         atlRepeaterPart["description"] = descriptionCurrent.value;
+      } else if (
+        descriptionKeyInput.current !== null &&
+        descriptionValueInput.current !== null
+      ) {
+        const descriptionKeyCurrent: HTMLTextAreaElement =
+          descriptionKeyInput.current;
+        const descriptionValueCurrent: HTMLTextAreaElement =
+          descriptionValueInput.current;
+        atlRepeaterPart["description"] = {
+          key: descriptionKeyCurrent.value,
+          value: descriptionValueCurrent.value,
+        };
       }
 
       if (presentationHintContainer.current?.checkVisibility()) {
@@ -598,10 +626,22 @@ const RepeaterControllerFactory =
 
           if (response.descriptions !== undefined) {
             const descriptions: NodeListOf<Element> = document.querySelectorAll("dt.hmrc-summary-list__key");
+            const descriptionKeys: NodeListOf<Element> = document.querySelectorAll("dt.govuk-summary-list__key");
+            const descriptionValues: NodeListOf<Element> = document.querySelectorAll("dd.govuk-summary-list__value");
             response.descriptions.map((desc, index) => {
-              let tempParagraph = document.createElement("p");
-              tempParagraph.innerHTML = desc;
-              descriptions[index].innerHTML = tempParagraph.innerText;
+              if (typeof desc === "string") {
+                let tempParagraph = document.createElement("p");
+                tempParagraph.innerHTML = desc;
+                descriptions[index].innerHTML = tempParagraph.innerText;
+              } else {
+                const { key, value } = desc;
+                let tempParagraphKey = document.createElement("p");
+                tempParagraphKey.innerHTML = key;
+                let tempParagraphValue = document.createElement("p");
+                tempParagraphValue.innerHTML = value;
+                descriptionKeys[index].innerHTML = tempParagraphKey.innerText;
+                descriptionValues[index].innerHTML = tempParagraphValue.innerText;
+              }
             });
           }
 
@@ -669,18 +709,49 @@ const RepeaterControllerFactory =
             Short name
           </SmartStringInputDeprecated>
         </SmartStringDiv>
-        <SmartStringDiv style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={descriptionInput}>
-          <SmartStringTextArea
-            id="edit-description"
-            class="form-control"
-            value={descriptionValue}
-            onKeyUp={descriptionKeyUp}
-            rows={3}
-            typeId="SmartStringTextArea"
-          >
-            Description
-          </SmartStringTextArea>
-        </SmartStringDiv>
+        <div hidden={!isSmartStringDesc(descriptionValue)}>
+          <SmartStringDiv style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={descriptionInput}>
+            <SmartStringTextArea
+              id="edit-description"
+              class="form-control"
+              value={descriptionValue as SmartString}
+              onKeyUp={descriptionKeyUp}
+              rows={3}
+              typeId="SmartStringTextArea"
+            >
+              Description
+            </SmartStringTextArea>
+          </SmartStringDiv>
+        </div>
+        <div hidden={isSmartStringDesc(descriptionValue)}>
+          <hr style={{ display: moreOptionsDisplayed ? "block" : "none" }} />
+          <SmartStringDiv style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={descriptionKeyInput}>
+            <SmartStringTextArea
+              id="edit-description-key"
+              class="form-control"
+              value={(descriptionValue as AtlDescription).key}
+              onKeyUp={descriptionKeyValueKeyUp}
+              rows={3}
+              typeId="SmartStringTextArea"
+            >
+              Description Key
+            </SmartStringTextArea>
+          </SmartStringDiv>
+          <hr style={{ display: moreOptionsDisplayed ? "block" : "none" }} />
+          <SmartStringDiv style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={descriptionValueInput}>
+            <SmartStringTextArea
+              id="edit-description-value"
+              class="form-control"
+              value={(descriptionValue as AtlDescription).value}
+              onKeyUp={descriptionKeyValueKeyUp}
+              rows={3}
+              typeId="SmartStringTextArea"
+            >
+              Description Value
+            </SmartStringTextArea>
+          </SmartStringDiv>
+          <hr style={{ display: moreOptionsDisplayed ? "block" : "none" }} />
+        </div>
         <SmartStringDiv style={{ display: moreOptionsDisplayed ? "block" : "none" }} ref={summaryDescriptionInput}>
           <SmartStringInputDeprecated
             id="edit-summaryDescription"

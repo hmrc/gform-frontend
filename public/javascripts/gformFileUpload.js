@@ -69,7 +69,7 @@
     const uploadedFiles = $("#" + formComponentId + "-files");
 
     button.css("display", "none");
-    formGroup.hide();
+    input.hide();
     uploadedFiles.empty().append(startProgressBar());
 
     return true;
@@ -130,7 +130,7 @@
      const formComponentId = input.attr("id");
      const uploadedFiles = $("#" + formComponentId + "-files");
 
-     formGroup.hide();
+     input.hide();
      uploadedFiles.empty().append(startProgressBar());
    }
   // Display uploading file message

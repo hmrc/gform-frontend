@@ -63,7 +63,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     toSmartString(""),
     Some(toSmartString("")),
     Some(toSmartString("")),
-    toSmartString(""),
+    AtlDescription.SmartStringBased(toSmartString("")),
     toSmartString(""),
     toSmartString(""),
     toSmartString(""),
@@ -528,7 +528,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       // format: off
       ("prop", "expected", "addToList"),
       ("title",                             expect1, emptyAddToList.copy(title = stringExpr)),
-      ("description",                       expect1, emptyAddToList.copy(description = stringExpr)),
+      ("description",                       expect1, emptyAddToList.copy(description = AtlDescription.SmartStringBased(stringExpr))),
       ("shortName",                         expect1, emptyAddToList.copy(shortName = stringExpr)),
       ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None)))))),
       ("addAnotherQuestion.optionHelpText", expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))))
