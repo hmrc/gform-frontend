@@ -135,18 +135,15 @@
    }
   // Display uploading file message
   function startProgressBar() {
-    return progressBarWrapper("<span class='app-progress-spinner'></span><span id='fileupload' role='alert'>" + strings.uploadingFile[lang] + "</span>", "");
+    return progressBarWrapper("<span class='app-progress-spinner'></span><span id='fileupload' role='alert'>" + strings.uploadingFile[lang] + "</span>");
   }
 
-  function progressBarWrapper(messageContent, buttonContent) {
+  function progressBarWrapper(content) {
     return $(
       "<dl class='govuk-summary-list pp-file-upload-spinner__list'>" +
         "<div class='govuk-summary-list__row'>" +
           "<dd class='app-summary-list__spinner'>" +
-            messageContent +
-          "</dd>" +
-          "<dd class='app-summary-list__spinner'>" +
-            buttonContent +
+            content +
           "</dd>" +
         "</div>" +
       "</dl>"
