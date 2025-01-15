@@ -518,25 +518,6 @@ class SectionRenderingService(
               name = HtmlContent(name),
               actions = List(changeAction, removeAction)
             )
-      val removeAction = ListWithActionsAction(
-        content = content.Text(messages("addToList.remove")),
-        href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
-          .requestRemoval(
-            formTemplate._id,
-            maybeAccessCode,
-            sectionNumber,
-            record.index,
-            AddToListId(bracket.source.id.formComponentId),
-            fastForward
-          )
-          .url,
-        visuallyHiddenText = Some(messages("addToList.change.visually.hidden", record.summaryText)),
-        attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", record.summaryText))
-      )
-      ListWithActionsItem(
-        name = HtmlContent(record.summary),
-        actions = List(changeAction, removeAction)
-      )
 
         }
         new HmrcListWithActions()(
@@ -571,7 +552,8 @@ class SectionRenderingService(
                 maybeAccessCode,
                 sectionNumber,
                 index,
-                AddToListId(bracket.source.id.formComponentId)
+                AddToListId(bracket.source.id.formComponentId),
+                fastForward
               )
               .url,
             visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
