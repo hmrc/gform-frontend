@@ -16,84 +16,142 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.Id
+import cats.{ Id, MonadError }
 import org.apache.pekko.actor.ActorSystem
 import org.mockito.MockitoSugar.when
 import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
-import play.api.http.HttpConfiguration
+import play.api.http.{ HttpConfiguration, Status }
 import play.api.i18n._
-import play.api.libs.json.{ Json, Reads }
+import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.api.test.FakeRequest
+import play.api.test.Helpers.{ contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status }
 import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.PlayStubSupport
 import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
-import uk.gov.hmrc.gform.objectStore.ObjectStoreService
+import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.Yes
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, Section, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import java.time.LocalDateTime
+import scala.concurrent.{ ExecutionContext, Future }
 
 class NewFormControllerSpec
     extends AnyFlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with ScalaFutures
-    with FormModelSupport with VariadicFormDataSupport with PlayStubSupport {
+    with FormModelSupport with VariadicFormDataSupport with PlayStubSupport with ExampleFrontendAppConfig
+    with ExampleAuthConfig {
 
   implicit val sys: ActorSystem = ActorSystem("NewFormControllerSpec")
 
   "downloadOldOrNewForm" should "start a fresh form when no previous submission detected" in new TestFixture {
-
+    initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(Option.empty[Form]))
-    when(mockGformConnector.newForm(*[FormTemplateId], *[UserId], *[Option[AffinityGroup]], *[QueryParams]))
-      .thenReturn()
+      .thenReturn(
+        Future.successful(Option.empty[Form]),
+        Future.successful(Some(authCacheWithForm.form))
+      )
 
-    val future = newFormController
+    val result: Future[Result] = newFormController
       .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
       .apply(request)
 
-    whenReady(future) { result =>
-      val responseBody = responseBodyAs[List[String]](result)
-      responseBody shouldBe List("United Kingdom", "United States")
-    }
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/form/tst1/?n=n1&se=f")
   }
 
-  private def responseBodyAs[T](result: Result)(implicit reads: Reads[T]): T =
-    Json.parse(Await.result(result.body.consumeData, 5.seconds).decodeString("utf-8")).as[T]
+  it should "start a fresh form when previous submission detected but older than 24 hours" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(existingSubmittedForm(LocalDateTime.now().minusHours(25)))),
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/form/tst1/?n=n1&se=f")
+  }
+
+  it should "start a fresh form when downloadPreviousSubmissionPdf is false and previous submission detected within 24 hours" in new TestFixture {
+    override lazy val authCacheWithForm: AuthCacheWithForm =
+      mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false))
+    initCommonMocks()
+
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(existingSubmittedForm(LocalDateTime.now().minusHours(23)))),
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/form/tst1/?n=n1&se=f")
+  }
+
+  it should "ask to download or start new form when previous submission detected within the last 24 hours" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(existingSubmittedForm(LocalDateTime.now().minusHours(23)))),
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.OK
+    contentType(result) shouldBe Some("text/html")
+    val html: String = contentAsString(result)
+    html should include("What do you want to do?")
+    html should include("Get a copy of the form that you submitted")
+    html should include("Start a new form")
+  }
 
   trait TestFixture {
 
-    private val environment: Environment = Environment.simple()
-    private val configuration: Configuration = Configuration.load(environment)
-    private val langs: Langs = new DefaultLangs()
-    private val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
-    private val localMessagesApi: MessagesApi =
+    lazy val environment: Environment = Environment.simple()
+    lazy val configuration: Configuration = Configuration.load(environment)
+    lazy val langs: Langs = new DefaultLangs()
+    lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
+    lazy val localMessagesApi: MessagesApi =
       new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
-    private val i18nSupport: I18nSupport = new I18nSupport {
+    lazy val i18nSupport: I18nSupport = new I18nSupport {
       override def messagesApi: MessagesApi = localMessagesApi
     }
 
-    implicit val messages: Messages = i18nSupport.messagesApi.preferred(Seq(langs.availables.head))
-    implicit val lang: LangADT = LangADT.En
+    implicit lazy val messages: Messages = i18nSupport.messagesApi.preferred(Seq(langs.availables.head))
+    implicit lazy val lang: LangADT = LangADT.En
+    implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
-    val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+    lazy val submissionRef: SubmissionRef = SubmissionRef("some-submission-ref")
+    lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
 
     lazy val sections: List[Section] =
       mkSection(
@@ -101,9 +159,11 @@ class NewFormControllerSpec
       ) :: mkSection(
         mkFormComponent("b", Text(ShortText.default, Value)) :: Nil
       ) :: Nil
+
     lazy val authCacheWithForm: AuthCacheWithForm = mkAuthCacheWithForm(mkFormTemplate(sections))
     lazy val authCacheWithoutForm: AuthCacheWithoutForm = authCacheWithForm.toAuthCacheWithoutForm
     lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] = VariadicFormData.empty[SourceOrigin.OutOfDate]
+    lazy val mockRecalculation: Recalculation[Future, Throwable] = mock[Recalculation[Future, Throwable]]
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       FormModelOptics
         .mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.Normal](
@@ -112,62 +172,25 @@ class NewFormControllerSpec
           recalculation
         )
 
-    val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()
+    lazy val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()
 
-    val mockAuth: AuthenticatedRequestActions = mock[AuthenticatedRequestActions]
-    val mockConfig: FrontendAppConfig = mock[FrontendAppConfig]
-    val mockObjectStoreService: ObjectStoreService = mock[ObjectStoreService]
-    val mockGformConnector: GformConnector = mock[GformConnector]
-    val mockFastForwardService: FastForwardService = mock[FastForwardService]
-    val mockAuditService: AuditService = mock[AuditService]
-    val mockRecalculation: Recalculation[Future, Throwable] = mock[Recalculation[Future, Throwable]]
-    val mockGformBackend: GformBackEndAlgebra[Future] = mock[GformBackEndAlgebra[Future]]
-    val mockNinoInsightsConnector: NinoInsightsConnector[Future] = mock[NinoInsightsConnector[Future]]
-    val mockAcknowledgementPdfService: AcknowledgementPdfService = mock[AcknowledgementPdfService]
+    lazy val mockAuth: AuthenticatedRequestActions = mock[AuthenticatedRequestActions]
+    lazy val mockObjectStoreService: ObjectStoreService = mock[ObjectStoreService]
+    lazy val mockGformConnector: GformConnector = mock[GformConnector]
+    lazy val mockFastForwardService: FastForwardService = mock[FastForwardService]
+    lazy val mockAuditService: AuditService = mock[AuditService]
+    lazy val mockGformBackend: GformBackEndAlgebra[Future] = mock[GformBackEndAlgebra[Future]]
+    lazy val mockNinoInsightsConnector: NinoInsightsConnector[Future] = mock[NinoInsightsConnector[Future]]
+    lazy val mockAcknowledgementPdfService: AcknowledgementPdfService = mock[AcknowledgementPdfService]
 
-    implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
       override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
     }
 
-    mockAuth
-      .authAndRetrieveForm[SectionSelectorType.Normal](*[FormTemplateId], *[Option[AccessCode]], *[OperationWithForm])(
-        *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-          DataOrigin.Mongo
-        ] => Future[Result]]
-      ) answers {
-      (
-        _: FormTemplateId,
-        _: Option[AccessCode],
-        _: OperationWithForm,
-        f: Request[
-          AnyContent
-        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
-      ) =>
-        messagesControllerComponents.actionBuilder.async { request =>
-          f(request)(LangADT.En)(authCacheWithForm)(smartStringEvaluator)(formModelOptics)
-        }
-    }
-
-    mockAuth.authWithoutRetrievingForm(*[FormTemplateId], *[OperationWithoutForm])(
-      *[Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]]
-    ) answers {
-      (
-        _: FormTemplateId,
-        _: OperationWithoutForm,
-        f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
-      ) =>
-        messagesControllerComponents.actionBuilder.async { request =>
-          f(request)(LangADT.En)(authCacheWithoutForm)
-        }
-    }
-
     lazy val newFormController =
       new NewFormController(
-        mockConfig,
+        frontendAppConfig,
         i18nSupport,
         mockAuth,
         mockObjectStoreService,
@@ -181,5 +204,167 @@ class NewFormControllerSpec
         messages,
         mockAcknowledgementPdfService
       )
+
+    private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map { case (fcId, value) =>
+      FormField(FormComponentId(fcId).modelComponentId, value)
+    }
+
+    lazy val formFields: List[FormField] = toFormFields(
+      List(
+        "a" -> "one",
+        "b" -> "two"
+      )
+    )
+
+    def existingSubmittedForm(submittedAt: LocalDateTime): Form = Form(
+      FormId("dummy-sessionId-tst1"),
+      envelopeId,
+      UserId("dummy-sessionId"),
+      FormTemplateId("tst1"),
+      None,
+      FormData(formFields),
+      Submitted,
+      VisitIndex.Classic(Set.empty),
+      ThirdPartyData(
+        NotChecked,
+        Map.empty,
+        QueryParams.empty,
+        None,
+        BooleanExprCache.empty,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+      ),
+      None,
+      FormComponentIdToFileIdMapping.empty,
+      TaskIdTaskStatusMapping.empty,
+      Some(SubmittedDate(submittedAt))
+    )
+
+    def initCommonMocks(): Unit = {
+      mockAuth
+        .authAndRetrieveForm[SectionSelectorType.Normal](
+          *[FormTemplateId],
+          *[Option[AccessCode]],
+          *[OperationWithForm]
+        )(
+          *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
+            DataOrigin.Mongo
+          ] => Future[Result]]
+        ) answers {
+        (
+          _: FormTemplateId,
+          _: Option[AccessCode],
+          _: OperationWithForm,
+          f: Request[
+            AnyContent
+          ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[
+            Result
+          ]
+        ) =>
+          messagesControllerComponents.actionBuilder.async { request =>
+            f(request)(LangADT.En)(authCacheWithForm)(smartStringEvaluator)(formModelOptics)
+          }
+      }
+
+      mockAuth.authWithoutRetrievingForm(*[FormTemplateId], *[OperationWithoutForm])(
+        *[Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]]
+      ) answers {
+        (
+          _: FormTemplateId,
+          _: OperationWithoutForm,
+          f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]
+        ) =>
+          messagesControllerComponents.actionBuilder.async { request =>
+            f(request)(LangADT.En)(authCacheWithoutForm)
+          }
+      }
+
+      mockRecalculation.recalculateFormDataNew(
+        *[VariadicFormData[SourceOrigin.OutOfDate]],
+        *[FormModel[Interim]],
+        *[FormTemplate],
+        *[MaterialisedRetrievals],
+        *[ThirdPartyData],
+        *[EvaluationContext],
+        *[Messages]
+      )(*[MonadError[Future, Throwable]]) returns Future.successful(
+        RecalculationResult.empty(
+          EvaluationContext(
+            authCacheWithForm.formTemplateId,
+            submissionRef,
+            maybeAccessCode,
+            retrievals,
+            ThirdPartyData.empty,
+            authConfig,
+            hc,
+            Option.empty[FormPhase],
+            FileIdsWithMapping.empty,
+            Map.empty,
+            Set.empty,
+            Set.empty,
+            Set.empty,
+            Map.empty,
+            LangADT.En,
+            messages,
+            List.empty,
+            Set.empty,
+            FileSizeLimit(1),
+            DataRetrieveAll.empty,
+            Set.empty[ModelComponentId],
+            Map.empty,
+            Set.empty,
+            new LookupRegistry(Map()),
+            Map.empty,
+            Map.empty,
+            TaskIdTaskStatusMapping.empty
+          )
+        )
+      )
+
+      when(mockObjectStoreService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]))
+        .thenReturn(Future.successful(Envelope.empty))
+
+      when(
+        mockFastForwardService.redirectFastForward[SectionSelectorType.Normal](
+          *[AuthCacheWithForm],
+          *[Option[AccessCode]],
+          *[FormModelOptics[DataOrigin.Mongo]],
+          *[Option[SectionNumber]],
+          *[SuppressErrors],
+          *[List[FastForward]]
+        )(
+          *[SectionSelector[SectionSelectorType.Normal]],
+          *[Messages],
+          *[HeaderCarrier],
+          *[LangADT]
+        )
+      ).thenReturn(
+        Future.successful(
+          Redirect(
+            routes.FormController
+              .form(
+                authCacheWithForm.formTemplateId,
+                maybeAccessCode,
+                SectionNumber.Classic.NormalPage(TemplateSectionIndex(1)),
+                SectionTitle4Ga(""),
+                No,
+                List.empty[FastForward]
+              )
+          )
+        )
+      )
+
+      when(
+        mockGformConnector.newForm(*[FormTemplateId], *[UserId], *[Option[AffinityGroup]], *[QueryParams])(
+          *[HeaderCarrier],
+          *[ExecutionContext]
+        )
+      ).thenReturn(Future.successful(FormIdData.apply(authCacheWithForm, None)))
+      ()
+    }
   }
 }
