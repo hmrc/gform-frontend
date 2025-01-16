@@ -20,7 +20,6 @@ import cats.{ Id, MonadError }
 import org.apache.pekko.actor.ActorSystem
 import org.mockito.MockitoSugar.when
 import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import play.api.http.{ HttpConfiguration, Status }
@@ -30,6 +29,7 @@ import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{ contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status }
 import play.api.{ Configuration, Environment }
+import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.gform.PlayStubSupport
 import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auditing.AuditService
@@ -49,6 +49,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -56,11 +57,12 @@ import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
 
 class NewFormControllerSpec
-    extends AnyFlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with ScalaFutures
-    with FormModelSupport with VariadicFormDataSupport with PlayStubSupport with ExampleFrontendAppConfig
-    with ExampleAuthConfig {
+    extends AnyFlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with FormModelSupport
+    with PlayStubSupport with ExampleFrontendAppConfig with ExampleAuthConfig {
 
   implicit val sys: ActorSystem = ActorSystem("NewFormControllerSpec")
+
+  val newFormUrl: String = "/form/tst1/?n=n1&se=f"
 
   "downloadOldOrNewForm" should "start a fresh form when no previous submission detected" in new TestFixture {
     initCommonMocks()
@@ -75,7 +77,7 @@ class NewFormControllerSpec
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/form/tst1/?n=n1&se=f")
+    redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
   it should "start a fresh form when previous submission detected but older than 24 hours" in new TestFixture {
@@ -91,7 +93,7 @@ class NewFormControllerSpec
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/form/tst1/?n=n1&se=f")
+    redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
   it should "start a fresh form when downloadPreviousSubmissionPdf is false and previous submission detected within 24 hours" in new TestFixture {
@@ -110,7 +112,7 @@ class NewFormControllerSpec
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/form/tst1/?n=n1&se=f")
+    redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
   it should "ask to download or start new form when previous submission detected within the last 24 hours" in new TestFixture {
@@ -126,11 +128,134 @@ class NewFormControllerSpec
       .apply(request)
 
     status(result) shouldBe Status.OK
-    contentType(result) shouldBe Some("text/html")
+    contentType(result) shouldBe Some(MimeTypes.HTML)
     val html: String = contentAsString(result)
     html should include("What do you want to do?")
     html should include("Get a copy of the form that you submitted")
     html should include("Start a new form")
+  }
+
+  "downloadDecision" should "redirect to previous submission page" in new TestFixture {
+    override lazy val request: FakeRequest[AnyContent] =
+      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "download")
+    initCommonMocks()
+
+    val result: Future[Result] = newFormController
+      .downloadDecision(authCacheWithForm.formTemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission")
+  }
+
+  it should "start a new form" in new TestFixture {
+    override lazy val request: FakeRequest[AnyContent] =
+      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "startNew")
+    initCommonMocks()
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .downloadDecision(authCacheWithForm.formTemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some(newFormUrl)
+  }
+
+  it should "redirect to download or new if no input posted" in new TestFixture {
+    override lazy val request: FakeRequest[AnyContent] = FakeRequest("POST", "/")
+    initCommonMocks()
+
+    val result: Future[Result] = newFormController
+      .downloadDecision(authCacheWithForm.formTemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1/new-or-previous?se=f")
+  }
+
+  "lastSubmission" should "display page with submission ref and download PDF button" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(getSubmission(LocalDateTime.now().minusHours(13)))
+      )
+
+    val result: Future[Result] = newFormController
+      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.OK
+    contentType(result) shouldBe Some(MimeTypes.HTML)
+    val html: String = contentAsString(result)
+    html should include("Download a copy of the form that you submitted")
+    html should include("Submission reference")
+    html should include("Submitted on")
+  }
+
+  it should "start a new form when last submission more than 24 hours old" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(getSubmission(LocalDateTime.now().minusHours(25)))
+      )
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some(newFormUrl)
+  }
+
+  "newOrSignout" should "redirect to sign out page" in new TestFixture {
+    override lazy val request: FakeRequest[AnyContent] =
+      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadThenNew" -> "signOut")
+    initCommonMocks()
+
+    val result: Future[Result] = newFormController
+      .newOrSignout(authCacheWithForm.formTemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/sign-out/tst1")
+  }
+
+  it should "start a new form" in new TestFixture {
+    override lazy val request: FakeRequest[AnyContent] =
+      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadThenNew" -> "startNew")
+    initCommonMocks()
+
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .newOrSignout(authCacheWithForm.formTemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some(newFormUrl)
+  }
+
+  it should "redirect to last submission if no input posted" in new TestFixture {
+    override lazy val request: FakeRequest[AnyContent] = FakeRequest("POST", "/")
+    initCommonMocks()
+
+    val result: Future[Result] = newFormController
+      .newOrSignout(authCacheWithForm.formTemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission?se=f")
   }
 
   trait TestFixture {
@@ -151,7 +276,7 @@ class NewFormControllerSpec
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
     lazy val submissionRef: SubmissionRef = SubmissionRef("some-submission-ref")
-    lazy val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("GET", "/")
+    lazy val request: FakeRequest[AnyContent] = FakeRequest("GET", "/")
 
     lazy val sections: List[Section] =
       mkSection(
@@ -214,6 +339,14 @@ class NewFormControllerSpec
         "a" -> "one",
         "b" -> "two"
       )
+    )
+
+    def getSubmission(submittedAt: LocalDateTime): Submission = Submission(
+      _id = SubmissionId(authCacheWithForm.form._id, envelopeId),
+      submittedDate = submittedAt,
+      submissionRef = submissionRef,
+      envelopeId = envelopeId,
+      dmsMetaData = DmsMetaData(authCacheWithForm.formTemplateId)
     )
 
     def existingSubmittedForm(submittedAt: LocalDateTime): Form = Form(
@@ -364,6 +497,15 @@ class NewFormControllerSpec
           *[ExecutionContext]
         )
       ).thenReturn(Future.successful(FormIdData.apply(authCacheWithForm, None)))
+
+      when(
+        mockAcknowledgementPdfService.getRenderedPdfSize(
+          *[AuthCacheWithForm],
+          *[Option[AccessCode]],
+          *[FormModelOptics[DataOrigin.Mongo]]
+        )(*[Request[_]], *[LangADT], *[SmartStringEvaluator])
+      ).thenReturn(Future.successful(35000))
+
       ()
     }
   }
