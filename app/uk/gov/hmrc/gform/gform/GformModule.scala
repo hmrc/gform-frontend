@@ -308,15 +308,9 @@ class GformModule(
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-//    pdfGeneratorService,
-//    fopService,
-//    pdfRenderService,
     acknowledgementPdfService,
     sectionRenderingService,
-//    gformBackendModule.gformConnector,
-//    nonRepudiationHelpers,
     controllersModule.messagesControllerComponents
-//    auditingModule.auditService
   )
 
   val errorController = new ErrorController(
