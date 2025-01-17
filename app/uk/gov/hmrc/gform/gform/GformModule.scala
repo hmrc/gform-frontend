@@ -123,7 +123,6 @@ class GformModule(
   )
 
   val objectStoreController = new ObjectStoreController(
-    configModule.appConfig,
     objectStoreModule.objectStoreService,
     controllersModule.authenticatedRequestActions,
     gformBackendModule.gformConnector,
@@ -357,6 +356,23 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     gformBackEndService,
     reviewService,
+    controllersModule.messagesControllerComponents
+  )
+
+  val multiFileUploadController = new MultiFileUploadController(
+    configModule.appConfig,
+    configModule.frontendAppConfig,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    objectStoreModule.objectStoreService,
+    upscanModule.upscanService,
+    validationModule.validationService,
+    sectionRenderingService,
+    gformBackendModule.gformConnector,
+    processDataService,
+    formControllerRequestHandler,
+    fastForwardService,
+    graphModule.recalculation,
     controllersModule.messagesControllerComponents
   )
 

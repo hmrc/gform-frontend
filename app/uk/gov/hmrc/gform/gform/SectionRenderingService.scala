@@ -673,12 +673,14 @@ class SectionRenderingService(
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
     val formComponents = formModel(sectionNumber).allFormComponents
 
-    val fileUploadComponents: List[FormComponent] = formComponents.collect { case fc @ IsFileUpload(_) =>
-      fc
+    val fileUploadComponents: List[FormComponent] = formComponents.collect {
+      case fc @ IsFileUpload(_)      => fc
+      case fc @ IsMultiFileUpload(_) => fc
     }
 
-    val fileUploadMaxSize: Map[FormComponentId, Int] = formComponents.collect { case fc @ IsFileUpload(fu) =>
-      fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
+    val fileUploadMaxSize: Map[FormComponentId, Int] = formComponents.collect {
+      case fc @ IsFileUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
+      case fc @ IsMultiFileUpload(fu) => fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
     }.toMap
 
     val upscanData: Map[FormComponentId, UpscanData] =
@@ -1510,6 +1512,24 @@ class SectionRenderingService(
                 htmlForFileUploadSingle(formComponent, ei, upscanData, additionalAttributes)
             }
 
+          case mfu @ MultiFileUpload(_, allowedFileTypes, _, _) =>
+            val allowedContentTypes = allowedFileTypes
+              .map(_.contentTypes)
+              .getOrElse(ei.formTemplate.allowedFileTypes.contentTypes)
+              .toList
+              .map(_.value)
+              .mkString(", ")
+            val additionalAttributes = Map("accept" -> allowedContentTypes)
+
+            htmlForMultiFileUploadStandard(
+              formComponent,
+              ei,
+              validationResult,
+              upscanData,
+              additionalAttributes,
+              mfu
+            )
+
           case InformationMessage(infoType, infoText, _) =>
             htmlForInformationMessage(formComponent, infoType, infoText)
           case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
@@ -1550,11 +1570,11 @@ class SectionRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Html = {
-    val fileId: FileId = ei.getFileId(formComponent)
+    val fileId: FileId = ei.getFileIdSingle(formComponent)
 
     val fileSize: Long =
       ei.envelope
-        .find(formComponent.modelComponentId)
+        .findSingle(formComponent.modelComponentId)
         .map(_.length)
         .getOrElse(0)
 
@@ -1598,6 +1618,37 @@ class SectionRenderingService(
           ei,
           upscanData.snippets,
           additionalAttributes
+        )
+    }
+
+  private def htmlForMultiFileUploadStandard(
+    formComponent: FormComponent,
+    ei: ExtraInfo,
+    validationResult: ValidationResult,
+    upscanData: Map[FormComponentId, UpscanData],
+    additionalAttributes: Map[String, String],
+    multiFileUpload: MultiFileUpload
+  )(implicit
+    request: RequestHeader,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html =
+    upscanData.get(formComponent.id) match {
+      case None => throw new IllegalArgumentException(s"Unable to find upscanData for ${formComponent.id}")
+      case Some(upscanData) =>
+        val fileUploadName = "file"
+        val attributes = Map("form" -> upscanData.formMetaData.htmlId) ++ additionalAttributes
+
+        htmlForMultiFileUpload(
+          formComponent,
+          ei.formTemplateId,
+          ei,
+          validationResult,
+          fileUploadName,
+          upscanData.url,
+          attributes,
+          multiFileUpload
         )
     }
 
@@ -2124,7 +2175,7 @@ class SectionRenderingService(
         formTemplateId,
         ei.maybeAccessCode,
         ei.sectionNumber,
-        formComponent.id
+        FileComponentId.Single(formComponent.id)
       )
 
     val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
@@ -2161,6 +2212,148 @@ class SectionRenderingService(
         val hiddenInput = html.form.snippets.hidden(formComponent.id.value, fileName)
         HtmlFormat.fill(List(hiddenInput, uploadedFiles))
       case None => HtmlFormat.fill(List(fileInput, uploadedFiles, submitButtonHtml))
+    }
+  }
+
+  private def htmlForMultiFileUpload(
+    formComponent: FormComponent,
+    formTemplateId: FormTemplateId,
+    ei: ExtraInfo,
+    validationResult: ValidationResult,
+    fileUploadName: String,
+    formAction: String,
+    attributes: Map[String, String],
+    multiFileUpload: MultiFileUpload
+  )(implicit
+    request: RequestHeader,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ) = {
+
+    val showFileUpload: Option[String] = request.getQueryString("showFileUpload") // This is ugly
+
+    val formFieldValidationResult = validationResult(formComponent)
+
+    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
+
+    val errorMessage = errors.map(error =>
+      ErrorMessage.errorMessageWithDefaultStringsTranslated(
+        content = content.Text(error)
+      )
+    )
+
+    val currentValues: List[(FileId, String, Call)] = formFieldValidationResult match {
+      case ComponentField(_, data) =>
+        data.toList
+          .sortBy { case (htmlFieldId, _) =>
+            htmlFieldId.fold(_ =>
+              throw new Exception(s"Invalid fileComponentId representation. Index is needed $htmlFieldId")
+            )(indexed =>
+              indexed.index.toIntOption
+                .getOrElse(throw new Exception(s"Failed to convert fileComponentId index to a number $indexed"))
+            )
+          }
+          .map { case (htmlFieldId, validationResult) =>
+            val fileComponentId = FileComponentId.fromHtmlFieldId(htmlFieldId)
+            val fileId = ei.envelope.fileIdFor(fileComponentId)
+            val deleteUrl =
+              uk.gov.hmrc.gform.objectStore.routes.ObjectStoreController.requestRemoval(
+                formTemplateId,
+                ei.maybeAccessCode,
+                ei.sectionNumber,
+                fileComponentId
+              )
+            (
+              fileId,
+              validationResult.getCurrentValue.getOrElse(""),
+              deleteUrl
+            )
+          }
+      case _ => List.empty[(FileId, String, Call)]
+    }
+
+    val labelContent = content.Text(formComponent.label.value())
+
+    val isPageHeading = ei.formLevelHeading
+
+    val label = Label(
+      isPageHeading = isPageHeading,
+      classes = getLabelClasses(isPageHeading, formComponent.labelSize),
+      content = labelContent
+    )
+
+    val fileUpload: fileupload.FileUpload = fileupload.FileUpload(
+      id = formComponent.id.value,
+      name = fileUploadName,
+      label = label,
+      hint = hintText(formComponent),
+      errorMessage = errorMessage,
+      attributes = attributes
+    )
+
+    val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+    val sn = ei.sectionNumber
+    val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+    val promptUrl =
+      uk.gov.hmrc.gform.gform.routes.MultiFileUploadController.multi(
+        formTemplateId,
+        ei.maybeAccessCode,
+        ei.sectionNumber,
+        sectionTitle4Ga,
+        SuppressErrors.Yes,
+        List(FastForward.StopAt(ei.sectionNumber)),
+        true
+      )
+
+    val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
+
+    val submitButton: GovukButton = GovukButton(
+      name = Some(s"${formComponent.id}-uploadButton"),
+      content = content.Text(messages("file.upload")),
+      inputType = Some("submit"),
+      classes = "govuk-button--secondary",
+      attributes = Map(
+        "formaction"  -> formAction,
+        "formenctype" -> "multipart/form-data"
+      ) ++ attributes,
+      preventDoubleClick = Some(true)
+    )
+
+    val submitButtonHtml: Html = new components.GovukButton()(submitButton)
+
+    val singleton = ei.singleton
+    val page = singleton.page
+    val formLevelHeading = shouldDisplayHeading(singleton)
+    val sectionHeader = html.form.snippets.header_multi_file(page.sectionHeader().sectionTitle)
+
+    val showPrompt = showFileUpload.contains("true")
+    val uploadAnotherLabel =
+      multiFileUpload.uploadAnotherLabel.map(_.value()).getOrElse(messages("file.upload.another"))
+    val hint: Html =
+      multiFileUpload.hint.map(hint => html.form.snippets.multi_file_hint(hint.value())).getOrElse(HtmlFormat.empty)
+    val uploadedFiles: Html =
+      html.form.snippets
+        .uploaded_files_multi(
+          formComponent.id,
+          currentValues,
+          promptUrl,
+          showPrompt,
+          uploadAnotherLabel
+        )
+
+    currentValues match {
+      case _ :: _ =>
+        if (showPrompt) {
+          HtmlFormat.fill(List(hint, fileInput, submitButtonHtml, uploadedFiles))
+        } else {
+          if (formLevelHeading) {
+            HtmlFormat.fill(List(hint, sectionHeader, uploadedFiles))
+          } else {
+            HtmlFormat.fill(List(hint, uploadedFiles))
+          }
+        }
+      case Nil => HtmlFormat.fill(List(hint, fileInput, uploadedFiles, submitButtonHtml))
     }
   }
 

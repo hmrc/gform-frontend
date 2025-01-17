@@ -1,0 +1,58 @@
+@*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+
+@(
+  formComponentId: FormComponentId,
+  currentValues: List[(FileId, String, Call)],
+  promptUrl: Call,
+  showPrompt: Boolean,
+  uploadAnotherLabel: String
+)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
+
+@govukButton = @{new GovukButton()}
+
+@uploaded_files_wrapper(formComponentId){
+  @if(!showPrompt && currentValues.nonEmpty) {
+    <button type="submit" class="govuk-button govuk-button--secondary" data-module="govuk-button" formaction="@promptUrl">
+      @{uploadAnotherLabel}
+    </button>
+  }
+  <dl class="govuk-summary-list govuk-summary-list--long-key">
+  @currentValues.map { case (fileId, currentValue, deleteUrl) =>
+    @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
+      @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            <span id="fileupload" role="alert">@{fileName}</span>
+          </dt>
+          <dd class="govuk-summary-list__value">
+            <strong class="govuk-tag govuk-tag--green">
+              @{messages("file.uploaded")}
+            </strong>
+          </dd>
+          <dd class="govuk-summary-list__actions">
+            <a href="@deleteUrl.path" class="govuk-link" draggable="false" data-module="govuk-button">@messages("file.remove")<span class="govuk-visually-hidden"> @{fileName}</span></a>
+          </dd>
+        </div>
+      }
+    }
+  }
+  </dl>
+}

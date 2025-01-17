@@ -75,6 +75,7 @@ class RoutingModule(
     gformModule.agentEnrolmentController,
     gformModule.saveAcknowledgementController,
     gformModule.reviewController,
+    gformModule.multiFileUploadController,
     assetsComponents.assets,
     gformModule.objectStoreController,
     gformModule.languageSwitchController,

@@ -225,6 +225,10 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
         validIf(
           new FileUploadChecker[D]().runCheck(checkerDependency)
         )
+      case MultiFileUpload(_, _, _, _) =>
+        validIf(
+          new FileUploadChecker[D]().runCheck(checkerDependency)
+        )
       case InformationMessage(_, _, _) => validationSuccess.pure[F]
       case HmrcTaxPeriod(_, _, _) =>
         validIf(new ChoiceChecker[D]().runCheck(checkerDependency))

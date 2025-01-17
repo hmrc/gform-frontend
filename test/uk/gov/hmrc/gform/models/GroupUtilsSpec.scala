@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponentId, Section, SectionNumber, ShortText, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FileUpload, FormComponentId, Section, SectionNumber, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
@@ -101,8 +101,10 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
 
     val processData: ProcessData = mkProcessData(formModelOptics)
 
-    val fileIds = Set("1_f", "2_f", "3_f", "regularFile").map(fcId => FileId(fcId))
-    val originalMapping = FormComponentIdToFileIdMapping(fileIds.map(fileId => fileId.toFieldId -> fileId).toMap)
+    val fileComponentIds = Set("1_f", "2_f", "3_f", "regularFile").map(fcId => FileComponentId.fromString(fcId))
+    val originalMapping = FormComponentIdToFileIdMapping(
+      fileComponentIds.map(fileComponentId => fileComponentId -> fileComponentId.toFileId()).toMap
+    )
 
     val expectedMapping1 = Map("1_f" -> "2_f", "2_f" -> "3_f", "regularFile" -> "regularFile").toMapping
     val expectedMapping2 = Map("1_f" -> "1_f", "2_f" -> "3_f", "regularFile" -> "regularFile").toMapping
@@ -133,6 +135,6 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
 
   implicit class MapOps(map: Map[String, String]) {
     def toMapping: FormComponentIdToFileIdMapping =
-      FormComponentIdToFileIdMapping(map.map { case (k, v) => FormComponentId(k) -> FileId(v) })
+      FormComponentIdToFileIdMapping(map.map { case (k, v) => FileComponentId.fromString(k) -> FileId(v) })
   }
 }

@@ -135,6 +135,7 @@ class SummaryRenderingServiceSpec
           Option.empty[FormPhase],
           FileIdsWithMapping.empty,
           Map.empty,
+          Map.empty,
           Set.empty,
           Set.empty,
           Set.empty,

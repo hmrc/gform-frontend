@@ -28,6 +28,8 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.sharedmodel.VariadicValue
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -66,6 +68,7 @@ object FormModelOptics {
         hc,
         Option.empty[FormPhase],
         FileIdsWithMapping.empty,
+        Map.empty[ModelComponentId, List[(FileComponentId, VariadicValue.One)]],
         Map.empty,
         Set.empty[BaseComponentId],
         Set.empty[BaseComponentId],

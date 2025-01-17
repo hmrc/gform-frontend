@@ -16,33 +16,27 @@
 
 package uk.gov.hmrc.gform.objectStore
 
-import cats.Show
 import cats.implicits._
-import cats.data.Validated
-import cats.data.Validated.{ Invalid, Valid }
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
-import org.typelevel.ci.CIString
 import play.api.data
-import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ Flash, MessagesControllerComponents }
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import play.api.i18n.I18nSupport
+import play.api.mvc.MessagesControllerComponents
+import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.{ FormTemplateKey, gform }
 
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.{ FastForward, FileUploadUtils, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormData, FormField, FormIdData, FormModelOptics, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowedFileTypes, FormComponentId, FormTemplateId, SectionNumber, SuppressErrors }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.gform.{ Errors, FastForwardService, HasErrors, NoErrors }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
@@ -54,7 +48,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, Erro
 import scala.concurrent.ExecutionContext
 
 class ObjectStoreController(
-  appConfig: AppConfig,
   objectStoreService: ObjectStoreService,
   auth: AuthenticatedRequestActions,
   gformConnector: GformConnector,
@@ -69,191 +62,11 @@ class ObjectStoreController(
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  implicit val showFlash: Show[Flash] = Show.show(_.data.show)
-
-  def noJsSuccessCallback(
-    formTemplateId: FormTemplateId,
-    sectionNumber: SectionNumber,
-    maybeAccessCode: Option[AccessCode],
-    formComponentId: FormComponentId,
-    fileId: FileId
-  ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => _ => implicit formModelOptics =>
-        val formTemplateContext = request.attrs(FormTemplateKey)
-        val formTemplate = formTemplateContext.formTemplate
-        for {
-          envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
-          flash    <- checkFile(fileId, envelope, cache.form.envelopeId, formTemplate.allowedFileTypes)
-          cacheUpd = cache
-                       .modify(_.form.componentIdToFileId)
-                       .using(_ + (formComponentId, fileId))
-                       .modify(_.form.formData)
-                       .using(updateFormDataWithFileUploadMetadata(_, sectionNumber, fileId, envelope))
-          res <- fastForwardService
-                   .redirectStopAt[SectionSelectorType.Normal](
-                     sectionNumber,
-                     cacheUpd,
-                     maybeAccessCode,
-                     formModelOptics,
-                     SuppressErrors.Yes
-                   )
-        } yield res.flashing(flash)
-
-    }
-
-  private def updateFormDataWithFileUploadMetadata(
-    formData: FormData,
-    sectionNumber: SectionNumber,
-    fileId: FileId,
-    envelope: Envelope
-  )(implicit formModelOptics: FormModelOptics[DataOrigin.Mongo]): FormData =
-    envelope
-      .find(fileId)
-      .map { file =>
-        val indexedComponentIds = formModelOptics.formModelRenderPageOptics
-          .formModel(sectionNumber)
-          .allFormComponentIds
-          .map(_.modelComponentId.indexedComponentId)
-        val fileMetadataParams = file.metadata.collect {
-          case (key, values)
-              if indexedComponentIds
-                .contains(FormComponentId(key).modelComponentId.indexedComponentId) =>
-            FormField(FormComponentId(key).modelComponentId, values.mkString(","))
-        }
-        formData ++ FormData(fileMetadataParams.toList)
-      }
-      .getOrElse(formData)
-
-  private def checkFile(
-    fileId: FileId,
-    envelope: Envelope,
-    envelopeId: EnvelopeId,
-    allowedFileTypes: AllowedFileTypes
-  )(implicit
-    messages: Messages,
-    hc: HeaderCarrier
-  ): Future[Flash] = {
-
-    val validated: Validated[Flash, Unit] = validateFile(fileId, envelope, allowedFileTypes)
-
-    validated match {
-      case Invalid(flash) =>
-        logger.warn(show"Attemp to upload invalid file. Deleting FileId: $fileId, flash: $flash")
-        objectStoreService
-          .deleteFile(envelopeId, fileId)
-          .map(_ => flashWithFileId(flash, fileId))
-      case Valid(_) => Flash().pure[Future]
-    }
-  }
-
-  private def flashWithFileId(flash: Flash, fileId: FileId): Flash =
-    flash + (GformFlashKeys.FileUploadFileId -> fileId.value)
-
-  private def validateFile(fileId: FileId, envelope: Envelope, allowedFileTypes: AllowedFileTypes)(implicit
-    messages: Messages
-  ): Validated[Flash, Unit] =
-    envelope.find(fileId).fold[Validated[Flash, Unit]](Valid(())) { file =>
-      Valid(file)
-        .ensure(mkFlash("file.error.empty"))(_.length =!= 0)
-        .ensure(
-          mkFlash(
-            "file.error.type",
-            allowedFileTypes.fileExtensions.toList.map(_.toUpperCase).mkString(", ")
-          )
-        )(_ => validateFileExtension(file) && validateFileType(file, allowedFileTypes))
-        .map(_ => ())
-    }
-
-  private def mkFlash(s: String, params: String*)(implicit messages: Messages): Flash = Flash(
-    Map(GformFlashKeys.FileUploadError -> messages(s, params: _*))
-  )
-
-  private def getFileExtension(fileName: String): Option[String] =
-    fileName.split("\\.").tail.lastOption
-
-  private def validateFileExtension(file: File): Boolean =
-    getFileExtension(file.fileName).fold(false) { v =>
-      !appConfig.restrictedFileExtensions.map(_.value).contains(CIString(v))
-    }
-
-  private def validateFileType(file: File, allowedFileTypes: AllowedFileTypes): Boolean =
-    allowedFileTypes.contentTypes.exists(_ === file.contentType)
-
-  case class FileUploadError(
-    errorCode: String,
-    reason: String
-  )
-
-  def noJsErrorCallback(
-    formTemplateId: FormTemplateId,
-    sectionNumber: SectionNumber,
-    maybeAccessCode: Option[AccessCode],
-    formComponentId: FormComponentId,
-    fileId: FileId
-  ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => sse => formModelOptics =>
-        val maybeErrorCode: Option[FileUploadError] =
-          for {
-            errorCode <- request.getQueryString("errorCode")
-            reason    <- request.getQueryString("reason")
-          } yield FileUploadError(errorCode, reason)
-
-        val fileUploadError = maybeErrorCode.getOrElse(FileUploadError("Unknown error data", request.rawQueryString))
-
-        // Let's just print the reason why this is being called
-        logger.warn(fileUploadError.toString)
-
-        val flash = fileUploadError.errorCode match {
-          case "413" =>
-            mkFlash(
-              "file.error.size",
-              cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB).toString
-            )
-          case _ => mkFlash("file.error.generic")
-        }
-
-        fastForwardService
-          .redirectStopAt[SectionSelectorType.Normal](
-            sectionNumber,
-            cache,
-            maybeAccessCode,
-            formModelOptics,
-            SuppressErrors.Yes
-          )
-          .map(_.flashing(flashWithFileId(flash, fileId)))
-    }
-
-  def addFileId(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    formComponentId: FormComponentId,
-    fileId: FileId
-  ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
-    implicit request => l => cache => _ => formModelOptics =>
-      updateUserData(cache, formComponentId, fileId, maybeAccessCode).map(_ => NoContent)
-  }
-
-  private def updateUserData(
-    cache: AuthCacheWithForm,
-    formComponentId: FormComponentId,
-    fileId: FileId,
-    maybeAccessCode: Option[AccessCode]
-  )(implicit
-    hc: HeaderCarrier
-  ): Future[Unit] = {
-    val userData = FileUploadUtils.updateMapping(formComponentId, fileId, cache.form)
-    for {
-      _ <- gformConnector.updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
-    } yield ()
-  }
-
   def requestRemoval(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
+    fileComponentId: FileComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit lang => _ => implicit sse => _ =>
       val formTemplateContext = request.attrs(FormTemplateKey)
@@ -264,7 +77,7 @@ class ObjectStoreController(
           formTemplateId,
           maybeAccessCode,
           sectionNumber,
-          formComponentId
+          fileComponentId
         )
       val heading = request.messages.messages("file.delete.confirm")
       val (pageError, fieldErrors) =
@@ -315,7 +128,7 @@ class ObjectStoreController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
+    fileComponentId: FileComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => _ => _ => _ => _ =>
       val deleteUrl =
@@ -323,7 +136,7 @@ class ObjectStoreController(
           formTemplateId,
           maybeAccessCode,
           sectionNumber,
-          formComponentId
+          fileComponentId
         )
 
       form
@@ -332,7 +145,7 @@ class ObjectStoreController(
           _ =>
             Redirect(
               routes.ObjectStoreController
-                .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, formComponentId)
+                .requestRemoval(formTemplateId, maybeAccessCode, sectionNumber, fileComponentId)
             )
               .flashing("removeParamMissing" -> "true")
               .pure[Future],
@@ -350,19 +163,20 @@ class ObjectStoreController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    formComponentId: FormComponentId
+    fileComponentId: FileComponentId
   ) = auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, EditForm) {
     implicit request => implicit l => cache => implicit sse => formModelOptics =>
       processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => variadicFormData => _ =>
         val cacheU = cache
           .modify(_.form.formData)
           .using(_ ++ variadicFormData.toFormData)
-        val data = FileUploadUtils.prepareDeleteFile(formComponentId, cacheU.form)
+        val data =
+          FileUploadUtils.prepareDeleteFile(fileComponentId, cacheU.form)
 
         data match {
           case None =>
             logger.warn(
-              s"Attempt to delete file associated with component $formComponentId from envelope. But file is not registered in mapping: ${cacheU.form.componentIdToFileId.mapping}"
+              s"Attempt to delete file associated with component $fileComponentId from envelope. But file is not registered in mapping: ${cacheU.form.componentIdToFileId.mapping}"
             )
             fastForwardService
               .redirectFastForward[SectionSelectorType.Normal](
@@ -374,7 +188,7 @@ class ObjectStoreController(
               )
           case Some((fileToDelete, formDataUpd, mappingUpd)) =>
             logger.info(
-              s"Deleting file ${fileToDelete.value} from envelope associated with component $formComponentId."
+              s"Deleting file ${fileToDelete.value} from envelope associated with component $fileComponentId."
             )
             val cacheWithFileRemoved = cacheU
               .modify(_.form.formData)

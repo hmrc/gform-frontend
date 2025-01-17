@@ -533,8 +533,17 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Unit] = {
-    logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}'")
+    logger.info(s"delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}'")
     ws.DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
+      .map(_ => ())
+  }
+
+  def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+    logger.info(s"deleting files, envelopeId: '${envelopeId.value}', fileIds: '$fileIds'")
+    ws.POST[Set[FileId], HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files", fileIds)
       .map(_ => ())
   }
 

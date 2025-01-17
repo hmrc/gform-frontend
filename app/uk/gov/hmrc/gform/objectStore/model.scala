@@ -18,13 +18,15 @@ package uk.gov.hmrc.gform.objectStore
 
 import cats.instances.string._
 import cats.syntax.eq._
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 
-case class Attachments(files: List[FormComponentId]) {
+case class Attachments(files: List[FileComponentId]) {
   val size = files.length
 }
 
@@ -60,49 +62,20 @@ object Envelope {
 case class EnvelopeRaw(files: Option[List[File]])
 case class File(
   fileId: FileId,
-  status: Status,
   fileName: String,
+  status: FileStatus,
   contentType: ContentType,
   length: Long,
   metadata: Map[String, List[String]]
 )
 
 object File {
-
-  private val fileRawReads: Reads[FileRaw] = Json.reads[FileRaw]
-
-  //TIP: look for FileStatus trait in https://github.com/hmrc/file-upload/blob/master/app/uk/gov/hmrc/fileupload/read/envelope/model.scala
-  implicit val format: Reads[File] = fileRawReads.map {
-    case FileRaw(id, name, "QUARANTINED", _, cType, length, metatadata) =>
-      File(FileId(id), Quarantined, name, cType, length, metatadata)
-    case FileRaw(id, name, "CLEANED", _, cType, length, metatadata) =>
-      File(FileId(id), Cleaned, name, cType, length, metatadata)
-    case FileRaw(id, name, "AVAILABLE", _, cType, length, metatadata) =>
-      File(FileId(id), Available, name, cType, length, metatadata)
-    case FileRaw(id, name, "INFECTED", _, cType, length, metatadata) =>
-      File(FileId(id), Infected, name, cType, length, metatadata)
-    case FileRaw(id, name, ERROR, reason, cType, length, metatadata) =>
-      File(FileId(id), Error(reason), name, cType, length, metatadata)
-    case FileRaw(id, name, other, reason, cType, length, metatadata) =>
-      File(FileId(id), Other(other, reason), name, cType, length, metatadata)
-  }
-  private val ERROR = "UnKnownFileStatusERROR"
+  implicit val fileReads: Reads[File] = (
+    (JsPath \ "id").read[FileId] and
+      (JsPath \ "name").read[String] and
+      (JsPath \ "status").read[FileStatus] and
+      (JsPath \ "contentType").read[ContentType] and
+      (JsPath \ "length").read[Long] and
+      (JsPath \ "metadata").read[Map[String, List[String]]]
+  )(File.apply _)
 }
-
-case class FileRaw(
-  id: String,
-  name: String,
-  status: String,
-  reason: Option[String],
-  contentType: ContentType,
-  length: Long,
-  metadata: Map[String, List[String]]
-)
-
-sealed trait Status
-case object Quarantined extends Status
-case object Infected extends Status
-case object Cleaned extends Status
-case object Available extends Status
-case class Other(value: String, reason: Option[String]) extends Status
-case class Error(reason: Option[String]) extends Status //based on experience FU not always sets reason field

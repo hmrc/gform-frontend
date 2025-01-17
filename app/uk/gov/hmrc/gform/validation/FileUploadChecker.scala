@@ -18,16 +18,14 @@ package uk.gov.hmrc.gform.validation
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.Available
+import uk.gov.hmrc.gform.objectStore.FileStatus
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.objectStore.Error
 import uk.gov.hmrc.gform.objectStore.File
-import uk.gov.hmrc.gform.objectStore.Infected
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsMultiFileUpload }
 
 import ComponentChecker._
 
@@ -44,8 +42,8 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     def valueForReport(): File =
       File(
         FileId("report-file-id"),
-        Available,
         "report-file-name",
+        FileStatus.Available,
         ContentType("application/pdf"),
         10L,
         Map()
@@ -57,35 +55,25 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
-    val file: Option[File] = envelope.find(formComponent.id.modelComponentId)
+    val isMultiFileUplaod = formComponent match {
+      case IsMultiFileUpload(_) => true
+      case _                    => false
+    }
+    val file: Option[File] = if (isMultiFileUplaod) {
+      val files: List[(FileComponentId, File)] = envelope.findMulti(formComponent.id.modelComponentId)
+      files.headOption.map { case (_, file) => file }
+    } else {
+      envelope.findSingle(formComponent.id.modelComponentId)
+    }
     file.foldProgram(
       onNone = ifProgram(
         andCond = formComponent.mandatory,
         thenProgram = CheckerServiceHelper.validationFailure(formComponent, "generic.error.upload", None),
         elseProgram = successProgram(())
       ),
-      onSomeFun = { f =>
-        val File(_, status, _, _, _, _) = f
-        val isErrorStatus = status match {
-          case Error(_) => true
-          case _        => false
-        }
-        val isInfectedStatus = status match {
-          case Infected => true
-          case _        => false
-        }
-        switchProgram(
-          switchCase(
-            cond = isErrorStatus,
-            thenProgram = CheckerServiceHelper.validationFailure(formComponent, "generic.error.unknownUpload", None)
-          ),
-          switchCase(
-            cond = isInfectedStatus,
-            thenProgram = CheckerServiceHelper.validationFailure(formComponent, "generic.error.virus", None)
-          )
-        )(elseProgram = successProgram(()))
+      onSomeFun = { _ =>
+        successProgram(())
       }
     )
   }
-
 }

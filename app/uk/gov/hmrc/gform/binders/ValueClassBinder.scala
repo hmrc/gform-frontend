@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ ExpandUtils, FastForward, LookupQuery }
 import uk.gov.hmrc.gform.payment.PaymentReference
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
@@ -274,6 +275,11 @@ object ValueClassBinder {
   implicit val formComponentIdBinder: PathBindable[FormComponentId] = {
     implicit val reads: Reads[FormComponentId] = FormComponentId.oformat
     valueClassBinder(_.value)
+  }
+
+  implicit val fileComponentIdBinder: PathBindable[FileComponentId] = {
+    implicit val reads: Reads[FileComponentId] = FileComponentId.vformat
+    valueClassBinder(_.value())
   }
 
   implicit val baseComponentIdBinder: PathBindable[BaseComponentId] =
