@@ -45,6 +45,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.views.hardcoded._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
@@ -296,26 +297,28 @@ class NewFormController(
         for {
           formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
           maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
-          maybeFormSubmitted =
-            maybeForm.filter { form =>
-              (form.status, form.submitted) match {
-                case (Submitted, Some(date))
-                    if date.submittedAt.isAfter(
-                      LocalDateTime.now().minusHours(submittedAgeHours)
-                    ) && cache.formTemplate.downloadPreviousSubmissionPdf =>
-                  true
-                case _ => false
-              }
+          maybeSubmission <- maybeForm.fold(Option.empty[Submission].pure[Future]) { form =>
+                               gformConnector.maybeSubmissionDetails(
+                                 FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                                 form.envelopeId
+                               )
+                             }
+          maybeSubmittedRecently =
+            maybeSubmission.filter { submission =>
+              cache.formTemplate.downloadPreviousSubmissionPdf && submission.submittedDate.isAfter(
+                LocalDateTime.now().minusHours(submittedAgeHours)
+              )
             }
-          res <- maybeFormSubmitted.fold(newForm(formTemplateId, cache, QueryParams.fromRequest(request))) { form =>
-                   val downloadOrNewFormPage: DownloadOrNewFormPage = downloadOrNewChoice
-                     .bindFromRequest()
-                     .fold(
-                       errorForm => new DownloadOrNewFormPage(cache.formTemplate, errorForm, form.submitted, se),
-                       _ => new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice, form.submitted, se)
-                     )
-                   Ok(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
-                 }
+          res <-
+            maybeSubmittedRecently.fold(newForm(formTemplateId, cache, QueryParams.fromRequest(request))) { sub =>
+              val downloadOrNewFormPage: DownloadOrNewFormPage = downloadOrNewChoice
+                .bindFromRequest()
+                .fold(
+                  errorForm => new DownloadOrNewFormPage(cache.formTemplate, errorForm, sub.submittedDate, se),
+                  _ => new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice, sub.submittedDate, se)
+                )
+              Ok(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
+            }
         } yield res
     }
 

@@ -78,8 +78,7 @@ trait FormModelSupport extends GraphSpec {
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
     componentIdToFileId = FormComponentIdToFileIdMapping.empty,
-    taskIdTaskStatus = TaskIdTaskStatusMapping.empty,
-    None
+    taskIdTaskStatus = TaskIdTaskStatusMapping.empty
   )
 
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(

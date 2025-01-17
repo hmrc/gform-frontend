@@ -64,7 +64,7 @@ class NewFormControllerSpec
 
   val newFormUrl: String = "/form/tst1/?n=n1&se=f"
 
-  "downloadOldOrNewForm" should "start a fresh form when no previous submission detected" in new TestFixture {
+  "downloadOldOrNewForm" should "start a fresh form when no previous form detected" in new TestFixture {
     initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
@@ -80,13 +80,31 @@ class NewFormControllerSpec
     redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
+  it should "start a fresh form when no previous submission detected" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(authCacheWithForm.form))
+      )
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(Future.successful(Option.empty[Submission]))
+
+    val result: Future[Result] = newFormController
+      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some(newFormUrl)
+  }
+
   it should "start a fresh form when previous submission detected but older than 24 hours" in new TestFixture {
     initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(Some(existingSubmittedForm(LocalDateTime.now().minusHours(25)))),
         Future.successful(Some(authCacheWithForm.form))
       )
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(25)))))
 
     val result: Future[Result] = newFormController
       .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
@@ -103,9 +121,10 @@ class NewFormControllerSpec
 
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(Some(existingSubmittedForm(LocalDateTime.now().minusHours(23)))),
         Future.successful(Some(authCacheWithForm.form))
       )
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
 
     val result: Future[Result] = newFormController
       .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
@@ -119,9 +138,10 @@ class NewFormControllerSpec
     initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(Some(existingSubmittedForm(LocalDateTime.now().minusHours(23)))),
         Future.successful(Some(authCacheWithForm.form))
       )
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
 
     val result: Future[Result] = newFormController
       .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
@@ -347,34 +367,6 @@ class NewFormControllerSpec
       submissionRef = submissionRef,
       envelopeId = envelopeId,
       dmsMetaData = DmsMetaData(authCacheWithForm.formTemplateId)
-    )
-
-    def existingSubmittedForm(submittedAt: LocalDateTime): Form = Form(
-      FormId("dummy-sessionId-tst1"),
-      envelopeId,
-      UserId("dummy-sessionId"),
-      FormTemplateId("tst1"),
-      None,
-      FormData(formFields),
-      Submitted,
-      VisitIndex.Classic(Set.empty),
-      ThirdPartyData(
-        NotChecked,
-        Map.empty,
-        QueryParams.empty,
-        None,
-        BooleanExprCache.empty,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
-      ),
-      None,
-      FormComponentIdToFileIdMapping.empty,
-      TaskIdTaskStatusMapping.empty,
-      Some(SubmittedDate(submittedAt))
     )
 
     def initCommonMocks(): Unit = {

@@ -20,7 +20,6 @@ import cats.implicits.catsSyntaxEq
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.form.SubmittedDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
@@ -31,7 +30,7 @@ import java.time.format.DateTimeFormatter
 class DownloadOrNewFormPage(
   val formTemplate: FormTemplate,
   form: Form[String],
-  submittedDate: Option[SubmittedDate],
+  submittedDate: LocalDateTime,
   se: SuppressErrors
 )(implicit
   messages: Messages
@@ -44,7 +43,7 @@ class DownloadOrNewFormPage(
 
   private val dateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy", messages.lang.locale)
   private val timeFormat = DateTimeFormatter.ofPattern("HH:mm", messages.lang.locale)
-  private val submittedDateTime = submittedDate.getOrElse(SubmittedDate(LocalDateTime.MIN)).submittedAt
+  private val submittedDateTime = submittedDate
 
   val errorSummary: ErrorSummary = {
 

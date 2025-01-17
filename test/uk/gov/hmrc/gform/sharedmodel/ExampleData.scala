@@ -1008,8 +1008,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     ThirdPartyData.empty,
     envelopeExpiryDate,
     FormComponentIdToFileIdMapping.empty,
-    TaskIdTaskStatusMapping.empty,
-    None
+    TaskIdTaskStatusMapping.empty
   )
 }
 
