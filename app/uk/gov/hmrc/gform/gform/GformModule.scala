@@ -294,17 +294,23 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  val acknowledgementPdfService: AcknowledgementPdfService = new AcknowledgementPdfService(
+    playBuiltInsModule.i18nSupport,
+    nonRepudiationHelpers,
+    sectionRenderingService,
+    auditingModule.auditService,
+    gformBackendModule.gformConnector,
+    pdfRenderService,
+    pdfGeneratorService,
+    fopService
+  )
+
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    pdfGeneratorService,
-    fopService,
-    pdfRenderService,
+    acknowledgementPdfService,
     sectionRenderingService,
-    gformBackendModule.gformConnector,
-    nonRepudiationHelpers,
-    controllersModule.messagesControllerComponents,
-    auditingModule.auditService
+    controllersModule.messagesControllerComponents
   )
 
   val errorController = new ErrorController(
@@ -347,7 +353,8 @@ class GformModule(
     controllersModule.messagesControllerComponents,
     gformBackEndService,
     ninoInsightsConnector,
-    englishMessages
+    englishMessages,
+    acknowledgementPdfService
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)

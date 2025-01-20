@@ -33,10 +33,10 @@ import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, CookieNames, Direction, Exit, SummaryContinue }
+import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
-import uk.gov.hmrc.gform.gform._
+import uk.gov.hmrc.gform.gform.{ AcknowledgementPdfService, _ }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -83,7 +83,7 @@ class TestOnlyController(
   newFormController: NewFormController,
   authLoginStubService: AuthLoginStubService,
   summaryController: SummaryController,
-  acknowledgementController: AcknowledgementController
+  acknowledgementPdfService: AcknowledgementPdfService
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -658,8 +658,8 @@ class TestOnlyController(
   ) =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
-        import i18nSupport._
         import cache._
+        import i18nSupport._
         val customerId =
           CustomerIdRecalculation
             .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
@@ -1430,7 +1430,7 @@ class TestOnlyController(
       accessCode,
       OperationWithForm.ViewAcknowledgement
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      acknowledgementController
+      acknowledgementPdfService
         .createPDFContent(cache, accessCode, formModelOptics, sendAuditEvent = false)
         .map(content => pdfContent(cache.formTemplate.accessiblePdf, content))
     }
