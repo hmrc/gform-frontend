@@ -1010,16 +1010,33 @@ case class EvaluationResults(
   def typeInfoForExpr(
     expr: Expr,
     evaluationContext: EvaluationContext
-  ): TypeInfo =
-    expr match {
-      case Add(_, _) | Multiply(_, _) | Subtraction(_, _) | Divide(_, _) =>
-        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+  ): TypeInfo = {
+    def firstExprForTypeResolution(expr: Expr): Option[Expr] = {
+      def loop(expr: Expr): List[Expr] = expr match {
+        case Add(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
+        case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
+        case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
+        case Divide(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
+        case IfElse(_, field1: Expr, field2: Expr)   => loop(field1) ++ loop(field2)
+        case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
+        case _                                       => expr :: Nil
+      }
+      loop(expr).headOption
+    }
+
+    firstExprForTypeResolution(expr).fold(TypeInfo.illegal(expr)) {
       case DateCtx(_) => TypeInfo(expr, StaticTypeData(ExprType.dateString, None))
       case IsNumberConstant(_) | PeriodExt(_, _) | UserCtx(UserField.Enrolment(_, _, Some(UserFieldFunc.Count))) |
           Size(_, _) | CsvCountryCountCheck(_, _, _) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isNumber(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _)
+          if evaluationContext.dataRetrieveAll.isNumber(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _)
+          if evaluationContext.dataRetrieveAll.isDate(id, attribute) =>
+        TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCtx(id, attribute) if evaluationContext.dataRetrieveAll.isDate(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCount(_) =>
@@ -1027,10 +1044,11 @@ case class EvaluationResults(
       case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case ChoicesSelected(_) | ChoicesAvailable(_) => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case AuthCtx(AuthInfo.ItmpAddress)            => TypeInfo(expr, StaticTypeData(ExprType.address, None))
-      case IfElse(cond, field1: Expr, field2: Expr) => typeInfoForExpr(field1, evaluationContext)
       case _                                        => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
+  }
 
   private def evalExprAsString(
     expr: Expr,

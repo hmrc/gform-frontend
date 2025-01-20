@@ -427,7 +427,7 @@ class TestOnlyController(
 
     val viewAllExpressionsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View expressions",
-      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showExpressions(formTemplate._id)
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showExpressions(formTemplate._id, accessCode)
     )
 
     val links = List(
@@ -461,8 +461,8 @@ class TestOnlyController(
     HtmlFormat.fill(List(envelope, br(), bulletedList, br(), govukTable, tableInset))
   }
 
-  def showExpressions(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, None) {
+  def showExpressions(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, accessCode) {
       implicit request => implicit langADT => cache => _ => formModelOptics =>
         import i18nSupport._
 
