@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, AtlDescription, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, AtlDescription, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsMultiFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
@@ -86,8 +86,9 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
     }
 
   def upscanInitiateRequests: List[FormComponentId] =
-    fold(_.page.allFieldsNested.collect { case fc @ IsFileUpload(_) =>
-      fc.id
+    fold(_.page.allFieldsNested.collect {
+      case fc @ IsFileUpload(_)      => fc.id
+      case fc @ IsMultiFileUpload(_) => fc.id
     })(_ => Nil)(_ => Nil)
 
   def postcodeLookup: Option[FormComponent] = fold(_.page.allFields.collectFirst { case fc @ IsPostcodeLookup(_) =>

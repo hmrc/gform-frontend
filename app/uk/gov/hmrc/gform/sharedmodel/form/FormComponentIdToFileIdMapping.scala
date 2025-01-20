@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
+import cats.syntax.eq._
 import play.api.libs.json.Format
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponentId, JsonUtils }
 
-/** Keeps maping between FileUpload component and it's associated FileId in file-upload microservice.
+/** Keeps maping between FileUpload component and it's associated FileId in object-store microservice.
   *
   * When removing add-to-list iterations (or groups) we
   * are reindexing FormComponentIds of the components accross all iteration so there
@@ -29,42 +30,69 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
   *
   * This applies equally to Group component.
   *
-  * Since files lives in envelope in file-upload service we can't change their prefix.
+  * Since files lives in object-store service we can't change their prefix.
   * So we need to keep track of what FormComponentId belongs to what FileId in this mapping.
   */
-case class FormComponentIdToFileIdMapping(mapping: Map[FormComponentId, FileId]) {
-  val inverseMapping: Map[FileId, FormComponentId] = mapping.map { case (k, v) => (v, k) }
+case class FormComponentIdToFileIdMapping(mapping: Map[FileComponentId, FileId]) {
+  val inverseMapping: Map[FileId, FileComponentId] = mapping.map { case (k, v) => (v, k) }
   def modelComponentIds: Set[ModelComponentId] =
     inverseMapping.keySet.map(fileId => FormComponentId(fileId.value).modelComponentId)
 
-  def fileIdFor(formComponentId: FormComponentId): FileId = {
+  def fileIdFor(fileComponentId: FileComponentId): FileId = {
 
     def loop(fileId: FileId): Option[FileId] = {
-      val inverse: Option[FileId] = inverseMapping.get(fileId).map(_.value).map(FileId.apply)
+      val inverse: Option[FileId] = inverseMapping.get(fileId).map(_.value()).map(FileId.apply)
       inverse.map { fileId =>
         loop(fileId).getOrElse(fileId)
       }
     }
 
-    mapping.getOrElse(formComponentId, loop(FileId(formComponentId.value)).getOrElse(FileId(formComponentId.value)))
+    mapping.getOrElse(fileComponentId, loop(fileComponentId.toFileId()).getOrElse(fileComponentId.toFileId()))
 
   }
 
-  def +(formComponentId: FormComponentId, fileId: FileId): FormComponentIdToFileIdMapping =
-    FormComponentIdToFileIdMapping(mapping + (formComponentId -> fileId))
-  def -(formComponentId: FormComponentId): FormComponentIdToFileIdMapping =
-    FormComponentIdToFileIdMapping(mapping - formComponentId)
+  def +(fileComponentId: FileComponentId, fileId: FileId): FormComponentIdToFileIdMapping =
+    FormComponentIdToFileIdMapping(mapping + (fileComponentId -> fileId))
+  def -(fileComponentId: FileComponentId): FormComponentIdToFileIdMapping =
+    fileComponentId match {
+      case FileComponentId.Single(_) => FormComponentIdToFileIdMapping(mapping - fileComponentId)
+      case FileComponentId.Multi(fcId, index) =>
+        FormComponentIdToFileIdMapping(
+          mapping
+            .filter {
+              case (FileComponentId.Multi(fcId2, index2), v) if fcId2 === fcId && index2 === index => false
+              case _                                                                               => true
+            }
+            .map {
+              case (fc @ FileComponentId.Multi(fcId2, index2), v) if fcId2 === fcId && index2 > index =>
+                (fc.decrement(), v)
+              case keep => keep
+            }
+        )
 
-  def find(formComponentId: FormComponentId): Option[FileId] = mapping.get(formComponentId)
-  def find(modelComponentId: ModelComponentId): Option[FileId] = find(modelComponentId.toFormComponentId)
+    }
+
+  def find(fileComponentId: FileComponentId): Option[FileId] = mapping.get(fileComponentId)
+  def findSingle(modelComponentId: ModelComponentId): Option[FileId] = find(
+    FileComponentId.Single(modelComponentId.toFormComponentId)
+  )
+
+  def findMulti(modelComponentId: ModelComponentId): List[(FileComponentId.Multi, FileId)] =
+    mapping
+      .collect {
+        case (fc @ FileComponentId.Multi(_, _), value) if fc.isMultiFor(modelComponentId.toFormComponentId) =>
+          fc -> value
+      }
+      .toList
+      .sortBy { case (fileComponentId, _) => fileComponentId.value() }
 
 }
 
 object FormComponentIdToFileIdMapping {
   val empty = FormComponentIdToFileIdMapping(Map.empty)
-  val formatMap: Format[Map[FormComponentId, FileId]] = {
+  val formatMap: Format[Map[FileComponentId, FileId]] = {
     implicit val fileIdFormat: Format[FileId] = JsonUtils.valueClassFormat[FileId, String](FileId.apply, _.value)
-    JsonUtils.formatMap(FormComponentId.apply, _.value)
+    JsonUtils.formatMap(FileComponentId.fromString(_), _.value())
   }
 
   implicit val format: Format[FormComponentIdToFileIdMapping] = Format(

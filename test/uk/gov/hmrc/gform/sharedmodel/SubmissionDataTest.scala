@@ -20,7 +20,7 @@ import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.models.UserSession
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FileComponentId, FormComponentId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 class SubmissionDataTest extends Spec {
@@ -39,7 +39,7 @@ class SubmissionDataTest extends Spec {
           EmailTemplateVariable("variable2") -> EmailParameterValue("value2")
         )
       ),
-      Attachments(FormComponentId("proof") :: Nil),
+      Attachments(FileComponentId.Single(FormComponentId("proof")) :: Nil),
       LangADT.En,
       None,
       DestinationEvaluation.empty,

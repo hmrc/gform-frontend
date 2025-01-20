@@ -90,6 +90,20 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
 
   def get(id: ModelComponentId): Option[VariadicValue] = data.get(id)
 
+  def filesOfMultiFileComponent(id: ModelComponentId): List[(FileComponentId.Multi, VariadicValue.One)] =
+    data
+      .filter { case (modelComponentId, _) =>
+        val fileComponentId = FileComponentId.fromString(modelComponentId.toMongoIdentifier)
+        fileComponentId.isMultiFor(id.toFormComponentId)
+      }
+      .collect { case (modelComponentId, one @ VariadicValue.One(_)) =>
+        val fileComponentId = FileComponentId.fromString(modelComponentId.toMongoIdentifier)
+        fileComponentId -> one
+      }
+      .collect { case (m @ FileComponentId.Multi(_, _), variadicValue) => m -> variadicValue }
+      .toList
+      .sortBy { case (FileComponentId.Multi(_, index), _) => index }
+
   def by(formComponent: FormComponent): VariadicFormData[S] = {
     val dataList: List[(ModelComponentId, VariadicValue)] =
       formComponent.multiValueId.toModelComponentIds
@@ -304,8 +318,8 @@ object VariadicFormData {
       case r: RevealingChoice =>
         listVariadicFormComponentIds(r.options.flatMap(_.revealingFields)) + component.modelComponentId
       case _: Text | _: TextArea | _: Date | _: CalendarDate.type | _: TaxPeriodDate.type | _: Address |
-          _: OverseasAddress | _: HmrcTaxPeriod | _: InformationMessage | _: FileUpload | _: Time | _: MiniSummaryList |
-          _: PostcodeLookup | _: TableComp | _: Button =>
+          _: OverseasAddress | _: HmrcTaxPeriod | _: InformationMessage | _: FileUpload | _: MultiFileUpload | _: Time |
+          _: MiniSummaryList | _: PostcodeLookup | _: TableComp | _: Button =>
         Set.empty
     }
 

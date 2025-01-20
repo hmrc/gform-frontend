@@ -20,6 +20,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, FileId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 
@@ -59,14 +60,14 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val expectedMapping2 = Map("file" -> "x_file").toMapping
 
     val variations = Table(
-      ("formComponentId", "fileId", "mapping", "expectedMapping"),
-      (FormComponentId("file"), FileId("file"), mapping1, expectedMapping1),
-      (FormComponentId("file"), FileId("x_file"), mapping2, expectedMapping2)
+      ("fileComponentId", "fileId", "mapping", "expectedMapping"),
+      (FileComponentId.fromString("file"), FileId("file"), mapping1, expectedMapping1),
+      (FileComponentId.fromString("file"), FileId("x_file"), mapping2, expectedMapping2)
     )
 
-    forAll(variations) { case (formComponentId, fileId, componentIdToFileId, expectedComponentIdToFileId) =>
+    forAll(variations) { case (fileComponentId, fileId, componentIdToFileId, expectedComponentIdToFileId) =>
       val form: Form = mkForm(componentIdToFileId)
-      val userData = FileUploadUtils.updateMapping(formComponentId, fileId, form)
+      val userData = FileUploadUtils.updateMapping(fileComponentId, fileId, form)
 
       userData.componentIdToFileId shouldBe expectedComponentIdToFileId
     }
@@ -106,9 +107,9 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val expectedMapping3 = Map("fileB" -> "x_fileB").toMapping
 
     val variations = Table(
-      ("formComponentId", "mapping", "formData", "expectedFileId", "expectedMapping", "expectedFormData"),
+      ("fileComponentId", "mapping", "formData", "expectedFileId", "expectedMapping", "expectedFormData"),
       (
-        FormComponentId("file"),
+        FileComponentId.fromString("file"),
         mapping2,
         Map("file" -> "invoice_pdf").toFormData,
         FileId("x_file"),
@@ -116,7 +117,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         Map.empty[String, String].toFormData
       ),
       (
-        FormComponentId("file"),
+        FileComponentId.fromString("file"),
         mapping3,
         Map("file" -> "invoice_pdf", "unrelated" -> "abc").toFormData,
         FileId("x_file"),
@@ -127,7 +128,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
     forAll(variations) {
       case (
-            formComponentId,
+            fileComponentId,
             componentIdToFileId,
             inputFormData,
             expectedFileId,
@@ -136,7 +137,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
           ) =>
         val form: Form = mkForm(componentIdToFileId, inputFormData)
 
-        val tuple = FileUploadUtils.prepareDeleteFile(formComponentId, form)
+        val tuple = FileUploadUtils.prepareDeleteFile(fileComponentId, form)
 
         tuple match {
           case Some((fileId, formData, mapping)) =>
@@ -166,7 +167,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
   implicit class MapOps(map: Map[String, String]) {
     def toMapping: FormComponentIdToFileIdMapping =
-      FormComponentIdToFileIdMapping(map.map { case (k, v) => FormComponentId(k) -> FileId(v) })
+      FormComponentIdToFileIdMapping(map.map { case (k, v) => FileComponentId.fromString(k) -> FileId(v) })
 
     def toFormData: FormData =
       FormData(map.toList.map { case (k, v) => FormField(FormComponentId(k).modelComponentId, v) })

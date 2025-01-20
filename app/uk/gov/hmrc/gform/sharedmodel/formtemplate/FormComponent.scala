@@ -257,6 +257,10 @@ object IsFileUpload {
   def unapply(fc: FormComponent): Option[FileUpload] = fc.`type`.cast[FileUpload]
 }
 
+object IsMultiFileUpload {
+  def unapply(fc: FormComponent): Option[MultiFileUpload] = fc.`type`.cast[MultiFileUpload]
+}
+
 object IsTime {
   def unapply(fc: FormComponent): Option[Time] = fc.`type`.cast[Time]
 }

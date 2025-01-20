@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponent, FormTemplate, IsFileUpload, IsInformationMessage, IsTableComp, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FileUpload, FormComponent, FormTemplate, IsFileUpload, IsInformationMessage, IsTableComp, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicValue }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -58,11 +58,13 @@ final case class ExtraInfo(
       .map(modelComponentId => (modelComponentId, formModelOptics.pageOpticsData.get(modelComponentId)))
       .toMap
 
-  def getFileId(formComponent: FormComponent): FileId =
+  def getFileIdSingle(formComponent: FormComponent): FileId =
     envelope
-      .find(formComponent.modelComponentId)
+      .findSingle(formComponent.modelComponentId)
       .map(_.fileId)
-      .getOrElse(envelope.mapping.fileIdFor(formComponent.id))
+      .getOrElse(
+        envelope.mapping.fileIdFor(FileComponentId.Single(formComponent.id))
+      )
 
   def saveAndComeBackLaterButton(implicit messages: Messages) = Button(
     content = content.Text(messages("linkText.saveAndComeBackLater")),
