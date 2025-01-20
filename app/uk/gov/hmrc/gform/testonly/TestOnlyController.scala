@@ -603,6 +603,24 @@ class TestOnlyController(
     bulleted_list(links)
   }
 
+  private def translationsTab(formTemplate: FormTemplate) = {
+    val downloadFormTranslations = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "Download all form content",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform(s"/gform/translation-excel/${formTemplate._id.value}")
+    )
+    val downloadFormTranslationsEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "Download form content with untranslated English",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform(s"/gform/translation-excel/${formTemplate._id.value}/brief")
+    )
+    val screenshotInstructions = HtmlContent(
+      """<a class="govuk-link" target="_blank" href="https://github.com/hmrc/gform-capture-extension/blob/main/README.md">View instructions for screen capture extension</a>"""
+    )
+    val links = List(downloadFormTranslations, downloadFormTranslationsEnOnly, screenshotInstructions.value)
+    bulleted_list(links)
+  }
+
   def handleToolbox(
     formTemplateId: FormTemplateId,
     accessCode: Option[AccessCode]
@@ -642,6 +660,13 @@ class TestOnlyController(
               label = "Development tools",
               panel = TabPanel(
                 content = HtmlContent(developmentToolsTab(cache.formTemplate, accessCode, cache.form.envelopeId))
+              )
+            ),
+            TabItem(
+              id = Some("translation-tools"),
+              label = "Welsh translation",
+              panel = TabPanel(
+                content = HtmlContent(translationsTab(cache.formTemplate))
               )
             )
           )
