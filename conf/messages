@@ -450,6 +450,8 @@ file.error.type=The selected file must be a {0}
 file.error.missing=Select {0}
 file.error.invalid.argument=Select {1}. It must be a {0}.
 file.error.rejected=The selected file must be a {0}
+file.uploaded=Uploaded
+file.upload.another=Upload another file
 
 # Assistive text
 assistive.text.sterling=in pounds sterling, do not enter the pound sign

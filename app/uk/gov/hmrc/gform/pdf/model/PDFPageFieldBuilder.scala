@@ -213,6 +213,14 @@ object PDFPageFieldBuilder {
           )
         )
 
+      case IsMultiFileUpload(_) =>
+        List(
+          SimpleField(
+            getFormComponentLabel(formComponent),
+            envelopeWithMapping.userFileNames(formComponent).map(fileName => HtmlFormat.escape(fileName))
+          )
+        )
+
       case IsHmrcTaxPeriod(h) =>
         val periodId = TaxPeriodHelper.formatTaxPeriodOutput(
           validationResult(formComponent),

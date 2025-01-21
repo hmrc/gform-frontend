@@ -190,7 +190,7 @@ class FormProcessor(
         processData,
         bracket,
         idx,
-        FileIdsWithMapping(formModel.allFileIds, cache.form.componentIdToFileId)
+        FileIdsWithMapping(formModel.allFileIds, formModel.allMultiFileIds, cache.form.componentIdToFileId)
       )
 
     val postcodeLookupIds: Set[FormComponentId] = bracket.iterations

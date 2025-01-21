@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics, Signed }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsFileUpload }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsFileUpload, IsMultiFileUpload }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.HeaderCarrier
@@ -65,9 +65,11 @@ class SubmissionService(
     val attachments: Attachments = {
       val visibleFc: Set[FormComponent] = formModelVisibilityOptics.allFormComponents.toSet
 
-      val visibleFcIds: Set[FormComponentId] = visibleFc.collect {
-        case fc @ IsFileUpload(_) if envelope.contains(fc.modelComponentId) => fc.id
-      }
+      val visibleFcIds: Set[FileComponentId] = visibleFc.collect {
+        case fc @ IsFileUpload(_) if envelope.contains(fc.modelComponentId) => List(FileComponentId.Single(fc.id))
+        case fc @ IsMultiFileUpload(_) =>
+          envelope.findMulti(fc.modelComponentId).map { case (fileComponentId, _) => fileComponentId }
+      }.flatten
 
       Attachments(visibleFcIds.toList)
     }

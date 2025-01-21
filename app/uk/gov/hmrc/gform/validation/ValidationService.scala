@@ -136,21 +136,18 @@ class ValidationService(
     val emailCodeMatcher = GetEmailCodeFieldMatcher(formModel)
 
     for {
-      v1 <- formModel.pages
-              .traverse(pageModel =>
-                validatePageModel(
-                  pageModel,
-                  cache,
-                  envelope,
-                  formModelVisibilityOptics,
-                  emailCodeMatcher
-                )
-              )
-              .map(Monoid[ValidatedType[ValidatorsResult]].combineAll)
-    } yield {
-      val v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
-      ValidationUtil.evaluateValidationResult(allFields, v, formModelVisibilityOptics, envelope)
-    }
+      v <- formModel.pages
+             .traverse(pageModel =>
+               validatePageModel(
+                 pageModel,
+                 cache,
+                 envelope,
+                 formModelVisibilityOptics,
+                 emailCodeMatcher
+               )
+             )
+             .map(Monoid[ValidatedType[ValidatorsResult]].combineAll)
+    } yield ValidationUtil.evaluateValidationResult(allFields, v, formModelVisibilityOptics, envelope)
   }
 
   def validateATLs[D <: DataOrigin](

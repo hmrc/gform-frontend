@@ -16,18 +16,11 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.Monoid
 import cats.data.Validated
 import cats.implicits._
 import com.softwaremill.quicklens._
-import org.slf4j.LoggerFactory
-import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.objectStore.Error
 import uk.gov.hmrc.gform.objectStore.File
-import uk.gov.hmrc.gform.objectStore.Other
-import uk.gov.hmrc.gform.objectStore.Quarantined
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -36,13 +29,10 @@ import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.mutable.LinkedHashSet
-import GformError.linkedHashSetMonoid
 import uk.gov.hmrc.gform.eval.DataRetrieveEval
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 
 object ValidationUtil {
-
-  private val logger = LoggerFactory.getLogger(getClass)
 
   type GformError = Map[ModelComponentId, LinkedHashSet[String]]
   type ValidatedNumeric = Validated[String, Int]
@@ -266,10 +256,27 @@ object ValidationUtil {
 
       case IsFileUpload(_) =>
         val modelComponentId = formComponent.modelComponentId
-        val fileName = envelope.find(modelComponentId).map(_.fileName).getOrElse("")
+        val fileName = envelope.findSingle(modelComponentId).map(_.fileName).getOrElse("")
         gFormErrors.get(modelComponentId) match {
           case Some(errors) => FieldError(formComponent, fileName, errors)
           case None         => FieldOk(formComponent, fileName)
+        }
+
+      case IsMultiFileUpload(_) =>
+        val modelComponentId = formComponent.modelComponentId
+        val files: List[(FileComponentId.Multi, File)] = envelope.findMulti(modelComponentId)
+
+        gFormErrors.get(modelComponentId) match {
+          case Some(errors) =>
+            FieldError(formComponent, files.headOption.map { case (_, file) => file.fileName }.getOrElse(""), errors)
+          case None =>
+            val validationResult = files.map { case (fileComponentId, file) =>
+              HtmlFieldId.indexed(fileComponentId.formComponentId, fileComponentId.index.toString) -> FieldOk(
+                formComponent,
+                file.fileName
+              )
+            }.toMap
+            ComponentField(formComponent, validationResult)
         }
 
       case IsInformationMessage(_) => FieldOk(formComponent, "")
@@ -321,52 +328,5 @@ object ValidationUtil {
       case TextArea(constraint, _, _, _, _, _) => Some(constraint)
       case _                                   => None
     }
-  }
-
-  def validateFileUploadHasScannedFiles(
-    formComponents: List[FormComponent],
-    e: EnvelopeWithMapping
-  )(implicit
-    sse: SmartStringEvaluator
-  ): Validated[GformError, ValidatorsResult] = {
-
-    //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil
-    def errors(formComponent: FormComponent, defaultErr: String): LinkedHashSet[String] = {
-      val orderedSet = LinkedHashSet[String]()
-      val errorMsg = formComponent.errorMessage.map(localisedString => localisedString.value()).getOrElse(defaultErr)
-      orderedSet += errorMsg
-    }
-
-    def getError(
-      formComponent: FormComponent,
-      defaultMessage: String
-    ): ValidatedType[Nothing] =
-      Map(formComponent.modelComponentId -> errors(formComponent, defaultMessage)).invalid
-
-    val flakies: Seq[ValidatedType[ValidatorsResult]] = e.files
-      .collect {
-        case f @ File(_, Quarantined, _, _, _, _) =>
-          //not processed (scanned by virus scanner) files are in quarantined state
-          (f, "File has not been processed, please wait and try again")
-        case f @ File(_, s: Other, _, _, _, _) =>
-          val message = s"Internal server problem. Please contact support. (Unsupported state from FU: $s)"
-          logger.error(message)
-          (f, message)
-        case f @ File(_, s: Error, _, _, _, _) =>
-          val message = s"Internal server problem. Please contact support. (Error state from FU: $s)"
-          logger.error(message)
-          (f, message)
-      }
-      .map { case (file, errorMessage) =>
-        val formComponent = formComponents
-          .find(_.id == file.fileId.toFieldId)
-          .getOrElse(
-            throw new UnexpectedStateException(
-              s"Looks like there are more files in the envelope than we expected to have. Could not find 'FormComponent' to corresponding file: $file, message: $errorMessage"
-            )
-          )
-        getError(formComponent, errorMessage)
-      }
-    Monoid[ValidatedType[ValidatorsResult]].combineAll(flakies)
   }
 }

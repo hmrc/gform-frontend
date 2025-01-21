@@ -215,6 +215,10 @@ class FormModelBuilder[E, F[_]: Functor](
     lang: LangADT,
     messages: Messages
   ): F[RecalculationResult] = {
+    val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
+      formModel.allMultiFileIds.map { modelComponentId =>
+        modelComponentId -> data.filesOfMultiFileComponent(modelComponentId)
+      }.toMap
     val evaluationContext =
       EvaluationContext(
         formTemplate._id,
@@ -225,7 +229,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formTemplate.authConfig,
         hc,
         formPhase,
-        FileIdsWithMapping(formModel.allFileIds, componentIdToFileId),
+        FileIdsWithMapping(formModel.allFileIds, formModel.allMultiFileIds, componentIdToFileId),
+        modelComponentId,
         formModel.dateLookup,
         formModel.addressLookup,
         formModel.overseasAddressLookup,

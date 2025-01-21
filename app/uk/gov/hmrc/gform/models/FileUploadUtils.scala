@@ -18,18 +18,18 @@ package uk.gov.hmrc.gform.models
 
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, Form, FormComponentIdToFileIdMapping, FormData, InProgress, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 
 object FileUploadUtils {
 
   def updateMapping(
-    formComponentId: FormComponentId,
+    fileComponentId: FileComponentId,
     fileId: FileId,
     form: Form
   ): UserData = {
     val mapping = form.componentIdToFileId
 
-    val mappingUpd = mapping + (formComponentId, fileId)
+    val mappingUpd = mapping + (fileComponentId, fileId)
 
     UserData(
       form.formData, // FormData are updated by Submit button from the browser
@@ -42,14 +42,30 @@ object FileUploadUtils {
   }
 
   def prepareDeleteFile(
-    formComponentId: FormComponentId,
+    fileComponentId: FileComponentId,
     form: Form
   ): Option[(FileId, FormData, FormComponentIdToFileIdMapping)] = {
     val mapping = form.componentIdToFileId
-    mapping.find(formComponentId).map { fileToDelete =>
-      val mappingUpd = mapping - formComponentId
+    mapping.find(fileComponentId).map { fileToDelete =>
+      val mappingUpd = mapping - fileComponentId
       val formDataUpd =
-        FormData(form.formData.fields.filterNot(formField => formField.id === formComponentId.modelComponentId))
+        FormData(
+          form.formData.fields
+            .filterNot { formField =>
+              val formFileComponentId = FileComponentId.fromFormField(formField)
+              formFileComponentId === fileComponentId
+            }
+            .map { formField =>
+              val formFileComponentId = FileComponentId.fromFormField(formField)
+              (fileComponentId, formFileComponentId) match {
+                case (FileComponentId.Multi(fcId1, index1), FileComponentId.Multi(fcId2, index2))
+                    if fcId1 === fcId2 && index2 > index1 =>
+                  formFileComponentId.decrement().toFormField(formField.value)
+                case _ => formField
+              }
+
+            }
+        )
 
       (fileToDelete, formDataUpd, mappingUpd)
     }

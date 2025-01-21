@@ -128,6 +128,13 @@ case class FormModel[A <: PageMode](
     .map(_.modelComponentId)
     .toSet
 
+  val allMultiFileIds: Set[ModelComponentId] = allFormComponents
+    .collect { case fc @ IsMultiFileUpload(_) =>
+      fc.id
+    }
+    .map(_.modelComponentId)
+    .toSet
+
   val dateLookup: Map[ModelComponentId, DateValue] = allFormComponents.collect {
     case fc @ IsDate(Date(_, _, Some(value))) => fc.id.modelComponentId -> value
   }.toMap

@@ -244,6 +244,20 @@ object FormComponentSummaryRenderer {
           keyDisplayWidth
         )
 
+      case IsMultiFileUpload(_) =>
+        getMultiFileUploadSummaryListRows(
+          formComponent,
+          formTemplateId,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          formFieldValidationResult,
+          envelope,
+          iterationTitle,
+          fastForward,
+          keyDisplayWidth
+        )
+
       case IsHmrcTaxPeriod(h) =>
         getHmrcTaxPeriodSummaryListRows(
           formComponent,
@@ -1194,6 +1208,83 @@ object FormComponentSummaryRenderer {
     val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
     val value = if (hasErrors) errors.head else HtmlFormat.escape(envelope.userFileName(formComponent))
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        visuallyHiddenText,
+        keyClasses,
+        "",
+        "",
+        if (formComponent.onlyShowOnSummary)
+          Nil
+        else {
+          val changeOrViewLabel = if (formComponent.editable) messages("summary.change") else messages("summary.view")
+          List(
+            (
+              uk.gov.hmrc.gform.gform.routes.FormController
+                .form(
+                  formTemplateId,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  SuppressErrors.Yes,
+                  fastForward
+                ),
+              changeOrViewLabel,
+              iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
+            )
+          )
+        },
+        if (formComponent.onlyShowOnSummary)
+          "govuk-summary-list__row--no-actions"
+        else
+          ""
+      )
+    )
+  }
+
+  private def getMultiFileUploadSummaryListRows[T <: RenderType](
+    formComponent: FormComponent,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    formFieldValidationResult: FormFieldValidationResult,
+    envelope: EnvelopeWithMapping,
+    iterationTitle: Option[String],
+    fastForward: List[FastForward],
+    keyDisplayWidth: KeyDisplayWidth
+  )(implicit
+    messages: Messages,
+    lise: SmartStringEvaluator,
+    fcrd: FormComponentRenderDetails[T]
+  ): List[SummaryListRow] = {
+
+    val hasErrors = formFieldValidationResult.isNotOk
+
+    val errors = checkErrors(formComponent, formFieldValidationResult)
+
+    val label = fcrd.label(formComponent)
+
+    val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+
+    val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
+
+    val value =
+      if (hasErrors)
+        errors.head
+      else {
+        val renderedValues = envelope.userFileNames(formComponent)
+        if (renderedValues.size > 1) {
+          uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list(renderedValues.map(v => HtmlFormat.escape(v)))
+        } else {
+          HtmlFormat.fill(
+            renderedValues.map(v => HtmlFormat.escape(v))
+          )
+        }
+      }
 
     List(
       summaryListRow(

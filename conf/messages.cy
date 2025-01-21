@@ -436,6 +436,8 @@ file.error.type=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
 file.error.missing=Dewiswch {0}
 file.error.invalid.argument=Dewiswch {1}. Mae'n rhaid i'r ffeil fod ar ffurf {0}.
 file.error.rejected=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
+file.uploaded=Wedi’i uwchlwytho
+file.upload.another=Llwythwch ffeil arall i fyny
 
 # Assistive text
 assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt

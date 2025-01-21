@@ -33,5 +33,5 @@ class ObjectStoreService(gformConnector: GformConnector)(implicit ec: ExecutionC
     gformConnector.deleteFile(envelopeId, fileId)
 
   override def deleteFiles(envelopeId: EnvelopeId, fileIds: Set[FileId])(implicit hc: HeaderCarrier): Future[Unit] =
-    Future.traverse(fileIds)(fileId => gformConnector.deleteFile(envelopeId, fileId)).map(_ => ())
+    gformConnector.deleteFiles(envelopeId, fileIds)
 }

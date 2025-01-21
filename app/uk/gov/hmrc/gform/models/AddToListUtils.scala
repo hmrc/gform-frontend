@@ -18,8 +18,9 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IsFileUpload }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponentId, IsFileUpload, IsMultiFileUpload }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
@@ -34,13 +35,23 @@ object AddToListUtils {
 
     val addToListFileUploadIds: Set[FormComponentId] = bracket.toPageModel.toList
       .flatMap(_.allFormComponents)
-      .collect { case fc @ IsFileUpload(_) =>
-        fc.id
+      .collect {
+        case fc @ IsFileUpload(_)      => fc.id
+        case fc @ IsMultiFileUpload(_) => fc.id
+      }
+      .toSet
+
+    val multiFileUploads: Set[ModelComponentId] = bracket.toPageModel.toList
+      .flatMap(_.allFormComponents)
+      .collect { case fc @ IsMultiFileUpload(_) =>
+        fc.id.modelComponentId
       }
       .toSet
 
     // We need to keep mapping for fileuploads which are not in this AddToList
-    val unrelatedMapping = fileIdsWithMapping.mapping.mapping.filterNot { case (k, _) => addToListFileUploadIds(k) }
+    val unrelatedMapping: Map[FileComponentId, FileId] = fileIdsWithMapping.mapping.mapping.filterNot { case (k, _) =>
+      addToListFileUploadIds(k.underlyingFormComponentId())
+    }
 
     def toModelComponentIds(iterations: List[Bracket.AddToListIteration[DataExpanded]]): Set[ModelComponentId] =
       iterations.flatMap(_.toPageModel.toList).flatMap(_.allModelComponentIds).toSet
@@ -63,25 +74,66 @@ object AddToListUtils {
     /* iteration is part of iterationsToKeep (due to how splitAt works),
      * and we don't want iteration's ids in toKeep Set.
      */
-    val toKeep: Set[ModelComponentId] = toModelComponentIds(iterationsToKeep) -- toBeRemovedIds
-
     val variadicFormData = processData.formModelOptics.pageOpticsData
 
-    val variadicFormDataToModify = variadicFormData.subset(toReindex)
-    val variadicFormDataToKeep = variadicFormData.subset(toKeep)
+    val toBeRemovedMultiFileIds: Set[ModelComponentId] =
+      toReindex.toList.flatMap { modelComponentId =>
+        if (multiFileUploads(modelComponentId)) {
+          variadicFormData.filesOfMultiFileComponent(modelComponentId).map { case (fileComponentId, _) =>
+            fileComponentId.toModelComponentId()
+          }
+        } else {
+          List.empty
+        }
+      }.toSet
 
-    val onlyFileIds = variadicFormDataToModify.subset(fileIdsWithMapping.isFileField).keySet()
+    val toReindexMultiFile: VariadicFormData[SourceOrigin.Current] = VariadicFormData(
+      toReindex.toList.flatMap { modelComponentId =>
+        if (multiFileUploads(modelComponentId)) {
+          val res: List[(ModelComponentId, VariadicValue.One)] =
+            variadicFormData.filesOfMultiFileComponent(modelComponentId).map { case (fileComponentId, fileName) =>
+              fileComponentId match {
+                case FileComponentId.Multi(fcId, index) =>
+                  FileComponentId
+                    .Multi(fcId.modelComponentId.decrement.toFormComponentId, index)
+                    .toModelComponentId() -> fileName
+              }
+            }
+          res
+        } else {
+          List.empty
+        }
+      }.toMap
+    )
+
+    val toKeep: Set[ModelComponentId] = toModelComponentIds(iterationsToKeep) -- toBeRemovedIds
+
+    val variadicFormDataToModify: VariadicFormData[SourceOrigin.Current] = variadicFormData.subset(toReindex)
+    val variadicFormDataToKeep = variadicFormData.subset(toKeep)
     val variadicFormDataToModified = variadicFormDataToModify.mapKeys(_.decrement)
 
-    val decrementedMapping =
+    val onlySingleFileIds = variadicFormDataToModify.subset(fileIdsWithMapping.isSingleFileField).keySet()
+    val onlyMultiFileIds = variadicFormDataToModify.subset(fileIdsWithMapping.isMultiFileField).keySet()
+
+    val decrementedMapping: Map[FileComponentId, FileId] =
       fileIdsWithMapping.mapping.mapping
-        .filter { case (key, _) =>
-          onlyFileIds(key.modelComponentId)
+        .filter { case (fileComponentId, _) =>
+          fileComponentId match {
+            case FileComponentId.Single(fcId)       => onlySingleFileIds(fcId.modelComponentId)
+            case FileComponentId.Multi(fcId, index) => onlyMultiFileIds(fcId.modelComponentId)
+          }
         }
-        .map { case (k, v) => k.modelComponentId.decrement.toFormComponentId -> v }
+        .map { case (fileComponentId, fileId) =>
+          fileComponentId match {
+            case FileComponentId.Single(fcId) =>
+              FileComponentId.Single(fcId.modelComponentId.decrement.toFormComponentId) -> fileId
+            case FileComponentId.Multi(fcId, index) =>
+              FileComponentId.Multi(fcId.modelComponentId.decrement.toFormComponentId, index) -> fileId
+          }
+        }
 
     val unchangedMapping = fileIdsWithMapping.mapping.mapping.filter { case (key, _) =>
-      toKeep(key.modelComponentId)
+      toKeep(key.underlyingFormComponentId().modelComponentId)
     }
 
     val componentIdToFileIdMapping = FormComponentIdToFileIdMapping {
@@ -93,7 +145,8 @@ object AddToListUtils {
 
     val updatedVariadicFormData = {
       val initialVariadicFormData =
-        variadicFormData -- toBeRemovedIds -- variadicFormDataToModify -- dynamicChoicesOutsideATLToBeRemoved ++ variadicFormDataToModified
+        variadicFormData -- toBeRemovedIds -- toBeRemovedMultiFileIds -- variadicFormDataToModify -- dynamicChoicesOutsideATLToBeRemoved ++ variadicFormDataToModified ++ toReindexMultiFile
+
       if (bracketPrefixes.isEmpty)
         initialVariadicFormData
       else
