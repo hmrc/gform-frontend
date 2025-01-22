@@ -60,7 +60,7 @@ package object html {
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
       startNewFormFooterItem(formTemplate) +: accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
         Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
-      }
+      } :+ documentationFooterItem
     }
 
   private def toolboxFooterItem(formTemplate: FormTemplate) =
@@ -76,6 +76,7 @@ package object html {
       href = Some(s"/submissions/test-only/toolbox/${formTemplate._id.value}/${accessCode.value}"),
       attributes = Map.empty
     )
+
   private def startNewFormFooterItem(formTemplate: FormTemplate) = {
     val newFormUrl = routes.NewFormController.dashboard(formTemplate._id).url
     new FooterItem(
@@ -84,5 +85,12 @@ package object html {
       attributes = Map.empty
     )
   }
+
+  private def documentationFooterItem =
+    new FooterItem(
+      text = Some("Documentation"),
+      href = Some("https://github.com/hmrc/gform-frontend/wiki"),
+      attributes = Map("target" -> "_blank")
+    )
 
 }
