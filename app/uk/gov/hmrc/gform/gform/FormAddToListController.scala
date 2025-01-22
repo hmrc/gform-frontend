@@ -205,7 +205,10 @@ class FormAddToListController(
                 )
                   .map(_.flashing("success" -> request.messages.messages("generic.successfullyRemoved")))
               case "No" =>
-                Redirect(routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber)).pure[Future]
+                Redirect(
+                  routes.FormController.formSection(formTemplateId, maybeAccessCode, sectionNumber, Option(fastForward))
+                )
+                  .pure[Future]
             }
           )
     }
