@@ -29,6 +29,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.AtlDescription.SmartStringBased
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.AtlDescription.KeyValueBased
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
+
 @(
   formTemplate: FormTemplate,
   description: Html,
@@ -44,6 +46,13 @@
 @govukButton = @{new GovukButton()}
 @govukErrorSummary = @{new GovukErrorSummary()}
 @heading = @{messages("addToList.confirmRemoval")}
+
+@govukErrorMessage = @{new GovukErrorMessage()}
+@govukFieldset = @{new GovukFieldset()}
+@govukHint = @{new GovukHint()}
+@govukLabel = @{new GovukLabel()}
+@govukFormGroup = @{new GovukFormGroup}
+@govukHintAndErrorMessage = @{new GovukHintAndErrorMessage(govukHint, govukErrorMessage)}
 
 @backLink = @{
     new BackLink(
@@ -62,7 +71,7 @@
     @pageLevelError.render
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
-        @{new GovukRadios(new GovukErrorMessage(), new GovukFieldset(), new GovukHint(), new GovukLabel())(Radios(
+        @{new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(Radios(
             fieldset = Some(Fieldset(
                 legend = Some(Legend(
                     content = Text(heading),

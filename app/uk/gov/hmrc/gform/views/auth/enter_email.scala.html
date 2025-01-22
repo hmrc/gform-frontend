@@ -20,6 +20,7 @@
 @import uk.gov.hmrc.gform.views.html.main_template
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
 
 @(
     formTemplate: FormTemplate,
@@ -41,7 +42,9 @@
 @govukErrorMessage = @{new GovukErrorMessage()}
 @govukHint = @{new GovukHint()}
 @govukLabel = @{new GovukLabel()}
-@govukInput = @{new GovukInput(govukErrorMessage, govukHint, govukLabel)}
+@govukFormGroup = @{new GovukFormGroup}
+@govukHintAndErrorMessage = @{new GovukHintAndErrorMessage(govukHint, govukErrorMessage)}
+@govukInput = @{new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)}
 @heading = @{messages("emailAuth.enterYourEmailAddress")}
 
 @main_template(

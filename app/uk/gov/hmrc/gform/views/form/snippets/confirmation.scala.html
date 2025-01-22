@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.main_template
@@ -37,6 +38,13 @@
 @govukButton = @{new GovukButton()}
 @govukErrorSummary = @{new GovukErrorSummary()}
 
+@govukErrorMessage = @{new GovukErrorMessage()}
+@govukFieldset = @{new GovukFieldset()}
+@govukHint = @{new GovukHint()}
+@govukLabel = @{new GovukLabel()}
+@govukFormGroup = @{new GovukFormGroup}
+@govukHintAndErrorMessage = @{new GovukHintAndErrorMessage(govukHint, govukErrorMessage)}
+
 @backLink = @{
     new BackLink(
         href = uk.gov.hmrc.gform.gform.routes.FormController.formSection(formTemplate._id, maybeAccessCode, sectionNumber).path,
@@ -54,7 +62,7 @@
     @pageLevelError.render
 
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
-        @{new GovukRadios(new GovukErrorMessage(), new GovukFieldset(), new GovukHint(), new GovukLabel())(Radios(
+        @{new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(Radios(
             fieldset = Some(Fieldset(
                 legend = Some(Legend(
                     content = Text(heading),

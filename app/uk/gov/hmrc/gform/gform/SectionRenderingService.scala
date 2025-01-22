@@ -65,7 +65,7 @@ import uk.gov.hmrc.gform.views.html.specimen
 import uk.gov.hmrc.gform.views.html.summary.header
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
-import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukPanel, Panel }
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukCheckboxes, GovukFileUpload, GovukInput, GovukPanel, GovukRadios, GovukSummaryList, GovukTable, GovukTextarea, Panel }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.button.{ Button => GovukButton }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes, ExclusiveCheckbox }
@@ -89,13 +89,13 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 import uk.gov.hmrc.hmrcfrontend.views.Aliases.CharacterCount
 import uk.gov.hmrc.hmrcfrontend.views.html.components.{ HmrcCharacterCount, HmrcListWithActions }
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
-import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukCharacterCount, GovukInput, GovukSummaryList, GovukTable }
 import MiniSummaryRow._
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper
 import uk.gov.hmrc.gform.payment.PaymentReference
 import uk.gov.hmrc.govukfrontend.views.Aliases.Key
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 
 import scala.annotation.tailrec
 
@@ -359,7 +359,7 @@ class SectionRenderingService(
     )
 
     val addAnotherQuestion: Html =
-      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      new components.GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
 
     val evalRepeatsUntil = repeater.repeatsUntil.exists(repeatsUntil =>
       formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(repeatsUntil, None)
@@ -442,7 +442,13 @@ class SectionRenderingService(
       )
 
     val addAnotherQuestionWithYes: Html =
-      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithYes)
+      new components.GovukRadios(
+        govukFieldset = govukFieldset,
+        govukHint = govukHint,
+        govukLabel = govukLabel,
+        govukFormGroup = govukFormGroup,
+        govukHintAndErrorMessage = govukHintAndErrorMessage
+      )(radiosWithYes)
 
     val radiosWithNo =
       radios.copy(
@@ -452,7 +458,9 @@ class SectionRenderingService(
       )
 
     val addAnotherQuestionWithNo: Html =
-      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radiosWithNo)
+      new components.GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(
+        radiosWithNo
+      )
 
     val addAnotherQuestionSnippets =
       if (evalRepeatsWhile) addAnotherQuestionWithYes
@@ -1685,7 +1693,7 @@ class SectionRenderingService(
         items = items.toList
       )
 
-      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
 
     }
 
@@ -2127,7 +2135,7 @@ class SectionRenderingService(
         formComponent.id
       )
 
-    val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
+    val fileInput: Html = new GovukFileUpload(govukLabel, govukFormGroup, govukHintAndErrorMessage)(fileUpload)
 
     val submitButton: GovukButton = GovukButton(
       name = Some(s"${formComponent.id}-uploadButton"),
@@ -2347,7 +2355,7 @@ class SectionRenderingService(
           classes = if (orientation === Horizontal) "govuk-radios--inline" else ""
         )
 
-        new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+        new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
 
       case Checkbox =>
         val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
@@ -2392,7 +2400,7 @@ class SectionRenderingService(
           classes = if (orientation === Horizontal && optionalHelpText.isEmpty) "gform-checkbox--inline" else ""
         )
 
-        new components.GovukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
+        new GovukCheckboxes(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(checkboxes)
     }
   }
 
@@ -2532,7 +2540,7 @@ class SectionRenderingService(
         items = items
       )
 
-      new components.GovukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
+      new GovukCheckboxes(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(checkboxes)
     } else {
 
       val items = revealingChoicesList.zipWithIndex.map {
@@ -2560,7 +2568,7 @@ class SectionRenderingService(
         items = items
       )
 
-      new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
     }
   }
 
@@ -2656,7 +2664,7 @@ class SectionRenderingService(
           items = items
         )
 
-        new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+        new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
 
     }
   }
@@ -2710,7 +2718,7 @@ class SectionRenderingService(
       content = labelContent
     )
 
-    val govukTextarea = new components.GovukTextarea(govukErrorMessage, govukHint, govukLabel)
+    val govukTextarea = new GovukTextarea(govukLabel, govukFormGroup, govukHintAndErrorMessage)
 
     val attributes =
       if (formComponent.editable)
@@ -2845,7 +2853,7 @@ class SectionRenderingService(
             attributes = ei.specialAttributes ++ attributes
           )
 
-          new GovukInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
+          new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)(currencyInput)
 
         } else {
           val inputType = formComponent match {
@@ -2879,7 +2887,7 @@ class SectionRenderingService(
             suffix = maybeSuffix.map(s => PrefixOrSuffix(content = content.Text(s.value())))
           )
 
-          new components.GovukInput(govukErrorMessage, govukHint, govukLabel)(input)
+          new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)(input)
         }
     }
   }
@@ -3027,7 +3035,7 @@ class SectionRenderingService(
       fieldset = Some(fieldset)
     )
 
-    new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+    new components.GovukDateInput(govukFieldset, govukInput, govukFormGroup, govukHintAndErrorMessage)(dateInput)
   }
 
   private def htmlForPostcodeLookup(
@@ -3096,7 +3104,7 @@ class SectionRenderingService(
           )
         }
 
-    val maker = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
+    val maker = new components.GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)
 
     val enterAddressHref = uk.gov.hmrc.gform.addresslookup.routes.AddressLookupController
       .enterAddress(
@@ -3182,7 +3190,7 @@ class SectionRenderingService(
       fieldset = Some(fieldset)
     )
 
-    new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+    new components.GovukDateInput(govukFieldset, govukInput, govukFormGroup, govukHintAndErrorMessage)(dateInput)
 
   }
 
@@ -3261,7 +3269,7 @@ class SectionRenderingService(
       fieldset = Some(fieldset)
     )
 
-    new components.GovukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
+    new components.GovukDateInput(govukFieldset, govukInput, govukFormGroup, govukHintAndErrorMessage)(dateInput)
   }
 
   private def renderTime(
@@ -3322,7 +3330,7 @@ class SectionRenderingService(
       attributes = attributes
     )
 
-    new components.GovukSelect(govukErrorMessage, govukHint, govukLabel)(select)
+    new components.GovukSelect(govukLabel, govukFormGroup, govukHintAndErrorMessage)(select)
   }
 
   private def htmlForFileUploadOnly(
@@ -3362,7 +3370,8 @@ class SectionRenderingService(
       attributes = additionalAttributes
     )
 
-    val fileInput: Html = new components.GovukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
+    val fileInput: Html =
+      new components.GovukFileUpload(govukLabel, govukFormGroup, govukHintAndErrorMessage)(fileUpload)
 
     val uploadedFiles: Html = html.form.snippets.uploaded_files_wrapper(formComponent.id)(HtmlFormat.empty)
 
@@ -3587,7 +3596,10 @@ class SectionRenderingService(
   private val govukFieldset: components.GovukFieldset = new components.GovukFieldset()
   private val govukHint: components.GovukHint = new components.GovukHint()
   private val govukLabel: components.GovukLabel = new components.GovukLabel()
-  private val govukInput: components.GovukInput = new components.GovukInput(govukErrorMessage, govukHint, govukLabel)
+  private val govukFormGroup: GovukFormGroup = new GovukFormGroup
+  private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+    new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
+  private val govukInput = new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)
 
 }
 
