@@ -2,7 +2,6 @@
     <fo:block role="Div" keep-together.within-page="always">
         <fo:block role="P"
                   font-size="12pt"
-                  font-family="arial"
                   font-weight="normal"
                   line-height="12pt"
                   padding-before="2cm"
@@ -23,7 +22,6 @@
     <fo:block role="Div" keep-together.within-page="always">
         <fo:block role="P"
                   font-size="12pt"
-                  font-family="arial"
                   font-weight="normal"
                   line-height="12pt"
                   padding-after="0.2cm">

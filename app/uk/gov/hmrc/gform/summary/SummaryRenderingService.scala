@@ -802,7 +802,7 @@ object SummaryRenderingService {
         val rows = Map(
           (messages("submission.date"), formattedTime),
           (messages("submission.reference"), sd.submission.submissionRef.toString),
-          (messages("submission.mark"), sd.hashedValue)
+          (messages("submission.mark"), PdfHelper.insertZeroWidthSpace(sd.hashedValue))
         )
 
         submisssionDetails(messages("submission.details"), rows)
@@ -822,12 +822,12 @@ object SummaryRenderingService {
 
   def renderPageField(field: PageField): XmlFormat.Appendable = field match {
     case SimpleField(label, values) =>
-      listItem(label, simpleField(values))
+      listItem(label, simpleField(values.map(v => PdfHelper.sanitiseHtml(v.body))))
     case ChoiceField(label, values) =>
-      listItem(label, choiceField(values))
+      listItem(label, choiceField(values.map(v => PdfHelper.sanitiseHtml(v.body))))
     case rc: RevealingChoiceField =>
       val renderedElements = if (rc.isSeparate) {
-        listItem(rc.label, revealingChoiceField(rc.choiceElements.map(ce => Html(ce.label)))) ::
+        listItem(rc.label, revealingChoiceField(rc.choiceElements.map(ce => ce.label))) ::
           rc.choiceElements.flatMap { choiceElement =>
             choiceElement.fields.map(renderPageField)
           }
@@ -855,15 +855,15 @@ object SummaryRenderingService {
         case Some(m) =>
           val bold = m.group(1)
           val rest = content.substring(m.end).trim
-          (bold, rest)
+          (Some(bold), rest)
         case None =>
-          ("", content)
+          (None, content)
       }
 
     } else if (content.contains("#")) {
       val newLine = "\n\n"
       val lines = content.split(newLine)
-      (lines.headOption.map(_.replace("#", "")).getOrElse(""), lines.tail.mkString(newLine))
+      (lines.headOption.map(_.replace("#", "")), lines.tail.mkString(newLine))
     } else {
       // the regex pattern to find text between **
       val patternBold = "\\*\\*(.*?)\\*\\*".r
@@ -872,12 +872,15 @@ object SummaryRenderingService {
         case Some(m) =>
           val bold = m.group(1)
           val rest = content.substring(m.end).trim
-          (bold, rest)
+          (Some(bold), rest)
         case None =>
-          ("", content)
+          (None, content)
       }
     }
 
-    addToListSummaryItemBody(boldText, PdfHelper.renderHtml(remainingText))
+    addToListSummaryItemBody(
+      boldText,
+      PdfHelper.renderHtml(remainingText)
+    )
   }
 }

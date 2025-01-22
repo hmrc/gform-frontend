@@ -17,31 +17,26 @@
 package uk.gov.hmrc.gform.views.summary.pdf
 
 import org.apache.commons.text.StringEscapeUtils
-import play.twirl.api.{ Html, XmlFormat }
-import uk.gov.hmrc.gform.views.xml.summary.pdf.simpleField
+import play.twirl.api.XmlFormat
 
 object PdfHelper {
-  private val replacements =
-    Map('<' -> "&lt;", '>' -> "&gt;", '&' -> "&#38;", ']' -> "&#93;", '\'' -> "&#39;", '"' -> "&#34;")
-
   def renderHtml(value: String): XmlFormat.Appendable = {
     val newLineDelimiters = List("<br>", "\n\n")
     val maybeDelimiter = newLineDelimiters.find(value.contains)
 
-    val lines = maybeDelimiter match {
+    val lines: Array[String] = maybeDelimiter match {
       case Some(delimiter) => value.split(delimiter)
-      case None            => return XmlFormat.raw(sanitizeContent(value))
+      case None            => Array(value)
     }
 
-    simpleField(lines.map(sanitizeContent).map(Html(_)).toList)
+    XmlFormat.fill(lines.toList.map(l => XmlFormat.raw(StringEscapeUtils.escapeXml11(insertZeroWidthSpace(l)))))
   }
 
-  def sanitizeContent(content: String): String =
-    StringEscapeUtils.unescapeXml(content.foldLeft("") { (acc, char) =>
-      replacements.getOrElse(char, char.toString) match {
-        case replacement: String => acc + replacement
-        case _                   => acc
-      }
-    })
+  def sanitiseHtml(input: String): String =
+    insertZeroWidthSpace(StringEscapeUtils.unescapeHtml4(input))
 
+  //The text is a block has no spaces, so FOP finds no place where it can break it.
+  //Possible solutions: insert some zero-width spaces &#x200B; in the text
+  def insertZeroWidthSpace(input: String): String =
+    input.map(c => s"$c\u200B").mkString
 }

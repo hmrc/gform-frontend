@@ -2,15 +2,16 @@
 
 @(label: Option[String], value: XmlFormat.Appendable)
 <fo:list-item role="LI"
-              font-size="11pt"
-              font-family="arial"
-              font-weight="normal"
-              line-height="11pt"
               padding-before="0.5cm">
     <fo:list-item-label role="Lbl" start-indent="1mm" end-indent="label-end()">
-            <fo:block role="P" font-family="arial-bold" font-weight="bold">@label.getOrElse("")</fo:block>
+            <fo:block role="P"
+                      font-weight="bold"
+                      font-size="11pt"
+                      line-height="13pt">@label.getOrElse("")</fo:block>
     </fo:list-item-label>
     <fo:list-item-body role="LBody" start-indent="body-start()" end-indent="5mm" >
-        <fo:block>@value</fo:block>
+        <fo:block font-weight="normal"
+                  font-size="11pt"
+                  line-height="13pt">@value</fo:block>
     </fo:list-item-body>
 </fo:list-item>
