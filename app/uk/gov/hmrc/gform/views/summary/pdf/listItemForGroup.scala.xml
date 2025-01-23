@@ -3,13 +3,12 @@
 @(label: Option[String], value: XmlFormat.Appendable)
 <fo:list-item role="LI"
               font-size="11pt"
-              font-family="arial"
               font-weight="normal"
-              line-height="11pt"
+              line-height="13pt"
               padding-before="0.5cm">
     <fo:list-item-label role="Lbl" >
         @label.map { l =>
-            <fo:block role="P" font-family="arial-bold" font-weight="bold">@l</fo:block>
+            <fo:block role="P" font-weight="bold">@l</fo:block>
         }
     </fo:list-item-label>
     <fo:list-item-body role="LBody" >
@@ -18,9 +17,8 @@
 </fo:list-item>
 <fo:list-item role="LI"
               font-size="11pt"
-              font-family="arial"
               font-weight="normal"
-              line-height="11pt"
+              line-height="13pt"
               padding-before="0.5cm">
     <fo:list-item-label role="Lbl" >
         <fo:block/>

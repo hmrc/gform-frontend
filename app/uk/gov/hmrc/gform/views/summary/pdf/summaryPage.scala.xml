@@ -11,21 +11,18 @@
 }
                     <fo:block id="@{pageData.id}"
                               role="Div">
-                        @if(pageData.title.isDefined){
+                        @pageData.title.map{ title =>
                             <fo:block role="H2"
                                       font-size="16px"
-                                      font-family="arial-bold"
                                       font-weight="bold"
                                       line-height="16px"
                                       border-after-style="solid"
                                       padding-after="0.1cm"
                                       border-color="#D3D3D3"
                                       linefeed-treatment="treat-as-space">
-                                @pageData.title.map(t => PdfHelper.sanitizeContent(t))
+                                @title
                             </fo:block>
-                        } else {
-                            <fo:block> </fo:block>
-                         }
+                        }
                         <fo:list-block start-indent="1mm"
                                        provisional-distance-between-starts="8cm"
                                        provisional-label-separation="1cm">

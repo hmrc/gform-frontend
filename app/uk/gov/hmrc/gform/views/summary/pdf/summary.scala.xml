@@ -13,10 +13,12 @@
   summarySectionDeclaration: Option[Html],
   maybeDraftText: Option[String],
   includeSignatureBox: Boolean)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
+<?xml version='1.0' encoding='utf-8'?>
 <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format"
          xmlns:fox="http://xmlgraphics.apache.org/fop/extensions"
-         language="@l.langADTToString">
-    <fo:layout-master-set>
+         xml:lang="@messages.lang.locale.getLanguage"
+         font-family="sans-serif" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<fo:layout-master-set>
         <!-- fo:layout-master-set defines in its children the page layout:
              the pagination and layout specifications
             - page-masters: have the role of describing the intended subdivisions
@@ -28,10 +30,10 @@
         <fo:simple-page-master master-name="all"
                                page-height="29.7cm"
                                page-width="21cm"
-                               margin-top="2cm"
-                               margin-bottom="2cm"
-                               margin-left="1.5cm"
-                               margin-right="1.5cm">
+                               margin-top="1.5cm"
+                               margin-bottom="1.5cm"
+                               margin-left="1.6cm"
+                               margin-right="1.6cm">
             @if(maybeDraftText.isDefined) {
                 <fo:region-body content-type="content-type:image/png" background-image="images/draft.png"
                                 fox:alt-text="Draft copy image"
@@ -87,6 +89,7 @@
                  the attributes of the block define
                  font-family and size, line-heigth etc. -->
 
+
             <!-- logo and heading -->
             <fo:block role="Div"
                       space-after="-3px"
@@ -96,7 +99,6 @@
                               border-left-style="solid"
                               border-width="2px"
                               border-color="#D3D3D3"
-                              font-family="arial-bold"
                               font-weight="bold"
                               padding-start="4px">
                         <fo:wrapper role="artifact">
@@ -107,7 +109,6 @@
                         <fo:block role="P"
                                   line-height="14pt"
                                   font-size="14pt"
-                                  font-family="arial-bold"
                                   font-weight="bold"
                                   padding-before="-14px"
                                   linefeed-treatment="preserve">
@@ -124,7 +125,6 @@
                     <fo:block id="title"
                               role="H1"
                               font-size="22px"
-                              font-family="arial-bold"
                               font-weight="bold"
                               line-height="22pt"
                               padding-after="1cm">
@@ -136,10 +136,9 @@
 
             <!-- draft text -->
             @maybeDraftText.map{ draftText =>
-                <fo:block role="Div" space-before="1cm">
+                <fo:block role="Div">
                     <fo:block role="P"
                               font-size="20px"
-                              font-family="arial-bold"
                               font-weight="bold"
                               line-height="20pt">
                         @draftText
@@ -152,7 +151,6 @@
                 <fo:block role="Div"
                           padding-before="1cm"
                           font-size="14px"
-                          font-family="arial"
                           font-weight="normal"
                           line-height="14pt">
                     @XmlFormat.raw(header)
@@ -171,7 +169,6 @@
                 <fo:block role="Div"
                           padding-before="1cm"
                           font-size="14px"
-                          font-family="arial"
                           font-weight="normal"
                           line-height="14pt">
                         @XmlFormat.raw(footer)
@@ -185,7 +182,6 @@
                     <fo:block role="Div" padding-before="30px">
                         <fo:block role="H3"
                                   font-size="14px"
-                                  font-family="arial"
                                   font-weight="normal"
                                   line-height="14pt">
                             @declaration

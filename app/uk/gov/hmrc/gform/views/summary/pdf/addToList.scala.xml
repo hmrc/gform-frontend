@@ -2,13 +2,13 @@
 @import uk.gov.hmrc.gform.pdf.model.PDFModel.{ AddToListSummary, AddToListPageGroup }
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 @import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
+@import org.apache.commons.text.StringEscapeUtils
 
 @(id: String, title: String, summaryTitle: Option[String], summaryValue: XmlFormat.Appendable,  pageGroups: List[AddToListPageGroup])(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 <fo:block role="Div" padding-before="1cm">
     <fo:block id="@id"
               role="H2"
               font-size="16px"
-              font-family="arial-bold"
               font-weight="bold"
               line-height="16pt"
               border-after-style="solid"
@@ -27,7 +27,6 @@
             <fo:block id="@{pageGroup.id}"
                       role="H3"
                       font-size="14px"
-                      font-family="arial-bold"
                       font-weight="bold"
                       line-height="14pt"
                       padding-before="0.5cm">
@@ -35,19 +34,16 @@
             </fo:block>
             @pageGroup.pages.map { page =>
                 <fo:block role="Div">
-                        @if(page.title.isDefined){
+                        @page.title.map{ title =>
                             <fo:block id="@{page.id}"
                                       role="H4"
                                       font-size="12px"
-                                      font-family="arial-bold"
                                       font-weight="bold"
-                                      line-height="12pt"
+                                      line-height="13pt"
                                       padding-bottom="5mm"
                                       padding-before="1cm">
-                                @page.title.map(t => PdfHelper.sanitizeContent(t))
+                                @title
                             </fo:block>
-                        } else {
-                            <fo:block> </fo:block>
                         }
                         <fo:list-block start-indent="1mm"
                                        provisional-distance-between-starts="8cm"

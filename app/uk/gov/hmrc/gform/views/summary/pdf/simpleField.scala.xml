@@ -1,8 +1,9 @@
 @import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
-@(values: List[Html])
+@(values: List[String])
 @values.map { value =>
-<fo:block role="P">
-        @{PdfHelper.renderHtml(value.body)}
-</fo:block>
+       <fo:block role="P"
+                 font-size="11pt"
+                 font-weight="normal"
+                 line-height="13pt">@value</fo:block>
 }

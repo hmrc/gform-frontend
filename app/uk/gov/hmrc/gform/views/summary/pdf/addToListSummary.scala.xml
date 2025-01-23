@@ -5,20 +5,18 @@
     <fo:list-block role="L">
         @values.map{ value =>
         <fo:list-item role="LI"
-                      font-size="11pt"
                       padding-after="0.5cm">
             <fo:list-item-label role="Lbl"
                                 start-indent="0.1mm"
                                 end-indent="label-end()">
-                <fo:block font-family="arial-bold"
-                          font-weight="bold"
-                          font-size="11pt"
-                          line-height="11pt">
-                    <fo:inline>@value._1.</fo:inline>
+                <fo:block font-weight="normal"
+                          font-size="11px"
+                          line-height="13pt">
+                    @value._1 -
                 </fo:block>
             </fo:list-item-label>
-            <fo:list-item-body role="LBody" start-indent="0.8cm" >
-                <fo:block margin-left="-5px" padding-left="-5px">
+            <fo:list-item-body role="LBody" start-indent="0.3cm">
+                <fo:block>
                      @{SummaryRenderingService.renderAddToListSummaryItemBody(value._2)}
                 </fo:block>
             </fo:list-item-body>

@@ -4,16 +4,20 @@
           keep-together.within-page="always">
     <fo:block role="H2"
               font-size="18px"
-              font-family="arial-bold"
               font-weight="bold"
               line-height="18pt"
-              padding-bottom="2mm">
+              padding-bottom="2mm"
+              border-after-style="solid"
+              padding-after="0.1cm"
+              border-color="#D3D3D3"
+              linefeed-treatment="treat-as-space">
         @title
     </fo:block>
     <fo:block role="Div">
-        <fo:list-block provisional-distance-between-starts="5cm" padding-before="0.2cm">
-                @rows.map{ row =>
-                    @submissionDetailsListItem(row._1, row._2)
+        <fo:list-block provisional-distance-between-starts="8cm"
+                       padding-before="0.2cm">
+                @rows.map{ case (key, value) =>
+                    @submissionDetailsListItem(key, value)
                 }
         </fo:list-block>
     </fo:block>

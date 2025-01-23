@@ -1,6 +1,6 @@
 @import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
-@(values: List[Html])
+@(values: List[String])
 @if(values.size > 1) {
 <fo:inline>
     <fo:list-block role="L">
@@ -9,9 +9,8 @@
             <fo:list-item-label role="Lbl"
                                 start-indent="1mm"
                                 font-size="11pt"
-                                font-family="arial-bold"
                                 font-weight="bold"
-                                line-height="11pt"
+                                line-height="13pt"
                                 end-indent="label-end()">
                 <fo:block>
                     <fo:inline>
@@ -23,10 +22,9 @@
             </fo:list-item-label>
             <fo:list-item-body role="LBody" start-indent="0.5cm" >
                 <fo:block font-size="11pt"
-                          font-family="arial"
                           font-weight="normal"
-                          line-height="11pt">
-                     @PdfHelper.sanitizeContent(value.body)
+                          line-height="13pt">
+                     @value
                 </fo:block>
             </fo:list-item-body>
         </fo:list-item>
@@ -35,8 +33,11 @@
 </fo:inline>
 } else {
     @values.map{ value =>
-        <fo:block role="P">
-            @PdfHelper.sanitizeContent(value.body)
+        <fo:block role="P"
+                  font-size="11pt"
+                  font-weight="normal"
+                  line-height="13pt">
+            @value
         </fo:block>
     }
 }

@@ -2,15 +2,18 @@
 
 @(label: String, value: String)
 <fo:list-item role="LI"
-              space-before="0.5cm"
-              font-size="9pt"
-              font-family="arial"
-              font-weight="normal"
-              line-height="9pt">
+              space-before="0.5cm">
     <fo:list-item-label role="Lbl" end-indent="label-end()">
-        <fo:block font-family="arial-bold" font-weight="bold">@{PdfHelper.sanitizeContent(label)}</fo:block>
+        <fo:block font-weight="bold"
+                  font-size="11pt"
+                  line-height="13pt">@label</fo:block>
     </fo:list-item-label>
-    <fo:list-item-body role="LBody" start-indent="body-start()" end-indent="5mm" >
-        <fo:block wrap-option="wrap">@{PdfHelper.sanitizeContent(value)}</fo:block>
+    <fo:list-item-body role="LBody"
+                       start-indent="body-start()"
+                       end-indent="5mm"
+                       font-size="11pt"
+                       font-weight="normal"
+                       line-height="13pt">
+        <fo:block wrap-option="wrap">@value</fo:block>
     </fo:list-item-body>
 </fo:list-item>
