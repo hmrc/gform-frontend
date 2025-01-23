@@ -313,12 +313,14 @@ class FormController(
   def formSection(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    sectionNumber: SectionNumber
+    sectionNumber: SectionNumber,
+    ff: Option[List[FastForward]] = None
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => cache => implicit sse => formModelOptics =>
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber), sectionNumber)
+        val fastForwardYes: List[FastForward] = List(FastForward.Yes)
         Redirect(
           routes.FormController
             .form(
@@ -327,7 +329,7 @@ class FormController(
               sectionNumber,
               sectionTitle4Ga,
               SuppressErrors.Yes,
-              List(FastForward.Yes)
+              ff.fold(fastForwardYes)(f => f)
             )
         ).pure[Future]
     }
