@@ -297,12 +297,13 @@ class NewFormController(
         for {
           formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
           maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
-          maybeSubmission <- maybeForm.fold(Option.empty[Submission].pure[Future]) { form =>
-                               gformConnector.maybeSubmissionDetails(
-                                 FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
-                                 form.envelopeId
-                               )
-                             }
+          maybeSubmission <-
+            maybeForm.filter(_.status === Submitted).fold(Option.empty[Submission].pure[Future]) { form =>
+              gformConnector.maybeSubmissionDetails(
+                FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                form.envelopeId
+              )
+            }
           maybeSubmittedRecently =
             maybeSubmission.filter { submission =>
               cache.formTemplate.downloadPreviousSubmissionPdf && submission.submittedDate.isAfter(

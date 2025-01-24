@@ -101,6 +101,7 @@ class NewFormControllerSpec
     initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
+        Future.successful(Some(authCacheWithForm.form.copy(status = Submitted))),
         Future.successful(Some(authCacheWithForm.form))
       )
     when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
@@ -138,7 +139,7 @@ class NewFormControllerSpec
     initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(Some(authCacheWithForm.form))
+        Future.successful(Some(authCacheWithForm.form.copy(status = Submitted)))
       )
     when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
