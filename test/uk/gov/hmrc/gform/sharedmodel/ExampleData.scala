@@ -909,7 +909,8 @@ trait ExampleFormTemplate {
       None,
       false,
       false,
-      None
+      None,
+      true
     )
 }
 

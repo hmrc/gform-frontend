@@ -642,6 +642,15 @@ case class AuthCacheWithForm(
   ): VariadicFormData[SourceOrigin.OutOfDate] =
     VariadicFormData.buildFromMongoData(formModel, form.formData.toData)
 
+  def toAuthCacheWithoutForm =
+    AuthCacheWithoutForm(
+      retrievals,
+      formTemplate,
+      role,
+      None,
+      lookupRegistry
+    )
+
 }
 
 case class AuthCacheWithoutForm(

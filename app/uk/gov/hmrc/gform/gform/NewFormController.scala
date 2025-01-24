@@ -16,43 +16,43 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
+import cats.syntax.eq._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.data
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
+import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.FormTemplateKey
+import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.eval.InitFormEvaluator
-import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
-import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
-import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
+import uk.gov.hmrc.gform.eval.InitFormEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
-import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormModelOptics, QueryParams, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.submission.Submission
+import uk.gov.hmrc.gform.views.hardcoded._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
+import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, ItmpRetrievals }
-import uk.gov.hmrc.auth.core.ConfidenceLevel
-import uk.gov.hmrc.gform.api.NinoInsightsConnector
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -68,7 +68,8 @@ class NewFormController(
   messagesControllerComponents: MessagesControllerComponents,
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
-  englishMessages: Messages
+  englishMessages: Messages,
+  acknowledgementPdfService: AcknowledgementPdfService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -78,6 +79,8 @@ class NewFormController(
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
 
   private val noAccessCode = Option.empty[AccessCode]
+
+  private val submittedAgeHours = 24L
 
   private def formTemplateIdCookie(formTemplateId: FormTemplateId) =
     Cookie(formTemplateIdCookieName, formTemplateId.value, secure = true)
@@ -260,6 +263,66 @@ class NewFormController(
           )
     }
 
+  private val downloadOrNewChoice: data.Form[String] = play.api.data.Form(
+    play.api.data.Forms.single(
+      "downloadOrNew" -> play.api.data.Forms.nonEmptyText
+    )
+  )
+
+  def downloadDecision(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      noAccessCode,
+      OperationWithForm.DownloadSummaryPdf
+    ) { implicit request => implicit l => cache => sse => formModelOptics =>
+      val queryParams: QueryParams = QueryParams.fromRequest(request)
+      downloadOrNewChoice
+        .bindFromRequest()
+        .fold(
+          _ => Redirect(routes.NewFormController.downloadOldOrNewForm(formTemplateId, SuppressErrors.No)).pure[Future],
+          {
+            case "download" => Redirect(routes.NewFormController.lastSubmission(formTemplateId)).pure[Future]
+            case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
+            case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+          }
+        )
+    }
+
+  def downloadOldOrNewForm(
+    formTemplateId: FormTemplateId,
+    se: SuppressErrors
+  ) =
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+      implicit request => implicit l => cache =>
+        for {
+          formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
+          maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
+          maybeSubmission <-
+            maybeForm.filter(_.status === Submitted).fold(Option.empty[Submission].pure[Future]) { form =>
+              gformConnector.maybeSubmissionDetails(
+                FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                form.envelopeId
+              )
+            }
+          maybeSubmittedRecently =
+            maybeSubmission.filter { submission =>
+              cache.formTemplate.downloadPreviousSubmissionPdf && submission.submittedDate.isAfter(
+                LocalDateTime.now().minusHours(submittedAgeHours)
+              )
+            }
+          res <-
+            maybeSubmittedRecently.fold(newForm(formTemplateId, cache, QueryParams.fromRequest(request))) { sub =>
+              val downloadOrNewFormPage: DownloadOrNewFormPage = downloadOrNewChoice
+                .bindFromRequest()
+                .fold(
+                  errorForm => new DownloadOrNewFormPage(cache.formTemplate, errorForm, sub.submittedDate, se),
+                  _ => new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice, sub.submittedDate, se)
+                )
+              Ok(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
+            }
+        } yield res
+    }
+
   def newSubmissionReference(formTemplateId: FormTemplateId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
@@ -275,7 +338,7 @@ class NewFormController(
       formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
       res <-
         handleForm(formIdData, formTemplate)(
-          newForm(formTemplate._id, cache.copy(formTemplate = formTemplate), queryParams)
+          Redirect(routes.NewFormController.downloadOldOrNewForm(formTemplate._id)).pure[Future]
         ) { form =>
           for {
             formTemplate <- if (formTemplate._id === form.formTemplateId)
@@ -336,6 +399,60 @@ class NewFormController(
         gformConnector.getFormTemplateContext(formTemplateId).map(_.formTemplate).flatMap { formTemplate =>
           exitPageHandler(cache, formTemplate, continue)
         }
+    }
+
+  private val startNewOrLogout: data.Form[String] = play.api.data.Form(
+    play.api.data.Forms.single(
+      "downloadThenNew" -> play.api.data.Forms.nonEmptyText
+    )
+  )
+
+  def newOrSignout(formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      noAccessCode,
+      OperationWithForm.DownloadSummaryPdf
+    ) { implicit request => implicit l => cache => ss => formModelOptics =>
+      val queryParams: QueryParams = QueryParams.fromRequest(request)
+      startNewOrLogout
+        .bindFromRequest()
+        .fold(
+          _ => Redirect(routes.NewFormController.lastSubmission(formTemplateId, SuppressErrors.No)).pure[Future],
+          {
+            case "signOut"  => Redirect(routes.SignOutController.signOut(formTemplateId)).pure[Future]
+            case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
+            case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+          }
+        )
+    }
+
+  def lastSubmission(formTemplateId: FormTemplateId, se: SuppressErrors): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      noAccessCode,
+      OperationWithForm.ViewAcknowledgement
+    ) { implicit request => implicit l => cache => ss => formModelOptics =>
+      for {
+        submission <- gformConnector.submissionDetails(
+                        FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                        cache.form.envelopeId
+                      )
+        pdfSize <- acknowledgementPdfService.getRenderedPdfSize(
+                     cache,
+                     Option.empty[AccessCode],
+                     formModelOptics
+                   )(request, l, ss)
+        res <- if (submission.submittedDate.isAfter(LocalDateTime.now().minusHours(submittedAgeHours))) {
+                 val downloadThenNew: DownloadThenNewFormPage = startNewOrLogout
+                   .bindFromRequest()
+                   .fold(
+                     error => new DownloadThenNewFormPage(cache.formTemplate, error, submission, pdfSize, se),
+                     _ => new DownloadThenNewFormPage(cache.formTemplate, startNewOrLogout, submission, pdfSize, se)
+                   )
+                 Ok(download_then_new(frontendConfig, downloadThenNew)).pure[Future]
+               } else
+                 newForm(formTemplateId, cache.toAuthCacheWithoutForm, QueryParams.fromRequest(request))
+      } yield res
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit

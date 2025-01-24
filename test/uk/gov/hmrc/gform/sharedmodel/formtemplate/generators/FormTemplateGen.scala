@@ -157,7 +157,8 @@ trait FormTemplateGen {
       None,
       false,
       false,
-      serviceStartPageUrl
+      serviceStartPageUrl,
+      true
     )
 }
 
