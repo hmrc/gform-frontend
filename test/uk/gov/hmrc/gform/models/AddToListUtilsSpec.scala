@@ -23,10 +23,11 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormComponentIdToFileIdMapping, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FileUpload, FormComponentId, Section, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FileComponentId, FileUpload, FormComponentId, Section, ShortText, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 
 class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
@@ -223,11 +224,14 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
     val ownerAddToListId: AddToListId = AddToListId(FormComponentId("owner"))
     val fruitAddToListId: AddToListId = AddToListId(FormComponentId("fruit"))
 
-    val fileIds = Set("1_f", "2_f", "3_f", "regularFile").map(fcId => FileId(fcId))
+    val fileComponentIds = Set("1_f", "2_f", "3_f", "regularFile").map(fcId => FileComponentId.fromString(fcId))
 
     val originalMapping = FileIdsWithMapping(
-      fileIds.map(_.toFieldId.modelComponentId),
-      FormComponentIdToFileIdMapping(fileIds.map(fileId => fileId.toFieldId -> fileId).toMap)
+      fileComponentIds.map(_.toModelComponentId()),
+      Set.empty[ModelComponentId],
+      FormComponentIdToFileIdMapping(
+        fileComponentIds.map(fileComponentId => fileComponentId -> fileComponentId.toFileId()).toMap
+      )
     )
 
     val expectedMapping1 = Map("1_f" -> "2_f", "2_f" -> "3_f", "regularFile" -> "regularFile").toMapping
@@ -258,6 +262,6 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
 
   implicit class MapOps(map: Map[String, String]) {
     def toMapping: FormComponentIdToFileIdMapping =
-      FormComponentIdToFileIdMapping(map.map { case (k, v) => FormComponentId(k) -> FileId(v) })
+      FormComponentIdToFileIdMapping(map.map { case (k, v) => FileComponentId.fromString(k) -> FileId(v) })
   }
 }

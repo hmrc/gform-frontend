@@ -17,103 +17,103 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import munit.FunSuite
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponentId }
 
 class FormComponentIdToFileIdMappingSpec extends FunSuite {
 
-  val table: List[(FormComponentIdToFileIdMapping, List[(FormComponentId, FileId)])] = List(
+  val table: List[(FormComponentIdToFileIdMapping, List[(FileComponentId, FileId)])] = List(
     (
       FormComponentIdToFileIdMapping(
-        Map.empty[FormComponentId, FileId]
+        Map.empty[FileComponentId, FileId]
       ),
       List(
-        FormComponentId("1_file") -> FileId("1_file"),
-        FormComponentId("2_file") -> FileId("2_file"),
-        FormComponentId("3_file") -> FileId("3_file"),
-        FormComponentId("4_file") -> FileId("4_file"),
-        FormComponentId("5_file") -> FileId("5_file"),
-        FormComponentId("6_file") -> FileId("6_file")
+        FileComponentId.Single(FormComponentId("1_file")) -> FileId("1_file"),
+        FileComponentId.Single(FormComponentId("2_file")) -> FileId("2_file"),
+        FileComponentId.Single(FormComponentId("3_file")) -> FileId("3_file"),
+        FileComponentId.Single(FormComponentId("4_file")) -> FileId("4_file"),
+        FileComponentId.Single(FormComponentId("5_file")) -> FileId("5_file"),
+        FileComponentId.Single(FormComponentId("6_file")) -> FileId("6_file")
       )
     ),
     (
       FormComponentIdToFileIdMapping(
         Map(
-          FormComponentId("1_file") -> FileId("1_file"),
-          FormComponentId("2_file") -> FileId("2_file")
+          FileComponentId.Single(FormComponentId("1_file")) -> FileId("1_file"),
+          FileComponentId.Single(FormComponentId("2_file")) -> FileId("2_file")
         )
       ),
       List(
-        FormComponentId("1_file") -> FileId("1_file"),
-        FormComponentId("2_file") -> FileId("2_file"),
-        FormComponentId("3_file") -> FileId("3_file"),
-        FormComponentId("4_file") -> FileId("4_file"),
-        FormComponentId("5_file") -> FileId("5_file"),
-        FormComponentId("6_file") -> FileId("6_file")
+        FileComponentId.Single(FormComponentId("1_file")) -> FileId("1_file"),
+        FileComponentId.Single(FormComponentId("2_file")) -> FileId("2_file"),
+        FileComponentId.Single(FormComponentId("3_file")) -> FileId("3_file"),
+        FileComponentId.Single(FormComponentId("4_file")) -> FileId("4_file"),
+        FileComponentId.Single(FormComponentId("5_file")) -> FileId("5_file"),
+        FileComponentId.Single(FormComponentId("6_file")) -> FileId("6_file")
       )
     ),
     (
       FormComponentIdToFileIdMapping(
         Map(
-          FormComponentId("1_file") -> FileId("2_file"),
-          FormComponentId("2_file") -> FileId("1_file")
+          FileComponentId.Single(FormComponentId("1_file")) -> FileId("2_file"),
+          FileComponentId.Single(FormComponentId("2_file")) -> FileId("1_file")
         )
       ),
       List(
-        FormComponentId("1_file") -> FileId("2_file"),
-        FormComponentId("2_file") -> FileId("1_file"),
-        FormComponentId("3_file") -> FileId("3_file"),
-        FormComponentId("4_file") -> FileId("4_file"),
-        FormComponentId("5_file") -> FileId("5_file"),
-        FormComponentId("6_file") -> FileId("6_file")
+        FileComponentId.Single(FormComponentId("1_file")) -> FileId("2_file"),
+        FileComponentId.Single(FormComponentId("2_file")) -> FileId("1_file"),
+        FileComponentId.Single(FormComponentId("3_file")) -> FileId("3_file"),
+        FileComponentId.Single(FormComponentId("4_file")) -> FileId("4_file"),
+        FileComponentId.Single(FormComponentId("5_file")) -> FileId("5_file"),
+        FileComponentId.Single(FormComponentId("6_file")) -> FileId("6_file")
       )
     ),
     (
       FormComponentIdToFileIdMapping(
         Map(
-          FormComponentId("2_file") -> FileId("5_file"),
-          FormComponentId("1_file") -> FileId("1_file")
+          FileComponentId.Single(FormComponentId("2_file")) -> FileId("5_file"),
+          FileComponentId.Single(FormComponentId("1_file")) -> FileId("1_file")
         )
       ),
       List(
-        FormComponentId("1_file") -> FileId("1_file"),
-        FormComponentId("2_file") -> FileId("5_file"),
-        FormComponentId("3_file") -> FileId("3_file"),
-        FormComponentId("4_file") -> FileId("4_file"),
-        FormComponentId("5_file") -> FileId("2_file"),
-        FormComponentId("6_file") -> FileId("6_file")
+        FileComponentId.Single(FormComponentId("1_file")) -> FileId("1_file"),
+        FileComponentId.Single(FormComponentId("2_file")) -> FileId("5_file"),
+        FileComponentId.Single(FormComponentId("3_file")) -> FileId("3_file"),
+        FileComponentId.Single(FormComponentId("4_file")) -> FileId("4_file"),
+        FileComponentId.Single(FormComponentId("5_file")) -> FileId("2_file"),
+        FileComponentId.Single(FormComponentId("6_file")) -> FileId("6_file")
       )
     ),
     (
       FormComponentIdToFileIdMapping(
         Map(
-          FormComponentId("1_file") -> FileId("2_file"),
-          FormComponentId("4_file") -> FileId("5_file")
+          FileComponentId.Single(FormComponentId("1_file")) -> FileId("2_file"),
+          FileComponentId.Single(FormComponentId("4_file")) -> FileId("5_file")
         )
       ),
       List(
-        FormComponentId("1_file") -> FileId("2_file"),
-        FormComponentId("2_file") -> FileId("1_file"),
-        FormComponentId("3_file") -> FileId("3_file"),
-        FormComponentId("4_file") -> FileId("5_file"),
-        FormComponentId("5_file") -> FileId("4_file"),
-        FormComponentId("6_file") -> FileId("6_file")
+        FileComponentId.Single(FormComponentId("1_file")) -> FileId("2_file"),
+        FileComponentId.Single(FormComponentId("2_file")) -> FileId("1_file"),
+        FileComponentId.Single(FormComponentId("3_file")) -> FileId("3_file"),
+        FileComponentId.Single(FormComponentId("4_file")) -> FileId("5_file"),
+        FileComponentId.Single(FormComponentId("5_file")) -> FileId("4_file"),
+        FileComponentId.Single(FormComponentId("6_file")) -> FileId("6_file")
       )
     ),
     (
       FormComponentIdToFileIdMapping(
         Map(
-          FormComponentId("1_file") -> FileId("2_file"),
-          FormComponentId("2_file") -> FileId("3_file"),
-          FormComponentId("3_file") -> FileId("5_file")
+          FileComponentId.Single(FormComponentId("1_file")) -> FileId("2_file"),
+          FileComponentId.Single(FormComponentId("2_file")) -> FileId("3_file"),
+          FileComponentId.Single(FormComponentId("3_file")) -> FileId("5_file")
         )
       ),
       List(
-        FormComponentId("1_file") -> FileId("2_file"),
-        FormComponentId("2_file") -> FileId("3_file"),
-        FormComponentId("3_file") -> FileId("5_file"),
-        FormComponentId("4_file") -> FileId("4_file"),
-        FormComponentId("5_file") -> FileId("1_file"),
-        FormComponentId("6_file") -> FileId("6_file")
+        FileComponentId.Single(FormComponentId("1_file")) -> FileId("2_file"),
+        FileComponentId.Single(FormComponentId("2_file")) -> FileId("3_file"),
+        FileComponentId.Single(FormComponentId("3_file")) -> FileId("5_file"),
+        FileComponentId.Single(FormComponentId("4_file")) -> FileId("4_file"),
+        FileComponentId.Single(FormComponentId("5_file")) -> FileId("1_file"),
+        FileComponentId.Single(FormComponentId("6_file")) -> FileId("6_file")
       )
     )
   )

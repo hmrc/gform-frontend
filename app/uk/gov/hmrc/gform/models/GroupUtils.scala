@@ -21,7 +21,7 @@ import cats.syntax.eq._
 import cats.syntax.foldable._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Group, IsFileUpload, IsGroup, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, FormComponentId, Group, IsFileUpload, IsGroup, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
@@ -90,20 +90,23 @@ object GroupUtils {
     val formComponentIdToFileIdMapping = fileIdsWithMapping
 
     val filesToDelete: Set[FileId] =
-      groupFileUploadIdToRemoves.flatMap(ff => formComponentIdToFileIdMapping.find(ff))
+      groupFileUploadIdToRemoves.flatMap(ff =>
+        formComponentIdToFileIdMapping.find(FileComponentId.Single(ff))
+      ) // Group doesn't support multi file upload
 
     // We need to keep mapping for fileuploads which are not in this Group
     val unrelatedMapping = formComponentIdToFileIdMapping.mapping.filterNot { case (k, _) =>
-      allGroupFileUploadIds(k)
+      allGroupFileUploadIds(k.underlyingFormComponentId())
     }
 
-    val unchangedMapping = formComponentIdToFileIdMapping.mapping.filter { case (key, _) =>
-      groupFileUploadIdToKeep(key)
+    val unchangedMapping: Map[FileComponentId, FileId] = formComponentIdToFileIdMapping.mapping.filter {
+      case (key, _) =>
+        groupFileUploadIdToKeep(key.underlyingFormComponentId())
     }
 
-    val decrementedMapping = formComponentIdToFileIdMapping.mapping.collect {
-      case (key, v) if groupFileUploadIdToReindex(key) =>
-        key.modelComponentId.decrement.toFormComponentId -> v
+    val decrementedMapping: Map[FileComponentId, FileId] = formComponentIdToFileIdMapping.mapping.collect {
+      case (key, v) if groupFileUploadIdToReindex(key.underlyingFormComponentId()) =>
+        FileComponentId.Single(key.underlyingFormComponentId().modelComponentId.decrement.toFormComponentId) -> v
     }
 
     val componentIdToFileId = FormComponentIdToFileIdMapping {

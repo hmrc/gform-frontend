@@ -20,7 +20,7 @@ import cats.syntax.eq._
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, Form, FormComponentIdToFileIdMapping }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent }
 
 class EnvelopeWithMapping(
   private val envelope: Envelope,
@@ -29,13 +29,24 @@ class EnvelopeWithMapping(
 
   def files: List[File] = envelope.files
 
-  def fileIdFor(formComponentId: FormComponentId): FileId = mapping.fileIdFor(formComponentId)
+  def fileIdFor(fileComponentId: FileComponentId): FileId = mapping.fileIdFor(fileComponentId)
 
-  def contains(modelComponentId: ModelComponentId): Boolean = find(modelComponentId).isDefined
+  def contains(modelComponentId: ModelComponentId): Boolean = findSingle(modelComponentId).isDefined
 
-  def find(modelComponentId: ModelComponentId): Option[File] =
+  def findMulti(modelComponentId: ModelComponentId): List[(FileComponentId.Multi, File)] =
     mapping
-      .find(modelComponentId)
+      .findMulti(modelComponentId)
+      .flatMap { case (fileComponentId, fileId) =>
+        envelope.files
+          .map { envelopeFile =>
+            fileComponentId -> envelopeFile
+          }
+          .filter { case (_, file) => file.fileId === fileId }
+      }
+
+  def findSingle(modelComponentId: ModelComponentId): Option[File] =
+    mapping
+      .findSingle(modelComponentId)
       .flatMap { fileId =>
         envelope.files.find(_.fileId === fileId)
       }
@@ -50,7 +61,10 @@ class EnvelopeWithMapping(
   }
 
   def userFileName(formComponent: FormComponent): String =
-    find(formComponent.modelComponentId).fold("")(_.fileName)
+    findSingle(formComponent.modelComponentId).fold("")(_.fileName)
+
+  def userFileNames(formComponent: FormComponent): List[String] =
+    findMulti(formComponent.modelComponentId).map { case (_, file) => file.fileName }
 
 }
 

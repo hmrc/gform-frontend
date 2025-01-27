@@ -62,6 +62,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Option.empty[FormPhase],
       FileIdsWithMapping.empty,
       Map.empty,
+      Map.empty,
       Set.empty,
       Set.empty,
       Set.empty,

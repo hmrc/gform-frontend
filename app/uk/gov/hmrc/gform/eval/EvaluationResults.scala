@@ -98,10 +98,20 @@ case class EvaluationResults(
           .get(modelComponentId)
           .fold(ExpressionResult.empty)(fromVariadicValue)
       )
-      if (evaluationContext.fileIdsWithMapping.isFileField(modelComponentId))
+      if (evaluationContext.fileIdsWithMapping.isSingleFileField(modelComponentId))
         stripFileName(expressionResult, modelComponentId, evaluationContext.fileIdsWithMapping.mapping)
-      else
+      else if (evaluationContext.fileIdsWithMapping.isMultiFileField(modelComponentId)) {
+        val concatenatedMultiFile =
+          evaluationContext.multiFilesData.get(modelComponentId).fold("") { xs =>
+            xs.map { case (fileComponentId, variadicValue) =>
+              val fileIdPrefix: String = evaluationContext.fileIdsWithMapping.mapping.fileIdFor(fileComponentId).value
+              variadicValue.value.replace(fileIdPrefix + "_", "")
+            }.mkString(", ")
+          }
+        expressionResult.withStringResult(expressionResult)(_ => StringResult(concatenatedMultiFile))
+      } else {
         expressionResult
+      }
     }
   }
 
@@ -111,7 +121,7 @@ case class EvaluationResults(
     componentIdToFileId: FormComponentIdToFileIdMapping
   ): ExpressionResult = {
     val fileIdPrefix: String =
-      componentIdToFileId.find(modelComponentId).fold(modelComponentId.toMongoIdentifier)(_.value)
+      componentIdToFileId.findSingle(modelComponentId).fold(modelComponentId.toMongoIdentifier)(_.value)
     expressionResult.withStringResult(expressionResult) { fileName =>
       StringResult(fileName.replace(fileIdPrefix + "_", ""))
     }

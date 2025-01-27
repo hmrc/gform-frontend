@@ -71,11 +71,9 @@
     button.css("display", "none");
     input.hide();
     uploadedFiles.empty().append(startProgressBar());
-
-    return true;
   }
 
-  function dataSubmit(form, dataForm, button) {
+  function dataSubmit(form, dataForm, button, id) {
     $.ajax({
        type: dataForm.attr("method"),
        url: dataForm.attr("action"),
@@ -84,6 +82,10 @@
        button.unbind("click")
        button.on("click", function(e) {
          fileSubmit(form, button);
+         // Submit Upscan form
+         const upscanForm = document.getElementById("gf-upscan-" + id);
+         const submitter = document.querySelector("button[name='" + id + "-uploadButton']");
+         upscanForm.requestSubmit(submitter);
        });
        button.click();
     });
@@ -117,9 +119,26 @@
         submitButton
       );
     }
+    submitButton.off("click"); // Remove any previously attached click event handler
     submitButton.css("display", "")
     submitButton.on("click", function(e) {
-       dataSubmit(form, dataForm, submitButton)
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // Function 'dataSubmit' updates gform with form data as if
+      // green Save And Continue button has been clicked (ignoring the
+      // result).
+      //
+      // Problem is that this is causing race condition with upscan
+      // upload, since both calls modify mongodb user data.
+      //
+      // We need to make sure to start upscan upload only after gform
+      // is updated. To do so we prevent default action of
+      // submitButton from happening.
+      e.preventDefault();
+      // The reason to call gform service first before calling upscan
+      // is because upscan doesn't allow to pass metadata via their
+      // upload request (this is needed by upload or type pattern).
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      dataSubmit(form, dataForm, submitButton, id)
     });
   }
 

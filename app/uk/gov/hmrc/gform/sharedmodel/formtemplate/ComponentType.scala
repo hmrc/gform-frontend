@@ -62,6 +62,7 @@ sealed trait ComponentType {
     case _: Group              => "group"
     case _: InformationMessage => "informationMessage"
     case _: FileUpload         => "fileUpload"
+    case _: MultiFileUpload    => "multiFileUpload"
     case _: MiniSummaryList    => "miniSummaryList"
     case _: TableComp          => "table"
     case _: Button             => "button"
@@ -525,6 +526,13 @@ case class InformationMessage(infoType: InfoType, infoText: SmartString, summary
 case class FileUpload(
   fileSizeLimit: Option[Int],
   allowedFileTypes: Option[AllowedFileTypes]
+) extends ComponentType
+
+case class MultiFileUpload(
+  fileSizeLimit: Option[Int],
+  allowedFileTypes: Option[AllowedFileTypes],
+  hint: Option[SmartString],
+  uploadAnotherLabel: Option[SmartString]
 ) extends ComponentType
 
 case class StartTime(time: LocalTime) extends AnyVal

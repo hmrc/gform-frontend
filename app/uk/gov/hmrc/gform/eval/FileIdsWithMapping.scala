@@ -20,19 +20,26 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormComponentIdToFileIdMapping }
 
 class FileIdsWithMapping(
-  val isFileField: Set[ModelComponentId], // Ids of all file components
+  val isSingleFileField: Set[ModelComponentId], // Ids of all single file components
+  val isMultiFileField: Set[ModelComponentId], // Ids of all multi file components
   val mapping: FormComponentIdToFileIdMapping
 ) {
   def associatedFileIds(modelComponentIds: Set[ModelComponentId]): Set[FileId] =
-    modelComponentIds.filter(isFileField).flatMap(mapping.find)
+    modelComponentIds.filter(isSingleFileField).flatMap(mapping.findSingle) ++
+      modelComponentIds.filter(isMultiFileField).flatMap(mapping.findMulti).map { case (_, fileId) => fileId }
 }
 
 object FileIdsWithMapping {
-  val empty = new FileIdsWithMapping(Set.empty, FormComponentIdToFileIdMapping.empty)
+  val empty = new FileIdsWithMapping(Set.empty, Set.empty, FormComponentIdToFileIdMapping.empty)
 
-  def apply(fileIds: Set[ModelComponentId], mapping: FormComponentIdToFileIdMapping): FileIdsWithMapping =
+  def apply(
+    fileIds: Set[ModelComponentId],
+    multiFileIds: Set[ModelComponentId],
+    mapping: FormComponentIdToFileIdMapping
+  ): FileIdsWithMapping =
     new FileIdsWithMapping(
       fileIds,
+      multiFileIds,
       mapping
     )
 
