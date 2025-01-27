@@ -144,7 +144,7 @@ class FormProcessor(
         sn,
         sn,
         maybeAccessCode,
-        fastForward,
+        if (isLastIteration) List(FastForward.Yes) else fastForward,
         formModelOptics,
         EnteredVariadicFormData.empty,
         true
