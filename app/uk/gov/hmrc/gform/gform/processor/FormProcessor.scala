@@ -148,20 +148,16 @@ class FormProcessor(
         formModelOptics,
         EnteredVariadicFormData.empty,
         true
-      ) { _ => _ => maybeSectionNumber =>
+      ) { _ => _ => _ =>
         val pageIdToRemove = updFormModel.brackets.addToListBracket(addToListId).source.pageIdToDisplayAfterRemove
         val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
           if (isLastIteration) {
             pageIdToRemove.fold(
-              maybeSectionNumber match {
-                case SectionOrSummary.Section(s) =>
-                  addToListBracket.iterationForSectionNumber(s).defaultPageOrFirstSectionNumber
-                case _ => sn
-              }
+              addToListBracket.iterationForSectionNumber(sn).defaultPageOrFirstSectionNumber
             )(pageId =>
               computePageLink(pageId, pageIdSectionNumberMap).getOrElse(
-                throw new Exception(s"Unable to find section number for pageId: ${pageIdToRemove.get}")
+                throw new Exception(s"Unable to find section number for pageId: $pageId")
               )
             )
           } else
