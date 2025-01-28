@@ -1,0 +1,55 @@
+@*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.hardcoded.DownloadOrNewFormPage
+@import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
+
+@(
+    frontendAppConfig: FrontendAppConfig,
+    downloadOrNewFormPage: DownloadOrNewFormPage
+)(
+implicit
+    request: Request[_],
+    messages: Messages,
+    l:LangADT
+)
+
+@formWithCSRF = @{new FormWithCSRF()}
+@govukButton = @{new GovukButton()}
+@govukErrorSummary = @{new GovukErrorSummary()}
+
+@heading = @{messages("downloadOrNew.title")}
+@button = @{messages("button.continue")}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = heading,
+    formTemplate = downloadOrNewFormPage.formTemplate,
+    frontendAppConfig = frontendAppConfig,
+    containsErrors = downloadOrNewFormPage.hasErrors,
+    accessCode = None
+) {
+
+    @if(downloadOrNewFormPage.hasErrors) {
+        @govukErrorSummary(downloadOrNewFormPage.errorSummary)
+    }
+
+    @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.downloadDecision(downloadOrNewFormPage.formTemplate._id)), args = 'id -> "gf-form") {
+        @downloadOrNewFormPage.render
+        @govukButton(Button(content = Text(button), value = Some(button)))
+    }
+}

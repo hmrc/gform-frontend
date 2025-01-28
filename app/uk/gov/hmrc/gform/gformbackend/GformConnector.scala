@@ -357,6 +357,17 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[Submission](url)
   }
 
+  def maybeSubmissionDetails(
+    formIdData: FormIdData,
+    envelopeId: EnvelopeId
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Submission]] = submissionDetails(formIdData, envelopeId).map(Some(_)).recoverWith {
+    case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
+      Option.empty[Submission].pure[Future]
+  }
+
   /** ****formTemplate******
     */
   def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =

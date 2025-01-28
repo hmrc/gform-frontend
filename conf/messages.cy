@@ -487,6 +487,28 @@ continueDelete.title=A hoffech fynd yn eich blaen gyda’r fersiwn a gadwyd genn
 continueDelete.continue=Iawn
 continueDelete.delete=Na, dilëwch y fersiwn a gadwyd gennyf a dechrau eto
 
+# Download last submission or new form
+downloadOrNew.title=Beth ydych am ei wneud?
+downloadOrNew.helpText=Bydd copi o ffurflen a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at 24 awr ar ôl iddi gael ei chyflwyno.
+downloadOrNew.download.text=Cael copi o’r ffurflen y gwnaethoch ei chyflwyno
+downloadOrNew.download.helpText=Dyma’r ffurflen y gwnaethoch ei chyflwyno ar {0} am {1}.
+downloadOrNew.startNew.text=Dechrau ffurflen newydd
+downloadOrNew.startNew.helpText=Unwaith eich bod wedi dechrau ffurflen newydd, ni allwch lawrlwytho’r ffurflen a gyflwynwyd gennych yn flaenorol.
+downloadOrNew.error.required=Dewiswch yr hyn rydych am ei wneud
+
+downloadThenNew.title=Lawrlwytho copi o’r ffurflen y gwnaethoch ei chyflwyno
+downloadThenNew.table.caption.submissionRef=Cyfeirnod cyflwyno
+downloadThenNew.table.caption.submittedOn=Dyddiad cyflwyno
+downloadThenNew.table.value.submittedOn={0} am {1}
+downloadThenNew.table.caption.fileType=Math o ffeil
+downloadThenNew.table.caption.fileSize=Maint y ffeil
+downloadThenNew.download.info=Bydd y ffeil yn cael ei chadw yn y man arferol ar gyfer eich lawrlwythiadau.
+downloadThenNew.download.buttonText=Lawrlwytho PDF
+downloadThenNew.whatNext.title=Beth ydych am ei wneud nawr?
+downloadThenNew.whatNext.startNew=Dechrau ffurflen newydd
+downloadThenNew.whatNext.signOut=Allgofnodi
+downloadThenNew.error.required=Dewiswch yr hyn rydych am ei wneud
+
 # Agent services prologue
 agentsPrologue.title=Creu cyfrif gwasanaethau asiant i gyrchu’r gwasanaeth hwn
 agentsPrologue.p1=Cyn i chi allu dechrau eich {0} ar gyfer {1} bydd angen i chi greu cyfrif gwasanaethau asiant. Gallwch wneud hyn nawr
