@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 @import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukHint, GovukLabel, GovukErrorMessage, GovukSelect }
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.lookup.LookupLabel
 
@@ -45,7 +46,9 @@
 @govukLabel = @{new GovukLabel()}
 @govukHint  = @{new GovukHint()}
 @govukErrorMessage = @{new GovukErrorMessage()}
-@govukSelect = @{new GovukSelect(govukErrorMessage, govukHint, govukLabel)}
+@govukFormGroup = @{new GovukFormGroup}
+@govukHintAndErrorMessage = @{new GovukHintAndErrorMessage(govukHint, govukErrorMessage)}
+@govukSelect = @{new GovukSelect(govukLabel, govukFormGroup, govukHintAndErrorMessage)}
 
 @form_group(validationResult) { hasErrors =>
   @defining(formComponentId.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>

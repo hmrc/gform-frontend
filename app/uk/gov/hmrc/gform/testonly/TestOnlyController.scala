@@ -56,10 +56,13 @@ import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.{ BuildInfo, FormTemplateKey }
-import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ Fieldset, InsetText, Label, Legend, RadioItem, Radios, SelectItem, TabItem, TabPanel, Tabs }
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukFieldset, GovukHint, GovukInsetText, GovukLabel, GovukRadios, GovukSelect, GovukTable, GovukTabs }
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
+import uk.gov.hmrc.govukfrontend.views.viewmodels.select.Select
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
@@ -1184,7 +1187,10 @@ class TestOnlyController(
           val govukLabel = new GovukLabel()
           val govukHint = new GovukHint()
           val govukErrorMessage = new GovukErrorMessage()
-          val govukSelect = new GovukSelect(govukErrorMessage, govukHint, govukLabel)
+          val govukFormGroup: GovukFormGroup = new GovukFormGroup
+          val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+            new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
+          val govukSelect = new GovukSelect(govukLabel, govukFormGroup, govukHintAndErrorMessage)
           val select = govukSelect(
             Select(
               id = "templateIdFilter",
@@ -1338,6 +1344,9 @@ class TestOnlyController(
       val govukLabel: GovukLabel = new GovukLabel()
       val govukFieldset: GovukFieldset = new GovukFieldset()
       val govukHint: GovukHint = new GovukHint()
+      val govukFormGroup: GovukFormGroup = new GovukFormGroup
+      val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+        new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
       val fieldset = Some(
         Fieldset(
           legend = Some(
@@ -1381,7 +1390,8 @@ class TestOnlyController(
         items = List(option1, option2)
       )
 
-      val govukRadios = new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+      val govukRadios =
+        new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
       val actionUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
         .updateFormData(currentTemplateId, snapshotId, accessCode)
         .url

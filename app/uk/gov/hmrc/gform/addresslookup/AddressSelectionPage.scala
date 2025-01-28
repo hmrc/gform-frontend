@@ -21,7 +21,8 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.govukfrontend.views.html.components
-import uk.gov.hmrc.govukfrontend.views.html.components.ErrorMessage
+import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, GovukRadios }
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
@@ -38,6 +39,9 @@ class AddressSelectionPage(
   private val govukFieldset: components.GovukFieldset = new components.GovukFieldset()
   private val govukHint: components.GovukHint = new components.GovukHint()
   private val govukLabel: components.GovukLabel = new components.GovukLabel()
+  private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+    new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
+  private val govukFormGroup: GovukFormGroup = new GovukFormGroup
 
   val errorSummary: ErrorSummary = {
 
@@ -82,7 +86,13 @@ class AddressSelectionPage(
       items = items.toList
     )
 
-    new components.GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(
+      govukFieldset = govukFieldset,
+      govukHint = govukHint,
+      govukLabel = govukLabel,
+      govukFormGroup = govukFormGroup,
+      govukHintAndErrorMessage = govukHintAndErrorMessage
+    )(radios)
   }
 
   private def renderAddress(address: PostcodeLookupRetrieve.AddressRecord): String = {

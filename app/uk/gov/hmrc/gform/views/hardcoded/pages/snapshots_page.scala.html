@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
 @import uk.gov.hmrc.gform.testonly.snapshot.UserInputs
 
 @(
@@ -59,13 +60,15 @@
 @govukErrorMessage = @{new GovukErrorMessage()}
 @govukHint = @{new GovukHint()}
 @govukLabel = @{new GovukLabel()}
-@govukInput = @{new GovukInput(govukErrorMessage, govukHint, govukLabel)}
+@govukFormGroup = @{new GovukFormGroup}
+@govukHintAndErrorMessage = @{new GovukHintAndErrorMessage(govukHint, govukErrorMessage)}
+@govukInput = @{new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)}
 @govukFieldset = @{new GovukFieldset()}
 @govukDateInput = @{new GovukDateInput(
-    govukErrorMessage,
-    govukHint,
     govukFieldset,
-    govukInput
+    govukInput,
+    govukFormGroup,
+    govukHintAndErrorMessage
   )}
 
 @uk.gov.hmrc.gform.views.html.main_template(

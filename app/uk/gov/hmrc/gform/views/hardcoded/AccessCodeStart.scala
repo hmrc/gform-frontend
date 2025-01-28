@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
@@ -36,6 +37,9 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
   private val govukFieldset: GovukFieldset = new GovukFieldset()
   private val govukHint: GovukHint = new GovukHint()
   private val govukLabel: GovukLabel = new GovukLabel()
+  private val govukFormGroup: GovukFormGroup = new GovukFormGroup
+  private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+    new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
 
   val errorSummary: ErrorSummary = {
 
@@ -112,7 +116,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
         classes = "govuk-input--width-10 govuk-!-margin-bottom-5",
         errorMessage = accessCodeError.flatMap(_ => errorMessage)
       )
-      val inputHtml = new GovukInput(govukErrorMessage, govukHint, govukLabel)(input)
+      val inputHtml = new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)(input)
       val detailsHtml = new GovukDetails()(details)
       HtmlFormat.fill(List(inputHtml, detailsHtml))
     }
@@ -136,7 +140,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
       items = List(startNew, useExisting)
     )
 
-    new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
   }
 
 }

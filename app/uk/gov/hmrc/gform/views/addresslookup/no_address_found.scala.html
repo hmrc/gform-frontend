@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.models.FastForward
 @import uk.gov.hmrc.gform.FormTemplateKey
 @import uk.gov.hmrc.gform.gform.{HasErrors, NoErrors}
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
 
 @(
   formTemplate: FormTemplate,
@@ -39,6 +40,13 @@
 @formWithCSRF = @{new FormWithCSRF()}
 @govukButton = @{new GovukButton()}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
+
+@govukErrorMessage = @{new GovukErrorMessage()}
+@govukFieldset = @{new GovukFieldset()}
+@govukHint = @{new GovukHint()}
+@govukLabel = @{new GovukLabel()}
+@govukFormGroup = @{new GovukFormGroup}
+@govukHintAndErrorMessage = @{new GovukHintAndErrorMessage(govukHint, govukErrorMessage)}
 
 @backLink = @{
   new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
@@ -61,7 +69,7 @@
 
   @formWithCSRF(action = formAction, 'novalidate -> "novalidate") {
 
-    @{new GovukRadios(new GovukErrorMessage(), new GovukFieldset(), new GovukHint(), new GovukLabel())(Radios(
+    @{new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(Radios(
                 fieldset = Some(Fieldset(
                 legend = Some(Legend(
                 content = Text(messages("postcodeLookup.cannot.find.address.choose.title")),

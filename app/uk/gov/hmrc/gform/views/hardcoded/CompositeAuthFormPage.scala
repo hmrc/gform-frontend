@@ -22,6 +22,7 @@ import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 
 class CompositeAuthFormPage(
   val formTemplate: FormTemplate,
@@ -35,6 +36,9 @@ class CompositeAuthFormPage(
   private val govukFieldset: GovukFieldset = new GovukFieldset()
   private val govukHint: GovukHint = new GovukHint()
   private val govukLabel: GovukLabel = new GovukLabel()
+  private val govukFormGroup: GovukFormGroup = new GovukFormGroup
+  private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+    new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
 
   val errorSummary: ErrorSummary = {
 
@@ -113,7 +117,7 @@ class CompositeAuthFormPage(
       items = items
     )
 
-    new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
   }
 
 }
