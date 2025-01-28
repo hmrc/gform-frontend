@@ -187,6 +187,11 @@ object ItmpRetrievals {
   implicit val equal: Eq[ItmpRetrievals] = Eq.fromUniversalEquals
 }
 
+final case class AgentCode(value: Option[String])
+object AgentCode {
+  implicit val format: OFormat[AgentCode] = Json.format[AgentCode]
+}
+
 final case class OtherRetrievals(
   name: Option[Name],
   email: Option[String]

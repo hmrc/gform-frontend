@@ -588,6 +588,14 @@ class AuthenticatedRequestActions(
       }
   }
 
+  def getAgentCodeRetrieval(implicit hc: HeaderCarrier): Future[AgentCode] = {
+    val retrieval = Retrievals.agentCode
+    val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+
+    authorised(predicate)
+      .retrieve(retrieval)(agentCode => AgentCode(agentCode).pure[Future])
+  }
+
   def isInUK(country: String): Boolean = ukParts(country.toUpperCase)
 
   private val ukParts = Set("ENGLAND", "SCOTLAND", "WALES", "NORTHERN IRELAND", "GREAT BRITAIN", "UNITED KINGDOM")
