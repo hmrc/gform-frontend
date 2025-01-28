@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 
 import java.time.format.DateTimeFormatter
 
@@ -41,6 +42,9 @@ class DownloadThenNewFormPage(
   private val govukFieldset: GovukFieldset = new GovukFieldset()
   private val govukHint: GovukHint = new GovukHint()
   private val govukLabel: GovukLabel = new GovukLabel()
+  private val govukFormGroup: GovukFormGroup = new GovukFormGroup
+  private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+    new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
 
   private val dateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy", messages.lang.locale)
   private val timeFormat = DateTimeFormatter.ofPattern("HH:mm", messages.lang.locale)
@@ -156,7 +160,7 @@ class DownloadThenNewFormPage(
       items = List(startNew, signOut)
     )
 
-    new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
   }
 
 }
