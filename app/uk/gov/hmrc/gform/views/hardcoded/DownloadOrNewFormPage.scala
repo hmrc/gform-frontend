@@ -22,6 +22,7 @@ import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 
 import java.time.LocalDateTime
@@ -40,6 +41,9 @@ class DownloadOrNewFormPage(
   private val govukFieldset: GovukFieldset = new GovukFieldset()
   private val govukHint: GovukHint = new GovukHint()
   private val govukLabel: GovukLabel = new GovukLabel()
+  private val govukFormGroup: GovukFormGroup = new GovukFormGroup
+  private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
+    new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
 
   private val dateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy", messages.lang.locale)
   private val timeFormat = DateTimeFormatter.ofPattern("HH:mm", messages.lang.locale)
@@ -116,7 +120,7 @@ class DownloadOrNewFormPage(
       items = List(download, startNew)
     )
 
-    new GovukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
   }
 
 }
