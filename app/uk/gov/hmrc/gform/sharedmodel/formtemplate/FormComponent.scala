@@ -49,7 +49,8 @@ case class FormComponent(
   errorShortNameStart: Option[SmartString] = None,
   errorExample: Option[SmartString] = None,
   extraLetterSpacing: Option[Boolean] = None,
-  displayInSummary: Option[Boolean] = None
+  displayInSummary: Option[Boolean] = None,
+  pageIdsToDisplayOnChange: Option[List[PageId]] = None
 ) {
 
   val modelComponentId: ModelComponentId = id.modelComponentId

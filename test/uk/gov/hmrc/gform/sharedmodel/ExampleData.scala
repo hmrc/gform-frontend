@@ -641,12 +641,13 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     includeIf: Option[IncludeIf] = None,
     instruction: Option[Instruction] = None,
     presentationHint: Option[PresentationHint] = None,
-    confirmation: Option[Confirmation] = None
+    confirmation: Option[Confirmation] = None,
+    pageId: Option[PageId] = None
   ) =
     Section.NonRepeatingPage(
       Page(
         toSmartString(title),
-        None,
+        pageId,
         noPIITitle.map(toSmartString),
         None,
         None,
