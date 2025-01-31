@@ -23,7 +23,7 @@ import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
-import uk.gov.hmrc.gform.api.{ AgentAccessControlConnector, BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, DelegatedAgentAuthConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
@@ -63,7 +63,7 @@ class FormProcessor(
   ninoInsightsConnector: NinoInsightsConnector[Future],
   addressLookupService: AddressLookupService[Future],
   bankAccountInsightConnector: BankAccountInsightsConnector[Future],
-  agentAccessControlConnector: AgentAccessControlConnector[Future],
+  delegatedAgentAuthConnector: DelegatedAgentAuthConnector[Future],
   englishMessages: Messages
 )(implicit ec: ExecutionContext) {
 
@@ -321,7 +321,7 @@ class FormProcessor(
             Some(bankAccountInsightConnector),
             Some(gformConnector),
             Some(fileSystemConnector),
-            Some(agentAccessControlConnector)
+            Some(delegatedAgentAuthConnector)
           )
           maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetrieveResults(r.toList))
         }

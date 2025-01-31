@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.syntax.all._
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.gform.api.{ AgentAccessControlConnector, BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, DelegatedAgentAuthConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel._
@@ -39,7 +39,7 @@ object DataRetrieveService {
     bankAccountInsightConnector: Option[BankAccountInsightsConnector[Future]],
     gformConnector: Option[GformConnector],
     fileSystemConnector: Option[FileSystemConnector],
-    agentAccessControlConnector: Option[AgentAccessControlConnector[Future]]
+    delegatedAgentAuthConnector: Option[DelegatedAgentAuthConnector[Future]]
   )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[Option[DataRetrieveResult]] = {
     val maybeRequestParams = form.flatMap(f => DataRetrieve.requestParamsFromCache(f, dataRetrieve.id))
     val maybeExecutor
@@ -60,8 +60,8 @@ object DataRetrieveService {
         case DataRetrieve.Type("hmrcRosmRegistrationCheck")  => gformConnector.map(_.getDesOrganisation)
         case DataRetrieve.Type("agentDetails")               => gformConnector.map(_.getDesAgentDetails)
         case DataRetrieve.Type("hmrcTaxRates")               => fileSystemConnector.map(_.getHmrcTaxRate)
-        case DataRetrieve.Type("delegatedAgentAuthVat")      => agentAccessControlConnector.map(_.mtdVatAuth)
-        case DataRetrieve.Type("delegatedAgentAuthPaye")     => agentAccessControlConnector.map(_.payeAuth)
+        case DataRetrieve.Type("delegatedAgentAuthVat")      => delegatedAgentAuthConnector.map(_.mtdVatAuth)
+        case DataRetrieve.Type("delegatedAgentAuthPaye")     => delegatedAgentAuthConnector.map(_.payeAuth)
         case _                                               => Option.empty
       }
     maybeExecutor.flatTraverse { executor =>
