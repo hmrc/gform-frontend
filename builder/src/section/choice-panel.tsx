@@ -31,6 +31,19 @@ import { useUpdateComponent } from "./hooks/useUpdateComponent";
 
 const defaultChoices = ["Yes", "No"];
 
+const getdefaultRevealingChoices = (noOfItems: number): Array => {
+        return Array.from({length: noOfItems}, (_, i) =>
+           [
+             {
+               "id": `item${i+1}`,
+               "type": "text",
+               "format": "text",
+               "label": `Label ${i+1}`
+             }
+           ]
+         );
+      }
+
 export const choiceReducer = (state: ChoiceState, action: DispatchEvent<ChoiceUpdateEvent>): ChoiceState => {
   const record = action.record;
   switch (action.subtype) {
@@ -41,7 +54,11 @@ export const choiceReducer = (state: ChoiceState, action: DispatchEvent<ChoiceUp
             ? structuredClone(state.undo.choices) // When transition from Checkboxes/Radios -> YesNo -> Checkboxes/Radios we restore original choices
             : defaultChoices
           : state.choices;
-      return { ...state, typeValue: record.content, choices: choices };
+      const revealingFields =
+        state.typeValue === ChoiceComponentType.RevealingChoice
+          ? getdefaultRevealingChoices(choices.length)
+          : "";
+      return { ...state, typeValue: record.content, choices: choices, revealingFields: revealingFields };
     }
     case ChoiceUpdateEvent.Label:
       const label = updateSmartString(record.content as SmartStringEvent, state.label);
@@ -58,7 +75,7 @@ export const choiceReducer = (state: ChoiceState, action: DispatchEvent<ChoiceUp
       const index = record.index;
       const choices = state.choices;
       choices[index] = record.content;
-      return { ...state, choices: choices };
+      return { ...state, choices: choices, revealingFields: state.revealingFields };
     }
     case ChoiceUpdateEvent.Hint: {
       const index = record.index;
@@ -118,6 +135,18 @@ const getChoices = (formComponent: FormComponent): string[] => {
   }
 };
 
+const getRevealingFields = (formComponent: FormComponent): string[] => {
+    if (findType(formComponent) === ChoiceComponentType.RevealingChoice) {
+      if (formComponent.revealingFields instanceof Array) {
+          return formComponent.revealingFields;
+      } else {
+          return [];
+      }
+    } else {
+        return undefined;
+    }
+}
+
 const getChoiceHints = (formComponent: FormComponent): string[] => {
   if (formComponent.choices instanceof Array) {
     const standaloneHints: string | string[] | undefined = formComponent.hints;
@@ -152,6 +181,7 @@ const getChoiceIncludeIfs = (formComponent: FormComponent): string[] => {
 
 const findType = (formComponent: FormComponent): ChoiceComponentType => {
   if (formComponent.format === ChoiceComponentType.YesNo) return ChoiceComponentType.YesNo;
+  else if(formComponent.type === ChoiceComponentType.RevealingChoice) return ChoiceComponentType.RevealingChoice;
   else if (formComponent.multivalue) return ChoiceComponentType.Checkboxes;
   else return ChoiceComponentType.Radios;
 };
@@ -164,6 +194,7 @@ export const initialChoiceState = (formComponent: FormComponent): ChoiceState =>
     label: formComponent.label,
     pageHeading: formComponent.label === undefined,
     choices: getChoices(formComponent),
+    revealingFields: getRevealingFields(formComponent),
     hints: getChoiceHints(formComponent),
     values: getChoiceValues(formComponent),
     includeIfs: getChoiceIncludeIfs(formComponent),
@@ -243,8 +274,10 @@ export const ChoicePanelFactory =
 
       switch (choiceState.typeValue) {
         case ChoiceComponentType.YesNo:
+          formComponentPart["type"] = "choice";
           formComponentPart["format"] = ChoiceComponentType.YesNo;
           formComponentPart["choices"] = "";
+          formComponentPart["revealingFields"] = "";
           formComponentPart["multivalue"] = "";
           formComponentPart["noneChoice"] = "";
           formComponentPart["noneChoiceError"] = "";
@@ -252,14 +285,18 @@ export const ChoicePanelFactory =
           formComponentPart["dividerText"] = "";
           break;
         case ChoiceComponentType.Radios:
+          formComponentPart["type"] = "choice";
           formComponentPart["format"] = "";
           formComponentPart["multivalue"] = "";
           formComponentPart["noneChoice"] = "";
           formComponentPart["noneChoiceError"] = "";
+          formComponentPart["revealingFields"] = "";
           break;
         case ChoiceComponentType.Checkboxes:
+          formComponentPart["type"] = "choice";
           formComponentPart["format"] = "";
           formComponentPart["multivalue"] = true;
+          formComponentPart["revealingFields"] = "";
           if (state.noneChoice !== "") {
             formComponentPart["noneChoice"] = state.noneChoice;
             formComponentPart["noneChoiceError"] = state.noneChoiceError;
@@ -267,6 +304,13 @@ export const ChoicePanelFactory =
             formComponentPart["noneChoice"] = "";
             formComponentPart["noneChoiceError"] = "";
           }
+          break;
+        case ChoiceComponentType.RevealingChoice:
+          formComponentPart["type"] = ChoiceComponentType.RevealingChoice;
+          formComponentPart["format"] = "";
+          formComponentPart["revealingFields"] = state.revealingFields ? state.revealingFields : getdefaultRevealingChoices(formComponentPart.choices.length);
+          formComponentPart["noneChoice"] = "";
+          formComponentPart["noneChoiceError"] = "";
       }
 
       const data: FormComponentUpdateRequest = {
@@ -413,6 +457,22 @@ export const ChoicePanelFactory =
       }
     };
 
+    const addChoice = (e: Event, index) => {
+      choiceState.choices.splice(index + 1, 0, 'Choice');
+      choiceState.hints.splice(index + 1, 0, '');
+      choiceState.includeIfs.splice(index + 1, 0, '');
+      choiceState.revealingFields.splice(index + 1, 0, []);
+      dispatch(ChoiceUpdateEvent.Choice, e);
+    };
+
+    const removeChoice = (e: Event, index) => {
+      choiceState.choices.splice(index, 1);
+      choiceState.hints.splice(index, 1);
+      choiceState.includeIfs.splice(index, 1);
+      choiceState.revealingFields.splice(index, 1);
+      dispatch(ChoiceUpdateEvent.Choice, e);
+    };
+
     const onChoicesChange = (e: Event, index: number) => {
       const input = e.target as HTMLInputElement;
       dispatch(ChoiceUpdateEvent.Choice, input.value, { index: index });
@@ -522,6 +582,20 @@ export const ChoicePanelFactory =
             />
             {generateChoiceDividerPositionInputElements(index)}
             {generateChoiceNoneChoiceInputElements(index)}
+            <button hidden={currentNumberOfChoices < 2}
+              id={"delete-" + index}
+              class="btn-small btn-danger"
+              onClick={(e) => { removeChoice(e, index); } }
+            >
+                Remove choice {index + 1}
+            </button>
+            <button
+              id={"add-" + index}
+              class="btn-small btn-success"
+              onClick={(e) => { addChoice(e, index); } }
+            >
+              Add choice
+            </button>
           </div>
         ))}
       </fieldset>

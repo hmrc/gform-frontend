@@ -407,6 +407,7 @@ export type FormComponent = {
   noneChoice?: number | string;
   noneChoiceError?: SmartString;
   choices?: string[] | ChoiceObject[] | string;
+  revealingFields?: string[] | string;
   hints?: string[] | string;
   cityMandatory?: boolean | "";
   countyDisplayed?: boolean | "";
@@ -494,6 +495,7 @@ export enum ChoiceComponentType {
   YesNo = "yesno",
   Checkboxes = "checkboxes",
   Radios = "radios",
+  RevealingChoice = "revealingChoice",
 }
 
 export type SectionDetails = {
@@ -790,6 +792,7 @@ export interface ChoiceState {
   label?: SmartString;
   pageHeading: boolean;
   choices: string[];
+  revealingFields?: string[];
   hints: string[];
   values: string[];
   includeIfs: string[];
