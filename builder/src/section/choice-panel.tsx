@@ -461,7 +461,9 @@ export const ChoicePanelFactory =
       choiceState.choices.splice(index + 1, 0, 'Choice');
       choiceState.hints.splice(index + 1, 0, '');
       choiceState.includeIfs.splice(index + 1, 0, '');
-      choiceState.revealingFields.splice(index + 1, 0, []);
+      if(choiceState.revealingFields) {
+        choiceState.revealingFields.splice(index + 1, 0, []);
+      }
       dispatch(ChoiceUpdateEvent.Choice, e);
     };
 
@@ -469,7 +471,9 @@ export const ChoicePanelFactory =
       choiceState.choices.splice(index, 1);
       choiceState.hints.splice(index, 1);
       choiceState.includeIfs.splice(index, 1);
-      choiceState.revealingFields.splice(index, 1);
+      if(choiceState.revealingFields) {
+        choiceState.revealingFields.splice(index, 1);
+      }
       dispatch(ChoiceUpdateEvent.Choice, e);
     };
 
@@ -582,15 +586,15 @@ export const ChoicePanelFactory =
             />
             {generateChoiceDividerPositionInputElements(index)}
             {generateChoiceNoneChoiceInputElements(index)}
-            <button hidden={currentNumberOfChoices < 2}
-              id={"delete-" + index}
+            <button hidden={currentNumberOfChoices < 2 || !showAllFields}
+              id={"delete-button-" + index}
               class="btn-small btn-danger"
               onClick={(e) => { removeChoice(e, index); } }
             >
                 Remove choice {index + 1}
             </button>
-            <button
-              id={"add-" + index}
+            <button hidden={!showAllFields}
+              id={"add-button-" + index}
               class="btn-small btn-success"
               onClick={(e) => { addChoice(e, index); } }
             >
