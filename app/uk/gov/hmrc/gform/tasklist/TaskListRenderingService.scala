@@ -100,7 +100,7 @@ class TaskListRenderingService(
       val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
 
       implicit val sse: SmartStringEvaluator =
-        smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, LangADT.En)
+        smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, l)
 
       val visibleTaskStatusesLookup = statusesLookup.filter { case (coord, _) =>
         visibleTaskCoordinates.contains(coord)
