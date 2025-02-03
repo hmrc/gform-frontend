@@ -23,10 +23,10 @@ import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.domain.EmpRef
 import uk.gov.hmrc.gform.auth.AuthConnector
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 trait DelegatedAgentAuthConnector[F[_]] {
   def mtdVatAuth(
@@ -43,8 +43,6 @@ trait DelegatedAgentAuthConnector[F[_]] {
 case class DelegatedAuth(rule: String, parameter: String)
 
 class DelegatedAgentAuthAsyncConnector(
-  ws: WSHttp,
-  baseUrl: String,
   val authConnector: AuthConnector
 )(implicit
   ex: ExecutionContext
@@ -75,19 +73,19 @@ class DelegatedAgentAuthAsyncConnector(
   override def payeAuth(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
-  )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
+  )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    Try(EmpRef.fromIdentifiers(getParam(request, epaye.parameter))) match {
+      case Failure(_) => Future.successful(processResponse(dataRetrieve, epaye.rule, authorised = false))
+      case Success(ref) =>
+        val authCheck: Future[Boolean] = authorised(
+          Enrolment("IR-PAYE")
+            .withIdentifier("TaxOfficeNumber", ref.taxOfficeNumber)
+            .withIdentifier("TaxOfficeReference", ref.taxOfficeReference)
+            .withDelegatedAuthRule(epaye.rule)
+        )(Future.successful(true))
 
-    val ref: EmpRef = EmpRef.fromIdentifiers(getParam(request, epaye.parameter))
-
-    val authCheck: Future[Boolean] = authorised(
-      Enrolment("IR-PAYE")
-        .withIdentifier("TaxOfficeNumber", ref.taxOfficeNumber)
-        .withIdentifier("TaxOfficeReference", ref.taxOfficeReference)
-        .withDelegatedAuthRule(epaye.rule)
-    )(Future.successful(true))
-
-    processAuthCheck(dataRetrieve, epaye.rule, authCheck)
-  }
+        processAuthCheck(dataRetrieve, epaye.rule, authCheck)
+    }
 
   private def getParam(request: DataRetrieve.Request, param: String): String =
     request.params.find(_._1 === param).map(t => t._2).getOrElse("")

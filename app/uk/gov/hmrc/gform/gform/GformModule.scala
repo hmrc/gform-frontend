@@ -173,15 +173,8 @@ class GformModule(
   val bankAccountInsightsConnector =
     new BankAccountInsightsAsyncConnector(wSHttpModule.auditableWSHttp, bankAccountInsightsUrl, authorizationToken)
 
-  private val agentAccessControlBasePath =
-    configModule.serviceConfig.getString("microservice.services.agent-access-control.base-path")
-  private val agentAccessControlUrl =
-    s"${configModule.serviceConfig.baseUrl("agent-access-control")}$agentAccessControlBasePath"
-
   val agentAccessControlConnector =
     new DelegatedAgentAuthAsyncConnector(
-      wSHttpModule.auditableWSHttp,
-      agentAccessControlUrl,
       authModule.authConnector
     )
 
