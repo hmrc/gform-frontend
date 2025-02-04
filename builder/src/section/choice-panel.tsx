@@ -555,6 +555,13 @@ export const ChoicePanelFactory =
         <div hidden={!showAllFields}>
           <input type="checkbox" id="optional" checked={choiceState.optional} onClick={optionalToggle} />
           <label for="optional">Optional</label>
+          <button
+            id="add-button-first"
+            class="btn-small btn-success"
+            onClick={(e) => { addChoice(e, -1); } }
+          >
+            Add first choice
+          </button>
         </div>
         {Array.from({ length: currentNumberOfChoices }, (_, index) => (
           <div
@@ -564,6 +571,13 @@ export const ChoicePanelFactory =
             <label for={"edit-choice-" + index}>
               Choice {index + 1} text <span class="additional-info">{choiceState.values[index]}</span>
             </label>
+            <button hidden={currentNumberOfChoices < 2 || !showAllFields}
+              id={"delete-button-" + index}
+              class="btn-small btn-danger"
+              onClick={(e) => { removeChoice(e, index); } }
+            >
+                Remove choice {index + 1}
+            </button>
             <input
               id={"edit-choice-" + index}
               class="form-control"
@@ -586,13 +600,6 @@ export const ChoicePanelFactory =
             />
             {generateChoiceDividerPositionInputElements(index)}
             {generateChoiceNoneChoiceInputElements(index)}
-            <button hidden={currentNumberOfChoices < 2 || !showAllFields}
-              id={"delete-button-" + index}
-              class="btn-small btn-danger"
-              onClick={(e) => { removeChoice(e, index); } }
-            >
-                Remove choice {index + 1}
-            </button>
             <button hidden={!showAllFields}
               id={"add-button-" + index}
               class="btn-small btn-success"
