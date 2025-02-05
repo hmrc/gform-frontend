@@ -64,6 +64,22 @@ button:not(:disabled) {
   color: var(--gform-btn-color);
 }
 
+.btn-small {
+  --gform-btn-color: #fff;
+  --gform-btn-padding-x: 0.35rem;
+  --gform-btn-padding-y: 0.15rem;
+  --gform-btn-border-radius: 0.375rem;
+  --gform-btn-border-width: 1px;
+  border-radius: var(--gform-btn-border-radius);
+  background-color: var(--gform-btn-bg);
+  border: var(--gform-btn-border-width) solid var(--gform-btn-border-color);
+  padding: var(--gform-btn-padding-y) var(--gform-btn-padding-x);
+  color: var(--gform-btn-color);
+  font-size: 10px;
+  float: right;
+  margin: 2px;
+}
+
 .btn:hover {
   background-color: var(--gform-btn-hover-bg);
   border-color: var(--gform-btn-hover-border-color);
