@@ -161,6 +161,7 @@ object InitFormEvaluator {
                              Some(ninoInsightsConnector),
                              None,
                              Some(gformConnector),
+                             None,
                              None
                            )
                            .map {

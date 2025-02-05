@@ -25,7 +25,7 @@ import play.api.i18n._
 import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.addresslookup.AddressLookupService
-import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, DelegatedAgentAuthAsyncConnector, NinoInsightsAsyncConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ FastForwardService, FileSystemConnector }
@@ -72,6 +72,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
   private val ninoInsightsConnector: NinoInsightsAsyncConnector = mock[NinoInsightsAsyncConnector]
   private val addressLookupService: AddressLookupService[Future] = mock[AddressLookupService[Future]]
   private val bankAccountInsightsConnector: BankAccountInsightsAsyncConnector = mock[BankAccountInsightsAsyncConnector]
+  private val delegatedAgentAuthConnector: DelegatedAgentAuthAsyncConnector = mock[DelegatedAgentAuthAsyncConnector]
   private val localRecalculation: Recalculation[Future, Throwable] =
     new Recalculation[Future, Throwable](
       eligibilityStatusTrue,
@@ -95,6 +96,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     ninoInsightsConnector,
     addressLookupService,
     bankAccountInsightsConnector,
+    delegatedAgentAuthConnector,
     messages
   )
 
