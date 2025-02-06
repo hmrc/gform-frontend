@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.syntax.all._
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, NinoInsightsConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, HipConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel._
@@ -38,7 +38,8 @@ object DataRetrieveService {
     ninoInsightsConnector: Option[NinoInsightsConnector[Future]],
     bankAccountInsightConnector: Option[BankAccountInsightsConnector[Future]],
     gformConnector: Option[GformConnector],
-    fileSystemConnector: Option[FileSystemConnector]
+    fileSystemConnector: Option[FileSystemConnector],
+    hipConnector: Option[HipConnector[Future]]
   )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[Option[DataRetrieveResult]] = {
     val maybeRequestParams = form.flatMap(f => DataRetrieve.requestParamsFromCache(f, dataRetrieve.id))
     val maybeExecutor
@@ -55,7 +56,7 @@ object DataRetrieveService {
         case DataRetrieve.Type("companyHouseActiveOfficers") => companyInformationConnector.map(_.companyOfficers)
         case DataRetrieve.Type("ninoInsights")               => ninoInsightsConnector.map(_.insights)
         case DataRetrieve.Type("bankAccountInsights")        => bankAccountInsightConnector.map(_.insights)
-        case DataRetrieve.Type("employments")                => gformConnector.map(_.getEmployments)
+        case DataRetrieve.Type("employments")                => hipConnector.map(_.employmentSummary)
         case DataRetrieve.Type("hmrcRosmRegistrationCheck")  => gformConnector.map(_.getDesOrganisation)
         case DataRetrieve.Type("agentDetails")               => gformConnector.map(_.getDesAgentDetails)
         case DataRetrieve.Type("hmrcTaxRates")               => fileSystemConnector.map(_.getHmrcTaxRate)

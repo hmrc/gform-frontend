@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import play.api.i18n.Messages
 import play.api.libs.json._
-import uk.gov.hmrc.gform.api.NinoInsightsConnector
+import uk.gov.hmrc.gform.api.{ HipConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithoutForm
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, DataRetrieveService }
@@ -142,7 +142,8 @@ object InitFormEvaluator {
     itmpRetrievals: Option[ItmpRetrievals],
     dataRetrieve: Option[NonEmptyList[DataRetrieve]],
     gformConnector: GformConnector,
-    ninoInsightsConnector: NinoInsightsConnector[Future]
+    ninoInsightsConnector: NinoInsightsConnector[Future],
+    hipConnector: HipConnector[Future]
   )(implicit hc: HeaderCarrier, ex: ExecutionContext, messages: Messages): Future[AuthCacheWithoutForm] =
     for {
       results <- dataRetrieve.fold(Future.successful(List.empty[DataRetrieveResult])) { r =>
@@ -161,7 +162,8 @@ object InitFormEvaluator {
                              Some(ninoInsightsConnector),
                              None,
                              Some(gformConnector),
-                             None
+                             None,
+                             Some(hipConnector)
                            )
                            .map {
                              case Some(result) => results :+ result

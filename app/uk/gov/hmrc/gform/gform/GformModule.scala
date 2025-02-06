@@ -22,7 +22,7 @@ import play.api.BuiltInComponents
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupController, AddressLookupModule }
 import uk.gov.hmrc.gform.akka.AkkaModule
-import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, NinoInsightsAsyncConnector }
+import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, HipAsyncConnector, NinoInsightsAsyncConnector }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
@@ -173,6 +173,12 @@ class GformModule(
   val bankAccountInsightsConnector =
     new BankAccountInsightsAsyncConnector(wSHttpModule.auditableWSHttp, bankAccountInsightsUrl, authorizationToken)
 
+  val hipConnector = new HipAsyncConnector(
+    wSHttpModule.auditableWSHttp,
+    configModule.serviceConfig.baseUrl("hip"),
+    configModule.hipConfig
+  )
+
   val fileSystemConnector = new FileSystemConnector()
 
   val addToListProcessor = new FormProcessor(
@@ -190,6 +196,7 @@ class GformModule(
     ninoInsightsConnector,
     addressLookupModule.addressLookupService,
     bankAccountInsightsConnector,
+    hipConnector,
     englishMessages
   )
 
@@ -352,6 +359,7 @@ class GformModule(
     controllersModule.messagesControllerComponents,
     gformBackEndService,
     ninoInsightsConnector,
+    hipConnector,
     englishMessages,
     acknowledgementPdfService
   )

@@ -37,6 +37,7 @@ class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: Str
 
     ws.GET[JsValue](url)
       .map { response =>
+        logger.info(s"Data Retrieve response : ${response.toString}")
         dataRetrieve
           .processResponse(response)
           .fold(
