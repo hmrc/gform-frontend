@@ -654,7 +654,7 @@ browser.forbidden.p2=Mae angen i chi ddefnyddio porwr gwe arall, fel Microsoft E
 browser.forbidden.link=Rhagor o wybodaeth am sut i newid porwr (yn agor tab newydd)
 
 #Task List
-taskList.p=Rydych wedi llenwi {0} allan o {1} tasgau
+taskList.p=Rydych wedi cwblhau {0} allan o {1} o dasgau
 
 taskList.NotStarted=Heb ddechrau
 taskList.InProgress=Ar waith
