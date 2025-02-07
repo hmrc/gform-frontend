@@ -19,14 +19,14 @@ package uk.gov.hmrc.gform.eval.smartstring
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.commons.MarkDownUtil.unescapeMarkdownHtml
-import uk.gov.hmrc.gform.eval.{ ExprType, TypeInfo }
+import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, TypeInfo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.gform.{ ConcatFormatSubstituter, ConcatFormatSubstitutions, Substituter }
-
 import ConcatFormatSubstituter._
+import uk.gov.hmrc.gform.eval.ExprType.ChoiceSelection
 
 import scala.jdk.CollectionConverters._
 import java.text.MessageFormat
@@ -108,10 +108,10 @@ private class Executor(
         expr match {
           case NumberedList(fcId) =>
             val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
-            govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = false)
+            govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = false, fcId = fcId)
           case BulletedList(fcId) =>
             val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
-            govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = true)
+            govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = true, fcId = fcId)
           case ChoicesRevealedField(fcId) =>
             formModelVisibilityOptics.formModel.fcLookup
               .get(fcId)
@@ -207,10 +207,20 @@ private class Executor(
       .optionRepresentation
       .fold(stringRepresentation(typeInfo))(f(_))
 
-  private def govukListRepresentation(typeInfo: TypeInfo, isBulleted: Boolean, markDown: Boolean): String = {
-    val defaultLines = formModelVisibilityOptics
-      .evalAndApplyTypeInfo(typeInfo)
-      .listRepresentation(messages)
+  private def govukListRepresentation(
+    typeInfo: TypeInfo,
+    isBulleted: Boolean,
+    markDown: Boolean,
+    fcId: FormComponentId
+  ): String = {
+    val defaultLines: List[String] = typeInfo.staticTypeData match {
+      case StaticTypeData(ChoiceSelection, None) => evalChoice(fcId, typeInfo, markDown).split(",").toList
+      case _ =>
+        formModelVisibilityOptics
+          .evalAndApplyTypeInfo(typeInfo)
+          .listRepresentation(messages)
+    }
+
     val lines = typeInfo.staticTypeData.textConstraint
       .map(c => defaultLines.map(v => TextFormatter.componentTextReadonly(v, c)(l)))
       .getOrElse(defaultLines)
