@@ -244,7 +244,7 @@ class GformBackEndService(
     } yield response
   }
 
-  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
+  def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
@@ -382,7 +382,7 @@ class GformBackEndService(
       userSession
     )
 
-  private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Option[InstructionPdfFields] =
+  def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Option[InstructionPdfFields] =
     formTemplate.destinations match {
       case DestinationList(destinations, _, _) =>
         destinations.collectFirst { case HmrcDms(_, _, _, _, _, _, _, _, _, _, Some(instructionPdfFields), _, _, _) =>
@@ -391,4 +391,7 @@ class GformBackEndService(
 
       case _ => None
     }
+
+  def getFormByEnvelopeId(formTemplateId: FormTemplateId, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier) =
+    gformConnector.getFormByEnvelopeId(formTemplateId, envelopeId)
 }

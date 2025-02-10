@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.pdf.PDFRenderService
+import uk.gov.hmrc.gform.pdf.recovery.PDFRecoveryController
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
@@ -468,4 +469,15 @@ class GformModule(
   private val redirectUrlPolicy = AbsoluteWithHostnameFromAllowlist(allowedHosts)
   val redirectController: RedirectController =
     new RedirectController(controllersModule.messagesControllerComponents, redirectUrlPolicy)
+
+  val pdfRecoveryController = new PDFRecoveryController(
+    controllersModule.authenticatedRequestActions,
+    controllersModule.messagesControllerComponents,
+    gformBackEndService,
+    lookupRegistry,
+    nonRepudiationHelpers,
+    playBuiltInsModule.i18nSupport,
+    pdfGeneratorService,
+    graphModule.recalculation
+  )
 }

@@ -261,6 +261,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
 
+  def getFormByEnvelopeId(formTemplateId: FormTemplateId, envelopeId: EnvelopeId)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Form] = {
+    val url = s"$baseUrl/pdf-recovery/forms/${formTemplateId.value}/${envelopeId.value}"
+    ws.GET[Form](url)
+  }
+
   /** ****submission******
     */
   def createSubmission(

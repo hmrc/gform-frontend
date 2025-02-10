@@ -125,3 +125,5 @@ GET           /image-file/:formTemplateId/:maybeAccessCode                      
 GET           /redirect                                                                                          uk.gov.hmrc.gform.gform.RedirectController.redirect(redirectUrl: RedirectUrl)
 
 POST          /pay-api/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.payment.PaymentController.pay(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], reference: PaymentReference, amountInPence: String, backPath: String)
+
+GET           /recover-pdf/:formTemplateId/:envelopeId/:submissionTime/:affinitiyGroup                           uk.gov.hmrc.gform.pdf.recovery.PDFRecoveryController.recoverInstructionPdf(formTemplateId: FormTemplateId, envelopeId: EnvelopeId, submissionTime: String, affinitiyGroup: String)
