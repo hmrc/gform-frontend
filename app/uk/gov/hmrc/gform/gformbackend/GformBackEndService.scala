@@ -244,7 +244,7 @@ class GformBackEndService(
     } yield response
   }
 
-  def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
+  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],

@@ -478,6 +478,9 @@ class GformModule(
     nonRepudiationHelpers,
     playBuiltInsModule.i18nSupport,
     pdfGeneratorService,
-    graphModule.recalculation
+    pdfRenderService,
+    englishMessages: Messages,
+    graphModule.recalculation,
+    sectionRenderingService
   )
 }

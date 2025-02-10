@@ -18,11 +18,13 @@ package uk.gov.hmrc.gform.pdf.recovery
 
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.http.HttpEntity
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
 import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolments, User }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, OtherRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator, SmartStringEvaluatorFactory }
+import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndService
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -30,10 +32,12 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.pdf.model.PDFType
+import uk.gov.hmrc.gform.pdf.PDFRenderService
+import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil, PdfContent, SourceOrigin, SubmissionRef, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil, SourceOrigin, SubmissionRef, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplateId, IsChoice, IsRevealingChoice }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
@@ -52,7 +56,10 @@ class PDFRecoveryController(
   nonRepudiationHelpers: NonRepudiationHelpers,
   i18nSupport: I18nSupport,
   pdfGeneratorService: PdfGeneratorService,
-  recalculation: Recalculation[Future, Throwable]
+  pdfRenderService: PDFRenderService,
+  englishMessages: Messages,
+  recalculation: Recalculation[Future, Throwable],
+  renderer: SectionRenderingService
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -73,6 +80,8 @@ class PDFRecoveryController(
       val localDateTime = LocalDateTime.parse(submissionTime, customFormatter)
       logger.info(s"Parsing submissionTime: $localDateTime")
       val affinity = AffinityGroupUtil.toAffinityGroup(affinityGroup).getOrElse(Individual)
+      val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
+        new RealSmartStringEvaluatorFactory(englishMessages)
       for {
         form                <- gformBackEndService.getFormByEnvelopeId(formTemplateId, envelopeId)
         formTemplateContext <- gformBackEndService.getFormTemplate(formTemplateId)
@@ -104,16 +113,34 @@ class PDFRecoveryController(
                              cache,
                              recalculation
                            )
-        htmlForInstructionPDF <-
-          gformBackEndService
-            .createHTMLForInstructionPDF[SectionSelectorType.Normal, DataOrigin.Browser, PDFType.Summary](
-              None,
-              cache,
-              submissionDetails,
-              formModelOptics,
-              Some(cache.formTemplate.formName.value)
-            )
-        pdfStream <- pdfGeneratorService.generatePDF(htmlForInstructionPDF.getOrElse(PdfContent("")))
+        htmlForPDF <- {
+          implicit val sse: SmartStringEvaluator =
+            smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelOptics.formModelVisibilityOptics))
+          val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
+            cache,
+            formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
+            None,
+            None
+          )
+          pdfRenderService.createPDFContent[DataOrigin.Browser, SectionSelectorType.Normal, PDFType.Summary](
+            s"Acknowledgement PDF - ${formTemplate.formName.value}",
+            None,
+            cache,
+            formModelOptics,
+            cache.formTemplate.destinations match {
+              case d: DestinationList =>
+                d.acknowledgementSection.pdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
+              case _ => None
+            },
+            submissionDetails,
+            SummaryPagePurpose.ForDms,
+            Some(summarySectionDeclaration),
+            None,
+            None,
+            Some(cache.formTemplate.formName.value)
+          )
+        }
+        pdfStream <- pdfGeneratorService.generatePDF(htmlForPDF)
       } yield Result(
         header = ResponseHeader(200, Map.empty),
         body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
