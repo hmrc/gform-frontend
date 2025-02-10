@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import org.slf4j.{ LoggerFactory, MDC }
+import org.slf4j.LoggerFactory
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.http._
@@ -287,12 +287,7 @@ class ApplicationModule(context: Context)
   override lazy val application = app
 
   def initialize() = {
-
     val appName = configModule.appConfig.appName
-    logger.info(s"Starting frontend $appName in mode ${environment.mode}")
-    MDC.put("appName", appName)
-    val loggerDateFormat: Option[String] = configuration.getOptional[String]("logger.json.dateformat")
-    loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
     logger.info(
       s"Started Frontend $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}"
     )
