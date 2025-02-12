@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, PageMode, Singleton }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, Expr }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.CheckYourAnswersPage
+import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FormModel, PageMode, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, CheckYourAnswersPage, Expr, Page }
 
 object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
   /*
@@ -76,6 +75,18 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
         cyap.continueLabel
       )
 
+  private def fromPage(page: Page[Basic]) =
+    page.allFields.flatMap {
+      case AllFormComponentExpressions(exprs) => exprs.map(_.expr)
+      case _                                  => List.empty[Expr]
+    } ++
+      fromSmartStrings(page.title) ++
+      fromOption(
+        page.description,
+        page.shortName,
+        page.continueLabel
+      )
+
   private def formComponentsExprs[A <: PageMode](
     formModel: FormModel[DataExpanded]
   )(bracket: Bracket[A]): List[Expr] =
@@ -87,7 +98,8 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
       addToList.iterations.toList.flatMap { iteration =>
         iteration.defaultPage.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
           iteration.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
-          addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil)
+          addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil) ++
+          addToList.source.defaultPage.map(fromPage).getOrElse(Nil)
       }
     }
 
