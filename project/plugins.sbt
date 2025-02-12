@@ -24,10 +24,10 @@ addDependencyTreePlugin
 
 addSbtPlugin("io.github.irundaia" % "sbt-sassify" % "1.5.2")
 
-addSbtPlugin("net.ground5hark.sbt" % "sbt-concat" % "0.2.0")
+addSbtPlugin("com.github.sbt" % "sbt-concat" % "1.0.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-uglify" % "2.0.0")
+addSbtPlugin("com.github.sbt" % "sbt-uglify" % "3.0.1")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.4")
+addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.0.0")
 
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.1")
