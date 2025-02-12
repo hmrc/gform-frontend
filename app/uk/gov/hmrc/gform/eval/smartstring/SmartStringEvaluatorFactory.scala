@@ -173,13 +173,19 @@ private class Executor(
       .collect {
         case IsChoice(choice) =>
           val optionsList = getChoiceOptions(choice)
+          val orderedKeys = optionsList.keys.toList
+          val keyToIndex = orderedKeys.zipWithIndex.toMap
           formModelVisibilityOptics
             .evalAndApplyTypeInfo(typeInfo)
             .optionRepresentation
-            .map(_.map(i => (i.toInt + 1).toString -> apply(optionsList(i), markDown)))
+            .map { repr =>
+              repr.flatMap { key =>
+                keyToIndex.get(key).map(index => (index + 1).toString -> apply(optionsList(key), markDown))
+              }
+            }
             .getOrElse(Seq.empty)
         case IsRevealingChoice(revealingChoice) =>
-          revealingChoice.options.map(c => ("", apply(c.choice.label, markDown)))
+          revealingChoice.options.map(c => "" -> apply(c.choice.label, markDown))
         case _ =>
           Seq("" -> stringRepresentation(typeInfo))
       }
@@ -220,7 +226,7 @@ private class Executor(
         formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)
           .listRepresentation(messages)
-          .map(text => ("" -> text))
+          .map(text => "" -> text)
     }
     val lines = typeInfo.staticTypeData.textConstraint
       .map(c => choicePairs.map { case (key, value) => key -> TextFormatter.componentTextReadonly(value, c)(l) })
