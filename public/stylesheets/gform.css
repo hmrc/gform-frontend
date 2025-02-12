@@ -427,3 +427,17 @@ div.gform-date-input__item {
 .hmrc-header__service-name {
     margin-right: 5px;
 }
+
+#dropzone {
+  padding: 10px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.dropzone-active {
+  background: bisque;
+}
+
+.dropzone-inactive {
+  background: whitesmoke;
+}

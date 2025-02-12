@@ -106,6 +106,14 @@ class TestOnlyModule(
     lookupRegistry
   )
 
+  val translationController = new TranslationController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    configModule.frontendAppConfig,
+    gformBackendModule.gformConnector,
+    controllersModule.messagesControllerComponents
+  )
+
   val objectStoreAdminConnector = new ObjectStoreAdminConnector(
     wSHttpModule.wsClient
   )

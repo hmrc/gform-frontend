@@ -21,4 +21,7 @@
   var gformSessionTimeout = new GOVUK.GformSessionTimeout();
   gformSessionTimeout.init();
 
+  var gformDropzone = new GOVUK.GformDropzone();
+  gformDropzone.init();
+
 })(window);

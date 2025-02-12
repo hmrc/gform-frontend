@@ -3,7 +3,7 @@ import { activateSummaryBuilder } from "./summary/index";
 import { activateTaskLandingPageBuilder } from "./task-landing-page/index";
 import { activateAcknowledgementBuilder } from "./acknowledgement/index";
 
-const url: string = window.document.documentURI;
+const url: string = window.document.documentURI; // Use window.location.pathname and window.location.origin
 const urlMatchContent: RegExpMatchArray | null = url.match(/(.*)\/submissions\/form\/([^/]*)\/(.*)\?(.*)/);
 const urlMatchSummary: RegExpMatchArray | null = url.match(/(.*)\/submissions\/summary\/([^/]*)\/(.*)\?(.*)/);
 const urlMatchTaskLandingPage: RegExpMatchArray | null = url.match(
