@@ -37,13 +37,14 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IsFalse, Number, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IsFalse, Number, NumberedList, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
 
 class RealSmartStringEvaluatorFactorySpec
     extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
@@ -56,6 +57,9 @@ class RealSmartStringEvaluatorFactorySpec
     xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None))
 
   private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None, None, None)
+
+  private def toValueBasedOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.ValueBased] =
+    xs.map(l => OptionData.ValueBased(toSmartString(l), None, None, None, StringBased(l)))
 
   "SmartStringEvaluator" should {
 
@@ -628,5 +632,131 @@ class RealSmartStringEvaluatorFactorySpec
       )
 
     result shouldBe "Smart string result = £1,000.00"
+  }
+
+  "evaluate SmartString using bulletedList with reference to an index based checkbox choice component" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Checkbox,
+        toOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(choiceField.modelComponentId, "0,2")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(choiceField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          BulletedList(FormComponentId("choiceField"))
+        ),
+        false
+      )
+
+    result shouldBe """<ul class="govuk-list govuk-list--bullet"><li value="1">Choice 1</li><li value="3">Choice 3</li></ul>"""
+  }
+
+  "evaluate SmartString using numberedList with reference to a value based checkbox choice component" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Checkbox,
+        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(choiceField.modelComponentId, "Choice 2,Choice 3")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(choiceField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          NumberedList(FormComponentId("choiceField"))
+        ),
+        false
+      )
+
+    result shouldBe """<ol class="govuk-list govuk-list--number"><li value="2">Choice 2</li><li value="3">Choice 3</li></ol>"""
+  }
+
+  "evaluate SmartString using bulletedList with reference to an index based checkbox revealing choice component" in new TestFixture {
+    lazy val choice1TextField: FormComponent = buildFormComponent("choice1TextField", Value)
+    lazy val choice2TextField: FormComponent = buildFormComponent("choice2TextField", Value)
+    lazy val revealingChoiceField: FormComponent = buildFormComponent(
+      "revealingChoiceField",
+      RevealingChoice(
+        List(
+          RevealingChoiceElement(toOptionData("Option 1"), List(choice1TextField), None, true),
+          RevealingChoiceElement(toOptionData("Option 2"), List(choice2TextField), None, true)
+        ),
+        true
+      ),
+      None
+    )
+
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(revealingChoiceField.modelComponentId, "1")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(nonRepeatingPageSection(title = "page1", fields = List(revealingChoiceField)))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          BulletedList(FormComponentId("revealingChoiceField"))
+        ),
+        false
+      )
+
+    result shouldBe """<ul class="govuk-list govuk-list--bullet"><li>Option 2</li></ul>"""
   }
 }
