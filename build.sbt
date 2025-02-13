@@ -86,8 +86,7 @@ lazy val microservice = (project in file("."))
     uglify / excludeFilter ~= { _ || "builder.js" },
     pipelineStages := Seq(digest),
     Assets / pipelineStages := Seq(concat, uglify),
-    Assets / unmanagedResourceDirectories += baseDirectory.value / "builder" / "dist",
-    uglifyCompressOptions := Seq("warnings=false")
+    Assets / unmanagedResourceDirectories += baseDirectory.value / "builder" / "dist"
   )
   .settings(
     resolvers ++= Seq(
