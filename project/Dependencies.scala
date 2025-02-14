@@ -30,7 +30,7 @@ object Dependencies {
     "com.softwaremill.quicklens"  %% "quicklens"                  % "1.9.0",
     "com.nrinaudo"                %% "kantan.csv"                 % "0.7.0",
     "com.miguelfonseca.completely" % "completely-core"            % "0.9.0",
-    "org.jsoup"                    % "jsoup"                      % "1.18.1",
+    "org.jsoup"                    % "jsoup"                      % "1.18.3",
     "org.webjars.npm"              % "govuk-frontend"             % "5.3.0",
     "com.openhtmltopdf"            % "openhtmltopdf-pdfbox"       % "1.0.10",
     "org.apache.commons"           % "commons-text"               % "1.10.0",

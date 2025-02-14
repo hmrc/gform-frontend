@@ -123,11 +123,11 @@ export const activateSectionBuilder = (urlMatch: RegExpMatchArray, url: string) 
             maybeAccessCode,
           );
         } else {
-          const initialServerPageDataNoWelsch: ServerPageData = removeWelshValues(
+          const initialServerPageDataNoWelsh: ServerPageData = removeWelshValues(
             structuredClone(initialServerPageData0),
           ) as ServerPageData;
           sectionBootstrap(
-            initialServerPageDataNoWelsch,
+            initialServerPageDataNoWelsh,
             formParentEl,
             host,
             formTemplateId,

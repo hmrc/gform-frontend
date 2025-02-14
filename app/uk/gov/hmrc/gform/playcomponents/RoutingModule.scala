@@ -117,6 +117,7 @@ class RoutingModule(
       builderRoutes,
       testOnlyModule.testOnlyController,
       testOnlyModule.debugController,
+      testOnlyModule.translationController,
       testOnlyModule.testOnlyErrorMessageController,
       testOnlyModule.objectStoreAdminController,
       testOnlyModule.formTemplateExtractController

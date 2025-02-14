@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
-import uk.gov.hmrc.gform.testonly.ExpressionsLookup
+import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
@@ -431,9 +431,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
     agentDetailsB.get(dataRetrieve, request)
 
-  //TODO other formTemplate endpoints
-  //TODO move this file to gform and make it's origin there
-
   /** **** Tax Period *****
     */
   def getAllTaxPeriods(
@@ -652,5 +649,33 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     val url = s"$baseUrl/test-only/generated-files/${envelopeId.value}"
     ws.DELETE[HttpResponse](url)
+  }
+
+  def translationCsv(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/translation/${formTemplateId.value}"
+    ws.GET[HttpResponse](url)
+  }
+
+  def translationCsvBrief(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/translation/${formTemplateId.value}/brief"
+    ws.GET[HttpResponse](url)
+  }
+
+  def translationCsvInternal(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/translation/${formTemplateId.value}/internal"
+    ws.GET[HttpResponse](url)
+  }
+
+  def translationEnTextBreakdown(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[EnTextBreakdowns] = {
+    val url = s"$baseUrl/translation/${formTemplateId.value}/breakdown"
+    ws.GET[EnTextBreakdowns](url)
   }
 }

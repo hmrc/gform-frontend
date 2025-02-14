@@ -28,7 +28,7 @@ object CsvUtils {
 
   def readCsvWithColumns(filename: String): List[Map[String, String]] = {
     val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    val lines = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
+    val lines: List[List[String]] = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
     lines.tail.map(lines.head.zip(_).toMap)
   }
 
