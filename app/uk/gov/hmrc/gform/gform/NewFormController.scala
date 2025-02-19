@@ -279,7 +279,11 @@ class NewFormController(
       downloadOrNewChoice
         .bindFromRequest()
         .fold(
-          _ => Redirect(routes.NewFormController.downloadOldOrNewForm(formTemplateId, SuppressErrors.No)).pure[Future],
+          _ =>
+            Redirect(
+              routes.NewFormController.downloadOldOrNewForm(formTemplateId, SuppressErrors.No).url,
+              queryParams.toPlayQueryParams
+            ).pure[Future],
           {
             case "download" => Redirect(routes.NewFormController.lastSubmission(formTemplateId)).pure[Future]
             case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
@@ -338,7 +342,8 @@ class NewFormController(
       formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
       res <-
         handleForm(formIdData, formTemplate)(
-          Redirect(routes.NewFormController.downloadOldOrNewForm(formTemplate._id)).pure[Future]
+          Redirect(routes.NewFormController.downloadOldOrNewForm(formTemplate._id).url, queryParams.toPlayQueryParams)
+            .pure[Future]
         ) { form =>
           for {
             formTemplate <- if (formTemplate._id === form.formTemplateId)
