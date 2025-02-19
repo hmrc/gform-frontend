@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import play.api.libs.json.{ JsNumber, Json }
+import play.api.libs.json.{ JsNumber, JsObject, Json }
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.objectStore.File
@@ -81,6 +81,11 @@ trait AuditService {
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
     sendEvent("formSignOut", form, Map.empty, retrievals, CustomerId.empty, List.empty)
+
+  def sendFileUploadEvent[D <: DataOrigin](
+    details: JsObject
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier) =
+    auditConnector.sendExplicitAudit("FileUploaded", details)
 
   private def sendEvent(
     auditType: String,

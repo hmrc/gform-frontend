@@ -441,7 +441,9 @@ class GformModule(
       upscanModule.upscanService,
       playBuiltInsModule.i18nSupport,
       controllersModule.messagesControllerComponents,
-      configModule.appConfig
+      configModule.appConfig,
+      auditingModule.auditService,
+      objectStoreModule.objectStoreService
     )
 
   val compositeAuthController: CompositeAuthController = new CompositeAuthController(
