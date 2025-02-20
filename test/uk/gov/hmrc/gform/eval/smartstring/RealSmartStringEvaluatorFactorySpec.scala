@@ -674,7 +674,7 @@ class RealSmartStringEvaluatorFactorySpec
         false
       )
 
-    result shouldBe """<ul class="govuk-list govuk-list--bullet"><li value="1">Choice 1</li><li value="3">Choice 3</li></ul>"""
+    result shouldBe """<ul class="govuk-list govuk-list--bullet"><li>Choice 1</li><li>Choice 3</li></ul>"""
   }
 
   "evaluate SmartString using numberedList with reference to a value based checkbox choice component" in new TestFixture {
@@ -717,7 +717,7 @@ class RealSmartStringEvaluatorFactorySpec
         false
       )
 
-    result shouldBe """<ol class="govuk-list govuk-list--number"><li value="2">Choice 2</li><li value="3">Choice 3</li></ol>"""
+    result shouldBe """<ol class="govuk-list govuk-list--number"><li>Choice 2</li><li>Choice 3</li></ol>"""
   }
 
   "evaluate SmartString using bulletedList with reference to an index based checkbox revealing choice component" in new TestFixture {
