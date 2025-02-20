@@ -99,11 +99,11 @@
                 $("#dropzone-result").text("File " + file.name + " of type " + file.type + " is not .csv nor .xlsx.")
               }
             } else {
-              $("#dropzone-result").text("Not a file");
+              $("#dropzone-result").text("Not a file. Kind: " + item.kind + ". Type: " + item.type);
             }
           } else {
             // Use DataTransfer interface to access the file(s)
-            console.error("Gform - DataTransfer API not supported", ev.dataTransfer.files);
+            $("#dropzone-result").text("Gform - DataTransfer API not supported " + ev.dataTransfer.files);
           }
         });
       } else {
