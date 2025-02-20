@@ -439,9 +439,9 @@ class NewFormController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       noAccessCode,
-      OperationWithForm.ViewAcknowledgement
+      OperationWithForm.DownloadSummaryPdf
     ) { implicit request => implicit l => cache => ss => formModelOptics =>
-      for {
+      (for {
         submission <- gformConnector.submissionDetails(
                         FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
                         cache.form.envelopeId
@@ -461,7 +461,9 @@ class NewFormController(
                  Ok(download_then_new(frontendConfig, downloadThenNew)).pure[Future]
                } else
                  newForm(formTemplateId, cache.toAuthCacheWithoutForm, QueryParams.fromRequest(request))
-      } yield res
+      } yield res).recover { case _ =>
+        Redirect(routes.NewFormController.newOrContinue(formTemplateId))
+      }
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(implicit
