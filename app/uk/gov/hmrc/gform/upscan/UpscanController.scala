@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import cats.implicits.catsSyntaxEq
 import org.apache.pekko.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Lang, Messages, MessagesApi }
@@ -81,19 +80,25 @@ class UpscanController(
                 case UpscanFileStatus.Ready =>
                   for {
                     envelope <- envelopeF
-                  } yield {
-                    val file = envelope.files.filter(file => file.fileId.value === formComponentId.value).head
-                    auditService.sendFileUploadEvent(
-                      Json.obj(
-                        "envelopeId"      -> cache.form.envelopeId,
-                        "formTemplateId"  -> cache.form.formTemplateId,
-                        "formComponentId" -> formComponentId.value,
-                        "formId"          -> formIdData.toFormId.value,
-                        "size"            -> FileUploadUtils.formatSize(file.length),
-                        "mimeType"        -> file.contentType.value,
-                        "status"          -> "ready"
+                  } yield envelope.files.find(file =>
+                    file.metadata.get("reference").flatMap(_.headOption).contains(reference.value)
+                  ) match {
+                    case Some(file) =>
+                      auditService.sendFileUploadEvent(
+                        Json.obj(
+                          "envelopeId"      -> cache.form.envelopeId,
+                          "formTemplateId"  -> cache.form.formTemplateId,
+                          "formComponentId" -> formComponentId.value,
+                          "formId"          -> formIdData.toFormId.value,
+                          "size"            -> FileUploadUtils.formatSize(file.length),
+                          "mimeType"        -> file.contentType.value,
+                          "status"          -> "ready"
+                        )
                       )
-                    )
+                    case _ =>
+                      logger.error(
+                        s"FileUploaded audit event failed. Could not find file with upscan reference ${reference.value} in the envelope"
+                      )
                   }
 
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
