@@ -51,7 +51,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier, UpstreamErrorResponse }
 
 import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
@@ -234,6 +234,25 @@ class NewFormControllerSpec
 
     status(result) shouldBe Status.SEE_OTHER
     redirectLocation(result) shouldBe Some(newFormUrl)
+  }
+
+  it should "start a new form when no last submission because new form already started" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.failed(UpstreamErrorResponse("Not found", 404))
+      )
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
   }
 
   "newOrSignout" should "redirect to sign out page" in new TestFixture {
