@@ -52,7 +52,7 @@ sealed trait Expr extends Product with Serializable {
             }
           case _ => loop(field1)
         }
-      case Count(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
+      case Count(formComponentId: FormComponentId) => expr :: Nil
       case Index(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
       case AuthCtx(_)                              => expr :: Nil
       case UserCtx(_)                              => expr :: Nil
