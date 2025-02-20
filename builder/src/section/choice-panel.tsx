@@ -555,7 +555,7 @@ export const ChoicePanelFactory =
         <div hidden={!showAllFields}>
           <input type="checkbox" id="optional" checked={choiceState.optional} onClick={optionalToggle} />
           <label for="optional">Optional</label>
-          <button
+          <button hidden={isYesNo}
             id="add-button-first"
             class="btn-small btn-success"
             onClick={(e) => { addChoice(e, -1); } }
