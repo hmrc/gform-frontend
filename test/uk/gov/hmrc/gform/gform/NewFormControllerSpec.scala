@@ -51,7 +51,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
-import uk.gov.hmrc.http.{ HeaderCarrier, UpstreamErrorResponse }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
@@ -200,9 +200,9 @@ class NewFormControllerSpec
 
   "lastSubmission" should "display page with submission ref and download PDF button" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(getSubmission(LocalDateTime.now().minusHours(13)))
+        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
       )
 
     val result: Future[Result] = newFormController
@@ -219,9 +219,9 @@ class NewFormControllerSpec
 
   it should "start a new form when last submission more than 24 hours old" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(getSubmission(LocalDateTime.now().minusHours(25)))
+        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(25))))
       )
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
@@ -238,9 +238,9 @@ class NewFormControllerSpec
 
   it should "start a new form when no last submission because new form already started" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.failed(UpstreamErrorResponse("Not found", 404))
+        Future.successful(Option.empty[Submission])
       )
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
