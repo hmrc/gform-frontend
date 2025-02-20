@@ -285,9 +285,13 @@ class NewFormController(
               queryParams.toPlayQueryParams
             ).pure[Future],
           {
-            case "download" => Redirect(routes.NewFormController.lastSubmission(formTemplateId)).pure[Future]
+            case "download" =>
+              Redirect(routes.NewFormController.lastSubmission(formTemplateId).url, queryParams.toPlayQueryParams)
+                .pure[Future]
             case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
-            case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+            case _ =>
+              Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
+                .pure[Future]
           }
         )
     }
