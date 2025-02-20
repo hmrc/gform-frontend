@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BetaBanner, FormTemplate }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.summary.FullMainContent
+@import uk.gov.hmrc.gform.views.html.custom.{ CustomUserResearchBanner, CustomHmrcHeader }
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers
@@ -181,9 +182,9 @@
 @govukBackLink = @{new GovukBackLink()}
 @govukSkipLink = @{new GovukSkipLink()}
 @hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
-@hmrcUserResearchBanner = @{new components.HmrcUserResearchBanner()}
+@hmrcUserResearchBanner = @{new CustomUserResearchBanner}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
-@hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
+@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
 @hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
