@@ -440,33 +440,42 @@ class NewFormController(
       formTemplateId,
       noAccessCode,
       OperationWithForm.DownloadSummaryPdf
-    ) { implicit request => implicit l => cache => ss => formModelOptics =>
+    ) { implicit request => implicit l => cache => implicit ss => formModelOptics =>
       val queryParams: QueryParams = QueryParams.fromRequest(request)
       for {
         maybeSubmission <- gformConnector.maybeSubmissionDetails(
                              FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
                              cache.form.envelopeId
                            )
-        pdfSize <- maybeSubmission.fold(Future.successful(0)) { _ =>
-                     acknowledgementPdfService.getRenderedPdfSize(
+        res <- maybeSubmission match {
+                 case None =>
+                   Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
+                     .pure[Future]
+                 case Some(submission)
+                     if submission.submittedDate.isAfter(LocalDateTime.now().minusHours(submittedAgeHours)) =>
+                   acknowledgementPdfService
+                     .getRenderedPdfSize(
                        cache,
                        Option.empty[AccessCode],
                        formModelOptics
-                     )(request, l, ss)
-                   }
-        res <- maybeSubmission.fold(
-                 Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
-                   .pure[Future]
-               ) { submission =>
-                 if (submission.submittedDate.isAfter(LocalDateTime.now().minusHours(submittedAgeHours))) {
-                   val downloadThenNew: DownloadThenNewFormPage = startNewOrLogout
-                     .bindFromRequest()
-                     .fold(
-                       error => new DownloadThenNewFormPage(cache.formTemplate, error, submission, pdfSize, se),
-                       _ => new DownloadThenNewFormPage(cache.formTemplate, startNewOrLogout, submission, pdfSize, se)
                      )
-                   Ok(download_then_new(frontendConfig, downloadThenNew)).pure[Future]
-                 } else
+                     .map { pdfSize =>
+                       val downloadThenNew: DownloadThenNewFormPage = startNewOrLogout
+                         .bindFromRequest()
+                         .fold(
+                           error => new DownloadThenNewFormPage(cache.formTemplate, error, submission, pdfSize, se),
+                           _ =>
+                             new DownloadThenNewFormPage(
+                               cache.formTemplate,
+                               startNewOrLogout,
+                               submission,
+                               pdfSize,
+                               se
+                             )
+                         )
+                       Ok(download_then_new(frontendConfig, downloadThenNew))
+                     }
+                 case Some(submission) =>
                    newForm(formTemplateId, cache.toAuthCacheWithoutForm, QueryParams.fromRequest(request))
                }
       } yield res
