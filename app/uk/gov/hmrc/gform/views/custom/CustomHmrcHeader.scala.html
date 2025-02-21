@@ -1,5 +1,5 @@
 @*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,10 @@
 @import uk.gov.hmrc.hmrcfrontend.config.TudorCrownConfig
 @import uk.gov.hmrc.hmrcfrontend.views.Utils.nonEmptyStringOrDefault
 
+@***************************************************************************
+* The only material difference between this custom header and the header   *
+* from the HMRC frontend library is the custom user research banner        *
+***************************************************************************@
 @this(hmrcBanner: HmrcBanner, hmrcUserResearchBanner: CustomUserResearchBanner, govukPhaseBanner: GovukPhaseBanner, tudorCrownConfig: TudorCrownConfig)
 
 @(params: Header)
