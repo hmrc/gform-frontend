@@ -200,9 +200,9 @@ class NewFormControllerSpec
 
   "lastSubmission" should "display page with submission ref and download PDF button" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(getSubmission(LocalDateTime.now().minusHours(13)))
+        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
       )
 
     val result: Future[Result] = newFormController
@@ -219,9 +219,9 @@ class NewFormControllerSpec
 
   it should "start a new form when last submission more than 24 hours old" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(getSubmission(LocalDateTime.now().minusHours(25)))
+        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(25))))
       )
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
@@ -234,6 +234,25 @@ class NewFormControllerSpec
 
     status(result) shouldBe Status.SEE_OTHER
     redirectLocation(result) shouldBe Some(newFormUrl)
+  }
+
+  it should "start a new form when no last submission because new form already started" in new TestFixture {
+    initCommonMocks()
+    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Option.empty[Submission])
+      )
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(authCacheWithForm.form))
+      )
+
+    val result: Future[Result] = newFormController
+      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
   }
 
   "newOrSignout" should "redirect to sign out page" in new TestFixture {
