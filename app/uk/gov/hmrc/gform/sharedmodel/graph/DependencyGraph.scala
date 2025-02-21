@@ -151,41 +151,62 @@ object DependencyGraph {
       }
     }
 
+    val repeatedSectionBaseIds: Set[BaseComponentId] =
+      formModel.brackets.repeatingPageBrackets
+        .flatMap(_.source.page.allFieldsNested.map(_.baseComponentId))
+        .toSet
+
     val atlFieldsBaseIds: Set[BaseComponentId] =
       formModel.brackets.addToListBrackets
         .flatMap(_.source.pages.toList.flatMap(_.allFieldsNested.map(_.baseComponentId)))
         .toSet
 
+    val repeatingPageLookup: Map[BaseComponentId, List[FormComponent]] = formModel.brackets.repeatingPageBrackets
+      .flatMap(_.singletons.toList.flatMap(_.singleton.page.allFieldsNested))
+      .groupBy(_.baseComponentId)
+
     val atlLookup: Map[BaseComponentId, List[FormComponent]] = formModel.brackets.addToListBrackets
       .flatMap(_.iterations.toList.flatMap(_.singletons.toList.flatMap(x => x.singleton.page.allFieldsNested)))
       .groupBy(_.baseComponentId)
 
-    // This represents references to atl fields made outside of atl.
-    val addToListEdges: Iterable[DiEdge[GraphNode]] =
+    def mkOutsideToInsideEdge(
+      indexedComponentIds: List[IndexedComponentId],
+      k: BaseComponentId
+    ): List[DiEdge[GraphNode]] =
+      indexedComponentIds
+        .collect { case x: IndexedComponentId.Indexed =>
+          x
+        }
+        .flatMap { v =>
+          val kFcId = ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId
+          val vFcId = ModelComponentId.pure(v).toFormComponentId
+          Set(
+            GraphNode.Simple(kFcId) ~> GraphNode.Expr(FormCtx(vFcId)),
+            GraphNode.Expr(FormCtx(vFcId)) ~> GraphNode.Simple(vFcId)
+          )
+        }
+
+    // This represents either
+    //  - references to atl fields made outside of atl
+    //  - references to repeating section fields made outside of repeating section
+    val repeatedStructureEdges: Iterable[DiEdge[GraphNode]] =
       allFcIds
         .groupBy(_.baseComponentId)
         .collect {
+          case (k, _) if repeatedSectionBaseIds(k) =>
+            val indexedComponentIds: List[IndexedComponentId] =
+              repeatingPageLookup.get(k).toList.flatten.map(_.modelComponentId.indexedComponentId)
+            mkOutsideToInsideEdge(indexedComponentIds, k)
+
           case (k, _) if atlFieldsBaseIds(k) =>
             val indexedComponentIds: List[IndexedComponentId] =
               atlLookup.get(k).toList.flatten.map(_.modelComponentId.indexedComponentId)
-
-            indexedComponentIds
-              .collect { case x: IndexedComponentId.Indexed =>
-                x
-              }
-              .flatMap { v =>
-                val kFcId = ModelComponentId.pure(IndexedComponentId.pure(k)).toFormComponentId
-                val vFcId = ModelComponentId.pure(v).toFormComponentId
-                Set(
-                  GraphNode.Simple(kFcId) ~> GraphNode.Expr(FormCtx(vFcId)),
-                  GraphNode.Expr(FormCtx(vFcId)) ~> GraphNode.Simple(vFcId)
-                )
-              }
+            mkOutsideToInsideEdge(indexedComponentIds, k)
         }
         .flatten
 
     val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
-    emptyGraph ++ (allEdges ++ addToListEdges)
+    emptyGraph ++ (allEdges ++ repeatedStructureEdges)
   }
 
   def constructDependencyGraph(
