@@ -167,32 +167,30 @@ private class Executor(
     formatExpr(concatUpdated, markDown)
   }
 
-  private def evalChoice(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): Seq[(String, String)] =
+  private def evalChoice(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): List[String] =
     formModelVisibilityOptics.formModel.fcLookup
       .get(fcId)
       .collect {
         case IsChoice(choice) =>
           val optionsList = getChoiceOptions(choice)
-          val orderedKeys = optionsList.keys.toList
-          val keyToIndex = orderedKeys.zipWithIndex.toMap
+          val orderedKeys = optionsList.keys.toSet
           formModelVisibilityOptics
             .evalAndApplyTypeInfo(typeInfo)
             .optionRepresentation
             .map { repr =>
-              repr.flatMap { key =>
-                keyToIndex.get(key).map(index => (index + 1).toString -> apply(optionsList(key), markDown))
-              }
+              repr.collect { case key if orderedKeys.contains(key) => apply(optionsList(key), markDown) }
             }
-            .getOrElse(Seq.empty)
+            .getOrElse(Nil)
         case IsRevealingChoice(revealingChoice) =>
-          revealingChoice.options.map(c => "" -> apply(c.choice.label, markDown))
+          revealingChoice.options.map(c => apply(c.choice.label, markDown))
         case _ =>
-          Seq("" -> stringRepresentation(typeInfo))
+          List(stringRepresentation(typeInfo))
       }
       .getOrElse(Seq.empty)
+      .toList
 
   private def evalChoiceAsString(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): String =
-    evalChoice(fcId, typeInfo, markDown).map(_._2).mkString(", ")
+    evalChoice(fcId, typeInfo, markDown).mkString(", ")
 
   private def getChoiceOptions(choice: Choice): Map[String, SmartString] =
     choice.options.zipWithIndex
@@ -220,34 +218,32 @@ private class Executor(
     markDown: Boolean,
     fcId: FormComponentId
   ): String = {
-    val choicePairs: Seq[(String, String)] = typeInfo.staticTypeData match {
+    val choiceList: List[String] = typeInfo.staticTypeData match {
       case StaticTypeData(ChoiceSelection, None) => evalChoice(fcId, typeInfo, markDown)
       case _ =>
         formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)
           .listRepresentation(messages)
-          .map(text => "" -> text)
     }
+
     val lines = typeInfo.staticTypeData.textConstraint
-      .map(c => choicePairs.map { case (key, value) => key -> TextFormatter.componentTextReadonly(value, c)(l) })
-      .getOrElse(choicePairs)
+      .map(c => choiceList.map(value => TextFormatter.componentTextReadonly(value, c)(l)))
+      .getOrElse(choiceList)
+
     govukList(lines, isBulleted)
   }
 
   private def govukList(
-    list: Seq[(String, String)],
+    list: List[String],
     isBulleted: Boolean
   ): String = {
     val first =
       if (isBulleted) """<ul class="govuk-list govuk-list--bullet">"""
       else """<ol class="govuk-list govuk-list--number">"""
     val last = if (isBulleted) "</ul>" else "</ol>"
-    val elements = list
-      .map {
-        case (key, value) if key.nonEmpty => s"""<li value="$key">${HtmlFormat.escape(value).body}</li>"""
-        case (_, value)                   => s"""<li>${HtmlFormat.escape(value).body}</li>"""
-      }
-      .mkString("")
+
+    val elements = list.map(value => s"""<li>${HtmlFormat.escape(value).body}</li>""").mkString("")
+
     first + elements + last
   }
 }
