@@ -241,14 +241,14 @@ case class EvaluationResults(
       .map { optionDataNel =>
         val choicesAvailable: Int = optionDataNel.toList.map { optionData =>
           optionData match {
-            case o: OptionData.IndexBased                => 1
-            case OptionData.ValueBased(_, _, _, None, _) => 1
-            case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _) =>
+            case o: OptionData.IndexBased                   => 1
+            case OptionData.ValueBased(_, _, _, None, _, _) => 1
+            case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _, _) =>
               evaluationContext.thirdPartyData.dataRetrieve
                 .flatMap(dr => dr.get(indexOfDataRetrieveCtx.ctx.id))
                 .fold(0)(drr => drr.data.size)
 
-            case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _) =>
+            case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _, _) =>
               recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
           }
         }.sum

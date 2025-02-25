@@ -515,7 +515,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
               val fieldValue: StructuredFormValue = maybeChoiceWithDynamic.fold(default) {
                 case (_, Left(valueBasedNel)) =>
                   val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
-                    case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value))
+                    case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value, _))
                         if (value match {
                           case OptionDataValue.StringBased(v) => v === answer
                           case OptionDataValue.ExprBased(expr) =>
@@ -530,7 +530,14 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                   val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = valueBasedNel.collectFirst {
                     case (
                           selectedIndex,
-                          OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), value)
+                          OptionData.ValueBased(
+                            _,
+                            _,
+                            _,
+                            Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
+                            value,
+                            _
+                          )
                         ) if (value match {
                           case OptionDataValue.StringBased(v) => v === answer
                           case OptionDataValue.ExprBased(expr) =>
@@ -557,7 +564,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                       case (
                             (
                               selectedIndex,
-                              OptionData.IndexBased(_, _, _, Some(Dynamic.ATLBased(pointer)))
+                              OptionData.IndexBased(_, _, _, Some(Dynamic.ATLBased(pointer)), _)
                             ),
                             i
                           ) if indexAnswer === i =>
@@ -572,7 +579,8 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                               _,
                               _,
                               _,
-                              Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx))
+                              Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
+                              _
                             )
                           ),
                           i

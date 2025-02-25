@@ -145,9 +145,9 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     val availableSelections: Set[String] = fieldValue.`type` match {
       case Choice(_, options, _, _, _, _, _, _, _, _, _) =>
         options.zipWithIndex.collect {
-          case (OptionData.IndexBased(_, _, _, _), i)                                     => i.toString
-          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)), _) => value
-          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr)), _) =>
+          case (OptionData.IndexBased(_, _, _, _, _), i)                                     => i.toString
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _), _) => value
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _), _) =>
             formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
         }.toSet
       case _ => Set.empty[String]

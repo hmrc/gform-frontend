@@ -2384,10 +2384,10 @@ class SectionRenderingService(
       }
     val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
     optionData match {
-      case OptionData.ValueBased(_, _, _, _, _) =>
+      case OptionData.ValueBased(_, _, _, _, _, _) =>
         val value = optionData.getValue(-1, formModelVisibilityOptics)
         !selectedValues(value)
-      case OptionData.IndexBased(_, _, _, _) =>
+      case OptionData.IndexBased(_, _, _, _, _) =>
         true // Do not hide index based options
     }
   }
@@ -2397,9 +2397,9 @@ class SectionRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   ): Boolean =
     optionData match {
-      case OptionData.ValueBased(_, _, includeIf, _, value) =>
+      case OptionData.ValueBased(_, _, includeIf, _, value, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
-      case OptionData.IndexBased(_, _, includeIf, _) =>
+      case OptionData.IndexBased(_, _, includeIf, _, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
     }
 

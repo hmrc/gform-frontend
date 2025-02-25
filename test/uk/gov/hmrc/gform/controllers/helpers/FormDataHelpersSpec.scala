@@ -42,9 +42,10 @@ class FormDataHelpersSpec extends Spec {
   }
 
   private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None))
+    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None, None))
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None, None, None)
+  private def toOptionData(s: String): OptionData.IndexBased =
+    OptionData.IndexBased(toSmartString(s), None, None, None, None)
 
   "updateFormField" should "update FormField in form data" in {
     val formFields = toFormFields(

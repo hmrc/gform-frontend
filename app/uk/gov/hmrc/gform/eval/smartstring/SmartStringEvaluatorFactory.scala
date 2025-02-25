@@ -182,7 +182,7 @@ private class Executor(
             }
             .getOrElse(Nil)
         case IsRevealingChoice(revealingChoice) =>
-          revealingChoice.options.map(c => apply(c.choice.label, markDown))
+          revealingChoice.options.map(c => apply(summaryValueOrLabel(c.choice.label, c.choice.summaryValue), markDown))
         case _ =>
           List(stringRepresentation(typeInfo))
       }
@@ -192,16 +192,23 @@ private class Executor(
   private def evalChoiceAsString(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): String =
     evalChoice(fcId, typeInfo, markDown).mkString(", ")
 
+  private def summaryValueOrLabel(label: SmartString, summaryValue: Option[SmartString]): SmartString =
+    summaryValue match {
+      case Some(ss) => ss
+      case _        => label
+    }
+
   private def getChoiceOptions(choice: Choice): Map[String, SmartString] =
     choice.options.zipWithIndex
       .map {
-        case (OptionData.IndexBased(label, _, _, _), i) => i.toString -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value)), _) =>
-          value -> label
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr)), _) =>
+        case (OptionData.IndexBased(label, _, _, _, summaryValue), i) =>
+          i.toString -> summaryValueOrLabel(label, summaryValue)
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value), summaryValue), _) =>
+          value -> summaryValueOrLabel(label, summaryValue)
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr), summaryValue), _) =>
           formModelVisibilityOptics
             .evalAndApplyTypeInfoFirst(expr)
-            .stringRepresentation(messages) -> label
+            .stringRepresentation(messages) -> summaryValueOrLabel(label, summaryValue)
       }
       .toList
       .toMap

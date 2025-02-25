@@ -53,13 +53,20 @@ class RealSmartStringEvaluatorFactorySpec
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
-  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None))
+  private def toOptionData(
+    xs: NonEmptyList[String],
+    setSummaryValue: Boolean = false
+  ): NonEmptyList[OptionData.IndexBased] =
+    xs.map(l =>
+      OptionData
+        .IndexBased(toSmartString(l), None, None, None, if (setSummaryValue) Option(toSmartString(l + "-SV")) else None)
+    )
 
-  private def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None, None, None)
+  private def toOptionData(s: String): OptionData.IndexBased =
+    OptionData.IndexBased(toSmartString(s), None, None, None, None)
 
   private def toValueBasedOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.ValueBased] =
-    xs.map(l => OptionData.ValueBased(toSmartString(l), None, None, None, StringBased(l)))
+    xs.map(l => OptionData.ValueBased(toSmartString(l), None, None, None, StringBased(l), None))
 
   "SmartStringEvaluator" should {
 
@@ -206,7 +213,7 @@ class RealSmartStringEvaluatorFactorySpec
               toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
               toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
             )
-            .map(l => OptionData.IndexBased(l, None, None, None)),
+            .map(l => OptionData.IndexBased(l, None, None, None, None)),
           Horizontal,
           List.empty,
           None,
@@ -313,6 +320,44 @@ class RealSmartStringEvaluatorFactorySpec
         .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
 
       result shouldBe "Smart string Choice2"
+    }
+
+    "evaluate SmartString with FormCtx (type choice, with multi and summaryValue) interpolation - single selection" in new TestFixture {
+
+      lazy val multiChoiceField: FormComponent = buildFormComponent(
+        "multiChoiceField",
+        Choice(
+          Checkbox,
+          toOptionData(NonEmptyList.of("Choice1", "Choice2"), true),
+          Horizontal,
+          List.empty,
+          None,
+          None,
+          None,
+          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          None,
+          None,
+          false
+        ),
+        None
+      )
+      override lazy val form: Form =
+        buildForm(
+          FormData(
+            List(
+              FormField(multiChoiceField.modelComponentId, "1")
+            )
+          )
+        )
+      override lazy val formTemplate: FormTemplate = buildFormTemplate(
+        destinationList,
+        sections = List(nonRepeatingPageSection(title = "page1", fields = List(multiChoiceField)))
+      )
+
+      val result: String = smartStringEvaluator
+        .apply(toSmartStringExpression("Smart string {0}", FormCtx(FormComponentId("multiChoiceField"))), false)
+
+      result shouldBe "Smart string Choice2-SV"
     }
 
     "evaluate SmartString with FormCtx (type revealingChoice, with multi) interpolation - multiple selections" in new TestFixture {

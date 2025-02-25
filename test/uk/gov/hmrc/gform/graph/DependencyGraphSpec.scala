@@ -256,7 +256,8 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("prop", "propSetter"),
       (
         "options",
-        (choice: Choice) => choice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None)))
+        (choice: Choice) =>
+          choice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None, None)))
       ),
       ("optionHelpText", (choice: Choice) => choice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))
     )
@@ -410,7 +411,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(OptionData.IndexBased(choice, None, None, None), fcA :: fcB :: Nil, None, false)
+          RevealingChoiceElement(OptionData.IndexBased(choice, None, None, None, None), fcA :: fcB :: Nil, None, false)
         ),
         true
       )
@@ -530,7 +531,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("title",                             expect1, emptyAddToList.copy(title = stringExpr)),
       ("description",                       expect1, emptyAddToList.copy(description = AtlDescription.SmartStringBased(stringExpr))),
       ("shortName",                         expect1, emptyAddToList.copy(shortName = stringExpr)),
-      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None)))))),
+      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None, None)))))),
       ("addAnotherQuestion.optionHelpText", expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))))
       // format: on
     )

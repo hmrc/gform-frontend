@@ -340,18 +340,19 @@ sealed trait OptionData extends Product with Serializable {
   def hint: Option[SmartString]
   def dynamic: Option[Dynamic]
   def includeIf: Option[IncludeIf]
+  def summaryValue: Option[SmartString]
 
   def value(index: Int): String = this match {
-    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
-    case _                                                                         => index.toString
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _) => value
+    case _                                                                            => index.toString
   }
   def getValue[D <: DataOrigin](index: Int, formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
     m: Messages
   ): String =
     this match {
-      case o: OptionData.IndexBased                                                  => index.toString
-      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value)) => value
-      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr)) =>
+      case o: OptionData.IndexBased                                                     => index.toString
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _) => value
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _) =>
         formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
     }
 }
@@ -363,7 +364,8 @@ object OptionData {
     label: SmartString,
     hint: Option[SmartString],
     includeIf: Option[IncludeIf],
-    dynamic: Option[Dynamic]
+    dynamic: Option[Dynamic],
+    summaryValue: Option[SmartString]
   ) extends OptionData
 
   case class ValueBased(
@@ -371,7 +373,8 @@ object OptionData {
     hint: Option[SmartString],
     includeIf: Option[IncludeIf],
     dynamic: Option[Dynamic],
-    value: OptionDataValue
+    value: OptionDataValue,
+    summaryValue: Option[SmartString]
   ) extends OptionData
 
   implicit val format: OFormat[OptionData] = derived.oformat()
@@ -425,7 +428,12 @@ case class Choice(
           .getOptionalCurrentValue(
             HtmlFieldId.indexed(formComponent.id, option.getValue(index, formModelVisibilityOptics))
           )
-          .map(_ => option.label.value())
+          .map(_ =>
+            option.summaryValue match {
+              case Some(ss) => ss.value()
+              case _        => option.label.value()
+            }
+          )
       }
       .collect { case Some(selection) => selection }
 }
