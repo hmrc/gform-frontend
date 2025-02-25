@@ -273,6 +273,10 @@ object IsTelephone {
     }
 }
 
+object IsButton {
+  def unapply(fc: FormComponent): Option[Button] = fc.`type`.cast[Button]
+}
+
 object HasLookupRegister {
   def unapply(fc: FormComponent): Option[Register] =
     fc.`type` match {
