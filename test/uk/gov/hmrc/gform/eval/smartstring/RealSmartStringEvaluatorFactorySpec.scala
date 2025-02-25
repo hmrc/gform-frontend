@@ -53,8 +53,14 @@ class RealSmartStringEvaluatorFactorySpec
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
-  private def toOptionData(xs: NonEmptyList[String], setSummaryValue: Boolean = false): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None, if(setSummaryValue) Option(toSmartString(l + "-SV")) else None ))
+  private def toOptionData(
+    xs: NonEmptyList[String],
+    setSummaryValue: Boolean = false
+  ): NonEmptyList[OptionData.IndexBased] =
+    xs.map(l =>
+      OptionData
+        .IndexBased(toSmartString(l), None, None, None, if (setSummaryValue) Option(toSmartString(l + "-SV")) else None)
+    )
 
   private def toOptionData(s: String): OptionData.IndexBased =
     OptionData.IndexBased(toSmartString(s), None, None, None, None)
