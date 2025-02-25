@@ -282,7 +282,8 @@ object PDFPageFieldBuilder {
 
         List(GroupField(getFormComponentLabel(formComponent), fields))
 
-      case other => throw new Exception(s"Invalid formComponent in PDFPageFieldBuilder, got $other")
+      case IsButton(_) => List.empty
+      case other       => throw new Exception(s"Invalid formComponent in PDFPageFieldBuilder, got $other")
     }
   }
 }
