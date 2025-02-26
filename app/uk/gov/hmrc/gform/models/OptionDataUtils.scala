@@ -30,9 +30,9 @@ object OptionDataUtils {
     messages: Messages
   ): FormComponent = {
     val optionsUpdate = choice.options.flatMap {
-      case o @ OptionData.ValueBased(_, _, _, Some(d), _) =>
+      case o @ OptionData.ValueBased(_, _, _, Some(d), _, _) =>
         OptionDataUtils.expandValueBased(o, d)
-      case o @ OptionData.IndexBased(_, _, _, Some(d)) =>
+      case o @ OptionData.IndexBased(_, _, _, Some(d), _) =>
         OptionDataUtils.expandIndexBased(o, d)
       case otherwise => NonEmptyList.one(otherwise)
     }
@@ -95,7 +95,8 @@ object OptionDataUtils {
       hint = od.hint.map(_.expand(index, baseIds)),
       dynamic = od.dynamic.map(
         ExpandUtils.expandOptionDataDynamic(index, _)
-      ) // We need dynamic with index for StructuredFormData model
+      ), // We need dynamic with index for StructuredFormData model
+      summaryValue = od.summaryValue.map(_.expand(index, baseIds))
     )
 
   private def updateDataRetrieveIndexBased(
@@ -107,7 +108,8 @@ object OptionDataUtils {
       hint = od.hint.map(_.expandDataRetrieve(index)),
       dynamic = od.dynamic.map(
         ExpandUtils.expandOptionDataDynamic(index, _)
-      ) // We need dynamic with index for StructuredFormData model
+      ), // We need dynamic with index for StructuredFormData model
+      summaryValue = od.summaryValue.map(_.expandDataRetrieve(index))
     )
 
   private def updateValueBased(
@@ -123,7 +125,8 @@ object OptionDataUtils {
         case OptionDataValue.StringBased(value) => OptionDataValue.StringBased(value + "_" + index)
         case OptionDataValue.ExprBased(expr) =>
           OptionDataValue.ExprBased(new ExprUpdater(index, baseIds).expandExpr(expr))
-      }
+      },
+      summaryValue = od.summaryValue.map(_.expand(index, baseIds))
     )
 
   private def updateDataRetrieveValueBased(
@@ -137,7 +140,8 @@ object OptionDataUtils {
       value = od.value match {
         case OptionDataValue.StringBased(value) => OptionDataValue.StringBased(value + "_" + index)
         case OptionDataValue.ExprBased(expr)    => OptionDataValue.ExprBased(expr)
-      }
+      },
+      summaryValue = od.summaryValue.map(_.expandDataRetrieve(index))
     )
 
   private def expandOptionData[A, D <: DataOrigin](

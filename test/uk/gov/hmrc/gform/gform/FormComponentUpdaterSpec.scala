@@ -144,7 +144,8 @@ class FormComponentUpdaterSpec extends Spec {
               0
             )
           )
-        )
+        ),
+        summaryValue = None
       )
     )
 }

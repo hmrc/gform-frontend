@@ -263,7 +263,13 @@ object PDFPageFieldBuilder {
                   .flatMap(f =>
                     build(f, cache, sectionNumber, validationResult, envelopeWithMapping, formModelVisibilityOptics)
                   )
-                ChoiceElement(element.choice.label.value(), revealingFields)
+                ChoiceElement(
+                  element.choice.summaryValue match {
+                    case Some(ss) => ss.value()
+                    case _        => element.choice.label.value()
+                  },
+                  revealingFields
+                )
               }
           }
         List(
