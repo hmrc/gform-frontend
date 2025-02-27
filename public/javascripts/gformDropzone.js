@@ -16,6 +16,8 @@
 
       const formTemplateId = translationPageRegex.exec(window.location.pathname)[1];
 
+      const errorDiv = "<div id='error' class='govuk-error-message'></div>"
+
       if (formTemplateId) {
         const dropzone = $("#dropzone")
         dropzone
@@ -76,34 +78,42 @@
                     body: body
                   }).then(function(response) {
                     response.json().then(function(responseBody) {
-                      var list = "";
-                      for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
-                        var row = responseBody.untranslatedRows[i];
-                        list += "<li><b>" + row.path + "</b>: <span id='item-" + i + "'></span></li>";
-                      }
+                      if(responseBody.error) {
+                        $("#dropzone-result").html("<strong>Something went wrong:</strong>" + errorDiv);
+                        $("#error").text(responseBody.error);
+                      } else {
+                        var list = "";
+                        for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
+                          var row = responseBody.untranslatedRows[i];
+                          list += "<li><b>" + row.path + "</b>: <span id='item-" + i + "'></span></li>";
+                        }
 
-                      $("#dropzone-result").html(
-                        "<p>Translated: " + responseBody.translatedCount  + "</p>" +
-                          "<p>Untranslated: " + responseBody.untranslatedCount  + "</p>" +
-                          "<ol>" + list + "<ol>"
-                      )
+                        $("#dropzone-result").html(
+                          "<p>Translated: " + responseBody.translatedCount  + "</p>" +
+                            "<p>Untranslated: " + responseBody.untranslatedCount  + "</p>" +
+                            "<ol>" + list + "<ol>"
+                        )
 
-                      for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
-                        var row = responseBody.untranslatedRows[i];
-                        $("#item-" + i).text(row.en)
+                        for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
+                          var row = responseBody.untranslatedRows[i];
+                          $("#item-" + i).text(row.en)
+                        }
                       }
                     });
                   })
                 })
               } else {
-                $("#dropzone-result").text("File " + file.name + " of type " + file.type + " is not .csv nor .xlsx.")
+                $("#dropzone-result").html(errorDiv)
+                $("#error").text("File " + file.name + " of type " + file.type + " is not .csv nor .xlsx.");
               }
             } else {
-              $("#dropzone-result").text("Not a file. Kind: " + item.kind + ". Type: " + item.type);
+              $("#dropzone-result").html(errorDiv)
+              $("#error").text("Not a file. Kind: " + item.kind + ". Type: " + item.type);
             }
           } else {
             // Use DataTransfer interface to access the file(s)
-            $("#dropzone-result").text("Gform - DataTransfer API not supported " + ev.dataTransfer.files);
+            $("#dropzone-result").html(errorDiv)
+            $("#error").text("Gform - DataTransfer API not supported " + ev.dataTransfer.files);
           }
         });
       } else {
