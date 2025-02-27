@@ -51,7 +51,6 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
@@ -79,8 +78,6 @@ class NewFormController(
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
 
   private val noAccessCode = Option.empty[AccessCode]
-
-  private val submittedAgeHours = 24L
 
   private def formTemplateIdCookie(formTemplateId: FormTemplateId) =
     Cookie(formTemplateIdCookieName, formTemplateId.value, secure = true)
@@ -270,30 +267,27 @@ class NewFormController(
   )
 
   def downloadDecision(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](
-      formTemplateId,
-      noAccessCode,
-      OperationWithForm.DownloadSummaryPdf
-    ) { implicit request => implicit l => cache => sse => formModelOptics =>
-      val queryParams: QueryParams = QueryParams.fromRequest(request)
-      downloadOrNewChoice
-        .bindFromRequest()
-        .fold(
-          _ =>
-            Redirect(
-              routes.NewFormController.downloadOldOrNewForm(formTemplateId, SuppressErrors.No).url,
-              queryParams.toPlayQueryParams
-            ).pure[Future],
-          {
-            case "download" =>
-              Redirect(routes.NewFormController.lastSubmission(formTemplateId).url, queryParams.toPlayQueryParams)
-                .pure[Future]
-            case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
-            case _ =>
-              Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
-                .pure[Future]
-          }
-        )
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+      implicit request => implicit l => cache =>
+        val queryParams: QueryParams = QueryParams.fromRequest(request)
+        downloadOrNewChoice
+          .bindFromRequest()
+          .fold(
+            _ =>
+              Redirect(
+                routes.NewFormController.downloadOldOrNewForm(formTemplateId, SuppressErrors.No).url,
+                queryParams.toPlayQueryParams
+              ).pure[Future],
+            {
+              case "download" =>
+                Redirect(routes.NewFormController.lastSubmission(formTemplateId).url, queryParams.toPlayQueryParams)
+                  .pure[Future]
+              case "startNew" => newForm(formTemplateId, cache, queryParams)
+              case _ =>
+                Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
+                  .pure[Future]
+            }
+          )
     }
 
   def downloadOldOrNewForm(
@@ -307,19 +301,26 @@ class NewFormController(
           maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
           maybeSubmission <-
             maybeForm.filter(_.status === Submitted).fold(Option.empty[Submission].pure[Future]) { form =>
-              gformConnector.maybeSubmissionDetails(
-                FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
-                form.envelopeId
-              )
-            }
-          maybeSubmittedRecently =
-            maybeSubmission.filter { submission =>
-              cache.formTemplate.downloadPreviousSubmissionPdf && submission.submittedDate.isAfter(
-                LocalDateTime.now().minusHours(submittedAgeHours)
-              )
+              gformConnector
+                .maybeSubmissionDetails(
+                  FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                  form.envelopeId
+                )
+                .flatMap { maybeCurrentSubmission =>
+                  maybeCurrentSubmission.fold {
+                    cache.formTemplate.legacyFormIds.fold(Option.empty[Submission].pure[Future]) { legacyFormIds =>
+                      gformConnector.getSubmissionByLegacyIds(
+                        FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                        form.envelopeId
+                      )(legacyFormIds)
+                    }
+                  } { currentSubmission =>
+                    Some(currentSubmission).pure[Future]
+                  }
+                }
             }
           res <-
-            maybeSubmittedRecently.fold(newForm(formTemplateId, cache, QueryParams.fromRequest(request))) { sub =>
+            maybeSubmission.fold(newForm(formTemplateId, cache, QueryParams.fromRequest(request))) { sub =>
               val downloadOrNewFormPage: DownloadOrNewFormPage = downloadOrNewChoice
                 .bindFromRequest()
                 .fold(
@@ -417,22 +418,20 @@ class NewFormController(
   )
 
   def newOrSignout(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](
-      formTemplateId,
-      noAccessCode,
-      OperationWithForm.DownloadSummaryPdf
-    ) { implicit request => implicit l => cache => ss => formModelOptics =>
-      val queryParams: QueryParams = QueryParams.fromRequest(request)
-      startNewOrLogout
-        .bindFromRequest()
-        .fold(
-          _ => Redirect(routes.NewFormController.lastSubmission(formTemplateId, SuppressErrors.No)).pure[Future],
-          {
-            case "signOut"  => Redirect(routes.SignOutController.signOut(formTemplateId)).pure[Future]
-            case "startNew" => newForm(formTemplateId, cache.toAuthCacheWithoutForm, queryParams)
-            case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
-          }
-        )
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+      implicit request => implicit l => cache =>
+        val queryParams: QueryParams = QueryParams.fromRequest(request)
+        startNewOrLogout
+          .bindFromRequest()
+          .fold(
+            _ =>
+              Redirect(routes.NewFormController.lastSubmission(cache.formTemplate._id, SuppressErrors.No)).pure[Future],
+            {
+              case "signOut"  => Redirect(routes.SignOutController.signOut(cache.formTemplate._id)).pure[Future]
+              case "startNew" => newForm(cache.formTemplate._id, cache, queryParams)
+              case _          => Redirect(routes.NewFormController.newOrContinue(cache.formTemplate._id)).pure[Future]
+            }
+          )
     }
 
   def lastSubmission(formTemplateId: FormTemplateId, se: SuppressErrors): Action[AnyContent] =
@@ -443,40 +442,47 @@ class NewFormController(
     ) { implicit request => implicit l => cache => implicit ss => formModelOptics =>
       val queryParams: QueryParams = QueryParams.fromRequest(request)
       for {
-        maybeSubmission <- gformConnector.maybeSubmissionDetails(
-                             FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
-                             cache.form.envelopeId
-                           )
-        res <- maybeSubmission match {
-                 case None =>
-                   Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
-                     .pure[Future]
-                 case Some(submission)
-                     if submission.submittedDate.isAfter(LocalDateTime.now().minusHours(submittedAgeHours)) =>
-                   acknowledgementPdfService
-                     .getRenderedPdfSize(
-                       cache,
-                       Option.empty[AccessCode],
-                       formModelOptics
-                     )
-                     .map { pdfSize =>
-                       val downloadThenNew: DownloadThenNewFormPage = startNewOrLogout
-                         .bindFromRequest()
-                         .fold(
-                           error => new DownloadThenNewFormPage(cache.formTemplate, error, submission, pdfSize, se),
-                           _ =>
-                             new DownloadThenNewFormPage(
-                               cache.formTemplate,
-                               startNewOrLogout,
-                               submission,
-                               pdfSize,
-                               se
+        maybeSubmission <- gformConnector
+                             .maybeSubmissionDetails(
+                               FormIdData(cache.retrievals, formTemplateId, noAccessCode),
+                               cache.form.envelopeId
                              )
-                         )
-                       Ok(download_then_new(frontendConfig, downloadThenNew))
-                     }
-                 case Some(submission) =>
-                   newForm(formTemplateId, cache.toAuthCacheWithoutForm, QueryParams.fromRequest(request))
+                             .flatMap { maybeCurrentSubmission =>
+                               maybeCurrentSubmission.fold {
+                                 gformConnector.maybeSubmissionDetails(
+                                   FormIdData(cache.retrievals, cache.formTemplateId, noAccessCode),
+                                   cache.form.envelopeId
+                                 )
+                               } { currentSubmission =>
+                                 Some(currentSubmission).pure[Future]
+                               }
+                             }
+        res <- maybeSubmission.fold {
+                 Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
+                   .pure[Future]
+               } { submission =>
+                 acknowledgementPdfService
+                   .getRenderedPdfSize(
+                     cache,
+                     Option.empty[AccessCode],
+                     formModelOptics
+                   )
+                   .map { pdfSize =>
+                     val downloadThenNew: DownloadThenNewFormPage = startNewOrLogout
+                       .bindFromRequest()
+                       .fold(
+                         error => new DownloadThenNewFormPage(cache.formTemplate, error, submission, pdfSize, se),
+                         _ =>
+                           new DownloadThenNewFormPage(
+                             cache.formTemplate,
+                             startNewOrLogout,
+                             submission,
+                             pdfSize,
+                             se
+                           )
+                       )
+                     Ok(download_then_new(frontendConfig, downloadThenNew))
+                   }
                }
       } yield res
     }
@@ -486,14 +492,22 @@ class NewFormController(
     l: LangADT
   ) = {
 
-    def notFound(formIdData: FormIdData) =
+    def notFound(formIdData: FormIdData): Future[Result] =
       Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found."))
 
     for {
-      formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
-      res <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
-               auditService.sendFormCreateEvent(form, cache.retrievals)
-               redirectContinue[SectionSelectorType.Normal](cache, form, formIdData.maybeAccessCode, request)
+      formIdData        <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
+      maybeFormTemplate <- gformConnector.maybeFormTemplate(formTemplateId)
+      res <- maybeFormTemplate.fold(notFound(formIdData)) { formTemplate =>
+               handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
+                 auditService.sendFormCreateEvent(form, cache.retrievals)
+                 redirectContinue[SectionSelectorType.Normal](
+                   cache.copy(formTemplate = formTemplate),
+                   form,
+                   formIdData.maybeAccessCode,
+                   request
+                 )
+               }
              }
     } yield res
   }

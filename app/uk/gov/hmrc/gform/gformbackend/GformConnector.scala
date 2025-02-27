@@ -368,6 +368,28 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       Option.empty[Submission].pure[Future]
   }
 
+  def getSubmissionByLegacyIds(
+    formIdData: FormIdData,
+    envelopeId: EnvelopeId
+  )(
+    legacyIds: NonEmptyList[FormTemplateId]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Submission]] = {
+    val NonEmptyList(legacyFormId, tail) = legacyIds
+    val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
+
+    submissionDetails(legacyFormIdData, envelopeId)
+      .flatMap { submission =>
+        Future.successful(Some(submission))
+      }
+      .recoverWith {
+        case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
+          NonEmptyList
+            .fromList(tail)
+            .map(getSubmissionByLegacyIds(formIdData, envelopeId))
+            .getOrElse(Future.successful(Option.empty[Submission]))
+      }
+  }
+
   /** ****formTemplate******
     */
   def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =

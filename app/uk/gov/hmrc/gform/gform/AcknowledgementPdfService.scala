@@ -136,10 +136,21 @@ class AcknowledgementPdfService(
              nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
              Future.unit
            } else Future.unit
-      submission <- gformConnector.submissionDetails(
-                      FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
-                      cache.form.envelopeId
-                    )
+      submission <- gformConnector
+                      .maybeSubmissionDetails(
+                        FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
+                        cache.form.envelopeId
+                      )
+                      .flatMap { maybeSubmission =>
+                        maybeSubmission.fold {
+                          gformConnector.submissionDetails(
+                            FormIdData(cache.retrievals, cache.form.formTemplateId, maybeAccessCode),
+                            cache.form.envelopeId
+                          )
+                        } { submission =>
+                          Future.successful(submission)
+                        }
+                      }
       pdfContent <-
         pdfRenderService
           .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
