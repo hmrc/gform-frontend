@@ -377,18 +377,16 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val NonEmptyList(legacyFormId, tail) = legacyIds
     val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
 
-    submissionDetails(legacyFormIdData, envelopeId)
-      .flatMap { submission =>
-        Future.successful(Some(submission))
-      }
-      .recoverWith {
-        case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
-          NonEmptyList
-            .fromList(tail)
-            .map(getSubmissionByLegacyIds(formIdData, envelopeId))
-            .getOrElse(Future.successful(Option.empty[Submission]))
-      }
+   maybeSubmissionDetails(legacyFormIdData, envelopeId)
+  .flatMap {
+    case None =>
+      NonEmptyList
+        .fromList(tail)
+        .map(getSubmissionByLegacyIds(formIdData, envelopeId))
+        .getOrElse(Future.successful(Option.empty[Submission]))
+    case Some(submission) => Future.successful(Some(submission))
   }
+
 
   /** ****formTemplate******
     */
