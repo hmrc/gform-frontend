@@ -377,16 +377,38 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val NonEmptyList(legacyFormId, tail) = legacyIds
     val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
 
-   maybeSubmissionDetails(legacyFormIdData, envelopeId)
-  .flatMap {
-    case None =>
-      NonEmptyList
-        .fromList(tail)
-        .map(getSubmissionByLegacyIds(formIdData, envelopeId))
-        .getOrElse(Future.successful(Option.empty[Submission]))
-    case Some(submission) => Future.successful(Some(submission))
+    maybeSubmissionDetails(legacyFormIdData, envelopeId)
+      .flatMap {
+        case None =>
+          NonEmptyList
+            .fromList(tail)
+            .map(getSubmissionByLegacyIds(formIdData, envelopeId))
+            .getOrElse(Future.successful(Option.empty[Submission]))
+        case Some(submission) => Future.successful(Some(submission))
+      }
   }
 
+  def maybeOneOfSubmissionDetails(
+    formIdData1: FormIdData,
+    formIdData2: FormIdData,
+    envelopeId: EnvelopeId
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[Submission]] =
+    maybeSubmissionDetails(
+      formIdData1,
+      envelopeId
+    ).flatMap { maybeCurrentSubmission =>
+      maybeCurrentSubmission.fold {
+        maybeSubmissionDetails(
+          formIdData2,
+          envelopeId
+        )
+      } { currentSubmission =>
+        Some(currentSubmission).pure[Future]
+      }
+    }
 
   /** ****formTemplate******
     */

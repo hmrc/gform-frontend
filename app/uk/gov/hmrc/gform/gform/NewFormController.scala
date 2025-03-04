@@ -443,20 +443,11 @@ class NewFormController(
       val queryParams: QueryParams = QueryParams.fromRequest(request)
       for {
         maybeSubmission <- gformConnector
-                             .maybeSubmissionDetails(
+                             .maybeOneOfSubmissionDetails(
                                FormIdData(cache.retrievals, formTemplateId, noAccessCode),
+                               FormIdData(cache.retrievals, cache.formTemplateId, noAccessCode),
                                cache.form.envelopeId
                              )
-                             .flatMap { maybeCurrentSubmission =>
-                               maybeCurrentSubmission.fold {
-                                 gformConnector.maybeSubmissionDetails(
-                                   FormIdData(cache.retrievals, cache.formTemplateId, noAccessCode),
-                                   cache.form.envelopeId
-                                 )
-                               } { currentSubmission =>
-                                 Some(currentSubmission).pure[Future]
-                               }
-                             }
         res <- maybeSubmission.fold {
                  Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
                    .pure[Future]

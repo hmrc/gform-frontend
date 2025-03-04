@@ -238,7 +238,10 @@ class NewFormControllerSpec
 
   "lastSubmission" should "display page with submission ref and download PDF button" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(
+      mockGformConnector
+        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
+    )
       .thenReturn(
         Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
       )
@@ -257,9 +260,11 @@ class NewFormControllerSpec
 
   it should "display page with submission ref and download PDF button when legacy form" in new LegacyFormSubmissionFixture {
     initCommonMocks()
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(
+      mockGformConnector
+        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
+    )
       .thenReturn(
-        Future.successful(Option.empty[Submission]),
         Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
       )
 
@@ -312,7 +317,10 @@ class NewFormControllerSpec
 
   it should "ask to start new or continue form when form that's not submitted detected" in new TestFixture {
     initCommonMocks()
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(
+      mockGformConnector
+        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
+    )
       .thenReturn(
         Future.successful(Option.empty[Submission])
       )
