@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.Dest
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
+import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -136,10 +137,17 @@ class AcknowledgementPdfService(
              nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
              Future.unit
            } else Future.unit
-      submission <- gformConnector.submissionDetails(
-                      FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
-                      cache.form.envelopeId
-                    )
+      submission <- gformConnector
+                      .maybeOneOfSubmissionDetails(
+                        FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
+                        FormIdData(cache.retrievals, cache.form.formTemplateId, maybeAccessCode),
+                        cache.form.envelopeId
+                      )
+                      .map(
+                        _.getOrElse(
+                          throw new NotFoundException(s"Submission for envelope id ${cache.form.envelopeId} not found.")
+                        )
+                      )
       pdfContent <-
         pdfRenderService
           .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
