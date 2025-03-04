@@ -71,7 +71,7 @@ object ExprPrettyPrint {
     case LangCtx                                 => "Lang"
     case DateCtx(dateExpr)                       => ExprPrettyPrint.prettyPrintDateExpr(dateExpr)
     case DateFunction(dateProjection)            => ExprPrettyPrint.prettyPrintDateFunction(dateProjection)
-    case Period(dateCtx1, dateCtx2)              => "period(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
+    case Period(dateCtx1, dateCtx2, _)           => "period(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
     case PeriodExt(period, func)                 => period.prettyPrint
     case AddressLens(fcId, addressDetail) =>
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value

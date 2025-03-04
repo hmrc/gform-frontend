@@ -65,7 +65,7 @@ sealed trait Expr extends Product with Serializable {
       case LangCtx                                 => expr :: Nil
       case DateCtx(dateExpr)                       => dateExpr.leafExprs
       case DateFunction(_)                         => expr :: Nil
-      case Period(_, _)                            => expr :: Nil
+      case Period(_, _, _)                         => expr :: Nil
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
       case DataRetrieveCtx(_, _)                   => expr :: Nil
@@ -126,7 +126,7 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                               => this :: Nil
     case DateCtx(dateExpr)                        => dateExpr.leafExprs
     case DateFunction(dateFunc)                   => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2)               => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
+    case Period(dateCtx1, dateCtx2, _)            => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case PeriodExt(periodFun, _)                  => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)          => this :: Nil
     case DataRetrieveCtx(_, _)                    => this :: Nil
@@ -173,7 +173,7 @@ sealed trait Expr extends Product with Serializable {
     case LangCtx                                  => Nil
     case DateCtx(_)                               => Nil
     case DateFunction(_)                          => Nil
-    case Period(_, _)                             => Nil
+    case Period(_, _, _)                          => Nil
     case PeriodExt(_, _)                          => Nil
     case AddressLens(_, _)                        => Nil
     case DataRetrieveCtx(_, _)                    => Nil
@@ -221,7 +221,7 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                                => this :: Nil
     case DateCtx(dateExpr)                         => dateExpr.leafExprs
     case DateFunction(dateFunc)                    => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2)                => dateCtx1.leafs() ::: dateCtx2.leafs()
+    case Period(dateCtx1, dateCtx2, _)             => dateCtx1.leafs() ::: dateCtx2.leafs()
     case PeriodExt(periodFun, _)                   => periodFun.leafs()
     case AddressLens(formComponentId, _)           => this :: Nil
     case DataRetrieveCtx(_, _)                     => this :: Nil
@@ -270,7 +270,7 @@ final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
-final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
+final case class Period(dateCtx1: Expr, dateCtx2: Expr, periodType: PeriodType = PeriodType.Period) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
@@ -333,6 +333,14 @@ object ExplicitExprType {
   implicit val format: OFormat[ExplicitExprType] = derived.oformat()
 }
 
+sealed trait PeriodType
+object PeriodType {
+  case object Period extends PeriodType
+  case object Weeks extends PeriodType
+  case object Days extends PeriodType
+  implicit val format: OFormat[PeriodType] = derived.oformat()
+}
+
 sealed trait PeriodFn
 object PeriodFn {
   case object Sum extends PeriodFn
@@ -340,6 +348,8 @@ object PeriodFn {
   case object Years extends PeriodFn
   case object Months extends PeriodFn
   case object Days extends PeriodFn
+  case object TotalDays extends PeriodFn
+  case object TotalWeeks extends PeriodFn
   implicit val format: OFormat[PeriodFn] = derived.oformat()
 }
 

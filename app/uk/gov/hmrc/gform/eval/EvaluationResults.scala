@@ -356,7 +356,11 @@ case class EvaluationResults(
           case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
           case otherwise                              => otherwise
         }
-      case Period(_, _)      => unsupportedOperation("Number")(expr)
+      case Period(_, _, periodType) =>
+        periodType match {
+          case PeriodType.Period => unsupportedOperation("Number")(expr)
+          case _                 => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+        }
       case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodValue(_)    => unsupportedOperation("Number")(expr)
       case AddressLens(_, _) => unsupportedOperation("Number")(expr)
@@ -630,7 +634,7 @@ case class EvaluationResults(
             ExpressionResult.StringResult(dateFunc.toValue(localDate).toString)
           case otherwise => otherwise
         }
-      case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case Period(_, _, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
@@ -880,14 +884,33 @@ case class EvaluationResults(
     implicit val m = evaluationContext.messages
 
     def loop(expr: Expr): ExpressionResult = expr match {
-      case Add(field1: Expr, field2: Expr) => loop(field1) + loop(field2)
+      case Typed(expr: Expr, _)                    => loop(expr)
+      case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
+      case Subtraction(field1: Expr, field2: Expr) => loop(field1) - loop(field2)
+      case Divide(field1: Expr, field2: Expr)      => loop(field1) / loop(field2)
+      case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
-      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case PeriodValue(value)               => PeriodResult(java.time.Period.parse(value))
-      case Period(DateCtx(dateExpr1), DateCtx(dateExpr2)) =>
-        periodBetween(recData, evaluationContext, booleanExprResolver)(dateExpr1, dateExpr2)
-      case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)), prop) =>
+      case Else(field1: Expr, field2: Expr)                           => loop(field1) orElse loop(field2)
+      case PeriodValue(value)                                         => PeriodResult(java.time.Period.parse(value))
+      case Period(DateCtx(dateExpr1), DateCtx(dateExpr2), periodType) =>
+        //TODO: How to get the ATL index when expanding: dateExpr1.expand(index), if it is ATL enclosed
+        val exprResult =
+          periodBetween(recData, evaluationContext, booleanExprResolver)(dateExpr1, dateExpr2)
+        periodType match {
+          case PeriodType.Period => exprResult
+          case PeriodType.Weeks =>
+            exprResult match {
+              case PeriodResult(_, _, w) => NumberResult(w)
+              case _                     => exprResult
+            }
+          case PeriodType.Days =>
+            exprResult match {
+              case PeriodResult(_, d, _) => NumberResult(d)
+              case _                     => exprResult
+            }
+        }
+      case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2), _), prop) =>
         def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult =
           dateExpr1
             .maybeFormCtx(recData, evaluationContext, this, booleanExprResolver)
@@ -932,6 +955,10 @@ case class EvaluationResults(
             doSum(p => NumberResult(p.value.getMonths))
           case PeriodFn.Days =>
             doSum(p => NumberResult(p.value.getDays))
+          case PeriodFn.TotalDays =>
+            doSum(p => NumberResult(p.days))
+          case PeriodFn.TotalWeeks =>
+            doSum(p => NumberResult(p.weeks))
         }
       case _ => ExpressionResult.empty
     }
@@ -966,8 +993,13 @@ case class EvaluationResults(
     val dateResult1 = evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr1)
     val dateResult2 = evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr2)
     (dateResult1, dateResult2) match {
-      case (DateResult(value1), DateResult(value2)) => PeriodResult(java.time.Period.between(value1, value2))
-      case _                                        => ExpressionResult.empty
+      case (DateResult(value1), DateResult(value2)) =>
+        PeriodResult(
+          java.time.Period.between(value1, value2),
+          java.time.temporal.ChronoUnit.DAYS.between(value1, value2),
+          java.time.temporal.ChronoUnit.WEEKS.between(value1, value2)
+        )
+      case _ => ExpressionResult.empty
     }
   }
 
@@ -1051,7 +1083,7 @@ case class EvaluationResults(
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Period(_, _, _) | PeriodValue(_)         => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case ChoicesSelected(_) | ChoicesAvailable(_) => TypeInfo(expr, StaticTypeData(ExprType.number, None))

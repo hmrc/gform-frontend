@@ -52,11 +52,12 @@ object FormComponentIdSubstituter {
         case e: LinkCtx                   => e
         case LangCtx                      => LangCtx
         case DateFunction(dateProjection) => DateFunction(dateProjection(substitutions))
-        case Period(field1, field2)       => Period(substitute(substitutions, field1), substitute(substitutions, field2))
-        case PeriodExt(period, func)      => PeriodExt(substitute(substitutions, period), func)
-        case AddressLens(fcId, details)   => AddressLens(substitutions.updateFormComponentId(fcId), details)
-        case e: DataRetrieveCtx           => e
-        case e: DataRetrieveCount         => e
+        case Period(field1, field2, periodType) =>
+          Period(substitute(substitutions, field1), substitute(substitutions, field2), periodType)
+        case PeriodExt(period, func)    => PeriodExt(substitute(substitutions, period), func)
+        case AddressLens(fcId, details) => AddressLens(substitutions.updateFormComponentId(fcId), details)
+        case e: DataRetrieveCtx         => e
+        case e: DataRetrieveCount       => e
         case LookupColumn(fcId, column) =>
           LookupColumn(substitutions.updateFormComponentId(fcId), column)
         case CsvCountryCountCheck(fcId, column, value) =>

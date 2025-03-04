@@ -59,7 +59,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case ParamCtx(_)                           => expr
     case LinkCtx(_)                            => expr
     case LangCtx                               => expr
-    case Period(_, _)                          => expr
+    case Period(_, _, _)                       => expr
     case PeriodExt(_, _)                       => expr
     case IndexOf(_, _)                         => expr // This is not expanded on purpose, so it can be used correctly inside ATL
     case IndexOfDataRetrieveCtx(_, _)          => expr

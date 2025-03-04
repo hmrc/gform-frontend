@@ -514,9 +514,12 @@ object ExpressionResult {
       s"$monthStr $year"
     }
   }
-  case class PeriodResult(value: Period) extends ExpressionResult {
-    def +(pr: PeriodResult): PeriodResult = PeriodResult(pr.value.plus(value).normalized())
+  case class PeriodResult(value: Period, days: Long = 0, weeks: Long = 0) extends ExpressionResult {
+    def +(pr: PeriodResult): PeriodResult =
+      PeriodResult(pr.value.plus(value).normalized(), pr.days.+(days), pr.weeks.+(weeks))
     def asString = value.toString
+    def asStringDays = days.toString
+    def asStringWeeks = weeks.toString
   }
   case class OptionResult(value: Seq[String]) extends ExpressionResult {
     def contains(v: String): Boolean = value.contains(v)

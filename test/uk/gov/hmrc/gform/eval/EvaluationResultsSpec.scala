@@ -1029,7 +1029,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(1, 1, 1))
+        PeriodResult(java.time.Period.of(1, 1, 1), 397, 56)
       ),
       (
         TypeInfo(
@@ -1042,7 +1042,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(2, 1, 1))
+        PeriodResult(java.time.Period.of(2, 1, 1), 762, 108)
       ),
       (
         TypeInfo(
@@ -1053,7 +1053,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(1, 1, 1))
+        PeriodResult(java.time.Period.of(1, 1, 1), 398, 56)
       ),
       (
         TypeInfo(
@@ -1084,7 +1084,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(2, 10, 1))
+        PeriodResult(java.time.Period.of(2, 10, 1), 1036, 147)
       ),
       (
         TypeInfo(
@@ -1098,7 +1098,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(2, 1, 1))
+        PeriodResult(java.time.Period.of(2, 1, 1), 398, 56)
       ),
       (
         TypeInfo(
@@ -1115,7 +1115,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(1, 1, 1))
+        PeriodResult(java.time.Period.of(1, 1, 1), 398, 56)
       )
     )
 
@@ -1159,7 +1159,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(2, 7, 10))
+        PeriodResult(java.time.Period.of(2, 7, 10), 954, 135)
       ),
       (
         TypeInfo(
@@ -1173,7 +1173,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(-2, -7, -10))
+        PeriodResult(java.time.Period.of(-2, -7, -10), -954, -135)
       ),
       (
         TypeInfo(
@@ -1187,7 +1187,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.period, None)
         ),
         recData,
-        PeriodResult(java.time.Period.of(1, 7, 10))
+        PeriodResult(java.time.Period.of(1, 7, 10), 588, 83)
       ),
       (
         TypeInfo(
@@ -1202,6 +1202,34 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         recData,
         NumberResult(19)
+      ),
+      (
+        TypeInfo(
+          PeriodExt(
+            Period(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
+            ),
+            PeriodFn.TotalWeeks
+          ),
+          StaticTypeData(ExprType.period, None)
+        ),
+        recData,
+        NumberResult(83)
+      ),
+      (
+        TypeInfo(
+          PeriodExt(
+            Period(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
+            ),
+            PeriodFn.TotalDays
+          ),
+          StaticTypeData(ExprType.period, None)
+        ),
+        recData,
+        NumberResult(588)
       ),
       (
         TypeInfo(
