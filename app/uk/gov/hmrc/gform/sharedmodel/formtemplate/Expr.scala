@@ -126,7 +126,7 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                               => this :: Nil
     case DateCtx(dateExpr)                        => dateExpr.leafExprs
     case DateFunction(dateFunc)                   => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2, _)            => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
+    case Period(dateCtx1, dateCtx2, _)            => dateCtx1.value.leafExprs ::: dateCtx2.value.leafExprs
     case PeriodExt(periodFun, _)                  => periodFun.leafs(formModel)
     case AddressLens(formComponentId, _)          => this :: Nil
     case DataRetrieveCtx(_, _)                    => this :: Nil
@@ -221,7 +221,7 @@ sealed trait Expr extends Product with Serializable {
     case LinkCtx(_)                                => this :: Nil
     case DateCtx(dateExpr)                         => dateExpr.leafExprs
     case DateFunction(dateFunc)                    => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2, _)             => dateCtx1.leafs() ::: dateCtx2.leafs()
+    case Period(dateCtx1, dateCtx2, _)             => dateCtx1.value.leafExprs ::: dateCtx2.value.leafExprs
     case PeriodExt(periodFun, _)                   => periodFun.leafs()
     case AddressLens(formComponentId, _)           => this :: Nil
     case DataRetrieveCtx(_, _)                     => this :: Nil
@@ -270,7 +270,7 @@ final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
-final case class Period(dateCtx1: Expr, dateCtx2: Expr, periodType: PeriodType = PeriodType.Period) extends Expr
+final case class Period(dateCtx1: DateCtx, dateCtx2: DateCtx, periodType: PeriodType = PeriodType.Period) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
@@ -407,6 +407,10 @@ object AddressDetail {
 
 object FormCtx {
   implicit val format: OFormat[FormCtx] = derived.oformat()
+}
+
+object DateCtx {
+  implicit val format: OFormat[DateCtx] = derived.oformat()
 }
 
 object Expr {
