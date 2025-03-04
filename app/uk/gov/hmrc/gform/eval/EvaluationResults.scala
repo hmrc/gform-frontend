@@ -891,10 +891,9 @@ case class EvaluationResults(
       case Multiply(field1: Expr, field2: Expr)    => loop(field1) * loop(field2)
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
-      case Else(field1: Expr, field2: Expr)                           => loop(field1) orElse loop(field2)
-      case PeriodValue(value)                                         => PeriodResult(java.time.Period.parse(value))
+      case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
+      case PeriodValue(value)               => PeriodResult(java.time.Period.parse(value))
       case Period(DateCtx(dateExpr1), DateCtx(dateExpr2), periodType) =>
-        //TODO: How to get the ATL index when expanding: dateExpr1.expand(index), if it is ATL enclosed
         val exprResult =
           periodBetween(recData, evaluationContext, booleanExprResolver)(dateExpr1, dateExpr2)
         periodType match {
@@ -927,9 +926,11 @@ case class EvaluationResults(
                   .flatMap(_.maybeIndex)
                   .toList
                   .distinct
-                  .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index))))
+                  .map(index =>
+                    Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index)), PeriodType.Period)
+                  )
               } else {
-                List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2)))
+                List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2), PeriodType.Period))
               }
               periodFunctionExprs
                 .map(p =>

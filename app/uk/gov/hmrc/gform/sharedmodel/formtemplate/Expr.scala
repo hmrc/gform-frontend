@@ -270,7 +270,7 @@ final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
-final case class Period(dateCtx1: DateCtx, dateCtx2: DateCtx, periodType: PeriodType = PeriodType.Period) extends Expr
+final case class Period(dateCtx1: DateCtx, dateCtx2: DateCtx, periodType: PeriodType) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
