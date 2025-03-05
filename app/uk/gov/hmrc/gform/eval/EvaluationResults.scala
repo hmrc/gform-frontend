@@ -894,27 +894,13 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case PeriodValue(value)               => PeriodResult(java.time.Period.parse(value))
       case Period(DateCtx(dateExpr1), DateCtx(dateExpr2), periodType) =>
-        val exprResult =
-          periodBetween(recData, evaluationContext, booleanExprResolver)(dateExpr1, dateExpr2)
-        periodType match {
-          case PeriodType.Period => exprResult
-          case PeriodType.Weeks =>
-            exprResult match {
-              case PeriodResult(_, _, w) => NumberResult(w)
-              case _                     => exprResult
-            }
-          case PeriodType.Days =>
-            exprResult match {
-              case PeriodResult(_, d, _) => NumberResult(d)
-              case _                     => exprResult
-            }
-        }
+        periodBetween(recData, evaluationContext, booleanExprResolver, periodType)(dateExpr1, dateExpr2)
       case PeriodExt(Period(DateCtx(dateExpr1), DateCtx(dateExpr2), _), prop) =>
-        def doSum(mapper: PeriodResult => ExpressionResult): ExpressionResult =
+        def getExpressionResultList(periodType: PeriodType) =
           dateExpr1
             .maybeFormCtx(recData, evaluationContext, this, booleanExprResolver)
             .orElse(dateExpr2.maybeFormCtx(recData, evaluationContext, this, booleanExprResolver))
-            .fold(ExpressionResult.empty) { formCtx =>
+            .fold(List(ExpressionResult.empty)) { formCtx =>
               val modelComponentIds = recData.variadicFormData
                 .forBaseComponentId(formCtx.formComponentId.baseComponentId)
                 .map { case (id, _) =>
@@ -926,11 +912,9 @@ case class EvaluationResults(
                   .flatMap(_.maybeIndex)
                   .toList
                   .distinct
-                  .map(index =>
-                    Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index)), PeriodType.Period)
-                  )
+                  .map(index => Period(DateCtx(dateExpr1.expand(index)), DateCtx(dateExpr2.expand(index)), periodType))
               } else {
-                List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2), PeriodType.Period))
+                List(Period(DateCtx(dateExpr1), DateCtx(dateExpr2), periodType))
               }
               periodFunctionExprs
                 .map(p =>
@@ -941,25 +925,33 @@ case class EvaluationResults(
                     evaluationContext
                   )
                 )
-                .reduce(_ + _)
-                .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
-                  identity
-                )(mapper)(identity)
             }
+        def doSumPeriodResult(mapper: PeriodResult => ExpressionResult): ExpressionResult =
+          getExpressionResultList(PeriodType.Period)
+            .reduce(_ + _)
+            .fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(identity)(identity)(
+              identity
+            )(mapper)(identity)
+        def doSumNumberResult(mapper: NumberResult => ExpressionResult, periodType: PeriodType): ExpressionResult =
+          getExpressionResultList(periodType)
+            .reduce(_ + _)
+            .fold[ExpressionResult](identity)(identity)(identity)(mapper)(identity)(identity)(identity)(identity)(
+              identity
+            )(identity)(identity)
         prop match {
-          case PeriodFn.Sum => doSum(identity)
+          case PeriodFn.Sum => doSumPeriodResult(identity)
           case PeriodFn.TotalMonths =>
-            doSum(p => NumberResult(p.value.toTotalMonths))
+            doSumPeriodResult(p => NumberResult(p.value.toTotalMonths))
           case PeriodFn.Years =>
-            doSum(p => NumberResult(p.value.getYears))
+            doSumPeriodResult(p => NumberResult(p.value.getYears))
           case PeriodFn.Months =>
-            doSum(p => NumberResult(p.value.getMonths))
+            doSumPeriodResult(p => NumberResult(p.value.getMonths))
           case PeriodFn.Days =>
-            doSum(p => NumberResult(p.value.getDays))
+            doSumPeriodResult(p => NumberResult(p.value.getDays))
           case PeriodFn.TotalDays =>
-            doSum(p => NumberResult(p.days))
+            doSumNumberResult(n => n, PeriodType.Days)
           case PeriodFn.TotalWeeks =>
-            doSum(p => NumberResult(p.weeks))
+            doSumNumberResult(n => n, PeriodType.Weeks)
         }
       case _ => ExpressionResult.empty
     }
@@ -989,17 +981,18 @@ case class EvaluationResults(
   private def periodBetween(
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext,
-    booleanExprResolver: BooleanExprResolver
+    booleanExprResolver: BooleanExprResolver,
+    periodType: PeriodType
   )(dateExpr1: DateExpr, dateExpr2: DateExpr): ExpressionResult = {
     val dateResult1 = evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr1)
     val dateResult2 = evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr2)
     (dateResult1, dateResult2) match {
       case (DateResult(value1), DateResult(value2)) =>
-        PeriodResult(
-          java.time.Period.between(value1, value2),
-          java.time.temporal.ChronoUnit.DAYS.between(value1, value2),
-          java.time.temporal.ChronoUnit.WEEKS.between(value1, value2)
-        )
+        periodType match {
+          case PeriodType.Days  => NumberResult(java.time.temporal.ChronoUnit.DAYS.between(value1, value2))
+          case PeriodType.Weeks => NumberResult(java.time.temporal.ChronoUnit.WEEKS.between(value1, value2))
+          case _                => PeriodResult(java.time.Period.between(value1, value2))
+        }
       case _ => ExpressionResult.empty
     }
   }

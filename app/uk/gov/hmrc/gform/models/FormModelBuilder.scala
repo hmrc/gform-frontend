@@ -181,8 +181,8 @@ object FormModelBuilder {
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
       case d @ ExpressionResult.TaxPeriodResult(_, _) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
-      case p @ ExpressionResult.PeriodResult(_, _, _) =>
-        VariadicFormData.many[SourceOrigin.Current](modelComponentId, Seq(p.asString, p.asStringDays, p.asStringWeeks))
+      case p @ ExpressionResult.PeriodResult(_) =>
+        VariadicFormData.one[SourceOrigin.Current](modelComponentId, p.asString)
       case ExpressionResult.AddressResult(_) =>
         VariadicFormData.empty[SourceOrigin.Current]
       case ExpressionResult.ListResult(list) =>
