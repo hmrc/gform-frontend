@@ -300,25 +300,27 @@ class NewFormController(
           formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
           maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
           maybeSubmission <-
-            maybeForm.filter(_.status === Submitted).fold(Option.empty[Submission].pure[Future]) { form =>
-              gformConnector
-                .maybeSubmissionDetails(
-                  FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
-                  form.envelopeId
-                )
-                .flatMap { maybeCurrentSubmission =>
-                  maybeCurrentSubmission.fold {
-                    cache.formTemplate.legacyFormIds.fold(Option.empty[Submission].pure[Future]) { legacyFormIds =>
-                      gformConnector.getSubmissionByLegacyIds(
-                        FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
-                        form.envelopeId
-                      )(legacyFormIds)
+            maybeForm
+              .filter(_.status === Submitted && cache.formTemplate.downloadPreviousSubmissionPdf)
+              .fold(Option.empty[Submission].pure[Future]) { form =>
+                gformConnector
+                  .maybeSubmissionDetails(
+                    FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                    form.envelopeId
+                  )
+                  .flatMap { maybeCurrentSubmission =>
+                    maybeCurrentSubmission.fold {
+                      cache.formTemplate.legacyFormIds.fold(Option.empty[Submission].pure[Future]) { legacyFormIds =>
+                        gformConnector.getSubmissionByLegacyIds(
+                          FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
+                          form.envelopeId
+                        )(legacyFormIds)
+                      }
+                    } { currentSubmission =>
+                      Some(currentSubmission).pure[Future]
                     }
-                  } { currentSubmission =>
-                    Some(currentSubmission).pure[Future]
                   }
-                }
-            }
+              }
           res <-
             maybeSubmission.fold(newForm(formTemplateId, cache, QueryParams.fromRequest(request))) { sub =>
               val downloadOrNewFormPage: DownloadOrNewFormPage = downloadOrNewChoice
@@ -448,7 +450,8 @@ class NewFormController(
                                FormIdData(cache.retrievals, cache.formTemplateId, noAccessCode),
                                cache.form.envelopeId
                              )
-        res <- maybeSubmission.fold {
+        maybeDownloadableSub = maybeSubmission.filter(_ => cache.formTemplate.downloadPreviousSubmissionPdf)
+        res <- maybeDownloadableSub.fold {
                  Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
                    .pure[Future]
                } { submission =>
