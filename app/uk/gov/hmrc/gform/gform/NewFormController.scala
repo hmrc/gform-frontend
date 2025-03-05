@@ -300,7 +300,7 @@ class NewFormController(
           formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), cache.formTemplate._id))
           maybeForm  <- gformConnector.maybeForm(formIdData, cache.formTemplate)
           maybeSubmission <-
-            maybeForm.filter(_.status === Submitted).fold(Option.empty[Submission].pure[Future]) { form =>
+            maybeForm.filter(_.status === Submitted && cache.formTemplate.downloadPreviousSubmissionPdf).fold(Option.empty[Submission].pure[Future]) { form =>
               gformConnector
                 .maybeSubmissionDetails(
                   FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
@@ -448,7 +448,8 @@ class NewFormController(
                                FormIdData(cache.retrievals, cache.formTemplateId, noAccessCode),
                                cache.form.envelopeId
                              )
-        res <- maybeSubmission.fold {
+        maybeDownloadableSub = maybeSubmission.filter(_ => cache.formTemplate.downloadPreviousSubmissionPdf)
+        res <- maybeDownloadableSub.fold {
                  Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, queryParams.toPlayQueryParams)
                    .pure[Future]
                } { submission =>

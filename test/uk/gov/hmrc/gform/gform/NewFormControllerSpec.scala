@@ -99,17 +99,17 @@ class NewFormControllerSpec
     redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
-  it should "start a fresh form when downloadPreviousSubmissionPdf is false and previous submission detected" in new TestFixture {
-    override lazy val authCacheWithForm: AuthCacheWithForm =
-      mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false))
+  it should "start a fresh form when downloadPreviousSubmissionPdf is false" in new TestFixture {
+    override lazy val authCacheWithoutForm: AuthCacheWithoutForm =
+      mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false)).toAuthCacheWithoutForm
+
     initCommonMocks()
 
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(
-        Future.successful(Some(authCacheWithForm.form))
+        Future.successful(Some(authCacheWithForm.form.copy(status = Submitted))),
+        Future.successful(Some(authCacheWithForm.form.copy(status = InProgress)))
       )
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
 
     val result: Future[Result] = newFormController
       .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
@@ -315,15 +315,34 @@ class NewFormControllerSpec
     redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
+  it should "ask to start new or continue form when downloadPreviousSubmissionPdf is false" in new TestFixture {
+    override lazy val authCacheWithForm: AuthCacheWithForm =
+      mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false))
+
+    initCommonMocks()
+    when(
+      mockGformConnector
+        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
+    ).thenReturn(
+      Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
+    )
+
+    val result: Future[Result] = newFormController
+      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
+  }
+
   it should "ask to start new or continue form when form that's not submitted detected" in new TestFixture {
     initCommonMocks()
     when(
       mockGformConnector
         .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
+    ).thenReturn(
+      Future.successful(Option.empty[Submission])
     )
-      .thenReturn(
-        Future.successful(Option.empty[Submission])
-      )
 
     val result: Future[Result] = newFormController
       .lastSubmission(authCacheWithForm.formTemplateId, Yes)
