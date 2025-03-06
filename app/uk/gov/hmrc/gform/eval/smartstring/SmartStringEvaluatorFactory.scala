@@ -102,6 +102,8 @@ private class Executor(
         typeInfo.expr match {
           case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
             evalChoiceAsString(formComponentId, typeInfo, markDown)
+          case IndexOf(formComponentId, index) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
+            evalChoiceAsString(formComponentId.withIndex(index.+(1)), typeInfo, false)
           case _ => stringRepresentation(typeInfo)
         }
       case _ =>
