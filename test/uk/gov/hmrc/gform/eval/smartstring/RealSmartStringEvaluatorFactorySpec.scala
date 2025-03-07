@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IsFalse, Number, NumberedList, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, IsFalse, Number, NumberedList, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -803,5 +803,161 @@ class RealSmartStringEvaluatorFactorySpec
       )
 
     result shouldBe """<ul class="govuk-list govuk-list--bullet"><li>Option 2</li></ul>"""
+  }
+
+  "evaluate SmartString using concat with reference to a choice component at ATL index" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Radio,
+        toOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+    lazy val (modelCompId1, modelCompId2) =
+      (choiceField.modelComponentId.expandWithPrefix(1), choiceField.modelComponentId.expandWithPrefix(2))
+    override lazy val indexedComponentIds: List[ModelComponentId] =
+      List(modelCompId1, modelCompId2)
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(modelCompId1, "1"),
+            FormField(modelCompId2, "2")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
+    )
+    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+      FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("1")),
+      FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("2"))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          Concat(List(IndexOf(FormComponentId("choiceField"), 1)))
+        ),
+        false
+      )
+
+    result shouldBe "Choice 3"
+  }
+
+  "evaluate SmartString using concat with reference to a checkbox choice component at ATL index" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Checkbox,
+        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+    lazy val (modelCompId1, modelCompId2) =
+      (choiceField.modelComponentId.expandWithPrefix(1), choiceField.modelComponentId.expandWithPrefix(2))
+    override lazy val indexedComponentIds: List[ModelComponentId] =
+      List(modelCompId1, modelCompId2)
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(modelCompId1, "Choice 2,Choice 3"),
+            FormField(modelCompId2, "Choice 1")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
+    )
+    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+      FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("Choice 2", "Choice 3")),
+      FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("Choice 1"))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          Concat(List(IndexOf(FormComponentId("choiceField"), 0)))
+        ),
+        false
+      )
+
+    result shouldBe "Choice 2, Choice 3"
+  }
+
+  "evaluate SmartString using a non-indexed reference to a checkbox choice component in ATL" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Checkbox,
+        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+    lazy val (modelCompId1, modelCompId2) =
+      (choiceField.modelComponentId.expandWithPrefix(1), choiceField.modelComponentId.expandWithPrefix(2))
+    override lazy val indexedComponentIds: List[ModelComponentId] =
+      List(modelCompId1, modelCompId2)
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(modelCompId1, "Choice 2,Choice 3"),
+            FormField(modelCompId2, "Choice 1")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
+    )
+    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+      FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("Choice 2", "Choice 3")),
+      FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("Choice 1"))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          FormCtx(FormComponentId("choiceField"))
+        ),
+        false
+      )
+
+    result shouldBe "Choice 2, Choice 3, Choice 1"
   }
 }
