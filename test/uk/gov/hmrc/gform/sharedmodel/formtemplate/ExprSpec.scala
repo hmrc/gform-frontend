@@ -37,8 +37,7 @@ class ExprSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with 
   "firstExprForTypeResolution" should "return PeriodFun(d1, d2) expr for type resolution of PeriodFun(d1, d2) expr" in {
     val expr = Period(
       DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-      DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-      PeriodType.Period
+      DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
     )
     val data = VariadicFormData.create[OutOfDate](
       (toModelComponentId("startDate-year"), VariadicValue.One("2000")),
@@ -82,8 +81,7 @@ class ExprSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with 
     val expr = Add(
       Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-        PeriodType.Period
+        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       ),
       PeriodValue("P1Y")
     )
@@ -109,8 +107,7 @@ class ExprSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with 
     expr.firstExprForTypeResolution(formModel) shouldBe Some(
       Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-        PeriodType.Period
+        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       )
     )
   }
@@ -119,8 +116,7 @@ class ExprSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with 
     val expr = Else(
       Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-        PeriodType.Period
+        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       ),
       PeriodValue("P1Y")
     )
@@ -146,8 +142,7 @@ class ExprSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with 
     expr.firstExprForTypeResolution(formModel) shouldBe Some(
       Period(
         DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-        PeriodType.Period
+        DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
       )
     )
   }

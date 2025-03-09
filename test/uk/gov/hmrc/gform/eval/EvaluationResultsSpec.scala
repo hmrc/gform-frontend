@@ -1024,8 +1024,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                 DateValueExpr(ExactDateExprValue(2001, 1, 1)),
                 OffsetYMD(List(Year(1), Month(1), Day(1)))
               )
-            ),
-            PeriodType.Period
+            )
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -1038,8 +1037,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             DateCtx(
               DateExprWithOffset(DateFormCtxVar(FormCtx(FormComponentId("startDate1"))), OffsetYMD(List(Year(1))))
             ),
-            DateCtx(DateValueExpr(ExactDateExprValue(2003, 2, 2))),
-            PeriodType.Period
+            DateCtx(DateValueExpr(ExactDateExprValue(2003, 2, 2)))
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -1050,8 +1048,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         TypeInfo(
           Period(
             DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-            PeriodType.Period
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
           ),
           StaticTypeData(ExprType.period, None)
         ),
@@ -1063,8 +1060,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             ),
             PeriodFn.Years
           ),
@@ -1078,13 +1074,11 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           Add(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             ),
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate2")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate2")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate2"))))
             )
           ),
           StaticTypeData(ExprType.period, None)
@@ -1097,8 +1091,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           Add(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             ),
             PeriodValue("P1Y")
           ),
@@ -1112,58 +1105,17 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           Else(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate3")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate3")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate3"))))
             ),
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1"))))
             )
           ),
           StaticTypeData(ExprType.period, None)
         ),
         recData,
         PeriodResult(java.time.Period.of(1, 1, 1))
-      ),
-      (
-        TypeInfo(
-          Period(
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-            PeriodType.Days
-          ),
-          StaticTypeData(ExprType.number, None)
-        ),
-        recData,
-        NumberResult(398)
-      ),
-      (
-        TypeInfo(
-          Period(
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-            PeriodType.Weeks
-          ),
-          StaticTypeData(ExprType.number, None)
-        ),
-        recData,
-        NumberResult(56)
-      ),
-      (
-        TypeInfo(
-          Divide(
-            Period(
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
-              PeriodType.Days
-            ),
-            Constant("10")
-          ),
-          StaticTypeData(ExprType.number, None)
-        ),
-        recData,
-        NumberResult(39.8)
       )
     )
 
@@ -1200,8 +1152,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateValueExpr(ExactDateExprValue(2000, 1, 1))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
             PeriodFn.Sum
           ),
@@ -1215,8 +1166,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              DateCtx(DateValueExpr(ExactDateExprValue(2000, 1, 1))),
-              PeriodType.Period
+              DateCtx(DateValueExpr(ExactDateExprValue(2000, 1, 1)))
             ),
             PeriodFn.Sum
           ),
@@ -1230,8 +1180,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
             PeriodFn.Sum
           ),
@@ -1245,8 +1194,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
             PeriodFn.TotalMonths
           ),
@@ -1257,30 +1205,24 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          PeriodExt(
-            Period(
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
-            ),
-            PeriodFn.TotalWeeks
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
+            MeasurementType.SumWeeks
           ),
-          StaticTypeData(ExprType.period, None)
+          StaticTypeData(ExprType.number, None)
         ),
         recData,
         NumberResult(83)
       ),
       (
         TypeInfo(
-          PeriodExt(
-            Period(
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
-            ),
-            PeriodFn.TotalDays
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
+            MeasurementType.SumDays
           ),
-          StaticTypeData(ExprType.period, None)
+          StaticTypeData(ExprType.number, None)
         ),
         recData,
         NumberResult(588)
@@ -1290,8 +1232,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
             PeriodFn.Years
           ),
@@ -1305,8 +1246,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
             PeriodFn.Months
           ),
@@ -1320,8 +1260,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-              PeriodType.Period
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate"))))
             ),
             PeriodFn.Days
           ),
@@ -1329,6 +1268,66 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         recData,
         NumberResult(10)
+      )
+    )
+    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
+      EvaluationResults.empty
+        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    }
+  }
+
+  "evalExpr - type between" should "evaluate expressions" in {
+
+    val recData = RecData[OutOfDate](
+      VariadicFormData.create(
+        (toModelComponentId("startDate1-year"), VariadicValue.One("2000")),
+        (toModelComponentId("startDate1-month"), VariadicValue.One("1")),
+        (toModelComponentId("startDate1-day"), VariadicValue.One("1")),
+        (toModelComponentId("endDate1-year"), VariadicValue.One("2001")),
+        (toModelComponentId("endDate1-month"), VariadicValue.One("2")),
+        (toModelComponentId("endDate1-day"), VariadicValue.One("2"))
+      )
+    )
+    val table = Table(
+      ("typeInfo", "recData", "expectedResult"),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
+            MeasurementType.Days
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(398)
+      ),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
+            MeasurementType.Weeks
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(56)
+      ),
+      (
+        TypeInfo(
+          Divide(
+            Between(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
+              MeasurementType.Days
+            ),
+            Constant("10")
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(39.8)
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>

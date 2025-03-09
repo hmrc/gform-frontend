@@ -303,7 +303,8 @@ case class FormModel[A <: PageMode](
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case Period(_, _, _) | PeriodValue(_)         => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Between(_, _, _)                         => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case ChoicesSelected(_) | ChoicesAvailable(_) => TypeInfo(expr, StaticTypeData(ExprType.number, None))

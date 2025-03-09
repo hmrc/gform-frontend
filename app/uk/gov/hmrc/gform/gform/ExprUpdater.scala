@@ -59,9 +59,10 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case ParamCtx(_)                          => expr
     case LinkCtx(_)                           => expr
     case LangCtx                              => expr
-    case Period(dateCtx1, dateCtx2, p) =>
-      Period(DateCtx(expandDateExpr(dateCtx1.value)), DateCtx(expandDateExpr(dateCtx2.value)), p)
-    case PeriodExt(_, _)                       => expr
+    case Period(_, _)                         => expr
+    case PeriodExt(_, _)                      => expr
+    case Between(dateCtx1, dateCtx2, m) =>
+      Between(DateCtx(expandDateExpr(dateCtx1.value)), DateCtx(expandDateExpr(dateCtx2.value)), m)
     case IndexOf(_, _)                         => expr // This is not expanded on purpose, so it can be used correctly inside ATL
     case IndexOfDataRetrieveCtx(_, _)          => expr
     case NumberedList(formComponentId)         => NumberedList(expandFcId(formComponentId))

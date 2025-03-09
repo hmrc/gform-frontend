@@ -515,8 +515,7 @@ object ExpressionResult {
     }
   }
   case class PeriodResult(value: Period) extends ExpressionResult {
-    def +(pr: PeriodResult): PeriodResult =
-      PeriodResult(pr.value.plus(value).normalized())
+    def +(pr: PeriodResult): PeriodResult = PeriodResult(pr.value.plus(value).normalized())
     def asString = value.toString
   }
   case class OptionResult(value: Seq[String]) extends ExpressionResult {
