@@ -276,9 +276,8 @@ class TestOnlyController(
 
     def createDownloadContent(destination: SdesDestination) =
       uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-        s"Download files for ${destination.description}",
-        uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-          .proxyToGform(s"gform/test-only/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
+        s"View files for ${destination.description}",
+        uk.gov.hmrc.gform.testonly.routes.ObjectStoreAdminController.objectStoreContent(envelopeId, destination)
       )
 
     val downloadContents = List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent)
@@ -405,11 +404,6 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/envelopes/" + envelopeId.value)
     )
 
-    val viewUploadedFilesLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-      "View the uploaded files from bucket",
-      uk.gov.hmrc.gform.testonly.routes.ObjectStoreAdminController.objectStoreContent(envelopeId)
-    )
-
     val viewTranslationLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View translation source",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -438,7 +432,6 @@ class TestOnlyController(
       viewSourceTemplateLink,
       viewInternalTemplateLink,
       viewEnvelopeFilesLink,
-      viewUploadedFilesLink,
       viewTranslationLink,
       viewExpressionsLink,
       viewAllExpressionsLink,
