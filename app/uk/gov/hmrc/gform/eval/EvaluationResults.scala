@@ -1024,60 +1024,52 @@ case class EvaluationResults(
           case _                     => ExpressionResult.empty
         }
 
+      case _ if measurementType == MeasurementType.Days || measurementType == MeasurementType.Weeks =>
+        ExpressionResult.empty
+
       case _ =>
-        measurementType match {
-          case MeasurementType.Weeks | MeasurementType.Days => ExpressionResult.empty
-          case _ =>
-            val instanceMeasurementType = measurementType match {
-              case MeasurementType.Weeks | MeasurementType.SumWeeks => MeasurementType.Weeks
-              case MeasurementType.Days | MeasurementType.SumDays   => MeasurementType.Days
-            }
-
-            def getExpressionResultList: List[ExpressionResult] =
-              dateExpr1
-                .maybeFormCtx(recData, evaluationContext, this, booleanExprResolver)
-                .orElse(dateExpr2.maybeFormCtx(recData, evaluationContext, this, booleanExprResolver))
-                .map { formCtx =>
-                  val modelComponentIds = recData.variadicFormData
-                    .forBaseComponentId(formCtx.formComponentId.baseComponentId)
-                    .map { case (id, _) => id }
-
-                  val indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
-
-                  val betweenFunctionExprs = if (indexedCompExists) {
-                    modelComponentIds
-                      .flatMap(_.maybeIndex)
-                      .toList
-                      .distinct
-                      .map(index =>
-                        Between(
-                          DateCtx(dateExpr1.expand(index)),
-                          DateCtx(dateExpr2.expand(index)),
-                          instanceMeasurementType
-                        )
-                      )
-                  } else {
-                    List(Between(DateCtx(dateExpr1), DateCtx(dateExpr2), instanceMeasurementType))
-                  }
-
-                  betweenFunctionExprs.map { betweenExpr =>
-                    daysWeeksBetween(recData, evaluationContext, booleanExprResolver, instanceMeasurementType)(
-                      betweenExpr.dateCtx1.value,
-                      betweenExpr.dateCtx2.value
-                    )
-                  }
-                }
-                .getOrElse(List(ExpressionResult.empty))
-
-            def doSumNumberResult(mapper: NumberResult => ExpressionResult): ExpressionResult =
-              getExpressionResultList
-                .reduce(_ + _)
-                .fold[ExpressionResult](identity)(identity)(identity)(mapper)(identity)(identity)(identity)(identity)(
-                  identity
-                )(identity)(identity)
-
-            doSumNumberResult(n => n)
+        val instanceMeasurementType = measurementType match {
+          case MeasurementType.Weeks | MeasurementType.SumWeeks => MeasurementType.Weeks
+          case MeasurementType.Days | MeasurementType.SumDays   => MeasurementType.Days
+          case _                                                => measurementType
         }
+
+        def handleIndexedComponents: List[ExpressionResult] =
+          (for {
+            formCtx <- dateExpr1
+                         .maybeFormCtx(recData, evaluationContext, this, booleanExprResolver)
+                         .orElse(dateExpr2.maybeFormCtx(recData, evaluationContext, this, booleanExprResolver))
+            modelComponentIds = recData.variadicFormData
+                                  .forBaseComponentId(formCtx.formComponentId.baseComponentId)
+                                  .map(_._1)
+
+            indexedCompExists = modelComponentIds.exists(_.indexedComponentId.fold(_ => false)(_ => true))
+
+            dateExprTuples =
+              if (indexedCompExists) {
+                modelComponentIds
+                  .flatMap(_.maybeIndex)
+                  .toList
+                  .distinct
+                  .map(index =>
+                    (
+                      dateExpr1.expand(index),
+                      dateExpr2.expand(index)
+                    )
+                  )
+              } else List(dateExpr1 -> dateExpr2)
+          } yield dateExprTuples.map { case (expr1, expr2) =>
+            daysWeeksBetween(recData, evaluationContext, booleanExprResolver, instanceMeasurementType)(expr1, expr2)
+          }).getOrElse(List(ExpressionResult.empty))
+
+        def doSumNumberResult(mapper: NumberResult => ExpressionResult): ExpressionResult =
+          handleIndexedComponents
+            .reduce(_ + _)
+            .fold[ExpressionResult](identity)(identity)(identity)(mapper)(identity)(identity)(identity)(identity)(
+              identity
+            )(identity)(identity)
+
+        doSumNumberResult(n => n)
     }
   }
 
