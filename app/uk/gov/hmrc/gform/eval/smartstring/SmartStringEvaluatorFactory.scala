@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.gform.{ ConcatFormatSubstituter, ConcatFormatSubstitutions, Substituter }
 import ConcatFormatSubstituter._
+import cats.implicits.catsSyntaxEq
 import uk.gov.hmrc.gform.eval.ExprType.ChoiceSelection
 
 import scala.jdk.CollectionConverters._
@@ -93,25 +94,27 @@ private class Executor(
       )
   }
 
+  private def getTypeInfo(expr: Expr): TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
+
   private def formatExpr(expr: Expr, markDown: Boolean): String = {
 
-    val typeInfo: TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
+    val typeInfo: TypeInfo = getTypeInfo(expr)
 
     val interpolated = typeInfo.staticTypeData.exprType match {
       case ExprType.ChoiceSelection =>
         typeInfo.expr match {
           case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
             evalChoiceAsString(formComponentId, typeInfo, markDown)
+          case IndexOf(formComponentId, index) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
+            evalChoiceAsString(formComponentId.withIndex(index.+(1)), typeInfo, false)
           case _ => stringRepresentation(typeInfo)
         }
       case _ =>
         expr match {
           case NumberedList(fcId) =>
-            val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
-            govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = false, fcId = fcId)
+            govukListRepresentation(getTypeInfo(FormCtx(fcId)), markDown = markDown, isBulleted = false, fcId = fcId)
           case BulletedList(fcId) =>
-            val fcIdTypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(FormCtx(fcId))
-            govukListRepresentation(fcIdTypeInfo, markDown = markDown, isBulleted = true, fcId = fcId)
+            govukListRepresentation(getTypeInfo(FormCtx(fcId)), markDown = markDown, isBulleted = true, fcId = fcId)
           case ChoicesRevealedField(fcId) =>
             formModelVisibilityOptics.formModel.fcLookup
               .get(fcId)
@@ -168,26 +171,26 @@ private class Executor(
   }
 
   private def evalChoice(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): List[String] =
-    formModelVisibilityOptics.formModel.fcLookup
-      .get(fcId)
-      .collect {
-        case IsChoice(choice) =>
-          val optionsList = getChoiceOptions(choice)
-          val orderedKeys = optionsList.keys.toSet
-          formModelVisibilityOptics
-            .evalAndApplyTypeInfo(typeInfo)
-            .optionRepresentation
-            .map { repr =>
-              repr.collect { case key if orderedKeys.contains(key) => apply(optionsList(key), markDown) }
-            }
-            .getOrElse(Nil)
-        case IsRevealingChoice(revealingChoice) =>
-          revealingChoice.options.map(c => apply(summaryValueOrLabel(c.choice.label, c.choice.summaryValue), markDown))
-        case _ =>
-          List(stringRepresentation(typeInfo))
-      }
-      .getOrElse(Seq.empty)
-      .toList
+    formModelVisibilityOptics.formModel.fcLookup.get(fcId) match {
+      case Some(IsChoice(choice)) =>
+        val optionsList = getChoiceOptions(choice)
+        val orderedKeys = optionsList.keys.toSet
+        formModelVisibilityOptics
+          .evalAndApplyTypeInfo(typeInfo)
+          .optionRepresentation
+          .map(_.collect { case key if orderedKeys.contains(key) => apply(optionsList(key), markDown) })
+          .getOrElse(Nil)
+          .toList
+      case Some(IsRevealingChoice(revealingChoice)) =>
+        revealingChoice.options.map(c => apply(summaryValueOrLabel(c.choice.label, c.choice.summaryValue), markDown))
+      case Some(_) =>
+        List(stringRepresentation(typeInfo))
+      case None =>
+        formModelVisibilityOptics.formModel.fcLookup.collect {
+          case (formCompId, _) if formCompId.baseComponentId === fcId.baseComponentId =>
+            evalChoiceAsString(formCompId, getTypeInfo(FormCtx(formCompId)), markDown)
+        }.toList
+    }
 
   private def evalChoiceAsString(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): String =
     evalChoice(fcId, typeInfo, markDown).mkString(", ")
