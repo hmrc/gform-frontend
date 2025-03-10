@@ -413,10 +413,6 @@ object FormCtx {
   implicit val format: OFormat[FormCtx] = derived.oformat()
 }
 
-object DateCtx {
-  implicit val format: OFormat[DateCtx] = derived.oformat()
-}
-
 object Expr {
   val additionIdentity: Expr = Constant("0")
   implicit val dataRetrieveCtxFormat: OFormat[DataRetrieveCtx] = derived.oformat()
