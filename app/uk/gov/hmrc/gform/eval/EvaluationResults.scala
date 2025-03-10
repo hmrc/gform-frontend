@@ -961,8 +961,8 @@ case class EvaluationResults(
       case IfElse(cond, field1: Expr, field2: Expr) =>
         if (booleanExprResolver.resolve(cond)) loop(field1) else loop(field2)
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
-      case Between(DateCtx(dateCtx1), DateCtx(dateCtx2), measurementType) =>
-        daysWeeksBetween(recData, evaluationContext, booleanExprResolver, measurementType)(dateCtx1, dateCtx2)
+      case Between(DateCtx(dateExpr1), DateCtx(dateExpr2), measurementType) =>
+        daysWeeksBetween(recData, evaluationContext, booleanExprResolver, measurementType)(dateExpr1, dateExpr2)
       case _ => ExpressionResult.empty
     }
 

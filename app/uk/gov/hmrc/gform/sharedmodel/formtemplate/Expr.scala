@@ -129,7 +129,7 @@ sealed trait Expr extends Product with Serializable {
     case DateFunction(dateFunc)                   => dateFunc.dateExpr.leafExprs
     case Period(dateCtx1, dateCtx2)               => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case PeriodExt(periodFun, _)                  => periodFun.leafs(formModel)
-    case Between(dateCtx1, dateCtx2, _)           => dateCtx1.value.leafExprs ::: dateCtx2.value.leafExprs
+    case Between(dateCtx1, dateCtx2, _)           => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case AddressLens(formComponentId, _)          => this :: Nil
     case DataRetrieveCtx(_, _)                    => this :: Nil
     case DataRetrieveCount(_)                     => this :: Nil
@@ -226,7 +226,7 @@ sealed trait Expr extends Product with Serializable {
     case DateFunction(dateFunc)                    => dateFunc.dateExpr.leafExprs
     case Period(dateCtx1, dateCtx2)                => dateCtx1.leafs() ::: dateCtx2.leafs()
     case PeriodExt(periodFun, _)                   => periodFun.leafs()
-    case Between(dateCtx1, dateCtx2, _)            => dateCtx1.value.leafExprs ::: dateCtx2.value.leafExprs
+    case Between(dateCtx1, dateCtx2, _)            => dateCtx1.leafs() ::: dateCtx2.leafs()
     case AddressLens(formComponentId, _)           => this :: Nil
     case DataRetrieveCtx(_, _)                     => this :: Nil
     case DataRetrieveCount(_)                      => this :: Nil
@@ -275,7 +275,7 @@ final case class DateCtx(value: DateExpr) extends Expr
 final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
-final case class Between(dateCtx1: DateCtx, dateCtx2: DateCtx, measurementType: MeasurementType) extends Expr
+final case class Between(dateCtx1: Expr, dateCtx2: Expr, measurementType: MeasurementType) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr

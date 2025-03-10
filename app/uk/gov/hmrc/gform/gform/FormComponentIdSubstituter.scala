@@ -55,7 +55,7 @@ object FormComponentIdSubstituter {
         case Period(field1, field2)       => Period(substitute(substitutions, field1), substitute(substitutions, field2))
         case PeriodExt(period, func)      => PeriodExt(substitute(substitutions, period), func)
         case Between(field1, field2, measurementType) =>
-          Between(DateCtx(field1.value(substitutions)), DateCtx(field2.value(substitutions)), measurementType)
+          Between(substitute(substitutions, field1), substitute(substitutions, field2), measurementType)
         case AddressLens(fcId, details) => AddressLens(substitutions.updateFormComponentId(fcId), details)
         case e: DataRetrieveCtx         => e
         case e: DataRetrieveCount       => e
