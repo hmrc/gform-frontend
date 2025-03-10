@@ -23,4 +23,5 @@ case class EnvelopeId(value: String)
 
 object EnvelopeId {
   implicit val format: OFormat[EnvelopeId] = ValueClassFormat.oformat("envelopeId", EnvelopeId.apply, _.value)
+  val oformat: OFormat[EnvelopeId] = ValueClassFormat.oformat("_id", EnvelopeId.apply, _.value)
 }
