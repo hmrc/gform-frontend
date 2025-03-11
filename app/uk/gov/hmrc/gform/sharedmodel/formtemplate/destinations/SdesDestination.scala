@@ -21,11 +21,10 @@ import play.api.libs.json.Format
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
 sealed trait SdesDestination extends Product with Serializable {
-  def downloadPath: String = this match {
-    case SdesDestination.HmrcIlluminate                              => "hmrc-illuminate"
-    case SdesDestination.DataStore | SdesDestination.DataStoreLegacy => "data-store"
-    case SdesDestination.Dms                                         => "dms"
-    case SdesDestination.InfoArchive                                 => "info-archive"
+  def viewPath: String = this match {
+    case SdesDestination.DataStore | SdesDestination.DataStoreLegacy | SdesDestination.HmrcIlluminate => "data-store/"
+    case SdesDestination.Dms                                                                          => ""
+    case SdesDestination.InfoArchive                                                                  => "info-archive/"
   }
 
   def description: String = this match {
@@ -58,4 +57,12 @@ object SdesDestination {
       "DataStore"       -> DataStore,
       "InfoArchive"     -> InfoArchive
     )
+
+  def fromName(destination: SdesDestination): String = destination match {
+    case Dms             => "Dms"
+    case HmrcIlluminate  => "HmrcIlluminate"
+    case DataStoreLegacy => "DataStoreLegacy"
+    case DataStore       => "DataStore"
+    case InfoArchive     => "InfoArchive"
+  }
 }
