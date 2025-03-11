@@ -52,6 +52,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import scala.collection.mutable.LinkedHashSet
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -516,6 +517,22 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         )
       ),
       "Date 26-02-2020 should return Is not Valid when lastDay validation is applied, AC27"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(-5)),
+      LocalDate.now().plusDays(-6),
+      None,
+      Some(toSmartString("Accounting period end date")),
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
+            s"Accounting period end date must be after ${LocalDate.now().plusDays(-5).format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}"
+          )
+        )
+      ),
+      "After Today -5 should not accept the date which is before Today -5"
     )
   )
 
