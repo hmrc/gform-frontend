@@ -1145,6 +1145,20 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
 
+    val exprMap = Map[Expr, ExpressionResult](
+      FormCtx(FormComponentId("1_startDate")) -> DateResult(LocalDate.of(2000, 1, 1)),
+      FormCtx(FormComponentId("1_endDate"))   -> DateResult(LocalDate.of(2000, 10, 11)),
+      FormCtx(FormComponentId("2_startDate")) -> DateResult(LocalDate.of(2001, 1, 1)),
+      FormCtx(FormComponentId("2_endDate"))   -> DateResult(LocalDate.of(2001, 11, 1))
+    )
+
+    val repeatedComponentsDetails = RepeatedComponentsDetails(
+      Map[FormComponentId, FormComponentId](
+        FormComponentId("startDate") -> FormComponentId("atlParent"),
+        FormComponentId("endDate")   -> FormComponentId("atlParent")
+      )
+    )
+
     val table = Table(
       ("typeInfo", "recData", "expectedResult"),
       (
@@ -1274,9 +1288,14 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         NumberResult(10)
       )
     )
-    forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
-      EvaluationResults.empty
-        .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    forAll(table) {
+      (
+        typeInfo: TypeInfo,
+        recData: RecData[OutOfDate],
+        expectedResult: ExpressionResult
+      ) =>
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData), repeatedComponentsDetails)
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
     }
   }
 
