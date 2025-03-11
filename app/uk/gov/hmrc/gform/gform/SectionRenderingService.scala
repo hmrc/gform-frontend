@@ -705,7 +705,7 @@ class SectionRenderingService(
         htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
       )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
-      _ === Continue
+      !_.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver)
     ) && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals) && !singleton.page.isHideSaveAndComeBackButton
 
     val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
@@ -753,7 +753,7 @@ class SectionRenderingService(
 
     val mainForm: Html = html.form.form_standard(
       renderingInfo,
-      shouldDisplayContinue = !page.isTerminationPage,
+      shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver),
       ei.saveAndComeBackLaterButton,
       ei.isFileUploadOnlyPage(validationResult).isDefined
     )

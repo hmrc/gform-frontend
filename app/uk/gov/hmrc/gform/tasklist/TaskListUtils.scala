@@ -115,7 +115,9 @@ object TaskListUtils {
                                   .forCoordinate(coordinate)
                               val hasTerminationPage = formModel.taskList
                                 .availablePages(coordinate)
-                                .exists(_.isTerminationPage)
+                                .exists(
+                                  _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
+                                )
 
                               for {
                                 formHandlerResult <-

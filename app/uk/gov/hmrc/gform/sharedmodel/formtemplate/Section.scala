@@ -36,7 +36,6 @@ sealed trait Section extends Product with Serializable {
   def getTitle: SmartString = fold(_.page.title)(_.page.title)(_.title)
   def getCaption: Option[SmartString] = fold(_.page.caption)(_.page.caption)(_ => None)
   def continueLabel: Option[SmartString] = fold(_.page.continueLabel)(_.page.continueLabel)(_ => None)
-  def isTerminationPage: Boolean = fold(_.page.continueIf.contains(Stop))(_.page.continueIf.contains(Stop))(_ => false)
   def staticTypeInfo: StaticTypeInfo = fold(_.page.staticTypeInfo)(_.page.staticTypeInfo)(_.staticInfo)
   def revealingChoiceInfo: RevealingChoiceInfo =
     fold(_.page.revealingChoiceInfo)(_.page.revealingChoiceInfo)(_.allRevealingChoiceInfo)

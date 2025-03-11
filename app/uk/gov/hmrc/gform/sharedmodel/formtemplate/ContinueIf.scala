@@ -19,12 +19,22 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.Eq
 import play.api.libs.json._
 import julienrf.json.derived
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 
-sealed trait ContinueIf
-case object Continue extends ContinueIf
-case object Stop extends ContinueIf
+sealed trait ContinueIf {
+  def isTerminationPage(booleanExprResolver: BooleanExprResolver): Boolean =
+    this match {
+      case _: ContinueIf.Continue.type               => false
+      case _: ContinueIf.Stop.type                   => true
+      case ContinueIf.Conditional(booleanExpression) => !booleanExprResolver.resolve(booleanExpression)
+    }
+}
 
 object ContinueIf {
+  case object Continue extends ContinueIf
+  case object Stop extends ContinueIf
+  case class Conditional(booleanExpression: BooleanExpr) extends ContinueIf
+
   implicit val catsEq: Eq[ContinueIf] = Eq.fromUniversalEquals
   implicit val format: OFormat[ContinueIf] = derived.oformat()
 }

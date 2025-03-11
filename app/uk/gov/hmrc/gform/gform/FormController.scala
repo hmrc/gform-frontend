@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
@@ -347,7 +348,7 @@ class FormController(
             // Redirect users on first page of the form if they are currently submitting some page data. Current page data are lost
             redirectOnLegacy(formModelOptics, cache.formTemplateId, maybeAccessCode)
           case _ =>
-            val formVisibilityModel = formModelOptics.formModelVisibilityOptics.formModel
+            val formVisibilityModel = formModelOptics.formModelVisibilityOptics
             val fastForward = filterTerminatedFastForward(sectionNumber, rawFastForward, formVisibilityModel)
             val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
@@ -1042,8 +1043,9 @@ class FormController(
   private def filterTerminatedFastForward(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],
-    formModel: FormModel[Visibility]
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
   ): List[FastForward] = {
+    val formModel: FormModel[Visibility] = formModelVisibilityOptics.formModel
     def hasTerminationIn(fromSn: SectionNumber, toSn: Option[SectionNumber]): Boolean =
       formModel.availableSectionNumbers
         .filter(sn =>
@@ -1063,7 +1065,7 @@ class FormController(
             case None     => true
           }
         )
-        .exists(sn => formModel(sn).isTerminationPage)
+        .exists(sn => formModel(sn).isTerminationPage(formModelVisibilityOptics.booleanExprResolver))
 
     val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
 

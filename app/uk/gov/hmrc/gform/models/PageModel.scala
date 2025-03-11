@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
@@ -29,7 +30,8 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)
   def id: Option[PageId] = fold(_.page.id)(c => Some(c.expandedId))(r => Some(r.expandedId))
 
-  def isTerminationPage = fold(_.page.isTerminationPage)(_ => false)(_ => false)
+  def isTerminationPage(booleanExprResolver: BooleanExprResolver) =
+    fold(_.page.isTerminationPage(booleanExprResolver))(_ => false)(_ => false)
 
   def fold[B](e: Singleton[A] => B)(f: CheckYourAnswers[A] => B)(g: Repeater[A] => B): B = this match {
     case s: Singleton[A]        => e(s)
