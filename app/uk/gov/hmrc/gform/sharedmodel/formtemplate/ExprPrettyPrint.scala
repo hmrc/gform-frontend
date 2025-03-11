@@ -75,10 +75,8 @@ object ExprPrettyPrint {
     case PeriodExt(period, func)                 => period.prettyPrint
     case Between(dateCtx1, dateCtx2, m) =>
       m match {
-        case MeasurementType.Weeks    => "weeksBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
-        case MeasurementType.Days     => "daysBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
-        case MeasurementType.SumWeeks => "weeksBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ").sum"
-        case MeasurementType.SumDays  => "daysBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ").sum"
+        case MeasurementType.Weeks => "weeksBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
+        case MeasurementType.Days  => "daysBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
       }
     case AddressLens(fcId, addressDetail) =>
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value

@@ -1205,10 +1205,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          Between(
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-            MeasurementType.SumWeeks
+          Sum(
+            Between(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
+              MeasurementType.Weeks
+            )
           ),
           StaticTypeData(ExprType.number, None)
         ),
@@ -1217,10 +1219,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          Between(
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
-            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
-            MeasurementType.SumDays
+          Sum(
+            Between(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
+              MeasurementType.Days
+            )
           ),
           StaticTypeData(ExprType.number, None)
         ),
