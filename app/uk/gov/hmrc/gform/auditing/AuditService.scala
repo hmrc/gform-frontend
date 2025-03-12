@@ -125,12 +125,15 @@ trait AuditService {
         case mr: AuthenticatedRetrievals =>
           Json.toJson(
             Map(
-              "nino"          -> mr.getTaxIdValue(NINO()),
-              "vrn"           -> mr.getTaxIdValue(VATReg()),
-              "saUtr"         -> mr.getTaxIdValue(IRSA()),
-              "ctUtr"         -> mr.getTaxIdValue(IRCT()),
-              "deviceId"      -> hc.deviceID.getOrElse(""),
-              "affinityGroup" -> AffinityGroupUtil.affinityGroupName(mr.affinityGroup)
+              "email"          -> mr.getEmail.toString,
+              "ggLogin"        -> "true",
+              "nino"           -> mr.getTaxIdValue(NINO()),
+              "vrn"            -> mr.getTaxIdValue(VATReg()),
+              "saUtr"          -> mr.getTaxIdValue(IRSA()),
+              "ctUtr"          -> mr.getTaxIdValue(IRCT()),
+              "deviceId"       -> hc.deviceID.getOrElse(""),
+              "affinityGroup"  -> AffinityGroupUtil.affinityGroupName(mr.affinityGroup),
+              "credentialRole" -> mr.getCredentialRole.map(_.toString).getOrElse("")
             ).filter(values => values._2.nonEmpty)
           )
         case r: VerifyRetrievals =>
@@ -146,10 +149,12 @@ trait AuditService {
               "deviceId" -> hc.deviceID.getOrElse("")
             ).filter(values => values._2.nonEmpty)
           )
-        case EmailRetrievals(_) =>
+        case er: EmailRetrievals =>
           Json.toJson(
             Map(
-              "deviceId" -> hc.deviceID.getOrElse("")
+              "email"      -> er.getEmail.toString,
+              "emailLogin" -> "true",
+              "deviceId"   -> hc.deviceID.getOrElse("")
             ).filter(values => values._2.nonEmpty)
           )
       }
