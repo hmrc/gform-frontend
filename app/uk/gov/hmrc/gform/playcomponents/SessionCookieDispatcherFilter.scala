@@ -52,64 +52,68 @@ class SessionCookieDispatcherFilter(
 
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
 
-    val maybeFormTemplateContext: Future[Option[FormTemplateContext]] =
-      requestHeaderService.formTemplateContext(rh)
-
     def findAuthConfigCookie(rh: RequestHeader): Option[Cookie] =
       rh.headers
         .getAll(HeaderNames.COOKIE)
         .flatMap(cookieHeaderEncoding.decodeCookieHeader)
         .find(_.name == authConfigCookieName)
 
-    maybeFormTemplateContext.flatMap {
-      case Some(FormTemplateContext(formTemplate, _, _, Some(shutter), _)) =>
-        val langs = playBuiltInsModule.langs
-        implicit val messagesApi = playBuiltInsModule.messagesApi
-        implicit val request = Request(rh, AnyContentAsEmpty)
-        implicit val currentLanguge = LangADT.fromRequest(request, langs)(messagesApi)
-        implicit val messages = messagesApi.preferred(rh.acceptLanguages)
-        Future.successful(
-          Results.Forbidden(
-            html.form.shutterForm(
-              formTemplate,
-              configModule.frontendAppConfig,
-              shutter.toHtmlMessage
+    if (rh.target.path.contains("/assets/") | rh.target.path.contains("/refresh-session/"))
+      next(rh)
+    else {
+      val maybeFormTemplateContext: Future[Option[FormTemplateContext]] =
+        requestHeaderService.formTemplateContext(rh)
+
+      maybeFormTemplateContext.flatMap {
+        case Some(FormTemplateContext(formTemplate, _, _, Some(shutter), _)) =>
+          val langs = playBuiltInsModule.langs
+          implicit val messagesApi = playBuiltInsModule.messagesApi
+          implicit val request = Request(rh, AnyContentAsEmpty)
+          implicit val currentLanguge = LangADT.fromRequest(request, langs)(messagesApi)
+          implicit val messages = messagesApi.preferred(rh.acceptLanguages)
+          Future.successful(
+            Results.Forbidden(
+              html.form.shutterForm(
+                formTemplate,
+                configModule.frontendAppConfig,
+                shutter.toHtmlMessage
+              )
             )
           )
-        )
 
-      case Some(formTemplateContext) =>
-        val formTemplate =
-          formTemplateContext.formTemplate
-        val (result, cookieValue) =
-          formTemplate.authConfig match {
-            case Anonymous =>
-              (
-                anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
-                encrypter.encrypt(PlainText(AnonymousAuth))
-              )
-            case EmailAuthConfig(_, _, _, _) =>
-              (
-                emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
-                encrypter.encrypt(PlainText(EmailAuth))
-              )
+        case Some(formTemplateContext) =>
+          val formTemplate =
+            formTemplateContext.formTemplate
+          val (result, cookieValue) =
+            formTemplate.authConfig match {
+              case Anonymous =>
+                (
+                  anonymousCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
+                  encrypter.encrypt(PlainText(AnonymousAuth))
+                )
+              case EmailAuthConfig(_, _, _, _) =>
+                (
+                  emailCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
+                  encrypter.encrypt(PlainText(EmailAuth))
+                )
+              case _ =>
+                (
+                  hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
+                  encrypter.encrypt(PlainText(HmrcAuth))
+                )
+            }
+          result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value, secure = true)))
+
+        case None =>
+          findAuthConfigCookie(rh).map(v => decrypter.decrypt(Crypted(v.value)).value) match {
+            case Some(AnonymousAuth) =>
+              anonymousCookieCryptoFilter(next)(rh)
+            case Some(EmailAuth) =>
+              emailCookieCryptoFilter(next)(rh)
             case _ =>
-              (
-                hmrcCookieCryptoFilter(next)(rh.addAttr(FormTemplateKey, formTemplateContext)),
-                encrypter.encrypt(PlainText(HmrcAuth))
-              )
+              hmrcCookieCryptoFilter(next)(rh)
           }
-        result.map(_.withCookies(Cookie(authConfigCookieName, cookieValue.value, secure = true)))
-
-      case None =>
-        findAuthConfigCookie(rh).map(v => decrypter.decrypt(Crypted(v.value)).value) match {
-          case Some(AnonymousAuth) =>
-            anonymousCookieCryptoFilter(next)(rh)
-          case Some(EmailAuth) =>
-            emailCookieCryptoFilter(next)(rh)
-          case _ =>
-            hmrcCookieCryptoFilter(next)(rh)
-        }
+      }
     }
   }
 }

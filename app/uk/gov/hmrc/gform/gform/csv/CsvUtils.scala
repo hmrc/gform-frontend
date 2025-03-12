@@ -19,17 +19,17 @@ package uk.gov.hmrc.gform.gform.csv
 import kantan.csv.ops.toCsvInputOps
 import kantan.csv.{ HeaderDecoder, rfc }
 
+import scala.util.Using
+
 object CsvUtils {
-  def readCsv[A](filename: String, headerDecoder: HeaderDecoder[A]): List[A] = {
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
+  def readCsv[A](filename: String, headerDecoder: HeaderDecoder[A]): List[A] =
+    Using.resource(getClass.getClassLoader.getResourceAsStream("lookup/" + filename)) { lookup =>
+      lookup.unsafeReadCsv[List, A](rfc.withHeader)(headerDecoder, implicitly, implicitly)
+    }
 
-    lookup.unsafeReadCsv[List, A](rfc.withHeader)(headerDecoder, implicitly, implicitly)
-  }
-
-  def readCsvWithColumns(filename: String): List[Map[String, String]] = {
-    val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
-    val lines: List[List[String]] = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
-    lines.tail.map(lines.head.zip(_).toMap)
-  }
-
+  def readCsvWithColumns(filename: String): List[Map[String, String]] =
+    Using.resource(getClass.getClassLoader.getResourceAsStream("lookup/" + filename)) { lookup =>
+      val lines: List[List[String]] = lookup.asUnsafeCsvReader[List[String]](rfc.withHeader(false)).toList
+      lines.tail.map(lines.head.zip(_).toMap)
+    }
 }
