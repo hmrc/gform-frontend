@@ -125,7 +125,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               hasBeenVisited &&
               postcodeLookupHasAddress &&
               isValid &&
-              !page.isTerminationPage
+              !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver)
             ) None
             else Some(currentSn)
           case otherwise => otherwise

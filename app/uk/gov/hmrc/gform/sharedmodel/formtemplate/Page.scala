@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import play.api.libs.json.OFormat
 import cats.syntax.eq._
 import julienrf.json.derived
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
@@ -111,7 +112,8 @@ case class Page[A <: PageMode](
         }
         start :: acc
     }
-  val isTerminationPage: Boolean = continueIf.contains(Stop)
+  def isTerminationPage(booleanExprResolver: BooleanExprResolver): Boolean =
+    continueIf.map(_.isTerminationPage(booleanExprResolver)).getOrElse(false)
   val isHideSaveAndComeBackButton: Boolean = hideSaveAndComeBackButton.getOrElse(false)
 
   def dataRetrieves(): List[DataRetrieve] = dataRetrieve.toList.flatMap(_.toList)
