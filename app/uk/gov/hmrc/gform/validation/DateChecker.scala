@@ -456,7 +456,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
           val messageKeyWithVars: MessageKeyWithVars =
             DateValidationLogic.incorrectDateMessage(
               beforeAfterPrecisely,
-              DateValidationLogic.localDateToConcreteDate(date),
+              DateValidationLogic.localDateToConcreteDate(now()),
               offset
             )
           val vars = messageKeyWithVars.vars.map(placeholder :: _)
