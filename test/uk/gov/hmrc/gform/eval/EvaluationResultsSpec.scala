@@ -1145,6 +1145,20 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       )
     )
 
+    val exprMap = Map[Expr, ExpressionResult](
+      FormCtx(FormComponentId("1_startDate")) -> DateResult(LocalDate.of(2000, 1, 1)),
+      FormCtx(FormComponentId("1_endDate"))   -> DateResult(LocalDate.of(2000, 10, 11)),
+      FormCtx(FormComponentId("2_startDate")) -> DateResult(LocalDate.of(2001, 1, 1)),
+      FormCtx(FormComponentId("2_endDate"))   -> DateResult(LocalDate.of(2001, 11, 1))
+    )
+
+    val repeatedComponentsDetails = RepeatedComponentsDetails(
+      Map[FormComponentId, FormComponentId](
+        FormComponentId("startDate") -> FormComponentId("atlParent"),
+        FormComponentId("endDate")   -> FormComponentId("atlParent")
+      )
+    )
+
     val table = Table(
       ("typeInfo", "recData", "expectedResult"),
       (
@@ -1205,6 +1219,34 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
+          Sum(
+            Between(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
+              MeasurementType.Weeks
+            )
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(83)
+      ),
+      (
+        TypeInfo(
+          Sum(
+            Between(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate")))),
+              MeasurementType.Days
+            )
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(588)
+      ),
+      (
+        TypeInfo(
           PeriodExt(
             Period(
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate")))),
@@ -1244,6 +1286,71 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         recData,
         NumberResult(10)
+      )
+    )
+    forAll(table) {
+      (
+        typeInfo: TypeInfo,
+        recData: RecData[OutOfDate],
+        expectedResult: ExpressionResult
+      ) =>
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData), repeatedComponentsDetails)
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    }
+  }
+
+  "evalExpr - type between" should "evaluate expressions" in {
+
+    val recData = RecData[OutOfDate](
+      VariadicFormData.create(
+        (toModelComponentId("startDate1-year"), VariadicValue.One("2000")),
+        (toModelComponentId("startDate1-month"), VariadicValue.One("1")),
+        (toModelComponentId("startDate1-day"), VariadicValue.One("1")),
+        (toModelComponentId("endDate1-year"), VariadicValue.One("2001")),
+        (toModelComponentId("endDate1-month"), VariadicValue.One("2")),
+        (toModelComponentId("endDate1-day"), VariadicValue.One("2"))
+      )
+    )
+    val table = Table(
+      ("typeInfo", "recData", "expectedResult"),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
+            MeasurementType.Days
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(398)
+      ),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
+            MeasurementType.Weeks
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(56)
+      ),
+      (
+        TypeInfo(
+          Divide(
+            Between(
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+              DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
+              MeasurementType.Days
+            ),
+            Constant("10")
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(39.8)
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>

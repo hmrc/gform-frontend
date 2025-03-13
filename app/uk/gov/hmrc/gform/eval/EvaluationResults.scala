@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
+import java.time.LocalDate
 import scala.util.Try
 
 case class EvaluationResults(
@@ -356,8 +357,14 @@ case class EvaluationResults(
           case ExpressionResult.DateResult(localDate) => ExpressionResult.NumberResult(dateFunc.toValue(localDate))
           case otherwise                              => otherwise
         }
-      case Period(_, _)      => unsupportedOperation("Number")(expr)
-      case PeriodExt(_, _)   => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case Period(_, _)    => unsupportedOperation("Number")(expr)
+      case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case b @ Between(_, _, _) =>
+        b match {
+          case Between(DateCtx(dateExpr1), DateCtx(dateExpr2), measurementType) =>
+            daysWeeksBetween(recData, evaluationContext, booleanExprResolver, measurementType)(dateExpr1, dateExpr2)
+          case _ => ExpressionResult.Empty
+        }
       case PeriodValue(_)    => unsupportedOperation("Number")(expr)
       case AddressLens(_, _) => unsupportedOperation("Number")(expr)
       case d @ DataRetrieveCtx(_, _) =>
@@ -632,6 +639,12 @@ case class EvaluationResults(
         }
       case Period(_, _)    => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
       case PeriodExt(_, _) => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case b @ Between(_, _, _) =>
+        b match {
+          case Between(DateCtx(dateExpr1), DateCtx(dateExpr2), measurementType) =>
+            daysWeeksBetween(recData, evaluationContext, booleanExprResolver, measurementType)(dateExpr1, dateExpr2)
+          case _ => ExpressionResult.Empty
+        }
       case AddressLens(formComponentId, details) =>
         whenVisible(formComponentId) {
           val atomic: ModelComponentId.Atomic =
@@ -922,6 +935,7 @@ case class EvaluationResults(
                   identity
                 )(mapper)(identity)
             }
+
         prop match {
           case PeriodFn.Sum => doSum(identity)
           case PeriodFn.TotalMonths =>
@@ -935,6 +949,7 @@ case class EvaluationResults(
         }
       case _ => ExpressionResult.empty
     }
+
     loop(typeInfo.expr)
   }
 
@@ -968,6 +983,29 @@ case class EvaluationResults(
     (dateResult1, dateResult2) match {
       case (DateResult(value1), DateResult(value2)) => PeriodResult(java.time.Period.between(value1, value2))
       case _                                        => ExpressionResult.empty
+    }
+  }
+
+  private def daysWeeksBetween(
+    recData: RecData[SourceOrigin.OutOfDate],
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver,
+    measurementType: MeasurementType
+  )(dateExpr1: DateExpr, dateExpr2: DateExpr): ExpressionResult = {
+
+    def evaluateDateExpr(dateExpr: DateExpr): Option[LocalDate] =
+      evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr) match {
+        case DateResult(value) => Some(value)
+        case _                 => None
+      }
+
+    (evaluateDateExpr(dateExpr1), evaluateDateExpr(dateExpr2)) match {
+      case (Some(value1), Some(value2)) =>
+        measurementType match {
+          case MeasurementType.Days  => NumberResult(java.time.temporal.ChronoUnit.DAYS.between(value1, value2))
+          case MeasurementType.Weeks => NumberResult(java.time.temporal.ChronoUnit.WEEKS.between(value1, value2))
+        }
+      case _ => ExpressionResult.Empty
     }
   }
 

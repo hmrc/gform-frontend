@@ -66,6 +66,7 @@ sealed trait Expr extends Product with Serializable {
       case DateCtx(dateExpr)                       => dateExpr.leafExprs
       case DateFunction(_)                         => expr :: Nil
       case Period(_, _)                            => expr :: Nil
+      case Between(_, _, _)                        => expr :: Nil
       case PeriodExt(_, _)                         => expr :: Nil
       case AddressLens(_, _)                       => expr :: Nil
       case DataRetrieveCtx(_, _)                   => expr :: Nil
@@ -128,6 +129,7 @@ sealed trait Expr extends Product with Serializable {
     case DateFunction(dateFunc)                   => dateFunc.dateExpr.leafExprs
     case Period(dateCtx1, dateCtx2)               => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case PeriodExt(periodFun, _)                  => periodFun.leafs(formModel)
+    case Between(dateCtx1, dateCtx2, _)           => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
     case AddressLens(formComponentId, _)          => this :: Nil
     case DataRetrieveCtx(_, _)                    => this :: Nil
     case DataRetrieveCount(_)                     => this :: Nil
@@ -175,6 +177,7 @@ sealed trait Expr extends Product with Serializable {
     case DateFunction(_)                          => Nil
     case Period(_, _)                             => Nil
     case PeriodExt(_, _)                          => Nil
+    case Between(_, _, _)                         => Nil
     case AddressLens(_, _)                        => Nil
     case DataRetrieveCtx(_, _)                    => Nil
     case DataRetrieveCount(_)                     => Nil
@@ -223,6 +226,7 @@ sealed trait Expr extends Product with Serializable {
     case DateFunction(dateFunc)                    => dateFunc.dateExpr.leafExprs
     case Period(dateCtx1, dateCtx2)                => dateCtx1.leafs() ::: dateCtx2.leafs()
     case PeriodExt(periodFun, _)                   => periodFun.leafs()
+    case Between(dateCtx1, dateCtx2, _)            => dateCtx1.leafs() ::: dateCtx2.leafs()
     case AddressLens(formComponentId, _)           => this :: Nil
     case DataRetrieveCtx(_, _)                     => this :: Nil
     case DataRetrieveCount(_)                      => this :: Nil
@@ -271,6 +275,7 @@ final case class DateCtx(value: DateExpr) extends Expr
 final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
 final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
+final case class Between(dateCtx1: Expr, dateCtx2: Expr, measurementType: MeasurementType) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
 final case class DataRetrieveCount(id: DataRetrieveId) extends Expr
@@ -341,6 +346,13 @@ object PeriodFn {
   case object Months extends PeriodFn
   case object Days extends PeriodFn
   implicit val format: OFormat[PeriodFn] = derived.oformat()
+}
+
+sealed trait MeasurementType
+object MeasurementType {
+  case object Weeks extends MeasurementType
+  case object Days extends MeasurementType
+  implicit val format: OFormat[MeasurementType] = derived.oformat()
 }
 
 sealed trait StringFnc
