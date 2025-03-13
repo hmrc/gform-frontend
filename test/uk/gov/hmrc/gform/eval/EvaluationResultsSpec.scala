@@ -1243,7 +1243,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.number, None)
         ),
         recData,
-        NumberResult(588)
+        NumberResult(590)
       ),
       (
         TypeInfo(
@@ -1308,7 +1308,13 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         (toModelComponentId("startDate1-day"), VariadicValue.One("1")),
         (toModelComponentId("endDate1-year"), VariadicValue.One("2001")),
         (toModelComponentId("endDate1-month"), VariadicValue.One("2")),
-        (toModelComponentId("endDate1-day"), VariadicValue.One("2"))
+        (toModelComponentId("endDate1-day"), VariadicValue.One("2")),
+        (toModelComponentId("endDate2-year"), VariadicValue.One("2000")),
+        (toModelComponentId("endDate2-month"), VariadicValue.One("1")),
+        (toModelComponentId("endDate2-day"), VariadicValue.One("7")),
+        (toModelComponentId("endDate3-year"), VariadicValue.One("2000")),
+        (toModelComponentId("endDate3-month"), VariadicValue.One("1")),
+        (toModelComponentId("endDate3-day"), VariadicValue.One("5"))
       )
     )
     val table = Table(
@@ -1323,7 +1329,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.number, None)
         ),
         recData,
-        NumberResult(398)
+        NumberResult(399)
       ),
       (
         TypeInfo(
@@ -1335,7 +1341,55 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           StaticTypeData(ExprType.number, None)
         ),
         recData,
-        NumberResult(56)
+        NumberResult(57)
+      ),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            MeasurementType.Days
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(1)
+      ),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate2")))),
+            MeasurementType.Weeks
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(1)
+      ),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate3")))),
+            MeasurementType.Weeks
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(0)
+      ),
+      (
+        TypeInfo(
+          Between(
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("startDate1")))),
+            DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate3")))),
+            MeasurementType.Days
+          ),
+          StaticTypeData(ExprType.number, None)
+        ),
+        recData,
+        NumberResult(5)
       ),
       (
         TypeInfo(
@@ -1345,12 +1399,12 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
               DateCtx(DateFormCtxVar(FormCtx(FormComponentId("endDate1")))),
               MeasurementType.Days
             ),
-            Constant("10")
+            Constant("7")
           ),
           StaticTypeData(ExprType.number, None)
         ),
         recData,
-        NumberResult(39.8)
+        NumberResult(57)
       )
     )
     forAll(table) { (typeInfo: TypeInfo, recData: RecData[OutOfDate], expectedResult: ExpressionResult) =>
