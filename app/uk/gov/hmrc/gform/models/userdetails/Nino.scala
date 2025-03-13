@@ -16,4 +16,10 @@
 
 package uk.gov.hmrc.gform.models.userdetails
 
+import play.api.libs.json.{ Json, OFormat }
+
 case class Nino(value: String) extends AnyVal
+
+object Nino {
+  implicit val format: OFormat[Nino] = Json.format[Nino]
+}

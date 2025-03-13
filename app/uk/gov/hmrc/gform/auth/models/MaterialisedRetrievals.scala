@@ -18,21 +18,22 @@ package uk.gov.hmrc.gform.auth.models
 
 import cats.Eq
 import cats.implicits._
-
-import java.time.LocalDate
+import julienrf.json.derived
 import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName, Name }
-import uk.gov.hmrc.auth.core.{ ConfidenceLevel, CredentialRole, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.models.userdetails.Nino
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IdentifierName, ServiceName }
-
-import java.security.MessageDigest
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, AffinityGroupUtil }
 import uk.gov.hmrc.http.SessionId
 
+import java.security.MessageDigest
+import java.time.LocalDate
+
 sealed trait MaterialisedRetrievals extends Product with Serializable {
+
   def groupId = this match {
     case AnonymousRetrievals(sessionId) => sessionId.value
     case EmailRetrievals(EmailId(email)) =>
@@ -166,14 +167,38 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 
 }
 
+object MaterialisedRetrievals {
+  implicit val format: OFormat[MaterialisedRetrievals] = derived.oformat()
+}
+
 final case class GovernmentGatewayId(ggId: String) extends AnyVal
+object GovernmentGatewayId {
+  implicit val format: OFormat[GovernmentGatewayId] = Json.format[GovernmentGatewayId]
+}
+
 final case class VerifyId(id: String) extends AnyVal
+object VerifyId {
+  implicit val format: OFormat[VerifyId] = Json.format[VerifyId]
+}
 
 final case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
 
+object AnonymousRetrievals {
+  implicit val sessionIdFormat: OFormat[SessionId] = Json.format[SessionId]
+  implicit val format: OFormat[AnonymousRetrievals] = Json.format[AnonymousRetrievals]
+}
+
 final case class EmailRetrievals(emailId: EmailId) extends MaterialisedRetrievals
 
+object EmailRetrievals {
+  implicit val format: OFormat[EmailRetrievals] = Json.format[EmailRetrievals]
+}
+
 final case class VerifyRetrievals(verifyIde: VerifyId, nino: Nino) extends MaterialisedRetrievals
+
+object VerifyRetrievals {
+  implicit val format: OFormat[VerifyRetrievals] = Json.format[VerifyRetrievals]
+}
 
 final case class ItmpRetrievals(
   itmpName: Option[ItmpName],
@@ -210,6 +235,11 @@ final case class AuthenticatedRetrievals(
   credentialRole: Option[CredentialRole]
 ) extends MaterialisedRetrievals {
   val affinityGroupName: String = AffinityGroupUtil.affinityGroupName(affinityGroup)
+}
+
+object AuthenticatedRetrievals {
+  implicit val enrolmentsFormat: OFormat[Enrolments] = Json.format[Enrolments]
+  implicit val format: OFormat[AuthenticatedRetrievals] = Json.format[AuthenticatedRetrievals]
 }
 
 object IsAgent {
