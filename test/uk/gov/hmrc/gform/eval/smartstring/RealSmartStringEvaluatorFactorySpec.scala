@@ -909,6 +909,58 @@ class RealSmartStringEvaluatorFactorySpec
     result shouldBe "Choice 2, Choice 3"
   }
 
+  "evaluate SmartString using concat with reference to a checkbox choice component at ATL out of range index" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Checkbox,
+        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+    lazy val (modelCompId1, modelCompId2) =
+      (choiceField.modelComponentId.expandWithPrefix(1), choiceField.modelComponentId.expandWithPrefix(2))
+    override lazy val indexedComponentIds: List[ModelComponentId] =
+      List(modelCompId1, modelCompId2)
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(modelCompId1, "Choice 2,Choice 3"),
+            FormField(modelCompId2, "Choice 1")
+          )
+        )
+      )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
+    )
+    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+      FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("Choice 2", "Choice 3")),
+      FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("Choice 1"))
+    )
+
+    val result: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          Concat(List(IndexOf(FormComponentId("choiceField"), 4)))
+        ),
+        false
+      )
+
+    result shouldBe ""
+  }
+
   "evaluate SmartString using a non-indexed reference to a checkbox choice component in ATL" in new TestFixture {
     lazy val choiceField: FormComponent = buildFormComponent(
       "choiceField",

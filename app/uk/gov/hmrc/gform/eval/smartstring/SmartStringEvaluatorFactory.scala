@@ -186,10 +186,14 @@ private class Executor(
       case Some(_) =>
         List(stringRepresentation(typeInfo))
       case None =>
-        formModelVisibilityOptics.formModel.fcLookup.collect {
-          case (formCompId, _) if formCompId.baseComponentId === fcId.baseComponentId =>
-            evalChoiceAsString(formCompId, getTypeInfo(FormCtx(formCompId)), markDown)
-        }.toList
+        fcId.modelComponentId.maybeIndex match {
+          case Some(_) => List.empty
+          case None =>
+            formModelVisibilityOptics.formModel.fcLookup.collect {
+              case (formCompId, _) if formCompId.baseComponentId === fcId.baseComponentId =>
+                evalChoiceAsString(formCompId, getTypeInfo(FormCtx(formCompId)), markDown)
+            }.toList
+        }
     }
 
   private def evalChoiceAsString(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): String =
