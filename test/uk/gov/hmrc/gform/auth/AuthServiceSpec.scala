@@ -19,18 +19,19 @@ package uk.gov.hmrc.gform.auth
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.{ Assistant, ConfidenceLevel, CredentialRole, Enrolment, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, ExampleData, LangADT, LocalisedString }
-import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
+import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg, _ }
+import uk.gov.hmrc.gform.models.userdetails.Nino
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
+import scala.Function.const
 import scala.concurrent.Future
-import Function.const
 import scala.concurrent.duration.{ FiniteDuration, SECONDS }
 
 class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChecks {
@@ -66,16 +67,18 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   private def materialisedRetrievalsBuilder(
     affinityGroup: AffinityGroup,
     enrolments: Enrolments,
-    credentialRole: Option[CredentialRole]
+    credentialRole: Option[CredentialRole],
+    maybeNino: Option[Nino] = None,
+    maybeConfidenceLevel: Option[ConfidenceLevel] = None
   ) =
     AuthenticatedRetrievals(
       governmentGatewayId,
       enrolments,
       affinityGroup,
       "TestGroupId",
-      None,
+      maybeNino,
       OtherRetrievals.empty,
-      ConfidenceLevel.L50,
+      maybeConfidenceLevel.getOrElse(ConfidenceLevel.L50),
       credentialRole
     )
 
@@ -100,6 +103,19 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       Enrolments(Set(Enrolment("HMRC-AS-AGENT"))),
       None
     )
+
+  val materialisedRetrievalsIndividualWithSA =
+    materialisedRetrievalsBuilder(
+      Individual,
+      Enrolments(Set(Enrolment("IR-SA"))),
+      None
+    )
+
+  val materialisedRetrievalsIndividualCL200 =
+    materialisedRetrievalsBuilder(Individual, enrolments, None, None, Some(ConfidenceLevel.L200))
+
+  val materialisedRetrievalsIndividualCL200WithNino =
+    materialisedRetrievalsBuilder(Individual, enrolments, None, Some(Nino("AB123456C")), Some(ConfidenceLevel.L200))
 
   val materialisedRetrievalsOrganisation =
     materialisedRetrievalsBuilder(uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation, enrolments, None)
@@ -151,6 +167,15 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
 
   val ggAuthorisedSuccessful = factory(AuthSuccessful(materialisedRetrievals, Role.Customer))
   val ggAuthorisedSuccessfulIndividual = factory(AuthSuccessful(materialisedRetrievalsIndividual, Role.Customer))
+  val ggAuthorisedSuccessfulIndividualWithSA = factory(
+    AuthSuccessful(materialisedRetrievalsIndividualWithSA, Role.Customer)
+  )
+  val ggAuthorisedSuccessfulIndividualCL200 = factory(
+    AuthSuccessful(materialisedRetrievalsIndividualCL200, Role.Customer)
+  )
+  val ggAuthorisedSuccessfulIndividualCL200WithNino = factory(
+    AuthSuccessful(materialisedRetrievalsIndividualCL200WithNino, Role.Customer)
+  )
   val ggAuthorisedSuccessfulOrganisation = factory(AuthSuccessful(materialisedRetrievalsOrganisation, Role.Customer))
   val ggAuthorisedSuccessfulAgent = factory(AuthSuccessful(materialisedRetrievalsAgent, Role.Customer))
   val ggAuthorisedSuccessfulEnrolledAgent = factory(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
@@ -170,6 +195,10 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
       DoCheck(Always, RequireEnrolment(enrolmentSection, NoAction), RegimeIdCheck(RegimeId("AB"))),
       enrolmentOutcomes
     )
+
+  val ivUpliftRedirect = AuthRedirect(
+    "/mdtp/uplift?origin=gForm&completionURL=%2Fnew-form%2Faaa999&failureURL=%2Fidentity-verification%2Ffailure%2Faaa999&confidenceLevel=200"
+  )
 
   val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuthNoCheck)
   val formTemplateAgentDenied = buildFormTemplate.copy(authConfig = authConfigAgentDenied)
@@ -192,13 +221,29 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     LocalisedString(Map(LangADT.En -> "test")),
     RequireMTDAgentEnrolment,
     "200",
-    true
+    allowOrganisations = true,
+    allowSAIndividuals = false
   )
   val authConfigHmrcVerifiedAnyAgent = HmrcVerified(
     LocalisedString(Map(LangADT.En -> "test")),
     AllowAnyAgentAffinityUser,
     "200",
-    true
+    allowOrganisations = true,
+    allowSAIndividuals = false
+  )
+  val authConfigHmrcVerifiedAllowSAIndividuals = HmrcVerified(
+    LocalisedString(Map(LangADT.En -> "test")),
+    DenyAnyAgentAffinityUser,
+    "200",
+    allowOrganisations = false,
+    allowSAIndividuals = true
+  )
+  val authConfigHmrcVerifiedAllowOrganisations = HmrcVerified(
+    LocalisedString(Map(LangADT.En -> "test")),
+    DenyAnyAgentAffinityUser,
+    "200",
+    allowOrganisations = true,
+    allowSAIndividuals = false
   )
 
   val authService = new AuthService(appConfig)
@@ -405,6 +450,87 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
         None
       )
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
+  }
+
+  it should "authorize GG-authenticated CL200 Individual with hmrcVerified with a NINO" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulIndividualCL200WithNino,
+        None
+      )
+
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividualCL200WithNino, Role.Customer))
+  }
+
+  it should "redirect to IV uplift GG-authenticated CL200 Individual with hmrcVerified and no NINO" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulIndividualCL200,
+        None
+      )
+
+    result.futureValue should be(ivUpliftRedirect)
+  }
+
+  it should "redirect to IV uplift GG-authenticated CL50 Individual with hmrcVerified and allowSAIndividuals set to false" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessful,
+        None
+      )
+
+    result.futureValue should be(ivUpliftRedirect)
+  }
+
+  it should "authorize GG-authenticated CL50 Individual with hmrcVerified and allowSAIndividuals set to true" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext
+          .basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAllowSAIndividuals), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulIndividualWithSA,
+        None
+      )
+
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividualWithSA, Role.Customer))
+  }
+
+  it should "authorize GG-authenticated Organisation with hmrcVerified and allowOrganisations set to true" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext
+          .basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAllowOrganisations), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulOrganisation,
+        None
+      )
+
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsOrganisation, Role.Customer))
+  }
+
+  it should "block GG-authenticated Organisation with hmrcVerified and allowOrganisations set to false" in {
+    val result =
+      authService.authenticateAndAuthorise(
+        FormTemplateContext
+          .basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAllowSAIndividuals), None),
+        getAffinityGroup,
+        getGovernmentGatewayId,
+        ggAuthorisedSuccessfulOrganisation,
+        None
+      )
+
+    result.futureValue should be(AuthBlocked("Organisations cannot access this form"))
   }
 
   forAll(taxTypeTable) { (enrolment, serviceName, identifiers, value) =>

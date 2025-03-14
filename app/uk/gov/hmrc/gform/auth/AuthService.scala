@@ -70,9 +70,9 @@ class AuthService(
           .pure[Future]
       case AWSALBAuth => performAWSALBAuth(assumedIdentity).pure[Future]
       case HmrcAny    => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
-      case HmrcVerified(_, agentAccess, minimumCL, allowOrganisations) =>
+      case HmrcVerified(_, agentAccess, minimumCL, allowOrganisations, allowSAIndividuals) =>
         performGGAuth(ggAuthorised(RecoverAuthResult.noop)).map(authResult =>
-          isHmrcVerified(authResult, formTemplate, agentAccess, minimumCL, allowOrganisations)
+          isHmrcVerified(authResult, formTemplate, agentAccess, minimumCL, allowOrganisations, allowSAIndividuals)
         )
       case HmrcSimpleModule => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -331,22 +331,27 @@ class AuthService(
     formTemplate: FormTemplate,
     agentAccess: AgentAccess,
     minimumCL: String,
-    allowOrganisations: Boolean
+    allowOrganisations: Boolean,
+    allowSAIndividuals: Boolean
   ): AuthResult =
     authResult match {
       case AuthSuccessful(
-            AuthenticatedRetrievals(_, _, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel, _),
+            AuthenticatedRetrievals(_, enrolments, AffinityGroup.Individual, _, maybeNino, _, confidenceLevel, _),
             _
           ) if maybeNino.isEmpty || confidenceLevel.level < Try(minimumCL.toInt).getOrElse(0) =>
-        logger.info(
-          s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
-        )
-        val codec = new URLCodec("UTF-8")
-        val completionUrl = codec.encode(gform.routes.NewFormController.dashboard(formTemplate._id).url)
-        val failureUrl = codec.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url)
-        AuthRedirect(
-          s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
-        )
+        if (allowSAIndividuals && enrolments.getEnrolment("IR-SA").isDefined) {
+          authResult
+        } else {
+          logger.info(
+            s"Redirect to IV journey - nino: ${maybeNino.map(_ => "non-empty").getOrElse("empty")}, confidenceLevel: ${confidenceLevel.level}"
+          )
+          val codec = new URLCodec("UTF-8")
+          val completionUrl = codec.encode(gform.routes.NewFormController.dashboard(formTemplate._id).url)
+          val failureUrl = codec.encode(gform.routes.IdentityVerificationController.failure(formTemplate._id).url)
+          AuthRedirect(
+            s"/mdtp/uplift?origin=gForm&completionURL=$completionUrl&failureURL=$failureUrl&confidenceLevel=$minimumCL"
+          )
+        }
       case AuthSuccessful(AuthenticatedRetrievals(_, enrolments, AffinityGroup.Organisation, _, _, _, _, _), _)
           if !allowOrganisations =>
         logger.info(s"Organisations cannot access this form - ${formTemplate._id.value}")
