@@ -23,7 +23,6 @@ import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -83,12 +82,9 @@ class ObjectStoreAdminController(
 
   }
 
-  def objectStoreContent(
-    envelopeId: EnvelopeId,
-    destination: SdesDestination
-  ) = Action.async { request =>
+  def objectStoreContent(envelopeId: EnvelopeId) = Action.async { request =>
     withValidToken(request) {
-      s"/objects/gform/${destination.viewPath}envelopes/${envelopeId.value}"
+      "/objects/gform/envelopes/" + envelopeId.value
     }
   }
 }
