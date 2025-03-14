@@ -1002,8 +1002,9 @@ case class EvaluationResults(
     (evaluateDateExpr(dateExpr1), evaluateDateExpr(dateExpr2)) match {
       case (Some(value1), Some(value2)) =>
         measurementType match {
-          case MeasurementType.Days  => NumberResult(java.time.temporal.ChronoUnit.DAYS.between(value1, value2))
-          case MeasurementType.Weeks => NumberResult(java.time.temporal.ChronoUnit.WEEKS.between(value1, value2))
+          case MeasurementType.Days => NumberResult(java.time.temporal.ChronoUnit.DAYS.between(value1, value2) + 1)
+          case MeasurementType.Weeks =>
+            NumberResult((java.time.temporal.ChronoUnit.DAYS.between(value1, value2) + 1) / 7)
         }
       case _ => ExpressionResult.Empty
     }
