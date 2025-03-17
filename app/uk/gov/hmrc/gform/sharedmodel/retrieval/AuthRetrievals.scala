@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.form
+package uk.gov.hmrc.gform.sharedmodel.retrieval
 
+import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
-case class EnvelopeId(value: String)
+case class AuthRetrievals(
+  _id: EnvelopeId,
+  materialisedRetrievals: JsValue
+)
 
-object EnvelopeId {
-  implicit val format: OFormat[EnvelopeId] = ValueClassFormat.oformat("envelopeId", EnvelopeId.apply, _.value)
-  val oformat: OFormat[EnvelopeId] = ValueClassFormat.oformat("_id", EnvelopeId.apply, _.value)
+object AuthRetrievals {
+  def fromCache(cache: AuthCacheWithForm): AuthRetrievals =
+    apply(
+      _id = cache.form.envelopeId,
+      Json.toJson(cache.retrievals)
+    )
+
+  implicit val format: OFormat[AuthRetrievals] = derived.oformat()
 }

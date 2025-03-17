@@ -38,9 +38,10 @@ import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
+import uk.gov.hmrc.gform.sharedmodel.retrieval.AuthRetrievals
 import uk.gov.hmrc.gform.submission.Submission
-import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.testonly.snapshot._
+import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
@@ -720,4 +721,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val url = s"$baseUrl/translation/${formTemplateId.value}/breakdown"
     ws.GET[EnTextBreakdowns](url)
   }
+
+  def upsertAuthRetrievals(
+    retrievals: AuthRetrievals
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+    ws.POST[AuthRetrievals, HttpResponse](s"$baseUrl/retrieval", retrievals)
+      .map(_ => ())
 }
