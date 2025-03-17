@@ -119,7 +119,7 @@ class FormValidator(implicit ec: ExecutionContext) {
           postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
                                        cache.thirdPartyData.addressIsConfirmed(formComponent.id)
                                      }
-        } yield (acc match {
+        } yield acc match {
           case None =>
             if (
               hasBeenVisited &&
@@ -128,8 +128,13 @@ class FormValidator(implicit ec: ExecutionContext) {
               !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver)
             ) None
             else Some(currentSn)
-          case otherwise => otherwise
-        })
+          case otherwise =>
+            val isCurrentSection = maybeSectionNumber.contains(currentSn)
+            if (isCurrentSection && !isValid)
+              maybeSectionNumber
+            else
+              otherwise
+        }
       }
   }
 
@@ -202,7 +207,7 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (None, SectionOrSummary.FormSummary, _)    => SectionOrSummary.FormSummary
             case (None, SectionOrSummary.TaskSummary, _)    => SectionOrSummary.TaskSummary
             case (None, SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)
-            case (Some(yesTo), _, Some(sn)) if yesTo == sn  => SectionOrSummary.Section(yesTo)
+            case (Some(yesTo), _, Some(sn)) if yesTo <= sn  => SectionOrSummary.Section(yesTo)
             case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
               nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.FormSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>
