@@ -16,18 +16,22 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import play.api.libs.json.{ JsNumber, Json }
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, EmailRetrievals, MaterialisedRetrievals, VerifyRetrievals }
+import cats.data.NonEmptyList
+import julienrf.json.derived
+import play.api.libs.json.{ Format, JsNumber, Json }
+import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
-import uk.gov.hmrc.gform.objectStore.File
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.objectStore.File
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
@@ -178,9 +182,73 @@ trait AuditService {
       "UserId"         -> form.userId.value,
       "CustomerId"     -> customerId.id,
       "UserValues"     -> userValues,
+      "UserAddresses"  -> getUserAddresses(form.thirdPartyData),
       "UserInfo"       -> userInfo,
       "SubmissionRef"  -> SubmissionRef(form.envelopeId).value
     ) ++ envelopeFilesJsObj
+  }
+
+  private def getUserAddresses(thirdPartyData: ThirdPartyData): Map[String, AuditAddress] = {
+    import scala.language.implicitConversions
+    implicit def toOpt(str: String): Option[String] = Option.unless(str.isBlank)(str)
+
+    def auditAddressFromEntered(formData: Option[FormData], maybeUprn: Option[String]) = {
+      def get(pattern: String): String =
+        formData
+          .flatMap(_.fields.find(ff => ff.id.toFormComponentId.value.contains(pattern)).map(_.value))
+          .getOrElse("")
+
+      val country: String = if (get("-uk") == "true") "United Kingdom" else get("-country")
+
+      AuditAddress(
+        get("-street1"),
+        get("-street2"),
+        get("-street3"),
+        get("-street4"),
+        get("postcode"),
+        get("town"),
+        country,
+        maybeUprn
+      )
+    }
+
+    def auditAddressFromLookup(lookupAddress: AddressRecord) =
+      AuditAddress(
+        lookupAddress.address.line1,
+        lookupAddress.address.line2,
+        lookupAddress.address.line3,
+        lookupAddress.address.line4,
+        lookupAddress.address.postcode,
+        lookupAddress.address.town,
+        lookupAddress.address.country.name,
+        lookupAddress.uprn.map(_.toString)
+      )
+
+    def getAddressUprn(thirdPartyData: ThirdPartyData, fc: FormComponentId, addressId: String): Option[String] = {
+      val maybeAddresses: Option[NonEmptyList[AddressRecord]] =
+        thirdPartyData.postcodeLookup.flatMap(_.get(fc)).map(_.response).flatMap(_.addresses)
+      maybeAddresses.flatMap(_.find(addr => addr.id == addressId).flatMap(found => found.uprn.map(_.toString)))
+    }
+
+    val confirmedAddresses: Set[FormComponentId] = thirdPartyData.confirmedAddresses.getOrElse(Set.empty)
+    val selectedAddresses: Map[FormComponentId, String] = thirdPartyData.selectedAddresses.getOrElse(Map.empty)
+    val enteredAddresses: Map[FormComponentId, FormData] = thirdPartyData.enteredAddresses.getOrElse(Map.empty)
+
+    confirmedAddresses.map { fc =>
+      if (enteredAddresses.contains(fc)) {
+        // Need to get address from entered addresses
+        val maybeUprn: Option[String] =
+          selectedAddresses.get(fc).flatMap(addressId => getAddressUprn(thirdPartyData, fc, addressId))
+        fc.value -> auditAddressFromEntered(enteredAddresses.get(fc), maybeUprn)
+      } else {
+        // Need to get address from postcode lookup response
+        val maybeResponseAddresses: Option[NonEmptyList[AddressRecord]] =
+          thirdPartyData.postcodeLookup.flatMap(_.get(fc)).map(_.response).flatMap(_.addresses)
+        val addressResult: Option[AddressRecord] =
+          maybeResponseAddresses.flatMap(_.find(_.id == selectedAddresses.getOrElse(fc, "")))
+        fc.value -> addressResult.map(auditAddressFromLookup).getOrElse(AuditAddress.empty)
+      }
+    }.toMap
   }
 
   def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(implicit
@@ -206,4 +274,20 @@ trait AuditService {
         "formData"    -> formString
       )
     )
+}
+
+case class AuditAddress(
+  addressLine1: String,
+  addressLine2: Option[String],
+  addressLine3: Option[String],
+  addressLine4: Option[String],
+  postCode: String,
+  town: Option[String],
+  country: Option[String],
+  uprn: Option[String]
+)
+
+object AuditAddress {
+  implicit val format: Format[AuditAddress] = derived.oformat()
+  def empty = AuditAddress("", None, None, None, "", None, None, None)
 }
