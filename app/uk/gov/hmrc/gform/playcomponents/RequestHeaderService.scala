@@ -16,22 +16,44 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
+import cats.implicits.catsSyntaxEq
+import play.api.cache.caffeine.CaffeineCacheApi
 import play.api.mvc.RequestHeader
+import uk.gov.hmrc.gform.gform.FormTemplateCacheConfig
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateContext, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 final class RequestHeaderService(
-  gformConnector: GformConnector
+  gformConnector: GformConnector,
+  formTemplateContextCache: CaffeineCacheApi,
+  formTemplateCacheConfig: FormTemplateCacheConfig
 )(implicit ec: ExecutionContext) {
 
   def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] =
     RequestFormTemplateId.formTemplateId(rh) match {
       case Some(FormTemplateId(formTemplateId)) =>
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
-        gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase)).map(Some(_))
+        for {
+          formTemplateContext <-
+            if (formTemplateCacheConfig.enabled) {
+              formTemplateContextCache
+                .getOrElseUpdate[FormTemplateContext]("formTemplateContext", formTemplateCacheConfig.expiry) {
+                  gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase))
+                }
+                .map(Some(_))
+            } else {
+              gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase)).map(Some(_))
+            }
+          formTemplateBehavior <- if (rh.method === "GET")
+                                    gformConnector.getFormTemplateBehavior(FormTemplateId(formTemplateId))
+                                  else Future.successful(FormTemplateBehavior.empty)
+        } yield formTemplateContext.map(
+          _.copy(shutter = formTemplateBehavior.shutter, notificationBanner = formTemplateBehavior.notificationBanner)
+        )
       case None => Future.successful(None)
     }
 }

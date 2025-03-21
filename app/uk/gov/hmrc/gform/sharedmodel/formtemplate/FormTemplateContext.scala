@@ -36,3 +36,10 @@ object FormTemplateContext {
     FormTemplateContext(formTemplate, specimenSource, Option.empty[FormTemplateId])
   implicit val format: OFormat[FormTemplateContext] = derived.oformat()
 }
+
+final case class FormTemplateBehavior(shutter: Option[Shutter], notificationBanner: Option[NotificationBanner])
+
+object FormTemplateBehavior {
+  val empty: FormTemplateBehavior = FormTemplateBehavior(None, None)
+  implicit val format: OFormat[FormTemplateBehavior] = derived.oformat()
+}

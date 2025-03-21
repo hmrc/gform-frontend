@@ -19,14 +19,12 @@ package uk.gov.hmrc.gform.it.stubs
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.gform.it.sample.FormTemplateSample
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContext
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateBehavior, FormTemplateContext, FormTemplateId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, UserId }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import org.typelevel.ci._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 trait GFormStubs extends FormTemplateSample {
 
@@ -35,6 +33,13 @@ trait GFormStubs extends FormTemplateSample {
       WireMock
         .get(s"/gform/formtemplates-with-redirects/${formTemplate._id.value}")
         .willReturn(ok(JsonUtils.toJsonStr(FormTemplateContext.basicContext(formTemplate, None))))
+    )
+
+  def gformFormTemplateBehaviourStub(formTemplateId: FormTemplateId) =
+    stubFor(
+      WireMock
+        .get(s"/gform/formtemplates/${formTemplateId.value}/behavior")
+        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateBehavior.empty)))
     )
 
   def gformLatestFormTemplateStub(formTemplate: FormTemplate) =
