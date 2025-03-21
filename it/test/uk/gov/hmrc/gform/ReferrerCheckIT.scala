@@ -40,6 +40,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
         )
       )
     )
+    gformFormTemplateBehaviourStub(formTemplateAuthAnonymous._id)
 
     When("I request for a new form without 'Referer' header")
     val newFormResponse = get("/submissions/new-form/form-template-anonymous").send()
@@ -64,6 +65,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
         )
       )
     )
+    gformFormTemplateBehaviourStub(formTemplateAuthAnonymous._id)
 
     When("I request for a new form with wrong 'Referer' header")
     val newFormResponse =
@@ -89,6 +91,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
         )
       )
     )
+    gformFormTemplateBehaviourStub(formTemplateAuthAnonymous._id)
     gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
     getEnvelopeStub()
@@ -118,6 +121,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
         )
       )
     )
+    gformFormTemplateBehaviourStub(formTemplateAuthAnonymous._id)
     gformLatestFormTemplateStub(formTemplateAuthAnonymous)
     gformFormStub(formTemplateAuthAnonymous)
     getEnvelopeStub()

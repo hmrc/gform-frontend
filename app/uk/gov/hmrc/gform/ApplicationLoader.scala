@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.controllers.{ CSRFErrorHandler, ControllersModule, ErrR
 import _root_.controllers.AssetsComponents
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
+import play.api.cache.caffeine.{ CaffeineCacheApi, CaffeineCacheManager }
 import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
@@ -216,7 +217,10 @@ class ApplicationModule(context: Context)
     hmrcSessionCookieBaker
   )
 
-  private val requestHeaderService = new RequestHeaderService(gformBackendModule.gformConnector)
+  private val cacheManager = new CaffeineCacheManager(configModule.typesafeConfig, actorSystem)
+  private val cacheApi = new CaffeineCacheApi(cacheManager.getCache[Any, Any]("cacheFormTemplate"))
+  private val requestHeaderService =
+    new RequestHeaderService(gformBackendModule.gformConnector, cacheApi, configModule.formTemplateCacheConfig)
 
   val errorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,

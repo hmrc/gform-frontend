@@ -28,6 +28,7 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'userResearchUrl'")
     gformFormTemplateStub(formTemplateEmailAuth)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
@@ -51,6 +52,7 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template without 'userResearchUrl'")
     gformFormTemplateStub(formTemplateEmailAuthWithoutUserResearchUrl)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuthWithoutUserResearchUrl._id)
 
     When("I request for a new form")
     val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
