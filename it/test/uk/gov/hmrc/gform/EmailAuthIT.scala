@@ -34,6 +34,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
@@ -65,6 +66,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuthWithOptionalDetails._id)
 
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
@@ -96,6 +98,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
@@ -139,6 +142,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuthWithOptionalDetails._id)
 
     And("Gform get form returns 404 not found")
     gformFormNotFoundStub(formTemplateEmailAuth)
@@ -182,6 +186,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuth)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
     Given("I have a form template with latest version")
     gformLatestFormTemplateStub(formTemplateEmailAuth)
@@ -225,6 +230,7 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
     Given("I have a form template with 'email' auth")
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuthWithOptionalDetails._id)
 
     And("Gform get form returns 200 OK")
     gformFormStub(formTemplateEmailAuth)
