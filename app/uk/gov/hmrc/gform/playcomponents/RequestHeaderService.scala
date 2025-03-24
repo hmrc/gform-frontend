@@ -41,7 +41,7 @@ final class RequestHeaderService(
           formTemplateContext <-
             if (formTemplateCacheConfig.enabled) {
               formTemplateContextCache
-                .getOrElseUpdate[FormTemplateContext]("formTemplateContext", formTemplateCacheConfig.expiry) {
+                .getOrElseUpdate[FormTemplateContext](formTemplateId.toLowerCase, formTemplateCacheConfig.expiry) {
                   gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase))
                 }
                 .map(Some(_))
