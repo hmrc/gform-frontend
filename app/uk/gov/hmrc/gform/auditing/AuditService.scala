@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.gform.CustomerId
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.File
@@ -46,8 +46,6 @@ trait AuditService {
     import scala.language.implicitConversions
     implicit def toOpt(str: String): Option[String] = Option.unless(str.isBlank)(str)
 
-    val unitedKingdom: String = "United Kingdom"
-
     def getValueMap(components: List[FormComponent]): Map[String, String] = components
       .flatMap(_.multiValueId.toModelComponentIds)
       .flatMap { modelComponentId =>
@@ -60,16 +58,16 @@ trait AuditService {
 
     def getAddressMap(addressComponents: List[FormComponent]) = {
       def getThirdPartyDataAddresses: Map[String, AuditAddress] = {
-        def auditAddressFromEntered(formData: Option[FormData], maybeUprn: Option[String]): AuditAddress = {
+        def fromEntered(maybeFormData: Option[FormData], maybeUprn: Option[String]): AuditAddress = {
           def findByAtom(atom: String): String =
-            formData
-              .flatMap { fd =>
-                fd.toData.find { case (mcId, _) => mcId.isAtomic(atom) }
+            maybeFormData
+              .flatMap { formData =>
+                formData.toData.find { case (mcId, _) => mcId.isAtomic(atom) }
               }
               .map { case (_, value) => value }
               .getOrElse("")
 
-          val country: String = if (findByAtom("uk") == "true") unitedKingdom else findByAtom("country")
+          val country: String = AuditAddress.determineCountry(findByAtom("uk"), findByAtom("country"))
 
           AuditAddress(
             findByAtom("street1"),
@@ -83,7 +81,7 @@ trait AuditService {
           )
         }
 
-        def auditAddressFromLookup(lookupAddress: AddressRecord): AuditAddress =
+        def fromLookup(lookupAddress: AddressRecord): AuditAddress =
           AuditAddress(
             lookupAddress.address.line1,
             lookupAddress.address.line2,
@@ -95,9 +93,9 @@ trait AuditService {
             lookupAddress.uprn.map(_.toString)
           )
 
-        def getUprn(thirdPartyData: ThirdPartyData, fc: FormComponentId, addressId: String): Option[String] = {
+        def findUprn(fcId: FormComponentId, addressId: String): Option[String] = {
           val maybeAddresses: Option[NonEmptyList[AddressRecord]] =
-            thirdPartyData.postcodeLookup.flatMap(_.get(fc)).map(_.response).flatMap(_.addresses)
+            thirdPartyData.postcodeLookup.flatMap(_.get(fcId)).map(_.response).flatMap(_.addresses)
           maybeAddresses.flatMap(_.find(addr => addr.id == addressId).flatMap(found => found.uprn.map(_.toString)))
         }
 
@@ -105,19 +103,22 @@ trait AuditService {
         val selectedAddresses: Map[FormComponentId, String] = thirdPartyData.selectedAddresses.getOrElse(Map.empty)
         val enteredAddresses: Map[FormComponentId, FormData] = thirdPartyData.enteredAddresses.getOrElse(Map.empty)
 
-        confirmedAddresses.map { fc =>
-          if (enteredAddresses.contains(fc)) {
-            // Need to get address from entered addresses
-            val maybeUprn: Option[String] =
-              selectedAddresses.get(fc).flatMap(addressId => getUprn(thirdPartyData, fc, addressId))
-            fc.value -> auditAddressFromEntered(enteredAddresses.get(fc), maybeUprn)
+        confirmedAddresses.map { fcId =>
+          if (enteredAddresses.contains(fcId)) {
+            val maybeUprn: Option[String] = selectedAddresses.get(fcId).flatMap(addressId => findUprn(fcId, addressId))
+
+            fcId.modelComponentId.toMongoIdentifier -> fromEntered(enteredAddresses.get(fcId), maybeUprn)
           } else {
-            // Need to get address from postcode lookup response
-            val maybeResponseAddresses: Option[NonEmptyList[AddressRecord]] =
-              thirdPartyData.postcodeLookup.flatMap(_.get(fc)).map(_.response).flatMap(_.addresses)
-            val addressResult: Option[AddressRecord] =
-              maybeResponseAddresses.flatMap(_.find(_.id == selectedAddresses.getOrElse(fc, "")))
-            fc.value -> addressResult.map(auditAddressFromLookup).getOrElse(AuditAddress.empty)
+            val maybeAddressList: Option[NonEmptyList[AddressRecord]] =
+              thirdPartyData.postcodeLookup
+                .flatMap(_.get(fcId))
+                .map(_.response)
+                .flatMap(_.addresses)
+
+            val maybeAddress: Option[AddressRecord] =
+              maybeAddressList.flatMap(_.find(_.id == selectedAddresses.getOrElse(fcId, "")))
+
+            fcId.modelComponentId.toMongoIdentifier -> maybeAddress.map(fromLookup).getOrElse(AuditAddress.empty)
           }
         }.toMap
       }
@@ -134,7 +135,7 @@ trait AuditService {
           result.map { case (_, value) => value.toSeq.mkString(" ") }.getOrElse("")
         }
 
-        val country: String = if (findByAtom("uk") == "true") unitedKingdom else findByAtom("country")
+        val country: String = AuditAddress.determineCountry(findByAtom("uk"), findByAtom("country"))
 
         AuditAddress(
           findByAtom("street1", Some("line1")),
@@ -154,11 +155,14 @@ trait AuditService {
           formModelVisibilityOptics.data.get(modelComponentId).map(modelComponentId -> _)
         }
 
-      val groupedAddressValues = addressOnlyValues.groupMap(_._1.indexedComponentId)(values => values)
+      val groupedAddressValues: Map[IndexedComponentId, List[(ModelComponentId, VariadicValue)]] =
+        addressOnlyValues.groupBy(_._1.indexedComponentId)
 
-      groupedAddressValues.map { case (_, listOfValues) =>
-        listOfValues.head._1.toMongoIdentifier -> toAuditAddress(listOfValues)
-      } ++ getThirdPartyDataAddresses
+      val addressesFromComponents: Map[String, AuditAddress] = groupedAddressValues.map { case (_, variadicValues) =>
+        variadicValues.head._1.toMongoIdentifier -> toAuditAddress(variadicValues)
+      }
+
+      addressesFromComponents ++ getThirdPartyDataAddresses
     }
 
     val addressComponents: List[FormComponent] = formModelVisibilityOptics.allFormComponents.filter {
@@ -166,11 +170,11 @@ trait AuditService {
       case _                                   => false
     }
 
-    val componentsExcludingAddresses: List[FormComponent] =
+    val componentsExclAddresses: List[FormComponent] =
       formModelVisibilityOptics.allFormComponents.diff(addressComponents)
 
     UserValues(
-      getValueMap(componentsExcludingAddresses),
+      getValueMap(componentsExclAddresses),
       getAddressMap(addressComponents)
     )
   }
@@ -363,7 +367,7 @@ case class UserValues(
 )
 
 object UserValues {
-  lazy val empty: UserValues = UserValues(Map.empty, Map.empty)
+  lazy final val empty: UserValues = UserValues(Map.empty, Map.empty)
 }
 
 case class AuditAddress(
@@ -378,7 +382,10 @@ case class AuditAddress(
 
 object AuditAddress {
   implicit val format: Format[AuditAddress] = Json.format[AuditAddress]
-  lazy val empty: AuditAddress = AuditAddress("", None, None, None, "", None, None)
+  lazy final val empty: AuditAddress = AuditAddress("", None, None, None, "", None, None)
+  private lazy final val UNITED_KINGDOM: String = "United Kingdom"
+
+  def determineCountry(isUk: String, country: String): String = if (isUk == "true") UNITED_KINGDOM else country
 
   def apply(
     al1: String,
