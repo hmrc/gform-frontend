@@ -37,19 +37,16 @@ final class RequestHeaderService(
     RequestFormTemplateId.formTemplateId(rh) match {
       case Some(FormTemplateId(formTemplateId)) =>
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
+        val lowerCaseFormTemplateId = FormTemplateId(formTemplateId.toLowerCase)
         for {
           formTemplateContext <-
-            if (formTemplateCacheConfig.enabled) {
-              formTemplateContextCache
-                .getOrElseUpdate[FormTemplateContext](formTemplateId.toLowerCase, formTemplateCacheConfig.expiry) {
-                  gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase))
-                }
-                .map(Some(_))
-            } else {
-              gformConnector.getFormTemplateContext(FormTemplateId(formTemplateId.toLowerCase)).map(Some(_))
-            }
+            formTemplateContextCache
+              .getOrElseUpdate[FormTemplateContext](lowerCaseFormTemplateId.value, formTemplateCacheConfig.expiry) {
+                gformConnector.getFormTemplateContext(lowerCaseFormTemplateId)
+              }
+              .map(Some(_))
           formTemplateBehavior <- if (rh.method === "GET")
-                                    gformConnector.getFormTemplateBehavior(FormTemplateId(formTemplateId))
+                                    gformConnector.getFormTemplateBehavior(lowerCaseFormTemplateId)
                                   else Future.successful(FormTemplateBehavior.empty)
         } yield formTemplateContext.map(
           _.copy(shutter = formTemplateBehavior.shutter, notificationBanner = formTemplateBehavior.notificationBanner)

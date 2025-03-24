@@ -22,7 +22,6 @@ import play.api.mvc.Result
 import play.api.mvc.Results.{ Ok, Redirect }
 import uk.gov.hmrc.gform.auth.{ Identifier, Verifier }
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -37,8 +36,7 @@ class EnrolmentResultProcessor(
   formTemplate: FormTemplate,
   retrievals: MaterialisedRetrievals,
   enrolmentSection: EnrolmentSection,
-  formModelOptics: FormModelOptics[DataOrigin.Mongo],
-  frontendAppConfig: FrontendAppConfig
+  formModelOptics: FormModelOptics[DataOrigin.Mongo]
 ) {
 
   def recoverEnrolmentError(

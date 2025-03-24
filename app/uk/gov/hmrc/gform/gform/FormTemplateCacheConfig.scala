@@ -18,6 +18,6 @@ package uk.gov.hmrc.gform.gform
 
 import scala.concurrent.duration.FiniteDuration
 
-case class FormTemplateCacheConfig(enabled: Boolean, expiry: FiniteDuration)
+case class FormTemplateCacheConfig(expiry: FiniteDuration)
 
 object FormTemplateCacheConfig {}

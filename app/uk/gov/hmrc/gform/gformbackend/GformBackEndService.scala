@@ -199,7 +199,6 @@ class GformBackEndService(
         dmsDestinationWithIncludeInstructionPdf(cache.formTemplate) match {
           case Some(InstructionPdfFields.Ordered) =>
             createHTMLForInstructionPDF[SectionSelectorType.Normal, D, PDFType.Instruction](
-              maybeAccessCode,
               cache,
               submissionDetails,
               formModelOptics,
@@ -207,7 +206,6 @@ class GformBackEndService(
             )
           case Some(InstructionPdfFields.All) =>
             createHTMLForInstructionPDF[SectionSelectorType.Normal, D, PDFType.Summary](
-              maybeAccessCode,
               cache,
               submissionDetails,
               formModelOptics,
@@ -247,7 +245,6 @@ class GformBackEndService(
   }
 
   private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
-    maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
     formModelOptics: FormModelOptics[D],
