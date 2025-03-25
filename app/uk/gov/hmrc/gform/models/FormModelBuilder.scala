@@ -442,10 +442,12 @@ class FormModelBuilder[E, F[_]: Functor](
         case k: AtlDescription.KeyValueBased    => k.copy(key = expand(k.key), value = expand(k.value))
       }
 
-    def expandAtlDescriptionOption(atlDescription: Option[AtlDescription]): Option[AtlDescription] =
-      atlDescription match {
-        case Some(value) => Some(expandAtlDescription(value))
-        case None        => None
+    def expandAtlDescriptionTotal(
+      descriptionTotal: Option[AtlDescription.KeyValueBased]
+    ): Option[AtlDescription.KeyValueBased] =
+      descriptionTotal match {
+        case Some(kvBased) => Some(kvBased.copy(key = expand(kvBased.key), value = expand(kvBased.value)))
+        case None          => None
       }
 
     Repeater[T](
@@ -464,7 +466,7 @@ class FormModelBuilder[E, F[_]: Functor](
       expandedFields,
       s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
       s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
-      expandAtlDescriptionOption(s.descriptionTotal)
+      expandAtlDescriptionTotal(s.descriptionTotal)
     )
   }
 

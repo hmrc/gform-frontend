@@ -988,12 +988,8 @@ class BuilderController(
       })
 
       val descriptionTotals = bracket.repeaters.map(_.expandedDescriptionTotal match {
-        case Some(value) =>
-          value match {
-            case AtlDescription.SmartStringBased(ss) => Some(Json.fromString(markDownParser(ss).toString()))
-            case AtlDescription.KeyValueBased(k, v) =>
-              Some(Json.obj("key" := markDownParser(k), "value" := markDownParser(v)))
-          }
+        case Some(kvBased) =>
+          Some(Json.obj("key" := markDownParser(kvBased.key), "value" := markDownParser(kvBased.value)))
         case None => None
       })
 

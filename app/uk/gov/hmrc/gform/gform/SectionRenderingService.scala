@@ -480,40 +480,33 @@ class SectionRenderingService(
           .exists(_ < sectionNumber)
     }
 
-//    val summaryRowsCombined: NonEmptyList[AtlDescription] =
-//      descriptionTotals.toList.flatten.lastOption.fold(descriptions)(atlDescTotal => descriptions.append(atlDescTotal))
-    val recordTable: NonEmptyList[AddToListSummaryRow] = descriptions.zipWithIndex.map { case (description, index) =>
-      description match {
-        case AtlDescription.SmartStringBased(ss) =>
-          val html = markDownParser(ss)
-          AddToListSummaryRow.ListWithActionsRow(index, html, Jsoup.parse(html.body).text(), actionButtons = true)
-        case AtlDescription.KeyValueBased(k, v) =>
-          AddToListSummaryRow.SummaryListRow(index, markDownParser(k), markDownParser(v), actionButtons = true)
-      }
+    val recordTableDescriptions: NonEmptyList[AddToListSummaryRow] = descriptions.zipWithIndex.map {
+      case (description, index) =>
+        description match {
+          case AtlDescription.SmartStringBased(ss) =>
+            val html = markDownParser(ss)
+            AddToListSummaryRow.ListWithActionsRow(index, html, Jsoup.parse(html.body).text())
+          case AtlDescription.KeyValueBased(k, v) =>
+            AddToListSummaryRow.SummaryListRow(index, markDownParser(k), markDownParser(v), actionButtons = true)
+        }
     }
 
-    val descTotalSummaryRow: Option[AddToListSummaryRow] = descriptionTotals.toList.flatten.lastOption match {
-      case Some(AtlDescription.SmartStringBased(ss)) =>
-        val html = markDownParser(ss)
-        Some(
-          AddToListSummaryRow
-            .ListWithActionsRow(recordTable.size, html, Jsoup.parse(html.body).text(), actionButtons = false)
-        )
+    val descTotalRow: Option[AddToListSummaryRow] = descriptionTotals.toList.flatten.lastOption match {
       case Some(AtlDescription.KeyValueBased(k, v)) =>
         Some(
           AddToListSummaryRow
-            .SummaryListRow(recordTable.size, markDownParser(k), markDownParser(v), actionButtons = false)
+            .SummaryListRow(recordTableDescriptions.size, markDownParser(k), markDownParser(v), actionButtons = false)
         )
       case None => None
     }
 
-    val recordTableWithDescTotal: NonEmptyList[AddToListSummaryRow] =
-      descTotalSummaryRow.fold(recordTable)(row => recordTable.append(row))
+    val recordTable: NonEmptyList[AddToListSummaryRow] =
+      descTotalRow.fold(recordTableDescriptions)(row => recordTableDescriptions.append(row))
 
-    val summaryList = recordTableWithDescTotal.collectFirst {
+    val summaryList = recordTable.collectFirst {
       case l: AddToListSummaryRow.ListWithActionsRow =>
-        val listWithActionsItems = recordTableWithDescTotal.collect {
-          case AddToListSummaryRow.ListWithActionsRow(index, name, text, actionButtons) =>
+        val listWithActionsItems = recordTable.collect {
+          case AddToListSummaryRow.ListWithActionsRow(index, name, text) =>
             val changeAction = ListWithActionsAction(
               content = content.Text(messages("addToList.change")),
               href = uk.gov.hmrc.gform.gform.routes.FormController
@@ -546,7 +539,7 @@ class SectionRenderingService(
             )
             ListWithActionsItem(
               name = HtmlContent(name),
-              actions = if (actionButtons) List(changeAction, removeAction) else Nil
+              actions = List(changeAction, removeAction)
             )
 
         }
@@ -558,7 +551,7 @@ class SectionRenderingService(
         )
 
       case s: AddToListSummaryRow.SummaryListRow =>
-        val summaryRows = recordTableWithDescTotal.collect {
+        val summaryRows = recordTable.collect {
           case AddToListSummaryRow.SummaryListRow(index, key, value, actionButtons) =>
             val changeAction = ActionItem(
               content = content.Text(messages("addToList.change")),

@@ -78,7 +78,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     None,
     None,
     None,
-    descriptionTotal = None
+    None
   )
 
   test("DependencyGraph must allow sum in ValidIf in Add To List") {

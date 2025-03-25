@@ -68,11 +68,11 @@ object Section {
     presentationHint: Option[PresentationHint],
     infoMessage: Option[SmartString],
     errorMessage: Option[SmartString],
+    descriptionTotal: Option[AtlDescription.KeyValueBased],
     defaultPage: Option[Page[Basic]] = None,
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,
-    pageIdToDisplayAfterRemove: Option[PageId] = None,
-    descriptionTotal: Option[AtlDescription]
+    pageIdToDisplayAfterRemove: Option[PageId] = None
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
@@ -110,6 +110,7 @@ object AtlDescription {
   case class KeyValueBased(key: SmartString, value: SmartString) extends AtlDescription
 
   implicit val format: OFormat[AtlDescription] = derived.oformat()
+  implicit val formatKv: OFormat[KeyValueBased] = derived.oformat()
 }
 
 case class DeclarationSection(

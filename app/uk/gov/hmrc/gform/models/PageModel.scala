@@ -139,5 +139,5 @@ case class Repeater[A <: PageMode](
   fields: Option[NonEmptyList[FormComponent]],
   repeatsUntil: Option[IncludeIf],
   repeatsWhile: Option[IncludeIf],
-  expandedDescriptionTotal: Option[AtlDescription]
+  expandedDescriptionTotal: Option[AtlDescription.KeyValueBased]
 ) extends PageModel[A]

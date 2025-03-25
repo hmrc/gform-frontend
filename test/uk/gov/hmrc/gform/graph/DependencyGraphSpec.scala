@@ -77,7 +77,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None,
     None,
     None,
-    descriptionTotal = None
+    None
   )
 
   private val emptyChoice = Choice(

@@ -155,6 +155,7 @@ trait SectionGen {
       presentationHint      <- Gen.option(PresentationHintGen.presentationHintGen)
       infoMessage           <- Gen.option(smartStringGen)
       errorMessage          <- Gen.option(smartStringGen)
+      descriptionTotal      <- smartStringGen
     } yield Section
       .AddToList(
         title,
@@ -174,7 +175,7 @@ trait SectionGen {
         presentationHint,
         infoMessage,
         errorMessage,
-        descriptionTotal = None
+        Some(AtlDescription.KeyValueBased(descriptionTotal, descriptionTotal))
       )
 
   def sectionGen: Gen[Section] = Gen.oneOf(nonRepeatingPageSectionGen, repeatingPageSectionGen)
