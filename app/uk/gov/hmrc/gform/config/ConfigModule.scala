@@ -74,7 +74,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.filter(_.trim.nonEmpty).map(email => ci"$email")))
 
   val formTemplateCacheConfig: FormTemplateCacheConfig =
-    ConfigSource.default.at("formTemplateCache").loadOrThrow[FormTemplateCacheConfig]
+    ConfigSource.default.at("caches.cacheFormTemplate").loadOrThrow[FormTemplateCacheConfig]
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
