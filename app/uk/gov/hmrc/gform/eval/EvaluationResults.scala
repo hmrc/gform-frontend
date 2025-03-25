@@ -744,11 +744,12 @@ case class EvaluationResults(
       case StringOps(expr, stringFnc) =>
         val str = loop(expr).withStringResult("")(s =>
           stringFnc match {
-            case StringFnc.Capitalize    => s.capitalize
-            case StringFnc.CapitalizeAll => s.split(' ').map(_.capitalize).mkString(" ")
-            case StringFnc.LowerCase     => s.toLowerCase
-            case StringFnc.UpperCase     => s.toUpperCase
-            case StringFnc.RemoveSpaces  => s.replaceAll(" ", "")
+            case StringFnc.Capitalize     => s.capitalize
+            case StringFnc.CapitalizeAll  => s.split(' ').map(_.capitalize).mkString(" ")
+            case StringFnc.LowerCase      => s.toLowerCase
+            case StringFnc.UpperCase      => s.toUpperCase
+            case StringFnc.RemoveSpaces   => s.replaceAll(" ", "")
+            case StringFnc.LowerCaseFirst => s.headOption.map(c => s"${c.toLower}${s.tail}").getOrElse("")
             case StringFnc.SubString(beginIndex, endIndex) =>
               s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
           }
