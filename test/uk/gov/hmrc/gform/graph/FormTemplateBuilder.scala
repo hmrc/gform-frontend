@@ -86,7 +86,8 @@ object FormTemplateBuilder {
     None,
     None,
     None,
-    None
+    None,
+    descriptionTotal = None
   )
 
   def mkAddToListSection(
@@ -113,7 +114,8 @@ object FormTemplateBuilder {
       None,
       None,
       None,
-      cyaPage
+      cyaPage,
+      descriptionTotal = None
     )
 
   def mkRepeatingPageSection(formComponents: List[FormComponent]): Section.RepeatingPage =

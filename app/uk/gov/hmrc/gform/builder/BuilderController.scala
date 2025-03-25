@@ -987,12 +987,23 @@ class BuilderController(
           Json.obj("key" := markDownParser(k), "value" := markDownParser(v))
       })
 
+      val descriptionTotals = bracket.repeaters.map(_.expandedDescriptionTotal match {
+        case Some(value) =>
+          value match {
+            case AtlDescription.SmartStringBased(ss) => Some(Json.fromString(markDownParser(ss).toString()))
+            case AtlDescription.KeyValueBased(k, v) =>
+              Some(Json.obj("key" := markDownParser(k), "value" := markDownParser(v)))
+          }
+        case None => None
+      })
+
       val pageHeading: Html = uk.gov.hmrc.gform.views.html
         .page_heading(repeater.expandedTitle.value(), repeater.expandedCaption.map(_.value()))
 
       Json.obj(
         "pageHeading" := pageHeading,
-        "descriptions" := descriptions
+        "descriptions" := descriptions,
+        "descriptionTotals" := descriptionTotals
       )
     }
 

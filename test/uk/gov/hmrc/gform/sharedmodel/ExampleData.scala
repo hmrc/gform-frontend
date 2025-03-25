@@ -757,7 +757,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       infoMessage.map(toSmartString),
       errorMessage.map(toSmartString),
       defaultPage,
-      cyaPage
+      cyaPage,
+      descriptionTotal = None
     )
 
   def toPage(

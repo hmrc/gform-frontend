@@ -51,6 +51,13 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       ) ++ (repeater.expandedDescription match {
         case AtlDescription.SmartStringBased(ss) => fromSmartStrings(ss)
         case AtlDescription.KeyValueBased(k, v)  => fromSmartStrings(k) ++ fromSmartStrings(v)
+      }) ++ (repeater.expandedDescriptionTotal match {
+        case Some(atlDescription) =>
+          atlDescription match {
+            case AtlDescription.SmartStringBased(ss) => fromSmartStrings(ss)
+            case AtlDescription.KeyValueBased(k, v)  => fromSmartStrings(k) ++ fromSmartStrings(v)
+          }
+        case None => None
       })
 
     def fromNonRepeatingBracket(bracket: Bracket.NonRepeatingPage[A]): List[Expr] =

@@ -173,7 +173,8 @@ trait SectionGen {
         instruction,
         presentationHint,
         infoMessage,
-        errorMessage
+        errorMessage,
+        descriptionTotal = None
       )
 
   def sectionGen: Gen[Section] = Gen.oneOf(nonRepeatingPageSectionGen, repeatingPageSectionGen)

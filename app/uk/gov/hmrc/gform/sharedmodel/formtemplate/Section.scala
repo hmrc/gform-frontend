@@ -71,7 +71,8 @@ object Section {
     defaultPage: Option[Page[Basic]] = None,
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,
-    pageIdToDisplayAfterRemove: Option[PageId] = None
+    pageIdToDisplayAfterRemove: Option[PageId] = None,
+    descriptionTotal: Option[AtlDescription]
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
