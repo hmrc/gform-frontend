@@ -2909,8 +2909,8 @@ class SectionRenderingService(
       case DisplayWidth.L       => "govuk-input--width-30"
       case DisplayWidth.XL      => "govuk-input--width-40"
       case DisplayWidth.XXL     => "govuk-input--width-50"
-      case DisplayWidth.DEFAULT => "govuk-input--width-30"
-      case _                    => "govuk-input--width-30"
+      case DisplayWidth.DEFAULT => "govuk-input--width-40"
+      case _                    => "govuk-input--width-40"
     }
 
     val isPageHeading = ei.formLevelHeading
