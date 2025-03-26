@@ -17,20 +17,19 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import cats.implicits.catsSyntaxEq
-import play.api.cache.caffeine.CaffeineCacheApi
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.gform.gform.FormTemplateCacheConfig
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateContext, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateContext, FormTemplateContextCacheManager, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
+import java.time.Instant
+
 final class RequestHeaderService(
   gformConnector: GformConnector,
-  formTemplateContextCache: CaffeineCacheApi,
-  formTemplateCacheConfig: FormTemplateCacheConfig
+  formTemplateContextCacheManager: FormTemplateContextCacheManager
 )(implicit ec: ExecutionContext) {
 
   def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] =
@@ -39,12 +38,8 @@ final class RequestHeaderService(
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
         val lowerCaseFormTemplateId = FormTemplateId(formTemplateId.toLowerCase)
         for {
-          formTemplateContext <-
-            formTemplateContextCache
-              .getOrElseUpdate[FormTemplateContext](lowerCaseFormTemplateId.value, formTemplateCacheConfig.expiry) {
-                gformConnector.getFormTemplateContext(lowerCaseFormTemplateId)
-              }
-              .map(Some(_))
+          updatedAt           <- gformConnector.getFormTemplateMetadata(lowerCaseFormTemplateId).map(_.updatedAt)
+          formTemplateContext <- getFormTemplateContextIfUpdated(lowerCaseFormTemplateId, updatedAt)
           formTemplateBehavior <- if (rh.method === "GET")
                                     gformConnector.getFormTemplateBehavior(lowerCaseFormTemplateId)
                                   else Future.successful(FormTemplateBehavior.empty)
@@ -53,4 +48,21 @@ final class RequestHeaderService(
         )
       case None => Future.successful(None)
     }
+
+  private def getFormTemplateContextIfUpdated(formTemplateId: FormTemplateId, updatedAt: Instant)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[FormTemplateContext]] = {
+    val cachedContext = formTemplateContextCacheManager.getFormTemplateContext(formTemplateId, updatedAt)
+    cachedContext match {
+      case Some(cachedContext) => Future.successful(Some(cachedContext))
+      case _ =>
+        for {
+          formTemplateContext <- gformConnector.getFormTemplateContext(formTemplateId)
+        } yield {
+          formTemplateContextCacheManager.putFormTemplateContext(formTemplateContext, updatedAt)
+          Some(formTemplateContext)
+        }
+    }
+  }
 }

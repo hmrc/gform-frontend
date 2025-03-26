@@ -29,6 +29,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with referer config")
+    gformFormTemplateMetadataStub(formTemplateAuthAnonymous._id)
     gformFormTemplateStub(
       formTemplateAuthAnonymous.copy(referrerConfig =
         Some(
@@ -54,6 +55,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with referer config")
+    gformFormTemplateMetadataStub(formTemplateAuthAnonymous._id)
     gformFormTemplateStub(
       formTemplateAuthAnonymous.copy(referrerConfig =
         Some(
@@ -80,6 +82,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with referer config, form and envelope")
+    gformFormTemplateMetadataStub(formTemplateAuthAnonymous._id)
     gformFormTemplateStub(
       formTemplateAuthAnonymous.copy(referrerConfig =
         Some(
@@ -110,6 +113,7 @@ class ReferrerCheckIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with referer config, form and envelope")
+    gformFormTemplateMetadataStub(formTemplateAuthAnonymous._id)
     gformFormTemplateStub(
       formTemplateAuthAnonymous.copy(referrerConfig =
         Some(

@@ -27,6 +27,7 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
   "requesting new form with 'userResearchUrl'" should "display HMRC User Research Banner" in {
 
     Given("I have a form template with 'userResearchUrl'")
+    gformFormTemplateMetadataStub(formTemplateEmailAuth._id)
     gformFormTemplateStub(formTemplateEmailAuth)
     gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
@@ -51,6 +52,7 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
   "requesting new form without 'userResearchUrl'" should "not display HMRC User Research Banner" in {
 
     Given("I have a form template without 'userResearchUrl'")
+    gformFormTemplateMetadataStub(formTemplateEmailAuthWithoutUserResearchUrl._id)
     gformFormTemplateStub(formTemplateEmailAuthWithoutUserResearchUrl)
     gformFormTemplateBehaviourStub(formTemplateEmailAuthWithoutUserResearchUrl._id)
 

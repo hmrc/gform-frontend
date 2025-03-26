@@ -21,6 +21,8 @@ import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.shutter.Shutter
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 
+import java.time.Instant
+
 final case class FormTemplateContext(
   formTemplate: FormTemplate,
   specimenSource: Option[
@@ -42,4 +44,10 @@ final case class FormTemplateBehavior(shutter: Option[Shutter], notificationBann
 object FormTemplateBehavior {
   val empty: FormTemplateBehavior = FormTemplateBehavior(None, None)
   implicit val format: OFormat[FormTemplateBehavior] = derived.oformat()
+}
+
+final case class FormTemplateMetadata(_id: FormTemplateId, updatedAt: Instant)
+
+object FormTemplateMetadata {
+  implicit val format: OFormat[FormTemplateMetadata] = derived.oformat()
 }

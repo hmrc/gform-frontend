@@ -33,9 +33,6 @@ import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfig, ControllerConfigs, ServicesConfig }
 import org.typelevel.ci._
 import play.api.http.HttpConfiguration
-import pureconfig.generic.auto._
-import pureconfig.ConfigSource
-import uk.gov.hmrc.gform.gform.FormTemplateCacheConfig
 
 class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule) {
 
@@ -72,9 +69,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
 
   def getOptionalNonEmptyCIStringList(emails: Option[String]): Option[NonEmptyList[CIString]] =
     emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.filter(_.trim.nonEmpty).map(email => ci"$email")))
-
-  val formTemplateCacheConfig: FormTemplateCacheConfig =
-    ConfigSource.default.at("caches.cacheFormTemplate").loadOrThrow[FormTemplateCacheConfig]
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =

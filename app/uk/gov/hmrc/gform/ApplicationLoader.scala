@@ -35,7 +35,6 @@ import uk.gov.hmrc.gform.controllers.{ CSRFErrorHandler, ControllersModule, ErrR
 import _root_.controllers.AssetsComponents
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
-import play.api.cache.caffeine.{ CaffeineCacheApi, CaffeineCacheManager }
 import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
@@ -50,6 +49,7 @@ import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContextCacheManager }
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -217,10 +217,10 @@ class ApplicationModule(context: Context)
     hmrcSessionCookieBaker
   )
 
-  private val cacheManager = new CaffeineCacheManager(configModule.typesafeConfig, actorSystem)
-  private val cacheApi = new CaffeineCacheApi(cacheManager.getCache[Any, Any]("cacheFormTemplate"))
+  private val formTemplateContextCacheManager = new FormTemplateContextCacheManager()
+
   private val requestHeaderService =
-    new RequestHeaderService(gformBackendModule.gformConnector, cacheApi, configModule.formTemplateCacheConfig)
+    new RequestHeaderService(gformBackendModule.gformConnector, formTemplateContextCacheManager)
 
   val errorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,

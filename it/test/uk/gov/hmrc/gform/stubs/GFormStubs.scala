@@ -19,12 +19,14 @@ package uk.gov.hmrc.gform.it.stubs
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.gform.it.sample.FormTemplateSample
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateBehavior, FormTemplateContext, FormTemplateId, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateBehavior, FormTemplateContext, FormTemplateId, FormTemplateMetadata, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, UserId }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import org.typelevel.ci._
+
+import java.time.Instant
 
 trait GFormStubs extends FormTemplateSample {
 
@@ -33,6 +35,13 @@ trait GFormStubs extends FormTemplateSample {
       WireMock
         .get(s"/gform/formtemplates-with-redirects/${formTemplate._id.value}")
         .willReturn(ok(JsonUtils.toJsonStr(FormTemplateContext.basicContext(formTemplate, None))))
+    )
+
+  def gformFormTemplateMetadataStub(formTemplateId: FormTemplateId) =
+    stubFor(
+      WireMock
+        .get(s"/gform/formtemplates/${formTemplateId.value}/metadata")
+        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateMetadata(formTemplateId, Instant.now))))
     )
 
   def gformFormTemplateBehaviourStub(formTemplateId: FormTemplateId) =

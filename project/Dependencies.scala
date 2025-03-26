@@ -1,5 +1,4 @@
 import play.core.PlayVersion
-import play.sbt.PlayImport.caffeine
 import sbt.*
 
 object Dependencies {
@@ -48,8 +47,7 @@ object Dependencies {
     "com.fasterxml.jackson.core"       % "jackson-databind"               % jacksonDatabindVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor"        % jacksonVersion,
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names" % jacksonVersion,
-    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion,
-    caffeine
+    "com.fasterxml.jackson.module"    %% "jackson-module-scala"           % jacksonVersion
   )
 
   val munitVersion = "1.1.0"
