@@ -42,20 +42,18 @@
   accessCode = None
 ) {
 
-  @displayAccessCode.panelHtml
-
   <h2 class="govuk-heading-l">
-    @messages("accessCode.whatYouCanDoNext")
+    @messages("accessCode.new.keepNote", displayAccessCode.accessCodeName)
   </h2>
 
   @displayAccessCode.insetHtml
 
   <p class="govuk-body">
-    @messages("accessCode.new.validFor", displayAccessCode.accessCodeName).
+    @messages("accessCode.new.validFor", displayAccessCode.accessCodeName). @messages("accessCode.new.youWillBeAsked", displayAccessCode.formCat).
   </p>
 
   <p class="govuk-body">
-    @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.accessCodeName).
+    @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.formCat, frontendAppConfig.submittedFormExpiryDays, displayAccessCode.accessCodeName).
   </p>
 
   @formWithCSRF(action = NewFormController.newFormPost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {
