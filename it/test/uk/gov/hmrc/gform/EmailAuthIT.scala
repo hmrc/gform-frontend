@@ -33,7 +33,6 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with 'email' auth")
-    gformFormTemplateMetadataStub(formTemplateEmailAuth._id)
     gformFormTemplateStub(formTemplateEmailAuth)
     gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
@@ -66,7 +65,6 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with 'email' auth")
-    gformFormTemplateMetadataStub(formTemplateEmailAuthWithOptionalDetails._id)
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
     gformFormTemplateBehaviourStub(formTemplateEmailAuthWithOptionalDetails._id)
 
@@ -99,7 +97,6 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with 'email' auth")
-    gformFormTemplateMetadataStub(formTemplateEmailAuth._id)
     gformFormTemplateStub(formTemplateEmailAuth)
     gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
@@ -144,7 +141,6 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with 'email' auth")
-    gformFormTemplateMetadataStub(formTemplateEmailAuthWithOptionalDetails._id)
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
     gformFormTemplateBehaviourStub(formTemplateEmailAuthWithOptionalDetails._id)
 
@@ -189,7 +185,6 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with 'email' auth")
-    gformFormTemplateMetadataStub(formTemplateEmailAuth._id)
     gformFormTemplateStub(formTemplateEmailAuth)
     gformFormTemplateBehaviourStub(formTemplateEmailAuth._id)
 
@@ -234,7 +229,6 @@ class EmailAuthIT extends ITSpec with GFormStubs with EnvelopeStubs {
     implicit val wsClient: StandaloneAhcWSClient = buildWSClient
 
     Given("I have a form template with 'email' auth")
-    gformFormTemplateMetadataStub(formTemplateEmailAuthWithOptionalDetails._id)
     gformFormTemplateStub(formTemplateEmailAuthWithOptionalDetails)
     gformFormTemplateBehaviourStub(formTemplateEmailAuthWithOptionalDetails._id)
 

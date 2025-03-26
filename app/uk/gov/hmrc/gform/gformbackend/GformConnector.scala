@@ -450,11 +450,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateBehavior] =
     ws.GET[FormTemplateBehavior](s"$baseUrl/formtemplates/${formTemplateId.value}/behavior")
 
-  def getFormTemplateMetadata(
-    formTemplateId: FormTemplateId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateMetadata] =
-    ws.GET[FormTemplateMetadata](s"$baseUrl/formtemplates/${formTemplateId.value}/metadata")
-
   def getLatestFormTemplate(
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =

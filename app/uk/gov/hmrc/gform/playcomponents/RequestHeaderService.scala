@@ -21,7 +21,8 @@ import play.api.mvc.RequestHeader
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateContext, FormTemplateContextCacheManager, FormTemplateId }
+import uk.gov.hmrc.gform.repo.Repo
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateContext, FormTemplateContextCacheManager, FormTemplateId, FormTemplateMetadata }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -29,7 +30,8 @@ import java.time.Instant
 
 final class RequestHeaderService(
   gformConnector: GformConnector,
-  formTemplateContextCacheManager: FormTemplateContextCacheManager
+  formTemplateContextCacheManager: FormTemplateContextCacheManager,
+  templateMetadataRepo: Repo[FormTemplateMetadata]
 )(implicit ec: ExecutionContext) {
 
   def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] =
@@ -38,7 +40,8 @@ final class RequestHeaderService(
         implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(rh)
         val lowerCaseFormTemplateId = FormTemplateId(formTemplateId.toLowerCase)
         for {
-          updatedAt           <- gformConnector.getFormTemplateMetadata(lowerCaseFormTemplateId).map(_.updatedAt)
+          updatedAt <-
+            templateMetadataRepo.find(lowerCaseFormTemplateId.value).map(_.map(_.updatedAt).getOrElse(Instant.now))
           formTemplateContext <- getFormTemplateContextIfUpdated(lowerCaseFormTemplateId, updatedAt)
           formTemplateBehavior <- if (rh.method === "GET")
                                     gformConnector.getFormTemplateBehavior(lowerCaseFormTemplateId)

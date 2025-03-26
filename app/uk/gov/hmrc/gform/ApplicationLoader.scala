@@ -49,7 +49,9 @@ import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContextCacheManager }
+import uk.gov.hmrc.gform.mongo.MongoModule
+import uk.gov.hmrc.gform.repo.Repo
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContextCacheManager, FormTemplateMetadata }
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -89,6 +91,8 @@ class ApplicationModule(context: Context)
   private val graphiteModule = new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 
   protected val auditingModule = new AuditingModule(configModule, akkaModule, graphiteModule, applicationLifecycle)
+
+  private val mongoModule = new MongoModule(configModule)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -218,9 +222,15 @@ class ApplicationModule(context: Context)
   )
 
   private val formTemplateContextCacheManager = new FormTemplateContextCacheManager()
+  private val formTemplateMetadataRepo: Repo[FormTemplateMetadata] =
+    new Repo[FormTemplateMetadata]("formTemplateMetadata", mongoModule.mongoComponent)
 
   private val requestHeaderService =
-    new RequestHeaderService(gformBackendModule.gformConnector, formTemplateContextCacheManager)
+    new RequestHeaderService(
+      gformBackendModule.gformConnector,
+      formTemplateContextCacheManager,
+      formTemplateMetadataRepo
+    )
 
   val errorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,

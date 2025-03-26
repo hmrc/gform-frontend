@@ -37,13 +37,6 @@ trait GFormStubs extends FormTemplateSample {
         .willReturn(ok(JsonUtils.toJsonStr(FormTemplateContext.basicContext(formTemplate, None))))
     )
 
-  def gformFormTemplateMetadataStub(formTemplateId: FormTemplateId) =
-    stubFor(
-      WireMock
-        .get(s"/gform/formtemplates/${formTemplateId.value}/metadata")
-        .willReturn(ok(JsonUtils.toJsonStr(FormTemplateMetadata(formTemplateId, Instant.now))))
-    )
-
   def gformFormTemplateBehaviourStub(formTemplateId: FormTemplateId) =
     stubFor(
       WireMock
