@@ -119,6 +119,8 @@ class TestOnlyModule(
   )
 
   val objectStoreAdminController = new ObjectStoreAdminController(
+    controllersModule.authenticatedRequestActions,
+    configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
     objectStoreAdminConnector,
     configModule.mode
