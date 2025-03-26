@@ -25,7 +25,7 @@ import uk.gov.hmrc.govukfrontend.views.html.components._
 class DisplayAccessCode(val formTemplate: FormTemplate, val accessCode: AccessCode)(implicit messages: Messages)
     extends CommonAgentPageProperties(formTemplate, accessCode) {
 
-  val heading = messages("accessCode.new.title", accessCodeName) + ":"
+  val heading = messages("accessCode.new.title", accessCodeName)
 
   private val panel = Panel(
     title = Text(heading),

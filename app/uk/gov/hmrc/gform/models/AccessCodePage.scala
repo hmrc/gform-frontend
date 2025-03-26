@@ -30,6 +30,7 @@ object AccessCodePage {
   val optionKey = "accessOption"
   val optionAccess = "access"
   val optionNew = "new"
+  val optionDownload = "download"
 
   val optionMapping: (String, Mapping[String]) = optionKey -> nonEmptyText
   def form(draftRetrievalMethod: DraftRetrievalMethod): Form[AccessCodeForm] = {

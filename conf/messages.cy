@@ -458,6 +458,8 @@ ack.feedbackLink=arolwg adborth
 ack.feedbackText2=nawr
 
 # Access code start page
+accessCode.submissionReference=submission reference (Welsh ???)
+accessCode.formAccessCodeForAgents=Access code (Welsh ???)
 accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir allwedd cyrchu dros dro i chi
 accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am allwedd cyrchu dros dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.
 accessCode.p3=A ydych am ddechrau {0} newydd neu barhau i weithio ar {0} a gadwyd yn flaenorol (os oes gennych un)?
@@ -472,7 +474,7 @@ accessCode.help.p3=Mae allwedd cyrchu dros dro yn cynnwys 12 o gymeriadau, gan g
 accessCode.help.p4=Os ydych wedi colli’ch allwedd cyrchu dros dro, bydd angen i chi ddechrau’ch {0} eto
 accessCode.new.title=Gwnewch nodyn o’ch allwedd cyrchu dros dro
 accessCode.whatYouCanDoNext=Yr hyn y gallwch ei wneud nesaf
-accessCode.new.keepNote=Cadwch nodyn o’ch allwedd cyrchu dros dro:
+accessCode.new.keepNote=Cadwch nodyn o’ch allwedd cyrchu dros dro
 accessCode.new.youWillBeAsked=Gofynnir i chi amdani bob tro y byddwch yn dod yn ôl i barhau i weithio ar y {0} hwn
 accessCode.new.validFor=Mae’r allwedd cyrchu dros dro hon yn ddilys am 28 diwrnod
 accessCode.new.willExpire=Pan fyddwch wedi cyflwyno’r {0} hon, bydd yr allwedd cyrchu dros dro yn dod i ben
@@ -481,6 +483,8 @@ accessCode.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwy
 accessCode.youCan=Gallwch wneud y canlynol:
 accessCode.exit=gadael y dudalen hon
 accessCode.workOnAnother=gweithio ar {0} arall
+accessCode.downloadSubmitted=Get a copy of a {0} that you submitted (Welsh ???)
+accessCode.downloadSubmitted.hintText=You can only get a copy of a previously submitted {0} in the {1} days after it has been submitted (Welsh ???)
 
 # Continue or delete page
 continueDelete.title=A hoffech fynd yn eich blaen gyda’r fersiwn a gadwyd gennych?

@@ -25,7 +25,11 @@ $govuk-new-typography-scale: true;
     &:focus {
       border-color: $govuk-input-border-colour;
     }
+}
 
+.gforms-inset-text--important {
+    border-color: $govuk-brand-colour;
+    background: #f3f2f1;
 }
 
 .print-link {

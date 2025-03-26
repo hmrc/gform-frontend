@@ -173,7 +173,7 @@ class NewFormController(
         case BySubmissionReference => showAccessCodeList(cache, userId, formTemplateId)
         case _ =>
           val form = AccessCodePage.form(draftRetrievalMethod)
-          val accessCodeStart = new AccessCodeStart(cache.formTemplate, form)
+          val accessCodeStart = new AccessCodeStart(cache.formTemplate, form, frontendConfig)
           def switchLanguageForAgentCodeStart: (FormTemplateId, Option[AccessCode], String) => Call =
             (formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: String) =>
               uk.gov.hmrc.gform.gform.routes.LanguageSwitchController
@@ -517,7 +517,7 @@ class NewFormController(
       request: Request[AnyContent],
       lang: LangADT
     ) = {
-      val accessCodeStart = new AccessCodeStart(formTemplate, errors)
+      val accessCodeStart = new AccessCodeStart(formTemplate, errors, frontendConfig)
       BadRequest(access_code_start(frontendAppConfig, accessCodeStart))
     }
 
