@@ -102,7 +102,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       accessibilityStatementConfig = accessibilityStatementConfig,
       refreshSessionUrl = typesafeConfig.getString("refresh-session-url"),
       isProd = isProd,
-      configuration = playConfiguration
+      configuration = playConfiguration,
+      submittedFormExpiryDays = typesafeConfig.getInt("submittedFormExpiryDays")
     )
   }
 }

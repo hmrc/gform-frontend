@@ -34,12 +34,12 @@ class CommonAgentPageProperties(formTemplate: FormTemplate, accessCode: AccessCo
       content = HtmlContent(
         HtmlFormat.fill(
           List(
-            p(messages("accessCode.new.keepNote", accessCodeName)),
-            acStrong,
-            p(messages("accessCode.new.youWillBeAsked", formCat) + ".")
+            p(accessCodeName.capitalize + ":"),
+            acStrong
           )
         )
-      )
+      ),
+      classes = "gforms-inset-text--important"
     )
 
   val insetHtml: Html = new GovukInsetText()(insetText)
