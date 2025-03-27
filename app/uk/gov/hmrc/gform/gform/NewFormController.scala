@@ -22,7 +22,7 @@ import cats.syntax.eq._
 import com.softwaremill.quicklens._
 import org.slf4j.LoggerFactory
 import play.api.data
-import play.api.i18n.{ I18nSupport, Messages }
+import play.api.i18n.{ I18nSupport, Lang, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.FormTemplateKey
@@ -98,13 +98,21 @@ class NewFormController(
             Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
         }
 
-      val result =
-        cache.formTemplate.draftRetrieval
-          .flatMap(dr => cache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
-          .collect { case drm => checkDraftRetrievalMethod(drm) }
-          .getOrElse(checkDraftRetrievalMethod(cache.formTemplate.draftRetrievalMethod))
+      if (!cache.formTemplate.languages.languages.contains(lang)) {
+        Redirect(
+          routes.NewFormController.dashboard(
+            formTemplateId
+          )
+        ).withLang(Lang("en")).pure[Future]
+      } else {
+        val result =
+          cache.formTemplate.draftRetrieval
+            .flatMap(dr => cache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+            .collect { case drm => checkDraftRetrievalMethod(drm) }
+            .getOrElse(checkDraftRetrievalMethod(cache.formTemplate.draftRetrievalMethod))
 
-      result.map(_.withCookies(cookie))
+        result.map(_.withCookies(cookie))
+      }
     }
 
   def dashboardClean(formTemplateId: FormTemplateId) =
