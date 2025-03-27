@@ -23,5 +23,5 @@ sealed trait AddToListSummaryRow
 object AddToListSummaryRow {
   case class ListWithActionsRow(index: Int, name: Html, text: String) extends AddToListSummaryRow
 
-  case class SummaryListRow(index: Int, key: Html, value: Html) extends AddToListSummaryRow
+  case class SummaryListRow(index: Int, key: Html, value: Html, actionButtons: Boolean) extends AddToListSummaryRow
 }

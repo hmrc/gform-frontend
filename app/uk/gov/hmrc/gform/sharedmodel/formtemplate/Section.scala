@@ -68,6 +68,7 @@ object Section {
     presentationHint: Option[PresentationHint],
     infoMessage: Option[SmartString],
     errorMessage: Option[SmartString],
+    descriptionTotal: Option[AtlDescription.KeyValueBased],
     defaultPage: Option[Page[Basic]] = None,
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,
@@ -109,6 +110,7 @@ object AtlDescription {
   case class KeyValueBased(key: SmartString, value: SmartString) extends AtlDescription
 
   implicit val format: OFormat[AtlDescription] = derived.oformat()
+  implicit val formatKv: OFormat[KeyValueBased] = derived.oformat()
 }
 
 case class DeclarationSection(

@@ -298,6 +298,8 @@ class SectionRenderingService(
 
     val descriptions: NonEmptyList[AtlDescription] = bracket.repeaters.map(_.expandedDescription)
 
+    val descriptionTotals = bracket.repeaters.map(_.expandedDescriptionTotal)
+
     val choice = formComponent.`type`.cast[Choice].get
 
     val formFieldValidationResult = validationResult(formComponent)
@@ -478,15 +480,28 @@ class SectionRenderingService(
           .exists(_ < sectionNumber)
     }
 
-    val recordTable: NonEmptyList[AddToListSummaryRow] = descriptions.zipWithIndex.map { case (description, index) =>
-      description match {
-        case AtlDescription.SmartStringBased(ss) =>
-          val html = markDownParser(ss)
-          AddToListSummaryRow.ListWithActionsRow(index, html, Jsoup.parse(html.body).text())
-        case AtlDescription.KeyValueBased(k, v) =>
-          AddToListSummaryRow.SummaryListRow(index, markDownParser(k), markDownParser(v))
-      }
+    val recordTableDescriptions: NonEmptyList[AddToListSummaryRow] = descriptions.zipWithIndex.map {
+      case (description, index) =>
+        description match {
+          case AtlDescription.SmartStringBased(ss) =>
+            val html = markDownParser(ss)
+            AddToListSummaryRow.ListWithActionsRow(index, html, Jsoup.parse(html.body).text())
+          case AtlDescription.KeyValueBased(k, v) =>
+            AddToListSummaryRow.SummaryListRow(index, markDownParser(k), markDownParser(v), actionButtons = true)
+        }
     }
+
+    val descTotalRow: Option[AddToListSummaryRow] = descriptionTotals.toList.flatten.lastOption match {
+      case Some(AtlDescription.KeyValueBased(k, v)) =>
+        Some(
+          AddToListSummaryRow
+            .SummaryListRow(recordTableDescriptions.size, markDownParser(k), markDownParser(v), actionButtons = false)
+        )
+      case None => None
+    }
+
+    val recordTable: NonEmptyList[AddToListSummaryRow] =
+      descTotalRow.fold(recordTableDescriptions)(row => recordTableDescriptions.append(row))
 
     val summaryList = recordTable.collectFirst {
       case l: AddToListSummaryRow.ListWithActionsRow =>
@@ -536,45 +551,51 @@ class SectionRenderingService(
         )
 
       case s: AddToListSummaryRow.SummaryListRow =>
-        val summaryRows = recordTable.collect { case AddToListSummaryRow.SummaryListRow(index, key, value) =>
-          val changeAction = ActionItem(
-            content = content.Text(messages("addToList.change")),
-            href = uk.gov.hmrc.gform.gform.routes.FormController
-              .addToListAction(
-                formTemplate._id,
-                maybeAccessCode,
-                sectionNumber,
-                FastForward.Yes :: FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward,
-                EditAddToList(index, AddToListId(bracket.source.id.formComponentId))
-              )
-              .url,
-            visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
-            attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text()))
-          )
+        val summaryRows = recordTable.collect {
+          case AddToListSummaryRow.SummaryListRow(index, key, value, actionButtons) =>
+            val changeAction = ActionItem(
+              content = content.Text(messages("addToList.change")),
+              href = uk.gov.hmrc.gform.gform.routes.FormController
+                .addToListAction(
+                  formTemplate._id,
+                  maybeAccessCode,
+                  sectionNumber,
+                  FastForward.Yes :: FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward,
+                  EditAddToList(index, AddToListId(bracket.source.id.formComponentId))
+                )
+                .url,
+              visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
+              attributes =
+                Map("aria-label" -> messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text()))
+            )
 
-          val removeAction = ActionItem(
-            content = content.Text(messages("addToList.remove")),
-            href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
-              .requestRemoval(
-                formTemplate._id,
-                maybeAccessCode,
-                sectionNumber,
-                index,
-                AddToListId(bracket.source.id.formComponentId),
-                fastForward
-              )
-              .url,
-            visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
-            attributes = Map("aria-label" -> messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text()))
-          )
+            val removeAction = ActionItem(
+              content = content.Text(messages("addToList.remove")),
+              href = uk.gov.hmrc.gform.gform.routes.FormAddToListController
+                .requestRemoval(
+                  formTemplate._id,
+                  maybeAccessCode,
+                  sectionNumber,
+                  index,
+                  AddToListId(bracket.source.id.formComponentId),
+                  fastForward
+                )
+                .url,
+              visuallyHiddenText = Some(messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text())),
+              attributes =
+                Map("aria-label" -> messages("addToList.change.visually.hidden", Jsoup.parse(key.body).text()))
+            )
 
-          val summaryListRowClasses = "hmrc-add-to-a-list--wide"
+            val summaryListRowClasses = "hmrc-add-to-a-list--wide"
 
-          SummaryListRow(
-            key = Key(HtmlContent(key), classes = summaryListRowClasses),
-            value = Value(HtmlContent(value), classes = summaryListRowClasses),
-            actions = Some(Actions(items = List(changeAction, removeAction), classes = summaryListRowClasses))
-          )
+            SummaryListRow(
+              key = Key(HtmlContent(key), classes = summaryListRowClasses),
+              value = Value(HtmlContent(value), classes = summaryListRowClasses),
+              actions =
+                if (actionButtons)
+                  Some(Actions(items = List(changeAction, removeAction), classes = summaryListRowClasses))
+                else None
+            )
 
         }
         new GovukSummaryList()(
