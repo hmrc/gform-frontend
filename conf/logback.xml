@@ -48,7 +48,7 @@
     <logger name="org.mongodb.driver" level="INFO"/>
     <logger name="org.apache.pekko" level="INFO"/>
 
-    <logger name="connector" level="TRACE">
+    <logger name="connector" level="INFO">
         <appender-ref ref="STDOUT"/>
     </logger>
 

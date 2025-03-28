@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
-import uk.gov.hmrc.gform.upscan.UpscanAlgebra
+import uk.gov.hmrc.gform.upscan.{ UpscanAlgebra, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -103,34 +103,39 @@ class FormController(
               singleton: Singleton[DataExpanded],
               sectionNumber: SectionNumber,
               handlerResult: FormHandlerResult
-            ) = for {
-              upscanInitiate <- upscanService.upscanInitiate(
-                                  singleton.upscanInitiateRequests,
-                                  cache.formTemplateId,
-                                  sectionNumber,
-                                  cache.form,
-                                  FormIdData(cache, maybeAccessCode)
-                                )
-            } yield Ok(
-              renderer.renderSection(
-                maybeAccessCode,
-                sectionNumber,
-                handlerResult,
-                cache.formTemplate,
-                cache.formTemplateContext.specimenSource,
-                cache.form.envelopeId,
-                singleton,
-                cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
-                cache.formTemplate.allowedFileTypes,
-                restrictedFileExtensions,
-                cache.retrievals,
-                cache.form.thirdPartyData.obligations,
-                fastForward,
-                formModelOptics,
-                upscanInitiate,
-                AddressRecordLookup.from(cache.form.thirdPartyData)
+            ) = {
+              val fileUploadIds = singleton.upscanInitiateRequests
+              for {
+                upscanInitiate <- if (fileUploadIds.isEmpty) UpscanInitiate.empty.pure[Future]
+                                  else
+                                    upscanService.upscanInitiate(
+                                      singleton.upscanInitiateRequests,
+                                      cache.formTemplateId,
+                                      sectionNumber,
+                                      cache.form,
+                                      FormIdData(cache, maybeAccessCode)
+                                    )
+              } yield Ok(
+                renderer.renderSection(
+                  maybeAccessCode,
+                  sectionNumber,
+                  handlerResult,
+                  cache.formTemplate,
+                  cache.formTemplateContext.specimenSource,
+                  cache.form.envelopeId,
+                  singleton,
+                  cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
+                  cache.formTemplate.allowedFileTypes,
+                  restrictedFileExtensions,
+                  cache.retrievals,
+                  cache.form.thirdPartyData.obligations,
+                  fastForward,
+                  formModelOptics,
+                  upscanInitiate,
+                  AddressRecordLookup.from(cache.form.thirdPartyData)
+                )
               )
-            )
+            }
 
             def validateSections(suppressErrors: SuppressErrors, sectionNumbers: SectionNumber*)(
               f: FormHandlerResult => Future[Result]

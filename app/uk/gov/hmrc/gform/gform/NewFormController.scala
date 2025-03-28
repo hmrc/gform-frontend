@@ -93,7 +93,7 @@ class NewFormController(
         (draftRetrievalMethod, cache.retrievals) match {
           case (BySubmissionReference, _) => showAccesCodePage(cache, cache.formTemplate)
           case (FormAccessCodeForAgents(_), IsAgent()) | (FormAccessCode(_), _) =>
-            exitPageHandler(cache, cache.formTemplate, showAccesCodePage)
+            exitPageHandler(cache, showAccesCodePage)
           case _ =>
             Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
         }
@@ -416,9 +416,7 @@ class NewFormController(
   def newOrContinue(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
-        gformConnector.getFormTemplateContext(formTemplateId).map(_.formTemplate).flatMap { formTemplate =>
-          exitPageHandler(cache, formTemplate, continue)
-        }
+        exitPageHandler(cache, continue)
     }
 
   private val startNewOrLogout: data.Form[String] = play.api.data.Form(
@@ -711,12 +709,12 @@ class NewFormController(
 
   private def exitPageHandler(
     cache: AuthCacheWithoutForm,
-    formTemplate: FormTemplate,
     continue: (AuthCacheWithoutForm, FormTemplate) => Future[Result]
   )(implicit
     request: Request[AnyContent],
     l: LangADT
-  ): Future[Result] =
+  ): Future[Result] = {
+    val formTemplate = cache.formTemplate
     for {
       itmpRetrievals <- if (formTemplate.isSpecimen) {
                           Future.successful(Option.empty[ItmpRetrievals])
@@ -751,6 +749,7 @@ class NewFormController(
         }
       }
     } yield res
+  }
 
   private def evalItmpExpr(exprs: List[Expr], itmpAuthContexts: List[AuthCtx]) = {
     val leafs = exprs.flatMap(_.leafs())

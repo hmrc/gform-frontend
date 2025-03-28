@@ -21,6 +21,8 @@ import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.shutter.Shutter
 import uk.gov.hmrc.gform.notificationbanner.NotificationBanner
 
+import java.time.Instant
+
 final case class FormTemplateContext(
   formTemplate: FormTemplate,
   specimenSource: Option[
@@ -35,4 +37,20 @@ object FormTemplateContext {
   def basicContext(formTemplate: FormTemplate, specimenSource: Option[FormTemplate]): FormTemplateContext =
     FormTemplateContext(formTemplate, specimenSource, Option.empty[FormTemplateId])
   implicit val format: OFormat[FormTemplateContext] = derived.oformat()
+}
+
+final case class FormTemplateBehavior(shutter: Option[Shutter], notificationBanner: Option[NotificationBanner])
+
+object FormTemplateBehavior {
+  val empty: FormTemplateBehavior = FormTemplateBehavior(None, None)
+  implicit val format: OFormat[FormTemplateBehavior] = derived.oformat()
+}
+
+final case class FormTemplateCache(_id: FormTemplateId, updatedAt: Instant)
+
+object FormTemplateCache {
+  implicit val format: OFormat[FormTemplateCache] = {
+    implicit val formTemplateIdFormat = FormTemplateId.mongoVformat
+    derived.oformat()
+  }
 }

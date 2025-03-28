@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
-import uk.gov.hmrc.gform.models.ids.{ ModelComponentId, ModelPageId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin.{ Browser, Mongo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
@@ -327,9 +327,12 @@ class FormProcessor(
         }
 
         if (isValid) {
-          val updatedComponents =
-            getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
-              .map(_.baseComponentId)
+          val updatedComponents: Set[BaseComponentId] = {
+            if (processData.formModel.dataRetrieveAll.lookup.nonEmpty)
+              getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
+                .map(_.baseComponentId)
+            else Set.empty[BaseComponentId]
+          }
           val dataRetrievesOnThisPage: List[DataRetrieve] = pageModel
             .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
           val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)

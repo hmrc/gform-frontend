@@ -27,7 +27,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
-import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, Recalculation }
+import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
@@ -41,8 +41,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class ReviewService[F[_]: Monad](
   gformBackEnd: GformBackEndAlgebra[F],
-  lookupRegistry: LookupRegistry,
-  recalculation: Recalculation[F, Throwable]
+  lookupRegistry: LookupRegistry
 )(implicit
   me: MonadError[F, Throwable]
 ) {

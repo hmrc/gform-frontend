@@ -129,3 +129,8 @@ GET           /image-file/:formTemplateId/:maybeAccessCode                      
 GET           /redirect                                                                                          uk.gov.hmrc.gform.gform.RedirectController.redirect(redirectUrl: RedirectUrl)
 
 POST          /pay-api/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.payment.PaymentController.pay(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], reference: PaymentReference, amountInPence: String, backPath: String)
+
++nocsrf
+POST          /formtemplates/:formTemplateId/cache                                                               uk.gov.hmrc.gform.cache.FormTemplateCacheController.save(formTemplateId: FormTemplateId)
++nocsrf
+DELETE        /formtemplates/:formTemplateId/cache                                                               uk.gov.hmrc.gform.cache.FormTemplateCacheController.delete(formTemplateId: FormTemplateId)
