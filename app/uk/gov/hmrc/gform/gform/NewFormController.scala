@@ -512,6 +512,54 @@ class NewFormController(
     } yield res
   }
 
+  private def getDraftRetrievalMethod(
+    cache: AuthCacheWithoutForm
+  )(implicit hc: HeaderCarrier, messages: Messages): Future[(AuthCacheWithoutForm, DraftRetrievalMethod)] =
+    for {
+      newCache <-
+        InitFormEvaluator
+          .makeCacheWithDataRetrieve(
+            cache,
+            cache.formTemplate.authConfig,
+            None,
+            cache.formTemplate.dataRetrieve,
+            gformConnector,
+            ninoInsightsConnector
+          )
+      res <- newCache.formTemplate.draftRetrieval
+               .flatMap(dr => newCache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+               .collect {
+                 case BySubmissionReference                => (newCache, BySubmissionReference)
+                 case FormAccessCode(continueOrDeletePage) => (newCache, FormAccessCodeForAgents(continueOrDeletePage))
+               }
+               .getOrElse((newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
+                 case (BySubmissionReference, _)                    => (newCache, BySubmissionReference)
+                 case (drm @ FormAccessCodeForAgents(_), IsAgent()) => (newCache, drm)
+                 case other                                         => throw new Exception(s"Invalid retrieval method, got $other")
+               })
+               .pure[Future]
+    } yield res
+
+  def accessCodeDownload(formTemplateId: FormTemplateId): Action[AnyContent] =
+    accessCode(formTemplateId, isRetrieve = false)
+
+  def accessCodeRetrieveForm(formTemplateId: FormTemplateId): Action[AnyContent] =
+    accessCode(formTemplateId, isRetrieve = true)
+
+  private def accessCode(formTemplateId: FormTemplateId, isRetrieve: Boolean): Action[AnyContent] =
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+      implicit request => implicit lang => cache =>
+        for {
+          (newCache, drm) <- getDraftRetrievalMethod(cache)
+          res <- {
+            val formAccessEnter =
+              new AccessCodeEnter(newCache.formTemplate, AccessCodePage.form(drm), isRetrieve)
+            Ok(access_code_enter(frontendAppConfig, formAccessEnter)).pure[Future]
+          }
+        } yield res
+
+    }
+
   def newFormPost(formTemplateId: FormTemplateId): Action[AnyContent] = {
     def badRequest(formTemplate: FormTemplate, errors: play.api.data.Form[AccessCodeForm])(implicit
       request: Request[AnyContent],
@@ -519,31 +567,6 @@ class NewFormController(
     ) = {
       val accessCodeStart = new AccessCodeStart(formTemplate, errors, frontendConfig)
       BadRequest(access_code_start(frontendAppConfig, accessCodeStart))
-    }
-
-    def notFound(formTemplate: FormTemplate)(implicit request: Request[AnyContent], lang: LangADT) =
-      badRequest(
-        formTemplate,
-        AccessCodePage
-          .form(formTemplate.draftRetrievalMethod)
-          .bindFromRequest()
-          .withError(AccessCodePage.key, "error.notfound")
-      )
-
-    def noAccessCodeProvided = Future.failed[Result](new Exception(s"AccessCode not provided, cannot continue."))
-
-    def optionAccess(accessCodeForm: AccessCodeForm, cache: AuthCacheWithoutForm)(implicit
-      hc: HeaderCarrier,
-      request: Request[AnyContent],
-      lang: LangADT
-    ) = {
-      val maybeAccessCode: Option[AccessCode] = accessCodeForm.accessCode.map(a => AccessCode(a))
-      maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
-        val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
-        handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
-          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode, request)
-        }
-      }
     }
 
     def processNewFormData(formIdData: FormIdData, drm: DraftRetrievalMethod) =
@@ -560,6 +583,30 @@ class NewFormController(
           )
       }
 
+    def notFound(formTemplate: FormTemplate)(implicit request: Request[AnyContent], lang: LangADT) =
+      badRequest(
+        formTemplate,
+        AccessCodePage
+          .form(formTemplate.draftRetrievalMethod)
+          .bindFromRequest()
+          .withError(AccessCodePage.key, "error.notfound")
+      )
+
+    def noAccessCodeProvided = Future.failed[Result](new Exception(s"AccessCode not provided, cannot continue."))
+    def optionAccess(accessCodeForm: AccessCodeForm, cache: AuthCacheWithoutForm)(implicit
+      hc: HeaderCarrier,
+      request: Request[AnyContent],
+      lang: LangADT
+    ) = {
+      val maybeAccessCode: Option[AccessCode] = accessCodeForm.accessCode.map(a => AccessCode(a))
+      maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
+        val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
+        handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
+          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode, request)
+        }
+      }
+    }
+
     def processSubmittedData(cache: AuthCacheWithoutForm, drm: DraftRetrievalMethod)(implicit
       request: Request[AnyContent],
       l: LangADT
@@ -569,11 +616,12 @@ class NewFormController(
         .bindFromRequest()
         .fold(
           (hasErrors: data.Form[AccessCodeForm]) => Future.successful(badRequest(cache.formTemplate, hasErrors)),
-          accessCodeForm =>
-            accessCodeForm.accessOption match {
+          accessCode =>
+            accessCode.accessOption match {
               case AccessCodePage.optionNew =>
                 def notFound(formIdData: FormIdData) =
                   Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found for agent."))
+
                 for {
                   formIdData <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
                   _ <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
@@ -581,46 +629,140 @@ class NewFormController(
                        }
                   result <- processNewFormData(formIdData, drm)
                 } yield result
+              case AccessCodePage.optionDownload =>
+                Redirect(routes.NewFormController.accessCodeDownload(formTemplateId)).pure[Future]
+              case AccessCodePage.optionRetrieve =>
+                Redirect(routes.NewFormController.accessCodeRetrieveForm(formTemplateId)).pure[Future]
               case AccessCodePage.optionAccess =>
-                optionAccess(accessCodeForm, cache)
-              case other => throw new Exception(s"Invalid AccessCodePage, got $other")
+                optionAccess(accessCode, cache)
+              case otherwise =>
+                Future.failed(
+                  new Exception(
+                    s"newFormPost endpoind called, unknown choice selected: $otherwise"
+                  )
+                )
+
             }
         )
 
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit lang => cache =>
         for {
-          newCache <-
-            InitFormEvaluator
-              .makeCacheWithDataRetrieve(
-                cache,
-                cache.formTemplate.authConfig,
-                None,
-                cache.formTemplate.dataRetrieve,
-                gformConnector,
-                ninoInsightsConnector
-              )
-          res <- newCache.formTemplate.draftRetrieval
-                   .flatMap(dr => newCache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
-                   .collect {
-                     case BySubmissionReference => processSubmittedData(newCache, BySubmissionReference)
-                     case FormAccessCode(continueOrDeletePage) =>
-                       processSubmittedData(newCache, FormAccessCodeForAgents(continueOrDeletePage))
-                   }
-                   .getOrElse((newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
-                     case (BySubmissionReference, _)                    => processSubmittedData(newCache, BySubmissionReference)
-                     case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(newCache, drm)
-                     case otherwise =>
-                       Future.failed(
-                         new Exception(
-                           s"newFormPost endpoind called, but draftRetrievalMethod is not allowed for a user or formTemplate: $otherwise"
-                         )
-                       )
-                   })
-
+          (newCache, drm) <- getDraftRetrievalMethod(cache)
+          res             <- processSubmittedData(newCache, drm)
         } yield res
     }
+
   }
+
+//  def newFormPost(formTemplateId: FormTemplateId): Action[AnyContent] = {
+//    def badRequest(formTemplate: FormTemplate, errors: play.api.data.Form[String])(implicit
+//      request: Request[AnyContent],
+//      lang: LangADT
+//    ) = {
+//      val accessCodeStart = new AccessCodeStart(formTemplate, errors, frontendConfig)
+//      BadRequest(access_code_start(frontendAppConfig, accessCodeStart))
+//    }
+//
+//    def notFound(formTemplate: FormTemplate)(implicit request: Request[AnyContent], lang: LangADT) =
+//      badRequest(
+//        formTemplate,
+//        AccessCodePage.formDecision
+//          .bindFromRequest()
+//          .withError(AccessCodePage.key, "error.notfound")
+//      )
+//
+//    def noAccessCodeProvided = Future.failed[Result](new Exception(s"AccessCode not provided, cannot continue."))
+//
+//    def optionAccess(accessCodeForm: Option[String], cache: AuthCacheWithoutForm)(implicit
+//      hc: HeaderCarrier,
+//      request: Request[AnyContent],
+//      lang: LangADT
+//    ) = {
+//      val maybeAccessCode: Option[AccessCode] = accessCodeForm.map(a => AccessCode(a))
+//      maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
+//        val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
+//        handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
+//          redirectContinue[SectionSelectorType.Normal](cache, form, maybeAccessCode, request)
+//        }
+//      }
+//    }
+//
+//    def processNewFormData(formIdData: FormIdData, drm: DraftRetrievalMethod) =
+//      formIdData match {
+//        case FormIdData.WithAccessCode(_, formTemplateId, accessCode) =>
+//          Redirect(routes.NewFormController.showAccessCode(formTemplateId))
+//            .flashing(AccessCodePage.key -> accessCode.value)
+//            .pure[Future]
+//        case FormIdData.Plain(_, _) =>
+//          Future.failed(
+//            new Exception(
+//              s"newFormPost endpoind for DraftRetrievalMethod: $drm is being seen as OnePerUser on the backend"
+//            )
+//          )
+//      }
+//
+//    def processSubmittedData(cache: AuthCacheWithoutForm, drm: DraftRetrievalMethod)(implicit
+//      request: Request[AnyContent],
+//      l: LangADT
+//    ): Future[Result] =
+//      AccessCodePage
+//        .formAccessCode(drm)
+//        .bindFromRequest()
+//        .fold(
+//          (hasErrors: data.Form[String]) => Future.successful(badRequest(cache.formTemplate, hasErrors)),
+//          accessCode =>
+//            accessCode.accessOption match {
+//              case AccessCodePage.optionNew =>
+//                def notFound(formIdData: FormIdData) =
+//                  Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found for agent."))
+//                for {
+//                  formIdData <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
+//                  _ <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
+//                         auditService.sendFormCreateEvent(form, cache.retrievals).pure[Future]
+//                       }
+//                  result <- processNewFormData(formIdData, drm)
+//                } yield result
+//              case AccessCodePage.optionAccess =>
+//                optionAccess(accessCode, cache)
+//              case other => throw new Exception(s"Invalid AccessCodePage, got $other")
+//            }
+//        )
+//
+//    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+//      implicit request => implicit lang => cache =>
+//        for {
+//          newCache <-
+//            InitFormEvaluator
+//              .makeCacheWithDataRetrieve(
+//                cache,
+//                cache.formTemplate.authConfig,
+//                None,
+//                cache.formTemplate.dataRetrieve,
+//                gformConnector,
+//                ninoInsightsConnector
+//              )
+//          res <- newCache.formTemplate.draftRetrieval
+//                   .flatMap(dr => newCache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+//                   .collect {
+//                     case BySubmissionReference => processSubmittedData(newCache, BySubmissionReference)
+//                     case FormAccessCode(continueOrDeletePage) =>
+//                       processSubmittedData(newCache, FormAccessCodeForAgents(continueOrDeletePage))
+//                   }
+//                   .getOrElse((newCache.formTemplate.draftRetrievalMethod, newCache.retrievals) match {
+//                     case (BySubmissionReference, _)                    => processSubmittedData(newCache, BySubmissionReference)
+//                     case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(newCache, drm)
+//                     case otherwise =>
+//                       Future.failed(
+//                         new Exception(
+//                           s"newFormPost endpoind called, but draftRetrievalMethod is not allowed for a user or formTemplate: $otherwise"
+//                         )
+//                       )
+//                   })
+//
+//        } yield res
+//    }
+//  }
 
   def continue(formTemplateId: FormTemplateId, submissionRef: SubmissionRef) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
