@@ -36,6 +36,7 @@ import _root_.controllers.AssetsComponents
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import play.filters.csrf.{ CSRF, CSRFComponents }
+import uk.gov.hmrc.gform.cache.CacheModule
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -50,8 +51,7 @@ import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.mongo.MongoModule
-import uk.gov.hmrc.gform.repo.Repo
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContextCacheManager, FormTemplateMetadata }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContextCacheManager
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -222,14 +222,13 @@ class ApplicationModule(context: Context)
   )
 
   private val formTemplateContextCacheManager = new FormTemplateContextCacheManager()
-  private val formTemplateMetadataRepo: Repo[FormTemplateMetadata] =
-    new Repo[FormTemplateMetadata]("formTemplateMetadata", mongoModule.mongoComponent)
+  private val cacheModule = new CacheModule(controllersModule, mongoModule, configModule)
 
   private val requestHeaderService =
     new RequestHeaderService(
       gformBackendModule.gformConnector,
       formTemplateContextCacheManager,
-      formTemplateMetadataRepo
+      cacheModule.formTemplateCacheService
     )
 
   val errorHandler: ErrorHandler = new ErrorHandler(
@@ -266,7 +265,8 @@ class ApplicationModule(context: Context)
     controllersModule,
     this,
     errorHandler,
-    assetsMetadata
+    assetsMetadata,
+    cacheModule
   )
 
   lazy val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(

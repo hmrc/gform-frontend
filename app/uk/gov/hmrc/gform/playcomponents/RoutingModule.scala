@@ -20,6 +20,7 @@ import controllers.AssetsComponents
 import org.slf4j.LoggerFactory
 import play.api.http.HttpRequestHandler
 import play.api.routing.Router
+import uk.gov.hmrc.gform.cache.CacheModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gform.GformModule
@@ -38,7 +39,8 @@ class RoutingModule(
   controllersModule: ControllersModule,
   assetsComponents: AssetsComponents,
   errorHandler: ErrorHandler,
-  assetsMetadata: _root_.controllers.AssetsMetadata
+  assetsMetadata: _root_.controllers.AssetsMetadata,
+  cacheModule: CacheModule
 ) { self =>
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -91,7 +93,8 @@ class RoutingModule(
     gformModule.downloadController,
     gformModule.imageController,
     gformModule.redirectController,
-    gformModule.buttonController
+    gformModule.buttonController,
+    cacheModule.formTemplateCacheController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(

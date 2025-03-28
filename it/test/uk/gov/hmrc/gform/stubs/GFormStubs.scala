@@ -19,14 +19,12 @@ package uk.gov.hmrc.gform.it.stubs
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.gform.it.sample.FormTemplateSample
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateBehavior, FormTemplateContext, FormTemplateId, FormTemplateMetadata, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateBehavior, FormTemplateContext, FormTemplateId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, UserId }
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import org.typelevel.ci._
-
-import java.time.Instant
 
 trait GFormStubs extends FormTemplateSample {
 

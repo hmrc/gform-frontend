@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.mongo
+package uk.gov.hmrc.gform.cache
 
-import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.gform.core.FOpt
+import uk.gov.hmrc.gform.repo.{ DeleteResult, Repo }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateCache, FormTemplateId }
 
-class MongoModule(configModule: ConfigModule) {
-  val mongoComponent: MongoComponent = MongoComponent(configModule.typesafeConfig.getString("mongodb.uri"))
+import scala.concurrent.Future
+
+class FormTemplateCacheService(repo: Repo[FormTemplateCache]) {
+  def find(formTemplateId: FormTemplateId): Future[Option[FormTemplateCache]] = repo.find(formTemplateId.value)
+  def save(cache: FormTemplateCache): FOpt[Unit] = repo.upsert(cache)
+  def delete(formTemplateId: FormTemplateId): FOpt[DeleteResult] = repo.delete(formTemplateId.value)
 }

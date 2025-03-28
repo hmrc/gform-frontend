@@ -170,8 +170,9 @@ trait FormTemplateSample {
     downloadPreviousSubmissionPdf = true
   )
 
-  val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(authConfig =
-    EmailAuthConfig(
+  val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(
+    _id = FormTemplateId("form-template-with-email-auth-details"),
+    authConfig = EmailAuthConfig(
       EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None),
       Some(LocalisedString(Map(LangADT.En -> "EmailUseInfo"))),
       Some(LocalisedString(Map(LangADT.En -> "EmailCodeHelp"))),

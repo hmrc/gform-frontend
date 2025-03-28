@@ -37,9 +37,9 @@ import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 trait ITSpec
-    extends HTTPSupport with GivenWhenThen with AnyFlatSpecLike with Matchers with BaseOneServerPerSuite
-    with BeforeAndAfterAll with FakeApplicationFactory with ScalaFutures with BeforeAndAfterEach
-    with WiremockAdminSupport with DocumentSupport with MongoDBSupport {
+    extends MongoDBSupport with HTTPSupport with GivenWhenThen with AnyFlatSpecLike with Matchers
+    with BaseOneServerPerSuite with BeforeAndAfterAll with FakeApplicationFactory with ScalaFutures
+    with BeforeAndAfterEach with WiremockAdminSupport with DocumentSupport {
 
   implicit val system: ActorSystem = ActorSystem()
 

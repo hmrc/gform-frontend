@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.mongo
+package uk.gov.hmrc.gform.repo
 
-import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.mongo.MongoComponent
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-class MongoModule(configModule: ConfigModule) {
-  val mongoComponent: MongoComponent = MongoComponent(configModule.typesafeConfig.getString("mongodb.uri"))
+case class DeleteResult(
+  templateId: String,
+  deleted: Boolean
+)
+
+object DeleteResult {
+  implicit val format: OFormat[DeleteResult] = derived.oformat()
 }

@@ -46,8 +46,11 @@ object FormTemplateBehavior {
   implicit val format: OFormat[FormTemplateBehavior] = derived.oformat()
 }
 
-final case class FormTemplateMetadata(_id: FormTemplateId, updatedAt: Instant)
+final case class FormTemplateCache(_id: FormTemplateId, updatedAt: Instant)
 
-object FormTemplateMetadata {
-  implicit val format: OFormat[FormTemplateMetadata] = derived.oformat()
+object FormTemplateCache {
+  implicit val format: OFormat[FormTemplateCache] = {
+    implicit val formTemplateIdFormat = FormTemplateId.mongoVformat
+    derived.oformat()
+  }
 }

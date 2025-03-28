@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.playcomponents
 
 import cats.implicits.catsSyntaxEq
 import play.api.mvc.RequestHeader
+import uk.gov.hmrc.gform.cache.FormTemplateCacheService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.repo.Repo
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateContext, FormTemplateContextCacheManager, FormTemplateId, FormTemplateMetadata }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateCache, FormTemplateContext, FormTemplateContextCacheManager, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -31,7 +31,7 @@ import java.time.Instant
 final class RequestHeaderService(
   gformConnector: GformConnector,
   formTemplateContextCacheManager: FormTemplateContextCacheManager,
-  templateMetadataRepo: Repo[FormTemplateMetadata]
+  formTemplateCacheService: FormTemplateCacheService
 )(implicit ec: ExecutionContext) {
 
   def formTemplateContext(rh: RequestHeader): Future[Option[FormTemplateContext]] =
@@ -41,7 +41,7 @@ final class RequestHeaderService(
         val lowerCaseFormTemplateId = FormTemplateId(formTemplateId.toLowerCase)
         for {
           updatedAt <-
-            templateMetadataRepo.find(lowerCaseFormTemplateId.value).map(_.map(_.updatedAt).getOrElse(Instant.now))
+            formTemplateCacheService.find(lowerCaseFormTemplateId).map(_.map(_.updatedAt).getOrElse(Instant.now))
           formTemplateContext <- getFormTemplateContextIfUpdated(lowerCaseFormTemplateId, updatedAt)
           formTemplateBehavior <- if (rh.method === "GET")
                                     gformConnector.getFormTemplateBehavior(lowerCaseFormTemplateId)
@@ -62,10 +62,18 @@ final class RequestHeaderService(
       case _ =>
         for {
           formTemplateContext <- gformConnector.getFormTemplateContext(formTemplateId)
-        } yield {
-          formTemplateContextCacheManager.putFormTemplateContext(formTemplateContext, updatedAt)
-          Some(formTemplateContext)
-        }
+          _ <-
+            formTemplateCacheService
+              .save(FormTemplateCache(formTemplateId, updatedAt))
+              .fold(
+                invalid =>
+                  new RuntimeException(
+                    s"Saving form template cache is getting error, form template id: ${formTemplateId.value} error: ${invalid.error}"
+                  ),
+                _ => formTemplateContextCacheManager.putFormTemplateContext(formTemplateContext, updatedAt)
+              )
+
+        } yield Some(formTemplateContext)
     }
   }
 }

@@ -16,9 +16,14 @@
 
 package uk.gov.hmrc.gform.repo
 
-import org.mongodb.scala.model.IndexModel
+import cats.data.EitherT
+import cats.implicits._
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.{ Filters, FindOneAndReplaceOptions, IndexModel }
 import org.mongodb.scala.model.Filters._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.core.FOpt
+import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -27,6 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class Repo[T: OWrites: Manifest](
   name: String,
   mongoComponent: MongoComponent,
+  idLens: T => String,
   indexes: Seq[IndexModel] = Seq.empty,
   replaceIndexes: Boolean = false
 )(implicit
@@ -39,4 +45,32 @@ class Repo[T: OWrites: Manifest](
       .find(equal("_id", id))
       .first()
       .toFutureOption()
+
+  def upsert(t: T): FOpt[Unit] = EitherT {
+    underlying.collection
+      .findOneAndReplace(idSelector(t), t, FindOneAndReplaceOptions().upsert(true))
+      .toFuture()
+      .asEither
+  }
+
+  def delete(id: String): FOpt[DeleteResult] = EitherT {
+    underlying.collection
+      .deleteOne(Filters.equal("_id", id))
+      .toFuture()
+      .map(wr => DeleteResult(id, wr.getDeletedCount === 1).asRight)
+      .recover { case lastError =>
+        UnexpectedState(lastError.getMessage).asLeft
+      }
+  }
+
+  private def idSelector(item: T): Bson = Filters.equal("_id", idLens(item))
+
+  implicit class FutureWriteResultOps[R](t: Future[R]) {
+    def asEither: Future[Either[UnexpectedState, Unit]] =
+      t.map { _ =>
+        ().asRight[UnexpectedState]
+      } recover { case lastError =>
+        UnexpectedState(lastError.getMessage).asLeft[Unit]
+      }
+  }
 }
