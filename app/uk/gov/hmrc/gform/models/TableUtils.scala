@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, FormComponent, FormComponentId, FormCtx, TableComp, TableValue, TableValueRow }
 
@@ -28,7 +29,16 @@ object TableUtils {
     val rows: List[TableValueRow] = table.rows.flatMap { row =>
       row.dynamic.fold(List(row)) {
         case d @ Dynamic.ATLBased(formComponentId) =>
-          val baseIds = determineBaseIds(row)
+          val allAddToListBrackets: List[Bracket.AddToList[Visibility]] = fmvo.formModel.brackets.addToListBrackets
+
+          val addToListComponentBaseIds: Set[BaseComponentId] =
+            allAddToListBrackets
+              .flatMap(
+                _.iterations.toList.flatMap(_.toPageModel.toList.flatMap(_.allFormComponentIds.map(_.baseComponentId)))
+              )
+              .toSet
+          // Expand only addToList's components
+          val baseIds = determineBaseIds(row).filter(baseId => addToListComponentBaseIds(baseId.baseComponentId))
           expandTable[D](row, d, baseIds).toList
         case Dynamic.DataRetrieveBased(_) => List(row)
       }
