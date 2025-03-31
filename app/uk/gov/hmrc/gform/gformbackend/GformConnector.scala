@@ -445,6 +445,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateContext] =
     ws.GET[FormTemplateContext](s"$baseUrl/formtemplates-with-redirects/${formTemplateId.value}")
 
+  def getFormTemplateBehavior(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplateBehavior] =
+    ws.GET[FormTemplateBehavior](s"$baseUrl/formtemplates/${formTemplateId.value}/behavior")
+
   def getLatestFormTemplate(
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =

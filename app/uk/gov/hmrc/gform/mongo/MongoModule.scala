@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.auditing
+package uk.gov.hmrc.gform.mongo
 
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.mongo.MongoComponent
 
-object loggingHelpers {
-  def cleanHeaderCarrierHeader(hc: HeaderCarrier): String =
-    s"headers, sessionId: '${hc.sessionId.getOrElse("")}, deviceId: '${hc.deviceID.getOrElse("")}' requestId: '${hc.requestId
-      .getOrElse("")}', request chain: '${hc.requestChain.value}'"
+class MongoModule(configModule: ConfigModule) {
+  val mongoComponent: MongoComponent = MongoComponent(configModule.typesafeConfig.getString("mongodb.uri"))
 }

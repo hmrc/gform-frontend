@@ -85,14 +85,12 @@ class GformModule(
     sectionRenderingService,
     validationModule.validationService,
     authModule.enrolmentService,
-    configModule.appConfig,
     graphModule.recalculation,
     authModule.taxEnrolmentsConnector,
     authModule.ggConnector,
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
     graphModule.smartStringEvaluatorFactory,
-    gformBackendModule.gformConnector,
     englishMessages
   )
 
@@ -362,7 +360,7 @@ class GformModule(
     acknowledgementPdfService
   )
 
-  val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)
+  val reviewService = new ReviewService(gformBackEndService, lookupRegistry)
 
   val reviewController = new ReviewController(
     playBuiltInsModule.i18nSupport,

@@ -37,7 +37,8 @@ case class AppConfig(
   albAdminIssuerUrl: String,
   `case-worker-assumed-identity-cookie`: String,
   fileMaxUploadedSizeMB: Long,
-  `proxy-timeout`: FiniteDuration
+  `proxy-timeout`: FiniteDuration,
+  formTemplateCacheTTL: FiniteDuration
 ) {
 
   def restrictedFileExtensions: List[FileExtension] =

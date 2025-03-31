@@ -36,6 +36,7 @@ import _root_.controllers.AssetsComponents
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import play.filters.csrf.{ CSRF, CSRFComponents }
+import uk.gov.hmrc.gform.cache.CacheModule
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -49,6 +50,8 @@ import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
+import uk.gov.hmrc.gform.mongo.MongoModule
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContextCacheManager
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -88,6 +91,8 @@ class ApplicationModule(context: Context)
   private val graphiteModule = new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 
   protected val auditingModule = new AuditingModule(configModule, akkaModule, graphiteModule, applicationLifecycle)
+
+  private val mongoModule = new MongoModule(configModule)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -216,7 +221,15 @@ class ApplicationModule(context: Context)
     hmrcSessionCookieBaker
   )
 
-  private val requestHeaderService = new RequestHeaderService(gformBackendModule.gformConnector)
+  private val formTemplateContextCacheManager = new FormTemplateContextCacheManager()
+  private val cacheModule = new CacheModule(controllersModule, mongoModule, configModule)
+
+  private val requestHeaderService =
+    new RequestHeaderService(
+      gformBackendModule.gformConnector,
+      formTemplateContextCacheManager,
+      cacheModule.formTemplateCacheService
+    )
 
   val errorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,
@@ -252,7 +265,8 @@ class ApplicationModule(context: Context)
     controllersModule,
     this,
     errorHandler,
-    assetsMetadata
+    assetsMetadata,
+    cacheModule
   )
 
   lazy val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(

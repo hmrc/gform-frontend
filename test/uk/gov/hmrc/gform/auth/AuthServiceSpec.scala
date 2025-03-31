@@ -53,7 +53,8 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     albAdminIssuerUrl = "",
     `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity",
     fileMaxUploadedSizeMB = 145,
-    `proxy-timeout` = FiniteDuration.apply(120, SECONDS)
+    `proxy-timeout` = FiniteDuration.apply(120, SECONDS),
+    formTemplateCacheTTL = FiniteDuration.apply(120, SECONDS)
   )
 
   implicit val request: Request[AnyContent] = null

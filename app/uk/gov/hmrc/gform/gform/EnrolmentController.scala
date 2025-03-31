@@ -31,7 +31,7 @@ import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result 
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, Direction }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.eval.InitFormEvaluator
@@ -39,7 +39,6 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
-import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
@@ -81,14 +80,12 @@ class EnrolmentController(
   renderer: SectionRenderingService,
   validationService: ValidationService,
   enrolmentService: EnrolmentService,
-  appConfig: AppConfig,
   recalculation: Recalculation[Future, Throwable],
   taxEnrolmentConnector: TaxEnrolmentsConnector,
   ggConnector: GovernmentGatewayConnector,
   frontendAppConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  gformConnector: GformConnector,
   englishMessages: Messages
 )(implicit
   ec: ExecutionContext
@@ -465,8 +462,7 @@ class EnrolmentController(
                   formTemplate,
                   retrievals,
                   enrolmentSection,
-                  formModelOptics,
-                  frontendAppConfig
+                  formModelOptics
                 )
                 for {
                   formHandlerResult <- formHandlerResultF

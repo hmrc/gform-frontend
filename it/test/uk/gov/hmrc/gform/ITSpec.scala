@@ -31,15 +31,15 @@ import play.api.libs.json.{ Json, Reads }
 import play.api.libs.ws.ahc.{ AhcWSClientConfigFactory, StandaloneAhcWSClient }
 import play.api.{ Application, Environment }
 import uk.gov.hmrc.crypto.{ Crypted, SymmetricCryptoFactory }
-import uk.gov.hmrc.gform.ApplicationLoader
+import uk.gov.hmrc.gform.{ ApplicationLoader, MongoDBSupport }
 
 import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 trait ITSpec
-    extends HTTPSupport with GivenWhenThen with AnyFlatSpecLike with Matchers with BaseOneServerPerSuite
-    with BeforeAndAfterAll with FakeApplicationFactory with ScalaFutures with BeforeAndAfterEach
-    with WiremockAdminSupport with DocumentSupport {
+    extends MongoDBSupport with HTTPSupport with GivenWhenThen with AnyFlatSpecLike with Matchers
+    with BaseOneServerPerSuite with BeforeAndAfterAll with FakeApplicationFactory with ScalaFutures
+    with BeforeAndAfterEach with WiremockAdminSupport with DocumentSupport {
 
   implicit val system: ActorSystem = ActorSystem()
 
@@ -63,7 +63,7 @@ trait ITSpec
     "microservice.services.csp-partials.port"          -> s"$wiremockPort",
     "microservice.services.seiss.port"                 -> s"$wiremockPort",
     "microservice.services.enrolment-store-proxy.port" -> s"$wiremockPort"
-  )
+  ) ++ mongoSettings
 
   override def fakeApplication(): Application = {
     val context =
@@ -82,6 +82,7 @@ trait ITSpec
   override protected def afterAll(): Unit = {
     app.stop().futureValue
     wireMockServer.stop()
+    mongoComponent.database.drop().toFuture().futureValue
     system.terminate()
     ()
   }

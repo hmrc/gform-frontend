@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.auditing
+package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.http.HeaderCarrier
+import org.apache.commons.lang3.RandomStringUtils
+import uk.gov.hmrc.mongo.MongoComponent
 
-object loggingHelpers {
-  def cleanHeaderCarrierHeader(hc: HeaderCarrier): String =
-    s"headers, sessionId: '${hc.sessionId.getOrElse("")}, deviceId: '${hc.deviceID.getOrElse("")}' requestId: '${hc.requestId
-      .getOrElse("")}', request chain: '${hc.requestChain.value}'"
+trait MongoComponentSupport {
+  val mongoDbName: String = s"test-${RandomStringUtils.randomNumeric(5)}-${getClass.getSimpleName}"
+  val mongoDBURI: String = s"mongodb://localhost:27017/$mongoDbName"
+
+  val mongoComponent: MongoComponent = MongoComponent(mongoDBURI)
 }

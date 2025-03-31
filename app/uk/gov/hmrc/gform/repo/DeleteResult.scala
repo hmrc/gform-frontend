@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.auditing
+package uk.gov.hmrc.gform.repo
 
-import uk.gov.hmrc.http.HeaderCarrier
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-object loggingHelpers {
-  def cleanHeaderCarrierHeader(hc: HeaderCarrier): String =
-    s"headers, sessionId: '${hc.sessionId.getOrElse("")}, deviceId: '${hc.deviceID.getOrElse("")}' requestId: '${hc.requestId
-      .getOrElse("")}', request chain: '${hc.requestChain.value}'"
+case class DeleteResult(
+  templateId: String,
+  deleted: Boolean
+)
+
+object DeleteResult {
+  implicit val format: OFormat[DeleteResult] = derived.oformat()
 }
