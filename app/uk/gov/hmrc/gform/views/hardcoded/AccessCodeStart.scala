@@ -20,7 +20,6 @@ import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.govukfrontend.views.html.components._
@@ -29,8 +28,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 
-class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm], frontendAppConfig: FrontendAppConfig)(
-  implicit messages: Messages
+class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], frontendAppConfig: FrontendAppConfig)(implicit
+  messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
   val accessCodeName = messages(s"accessCode.$draftRetrievalMethod")
@@ -89,7 +88,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
     )
 
     val useExisting = RadioItem(
-      value = Some(AccessCodePage.optionRetrieve),
+      value = Some(AccessCodePage.optionContinue),
       content = Text(messages("accessCode.useExisting", formCat))
     )
 
