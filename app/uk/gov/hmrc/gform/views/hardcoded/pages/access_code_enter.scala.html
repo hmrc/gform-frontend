@@ -23,7 +23,8 @@
 
 @(
   frontendAppConfig: FrontendAppConfig,
-  accessCodeEnter: AccessCodeEnter
+  accessCodeEnter: AccessCodeEnter,
+  backHref: Call
 )(
   implicit
   request: Request[_],
@@ -38,12 +39,17 @@
 
 @heading = @{accessCodeEnter.formTemplate.formName.value}
 
+@backLink = @{
+  new BackLink(href = backHref.url, content = new Text(messages("linkText.back")))
+}
+
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   formTemplate = accessCodeEnter.formTemplate,
   frontendAppConfig = frontendAppConfig,
   containsErrors = accessCodeEnter.hasErrors,
-  accessCode = None
+  accessCode = None,
+  backLink = Some(backLink)
 ) {
 
   @if(accessCodeEnter.hasErrors) {
@@ -62,10 +68,15 @@
     @messages("accessCode.p2", accessCodeEnter.formCat, accessCodeEnter.accessCodeName)
   </p>
 
-  @formWithCSRF(action = NewFormController.newFormPost(accessCodeEnter.formTemplate._id), args = 'id -> "gf-form") {
+  @formWithCSRF(action = NewFormController.accessCodePost(accessCodeEnter.formTemplate._id), args = 'id -> "gf-form") {
     @accessCodeEnter.render
-<!--    <input type="hidden" name="@{AccessCodePage.key}" value="@{accessCodeEnter.accessCodeValue}">-->
-    <input type="hidden" name="@{AccessCodePage.optionKey}" value="access">
+
+    @if(accessCodeEnter.isRetrieve) {
+      <input type="hidden" name="isRetrieve" value="true">
+    } else {
+      <input type="hidden" name="isRetrieve" value="false">
+    }
+
     @govukButton(Button(content = Text(button), value = Some(button)))
   }
 

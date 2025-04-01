@@ -56,9 +56,9 @@
     @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.formCat, frontendAppConfig.submittedFormExpiryDays, displayAccessCode.accessCodeName).
   </p>
 
-  @formWithCSRF(action = NewFormController.newFormPost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {
+  @formWithCSRF(action = NewFormController.accessCodePost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {
     <input type="hidden" name="@{AccessCodePage.key}" value="@{displayAccessCode.accessCode.value}">
-    <input type="hidden" name="@{AccessCodePage.optionKey}" value="@{AccessCodePage.optionAccess}">
+    <input type="hidden" name="@{AccessCodePage.isRetrieveKey}" value="true">
     @govukButton(Button(content = Text(button), value = Some(button)))
   }
 }
