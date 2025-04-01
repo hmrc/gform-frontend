@@ -27,7 +27,7 @@ import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintA
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 
-class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm], isRetrieve: Boolean)(implicit
+class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm], val isRetrieve: Boolean)(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
