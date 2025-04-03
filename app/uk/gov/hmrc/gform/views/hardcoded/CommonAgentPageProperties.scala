@@ -35,7 +35,7 @@ class CommonAgentPageProperties(formTemplate: FormTemplate, accessCode: AccessCo
         HtmlFormat.fill(
           List(
             p(accessCodeName.capitalize + ":"),
-            acStrong
+            p(accessCode.value, "govuk-body-l govuk-!-font-weight-bold govuk-!-margin-bottom-1")
           )
         )
       ),

@@ -43,7 +43,7 @@
 ) {
 
   <h2 class="govuk-heading-l">
-    @messages("accessCode.new.keepNote", displayAccessCode.accessCodeName)
+    @messages("accessCode.new.title", displayAccessCode.accessCodeName)
   </h2>
 
   @displayAccessCode.insetHtml
@@ -53,7 +53,7 @@
   </p>
 
   <p class="govuk-body">
-    @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.formCat, frontendAppConfig.submittedFormExpiryDays, displayAccessCode.accessCodeName).
+    @messages("accessCode.new.willExpire", displayAccessCode.formCat, frontendAppConfig.submittedFormExpiryDays, displayAccessCode.accessCodeName).
   </p>
 
   @formWithCSRF(action = NewFormController.accessCodePost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {

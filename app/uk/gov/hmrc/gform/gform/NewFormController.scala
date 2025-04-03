@@ -694,7 +694,7 @@ class NewFormController(
         case FormIdData.Plain(_, _) =>
           Future.failed(
             new Exception(
-              s"newFormPost endpoind for DraftRetrievalMethod: $drm is being seen as OnePerUser on the backend"
+              s"processNewForm endpoint for DraftRetrievalMethod: $drm is being seen as OnePerUser on the backend"
             )
           )
       }
@@ -750,7 +750,6 @@ class NewFormController(
           res             <- processSubmittedData(newCache, drm)
         } yield res
     }
-
   }
 
   def continue(formTemplateId: FormTemplateId, submissionRef: SubmissionRef) =
