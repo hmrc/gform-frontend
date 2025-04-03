@@ -47,7 +47,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], fronte
     val errorsHtml: Seq[ErrorLink] = (form.errors ++ form.globalErrors).map { error =>
       ErrorLink(
         href = Some("#" + error.key),
-        content = Text(messages(s"${error.key}.${error.message}", formCategory))
+        content = Text(messages(s"${error.key}.${error.message}"))
       )
     }
 
@@ -72,7 +72,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], fronte
       Fieldset(
         legend = Some(
           Legend(
-            content = Text(messages("accessCode.p3", formCat)),
+            content = Text(messages("accessCode.p3")),
             isPageHeading = false,
             classes = "govuk-fieldset__legend--m"
           )
