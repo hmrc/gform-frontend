@@ -255,7 +255,7 @@ enrolment.change.or.sign.out.error.required=Dewiswch yr hyn rydych am ei wneud n
 enrolment.content.try.again.button=Rhowch gynnig arall arni
 
 # Access code form field errors
-accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd
+accessOption.error.required=Dewiswch yr hyn yr ydych am ei wneud
 accessCode.error.required=Nodwch allwedd cyrchu dros dro. Er enghraifft, A12-B456-8ZZ
 accessCode.error.pattern=Rhaid i allweddi cyrchu dros dro gynnwys 12 o gymeriadau (gan gynnwys llythrennau, rhifau a chysylltnodau). Er enghraifft, A12-B456-8ZZ
 accessCode.error.notfound=Ni ddaethpwyd o hyd i’r allwedd cyrchu dros dro. Mae’n bosibl ei bod wedi dod i ben neu eich bod wedi’i nodi’n anghywir. Gwiriwch hi a rhowch gynnig arall arni
@@ -458,13 +458,14 @@ ack.feedbackLink=arolwg adborth
 ack.feedbackText2=nawr
 
 # Access code start page
-accessCode.submissionReference=submission reference (Welsh ???)
-accessCode.formAccessCodeForAgents=Access code (Welsh ???)
+accessCode.formAccessCodeForAgents=Cod mynediad
 accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir allwedd cyrchu dros dro i chi
 accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am allwedd cyrchu dros dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.
-accessCode.p3=A ydych am ddechrau {0} newydd neu barhau i weithio ar {0} a gadwyd yn flaenorol (os oes gennych un)?
+accessCode.p3=Beth hoffech ei wneud?
 accessCode.startNew=Dechrau {0} newydd
 accessCode.useExisting=Parhau i weithio ar {0} a gadwyd yn flaenorol
+accessCode.enterTitlePdf=
+accessCode.enterTitleContinue=
 accessCode.enterKey=Nodwch allwedd cyrchu dros dro
 accessCode.keyHintText=Er enghraifft, A12-B456-8ZZ
 accessCode.help.title=Help gydag allwedd cyrchu dros dro
@@ -472,7 +473,7 @@ accessCode.help.p1=Rhoddwyd allwedd cyrchu dros dro i chi pan ddechreuoch neu pa
 accessCode.help.p2=Gallwch ddefnyddio allwedd cyrchu dros dro i barhau i weithio ar {0} a gadwyd gennych. Mae’n ddilys am 28 diwrnod ac ni ellir ei defnyddio i gyrchu {0} a gyflwynwyd
 accessCode.help.p3=Mae allwedd cyrchu dros dro yn cynnwys 12 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, A12-B456-8ZZ
 accessCode.help.p4=Os ydych wedi colli’ch allwedd cyrchu dros dro, bydd angen i chi ddechrau’ch {0} eto
-accessCode.new.title=Gwnewch nodyn o’ch allwedd cyrchu dros dro
+accessCode.new.title=Gwneud nodyn o’ch cod cyrchu
 accessCode.whatYouCanDoNext=Yr hyn y gallwch ei wneud nesaf
 accessCode.new.keepNote=Cadwch nodyn o’ch allwedd cyrchu dros dro
 accessCode.new.youWillBeAsked=Gofynnir i chi amdani bob tro y byddwch yn dod yn ôl i barhau i weithio ar y {0} hwn
@@ -483,8 +484,8 @@ accessCode.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwy
 accessCode.youCan=Gallwch wneud y canlynol:
 accessCode.exit=gadael y dudalen hon
 accessCode.workOnAnother=gweithio ar {0} arall
-accessCode.downloadSubmitted=Get a copy of a {0} that you submitted (Welsh ???)
-accessCode.downloadSubmitted.hintText=You can only get a copy of a previously submitted {0} in the {1} days after it has been submitted (Welsh ???)
+accessCode.downloadSubmitted=Gael copi o {0} y gwnaethoch ei chyflwyno
+accessCode.downloadSubmitted.hintText=Bydd copi o {0} a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at 7 diwrnod ar ôl iddi gael ei chyflwyno.
 
 # Continue or delete page
 continueDelete.title=A hoffech fynd yn eich blaen gyda’r fersiwn a gadwyd gennych?
