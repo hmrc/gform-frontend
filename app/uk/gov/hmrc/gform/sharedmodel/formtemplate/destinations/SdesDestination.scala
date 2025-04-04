@@ -25,7 +25,6 @@ sealed trait SdesDestination extends Product with Serializable {
     case SdesDestination.HmrcIlluminate                              => "hmrc-illuminate"
     case SdesDestination.DataStore | SdesDestination.DataStoreLegacy => "data-store"
     case SdesDestination.Dms                                         => "dms"
-    case SdesDestination.InfoArchive                                 => "info-archive"
   }
 
   def description: String = this match {
@@ -33,7 +32,6 @@ sealed trait SdesDestination extends Product with Serializable {
     case SdesDestination.DataStore       => "Data Store"
     case SdesDestination.DataStoreLegacy => "Data Store (Legacy)"
     case SdesDestination.Dms             => "DMS"
-    case SdesDestination.InfoArchive     => "InfoArchive"
   }
 }
 
@@ -46,8 +44,6 @@ object SdesDestination {
 
   case object DataStore extends SdesDestination
 
-  case object InfoArchive extends SdesDestination
-
   implicit val equal: Eq[SdesDestination] = Eq.fromUniversalEquals
 
   implicit val format: Format[SdesDestination] =
@@ -55,7 +51,6 @@ object SdesDestination {
       "Dms"             -> Dms,
       "HmrcIlluminate"  -> HmrcIlluminate,
       "DataStoreLegacy" -> DataStoreLegacy,
-      "DataStore"       -> DataStore,
-      "InfoArchive"     -> InfoArchive
+      "DataStore"       -> DataStore
     )
 }
