@@ -27,7 +27,7 @@ import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintA
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 
-class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm], val isRetrieve: Boolean)(implicit
+class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm], val isContinue: Boolean)(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
@@ -71,7 +71,9 @@ class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
     val accessCodeError: Option[FormError] = form.error(AccessCodePage.key)
 
     val label = Label(
-      content = Text(messages("accessCode.enterKey", accessCodeName))
+      content = Text(messages("accessCode.enterKey", accessCodeName)),
+      isPageHeading = false,
+      classes = "govuk-fieldset__legend--m"
     )
 
     val hint: Hint = Hint(
@@ -80,30 +82,17 @@ class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
 
     val html: Html = {
 
-      val xs = List(
-        messages("accessCode.help.p1", formCat, accessCodeName) + ".",
-        messages("accessCode.help.p2", formCat, accessCodeName) + ".",
-        messages(s"accessCode.$draftRetrievalMethod.help.p3"),
-        messages("accessCode.help.p4", formCat, accessCodeName) + "."
-      ).map(x => uk.gov.hmrc.gform.views.html.hardcoded.pages.p(x, "govuk-body"))
-
-      val details = Details(
-        summary = Text(messages("accessCode.help.title", accessCodeName)),
-        content = HtmlContent(HtmlFormat.fill(xs))
-      )
-
       val input = Input(
         id = AccessCodePage.key,
         name = AccessCodePage.key,
         label = label,
         hint = Some(hint),
         value = Some(accessCodeValue),
-        classes = "govuk-input--width-10 govuk-!-margin-bottom-5",
+        classes = "govuk-input--width-10",
         errorMessage = accessCodeError.flatMap(_ => errorMessage)
       )
       val inputHtml = new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)(input)
-      val detailsHtml = new GovukDetails()(details)
-      HtmlFormat.fill(List(inputHtml, detailsHtml))
+      HtmlFormat.fill(List(inputHtml))
     }
 
     html

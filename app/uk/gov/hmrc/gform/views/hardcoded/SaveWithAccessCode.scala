@@ -18,13 +18,15 @@ package uk.gov.hmrc.gform.views.hardcoded
 
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ p, strong }
 
-class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)(implicit messages: Messages)
-    extends CommonAgentPageProperties(formTemplate, accessCode) {
+class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode, frontendAppConfig: FrontendAppConfig)(
+  implicit messages: Messages
+) extends CommonAgentPageProperties(formTemplate, accessCode) {
 
   val heading = messages("accessCode.saved.title", formCat)
 
@@ -44,8 +46,8 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
 
   val paragraph = p(
     messages("accessCode.new.validFor", accessCodeName)
-      + "." +
-      messages("accessCode.new.willExpire", formCat, accessCodeName),
+      + ". " +
+      messages("accessCode.new.willExpire", formCat, frontendAppConfig.submittedFormExpiryDays, accessCodeName) + ". ",
     "govuk-body"
   )
 
