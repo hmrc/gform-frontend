@@ -46,7 +46,7 @@ import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
@@ -281,7 +281,7 @@ class TestOnlyController(
           .proxyToGform(s"gform/test-only/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
       )
 
-    val downloadContents = List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate).map(createDownloadContent)
+    val downloadContents = List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent)
 
     val dataStoreWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View data-store-work-item entry",
