@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId, DestinationWithPaymentReference, DestinationWithTaxpayerId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId, DestinationWithTaxpayerId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult }
 
@@ -44,28 +44,16 @@ object DestinationEvaluator {
             val customerId =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId()).stringRepresentation.take(32)
 
-            DestinationResult(d.id, includeIfEval, Some(customerId), None, None, None, None, None)
+            DestinationResult(d.id, includeIfEval, Some(customerId), None)
           case d: DestinationWithTaxpayerId =>
             val includeIfEval = evalIncludeIf(d.includeIf)
             val taxpayerId =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.taxpayerId()).stringRepresentation.take(32)
 
-            DestinationResult(d.id, includeIfEval, None, Some(taxpayerId), None, None, None, None)
-          case d: DestinationWithPaymentReference =>
-            val includeIfEval = evalIncludeIf(d.includeIf)
-            val paymentReference =
-              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.paymentReference).stringRepresentation
-            val nino =
-              d.nino.map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
-            val utr =
-              d.utr.map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
-            val postalCode =
-              d.postalCode.map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
-
-            DestinationResult(d.id, includeIfEval, None, None, Some(paymentReference), nino, utr, postalCode)
+            DestinationResult(d.id, includeIfEval, None, Some(taxpayerId))
           case others =>
             val includeIfEval = evalIncludeIf(others.includeIf)
-            DestinationResult(others.id, includeIfEval, None, None, None, None, None, None)
+            DestinationResult(others.id, includeIfEval, None, None)
         }
       case _ => List.empty[DestinationResult]
     }
