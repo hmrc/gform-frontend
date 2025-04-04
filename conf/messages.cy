@@ -256,9 +256,9 @@ enrolment.content.try.again.button=Rhowch gynnig arall arni
 
 # Access code form field errors
 accessOption.error.required=Dewiswch yr hyn yr ydych am ei wneud
-accessCode.error.required=Nodwch allwedd cyrchu dros dro. Er enghraifft, A12-B456-8ZZ
-accessCode.error.pattern=Rhaid i allweddi cyrchu dros dro gynnwys 12 o gymeriadau (gan gynnwys llythrennau, rhifau a chysylltnodau). Er enghraifft, A12-B456-8ZZ
-accessCode.error.notfound=Ni ddaethpwyd o hyd i’r allwedd cyrchu dros dro. Mae’n bosibl ei bod wedi dod i ben neu eich bod wedi’i nodi’n anghywir. Gwiriwch hi a rhowch gynnig arall arni
+accessCode.error.required=Nodwch god mynediad
+accessCode.error.pattern=Nodwch god mynediad yn y fformat cywir
+accessCode.error.notfound=Dyw’r cofnodion ddim yn cyfateb a’r cod mynediad y gwnaethoch nodi. Mae’n bosibl ei bod wedi dod i ben neu eich bod wedi’i nodi’n anghywir.
 
 # User recruitment banner
 user.recruitment.title=Helpwch ni i wella ffurflenni {0}
@@ -458,24 +458,25 @@ ack.feedbackLink=arolwg adborth
 ack.feedbackText2=nawr
 
 # Access code start page
-accessCode.formAccessCodeForAgents=Cod mynediad
-accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir allwedd cyrchu dros dro i chi
+accessCode.formAccessCodeForAgents=cod mynediad
+accessCode.title=???
+accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir cod mynediad i chi.
 accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am allwedd cyrchu dros dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.
 accessCode.p3=Beth hoffech ei wneud?
 accessCode.startNew=Dechrau {0} newydd
 accessCode.useExisting=Parhau i weithio ar {0} a gadwyd yn flaenorol
-accessCode.enterTitlePdf=
-accessCode.enterTitleContinue=
-accessCode.enterKey=Nodwch allwedd cyrchu dros dro
-accessCode.keyHintText=Er enghraifft, A12-B456-8ZZ
-accessCode.help.title=Help gydag allwedd cyrchu dros dro
-accessCode.help.p1=Rhoddwyd allwedd cyrchu dros dro i chi pan ddechreuoch neu pan gadwoch {0} ar gyfer y gwasanaeth hwn
-accessCode.help.p2=Gallwch ddefnyddio allwedd cyrchu dros dro i barhau i weithio ar {0} a gadwyd gennych. Mae’n ddilys am 28 diwrnod ac ni ellir ei defnyddio i gyrchu {0} a gyflwynwyd
-accessCode.help.p3=Mae allwedd cyrchu dros dro yn cynnwys 12 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, A12-B456-8ZZ
-accessCode.help.p4=Os ydych wedi colli’ch allwedd cyrchu dros dro, bydd angen i chi ddechrau’ch {0} eto
-accessCode.new.title=Gwneud nodyn o’ch cod cyrchu
+accessCode.downloadSubmitted=Gael copi o {0} y gwnaethoch ei chyflwyno
+accessCode.downloadSubmitted.hintText=Bydd copi o {0} a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at 7 diwrnod ar ôl iddi gael ei chyflwyno.
+accessCode.enter.continue.p1=???
+accessCode.enter.download.p1=???
+accessCode.enter.continue.p2=???
+accessCode.enter.download.p2=???
+accessCode.enterKey=???
+accessCode.formAccessCodeForAgents.keyHintText=Mae gan hyn 12 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, A12-B456-8ZZ
+accessCode.submissionReference.keyHintText=Mae gan hyn 14 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, AB12-B456-98ZZ
+accessCode.new.title=???
 accessCode.whatYouCanDoNext=Yr hyn y gallwch ei wneud nesaf
-accessCode.new.keepNote=Cadwch nodyn o’ch allwedd cyrchu dros dro
+accessCode.new.keepNote=Gwneud nodyn o’ch cod cyrchu
 accessCode.new.youWillBeAsked=Gofynnir i chi amdani bob tro y byddwch yn dod yn ôl i barhau i weithio ar y {0} hwn
 accessCode.new.validFor=Mae’r allwedd cyrchu dros dro hon yn ddilys am 28 diwrnod
 accessCode.new.willExpire=Pan fyddwch wedi cyflwyno’r {0} hon, bydd yr allwedd cyrchu dros dro yn dod i ben
@@ -484,8 +485,6 @@ accessCode.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwy
 accessCode.youCan=Gallwch wneud y canlynol:
 accessCode.exit=gadael y dudalen hon
 accessCode.workOnAnother=gweithio ar {0} arall
-accessCode.downloadSubmitted=Gael copi o {0} y gwnaethoch ei chyflwyno
-accessCode.downloadSubmitted.hintText=Bydd copi o {0} a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at 7 diwrnod ar ôl iddi gael ei chyflwyno.
 
 # Continue or delete page
 continueDelete.title=A hoffech fynd yn eich blaen gyda’r fersiwn a gadwyd gennych?
@@ -501,16 +500,16 @@ downloadOrNew.startNew.text=Dechrau ffurflen newydd
 downloadOrNew.startNew.helpText=Unwaith eich bod wedi dechrau ffurflen newydd, ni allwch lawrlwytho’r ffurflen a gyflwynwyd gennych yn flaenorol.
 downloadOrNew.error.required=Dewiswch yr hyn rydych am ei wneud
 
-downloadThenNew.title=Lawrlwytho copi o’r ffurflen y gwnaethoch ei chyflwyno
+downloadThenNew.title=Lawrlwytho copi o’r {0} y gwnaethoch ei chyflwyno
 downloadThenNew.table.caption.submissionRef=Cyfeirnod cyflwyno
-downloadThenNew.table.caption.submittedOn=Dyddiad cyflwyno
-downloadThenNew.table.value.submittedOn={0} am {1}
+downloadThenNew.table.caption.submittedOn=???
+downloadThenNew.table.value.submittedOn={0} ??? {1}
 downloadThenNew.table.caption.fileType=Math o ffeil
 downloadThenNew.table.caption.fileSize=Maint y ffeil
 downloadThenNew.download.info=Bydd y ffeil yn cael ei chadw yn y man arferol ar gyfer eich lawrlwythiadau.
 downloadThenNew.download.buttonText=Lawrlwytho PDF
 downloadThenNew.whatNext.title=Beth ydych am ei wneud nawr?
-downloadThenNew.whatNext.startNew=Dechrau ffurflen newydd
+downloadThenNew.whatNext.startNew=Dechrau {0} newydd
 downloadThenNew.whatNext.signOut=Allgofnodi
 downloadThenNew.error.required=Dewiswch yr hyn rydych am ei wneud
 

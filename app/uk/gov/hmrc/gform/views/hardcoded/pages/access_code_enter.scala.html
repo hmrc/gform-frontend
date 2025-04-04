@@ -57,24 +57,36 @@
   }
 
   <h1 class="govuk-heading-l">
-    @heading
+    @if(accessCodeEnter.isContinue) {
+      @messages("accessCode.useExisting", accessCodeEnter.formCat)
+    } else {
+      @messages("accessCode.downloadSubmitted", accessCodeEnter.formCat)
+    }
   </h1>
 
   <p class="govuk-body">
-    @messages("accessCode.p1", accessCodeEnter.formCat, accessCodeEnter.accessCodeName).
+    @if(accessCodeEnter.isContinue) {
+      @messages("accessCode.enter.continue.p1", accessCodeEnter.formCat, accessCodeEnter.accessCodeName).
+    } else {
+      @messages("accessCode.enter.download.p1", accessCodeEnter.formCat, accessCodeEnter.accessCodeName).
+    }
   </p>
 
-  <p class="govuk-body govuk-!-margin-bottom-9">
-    @messages("accessCode.p2", accessCodeEnter.formCat, accessCodeEnter.accessCodeName)
+  <p class="govuk-body govuk-!-margin-bottom-6">
+    @if(accessCodeEnter.isContinue) {
+      @messages("accessCode.enter.continue.p2", accessCodeEnter.formCat, accessCodeEnter.accessCodeName).
+    } else {
+      @messages("accessCode.enter.download.p2", accessCodeEnter.formCat, frontendAppConfig.submittedFormExpiryDays, accessCodeEnter.accessCodeName).
+    }
   </p>
 
   @formWithCSRF(action = NewFormController.accessCodePost(accessCodeEnter.formTemplate._id), args = 'id -> "gf-form") {
     @accessCodeEnter.render
 
-    @if(accessCodeEnter.isRetrieve) {
-      <input type="hidden" name="isRetrieve" value="true">
+    @if(accessCodeEnter.isContinue) {
+      <input type="hidden" name="isContinue" value="true">
     } else {
-      <input type="hidden" name="isRetrieve" value="false">
+      <input type="hidden" name="isContinue" value="false">
     }
 
     @govukButton(Button(content = Text(button), value = Some(button)))

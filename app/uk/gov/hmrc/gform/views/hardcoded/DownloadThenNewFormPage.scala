@@ -35,7 +35,7 @@ class DownloadThenNewFormPage(
   form: Form[String],
   submission: Submission,
   size: Int,
-  maybeAccessCode: Option[AccessCode],
+  val maybeAccessCode: Option[AccessCode],
   se: SuppressErrors
 )(implicit
   messages: Messages
@@ -97,8 +97,8 @@ class DownloadThenNewFormPage(
           content = Text(
             messages(
               "downloadThenNew.table.value.submittedOn",
-              submittedDateTime.format(dateFormat),
-              submittedDateTime.format(timeFormat)
+              submittedDateTime.format(timeFormat),
+              submittedDateTime.format(dateFormat)
             )
           )
         )
@@ -121,7 +121,7 @@ class DownloadThenNewFormPage(
       )
     ),
     head = None,
-    caption = Some(messages("downloadThenNew.title")),
+    caption = Some(messages("downloadThenNew.title", formCat)),
     captionClasses = "govuk-table__caption--l",
     firstCellIsHeader = false
   )
@@ -148,7 +148,7 @@ class DownloadThenNewFormPage(
 
     val startNew = RadioItem(
       value = if (maybeAccessCode.isDefined) Some("startNewAccess") else Some("startNew"),
-      content = Text(messages("downloadThenNew.whatNext.startNew"))
+      content = Text(messages("downloadThenNew.whatNext.startNew", formCat))
     )
 
     val signOut = RadioItem(

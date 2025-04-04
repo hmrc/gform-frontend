@@ -26,7 +26,7 @@ object AccessCodePage {
 
   val key = "accessCode"
   val optionKey = "accessOption"
-  val isRetrieveKey = "isRetrieve"
+  val isContinueKey = "isContinue"
   val optionAccess = "access"
   val optionNew = "new"
   val optionContinue = "continue"
@@ -49,7 +49,7 @@ object AccessCodePage {
     Form(
       mapping(
         key           -> verification,
-        isRetrieveKey -> nonEmptyText
+        isContinueKey -> nonEmptyText
       )(AccessCodeForm.apply)(AccessCodeForm.unapply)
     )
   }
