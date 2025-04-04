@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormStatus }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationId, SdesDestination }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.util.Try
@@ -95,6 +95,10 @@ object ValueClassBinder {
 
     override def unbind(key: String, value: AddToListId): String = s"$key=${value.formComponentId.value}"
   }
+
+  implicit val sdesDestinationBinder: QueryStringBindable[SdesDestination] = valueClassQueryBinder(
+    SdesDestination.fromName
+  )
 
   implicit val paymentReferenceQueryBindable: QueryStringBindable[PaymentReference] =
     new QueryStringBindable[PaymentReference] {
