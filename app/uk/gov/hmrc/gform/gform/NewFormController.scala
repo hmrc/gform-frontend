@@ -53,7 +53,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class AccessCodeForm(accessCode: String, isRetrieve: String)
+case class AccessCodeForm(accessCode: String, isContinue: String)
 
 class NewFormController(
   frontendAppConfig: FrontendAppConfig,
@@ -427,7 +427,7 @@ class NewFormController(
     )
   )
 
-  def newOrSignout(formTemplateId: FormTemplateId): Action[AnyContent] =
+  def newOrSignout(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
         val queryParams: QueryParams = QueryParams.fromRequest(request)
@@ -435,7 +435,9 @@ class NewFormController(
           .bindFromRequest()
           .fold(
             _ =>
-              Redirect(routes.NewFormController.lastSubmission(cache.formTemplate._id, noAccessCode, SuppressErrors.No))
+              Redirect(
+                routes.NewFormController.lastSubmission(cache.formTemplate._id, maybeAccessCode, SuppressErrors.No)
+              )
                 .pure[Future],
             {
               case "signOut"  => Redirect(routes.SignOutController.signOut(cache.formTemplate._id)).pure[Future]
@@ -566,19 +568,19 @@ class NewFormController(
     } yield res
 
   def accessCodeDownload(formTemplateId: FormTemplateId): Action[AnyContent] =
-    accessCode(formTemplateId, isRetrieve = false)
+    accessCode(formTemplateId, isContinue = false)
 
   def accessCodeRetrieveForm(formTemplateId: FormTemplateId): Action[AnyContent] =
-    accessCode(formTemplateId, isRetrieve = true)
+    accessCode(formTemplateId, isContinue = true)
 
-  private def accessCode(formTemplateId: FormTemplateId, isRetrieve: Boolean): Action[AnyContent] =
+  private def accessCode(formTemplateId: FormTemplateId, isContinue: Boolean): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit lang => cache =>
         for {
           (newCache, drm) <- getDraftRetrievalMethod(cache)
           res <- {
             val formAccessEnter =
-              new AccessCodeEnter(newCache.formTemplate, AccessCodePage.form(drm), isRetrieve)
+              new AccessCodeEnter(newCache.formTemplate, AccessCodePage.form(drm), isContinue)
             Ok(
               access_code_enter(
                 frontendAppConfig,
@@ -596,8 +598,8 @@ class NewFormController(
       request: Request[AnyContent],
       lang: LangADT
     ) = {
-      val isRetrieve = errors.data.getOrElse(AccessCodePage.isRetrieveKey, "false") == "true"
-      val formAccessEnter = new AccessCodeEnter(formTemplate, errors, isRetrieve)
+      val isContinue = errors.data.getOrElse(AccessCodePage.isContinueKey, "false") == "true"
+      val formAccessEnter = new AccessCodeEnter(formTemplate, errors, isContinue)
       BadRequest(
         access_code_enter(
           frontendAppConfig,
@@ -661,7 +663,7 @@ class NewFormController(
         .fold(
           (hasErrors: data.Form[AccessCodeForm]) => Future.successful(badRequest(cache.formTemplate, hasErrors)),
           accessCodeForm =>
-            accessCodeForm.isRetrieve match {
+            accessCodeForm.isContinue match {
               case "true"  => optionAccess(accessCodeForm.accessCode, cache)
               case "false" => optionDownload(accessCodeForm.accessCode, cache)
               case otherwise =>

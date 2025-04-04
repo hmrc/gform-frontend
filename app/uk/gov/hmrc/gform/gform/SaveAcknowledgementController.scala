@@ -191,7 +191,7 @@ class SaveAcknowledgementController(
     auth
       .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, Some(accessCode), OperationWithForm.EditForm) {
         implicit request => implicit l => cache => _ => _ =>
-          val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
+          val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode, frontendAppConfig)
           Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig)).pure[Future]
       }
 

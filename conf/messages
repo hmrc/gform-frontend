@@ -257,9 +257,9 @@ enrolment.content.try.again.button=Try again
 
 # Access code form field errors
 accessOption.error.required=Select what you want to do
-accessCode.error.required=Enter a temporary access key. For example, A12-B456-8ZZ
-accessCode.error.pattern=Temporary access keys must be 12 characters (including letters, numbers and hyphens). For example, A12-B456-8ZZ
-accessCode.error.notfound=Temporary access key not found. It may have expired or been entered incorrectly. Check it and try again
+accessCode.error.required=Enter an access code
+accessCode.error.pattern=Enter an access code in the correct format
+accessCode.error.notfound=There is no match for the access code you entered. It may have expired or been entered incorrectly
 
 # User recruitment banner
 user.recruitment.title=Help us improve {0} forms
@@ -488,23 +488,19 @@ accessCode.startNew=Start a new {0}
 accessCode.useExisting=Continue working on a saved {0}
 accessCode.downloadSubmitted=Get a copy of a {0} that you submitted
 accessCode.downloadSubmitted.hintText=You can only get a copy of a previously submitted {0} in the {1} days after it has been submitted
-accessCode.enterTitlePdf=
-accessCode.enterTitleContinue=
-accessCode.enterKey=Enter {0}
-accessCode.formAccessCodeForAgents.keyHintText=For example, A12-B456-8ZZ
-accessCode.submissionReference.keyHintText=For example, AB12-B456-98ZZ
-accessCode.help.title=Help with {0}
-accessCode.help.p1=You were given a {1} when you started or saved a {0} for this service
-accessCode.help.p2=You can use a {1} to continue working on a {0} that you’ve saved. It is valid for 28 days and cannot be used to access a submitted {0}
-accessCode.formAccessCodeForAgents.help.p3=A temporary access key has 12 characters including letters, numbers and hyphens. For example, A12-B456-8ZZ
-accessCode.submissionReference.help.p3=A submission reference has 14 characters including letters, numbers and hyphens. For example, AB12-B456-98ZZ
-accessCode.help.p4=If you’ve lost your {1}, you’ll need to start your {0} again
+accessCode.enter.continue.p1=You will need to provide the relevant {1} to continue working on a saved {0}
+accessCode.enter.download.p1=You will need to enter the relevant {1} to download a copy of a previously submitted {0}
+accessCode.enter.continue.p2=You were given an {1} when you started or saved a {0} for this service. It is valid for 28 days
+accessCode.enter.download.p2=You were given an {2} when you started or saved a {0} for this service. You can only get a copy of a previously submitted {0} in the {1} days after it has been submitted
+accessCode.enterKey=Enter the {0}
+accessCode.formAccessCodeForAgents.keyHintText=This has 12 characters including letters, numbers and hyphens. For example, A12-B456-8ZZ
+accessCode.submissionReference.keyHintText=This has 14 characters including letters, numbers and hyphens. For example, AB12-B456-98ZZ
 accessCode.new.title=Make a note of the {0}
 accessCode.whatYouCanDoNext=What you can do next
 accessCode.new.keepNote=Make a note of your {0}
 accessCode.new.youWillBeAsked=You will be asked for this each time you come back to continue working on this {0}
 accessCode.new.validFor=This {0} is valid for 28 days
-accessCode.new.willExpire=Once you have submitted this {0} you will be able to download a copy of the {0} for {1} days, after that the {2} will expire
+accessCode.new.willExpire=Once you have submitted this {0} you will be able to download a copy of the {0} for {1} days. After that the {2} will expire
 accessCode.saved.title=Your {0} has been saved
 accessCode.mustSubmit=For us to consider your {0}, you’ll need to submit it
 accessCode.youCan=You can:
@@ -525,16 +521,16 @@ downloadOrNew.startNew.text=Start a new form
 downloadOrNew.startNew.helpText=Once you start a new form you cannot download your previously submitted form.
 downloadOrNew.error.required=Select what you want to do
 
-downloadThenNew.title=Download a copy of the form that you submitted
+downloadThenNew.title=Download a copy of the {0} that you submitted
 downloadThenNew.table.caption.submissionRef=Submission reference
-downloadThenNew.table.caption.submittedOn=Submitted on
-downloadThenNew.table.value.submittedOn={0} at {1}
+downloadThenNew.table.caption.submittedOn=Submitted at
+downloadThenNew.table.value.submittedOn={0} on {1}
 downloadThenNew.table.caption.fileType=File type
 downloadThenNew.table.caption.fileSize=File size
 downloadThenNew.download.info=The file will be saved to your downloads folder or wherever you usually download files.
 downloadThenNew.download.buttonText=Download PDF
 downloadThenNew.whatNext.title=What do you want to do now?
-downloadThenNew.whatNext.startNew=Start a new form
+downloadThenNew.whatNext.startNew=Start a new {0}
 downloadThenNew.whatNext.signOut=Sign out
 downloadThenNew.error.required=Select what you want to do
 
