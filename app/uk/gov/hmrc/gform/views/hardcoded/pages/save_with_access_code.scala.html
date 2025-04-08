@@ -38,7 +38,13 @@
 
   @saveWithAccessCode.insetHtml
 
-  @saveWithAccessCode.paragraph
+  <p class="govuk-body">
+    @messages("accessCode.new.validFor", saveWithAccessCode.accessCodeName). @messages("accessCode.new.youWillBeAsked", saveWithAccessCode.formCat).
+  </p>
+
+  <p class="govuk-body">
+    @messages("accessCode.new.willExpire", saveWithAccessCode.formCat, frontendAppConfig.submittedFormExpiryDays, saveWithAccessCode.accessCodeName).
+  </p>
 
   @saveWithAccessCode.warningHtml
 

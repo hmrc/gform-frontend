@@ -35,7 +35,7 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode,
     content = HtmlContent(
       HtmlFormat.fill(
         List(
-          p(messages("accessCode.new.keepNote", accessCodeName)),
+          p(messages("accessCode.saved.p1", accessCodeName) + ":"),
           strong(accessCode.value)
         )
       )
@@ -44,12 +44,20 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode,
 
   val panelHtml: Html = new GovukPanel()(panel)
 
-  val paragraph = p(
-    messages("accessCode.new.validFor", accessCodeName)
-      + ". " +
-      messages("accessCode.new.willExpire", formCat, frontendAppConfig.submittedFormExpiryDays, accessCodeName) + ". ",
-    "govuk-body"
-  )
+  private val insetText =
+    InsetText(
+      content = HtmlContent(
+        HtmlFormat.fill(
+          List(
+            p(messages("accessCode.new.keepNote", accessCodeName, formCat) + ":"),
+            p(accessCode.value, "govuk-body-l govuk-!-font-weight-bold govuk-!-margin-bottom-1")
+          )
+        )
+      ),
+      classes = "gforms-inset-text--important"
+    )
+
+  override val insetHtml: Html = new GovukInsetText()(insetText)
 
   private val warningText = WarningText(content = Text(messages("accessCode.mustSubmit", formCat)))
 
