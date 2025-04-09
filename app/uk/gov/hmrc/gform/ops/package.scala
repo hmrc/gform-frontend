@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ChildBenefitNumber, CompanyRegistrationNumber, CtUTR, EORI, FormComponent, NINO, Number, PayeReference, PositiveNumber, ReferenceNumber, SaUTR, Sterling, Text, TextArea, UkBankAccountNumber, UkEORI, UkSortCodeFormat, UkVrn, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ChildBenefitNumber, CompanyRegistrationNumber, CtUTR, EORI, FormComponent, NINO, Number, PayeReference, PositiveNumber, ReferenceNumber, SaUTR, ShortText, Sterling, Text, TextArea, TextWithRestrictions, UkBankAccountNumber, UkEORI, UkSortCodeFormat, UkVrn, WholeSterling }
 
 package object ops {
 
@@ -107,6 +107,12 @@ package object ops {
       case Text(SaUTR, _, _, _, _, _, _) => true
       case Text(CtUTR, _, _, _, _, _, _) => true
       case _                             => false
+    }
+
+    def isText = formComponent.`type` match {
+      case Text(TextWithRestrictions(_, _), _, _, _, _, _, _) => true
+      case Text(ShortText(_, _), _, _, _, _, _, _)            => true
+      case _                                                  => false
     }
   }
 }

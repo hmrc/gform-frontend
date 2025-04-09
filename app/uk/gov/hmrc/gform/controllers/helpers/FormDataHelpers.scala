@@ -234,6 +234,8 @@ object FormDataHelpers {
       case Some(formComponent) if formComponent.isNino   => value.toUpperCase.trim
       case Some(formComponent) if formComponent.isEORI   => value.toUpperCase.trim
       case Some(formComponent) if formComponent.isUkEORI => value.toUpperCase.trim
+      case Some(formComponent) if formComponent.isText =>
+        value.replaceAll("`", "") //remove backticks to prevent unintended Markdown formatting in generated PDFs
       case None if formComponentId.modelComponentId.fold(_ => false)({
             case ModelComponentId.Atomic(_, Date.day)   => true
             case ModelComponentId.Atomic(_, Date.month) => true
