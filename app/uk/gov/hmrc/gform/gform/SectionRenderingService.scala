@@ -1908,7 +1908,7 @@ class SectionRenderingService(
               List(
                 SummaryListRowHelper.summaryListRow(
                   key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-                  Html(getSmartStringWithInjectedSuffixes(ss, ei.formModelOptics).value()),
+                  Html(ss.value()),
                   Some(""),
                   SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
                   "",
@@ -2034,7 +2034,7 @@ class SectionRenderingService(
             if (isNumeric(v)) "govuk-table__cell--numeric" else ""
           }
           GovukTableRow(
-            content = HtmlContent(sse(getSmartStringWithInjectedSuffixes(v.value, formModelOptics), false)),
+            content = HtmlContent(sse(v.value, false)),
             colspan = v.colspan,
             rowspan = v.rowspan,
             classes = classes.mkString(" ")
@@ -2077,36 +2077,6 @@ class SectionRenderingService(
         classes = table.classes,
         firstCellIsHeader = table.firstCellIsHeader
       )
-    )
-  }
-
-  private def getSmartStringWithInjectedSuffixes(
-    sString: SmartString,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(implicit
-    sse: SmartStringEvaluator
-  ): SmartString = {
-    val resolver = formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
-    val lString: LocalisedString =
-      sString.localised(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
-    SmartString(
-      sString
-        .interpolations(resolver)
-        .zipWithIndex
-        .foldLeft(
-          lString
-        ) {
-          case (accumulatedString, (formCtx: FormCtx, index)) =>
-            formModelOptics.formModelRenderPageOptics.formModel.fcLookup(formCtx.formComponentId) match {
-              case IsText(text) =>
-                text.suffix.fold(accumulatedString)(ss =>
-                  accumulatedString.replace(s"{$index}", s"{$index} ${ss.value()}")
-                )
-              case _ => accumulatedString
-            }
-          case _ => lString
-        },
-      sString.interpolations(resolver)
     )
   }
 
