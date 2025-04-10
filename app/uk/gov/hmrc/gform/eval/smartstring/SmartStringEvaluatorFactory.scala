@@ -134,6 +134,17 @@ private class Executor(
                   .mkString(", ")
               }
               .getOrElse("")
+          case FormCtx(fcId) =>
+            formModelVisibilityOptics.formModel.fcLookup
+              .get(fcId)
+              .collect { case IsText(text) =>
+                val prefix = text.prefix.map(p => apply(p, markDown))
+                val suffix = text.suffix.map(p => apply(p, markDown))
+                val intermediateValue: String =
+                  TextFormatter.componentTextReadonly(stringRepresentation(typeInfo), text.constraint)(l)
+                List(prefix, Some(intermediateValue), suffix).flatten.mkString(" ")
+              }
+              .getOrElse(stringRepresentation(typeInfo))
           case _ => stringRepresentation(typeInfo)
         }
     }
