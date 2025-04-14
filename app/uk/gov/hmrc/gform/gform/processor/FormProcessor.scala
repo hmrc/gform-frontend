@@ -111,12 +111,12 @@ class FormProcessor(
       postcodeLookupIds: Set[FormComponentId],
       dataRetrieveIds: Set[DataRetrieveId]
     ): Future[Result] = {
-      val updFormModel: FormModel[DataExpanded] = updFormModelOptics.formModelRenderPageOptics.formModel
+      val updFormModel = updFormModelOptics.formModelVisibilityOptics.formModel
 
       val sn = updFormModel.brackets.addToListBracket(addToListId).lastSectionNumber
 
-      val addToListBracket: Bracket.AddToList[DataExpanded] =
-        formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
+      val addToListBracket =
+        formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBracket(addToListId)
 
       val isLastIteration = addToListBracket.iterations.size === 1
 
