@@ -488,6 +488,7 @@ accessCode.startNew=Start a new {0}
 accessCode.useExisting=Continue working on a saved {0}
 accessCode.downloadSubmitted=Get a copy of a {0} that you submitted
 accessCode.downloadSubmitted.hintText=You can only get a copy of a previously submitted {0} in the {1} days after it has been submitted
+accessCode.downloadAnother=Download a copy of another submitted {0}
 accessCode.enter.continue.p1=You will need to provide the relevant {1} to continue working on a saved {0}
 accessCode.enter.download.p1=You will need to enter the relevant {1} to download a copy of a previously submitted {0}
 accessCode.enter.continue.p2=You were given an {1} when you started or saved a {0} for this service. It is valid for 28 days

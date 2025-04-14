@@ -164,7 +164,7 @@ class DownloadThenNewFormPage(
 
       val downloadSubmitted = RadioItem(
         value = Some(AccessCodePage.optionDownload),
-        content = Text(messages("accessCode.downloadSubmitted", formCat))
+        content = Text(messages("accessCode.downloadAnother", formCat))
       )
 
       val divider = RadioItem(
