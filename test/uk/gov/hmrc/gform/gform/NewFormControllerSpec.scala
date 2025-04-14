@@ -204,7 +204,7 @@ class NewFormControllerSpec
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission")
+    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission/-")
   }
 
   it should "start a new form" in new TestFixture {
@@ -247,7 +247,7 @@ class NewFormControllerSpec
       )
 
     val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
       .apply(request)
 
     status(result) shouldBe Status.OK
@@ -255,7 +255,7 @@ class NewFormControllerSpec
     val html: String = contentAsString(result)
     html should include("Download a copy of the form that you submitted")
     html should include("Submission reference")
-    html should include("Submitted on")
+    html should include("Submitted at")
   }
 
   it should "display page with submission ref and download PDF button when legacy form" in new LegacyFormSubmissionFixture {
@@ -269,7 +269,7 @@ class NewFormControllerSpec
       )
 
     val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
       .apply(request)
 
     status(result) shouldBe Status.OK
@@ -277,7 +277,7 @@ class NewFormControllerSpec
     val html: String = contentAsString(result)
     html should include("Download a copy of the form that you submitted")
     html should include("Submission reference")
-    html should include("Submitted on")
+    html should include("Submitted at")
   }
 
   it should "start a new form when no previous form submission detected" in new TestFixture {
@@ -308,7 +308,7 @@ class NewFormControllerSpec
     }
 
     val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
@@ -328,7 +328,7 @@ class NewFormControllerSpec
     )
 
     val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
@@ -345,7 +345,7 @@ class NewFormControllerSpec
     )
 
     val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, Yes)
+      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
@@ -358,7 +358,7 @@ class NewFormControllerSpec
     initCommonMocks()
 
     val result: Future[Result] = newFormController
-      .newOrSignout(authCacheWithForm.formTemplateId)
+      .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
@@ -376,7 +376,7 @@ class NewFormControllerSpec
       )
 
     val result: Future[Result] = newFormController
-      .newOrSignout(authCacheWithForm.formTemplateId)
+      .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
@@ -388,11 +388,11 @@ class NewFormControllerSpec
     initCommonMocks()
 
     val result: Future[Result] = newFormController
-      .newOrSignout(authCacheWithForm.formTemplateId)
+      .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
       .apply(request)
 
     status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission?se=f")
+    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission/-?se=f")
   }
 
   trait TestFixture {
@@ -414,6 +414,7 @@ class NewFormControllerSpec
 
     lazy val submissionRef: SubmissionRef = SubmissionRef("some-submission-ref")
     lazy val request: FakeRequest[AnyContent] = FakeRequest("GET", "/")
+    lazy val noAccessCode = Option.empty[AccessCode]
 
     lazy val sections: List[Section] =
       mkSection(

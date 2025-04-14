@@ -18,36 +18,36 @@ package uk.gov.hmrc.gform.views.hardcoded
 
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
-import play.twirl.api.Html
-import uk.gov.hmrc.gform.config.FrontendAppConfig
+import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 
-class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], frontendAppConfig: FrontendAppConfig)(implicit
+class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm], val isContinue: Boolean)(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
   val accessCodeName = messages(s"accessCode.$draftRetrievalMethod")
 
   private val govukErrorMessage: GovukErrorMessage = new GovukErrorMessage()
-  private val govukFieldset: GovukFieldset = new GovukFieldset()
   private val govukHint: GovukHint = new GovukHint()
   private val govukLabel: GovukLabel = new GovukLabel()
   private val govukFormGroup: GovukFormGroup = new GovukFormGroup
   private val govukHintAndErrorMessage: GovukHintAndErrorMessage =
     new GovukHintAndErrorMessage(govukHint, govukErrorMessage)
 
+  val accessCodeValue = form(AccessCodePage.key).value.getOrElse("")
+
   val errorSummary: ErrorSummary = {
 
     val errorsHtml: Seq[ErrorLink] = (form.errors ++ form.globalErrors).map { error =>
       ErrorLink(
         href = Some("#" + error.key),
-        content = Text(messages(s"${error.key}.${error.message}"))
+        content = Text(messages(s"${error.key}.${error.message}", formCategory))
       )
     }
 
@@ -68,53 +68,34 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], fronte
       )
     }
 
-    val fieldset = Some(
-      Fieldset(
-        legend = Some(
-          Legend(
-            content = Text(messages("accessCode.p3")),
-            isPageHeading = false,
-            classes = "govuk-fieldset__legend--m"
-          )
-        )
+    val accessCodeError: Option[FormError] = form.error(AccessCodePage.key)
+
+    val label = Label(
+      content = Text(messages("accessCode.enterKey", accessCodeName)),
+      isPageHeading = false,
+      classes = "govuk-fieldset__legend--m"
+    )
+
+    val hint: Hint = Hint(
+      content = Text(messages(s"accessCode.$draftRetrievalMethod.keyHintText"))
+    )
+
+    val html: Html = {
+
+      val input = Input(
+        id = AccessCodePage.key,
+        name = AccessCodePage.key,
+        label = label,
+        hint = Some(hint),
+        value = Some(accessCodeValue),
+        classes = "govuk-input--width-10",
+        errorMessage = accessCodeError.flatMap(_ => errorMessage)
       )
-    )
+      val inputHtml = new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)(input)
+      HtmlFormat.fill(List(inputHtml))
+    }
 
-    val optionError: Option[FormError] = form.error(AccessCodePage.optionKey)
-
-    val startNew = RadioItem(
-      value = Some(AccessCodePage.optionNew),
-      content = Text(messages("accessCode.startNew", formCat))
-    )
-
-    val useExisting = RadioItem(
-      value = Some(AccessCodePage.optionContinue),
-      content = Text(messages("accessCode.useExisting", formCat))
-    )
-
-    val divider = RadioItem(
-      divider = Some(messages("global.or"))
-    )
-
-    val downloadHint: Hint = Hint(
-      content =
-        Text(messages(s"accessCode.downloadSubmitted.hintText", formCat, frontendAppConfig.submittedFormExpiryDays))
-    )
-
-    val downloadSubmitted = RadioItem(
-      value = Some(AccessCodePage.optionDownload),
-      content = Text(messages("accessCode.downloadSubmitted", formCat)),
-      hint = Some(downloadHint)
-    )
-
-    val radios = Radios(
-      fieldset = fieldset,
-      errorMessage = optionError.flatMap(_ => errorMessage),
-      name = "accessOption",
-      items = List(startNew, useExisting, divider, downloadSubmitted)
-    )
-
-    new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
+    html
   }
 
 }

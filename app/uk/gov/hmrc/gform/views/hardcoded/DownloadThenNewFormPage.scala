@@ -20,11 +20,13 @@ import cats.implicits.catsSyntaxEq
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 
 import java.time.format.DateTimeFormatter
 
@@ -33,6 +35,7 @@ class DownloadThenNewFormPage(
   form: Form[String],
   submission: Submission,
   size: Int,
+  val maybeAccessCode: Option[AccessCode],
   se: SuppressErrors
 )(implicit
   messages: Messages
@@ -54,7 +57,7 @@ class DownloadThenNewFormPage(
   val filename: String = s"${submission.submissionRef.value}.pdf"
 
   val downloadUrl: String =
-    uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(Option.empty[AccessCode], formTemplate._id).url
+    uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(maybeAccessCode, formTemplate._id).url
 
   val errorSummary: ErrorSummary = {
 
@@ -94,8 +97,8 @@ class DownloadThenNewFormPage(
           content = Text(
             messages(
               "downloadThenNew.table.value.submittedOn",
-              submittedDateTime.format(dateFormat),
-              submittedDateTime.format(timeFormat)
+              submittedDateTime.format(timeFormat),
+              submittedDateTime.format(dateFormat)
             )
           )
         )
@@ -118,7 +121,7 @@ class DownloadThenNewFormPage(
       )
     ),
     head = None,
-    caption = Some(messages("downloadThenNew.title")),
+    caption = Some(messages("downloadThenNew.title", formCat)),
     captionClasses = "govuk-table__caption--l",
     firstCellIsHeader = false
   )
@@ -144,8 +147,8 @@ class DownloadThenNewFormPage(
     )
 
     val startNew = RadioItem(
-      value = Some("startNew"),
-      content = Text(messages("downloadThenNew.whatNext.startNew"))
+      value = if (maybeAccessCode.isDefined) Some("startNewAccess") else Some("startNew"),
+      content = Text(messages("downloadThenNew.whatNext.startNew", formCat))
     )
 
     val signOut = RadioItem(
@@ -153,12 +156,35 @@ class DownloadThenNewFormPage(
       content = Text(messages("downloadThenNew.whatNext.signOut"))
     )
 
-    val radios = Radios(
-      fieldset = fieldset,
-      errorMessage = if (hasErrors) errorMessage else None,
-      name = "downloadThenNew",
-      items = List(startNew, signOut)
-    )
+    val radios = if (maybeAccessCode.isDefined) {
+      val useExisting = RadioItem(
+        value = Some(AccessCodePage.optionContinue),
+        content = Text(messages("accessCode.useExisting", formCat))
+      )
+
+      val downloadSubmitted = RadioItem(
+        value = Some(AccessCodePage.optionDownload),
+        content = Text(messages("accessCode.downloadAnother", formCat))
+      )
+
+      val divider = RadioItem(
+        divider = Some(messages("global.or"))
+      )
+
+      Radios(
+        fieldset = fieldset,
+        errorMessage = if (hasErrors) errorMessage else None,
+        name = "downloadThenNew",
+        items = List(startNew, useExisting, downloadSubmitted, divider, signOut)
+      )
+    } else {
+      Radios(
+        fieldset = fieldset,
+        errorMessage = if (hasErrors) errorMessage else None,
+        name = "downloadThenNew",
+        items = List(startNew, signOut)
+      )
+    }
 
     new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(radios)
   }

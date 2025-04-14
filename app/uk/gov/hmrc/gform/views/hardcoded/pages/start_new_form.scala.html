@@ -42,25 +42,23 @@
   accessCode = None
 ) {
 
-  @displayAccessCode.panelHtml
-
   <h2 class="govuk-heading-l">
-    @messages("accessCode.whatYouCanDoNext")
+    @messages("accessCode.new.title", displayAccessCode.accessCodeName)
   </h2>
 
   @displayAccessCode.insetHtml
 
   <p class="govuk-body">
-    @messages("accessCode.new.validFor", displayAccessCode.accessCodeName).
+    @messages("accessCode.new.validFor", displayAccessCode.accessCodeName). @messages("accessCode.new.youWillBeAsked", displayAccessCode.formCat).
   </p>
 
   <p class="govuk-body">
-    @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.accessCodeName).
+    @messages("accessCode.new.willExpire", displayAccessCode.formCat, frontendAppConfig.submittedFormExpiryDays, displayAccessCode.accessCodeName).
   </p>
 
-  @formWithCSRF(action = NewFormController.newFormPost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {
+  @formWithCSRF(action = NewFormController.accessCodePost(displayAccessCode.formTemplate._id), args = 'id -> "gf-form") {
     <input type="hidden" name="@{AccessCodePage.key}" value="@{displayAccessCode.accessCode.value}">
-    <input type="hidden" name="@{AccessCodePage.optionKey}" value="@{AccessCodePage.optionAccess}">
+    <input type="hidden" name="@{AccessCodePage.isContinueKey}" value="true">
     @govukButton(Button(content = Text(button), value = Some(button)))
   }
 }

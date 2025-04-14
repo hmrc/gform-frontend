@@ -16,22 +16,29 @@
 
 package uk.gov.hmrc.gform.models
 
-import play.api.data.Form
-import play.api.data.Forms.{ mapping, nonEmptyText }
-import play.api.data.Mapping
+import play.api.data.Forms.{ mapping, nonEmptyText, single }
 import play.api.data.validation.Constraints
+import play.api.data.{ Form, Mapping }
 import uk.gov.hmrc.gform.gform.AccessCodeForm
-import uk.gov.hmrc.gform.models.MappingsApi.{ MappingOps, MappingWithKeyOps }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, DraftRetrievalMethod }
 
 object AccessCodePage {
 
   val key = "accessCode"
   val optionKey = "accessOption"
+  val isContinueKey = "isContinue"
   val optionAccess = "access"
   val optionNew = "new"
+  val optionContinue = "continue"
+  val optionDownload = "downloadPrevious"
 
-  val optionMapping: (String, Mapping[String]) = optionKey -> nonEmptyText
+  def decision: Form[String] =
+    Form(
+      single(
+        optionKey -> nonEmptyText
+      )
+    )
+
   def form(draftRetrievalMethod: DraftRetrievalMethod): Form[AccessCodeForm] = {
     val format: Int = draftRetrievalMethod match {
       case BySubmissionReference => accessCodeSubmissionRef
@@ -41,8 +48,8 @@ object AccessCodePage {
 
     Form(
       mapping(
-        key -> (verification onlyWhen (optionMapping is optionAccess)),
-        optionMapping
+        key           -> verification,
+        isContinueKey -> nonEmptyText
       )(AccessCodeForm.apply)(AccessCodeForm.unapply)
     )
   }

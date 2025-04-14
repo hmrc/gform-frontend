@@ -18,13 +18,15 @@ package uk.gov.hmrc.gform.views.hardcoded
 
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ p, strong }
 
-class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)(implicit messages: Messages)
-    extends CommonAgentPageProperties(formTemplate, accessCode) {
+class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode, frontendAppConfig: FrontendAppConfig)(
+  implicit messages: Messages
+) extends CommonAgentPageProperties(formTemplate, accessCode) {
 
   val heading = messages("accessCode.saved.title", formCat)
 
@@ -33,7 +35,7 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
     content = HtmlContent(
       HtmlFormat.fill(
         List(
-          p(messages("accessCode.new.keepNote", accessCodeName)),
+          p(messages("accessCode.saved.p1", accessCodeName) + ":"),
           strong(accessCode.value)
         )
       )
@@ -42,12 +44,20 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
 
   val panelHtml: Html = new GovukPanel()(panel)
 
-  val paragraph = p(
-    messages("accessCode.new.validFor", accessCodeName)
-      + "." +
-      messages("accessCode.new.willExpire", formCat, accessCodeName),
-    "govuk-body"
-  )
+  private val insetText =
+    InsetText(
+      content = HtmlContent(
+        HtmlFormat.fill(
+          List(
+            p(messages("accessCode.new.keepNote", accessCodeName, formCat) + ":"),
+            p(accessCode.value, "govuk-body-l govuk-!-font-weight-bold govuk-!-margin-bottom-1")
+          )
+        )
+      ),
+      classes = "gforms-inset-text--important"
+    )
+
+  override val insetHtml: Html = new GovukInsetText()(insetText)
 
   private val warningText = WarningText(content = Text(messages("accessCode.mustSubmit", formCat)))
 
