@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprEval, Boo
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
@@ -85,6 +85,14 @@ class Recalculation[F[_]: Monad, E](
       SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formDataMap))),
       RepeatedComponentsDetails(repeatedComponentsDetailsMap)
     )
+    val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
+      mutable.Map.newBuilder
+        .addAll(
+          thirdPartyData.booleanExprCache.mapping.map { case (key, value) =>
+            key -> mutable.Map.newBuilder.addAll(value).result()
+          }
+        )
+        .result()
 
     val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
       (
@@ -109,7 +117,8 @@ class Recalculation[F[_]: Monad, E](
             evaluationContext,
             messages,
             exprMap,
-            formDataMap
+            formDataMap,
+            booleanExprCacheMap
           )
         }
 
@@ -121,12 +130,10 @@ class Recalculation[F[_]: Monad, E](
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd) =>
-        fd.run(new RecalculationState(startEvResults, thirdPartyData.booleanExprCache))
+        fd.run(new RecalculationState(startEvResults, BooleanExprCache(booleanExprCacheMap)))
           .map { case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
-            val finalEvaluationResults =
-              implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
             RecalculationResult(
-              finalEvaluationResults,
+              startEvResults,
               GraphData(graphTopologicalOrder, graph),
               cacheUpdate.booleanExprCache,
               evaluationContext
@@ -143,7 +150,8 @@ class Recalculation[F[_]: Monad, E](
     evaluationContext: EvaluationContext,
     messages: Messages,
     exprMap: mutable.Map[Expr, ExpressionResult],
-    variadicFormDataMap: mutable.Map[ModelComponentId, VariadicValue]
+    variadicFormDataMap: mutable.Map[ModelComponentId, VariadicValue],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
@@ -206,7 +214,16 @@ class Recalculation[F[_]: Monad, E](
 
           val res = for {
             isHiddenIncludeIf <-
-              isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext, exprMap)
+              isHiddenByIncludeIf(
+                fcId,
+                evResult,
+                recData,
+                retrievals,
+                booleanExprResolver,
+                evaluationContext,
+                exprMap,
+                booleanExprCacheMap
+              )
             isHiddenComponentIncludeIf <-
               isHiddenByComponentIncludeIf(
                 fcId,
@@ -215,7 +232,8 @@ class Recalculation[F[_]: Monad, E](
                 retrievals,
                 booleanExprResolver,
                 evaluationContext,
-                exprMap
+                exprMap,
+                booleanExprCacheMap
               )
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             isHiddenRepeatsExpr <-
@@ -264,7 +282,15 @@ class Recalculation[F[_]: Monad, E](
       }
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
-      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) >> {
+      evalValidIfs(
+        evResult,
+        recData,
+        retrievals,
+        booleanExprResolver,
+        evaluationContext,
+        exprMap,
+        booleanExprCacheMap
+      ) >> {
         if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
       }
 
@@ -333,7 +359,8 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
-    exprMap: mutable.Map[Expr, ExpressionResult]
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
 
     val rr =
@@ -344,6 +371,15 @@ class Recalculation[F[_]: Monad, E](
         booleanExprResolver,
         evaluationContext
       )
+
+    def addToBooleanCache(dataSource: DataSource, value: String, result: Boolean): Unit = {
+      val updatedDataSourceMap =
+        booleanExprCacheMap.get(dataSource).fold(mutable.Map(value -> result)) { m =>
+          m.addOne(value -> result)
+          m
+        }
+      booleanExprCacheMap.addOne(dataSource -> updatedDataSourceMap)
+    }
 
     def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
       case Equals(field1, field2)              => rr.compareF(field1, field2, _ identical _)
@@ -388,7 +424,8 @@ class Recalculation[F[_]: Monad, E](
             s
               .get(dataSource, value)
               .fold(makeCall().map { res =>
-                (s.add(dataSource, value, res), res)
+                addToBooleanCache(dataSource, value, res)
+                (s, res)
               })(res => (s, res).pure[F])
           }
         }
@@ -417,7 +454,8 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
-    exprMap: mutable.Map[Expr, ExpressionResult]
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(
     booleanExpr: Option[BooleanExpr]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
@@ -430,7 +468,8 @@ class Recalculation[F[_]: Monad, E](
                retrievals,
                booleanExprResolver,
                evaluationContext,
-               exprMap
+               exprMap,
+               booleanExprCacheMap
              )
       } yield !b
     }
@@ -441,13 +480,22 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
-    exprMap: mutable.Map[Expr, ExpressionResult]
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Unit] = {
     val validIfs: List[ValidIf] = formModel.allValidIfs.flatMap(_._1)
 
     validIfs
       .traverse(validIf =>
-        evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) {
+        evalBooleanExpr(
+          evaluationResults,
+          recData,
+          retrievals,
+          booleanExprResolver,
+          evaluationContext,
+          exprMap,
+          booleanExprCacheMap
+        ) {
           Some(validIf.booleanExpr)
         }
       )
@@ -461,10 +509,19 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
-    exprMap: mutable.Map[Expr, ExpressionResult]
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) {
+    evalBooleanExpr(
+      evaluationResults,
+      recData,
+      retrievals,
+      booleanExprResolver,
+      evaluationContext,
+      exprMap,
+      booleanExprCacheMap
+    ) {
       pageLookup
         .get(fcId)
         .flatMap(_.getIncludeIf)
@@ -479,9 +536,18 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
-    exprMap: mutable.Map[Expr, ExpressionResult]
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) {
+    evalBooleanExpr(
+      evaluationResults,
+      recData,
+      retrievals,
+      booleanExprResolver,
+      evaluationContext,
+      exprMap,
+      booleanExprCacheMap
+    ) {
       formModel.fcLookup
         .get(fcId)
         .flatMap(_.includeIf)
