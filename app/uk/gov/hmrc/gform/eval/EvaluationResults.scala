@@ -1141,8 +1141,6 @@ case class EvaluationResults(
 object EvaluationResults {
   val empty = EvaluationResults(Map.empty, RecData.empty, RepeatedComponentsDetails.empty)
 
-  def one(expr: Expr, result: ExpressionResult): EvaluationResults = empty.+(expr, result)
-
   def unapply(
     a: EvaluationResults
   ): Option[(collection.Map[Expr, ExpressionResult], RecData[SourceOrigin.Current], RepeatedComponentsDetails)] =

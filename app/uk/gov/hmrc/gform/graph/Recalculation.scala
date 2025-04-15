@@ -74,18 +74,19 @@ class Recalculation[F[_]: Monad, E](
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
+    val exprMap = mutable.Map[Expr, ExpressionResult]()
+
     val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
       (
         s,
         EvaluationResults(
-          Map.empty,
+          exprMap,
           SourceOrigin.changeSource(RecData.fromData(data)),
           formTemplate.formKind.repeatedComponentsDetails
         )
       )
         .pure[F]
     }
-    val exprMap = mutable.Map[Expr, ExpressionResult]()
 
     val res: Either[GraphException, StateT[
       F,
@@ -103,7 +104,7 @@ class Recalculation[F[_]: Monad, E](
             evaluationContext,
             messages,
             exprMap
-          ).map(_.copy(exprMap = exprMap.toMap))
+          ).map(_.copy(exprMap = exprMap))
         }
 
         recalc.map { evResult =>
@@ -114,8 +115,8 @@ class Recalculation[F[_]: Monad, E](
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd) =>
-        fd.run(new RecalculationState(EvaluationResults.empty, thirdPartyData.booleanExprCache)).map {
-          case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
+        fd.run(new RecalculationState(EvaluationResults.empty, thirdPartyData.booleanExprCache))
+          .map { case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
             val finalEvaluationResults =
               implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
             RecalculationResult(
@@ -125,7 +126,7 @@ class Recalculation[F[_]: Monad, E](
               evaluationContext
             )
 
-        }
+          }
     }
   }
 
