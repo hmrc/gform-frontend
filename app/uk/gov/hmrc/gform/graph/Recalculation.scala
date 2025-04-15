@@ -85,6 +85,7 @@ class Recalculation[F[_]: Monad, E](
       )
         .pure[F]
     }
+    val exprMap = mutable.Map[Expr, ExpressionResult]()
 
     val res: Either[GraphException, StateT[
       F,
@@ -100,7 +101,8 @@ class Recalculation[F[_]: Monad, E](
             state,
             retrievals,
             evaluationContext,
-            messages
+            messages,
+            exprMap
           )
         }
 
@@ -132,10 +134,10 @@ class Recalculation[F[_]: Monad, E](
     state: StateT[F, RecalculationState, EvaluationResults],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    messages: Messages
+    messages: Messages,
+    exprMap: mutable.Map[Expr, ExpressionResult]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
-      val exprMap = mutable.Map[Expr, ExpressionResult]()
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
       val booleanExprResolver = BooleanExprResolver { booleanExpr =>
@@ -245,7 +247,7 @@ class Recalculation[F[_]: Monad, E](
       }
 
       def accumulateResult(evResults: EvaluationResults) =
-        evResults.copy(exprMap = evResults.exprMap ++ exprMap.toMap)
+        evResults.copy(exprMap = exprMap.toMap)
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
       evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
