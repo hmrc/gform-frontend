@@ -42,14 +42,12 @@ import java.time.LocalDate
 import scala.util.Try
 
 case class EvaluationResults(
-  exprMap: Map[Expr, ExpressionResult],
+  exprMap: collection.Map[Expr, ExpressionResult],
   recData: RecData[SourceOrigin.Current],
   repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
 
   def +(expr: Expr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
-  def ++(otherExprMap: Map[Expr, ExpressionResult]): EvaluationResults =
-    this.copy(exprMap = exprMap ++ otherExprMap)
 
   def get(expr: Expr): Option[ExpressionResult] = exprMap.get(expr)
 
@@ -1147,7 +1145,7 @@ object EvaluationResults {
 
   def unapply(
     a: EvaluationResults
-  ): Option[(Map[Expr, ExpressionResult], RecData[SourceOrigin.Current], RepeatedComponentsDetails)] =
+  ): Option[(collection.Map[Expr, ExpressionResult], RecData[SourceOrigin.Current], RepeatedComponentsDetails)] =
     Some((a.exprMap, a.recData, a.repeatedComponentsDetails))
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {

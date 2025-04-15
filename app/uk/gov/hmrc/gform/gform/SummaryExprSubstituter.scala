@@ -167,7 +167,7 @@ object SummarySubstituter {
 }
 
 case class SummarySubstitutions(
-  exprMap: Map[Expr, ExpressionResult],
+  exprMap: collection.Map[Expr, ExpressionResult],
   repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
   def replaceSumWithAdds(sumExpr: Expr): Expr = {
@@ -178,7 +178,7 @@ case class SummarySubstitutions(
 
 case class NestedAddHelper(
   sumExpr: Expr,
-  exprMap: Map[Expr, ExpressionResult],
+  exprMap: collection.Map[Expr, ExpressionResult],
   repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
   private val sumFormComponentIds = sumExpr.allFormComponentIds().filter(repeatedComponentsDetails.isRepeated)
