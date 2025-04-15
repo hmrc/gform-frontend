@@ -16,23 +16,21 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
-import cats.data.StateT
+import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
-import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprEval, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
+import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
 
 import scala.collection.mutable
 
@@ -94,33 +92,31 @@ class Recalculation[F[_]: Monad, E](
         )
         .result()
 
-    val res: Either[GraphException, F[(EvaluationResults, Iterable[(Int, List[GraphNode])])]] =
+    val res: Either[GraphException, F[Iterable[(Int, List[GraphNode])]]] =
       for {
         graphTopologicalOrder <- orderedGraph
       } yield {
-        val recalc = graphTopologicalOrder.toList.reverse.foldLeft(startEvResults.pure[F]) {
-          case (state, (_, graphLayer)) =>
-            recalculateGraphLayer(
-              graphLayer,
-              state,
-              retrievals,
-              evaluationContext,
-              messages,
-              exprMap,
-              formDataMap,
-              booleanExprCacheMap
-            )
+        val recalc = graphTopologicalOrder.toList.reverse.traverse { case (_, graphLayer) =>
+          recalculateGraphLayer(
+            graphLayer,
+            startEvResults.pure[F],
+            retrievals,
+            evaluationContext,
+            messages,
+            exprMap,
+            formDataMap,
+            booleanExprCacheMap
+          )
         }
-
-        recalc.map { evResult =>
-          (evResult, graphTopologicalOrder)
+        recalc.map { _ =>
+          graphTopologicalOrder
         }
       }
 
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd) =>
-        fd.map { case (evaluationResults, graphTopologicalOrder) =>
+        fd.map { case graphTopologicalOrder =>
           RecalculationResult(
             startEvResults,
             GraphData(graphTopologicalOrder, graph),
@@ -566,6 +562,4 @@ class Recalculation[F[_]: Monad, E](
 
     isHidden.fold(false.pure[F])(x => x.pure[F])
   }
-
-  private def noStateChange[A](a: A): StateT[F, RecalculationState, A] = StateT(s => (s, a).pure[F])
 }
