@@ -38,7 +38,7 @@ class RecalculationResolver[F[_]: Applicative](
     expr1: Expr,
     expr2: Expr,
     f: (ExpressionResult, ExpressionResult) => Boolean
-  ): StateT[F, RecalculationState, Boolean] = noStateChange(compare(expr1, expr2, f))
+  ): F[Boolean] = compare(expr1, expr2, f).pure[F]
 
   def compare(
     expr1: Expr,
@@ -63,7 +63,7 @@ class RecalculationResolver[F[_]: Applicative](
     dateExprLHS: DateExpr,
     dateExprRHS: DateExpr,
     f: (DateResult, DateResult) => Boolean
-  ): StateT[F, RecalculationState, Boolean] = noStateChange(compareDate(dateExprLHS, dateExprRHS, f))
+  ): F[Boolean] = compareDate(dateExprLHS, dateExprRHS, f).pure[F]
 
   def compareDate(
     dateExprLHS: DateExpr,
@@ -81,9 +81,8 @@ class RecalculationResolver[F[_]: Applicative](
     res
   }
 
-  def matchRegexF(expr: Expr, regex: Regex): StateT[F, RecalculationState, Boolean] = noStateChange(
-    matchRegex(expr, regex)
-  )
+  def matchRegexF(expr: Expr, regex: Regex): F[Boolean] =
+    matchRegex(expr, regex).pure[F]
 
   def matchRegex(expr: Expr, regex: Regex): Boolean = {
     val typeInfo1 = formModel.toFirstOperandTypeInfo(expr)
@@ -95,10 +94,7 @@ class RecalculationResolver[F[_]: Applicative](
     exprRes1.matchRegex(regex)
   }
 
-  def compareFormPhaseF(value: FormPhaseValue): StateT[F, RecalculationState, Boolean] = noStateChange(
-    compareFormPhase(value)
-  )
+  def compareFormPhaseF(value: FormPhaseValue): F[Boolean] =
+    compareFormPhase(value).pure[F]
   def compareFormPhase(value: FormPhaseValue): Boolean = evaluationContext.formPhase.fold(false)(_.value == value)
-
-  private def noStateChange[A](a: A): StateT[F, RecalculationState, A] = StateT(s => (s, a).pure[F])
 }
