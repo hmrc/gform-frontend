@@ -22,6 +22,7 @@ POST          /new-form/:formTemplateId/submission-reference                    
 POST          /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.newFormPost(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/access-code-download                                                     uk.gov.hmrc.gform.gform.NewFormController.accessCodeDownload(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/access-code-continue                                                     uk.gov.hmrc.gform.gform.NewFormController.accessCodeRetrieveForm(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId/access-check                                                             uk.gov.hmrc.gform.gform.NewFormController.accessCodePost(formTemplateId: FormTemplateId)
 POST          /new-form/:formTemplateId/access-check                                                             uk.gov.hmrc.gform.gform.NewFormController.accessCodePost(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/one-per-user                                                             uk.gov.hmrc.gform.gform.NewFormController.newOrContinue(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/new-or-previous                                                          uk.gov.hmrc.gform.gform.NewFormController.downloadOldOrNewForm(formTemplateId: FormTemplateId, se: SuppressErrors ?= SuppressErrors.Yes)

@@ -18,23 +18,22 @@ package uk.gov.hmrc.gform.gform
 
 import cats.implicits._
 import play.api.i18n.{ I18nSupport, Lang }
-import play.api.mvc.{ Action, ActionBuilder, AnyContent, ControllerComponents, Request }
-
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import play.api.mvc._
+import uk.gov.hmrc.gform.auth.models.{ IsAgent, OperationWithForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, FormModelOptics, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IsOverseasAddress, IsText, Lookup, OverseasAddress, Register, Text }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, RadioLookup }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 class LanguageSwitchController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
@@ -59,15 +58,36 @@ class LanguageSwitchController(
   ): Action[AnyContent] =
     actionBuilder.async(request =>
       auth
-        .isLoggedIn(request)
-        .flatMap(isLoggedIn =>
-          if (isLoggedIn) {
-            // Presence of formTemplateId in the request doesn't guarantee the user data form exists
-            // We need to be sure that call to authAndRetrieveForm will succeed for language switch to occur
-            switchLanguageWithDataChange(formTemplateId, maybeAccessCode, language)(request)
-          } else {
-            // We are not logged in, let's just switch the language
-            switchToLanguage(language)(request)
+        .getLoggedIn(request)
+        .flatMap(maybeAuthSuccessful =>
+          maybeAuthSuccessful.fold(switchToLanguage(language)(request)) { authSuccessful =>
+            for {
+              maybeFormTemplate <- gformConnector.maybeFormTemplate(formTemplateId)(hc(request), ec)
+              maybeDrm <-
+                maybeFormTemplate
+                  .map { formTemplate =>
+                    formTemplate.draftRetrieval
+                      .flatMap(dr => authSuccessful.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
+                      .collect {
+                        case BySubmissionReference                => BySubmissionReference
+                        case FormAccessCode(continueOrDeletePage) => FormAccessCodeForAgents(continueOrDeletePage)
+                      }
+                      .getOrElse((formTemplate.draftRetrievalMethod, authSuccessful.retrievals) match {
+                        case (BySubmissionReference, _)                    => BySubmissionReference
+                        case (drm @ FormAccessCodeForAgents(_), IsAgent()) => drm
+                        case (other, _)                                    => other
+                      })
+                  }
+                  .pure[Future]
+              res <- (maybeDrm, maybeAccessCode) match {
+                       // If access code/submission ref required by form and there isn't one, then just do language
+                       // switch without attempting to change & save data - to cater for pages where access code not
+                       // yet entered
+                       case (Some(FormAccessCodeForAgents(_)), None) => switchToLanguage(language)(request)
+                       case (Some(BySubmissionReference), None)      => switchToLanguage(language)(request)
+                       case (_, _)                                   => switchLanguageWithDataChange(formTemplateId, maybeAccessCode, language)(request)
+                     }
+            } yield res
           }
         )
     )

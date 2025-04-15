@@ -43,7 +43,7 @@
     formTemplate = downloadThenNewFormPage.formTemplate,
     frontendAppConfig = frontendAppConfig,
     containsErrors = downloadThenNewFormPage.hasErrors,
-    accessCode = None
+    accessCode = downloadThenNewFormPage.maybeAccessCode
 ) {
     @if(downloadThenNewFormPage.hasErrors) {
         @govukErrorSummary(downloadThenNewFormPage.errorSummary)

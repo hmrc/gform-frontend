@@ -56,7 +56,7 @@ import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait AuthenticatedRequestActionsAlgebra[F[_]] {
-  def isLoggedIn(request: Request[AnyContent]): Future[Boolean]
+  def getLoggedIn(request: Request[AnyContent]): Future[Option[AuthSuccessful]]
   def refreshSession(formTemplateId: FormTemplateId): Action[AnyContent]
 
   def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
@@ -97,7 +97,7 @@ class AuthenticatedRequestActions(
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def isLoggedIn(request: Request[AnyContent]): Future[Boolean] = {
+  def getLoggedIn(request: Request[AnyContent]): Future[Option[AuthSuccessful]] = {
     implicit val r: Request[AnyContent] = request
     implicit val lang: LangADT = getCurrentLanguage(request)
     val formTemplateContext = request.attrs(FormTemplateKey)
@@ -110,7 +110,7 @@ class AuthenticatedRequestActions(
                         ggAuthorised(request),
                         getCaseWorkerIdentity(request)
                       )
-    } yield authResult.cast[AuthSuccessful].isDefined
+    } yield authResult.cast[AuthSuccessful]
   }
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
