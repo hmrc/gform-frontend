@@ -33,6 +33,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 
+import scala.collection.mutable
+
 sealed trait GraphException {
   def reportProblem: String = this match {
     case NoTopologicalOrder(fcId, graph) =>
@@ -133,6 +135,7 @@ class Recalculation[F[_]: Monad, E](
     messages: Messages
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
+      val exprMap = mutable.Map[Expr, ExpressionResult]()
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
       val booleanExprResolver = BooleanExprResolver { booleanExpr =>
@@ -232,12 +235,16 @@ class Recalculation[F[_]: Monad, E](
           val exprResult: ExpressionResult =
             evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
 
-          noStateChange(evResult + (expr, exprResult))
+          exprMap.addOne((expr, exprResult))
+          noStateChange(evResult)
       }
+
+      def accumulateResult(evResults: EvaluationResults) =
+        evResults.copy(exprMap = evResults.exprMap ++ exprMap.toMap)
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
       evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
-        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
+        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult.map(accumulateResult)
       }
 
     }
