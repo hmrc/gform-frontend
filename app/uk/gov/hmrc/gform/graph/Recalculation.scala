@@ -76,12 +76,14 @@ class Recalculation[F[_]: Monad, E](
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
-    val formData = mutable.Map.newBuilder.addAll(data.data).result()
+    val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
+    val repeatedComponentsDetailsMap =
+      mutable.Map.newBuilder.addAll(formTemplate.formKind.repeatedComponentsDetails.componentToParentMapping).result()
 
     val startEvResults = EvaluationResults(
       exprMap,
-      SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formData))),
-      formTemplate.formKind.repeatedComponentsDetails
+      SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formDataMap))),
+      RepeatedComponentsDetails(repeatedComponentsDetailsMap)
     )
 
     val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
@@ -107,7 +109,7 @@ class Recalculation[F[_]: Monad, E](
             evaluationContext,
             messages,
             exprMap,
-            formData
+            formDataMap
           )
         }
 
@@ -141,7 +143,7 @@ class Recalculation[F[_]: Monad, E](
     evaluationContext: EvaluationContext,
     messages: Messages,
     exprMap: mutable.Map[Expr, ExpressionResult],
-    variadicFormData: mutable.Map[ModelComponentId, VariadicValue]
+    variadicFormDataMap: mutable.Map[ModelComponentId, VariadicValue]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
@@ -196,7 +198,7 @@ class Recalculation[F[_]: Monad, E](
 
           val recDataUpd: RecData[OutOfDate] =
             if (isOptionHidden) {
-              variadicFormData.remove(fcId.modelComponentId)
+              variadicFormDataMap.remove(fcId.modelComponentId)
               recData
             } else {
               recData

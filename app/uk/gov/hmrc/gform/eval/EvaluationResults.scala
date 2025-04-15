@@ -1151,12 +1151,12 @@ object EvaluationResults {
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
       case (
             EvaluationResults(em1, rd1, RepeatedComponentsDetails(m1)),
-            EvaluationResults(em2, rd2, RepeatedComponentsDetails(m2))
+            EvaluationResults(em2, rd2, m2)
           ) =>
         EvaluationResults(
           em2,
           rd2,
-          RepeatedComponentsDetails(m1 ++ m2)
+          m2
         )
       case _ => throw new Exception("Invalid expression results for combine")
     }
