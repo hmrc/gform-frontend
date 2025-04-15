@@ -103,7 +103,7 @@ class Recalculation[F[_]: Monad, E](
             evaluationContext,
             messages,
             exprMap
-          )
+          ).map(_.copy(exprMap = exprMap.toMap))
         }
 
         recalc.map { evResult =>
@@ -246,12 +246,9 @@ class Recalculation[F[_]: Monad, E](
           noStateChange(evResult)
       }
 
-      def accumulateResult(evResults: EvaluationResults) =
-        evResults.copy(exprMap = exprMap.toMap)
-
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
       evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
-        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult.map(accumulateResult)
+        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
       }
 
     }
