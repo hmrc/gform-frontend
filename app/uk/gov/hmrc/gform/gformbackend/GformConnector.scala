@@ -46,6 +46,7 @@ import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, UpstreamErrorResponse }
+import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -732,4 +733,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POST[AuthRetrievals, HttpResponse](s"$baseUrl/retrieval", retrievals)
       .map(_ => ())
+
+  def translationAudit(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TranslationAuditOverview]] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    val url = s"$baseUrl/translation-audit/overview/${formTemplateId.value}"
+    ws.GET[Option[TranslationAuditOverview]](url)
+  }
 }

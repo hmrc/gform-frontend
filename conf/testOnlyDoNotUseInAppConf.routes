@@ -57,7 +57,8 @@ GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId         
 GET           /submissions/test-only/gform-plugin/model/:formTemplateId                             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/verify/:formTemplateId                            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
 
-GET           /submissions/test-only/translation/:formTemplateId                                     uk.gov.hmrc.gform.testonly.TranslationController.showCsv(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/translation/:formTemplateId                                     uk.gov.hmrc.gform.testonly.TranslationController.translationDebug(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /submissions/test-only/translation-quick/:formTemplateId                               uk.gov.hmrc.gform.testonly.TranslationController.translationQuick(formTemplateId: FormTemplateId, a: Option[AccessCode])
 
 GET           /submissions/test-only/errors/:formTemplateId                                          uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorMessages(formTemplateId: FormTemplateId, a: Option[AccessCode], jsonReport: Boolean, baseComponentId: Option[String], isUsageReport: Boolean )
 GET           /submissions/test-only/errors-json/:formTemplateId                                     uk.gov.hmrc.gform.testonly.TestOnlyErrorMessageController.errorsJson(formTemplateId: FormTemplateId, a: Option[AccessCode])

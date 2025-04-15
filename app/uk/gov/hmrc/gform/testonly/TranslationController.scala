@@ -68,8 +68,45 @@ class TranslationController(
       classes = "govuk-!-font-size-16 govuk-table__cell--numeric"
     )
 
-  def showCsv(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]) =
-    auth.async[SectionSelectorType.Normal](formTemplateId, None) {
+  def translationQuick(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]) =
+    auth.async[SectionSelectorType.Normal](formTemplateId, accessCode) {
+      implicit request => implicit lang => cache => _ => formModelOptics =>
+        import i18nSupport._
+
+        val translationAuditF = gformConnector.translationAudit(formTemplateId)
+
+        for {
+          translationAudit <- translationAuditF
+        } yield {
+
+          val downloadFormTranslationsEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+            "Download translation xlsx",
+            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief")
+          )
+
+          val dropzoneHtml = dropzone(translationAudit)
+
+          val govukTabs = new GovukTabs()(
+            Tabs(
+              items = Seq(
+                TabItem(
+                  id = Some("upload-translation"),
+                  label = "Upload translation",
+                  panel = TabPanel(
+                    content = HtmlContent(HtmlFormat.fill(List(downloadFormTranslationsEnOnly, dropzoneHtml)))
+                  )
+                )
+              )
+            )
+          )
+
+          Ok(translation(cache.formTemplate, accessCode, frontendAppConfig, govukTabs))
+        }
+    }
+
+  def translationDebug(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]) =
+    auth.async[SectionSelectorType.Normal](formTemplateId, accessCode) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
         import i18nSupport._
 
@@ -77,12 +114,14 @@ class TranslationController(
         val csvBriefDataF = gformConnector.translationCsvBrief(formTemplateId)
         val csvInternalDataF = gformConnector.translationCsvInternal(formTemplateId)
         val enTextBreakdownF = gformConnector.translationEnTextBreakdown(formTemplateId)
+        val translationAuditF = gformConnector.translationAudit(formTemplateId)
 
         for {
-          csvData         <- csvDataF
-          csvBriefData    <- csvBriefDataF
-          csvInternalData <- csvInternalDataF
-          enTextBreakdown <- enTextBreakdownF
+          translationAudit <- translationAuditF
+          csvData          <- csvDataF
+          csvBriefData     <- csvBriefDataF
+          csvInternalData  <- csvInternalDataF
+          enTextBreakdown  <- enTextBreakdownF
         } yield {
 
           val iteratorAll: CsvReader[ReadResult[Csv]] = csvData.body.asCsvReader[Csv](rfc.withHeader)
@@ -190,7 +229,7 @@ class TranslationController(
             rows = breakdownRows
           )
 
-          val dropzoneHtml = dropzone()
+          val dropzoneHtml = dropzone(translationAudit)
 
           val htmlTable = HtmlFormat.fill(List(downloadFormTranslations, allStats, new GovukTable()(table)))
           val htmlBriefTable =

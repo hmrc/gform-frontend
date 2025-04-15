@@ -428,6 +428,11 @@ div.gform-date-input__item {
     margin-right: 5px;
 }
 
+.govuk-link:has(+ #dropzone) {
+  display: block;
+  margin-bottom: 10px;
+}
+
 #dropzone {
   padding: 10px;
   text-align: center;
