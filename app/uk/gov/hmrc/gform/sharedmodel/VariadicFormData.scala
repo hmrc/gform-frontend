@@ -86,7 +86,7 @@ object SourceOrigin {
   def changeSourceToOutOfDate[M[_ <: SourceOrigin]](in: M[Current]): M[OutOfDate] = in.asInstanceOf[M[OutOfDate]]
 }
 
-case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, VariadicValue]) {
+case class VariadicFormData[S <: SourceOrigin](data: collection.Map[ModelComponentId, VariadicValue]) {
 
   def get(id: ModelComponentId): Option[VariadicValue] = data.get(id)
 
@@ -188,7 +188,7 @@ case class VariadicFormData[S <: SourceOrigin](data: Map[ModelComponentId, Varia
       .distinct
       .sortBy(_.indexedComponentId.maybeIndex)
 
-  def keySet(): Set[ModelComponentId] = data.keySet
+  def keySet(): collection.Set[ModelComponentId] = data.keySet
 
   def ++[R <: SourceOrigin](addend: VariadicFormData[R]): VariadicFormData[R] = VariadicFormData[R](data ++ addend.data)
   def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData[S] = VariadicFormData[S](data + entry)

@@ -1146,9 +1146,8 @@ object EvaluationResults {
     Some((a.exprMap, a.recData, a.repeatedComponentsDetails))
 
   implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
-    def empty = {
+    def empty =
       EvaluationResults.empty
-    }
     def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
       case (
             EvaluationResults(em1, rd1, RepeatedComponentsDetails(m1)),
@@ -1156,7 +1155,7 @@ object EvaluationResults {
           ) =>
         EvaluationResults(
           em2,
-          RecData.fromData(rd1.variadicFormData ++ rd2.variadicFormData),
+          rd2,
           RepeatedComponentsDetails(m1 ++ m2)
         )
       case _ => throw new Exception("Invalid expression results for combine")

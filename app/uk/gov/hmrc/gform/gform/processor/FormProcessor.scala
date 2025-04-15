@@ -223,8 +223,8 @@ class FormProcessor(
   }
 
   private def getComponentsWithUpdatedValues(
-    oldMap: Map[ModelComponentId, VariadicValue],
-    newMap: Map[ModelComponentId, VariadicValue]
+    oldMap: collection.Map[ModelComponentId, VariadicValue],
+    newMap: collection.Map[ModelComponentId, VariadicValue]
   ): Set[ModelComponentId] = {
     val commonKeys = newMap.keySet.intersect(oldMap.keySet)
     val oldKeysDiff = oldMap.keySet.diff(newMap.keySet)

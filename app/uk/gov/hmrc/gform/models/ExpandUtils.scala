@@ -77,7 +77,7 @@ object ExpandUtils {
     formModelOptics: FormModelOptics[D],
     formComponents: List[FormComponent]
   ): List[FormComponent] = {
-    val atomicFcIds: Set[ModelComponentId] = formModelOptics.pageOpticsData.keySet()
+    val atomicFcIds: collection.Set[ModelComponentId] = formModelOptics.pageOpticsData.keySet()
 
     formComponents.filter { fc =>
       fc.multiValueId.atomsModelComponentIds.forall(atomicFcIds)

@@ -26,9 +26,10 @@ import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprEval, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
@@ -75,12 +76,14 @@ class Recalculation[F[_]: Monad, E](
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
+    val formData = mutable.Map.newBuilder.addAll(data.data).result()
 
     val startEvResults = EvaluationResults(
       exprMap,
-      SourceOrigin.changeSource(RecData.fromData(data)),
+      SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formData))),
       formTemplate.formKind.repeatedComponentsDetails
     )
+
     val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
       (
         s,
@@ -103,7 +106,8 @@ class Recalculation[F[_]: Monad, E](
             retrievals,
             evaluationContext,
             messages,
-            exprMap
+            exprMap,
+            formData
           )
         }
 
@@ -136,7 +140,8 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
     messages: Messages,
-    exprMap: mutable.Map[Expr, ExpressionResult]
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    variadicFormData: mutable.Map[ModelComponentId, VariadicValue]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
@@ -191,7 +196,8 @@ class Recalculation[F[_]: Monad, E](
 
           val recDataUpd: RecData[OutOfDate] =
             if (isOptionHidden) {
-              RecData.fromData(recData.variadicFormData -- List(fcId.modelComponentId))
+              variadicFormData.remove(fcId.modelComponentId)
+              recData
             } else {
               recData
             }
