@@ -224,8 +224,8 @@ class SectionRenderingService(
     val ff = fastForward match {
       case Nil                       => Nil
       case FastForward.CYA(to) :: xs => FastForward.CYA(to) :: xs
-      case FastForward.StopAt(sectionNumber) :: xs =>
-        FastForward.StopAt(sectionNumber.increment(formModelOptics.formModelVisibilityOptics.formModel)) :: xs
+      case FastForward.StopAt(sn) :: xs =>
+        FastForward.StopAt(sn.increment(formModelOptics.formModelVisibilityOptics.formModel)) :: xs
       case otherwise => otherwise
     }
     html.form.addToListCheckYourAnswers(
@@ -504,7 +504,7 @@ class SectionRenderingService(
       descTotalRow.fold(recordTableDescriptions)(row => recordTableDescriptions.append(row))
 
     val summaryList = recordTable.collectFirst {
-      case l: AddToListSummaryRow.ListWithActionsRow =>
+      case _: AddToListSummaryRow.ListWithActionsRow =>
         val listWithActionsItems = recordTable.collect {
           case AddToListSummaryRow.ListWithActionsRow(index, name, text) =>
             val changeAction = ListWithActionsAction(
@@ -550,7 +550,7 @@ class SectionRenderingService(
           )
         )
 
-      case s: AddToListSummaryRow.SummaryListRow =>
+      case _: AddToListSummaryRow.SummaryListRow =>
         val summaryRows = recordTable.collect {
           case AddToListSummaryRow.SummaryListRow(index, key, value, actionButtons) =>
             val changeAction = ActionItem(
@@ -831,7 +831,7 @@ class SectionRenderingService(
           formModelRenderPageOptics.formModel.pagesWithIndex
 
         val currentPageModel: Option[PageModel[DataExpanded]] =
-          pages.collectFirst { case (pageModel, sectionNumber) if sectionNumber === classic => pageModel }
+          pages.collectFirst { case (pageModel, sn) if sn === classic => pageModel }
 
         val firstFormComponentId: Option[FormComponentId] = currentPageModel.flatMap(_.allFormComponentIds.headOption)
 

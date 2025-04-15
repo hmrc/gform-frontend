@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.FormTemplateKey
 import play.api.mvc._
 import scala.concurrent.{ ExecutionContext, Future }
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import play.api.mvc.Results.Ok
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
@@ -47,7 +48,7 @@ class SessionTimeoutFilterWithAudit(
     }
 
   private def hasExpired(timestamp: Instant): Boolean = {
-    val timeOfExpiry = timestamp.plus(config.timeoutDuration)
+    val timeOfExpiry = timestamp.plus(config.timeoutDuration.toSeconds, ChronoUnit.SECONDS)
     Instant.now().isAfter(timeOfExpiry)
   }
 

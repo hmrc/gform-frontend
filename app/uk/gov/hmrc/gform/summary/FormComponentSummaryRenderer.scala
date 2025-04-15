@@ -1703,8 +1703,8 @@ object FormComponentSummaryRenderer {
                 )
                 .map(HtmlFormat.escape)
                 .intercalate(br())
-            case Some(formFieldValidationResult) =>
-              val errors = checkErrors(formComponent, formFieldValidationResult)
+            case Some(ffValidationResult) =>
+              val errors = checkErrors(formComponent, ffValidationResult)
               Html(errors.mkString(" "))
           }
 
