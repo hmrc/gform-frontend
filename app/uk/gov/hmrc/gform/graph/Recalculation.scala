@@ -203,7 +203,8 @@ class Recalculation[F[_]: Monad, E](
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
             if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
-              evResult + (FormCtx(fcId), ExpressionResult.Hidden)
+              exprMap.addOne((FormCtx(fcId), ExpressionResult.Hidden))
+              evResult
             } else {
               evResult
             }
@@ -223,11 +224,15 @@ class Recalculation[F[_]: Monad, E](
             evResult
               .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
               .applyTypeInfo(typeInfo)
-
-          noStateChange(evResult + (formCtx, evResult.get(formCtx).fold(exprResult) {
-            case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
-            case _                       => exprResult
-          }))
+          val newExpr = (
+            formCtx,
+            evResult.get(formCtx).fold(exprResult) {
+              case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
+              case _                       => exprResult
+            }
+          )
+          exprMap.addOne(newExpr)
+          noStateChange(evResult)
 
         case GraphNode.Expr(expr) =>
           val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
