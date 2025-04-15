@@ -20,6 +20,7 @@ import cats.implicits.catsSyntaxEq
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -32,7 +33,8 @@ class DownloadOrNewFormPage(
   val formTemplate: FormTemplate,
   form: Form[String],
   submittedDate: LocalDateTime,
-  se: SuppressErrors
+  se: SuppressErrors,
+  frontendAppConfig: FrontendAppConfig
 )(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
@@ -92,12 +94,13 @@ class DownloadOrNewFormPage(
 
     val download = RadioItem(
       value = Some("download"),
-      content = Text(messages("downloadOrNew.download.text")),
+      content = Text(messages("downloadOrNew.download.text", formCat)),
       hint = Some(
         Hint(content =
           Text(
             messages(
               "downloadOrNew.download.helpText",
+              formCat,
               submittedDateTime.format(dateFormat),
               submittedDateTime.format(timeFormat)
             )
@@ -108,13 +111,15 @@ class DownloadOrNewFormPage(
 
     val startNew = RadioItem(
       value = Some("startNew"),
-      content = Text(messages("downloadOrNew.startNew.text")),
-      hint = Some(Hint(content = Text(messages("downloadOrNew.startNew.helpText"))))
+      content = Text(messages("downloadOrNew.startNew.text", formCat)),
+      hint = Some(Hint(content = Text(messages("downloadOrNew.startNew.helpText", formCat))))
     )
 
     val radios = Radios(
       fieldset = fieldset,
-      hint = Some(Hint(content = Text(messages("downloadOrNew.helpText")))),
+      hint = Some(
+        Hint(content = Text(messages("downloadOrNew.helpText", formCat, frontendAppConfig.submittedFormExpiryDays)))
+      ),
       errorMessage = if (hasErrors) errorMessage else None,
       name = "downloadOrNew",
       items = List(download, startNew)
