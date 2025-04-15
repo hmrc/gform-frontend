@@ -30,7 +30,8 @@ import java.time.LocalDate
 
 class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleEvaluationContext {
 
-  private def one(expr: Expr, result: ExpressionResult): EvaluationResults = EvaluationResults.empty.+(expr, result)
+  private def one(expr: Expr, result: ExpressionResult): EvaluationResults =
+    EvaluationResults.empty.copy(exprMap = Map((expr, result)))
   private val booleanExprResolver = BooleanExprResolver(_ => false)
   "evalDateExpr" should "evaluate a date expression with TodayDateExprValue" in {
     val expressionResult =

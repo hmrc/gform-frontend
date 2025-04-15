@@ -76,16 +76,16 @@ class Recalculation[F[_]: Monad, E](
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
 
+    val startEvResults = EvaluationResults(
+      exprMap,
+      SourceOrigin.changeSource(RecData.fromData(data)),
+      formTemplate.formKind.repeatedComponentsDetails
+    )
     val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
       (
         s,
-        EvaluationResults(
-          exprMap,
-          SourceOrigin.changeSource(RecData.fromData(data)),
-          formTemplate.formKind.repeatedComponentsDetails
-        )
-      )
-        .pure[F]
+        startEvResults
+      ).pure[F]
     }
 
     val res: Either[GraphException, StateT[
@@ -99,7 +99,7 @@ class Recalculation[F[_]: Monad, E](
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(startState) { case (state, (_, graphLayer)) =>
           recalculateGraphLayer(
             graphLayer,
-            state.map(_.copy(exprMap = exprMap)),
+            state,
             retrievals,
             evaluationContext,
             messages,
@@ -115,7 +115,7 @@ class Recalculation[F[_]: Monad, E](
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd) =>
-        fd.run(new RecalculationState(EvaluationResults.empty, thirdPartyData.booleanExprCache))
+        fd.run(new RecalculationState(startEvResults, thirdPartyData.booleanExprCache))
           .map { case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
             val finalEvaluationResults =
               implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
@@ -381,7 +381,7 @@ class Recalculation[F[_]: Monad, E](
               .get(dataSource, value)
               .fold(makeCall().map { res =>
                 (s.add(dataSource, value, res), res)
-              })((s, _).pure[F])
+              })(res => (s, res).pure[F])
           }
         }
       case h @ HasAnswer(_, _) =>

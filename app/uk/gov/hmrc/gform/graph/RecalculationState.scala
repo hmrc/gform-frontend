@@ -24,10 +24,6 @@ class RecalculationState(
   val evaluationResults: EvaluationResults,
   val booleanExprCache: BooleanExprCache
 ) {
-
-  def update(newEvaluationResults: EvaluationResults): RecalculationState =
-    new RecalculationState(newEvaluationResults, booleanExprCache)
-
   def get(dataSource: DataSource, value: String): Option[Boolean] = booleanExprCache.get(dataSource, value)
   def add(dataSource: DataSource, value: String, result: Boolean): RecalculationState = new RecalculationState(
     evaluationResults,
