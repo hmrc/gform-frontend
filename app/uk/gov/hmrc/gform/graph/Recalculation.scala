@@ -99,12 +99,12 @@ class Recalculation[F[_]: Monad, E](
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(startState) { case (state, (_, graphLayer)) =>
           recalculateGraphLayer(
             graphLayer,
-            state,
+            state.map(_.copy(exprMap = exprMap)),
             retrievals,
             evaluationContext,
             messages,
             exprMap
-          ).map(_.copy(exprMap = exprMap))
+          )
         }
 
         recalc.map { evResult =>
@@ -198,9 +198,17 @@ class Recalculation[F[_]: Monad, E](
 
           val res = for {
             isHiddenIncludeIf <-
-              isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+              isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext, exprMap)
             isHiddenComponentIncludeIf <-
-              isHiddenByComponentIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+              isHiddenByComponentIncludeIf(
+                fcId,
+                evResult,
+                recData,
+                retrievals,
+                booleanExprResolver,
+                evaluationContext,
+                exprMap
+              )
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             isHiddenRepeatsExpr <-
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
@@ -248,7 +256,7 @@ class Recalculation[F[_]: Monad, E](
       }
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
-      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
+      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) >> {
         if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
       }
 
@@ -316,7 +324,8 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
 
     val rr =
@@ -355,7 +364,7 @@ class Recalculation[F[_]: Monad, E](
 
         expressionResult.convertNumberToString.withStringResult(noStateChange(false)) { value =>
           StateT[F, RecalculationState, Boolean] { s =>
-            val updS = s.update(evaluationResults + (expr, expressionResult))
+            exprMap.addOne(expr, expressionResult)
             def makeCall(): F[Boolean] = dataSource match {
               case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
               case DataSource.Enrolment(serviceName, identifierName) =>
@@ -368,11 +377,11 @@ class Recalculation[F[_]: Monad, E](
                 seissEligibilityChecker(UtrEligibilityRequest(value), hc)
             }
 
-            updS
+            s
               .get(dataSource, value)
               .fold(makeCall().map { res =>
-                (updS.add(dataSource, value, res), res)
-              })((updS, _).pure[F])
+                (s.add(dataSource, value, res), res)
+              })((s, _).pure[F])
           }
         }
       case h @ HasAnswer(_, _) =>
@@ -399,7 +408,8 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult]
   )(
     booleanExpr: Option[BooleanExpr]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
@@ -411,7 +421,8 @@ class Recalculation[F[_]: Monad, E](
                recData,
                retrievals,
                booleanExprResolver,
-               evaluationContext
+               evaluationContext,
+               exprMap
              )
       } yield !b
     }
@@ -421,13 +432,14 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Unit] = {
     val validIfs: List[ValidIf] = formModel.allValidIfs.flatMap(_._1)
 
     validIfs
       .traverse(validIf =>
-        evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+        evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) {
           Some(validIf.booleanExpr)
         }
       )
@@ -440,10 +452,11 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) {
       pageLookup
         .get(fcId)
         .flatMap(_.getIncludeIf)
@@ -457,9 +470,10 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult]
   )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext, exprMap) {
       formModel.fcLookup
         .get(fcId)
         .flatMap(_.includeIf)

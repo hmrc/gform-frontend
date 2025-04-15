@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 import java.time.LocalDate
+import scala.collection.mutable
 import scala.util.Try
 
 case class EvaluationResults(
@@ -46,8 +47,6 @@ case class EvaluationResults(
   recData: RecData[SourceOrigin.Current],
   repeatedComponentsDetails: RepeatedComponentsDetails
 ) {
-
-  def +(expr: Expr, result: ExpressionResult): EvaluationResults = this.copy(exprMap = exprMap + (expr -> result))
 
   def get(expr: Expr): Option[ExpressionResult] = exprMap.get(expr)
 
