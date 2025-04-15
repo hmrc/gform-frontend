@@ -336,8 +336,16 @@ class NewFormController(
               val downloadOrNewFormPage: DownloadOrNewFormPage = downloadOrNewChoice
                 .bindFromRequest()
                 .fold(
-                  errorForm => new DownloadOrNewFormPage(cache.formTemplate, errorForm, sub.submittedDate, se),
-                  _ => new DownloadOrNewFormPage(cache.formTemplate, downloadOrNewChoice, sub.submittedDate, se)
+                  errorForm =>
+                    new DownloadOrNewFormPage(cache.formTemplate, errorForm, sub.submittedDate, se, frontendAppConfig),
+                  _ =>
+                    new DownloadOrNewFormPage(
+                      cache.formTemplate,
+                      downloadOrNewChoice,
+                      sub.submittedDate,
+                      se,
+                      frontendAppConfig
+                    )
                 )
               Ok(download_or_new(frontendAppConfig, downloadOrNewFormPage)).pure[Future]
             }

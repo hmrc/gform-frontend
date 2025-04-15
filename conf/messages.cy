@@ -495,11 +495,11 @@ continueDelete.delete=Na, dilëwch y fersiwn a gadwyd gennyf a dechrau eto
 
 # Download last submission or new form
 downloadOrNew.title=Beth ydych am ei wneud?
-downloadOrNew.helpText=Bydd copi o ffurflen a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at 24 awr ar ôl iddi gael ei chyflwyno.
-downloadOrNew.download.text=Cael copi o’r ffurflen y gwnaethoch ei chyflwyno
-downloadOrNew.download.helpText=Dyma’r ffurflen y gwnaethoch ei chyflwyno ar {0} am {1}.
-downloadOrNew.startNew.text=Dechrau ffurflen newydd
-downloadOrNew.startNew.helpText=Unwaith eich bod wedi dechrau ffurflen newydd, ni allwch lawrlwytho’r ffurflen a gyflwynwyd gennych yn flaenorol.
+downloadOrNew.helpText=Bydd copi o {0} a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at {1} diwrnod ar ôl iddi gael ei chyflwyno.
+downloadOrNew.download.text=Cael copi o’r {0} y gwnaethoch ei chyflwyno
+downloadOrNew.download.helpText=Dyma’r {0} y gwnaethoch ei chyflwyno ar {1} am {2}.
+downloadOrNew.startNew.text=Dechrau {0} newydd
+downloadOrNew.startNew.helpText=Unwaith eich bod wedi dechrau {0} newydd, ni allwch lawrlwytho’r {0} a gyflwynwyd gennych yn flaenorol.
 downloadOrNew.error.required=Dewiswch yr hyn rydych am ei wneud
 
 downloadThenNew.title=Lawrlwytho copi o’r {0} y gwnaethoch ei chyflwyno

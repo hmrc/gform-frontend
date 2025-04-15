@@ -516,11 +516,11 @@ continueDelete.delete=No, delete the saved version and start again
 
 # Download last submission or new form
 downloadOrNew.title=What do you want to do?
-downloadOrNew.helpText=You can only get a copy of a previously submitted form in the 24 hours after it has been submitted.
-downloadOrNew.download.text=Get a copy of the form that you submitted
-downloadOrNew.download.helpText=This is the form that you submitted on {0} at {1}.
-downloadOrNew.startNew.text=Start a new form
-downloadOrNew.startNew.helpText=Once you start a new form you cannot download your previously submitted form.
+downloadOrNew.helpText=You can only get a copy of a previously submitted {0} in the {1} days after it has been submitted.
+downloadOrNew.download.text=Get a copy of the {0} that you submitted
+downloadOrNew.download.helpText=This is the {0} that you submitted on {1} at {2}.
+downloadOrNew.startNew.text=Start a new {0}
+downloadOrNew.startNew.helpText=Once you start a new {0} you cannot download your previously submitted {0}.
 downloadOrNew.error.required=Select what you want to do
 
 downloadThenNew.title=Download a copy of the {0} that you submitted
