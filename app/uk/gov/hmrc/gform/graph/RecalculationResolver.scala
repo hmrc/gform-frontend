@@ -18,14 +18,13 @@ package uk.gov.hmrc.gform.graph
 
 import cats.Applicative
 import cats.syntax.all._
-import cats.data.StateT
-
-import scala.util.matching.Regex
-import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, DateExprEval, EvaluationContext, EvaluationResults, ExpressionResult, TypeInfo }
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
+import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.{ FormModel, Interim }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+import scala.util.matching.Regex
 
 class RecalculationResolver[F[_]: Applicative](
   formModel: FormModel[Interim],

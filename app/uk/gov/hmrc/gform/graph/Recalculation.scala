@@ -137,7 +137,7 @@ class Recalculation[F[_]: Monad, E](
     exprMap: mutable.Map[Expr, ExpressionResult],
     variadicFormDataMap: mutable.Map[ModelComponentId, VariadicValue],
     booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
-  )(implicit formModel: FormModel[Interim]): F[EvaluationResults] =
+  )(implicit formModel: FormModel[Interim]): F[Unit] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
@@ -153,7 +153,7 @@ class Recalculation[F[_]: Monad, E](
           .stringRepresentation(typeInfo, messages)
       }
 
-      val graphLayerResult: F[EvaluationResults] = graphLayer.foldMapM {
+      val graphLayerResult = graphLayer.traverse {
 
         case GraphNode.Simple(fcId) =>
           val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
@@ -276,7 +276,7 @@ class Recalculation[F[_]: Monad, E](
         exprMap,
         booleanExprCacheMap
       ) >> {
-        if (graphLayer.isEmpty) evResult.pure[F] else graphLayerResult
+        if (graphLayer.isEmpty) evResult.pure[F].void else graphLayerResult.void
       }
 
     }
@@ -392,7 +392,7 @@ class Recalculation[F[_]: Monad, E](
         val hc = evaluationContext.headerCarrier
 
         expressionResult.convertNumberToString.withStringResult(false.pure[F]) { value =>
-          exprMap.addOne(expr, expressionResult)
+          exprMap.addOne((expr, expressionResult))
           def makeCall(): F[Boolean] = dataSource match {
             case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
             case DataSource.Enrolment(serviceName, identifierName) =>

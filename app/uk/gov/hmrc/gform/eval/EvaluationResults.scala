@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.Monoid
 import cats.syntax.eq._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
@@ -39,7 +38,6 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 import java.time.LocalDate
-import scala.collection.mutable
 import scala.util.Try
 
 case class EvaluationResults(
@@ -1139,26 +1137,4 @@ case class EvaluationResults(
 
 object EvaluationResults {
   val empty = EvaluationResults(Map.empty, RecData.empty, RepeatedComponentsDetails.empty)
-
-  def unapply(
-    a: EvaluationResults
-  ): Option[(collection.Map[Expr, ExpressionResult], RecData[SourceOrigin.Current], RepeatedComponentsDetails)] =
-    Some((a.exprMap, a.recData, a.repeatedComponentsDetails))
-
-  implicit val monoidEvaluationResults: Monoid[EvaluationResults] = new Monoid[EvaluationResults] {
-    def empty =
-      EvaluationResults.empty
-    def combine(l: EvaluationResults, r: EvaluationResults): EvaluationResults = (l, r) match {
-      case (
-            EvaluationResults(em1, rd1, RepeatedComponentsDetails(m1)),
-            EvaluationResults(em2, rd2, m2)
-          ) =>
-        EvaluationResults(
-          em2,
-          rd2,
-          m2
-        )
-      case _ => throw new Exception("Invalid expression results for combine")
-    }
-  }
 }
