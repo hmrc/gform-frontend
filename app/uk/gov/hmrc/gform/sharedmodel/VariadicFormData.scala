@@ -25,9 +25,10 @@ import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, PageMo
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.Atom
+
+import scala.collection.{ immutable, mutable }
 
 sealed trait VariadicValue extends Product with Serializable {
   def toSeq: Seq[String] = this match {
@@ -191,7 +192,9 @@ case class VariadicFormData[S <: SourceOrigin](data: collection.Map[ModelCompone
   def keySet(): collection.Set[ModelComponentId] = data.keySet
 
   def ++[R <: SourceOrigin](addend: VariadicFormData[R]): VariadicFormData[R] = VariadicFormData[R](data ++ addend.data)
-  def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData[S] = VariadicFormData[S](data + entry)
+  def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData[S] = VariadicFormData[S](
+    data.concat(collection.Map.newBuilder.addOne((entry._1, entry._2)).result())
+  )
   def addOne(entry: (ModelComponentId, String)): VariadicFormData[S] =
     this addValue (entry._1 -> VariadicValue.One(entry._2))
   def addMany(entry: (ModelComponentId, Seq[String])): VariadicFormData[S] =
@@ -201,8 +204,13 @@ case class VariadicFormData[S <: SourceOrigin](data: collection.Map[ModelCompone
 
   def --(remove: VariadicFormData[S]): VariadicFormData[S] = --(remove.keySet())
 
-  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData[S] =
-    VariadicFormData[S](data -- formComponents)
+  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData[S] = data match {
+    case map: mutable.Map[ModelComponentId, _] =>
+      formComponents.iterator.foreach(x => map.remove(x))
+      this
+    case map: immutable.Map[ModelComponentId, _] => VariadicFormData[S](map -- formComponents)
+    case _                                       => throw new RuntimeException("Unknown map type")
+  }
 
   def subset(ids: Set[ModelComponentId]): VariadicFormData[S] =
     VariadicFormData[S](data.filter { case (k, _) => ids.contains(k) })
