@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json.{ Format, JsResult, JsValue, Json }
+import play.api.libs.json.{ Format, Json }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, JsonUtils }
 
-import scala.collection.immutable
-
-case class BooleanExprCache(mapping: collection.Map[DataSource, collection.Map[String, Boolean]]) extends AnyVal {
+case class BooleanExprCache(mapping: Map[DataSource, Map[String, Boolean]]) extends AnyVal {
   def get(dataSource: DataSource, value: String): Option[Boolean] =
     for {
       look <- mapping.get(dataSource)
@@ -30,15 +28,8 @@ case class BooleanExprCache(mapping: collection.Map[DataSource, collection.Map[S
 }
 
 object BooleanExprCache {
-  implicit def collectionMapFormat[T](implicit format: Format[T]): Format[collection.Map[String, T]] =
-    new Format[collection.Map[String, T]] {
-      override def reads(json: JsValue): JsResult[collection.Map[String, T]] =
-        json.validate[immutable.Map[String, T]].map(_.asInstanceOf[collection.Map[String, T]])
-
-      override def writes(o: collection.Map[String, T]): JsValue = Json.toJson(o.toMap)
-    }
-  implicit val b: Format[collection.Map[DataSource, collection.Map[String, Boolean]]] =
-    JsonUtils.formatMapO[DataSource, collection.Map[String, Boolean]](DataSource.fromString, _.convertToString())
+  implicit val b: Format[Map[DataSource, Map[String, Boolean]]] =
+    JsonUtils.formatMapO[DataSource, Map[String, Boolean]](DataSource.fromString, _.convertToString())
 
   implicit val format: Format[BooleanExprCache] = Json.format
   val empty = BooleanExprCache(Map.empty)

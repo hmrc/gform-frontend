@@ -64,10 +64,8 @@ trait JsonUtils {
       }
     )
 
-  def formatMapO[A, B: Format](stringToA: String => Option[A], aToString: A => String)(implicit
-    format: Format[collection.Map[String, B]]
-  ): Format[collection.Map[A, B]] =
-    implicitly[Format[collection.Map[String, B]]].inmap(
+  def formatMapO[A, B: Format](stringToA: String => Option[A], aToString: A => String): Format[Map[A, B]] =
+    implicitly[Format[Map[String, B]]].inmap(
       _.flatMap { case (k, v) =>
         stringToA(k).fold(Map.empty[A, B])(s => Map(s -> v))
       },

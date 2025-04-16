@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
 
-import scala.collection.mutable
+import scala.collection.{ immutable, mutable }
 
 sealed trait GraphException {
   def reportProblem: String = this match {
@@ -113,14 +113,21 @@ class Recalculation[F[_]: Monad, E](
         }
       }
 
+    def immutableBooleanExprCacheMap = booleanExprCacheMap
+      .foldLeft(
+        immutable.Map.newBuilder[DataSource, immutable.Map[String, Boolean]]
+      ) { case (builder, (key, value)) =>
+        builder.addOne(key -> value.toMap)
+      }.result()
+
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd) =>
-        fd.map { case graphTopologicalOrder =>
+        fd.map { graphTopologicalOrder =>
           RecalculationResult(
             startEvResults,
             GraphData(graphTopologicalOrder, graph),
-            BooleanExprCache(booleanExprCacheMap),
+            BooleanExprCache(immutableBooleanExprCacheMap),
             evaluationContext
           )
 
