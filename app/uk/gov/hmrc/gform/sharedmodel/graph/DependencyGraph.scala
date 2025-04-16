@@ -219,10 +219,10 @@ object DependencyGraph {
     graph.topologicalSort
       .map(_.toLayered.map { case (index, items) =>
         (index, sortedOuterNodes(items))
-      }) match {
-      case Left(value)  => Left(graph.nodes.head)
-      case Right(value) => Right(value)
-    }
+      })
+      .leftMap { failure =>
+        failure.cycle.getOrElse(throw new RuntimeException("Topological sort issue")).endNode
+      }
   }
 }
 

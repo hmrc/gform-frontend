@@ -413,10 +413,12 @@ class Recalculation[F[_]: Monad, E](
               seissEligibilityChecker(UtrEligibilityRequest(value), hc)
           }
 
-          (for {
-            a1 <- booleanExprCacheMap.get(dataSource)
-            a2 <- a1.get(value)
-          } yield a2).fold(makeCall().map { res =>
+          def booleanValue = for {
+            dataSourceValue <- booleanExprCacheMap.get(dataSource)
+            booleanValue    <- dataSourceValue.get(value)
+          } yield booleanValue
+
+          booleanValue.fold(makeCall().map { res =>
             addToBooleanCache(dataSource, value, res)
             res
           })(_.pure[F])

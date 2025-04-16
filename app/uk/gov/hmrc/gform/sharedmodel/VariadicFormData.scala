@@ -192,9 +192,11 @@ case class VariadicFormData[S <: SourceOrigin](data: collection.Map[ModelCompone
   def keySet(): collection.Set[ModelComponentId] = data.keySet
 
   def ++[R <: SourceOrigin](addend: VariadicFormData[R]): VariadicFormData[R] = VariadicFormData[R](data ++ addend.data)
-  def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData[S] = VariadicFormData[S](
-    data.concat(collection.Map.newBuilder.addOne((entry._1, entry._2)).result())
-  )
+  def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData[S] = fold { mutableMap =>
+    mutableMap.addOne(entry)
+  } { immutableMap =>
+    immutableMap + entry
+  }
   def addOne(entry: (ModelComponentId, String)): VariadicFormData[S] =
     this addValue (entry._1 -> VariadicValue.One(entry._2))
   def addMany(entry: (ModelComponentId, Seq[String])): VariadicFormData[S] =
@@ -204,12 +206,20 @@ case class VariadicFormData[S <: SourceOrigin](data: collection.Map[ModelCompone
 
   def --(remove: VariadicFormData[S]): VariadicFormData[S] = --(remove.keySet())
 
-  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData[S] = data match {
-    case map: mutable.Map[ModelComponentId, _] =>
-      formComponents.iterator.foreach(x => map.remove(x))
+  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData[S] =
+    fold { mutableMap =>
+      formComponents.iterator.foreach(x => mutableMap.remove(x))
+    } { immutableMap =>
+      immutableMap -- formComponents
+    }
+  private def fold(f: mutable.Map[ModelComponentId, VariadicValue] => Unit)(
+    g: immutable.Map[ModelComponentId, VariadicValue] => immutable.Map[ModelComponentId, VariadicValue]
+  ): VariadicFormData[S] = data match {
+    case map: mutable.Map[ModelComponentId, VariadicValue] =>
+      f(map)
       this
-    case map: immutable.Map[ModelComponentId, _] => VariadicFormData[S](map -- formComponents)
-    case _                                       => throw new RuntimeException("Unknown map type")
+    case map: immutable.Map[ModelComponentId, VariadicValue] => VariadicFormData[S](g(map))
+    case _                                                   => throw new RuntimeException("Unknown map type")
   }
 
   def subset(ids: Set[ModelComponentId]): VariadicFormData[S] =
