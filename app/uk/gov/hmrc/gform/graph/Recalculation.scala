@@ -16,21 +16,23 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.{ Monad, MonadError, Monoid }
 import cats.syntax.all._
-import cats.data.StateT
+import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
-import scalax.collection.Graph
-import scalax.collection.GraphEdge._
+import scalax.collection.edges.DiEdge
+import scalax.collection.immutable.Graph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprEval, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }
+import uk.gov.hmrc.gform.eval._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
+
+import scala.collection.{ immutable, mutable }
 
 sealed trait GraphException {
   def reportProblem: String = this match {
@@ -41,7 +43,7 @@ sealed trait GraphException {
   }
 }
 
-case class NoTopologicalOrder(fcId: GraphNode, graph: Graph[GraphNode, DiEdge]) extends GraphException
+case class NoTopologicalOrder(fcId: GraphNode, graph: Graph[GraphNode, DiEdge[GraphNode]]) extends GraphException
 case class NoFormComponent(fcId: FormComponentId, lookup: Map[FormComponentId, FormComponent]) extends GraphException
 
 class Recalculation[F[_]: Monad, E](
@@ -65,60 +67,70 @@ class Recalculation[F[_]: Monad, E](
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
-    val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formModel, formTemplateExprs)
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
-      .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
+      .leftMap(node => NoTopologicalOrder(node.outer, graph))
 
-    val startState = StateT[F, RecalculationState, EvaluationResults] { s =>
-      (
-        s,
-        EvaluationResults(
-          Map.empty,
-          SourceOrigin.changeSource(RecData.fromData(data)),
-          formTemplate.formKind.repeatedComponentsDetails
-        )
-      )
-        .pure[F]
-    }
+    val exprMap = mutable.Map[Expr, ExpressionResult]()
+    val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
+    val repeatedComponentsDetailsMap =
+      mutable.Map.newBuilder.addAll(formTemplate.formKind.repeatedComponentsDetails.componentToParentMapping).result()
 
-    val res: Either[GraphException, StateT[
-      F,
-      RecalculationState,
-      (EvaluationResults, Iterable[(Int, List[GraphNode])])
-    ]] =
+    val startEvResults = EvaluationResults(
+      exprMap,
+      SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formDataMap))),
+      RepeatedComponentsDetails(repeatedComponentsDetailsMap)
+    )
+    val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
+      thirdPartyData.booleanExprCache.mapping
+        .foldLeft(
+          mutable.Map.newBuilder[DataSource, mutable.Map[String, Boolean]]
+        ) { case (builder, (key, value)) =>
+          builder.addOne(key -> mutable.Map.newBuilder.addAll(value).result())
+        }
+        .result()
+
+    val res: Either[GraphException, F[Iterable[(Int, List[GraphNode])]]] =
       for {
         graphTopologicalOrder <- orderedGraph
       } yield {
-        val recalc = graphTopologicalOrder.toList.reverse.foldLeft(startState) { case (state, (_, graphLayer)) =>
+        val recalc = graphTopologicalOrder.toList.reverse.traverse { case (_, graphLayer) =>
           recalculateGraphLayer(
             graphLayer,
-            state,
+            startEvResults.pure[F],
             retrievals,
             evaluationContext,
-            messages
+            messages,
+            exprMap,
+            formDataMap,
+            booleanExprCacheMap
           )
         }
-
-        recalc.map { evResult =>
-          (evResult, graphTopologicalOrder)
+        recalc.map { _ =>
+          graphTopologicalOrder
         }
       }
+
+    def immutableBooleanExprCacheMap = booleanExprCacheMap
+      .foldLeft(
+        immutable.Map.newBuilder[DataSource, immutable.Map[String, Boolean]]
+      ) { case (builder, (key, value)) =>
+        builder.addOne(key -> value.toMap)
+      }
+      .result()
 
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd) =>
-        fd.run(new RecalculationState(EvaluationResults.empty, thirdPartyData.booleanExprCache)).map {
-          case (cacheUpdate, (evaluationResults, graphTopologicalOrder)) =>
-            val finalEvaluationResults =
-              implicitly[Monoid[EvaluationResults]].combine(cacheUpdate.evaluationResults, evaluationResults)
-            RecalculationResult(
-              finalEvaluationResults,
-              GraphData(graphTopologicalOrder, graph),
-              cacheUpdate.booleanExprCache,
-              evaluationContext
-            )
+        fd.map { graphTopologicalOrder =>
+          RecalculationResult(
+            startEvResults,
+            GraphData(graphTopologicalOrder, graph),
+            BooleanExprCache(immutableBooleanExprCacheMap),
+            evaluationContext
+          )
 
         }
     }
@@ -126,11 +138,14 @@ class Recalculation[F[_]: Monad, E](
 
   private def recalculateGraphLayer(
     graphLayer: List[GraphNode],
-    state: StateT[F, RecalculationState, EvaluationResults],
+    state: F[EvaluationResults],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    messages: Messages
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, EvaluationResults] =
+    messages: Messages,
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    variadicFormDataMap: mutable.Map[ModelComponentId, VariadicValue],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
+  )(implicit formModel: FormModel[Interim]): F[Unit] =
     state.flatMap { evResult =>
       val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
@@ -146,7 +161,7 @@ class Recalculation[F[_]: Monad, E](
           .stringRepresentation(typeInfo, messages)
       }
 
-      val graphLayerResult: StateT[F, RecalculationState, EvaluationResults] = graphLayer.foldMapM {
+      val graphLayerResult = graphLayer.traverse {
 
         case GraphNode.Simple(fcId) =>
           val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
@@ -184,22 +199,42 @@ class Recalculation[F[_]: Monad, E](
 
           val recDataUpd: RecData[OutOfDate] =
             if (isOptionHidden) {
-              RecData.fromData(recData.variadicFormData -- List(fcId.modelComponentId))
+              variadicFormDataMap.remove(fcId.modelComponentId)
+              recData
             } else {
               recData
             }
 
           val res = for {
             isHiddenIncludeIf <-
-              isHiddenByIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+              isHiddenByIncludeIf(
+                fcId,
+                evResult,
+                recData,
+                retrievals,
+                booleanExprResolver,
+                evaluationContext,
+                exprMap,
+                booleanExprCacheMap
+              )
             isHiddenComponentIncludeIf <-
-              isHiddenByComponentIncludeIf(fcId, evResult, recData, retrievals, booleanExprResolver, evaluationContext)
+              isHiddenByComponentIncludeIf(
+                fcId,
+                evResult,
+                recData,
+                retrievals,
+                booleanExprResolver,
+                evaluationContext,
+                exprMap,
+                booleanExprCacheMap
+              )
             isHiddenRevealingChoice <- isHiddenByRevealingChoice(fcId, recData)
             isHiddenRepeatsExpr <-
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
             if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
-              evResult + (FormCtx(fcId), ExpressionResult.Hidden)
+              exprMap.addOne((FormCtx(fcId), ExpressionResult.Hidden))
+              evResult
             } else {
               evResult
             }
@@ -219,11 +254,15 @@ class Recalculation[F[_]: Monad, E](
             evResult
               .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
               .applyTypeInfo(typeInfo)
-
-          noStateChange(evResult + (formCtx, evResult.get(formCtx).fold(exprResult) {
-            case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
-            case _                       => exprResult
-          }))
+          val newExpr = (
+            formCtx,
+            evResult.get(formCtx).fold(exprResult) {
+              case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
+              case _                       => exprResult
+            }
+          )
+          exprMap.addOne(newExpr)
+          evResult.pure[F]
 
         case GraphNode.Expr(expr) =>
           val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
@@ -231,12 +270,21 @@ class Recalculation[F[_]: Monad, E](
           val exprResult: ExpressionResult =
             evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
 
-          noStateChange(evResult + (expr, exprResult))
+          exprMap.addOne((expr, exprResult))
+          evResult.pure[F]
       }
 
       // We are only interested in `ValidIf` with `In` expression and any other `validIf` is being ignored
-      evalValidIfs(evResult, recData, retrievals, booleanExprResolver, evaluationContext) >> {
-        if (graphLayer.isEmpty) noStateChange(evResult) else graphLayerResult
+      evalValidIfs(
+        evResult,
+        recData,
+        retrievals,
+        booleanExprResolver,
+        evaluationContext,
+        exprMap,
+        booleanExprCacheMap
+      ) >> {
+        if (graphLayer.isEmpty) evResult.pure[F].void else graphLayerResult.void
       }
 
     }
@@ -303,8 +351,10 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
+  )(implicit formModel: FormModel[Interim]): F[Boolean] = {
 
     val rr =
       new RecalculationResolver(
@@ -315,7 +365,16 @@ class Recalculation[F[_]: Monad, E](
         evaluationContext
       )
 
-    def loop(booleanExpr: BooleanExpr): StateT[F, RecalculationState, Boolean] = booleanExpr match {
+    def addToBooleanCache(dataSource: DataSource, value: String, result: Boolean): Unit = {
+      val updatedDataSourceMap =
+        booleanExprCacheMap.get(dataSource).fold(mutable.Map(value -> result)) { m =>
+          m.addOne(value -> result)
+          m
+        }
+      booleanExprCacheMap.addOne(dataSource -> updatedDataSourceMap)
+    }
+
+    def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
       case Equals(field1, field2)              => rr.compareF(field1, field2, _ identical _)
       case GreaterThan(field1, field2)         => rr.compareF(field1, field2, _ > _)
       case DateAfter(field1, field2)           => rr.compareDateF(field1, field2, _ after _)
@@ -326,12 +385,12 @@ class Recalculation[F[_]: Monad, E](
       case Not(invertedExpr)                   => loop(invertedExpr).map(!_)
       case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
       case And(expr1, expr2)                   => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 & e2
-      case IsTrue                              => noStateChange(true)
-      case IsFalse                             => noStateChange(false)
+      case IsTrue                              => true.pure[F]
+      case IsFalse                             => false.pure[F]
       case Contains(field1, field2)            => rr.compareF(field1, field2, _ contains _)
       case MatchRegex(expr, regex)             => rr.matchRegexF(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhaseF(value)
-      case DuplicateExists(fieldList)          => noStateChange(BooleanExprEval.evalDuplicateExpr(fieldList, recData))
+      case DuplicateExists(fieldList)          => BooleanExprEval.evalDuplicateExpr(fieldList, recData).pure[F]
       case In(expr, dataSource) =>
         val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
         val expressionResult: ExpressionResult =
@@ -340,42 +399,43 @@ class Recalculation[F[_]: Monad, E](
             .applyTypeInfo(typeInfo)
         val hc = evaluationContext.headerCarrier
 
-        expressionResult.convertNumberToString.withStringResult(noStateChange(false)) { value =>
-          StateT[F, RecalculationState, Boolean] { s =>
-            val updS = s.update(evaluationResults + (expr, expressionResult))
-            def makeCall(): F[Boolean] = dataSource match {
-              case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
-              case DataSource.Enrolment(serviceName, identifierName) =>
-                retrievals.enrolmentExists(serviceName, identifierName, value).pure[F]
-              case dd @ DataSource.DelegatedEnrolment(_, _) =>
-                retrievals.maybeGovermentGatewayId.fold(false.pure[F]) { governmentGatewayId =>
-                  delegatedEnrolmentCheckStatus(governmentGatewayId, dd, IdentifierValue(value), hc)
-                }
-              case DataSource.SeissEligible =>
-                seissEligibilityChecker(UtrEligibilityRequest(value), hc)
-            }
-
-            updS
-              .get(dataSource, value)
-              .fold(makeCall().map { res =>
-                (updS.add(dataSource, value, res), res)
-              })((updS, _).pure[F])
+        expressionResult.convertNumberToString.withStringResult(false.pure[F]) { value =>
+          exprMap.addOne((expr, expressionResult))
+          def makeCall(): F[Boolean] = dataSource match {
+            case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
+            case DataSource.Enrolment(serviceName, identifierName) =>
+              retrievals.enrolmentExists(serviceName, identifierName, value).pure[F]
+            case dd @ DataSource.DelegatedEnrolment(_, _) =>
+              retrievals.maybeGovermentGatewayId.fold(false.pure[F]) { governmentGatewayId =>
+                delegatedEnrolmentCheckStatus(governmentGatewayId, dd, IdentifierValue(value), hc)
+              }
+            case DataSource.SeissEligible =>
+              seissEligibilityChecker(UtrEligibilityRequest(value), hc)
           }
+
+          def booleanValue = for {
+            dataSourceValue <- booleanExprCacheMap.get(dataSource)
+            booleanValue    <- dataSourceValue.get(value)
+          } yield booleanValue
+
+          booleanValue.fold(makeCall().map { res =>
+            addToBooleanCache(dataSource, value, res)
+            res
+          })(_.pure[F])
         }
       case h @ HasAnswer(_, _) =>
-        noStateChange(
-          BooleanExprEval
-            .evalHasAnswer(
-              h,
-              formModel,
-              evaluationResults,
-              evaluationContext,
-              booleanExprResolver,
-              SourceOrigin.changeSource(recData)
-            )
-        )
-      case First(FormCtx(formComponentId)) => noStateChange(BooleanExprEval.evalFirstExpr(formComponentId))
-      case IsLogin(value)                  => noStateChange(BooleanExprEval.evalIsLoginExpr(value, retrievals))
+        BooleanExprEval
+          .evalHasAnswer(
+            h,
+            formModel,
+            evaluationResults,
+            evaluationContext,
+            booleanExprResolver,
+            SourceOrigin.changeSource(recData)
+          )
+          .pure[F]
+      case First(FormCtx(formComponentId)) => BooleanExprEval.evalFirstExpr(formComponentId).pure[F]
+      case IsLogin(value)                  => BooleanExprEval.evalIsLoginExpr(value, retrievals).pure[F]
     }
 
     loop(booleanExpr)
@@ -386,11 +446,13 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(
     booleanExpr: Option[BooleanExpr]
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    booleanExpr.fold(noStateChange(false)) { booleanExpr =>
+  )(implicit formModel: FormModel[Interim]): F[Boolean] =
+    booleanExpr.fold(false.pure[F]) { booleanExpr =>
       for {
         b <- evalBooleanExpr(
                booleanExpr,
@@ -398,7 +460,9 @@ class Recalculation[F[_]: Monad, E](
                recData,
                retrievals,
                booleanExprResolver,
-               evaluationContext
+               evaluationContext,
+               exprMap,
+               booleanExprCacheMap
              )
       } yield !b
     }
@@ -408,13 +472,23 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Unit] = {
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
+  )(implicit formModel: FormModel[Interim]): F[Unit] = {
     val validIfs: List[ValidIf] = formModel.allValidIfs.flatMap(_._1)
 
     validIfs
       .traverse(validIf =>
-        evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+        evalBooleanExpr(
+          evaluationResults,
+          recData,
+          retrievals,
+          booleanExprResolver,
+          evaluationContext,
+          exprMap,
+          booleanExprCacheMap
+        ) {
           Some(validIf.booleanExpr)
         }
       )
@@ -427,10 +501,20 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
+  )(implicit formModel: FormModel[Interim]): F[Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+    evalBooleanExpr(
+      evaluationResults,
+      recData,
+      retrievals,
+      booleanExprResolver,
+      evaluationContext,
+      exprMap,
+      booleanExprCacheMap
+    ) {
       pageLookup
         .get(fcId)
         .flatMap(_.getIncludeIf)
@@ -444,9 +528,19 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     booleanExprResolver: BooleanExprResolver,
-    evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    evalBooleanExpr(evaluationResults, recData, retrievals, booleanExprResolver, evaluationContext) {
+    evaluationContext: EvaluationContext,
+    exprMap: mutable.Map[Expr, ExpressionResult],
+    booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
+  )(implicit formModel: FormModel[Interim]): F[Boolean] =
+    evalBooleanExpr(
+      evaluationResults,
+      recData,
+      retrievals,
+      booleanExprResolver,
+      evaluationContext,
+      exprMap,
+      booleanExprCacheMap
+    ) {
       formModel.fcLookup
         .get(fcId)
         .flatMap(_.includeIf)
@@ -459,27 +553,23 @@ class Recalculation[F[_]: Monad, E](
     recData: RecData[SourceOrigin.OutOfDate],
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] =
-    formModel.fcIdRepeatsExprLookup.get(fcId).fold(noStateChange(false)) { repeatsExpr =>
+  )(implicit formModel: FormModel[Interim]): F[Boolean] =
+    formModel.fcIdRepeatsExprLookup.get(fcId).fold(false.pure[F]) { repeatsExpr =>
       val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(repeatsExpr)
       val exprResult: ExpressionResult =
         evResult.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
-      noStateChange(
-        fcId.modelComponentId.maybeIndex.fold(false)(fcIndex =>
-          exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue)
-        )
-      )
+      fcId.modelComponentId.maybeIndex
+        .fold(false)(fcIndex => exprResult.numberRepresentation.fold(true)(fcIndex > _.intValue))
+        .pure[F]
     }
 
   private def isHiddenByRevealingChoice(
     fcId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate]
-  )(implicit formModel: FormModel[Interim]): StateT[F, RecalculationState, Boolean] = {
+  )(implicit formModel: FormModel[Interim]): F[Boolean] = {
 
     val isHidden = formModel.revealingChoiceInfo.isHiddenByParentId(fcId, recData.variadicFormData)
 
-    isHidden.fold(noStateChange(false))(noStateChange)
+    isHidden.fold(false.pure[F])(x => x.pure[F])
   }
-
-  private def noStateChange[A](a: A): StateT[F, RecalculationState, A] = StateT(s => (s, a).pure[F])
 }

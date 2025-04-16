@@ -140,7 +140,7 @@ object AddToListUtils {
       unchangedMapping ++ decrementedMapping ++ unrelatedMapping
     }
 
-    val bracketPrefixes: Set[Int] =
+    val bracketPrefixes: collection.Set[Int] =
       (variadicFormDataToKeep.keySet() ++ variadicFormDataToModified.keySet()).flatMap(_.maybeIndex)
 
     val updatedVariadicFormData = {

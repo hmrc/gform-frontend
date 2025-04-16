@@ -99,7 +99,7 @@ object FormModelExpander {
       val baseIds: Set[BaseComponentId] =
         section.allIds.map(_.baseComponentId).toSet
 
-      val indexes: Set[Int] = data
+      val indexes: collection.Set[Int] = data
         .keySet()
         .collect {
           // format: off

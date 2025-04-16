@@ -786,7 +786,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
     ) match {
 
-      case Left(node) => throw new CycleDetectedException(node.toOuter)
+      case Left(node) => throw new CycleDetectedException(node.outer)
       case Right(topOrder) =>
         topOrder.toList.map { case (index, items) => (index, items.toSet) }
     }

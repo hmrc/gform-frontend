@@ -25,15 +25,6 @@ case class BooleanExprCache(mapping: Map[DataSource, Map[String, Boolean]]) exte
       look <- mapping.get(dataSource)
       res  <- look.get(value)
     } yield res
-
-  def add(dataSource: DataSource, value: String, result: Boolean): BooleanExprCache = {
-    val updatedDataSourceMap =
-      mapping.get(dataSource).fold(Map(value -> result)) { m =>
-        m + (value -> result)
-      }
-    BooleanExprCache(mapping + (dataSource -> updatedDataSourceMap))
-  }
-
 }
 
 object BooleanExprCache {

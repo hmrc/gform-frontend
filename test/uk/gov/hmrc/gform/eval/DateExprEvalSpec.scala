@@ -23,13 +23,15 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, NumberResult, Optio
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DateProjection.Year
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateConstructExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateFunction, DateValueExpr, ExactDateExprValue, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Date, DateConstructExpr, DateExprValue, DateExprWithOffset, DateFormCtxVar, DateFunction, DateValueExpr, ExactDateExprValue, Expr, FormComponentId, FormCtx, OffsetUnit, OffsetYMD, TodayDateExprValue }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleEvaluationContext, VariadicFormData, VariadicValue }
 
 import java.time.LocalDate
 
 class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleEvaluationContext {
 
+  private def one(expr: Expr, result: ExpressionResult): EvaluationResults =
+    EvaluationResults.empty.copy(exprMap = Map((expr, result)))
   private val booleanExprResolver = BooleanExprResolver(_ => false)
   "evalDateExpr" should "evaluate a date expression with TodayDateExprValue" in {
     val expressionResult =
@@ -81,7 +83,7 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
     val expressionResult = evalDateExpr(
       RecData[OutOfDate](VariadicFormData.empty),
       evaluationContext,
-      EvaluationResults.one(FormCtx(dateField), DateResult(LocalDate.now())),
+      one(FormCtx(dateField), DateResult(LocalDate.now())),
       booleanExprResolver
     )(DateFormCtxVar(FormCtx(dateField)))
     expressionResult shouldBe DateResult(LocalDate.now())
@@ -189,7 +191,7 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
       val actual = evalDateConstructExpr(
         RecData[OutOfDate](VariadicFormData.empty),
         evaluationContext,
-        EvaluationResults.one(FormCtx(formComponentId), exprResult),
+        one(FormCtx(formComponentId), exprResult),
         booleanExprResolver
       )(dExpr)
 
