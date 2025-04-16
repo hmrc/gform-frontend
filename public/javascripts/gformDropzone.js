@@ -13,7 +13,13 @@
 
       const translationPageRegex = /^\/submissions\/test-only\/(translation|translation-quick)\/(.*)$/;
 
-      const formTemplateId = translationPageRegex.exec(window.location.pathname)[2];
+      const translationPage = translationPageRegex.exec(window.location.pathname)
+
+      if (!translationPage) {
+        return undefined;
+      }
+
+      const formTemplateId = translationPage[2];
 
       const errorDiv = "<div id='error' class='govuk-error-message'></div>"
 
