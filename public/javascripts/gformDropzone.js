@@ -9,12 +9,17 @@
 
     function init () {
 
-      const csvUrlTemplate = "/submissions/test-only/proxy-to-gform/gform/translation/"
       const xlsxUrlTemplate = "/submissions/test-only/proxy-to-gform/gform/translation-excel/"
 
-      const translationPageRegex = /^\/submissions\/test-only\/translation\/(.*)$/;
+      const translationPageRegex = /^\/submissions\/test-only\/(translation|translation-quick)\/(.*)$/;
 
-      const formTemplateId = translationPageRegex.exec(window.location.pathname)[1];
+      const translationPage = translationPageRegex.exec(window.location.pathname)
+
+      if (!translationPage) {
+        return undefined;
+      }
+
+      const formTemplateId = translationPage[2];
 
       const errorDiv = "<div id='error' class='govuk-error-message'></div>"
 
@@ -32,7 +37,6 @@
 
             dropzone.removeClass("dropzone-inactive");
             dropzone.addClass("dropzone-active");
-
           })
         .on("drop", function(e) {
           e.preventDefault();
@@ -46,27 +50,11 @@
             // Use DataTransferItemList interface to access the file(s)
             const item = ev.dataTransfer.items[0];
 
-
             if (item.kind === "file") {
               const file = item.getAsFile();
-              if(file.type === "text/csv") {
-                file.text().then(function(body) {
-                const url = window.location.origin + csvUrlTemplate + formTemplateId;
-                fetch(url, {
-                  headers: {
-                    "Content-Type": "text/plain;charset=utf-8",
-                    "Origin": "null"
-                  },
-                  method: "POST",
-                  body: body
-                }).then(function(response) {
-                  response.json().then(function(responseBody) {
-                    $("#dropzone-result").text(responseBody.error)
-                  });
-                })
-              }) ;
-              } else if (file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+              if (file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
                 $("#dropzone-result").text("Processing " + file.name + ", please wait...")
+                $("#dropzone-audit").remove();
                 file.arrayBuffer().then(function(body) {
                   const url = window.location.origin + xlsxUrlTemplate + formTemplateId;
                   fetch(url, {
@@ -77,29 +65,41 @@
                     method: "POST",
                     body: body
                   }).then(function(response) {
-                    response.json().then(function(responseBody) {
-                      if(responseBody.error) {
-                        $("#dropzone-result").html("<strong>Something went wrong:</strong>" + errorDiv);
-                        $("#error").text(responseBody.error);
+                    if(response.ok) {
+                      response.json().then(function(responseBody) {
+                        if(responseBody.error) {
+                          $("#dropzone-result").html("<strong>Something went wrong:</strong>" + errorDiv);
+                          $("#error").text(responseBody.error);
+                        } else {
+                          var list = "";
+                          for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
+                            var row = responseBody.untranslatedRows[i];
+                            list += "<li><b>" + row.path + "</b>: <span id='item-" + i + "'></span></li>";
+                          }
+
+                          $("#dropzone-result").html(
+                            "<p>Translated: " + responseBody.translatedCount  + "</p>" +
+                              "<p>Untranslated: " + responseBody.untranslatedCount  + "</p>" +
+                              "<ol>" + list + "<ol>"
+                          )
+
+                          for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
+                            var row = responseBody.untranslatedRows[i];
+                            $("#item-" + i).text(row.en)
+                          }
+                        }
+                      });
+                    } else {
+                      if(response.status == 504) {
+                        $("#dropzone-result").html("<strong>Connection Timeout</strong>" + errorDiv);
+                        $("#error").text("It looks like your spreadsheet takes a lot of time to process. Please wait a couple of minutes and then refresh this page. Latest result will be displayed here.");
                       } else {
-                        var list = "";
-                        for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
-                          var row = responseBody.untranslatedRows[i];
-                          list += "<li><b>" + row.path + "</b>: <span id='item-" + i + "'></span></li>";
-                        }
-
-                        $("#dropzone-result").html(
-                          "<p>Translated: " + responseBody.translatedCount  + "</p>" +
-                            "<p>Untranslated: " + responseBody.untranslatedCount  + "</p>" +
-                            "<ol>" + list + "<ol>"
-                        )
-
-                        for (var i = 0; i < responseBody.untranslatedRows.length; i++) {
-                          var row = responseBody.untranslatedRows[i];
-                          $("#item-" + i).text(row.en)
-                        }
+                        response.text().then(function(responseBody) {
+                          $("#dropzone-result").html("<strong>Error</strong>" + errorDiv);
+                          $("#error").text("Status: " + response.status + ", body: " + responseBody);
+                        })
                       }
-                    });
+                    }
                   })
                 })
               } else {

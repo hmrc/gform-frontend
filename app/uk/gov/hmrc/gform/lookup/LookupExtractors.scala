@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Lookup, Register, Text, UkSortCodeFormat }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Lookup, Register, Text, TextConstraint, UkSortCodeFormat }
 
 class LookupExtractors(lookup: Map[Register, LookupType]) {
 
@@ -25,6 +25,14 @@ class LookupExtractors(lookup: Map[Register, LookupType]) {
       lookup.get(register) match {
         case Some(al @ RadioLookup(_)) => true
         case _                         => false
+      }
+  }
+
+  object IsRadioLookupTextConstraint {
+    def unapply(fc: TextConstraint): Option[Lookup] =
+      fc match {
+        case l @ Lookup(IsRadioRegister(), _) => Some(l)
+        case _                                => None
       }
   }
 

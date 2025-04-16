@@ -18,10 +18,21 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
+@import uk.gov.hmrc.gform.views.html.formatInstant
 
-@()
+@(translationAudit: Option[TranslationAuditOverview])
 
 <div id="dropzone" class="dropzone-inactive">
   <p>Drop .xlsx file with welsh translation here</p>
 </div>
 <div id="dropzone-result" class="govuk-body"></div>
+
+@translationAudit.map{ to =>
+  <div id="dropzone-audit">
+    <div class="govuk-body">Last translation run on @formatInstant(to.createdAt). With the result:</div>
+    <div class="govuk-inset-text">@to.result.report()</div>
+    <div class="govuk-body">View the resulting json <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform(s"gform/translation-audit/result/${to._id.value}")" class="govuk-link">here.</a></div>
+    <div class="govuk-body">Download full audit as zip <a href="@uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform(s"gform/translation-audit/full/${to._id.value}")" class="govuk-link">here.</a></div>
+  </div>
+}

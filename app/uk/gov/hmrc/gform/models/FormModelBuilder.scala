@@ -438,8 +438,8 @@ class FormModelBuilder[E, F[_]: Functor](
 
     def expandAtlDescription(atlDescription: AtlDescription) =
       atlDescription match {
-        case s: AtlDescription.SmartStringBased => s.copy(value = expand(s.value))
-        case k: AtlDescription.KeyValueBased    => k.copy(key = expand(k.key), value = expand(k.value))
+        case ssb: AtlDescription.SmartStringBased => ssb.copy(value = expand(ssb.value))
+        case kvb: AtlDescription.KeyValueBased    => kvb.copy(key = expand(kvb.key), value = expand(kvb.value))
       }
 
     def expandAtlDescriptionTotal(

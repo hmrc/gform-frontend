@@ -52,7 +52,7 @@ class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: Str
             }
           )
       }
-      .recover { case ex =>
+      .recover { ex =>
         logger.error(s"Unknown problem when calling $identifier", ex)
         CannotRetrieveResponse
       }
@@ -92,7 +92,7 @@ class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: Str
           logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
           CannotRetrieveResponse
       }
-    }.recover { case ex =>
+    }.recover { ex =>
       logger.error(s"Unknown problem when calling $identifier", ex)
       CannotRetrieveResponse
     }

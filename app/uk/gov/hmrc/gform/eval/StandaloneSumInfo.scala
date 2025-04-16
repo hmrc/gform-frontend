@@ -52,8 +52,7 @@ object StandaloneSumInfo {
           .collect { case AllPageModelSums(sums) => sums }
       }
 
-    val sums = sumInfo.keys
-    val standaloneSums: Set[Sum] = allSums.toSet.flatten.filterNot(sums)
+    val standaloneSums: Set[Sum] = allSums.toSet.flatten.filterNot(sumInfo.keys)
     StandaloneSumInfo(standaloneSums)
   }
 
