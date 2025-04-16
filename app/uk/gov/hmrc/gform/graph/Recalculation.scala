@@ -84,12 +84,12 @@ class Recalculation[F[_]: Monad, E](
       RepeatedComponentsDetails(repeatedComponentsDetailsMap)
     )
     val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
-      mutable.Map.newBuilder
-        .addAll(
-          thirdPartyData.booleanExprCache.mapping.map { case (key, value) =>
-            key -> mutable.Map.newBuilder.addAll(value).result()
-          }
-        )
+      thirdPartyData.booleanExprCache.mapping
+        .foldLeft(
+          mutable.Map.newBuilder[DataSource, mutable.Map[String, Boolean]]
+        ) { case (builder, (key, value)) =>
+          builder.addOne(key -> mutable.Map.newBuilder.addAll(value).result())
+        }
         .result()
 
     val res: Either[GraphException, F[Iterable[(Int, List[GraphNode])]]] =
@@ -118,7 +118,8 @@ class Recalculation[F[_]: Monad, E](
         immutable.Map.newBuilder[DataSource, immutable.Map[String, Boolean]]
       ) { case (builder, (key, value)) =>
         builder.addOne(key -> value.toMap)
-      }.result()
+      }
+      .result()
 
     res match {
       case Left(graphException) => me.raiseError(error(graphException))
