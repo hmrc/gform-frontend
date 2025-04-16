@@ -16,18 +16,24 @@
 
 package uk.gov.hmrc.gform.views.hardcoded
 
+import cats.implicits.catsSyntaxEq
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.AccessCodePage
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 
-class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm], val isContinue: Boolean)(implicit
+class AccessCodeEnter(
+  val formTemplate: FormTemplate,
+  form: Form[AccessCodeForm],
+  val isContinue: Boolean,
+  se: SuppressErrors
+)(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
@@ -44,12 +50,14 @@ class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
 
   val errorSummary: ErrorSummary = {
 
-    val errorsHtml: Seq[ErrorLink] = (form.errors ++ form.globalErrors).map { error =>
-      ErrorLink(
-        href = Some("#" + error.key),
-        content = Text(messages(s"${error.key}.${error.message}", formCategory))
-      )
-    }
+    val errorsHtml: Seq[ErrorLink] = (form.errors ++ form.globalErrors)
+      .filterNot(error => error.key.contains(AccessCodePage.isContinueKey))
+      .map { error =>
+        ErrorLink(
+          href = Some("#" + error.key),
+          content = Text(messages(s"${error.key}.${error.message}", formCategory))
+        )
+      }
 
     ErrorSummary(
       errorList = errorsHtml,
@@ -57,16 +65,22 @@ class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
     )
   }
 
-  val hasErrors: Boolean = errorSummary.errorList.nonEmpty
+  val hasErrors: Boolean =
+    if (se === SuppressErrors.No)
+      errorSummary.errorList.nonEmpty
+    else false
 
   val render: Html = {
 
-    val errorMessage: Option[ErrorMessage] = form.errors.headOption.map { error =>
-      val message = messages(s"${error.key}.${error.message}", formCategory)
-      ErrorMessage.errorMessageWithDefaultStringsTranslated(
-        content = Text(message)
-      )
-    }
+    val errorMessage: Option[ErrorMessage] = form.errors
+      .filterNot(error => error.key.contains(AccessCodePage.isContinueKey))
+      .headOption
+      .map { error =>
+        val message = messages(s"${error.key}.${error.message}", formCategory)
+        ErrorMessage.errorMessageWithDefaultStringsTranslated(
+          content = Text(message)
+        )
+      }
 
     val accessCodeError: Option[FormError] = form.error(AccessCodePage.key)
 
@@ -89,7 +103,7 @@ class AccessCodeEnter(val formTemplate: FormTemplate, form: Form[AccessCodeForm]
         hint = Some(hint),
         value = Some(accessCodeValue),
         classes = "govuk-input--width-10",
-        errorMessage = accessCodeError.flatMap(_ => errorMessage)
+        errorMessage = if (hasErrors) accessCodeError.flatMap(_ => errorMessage) else None
       )
       val inputHtml = new GovukInput(govukLabel, govukFormGroup, govukHintAndErrorMessage)(input)
       HtmlFormat.fill(List(inputHtml))

@@ -575,24 +575,36 @@ class NewFormController(
                .pure[Future]
     } yield res
 
-  def accessCodeDownload(formTemplateId: FormTemplateId): Action[AnyContent] =
-    accessCode(formTemplateId, isContinue = false)
+  def accessCodeDownload(formTemplateId: FormTemplateId, se: SuppressErrors): Action[AnyContent] =
+    accessCode(formTemplateId, se, isContinue = false)
 
-  def accessCodeRetrieveForm(formTemplateId: FormTemplateId): Action[AnyContent] =
-    accessCode(formTemplateId, isContinue = true)
+  def accessCodeRetrieveForm(formTemplateId: FormTemplateId, se: SuppressErrors): Action[AnyContent] =
+    accessCode(formTemplateId, se, isContinue = true)
 
-  private def accessCode(formTemplateId: FormTemplateId, isContinue: Boolean): Action[AnyContent] =
+  private val notFoundParm = QueryParam("nf")
+
+  private def accessCode(formTemplateId: FormTemplateId, se: SuppressErrors, isContinue: Boolean): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit lang => cache =>
         for {
           (newCache, drm) <- getDraftRetrievalMethod(cache)
           res <- {
-            val formAccessEnter =
-              new AccessCodeEnter(newCache.formTemplate, AccessCodePage.form(drm), isContinue)
+            val queryParams: QueryParams = QueryParams.fromRequest(request)
+            val notFound: Boolean = queryParams.params.getOrElse(notFoundParm, QueryParamValue("false")).value.toBoolean
+            val firstBindForm: data.Form[AccessCodeForm] = AccessCodePage.form(drm).bindFromRequest()
+            val accessCodeForm: data.Form[AccessCodeForm] =
+              if (notFound) firstBindForm.withError(AccessCodePage.key, "error.notfound") else firstBindForm
+
+            val accessCodeEnter: AccessCodeEnter = accessCodeForm
+              .fold(
+                errorForm => new AccessCodeEnter(newCache.formTemplate, errorForm, isContinue, se),
+                _ => new AccessCodeEnter(newCache.formTemplate, AccessCodePage.form(drm), isContinue, se)
+              )
+
             Ok(
               access_code_enter(
                 frontendAppConfig,
-                formAccessEnter,
+                accessCodeEnter,
                 routes.NewFormController.dashboard(formTemplateId)
               )
             ).pure[Future]
@@ -602,46 +614,49 @@ class NewFormController(
     }
 
   def accessCodePost(formTemplateId: FormTemplateId): Action[AnyContent] = {
-    def badRequest(formTemplate: FormTemplate, errors: play.api.data.Form[AccessCodeForm])(implicit
-      request: Request[AnyContent],
-      lang: LangADT
+    def badRequest(errorForm: play.api.data.Form[AccessCodeForm], notFound: Boolean = false)(implicit
+      request: Request[AnyContent]
     ) = {
-      val isContinue = errors.data.getOrElse(AccessCodePage.isContinueKey, "false") == "true"
-      val formAccessEnter = new AccessCodeEnter(formTemplate, errors, isContinue)
-      BadRequest(
-        access_code_enter(
-          frontendAppConfig,
-          formAccessEnter,
-          routes.NewFormController.dashboard(formTemplateId)
-        )
+      val isContinue = errorForm.data.getOrElse(AccessCodePage.isContinueKey, "false") == "true"
+
+      val queryParams: QueryParams = QueryParams.fromRequest(request) + (
+        QueryParam(AccessCodePage.key) -> QueryParamValue(errorForm.data.getOrElse(AccessCodePage.key, "")),
+        notFoundParm                   -> QueryParamValue(notFound.toString)
       )
+
+      val url =
+        if (isContinue) routes.NewFormController.accessCodeRetrieveForm(formTemplateId, SuppressErrors.No).url
+        else routes.NewFormController.accessCodeDownload(formTemplateId, SuppressErrors.No).url
+
+      Redirect(
+        url,
+        queryParams.toPlayQueryParams
+      ).pure[Future]
     }
 
-    def notFound(formTemplate: FormTemplate)(implicit request: Request[AnyContent], lang: LangADT) =
+    def notFound(drm: DraftRetrievalMethod)(implicit request: Request[AnyContent]) =
       badRequest(
-        formTemplate,
         AccessCodePage
-          .form(formTemplate.draftRetrievalMethod)
-          .bindFromRequest()
-          .withError(AccessCodePage.key, "error.notfound")
+          .form(drm)
+          .bindFromRequest(),
+        notFound = true
       )
 
-    def optionAccess(access: String, cache: AuthCacheWithoutForm)(implicit
+    def optionAccess(drm: DraftRetrievalMethod, access: String, cache: AuthCacheWithoutForm)(implicit
       hc: HeaderCarrier,
       request: Request[AnyContent],
       lang: LangADT
     ) = {
       val accessCode: AccessCode = AccessCode(access)
       val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
-      handleForm(formIdData, cache.formTemplate)(notFound(cache.formTemplate).pure[Future]) { form =>
+      handleForm(formIdData, cache.formTemplate)(notFound(drm)) { form =>
         redirectContinue[SectionSelectorType.Normal](cache, form, Some(accessCode), request)
       }
     }
 
-    def optionDownload(access: String, cache: AuthCacheWithoutForm)(implicit
+    def optionDownload(drm: DraftRetrievalMethod, access: String, cache: AuthCacheWithoutForm)(implicit
       hc: HeaderCarrier,
-      request: Request[AnyContent],
-      lang: LangADT
+      request: Request[AnyContent]
     ) = {
       val accessCode: AccessCode = AccessCode(access)
       for {
@@ -652,7 +667,7 @@ class NewFormController(
         maybeForm <- gformConnector.maybeForm(formIdData, cache.formTemplate)
         res <- maybeForm
                  .filter(_.status === Submitted)
-                 .fold(notFound(cache.formTemplate).pure[Future]) { _ =>
+                 .fold(notFound(drm)) { _ =>
                    Redirect(
                      routes.NewFormController
                        .lastSubmission(cache.formTemplate._id, Some(accessCode), SuppressErrors.Yes)
@@ -669,11 +684,11 @@ class NewFormController(
         .form(drm)
         .bindFromRequest()
         .fold(
-          (hasErrors: data.Form[AccessCodeForm]) => Future.successful(badRequest(cache.formTemplate, hasErrors)),
+          errorsForm => badRequest(errorsForm),
           accessCodeForm =>
             accessCodeForm.isContinue match {
-              case "true"  => optionAccess(accessCodeForm.accessCode, cache)
-              case "false" => optionDownload(accessCodeForm.accessCode, cache)
+              case "true"  => optionAccess(drm, accessCodeForm.accessCode, cache)
+              case "false" => optionDownload(drm, accessCodeForm.accessCode, cache)
               case otherwise =>
                 Future.failed(
                   new Exception(
