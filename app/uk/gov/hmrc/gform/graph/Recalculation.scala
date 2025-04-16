@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.graph
 import cats.syntax.all._
 import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
-import scalax.collection.Graph
-import scalax.collection.GraphEdge._
+import scalax.collection.edges.DiEdge
+import scalax.collection.immutable.Graph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval._
@@ -43,7 +43,7 @@ sealed trait GraphException {
   }
 }
 
-case class NoTopologicalOrder(fcId: GraphNode, graph: Graph[GraphNode, DiEdge]) extends GraphException
+case class NoTopologicalOrder(fcId: GraphNode, graph: Graph[GraphNode, DiEdge[GraphNode]]) extends GraphException
 case class NoFormComponent(fcId: FormComponentId, lookup: Map[FormComponentId, FormComponent]) extends GraphException
 
 class Recalculation[F[_]: Monad, E](
@@ -67,11 +67,11 @@ class Recalculation[F[_]: Monad, E](
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
-    val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formModel, formTemplateExprs)
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
-      .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
+      .leftMap(node => NoTopologicalOrder(node.outer, graph))
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()

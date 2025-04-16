@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.gform.graph
 
-import scalax.collection.Graph
-import scalax.collection.GraphEdge.DiEdge
+import scalax.collection.edges.DiEdge
+import scalax.collection.immutable.Graph
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 
-case class GraphData(graphTopologicalOrder: Iterable[(Int, List[GraphNode])], graph: Graph[GraphNode, DiEdge])
+case class GraphData(
+  graphTopologicalOrder: Iterable[(Int, List[GraphNode])],
+  graph: Graph[GraphNode, DiEdge[GraphNode]]
+)
 
 object GraphData {
   val empty = GraphData(List.empty[(Int, List[GraphNode])], Graph.empty)

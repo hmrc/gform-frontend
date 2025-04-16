@@ -17,30 +17,32 @@
 package uk.gov.hmrc.gform.sharedmodel.graph
 
 import cats.implicits._
-import scalax.collection.Graph
-import scalax.collection.GraphPredef._
-import scalax.collection.GraphEdge._
+import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
+import scalax.collection.immutable.Graph
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.eval.{ AllFormComponentExpressions, ExprMetadata, IsSelfReferring, SelfReferenceProjection, StandaloneSumInfo, SumInfo }
+import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object DependencyGraph {
 
-  def toGraph(formModel: FormModel[Interim], formTemplateExprs: Set[ExprMetadata]): Graph[GraphNode, DiEdge] =
+  def toGraph(
+    formModel: FormModel[Interim],
+    formTemplateExprs: Set[ExprMetadata]
+  ): Graph[GraphNode, DiEdge[GraphNode]] =
     graphFrom(formModel, formTemplateExprs)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata]
-  ): Graph[GraphNode, DiEdge] = {
+  ): Graph[GraphNode, DiEdge[GraphNode]] = {
 
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
-    def edges(fc: FormComponent): Set[DiEdge[GraphNode]] = {
-      def fcIds(fc: FormComponent): Set[DiEdge[GraphNode]] = fc match {
+    def edges(fc: FormComponent): Set[DiEdge[GraphNode]] =
+      fc match {
         case AllFormComponentExpressions(exprsMetadata) =>
           exprsMetadata.toSet[ExprMetadata].flatMap {
             case SelfReferenceProjection(
@@ -62,8 +64,6 @@ object DependencyGraph {
           Set(GraphNode.Expr(FormCtx(fcId)) ~> GraphNode.Simple(fcId))
         case _ => Set.empty
       }
-      fcIds(fc)
-    }
 
     def toFormComponentId(expr: Expr): List[FormComponentId] =
       expr match {
@@ -145,7 +145,7 @@ object DependencyGraph {
         .flatMap(edges) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
 
     val allFcIds: Set[ModelComponentId] = allEdges.flatMap { diEdge =>
-      diEdge.collectFirst {
+      Seq(diEdge.source, diEdge.target).collectFirst {
         case GraphNode.Expr(FormCtx(fcId)) => fcId.modelComponentId
         case GraphNode.Simple(fcId)        => fcId.modelComponentId
       }
@@ -205,21 +205,24 @@ object DependencyGraph {
         }
         .flatten
 
-    val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
+    val emptyGraph: Graph[GraphNode, DiEdge[GraphNode]] = Graph.empty
     emptyGraph ++ (allEdges ++ repeatedStructureEdges)
   }
 
   def constructDependencyGraph(
-    graph: Graph[GraphNode, DiEdge]
+    graph: Graph[GraphNode, DiEdge[GraphNode]]
   ): Either[graph.NodeT, Iterable[(Int, List[GraphNode])]] = {
     def sortedOuterNodes(items: Iterable[graph.NodeT]) =
       items.toList
-        .map(_.toOuter)
+        .map(_.outer)
 
     graph.topologicalSort
       .map(_.toLayered.map { case (index, items) =>
         (index, sortedOuterNodes(items))
-      })
+      }) match {
+      case Left(value) => Left(graph.nodes.head)
+      case Right(value) => Right(value)
+    }
   }
 }
 
