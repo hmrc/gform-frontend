@@ -220,7 +220,7 @@ object DependencyGraph {
       .map(_.toLayered.map { case (index, items) =>
         (index, sortedOuterNodes(items))
       }) match {
-      case Left(value) => Left(graph.nodes.head)
+      case Left(value)  => Left(graph.nodes.head)
       case Right(value) => Right(value)
     }
   }
