@@ -1076,6 +1076,7 @@ trait ExampleFrontendAppConfig {
     accessibilityStatementConfig = new AccessibilityStatementConfig(context.initialConfiguration),
     refreshSessionUrl = "refreshSessionUrl",
     isProd = true,
-    configuration = context.initialConfiguration
+    configuration = context.initialConfiguration,
+    submittedFormExpiryDays = 7
   )
 }

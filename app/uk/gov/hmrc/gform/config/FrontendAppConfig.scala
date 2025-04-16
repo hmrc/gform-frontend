@@ -42,7 +42,8 @@ case class FrontendAppConfig(
   accessibilityStatementConfig: AccessibilityStatementConfig,
   refreshSessionUrl: String,
   isProd: Boolean,
-  configuration: Configuration
+  configuration: Configuration,
+  submittedFormExpiryDays: Int
 ) {
 
   def languageSwitchCall(

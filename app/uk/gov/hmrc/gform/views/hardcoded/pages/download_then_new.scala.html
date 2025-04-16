@@ -56,7 +56,7 @@
         @download
     </a>
 
-    @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrSignout(downloadThenNewFormPage.formTemplate._id)), args = 'id -> "gf-form") {
+    @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrSignout(downloadThenNewFormPage.formTemplate._id, downloadThenNewFormPage.maybeAccessCode)), args = 'id -> "gf-form") {
         @downloadThenNewFormPage.render
         @govukButton(Button(content = Text(button), value = Some(button)))
     }
