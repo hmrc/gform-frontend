@@ -28,7 +28,7 @@ object Dependencies {
     "org.jetbrains"                % "markdown"                   % "0.1.46",
     "com.chuusai"                 %% "shapeless"                  % "2.3.13",
     "uk.gov.hmrc"                 %% "emailaddress"               % "3.8.0",
-    "org.scala-graph"             %% "graph-core"                 % "2.0.3",
+    "org.scala-graph"             %% "graph-core"                 % "2.0.3" exclude("org.scalacheck", "scalacheck"),
     "com.softwaremill.quicklens"  %% "quicklens"                  % "1.9.12",
     "com.nrinaudo"                %% "kantan.csv"                 % "0.8.0",
     "com.miguelfonseca.completely" % "completely-core"            % "0.9.0",
