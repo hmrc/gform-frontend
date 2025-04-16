@@ -146,7 +146,7 @@ class BuilderController(
                         }
                       }
                     }
-                    .collectFirst { case Some(json) => json }
+                    .collectFirst { case Some(finalJson) => finalJson }
               }
             }
           }

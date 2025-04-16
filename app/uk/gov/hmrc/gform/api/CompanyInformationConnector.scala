@@ -80,7 +80,7 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
             CannotRetrieveResponse
         }
       }
-      .recover { case ex =>
+      .recover { ex =>
         logger.error(s"Unknown problem when calling $profileIdentifier", ex)
         CannotRetrieveResponse
       }
@@ -127,7 +127,7 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
             CannotRetrieveResponse
         }
       }
-      .recover { case ex =>
+      .recover { ex =>
         logger.error(s"Unknown problem when calling $officersIdentifier", ex)
         CannotRetrieveResponse
       }

@@ -22,7 +22,6 @@ import cats.data.StateT
 import play.api.i18n.Messages
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
-import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, BooleanExprEval, BooleanExprResolver, DbLookupChecker, DelegatedEnrolmentChecker, EvaluationContext, EvaluationResults, ExprMetadata, ExpressionResult, SeissEligibilityChecker, TypeInfo }

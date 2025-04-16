@@ -251,6 +251,9 @@ object TextChecker {
     l: LangADT,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
+
+    import lookupRegistry.extractors.IsRadioLookupTextConstraint
+
     val isMandatory = fieldValue.mandatory
     val inputText: String = textData(formModelVisibilityOptics, fieldValue).getOrElse("")
     val isInputTextEmpty = inputText.isEmpty
@@ -624,35 +627,35 @@ object TextChecker {
       )
 
     constraint match {
-      case c: Number                                  => numberCheck(c)
-      case c: PositiveNumber                          => positiveNumberCheck(c)
-      case c: ShortText                               => shortTextCheck(c)
-      case c: TextWithRestrictions                    => textWithRestrictionsCheck(c)
-      case c: Sterling                                => sterlingCheck(c)
-      case c @ WholeSterling(true)                    => positiveWholeSterlingCheck(c)
-      case c: WholeSterling                           => wholeSterlingCheck(c)
-      case c: ReferenceNumber                         => referenceNumberCheck(c)
-      case UkBankAccountNumber                        => ukBankAccountNumberCheck()
-      case UkSortCodeFormat                           => ukSortCodeFormatCheck()
-      case SubmissionRefFormat                        => submissionRefFormatCheck()
-      case TelephoneNumber                            => telephoneNumberCheck()
-      case Email                                      => emailCheck()
-      case c: EmailVerifiedBy                         => emailVerifiedByCheck(c)
-      case SaUTR | CtUTR                              => utrCheck()
-      case NINO                                       => ninoCheck()
-      case PayeReference                              => payeReferenceCheck()
-      case UkVrn                                      => ukVrnCheck()
-      case CountryCode                                => countryCodeCheck()
-      case NonUkCountryCode                           => nonUkCountryCodeCheck()
-      case CompanyRegistrationNumber                  => companyRegistrationNumberCheck()
-      case EORI                                       => eoriCheck() //done until this line
-      case UkEORI                                     => ukEoriCheck()
-      case ChildBenefitNumber                         => childBenefitNumberCheck()
-      case lookupRegistry.extractors.IsRadioLookup(_) => radioLookupCheck()
-      case c: Lookup                                  => lookupCheck(c)
-      case YearFormat                                 => yearFormatCheck()
-      case TimeFormat                                 => timeFormatCheck()
-      case _                                          => catchAllCheck()
+      case c: Number                      => numberCheck(c)
+      case c: PositiveNumber              => positiveNumberCheck(c)
+      case c: ShortText                   => shortTextCheck(c)
+      case c: TextWithRestrictions        => textWithRestrictionsCheck(c)
+      case c: Sterling                    => sterlingCheck(c)
+      case c @ WholeSterling(true)        => positiveWholeSterlingCheck(c)
+      case c: WholeSterling               => wholeSterlingCheck(c)
+      case c: ReferenceNumber             => referenceNumberCheck(c)
+      case UkBankAccountNumber            => ukBankAccountNumberCheck()
+      case UkSortCodeFormat               => ukSortCodeFormatCheck()
+      case SubmissionRefFormat            => submissionRefFormatCheck()
+      case TelephoneNumber                => telephoneNumberCheck()
+      case Email                          => emailCheck()
+      case c: EmailVerifiedBy             => emailVerifiedByCheck(c)
+      case SaUTR | CtUTR                  => utrCheck()
+      case NINO                           => ninoCheck()
+      case PayeReference                  => payeReferenceCheck()
+      case UkVrn                          => ukVrnCheck()
+      case CountryCode                    => countryCodeCheck()
+      case NonUkCountryCode               => nonUkCountryCodeCheck()
+      case CompanyRegistrationNumber      => companyRegistrationNumberCheck()
+      case EORI                           => eoriCheck()
+      case UkEORI                         => ukEoriCheck()
+      case ChildBenefitNumber             => childBenefitNumberCheck()
+      case IsRadioLookupTextConstraint(_) => radioLookupCheck()
+      case c: Lookup                      => lookupCheck(c)
+      case YearFormat                     => yearFormatCheck()
+      case TimeFormat                     => timeFormatCheck()
+      case _                              => catchAllCheck()
     }
   }
 

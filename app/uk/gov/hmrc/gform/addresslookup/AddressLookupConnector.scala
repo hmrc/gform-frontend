@@ -70,7 +70,7 @@ object AddressLookupConnector {
               )
               CannotRetrieveResponse
           }
-        }.recover { case ex =>
+        }.recover { ex =>
           logger.error("Unknown problem when calling address lookup", ex)
           CannotRetrieveResponse
         }
