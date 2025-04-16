@@ -607,16 +607,27 @@ class TestOnlyController(
   }
 
   private def translationsTab(formTemplate: FormTemplate, accessCode: Option[AccessCode]) = {
-    val showTranslationCsvLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+
+    val showTranslationQuickLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "Translation tools...",
       uk.gov.hmrc.gform.testonly.routes.TranslationController
-        .showCsv(formTemplate._id, accessCode)
+        .translationQuick(formTemplate._id, accessCode)
+    )
+
+    val showTranslationLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "Translation tools with debugging support... (can be slow for huge forms)",
+      uk.gov.hmrc.gform.testonly.routes.TranslationController
+        .translationDebug(formTemplate._id, accessCode)
     )
 
     val screenshotInstructions = HtmlContent(
       """<a class="govuk-link" target="_blank" href="https://github.com/hmrc/gform-capture-extension/blob/main/README.md">View instructions for screen capture extension</a>"""
     )
-    val links = List(showTranslationCsvLink, screenshotInstructions.value)
+    val links = List(
+      showTranslationQuickLink,
+      showTranslationLink,
+      screenshotInstructions.value
+    )
     bulleted_list(links)
   }
 
