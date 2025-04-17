@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.implicits._
 import play.api.i18n.{ I18nSupport, Lang }
 import play.api.mvc.{ Action, ActionBuilder, AnyContent, ControllerComponents, Request }
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -27,12 +28,13 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, FormModelOptics, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IsOverseasAddress, IsText, Lookup, OverseasAddress, Register, Text }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, RadioLookup }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
 
 class LanguageSwitchController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
@@ -111,14 +113,19 @@ class LanguageSwitchController(
 
             val form = cache.form
             val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
+
+            val mergedFormData = form.formData ++ FormData(newFormData)
+            val updatedFormData = resetAllConfirmationPages(formModelOptics, mergedFormData)
+
             val userData: UserData = UserData(
-              formData = form.formData ++ FormData(newFormData),
+              formData = updatedFormData,
               formStatus = form.status,
               visitsIndex = form.visitsIndex,
               thirdPartyData = form.thirdPartyData,
               componentIdToFileId = form.componentIdToFileId,
               taskIdTaskStatus = form.taskIdTaskStatus
             )
+
             gformConnector.updateUserData(formIdData, userData).flatMap { _ =>
               switchToLanguage(language)(request)
             }
@@ -127,6 +134,16 @@ class LanguageSwitchController(
             switchToLanguage(language)(request)
           }
       }
+
+  private def resetAllConfirmationPages(
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formData: FormData
+  ): FormData = {
+    val confirmationPages = formModelOptics.formModelRenderPageOptics.formModel.confirmationPageMap.map(_._2)
+    val modelComponentIds = confirmationPages.map(_.question.id.modelComponentId)
+    formData.copy(fields = formData.fields.filterNot(field => modelComponentIds.contains(field.id)))
+  }
+
   private def switchLookupLabelLanguage(
     register: Register,
     lookupLabel: LookupLabel,

@@ -22,9 +22,9 @@ import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormCtx, FormTemplateId, SectionNumber, SuppressErrors }
 
 class ConfirmationService(
   formProcessor: FormProcessor
@@ -41,77 +41,124 @@ class ConfirmationService(
 
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
     val pageModel: PageModel[Visibility] = formModel(sectionNumber)
-    val confirmationPage: ConfirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
 
-    confirmationPage match {
-      case ConfirmationPage.Confirmee(confirmedSectionNumber, confirmation) =>
-        val browserData = processData.formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
-        val mongoData = formModelOptics.formModelVisibilityOptics.data.forSectionNumber(sectionNumber)
+    updateConfirmationPagesForChangedExprs(processData, formModelOptics, sectionNumber) match {
+      case Some(confirmationAction) => confirmationAction
+      case _ =>
+        val confirmationPage: ConfirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
 
-        if (browserData != mongoData) {
-          // We need to remove confirmation answer
-          ConfirmationAction
-            .UpdateConfirmation(
-              processData => processData.removeConfirmation(confirmation),
+        confirmationPage match {
+          case ConfirmationPage.Confirmee(confirmedSectionNumber, confirmation) =>
+            val browserData: Set[VariadicValue] =
+              processData.formModelOptics.formModelVisibilityOptics.data.withSectionNumber(sectionNumber)
+            val mongoData = formModelOptics.formModelVisibilityOptics.data.withSectionNumber(sectionNumber)
+
+            if (browserData != mongoData) {
+              // We need to remove confirmation answer
+              ConfirmationAction
+                .UpdateConfirmation(
+                  processData => processData.removeConfirmation(List(confirmation)),
+                  true
+                )
+            } else {
+              ConfirmationAction.noop
+            }
+
+          case ConfirmationPage.Confirmator(confirmation) =>
+            processData.formModelOptics.formModelVisibilityOptics.data
+              .many(confirmation.question.id.modelComponentId)
+              .toList
+              .flatten match {
+              case Nil =>
+                val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
+                ConfirmationAction
+                  .NotConfirmed(
+                    Redirect(
+                      routes.FormController
+                        .form(
+                          formTemplateId,
+                          maybeAccessCode,
+                          sectionNumber,
+                          sectionTitle4Ga,
+                          SuppressErrors.No,
+                          fastForward
+                        )
+                    )
+                  )
+              case _ =>
+                val maybeRedirect = confirmation.redirects.toList
+                  .flatMap(_.toList)
+                  .find(r => processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None))
+                maybeRedirect.fold(
+                  ConfirmationAction.noop
+                ) { redirect =>
+                  // Page is not confirmed
+                  val modelPageId: ModelPageId = redirect.pageId.modelPageId
+
+                  val sn: SectionNumber = formModel.pageIdSectionNumberMap
+                    .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
+
+                  val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
+                  ConfirmationAction
+                    .NotConfirmed(
+                      Redirect(
+                        routes.FormController
+                          .form(
+                            formTemplateId,
+                            maybeAccessCode,
+                            sn,
+                            sectionTitle4Ga,
+                            SuppressErrors.Yes,
+                            fastForward
+                          )
+                      )
+                    )
+                }
+            }
+          case ConfirmationPage.Not => ConfirmationAction.noop
+        }
+    }
+  }
+
+  private def updateConfirmationPagesForChangedExprs(
+    processData: ProcessData,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    sectionNumber: SectionNumber
+  ): Option[ConfirmationAction.UpdateConfirmation] = {
+    val browserData =
+      processData.formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
+    val mongoData = formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
+
+    val changedIds = browserData.collect {
+      case (id, value) if mongoData.get(id).exists(_ != value) => id
+    }
+
+    if (changedIds.nonEmpty) {
+      val formModel = formModelOptics.formModelRenderPageOptics.formModel
+
+      val impactedExprs = changedIds
+        .flatMap(id => formModel.fcLookup.get(id.toFormComponentId))
+        .map(fc => FormCtx(fc.id))
+
+      val changedConfirmationPages = formModel.confirmationPageMap.collect {
+        case (sn, confirmation)
+            if impactedExprs.exists(
+              formModel.brackets.withSectionNumber(sn).allExprs(formModel).flatMap(_.leafs()).contains
+            ) =>
+          confirmation
+      }
+
+      changedConfirmationPages match {
+        case Nil => None
+        case confirmationPages =>
+          Some(
+            ConfirmationAction.UpdateConfirmation(
+              processData => processData.removeConfirmation(confirmationPages),
               true
             )
-        } else {
-          ConfirmationAction.noop
-        }
-
-      case ConfirmationPage.Confirmator(confirmation) =>
-        processData.formModelOptics.formModelVisibilityOptics.data
-          .many(confirmation.question.id.modelComponentId)
-          .toList
-          .flatten match {
-          case Nil =>
-            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
-            ConfirmationAction
-              .NotConfirmed(
-                Redirect(
-                  routes.FormController
-                    .form(
-                      formTemplateId,
-                      maybeAccessCode,
-                      sectionNumber,
-                      sectionTitle4Ga,
-                      SuppressErrors.No,
-                      fastForward
-                    )
-                )
-              )
-          case _ =>
-            val maybeRedirect = confirmation.redirects.toList
-              .flatMap(_.toList)
-              .find(r => processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None))
-            maybeRedirect.fold(
-              ConfirmationAction.noop
-            ) { redirect =>
-              // Page is not confirmed
-              val modelPageId: ModelPageId = redirect.pageId.modelPageId
-
-              val sn: SectionNumber = formModel.pageIdSectionNumberMap
-                .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
-
-              val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-              ConfirmationAction
-                .NotConfirmed(
-                  Redirect(
-                    routes.FormController
-                      .form(
-                        formTemplateId,
-                        maybeAccessCode,
-                        sn,
-                        sectionTitle4Ga,
-                        SuppressErrors.Yes,
-                        fastForward
-                      )
-                  )
-                )
-            }
-        }
-      case ConfirmationPage.Not => ConfirmationAction.noop
-    }
+          )
+      }
+    } else None
   }
 
   def purgeConfirmationData(
@@ -133,7 +180,7 @@ class ConfirmationService(
             .many(confirmation.question.id.modelComponentId)
             .toList
             .flatten match {
-            case "1" :: Nil => _.removeConfirmation(confirmation)
+            case "1" :: Nil => _.removeConfirmation(List(confirmation))
             case _          => identity
           },
           EnteredVariadicFormData(
