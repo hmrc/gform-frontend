@@ -760,6 +760,9 @@ class FormController(
                               )
                             } else {
                               val isFirstLanding = sectionNumber < sn
+                              logger.info(
+                                s"envelope id: ${cache.form.envelopeId.value}, form id: ${cache.form._id.value}, user-agent: ${request.headers.get("User-Agent").getOrElse("")}"
+                              )
                               val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
 
                               val formModel = formModelOptics.formModelRenderPageOptics.formModel
