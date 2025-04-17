@@ -1035,7 +1035,7 @@ class TestOnlyController(
           _ <- if (useOriginalTemplate) {
                  ().pure[Future]
                } else gformConnector.restoreSnapshotTemplate(snapshotId.value)
-          _ <- newFormController.continue(cache, formTemplateContext.formTemplate)
+          _ <- newFormController.continue(cache, formTemplateContext.formTemplate, SuppressErrors.Yes)
         } yield Redirect(
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreContinue(
             formTemplateId,

@@ -12,7 +12,7 @@ POST          /email-auth/email-confirmed-continue                              
 GET           /composite-auth/auth-selection-form/:formTemplateId                                                uk.gov.hmrc.gform.gform.CompositeAuthController.authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String, se: SuppressErrors ?= SuppressErrors.Yes)
 POST          /composite-auth/selected-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.CompositeAuthController.selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String)
 
-GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId, se: SuppressErrors ?= SuppressErrors.Yes)
 GET           /new-form/:formTemplateId/clean                                                                    uk.gov.hmrc.gform.gform.NewFormController.dashboardClean(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/new-form-link                                                            uk.gov.hmrc.gform.gform.NewFormController.dashboardNewFormLink(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/session                                                                  uk.gov.hmrc.gform.gform.NewFormController.dashboardWithNewSession(formTemplateId: FormTemplateId)
