@@ -16,19 +16,25 @@
 
 package uk.gov.hmrc.gform.views.hardcoded
 
+import cats.implicits.catsSyntaxEq
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.models.AccessCodePage
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SuppressErrors }
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 
-class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], frontendAppConfig: FrontendAppConfig)(implicit
+class AccessCodeStart(
+  val formTemplate: FormTemplate,
+  form: Form[String],
+  frontendAppConfig: FrontendAppConfig,
+  se: SuppressErrors
+)(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
@@ -57,7 +63,10 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], fronte
     )
   }
 
-  val hasErrors: Boolean = errorSummary.errorList.nonEmpty
+  val hasErrors: Boolean =
+    if (se === SuppressErrors.No)
+      errorSummary.errorList.nonEmpty
+    else false
 
   val render: Html = {
 
@@ -109,7 +118,7 @@ class AccessCodeStart(val formTemplate: FormTemplate, form: Form[String], fronte
 
     val radios = Radios(
       fieldset = fieldset,
-      errorMessage = optionError.flatMap(_ => errorMessage),
+      errorMessage = if (hasErrors) optionError.flatMap(_ => errorMessage) else None,
       name = "accessOption",
       items = List(startNew, useExisting, divider, downloadSubmitted)
     )
