@@ -152,17 +152,17 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
   "FileUploadUtils.formatSize" should
     "format the file size" in {
-      FileUploadUtils.formatSize(0L) shouldBe "0 Bytes"
-      FileUploadUtils.formatSize(1L) shouldBe "1 Bytes"
-      FileUploadUtils.formatSize(10L) shouldBe "10 Bytes"
-      FileUploadUtils.formatSize(100L) shouldBe "100 Bytes"
-      FileUploadUtils.formatSize(1000L) shouldBe "1000 Bytes"
-      FileUploadUtils.formatSize(10000L) shouldBe "9.77 KB"
-      FileUploadUtils.formatSize(100000L) shouldBe "97.66 KB"
-      FileUploadUtils.formatSize(1000000L) shouldBe "976.56 KB"
-      FileUploadUtils.formatSize(10000000L) shouldBe "9.54 MB"
-      FileUploadUtils.formatSize(1000000000L) shouldBe "953.67 MB"
-      FileUploadUtils.formatSize(10000000000L) shouldBe "9.31 GB"
+      FileUploadUtils.formatSize(0L) shouldBe "0\u00A0Bytes"
+      FileUploadUtils.formatSize(1L) shouldBe "1\u00A0Bytes"
+      FileUploadUtils.formatSize(10L) shouldBe "10\u00A0Bytes"
+      FileUploadUtils.formatSize(100L) shouldBe "100\u00A0Bytes"
+      FileUploadUtils.formatSize(1000L) shouldBe "1000\u00A0Bytes"
+      FileUploadUtils.formatSize((123.99 * 1024).toLong) shouldBe "124\u00A0KB"
+      FileUploadUtils.formatSize((299.34 * 1024).toLong) shouldBe "300\u00A0KB"
+      FileUploadUtils.formatSize((4.78 * 1024 * 1024).toLong) shouldBe "4.8\u00A0MB"
+      FileUploadUtils.formatSize((25.998 * 1024 * 1024).toLong) shouldBe "26\u00A0MB"
+      FileUploadUtils.formatSize((35.63 * 1024 * 1024).toLong) shouldBe "35.7\u00A0MB"
+      FileUploadUtils.formatSize((1.23 * 1024 * 1024 * 1024).toLong) shouldBe "1.23\u00A0GB"
     }
 
   implicit class MapOps(map: Map[String, String]) {
