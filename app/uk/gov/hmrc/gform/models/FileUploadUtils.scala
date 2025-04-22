@@ -73,15 +73,25 @@ object FileUploadUtils {
 
   def formatSize(size: Long): String =
     if (size == 0) {
-      "0 Bytes"
+      "0\u00A0Bytes"
     } else {
       val k = 1024d
-      val sizes = List("Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
-      val i = Math.floor(Math.log(size.toDouble) / Math.log(k));
-      val v = size / Math.pow(k, i)
-      if (i == 0)
-        s"${v.toInt} ${sizes(i.toInt)}"
-      else
-        f"$v%1.2f ${sizes(i.toInt)}"
+      val sizes = List("Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+      val i = Math.floor(Math.log(size.toDouble) / Math.log(k)).toInt
+      val v = size.toDouble / Math.pow(k, i.toDouble)
+
+      val formatted = i match {
+        case 0 => s"${v.toInt}" // Bytes
+        case 1 => Math.ceil(v).toInt.toString // KB
+        case 2 => // MB
+          val rounded = Math.ceil(v * 10) / 10
+          if (rounded == rounded.toInt) rounded.toInt.toString
+          else f"$rounded%.1f"
+        case _ => // GB and up
+          val rounded = Math.ceil(v * 100) / 100
+          f"$rounded%.2f"
+      }
+
+      s"$formatted\u00A0${sizes(i)}"
     }
 }
