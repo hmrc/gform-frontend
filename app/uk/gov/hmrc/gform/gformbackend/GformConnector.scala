@@ -348,7 +348,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def submissionDetails(
     formIdData: FormIdData,
     envelopeId: EnvelopeId
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Submission]] = {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
@@ -356,18 +356,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
           s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}/${accessCode.value}/${envelopeId.value}"
       }
-    ws.GET[Submission](url)
-  }
-
-  def maybeSubmissionDetails(
-    formIdData: FormIdData,
-    envelopeId: EnvelopeId
-  )(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Option[Submission]] = submissionDetails(formIdData, envelopeId).map(Some(_)).recoverWith {
-    case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
-      Option.empty[Submission].pure[Future]
+    ws.GET[Submission](url).map(Some(_)).recoverWith {
+      case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
+        Option.empty[Submission].pure[Future]
+    }
   }
 
   def getSubmissionByLegacyIds(
@@ -379,7 +371,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val NonEmptyList(legacyFormId, tail) = legacyIds
     val legacyFormIdData = formIdData.withTemplateId(legacyFormId)
 
-    maybeSubmissionDetails(legacyFormIdData, envelopeId)
+    submissionDetails(legacyFormIdData, envelopeId)
       .flatMap {
         case None =>
           NonEmptyList
@@ -398,12 +390,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Option[Submission]] =
-    maybeSubmissionDetails(
+    submissionDetails(
       formIdData1,
       envelopeId
     ).flatMap { maybeCurrentSubmission =>
       maybeCurrentSubmission.fold {
-        maybeSubmissionDetails(
+        submissionDetails(
           formIdData2,
           envelopeId
         )

@@ -61,7 +61,9 @@ trait GformBackEndAlgebra[F[_]] {
     noOfAttachments: Int
   )(implicit hc: HeaderCarrier): F[Submission]
 
-  def submissionDetails(formIdData: FormIdData, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Submission]
+  def submissionDetails(formIdData: FormIdData, envelopeId: EnvelopeId)(implicit
+    hc: HeaderCarrier
+  ): F[Option[Submission]]
 
   def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formStatus: FormStatus,
@@ -124,7 +126,7 @@ class GformBackEndService(
 
   def submissionDetails(formIdData: FormIdData, envelopeId: EnvelopeId)(implicit
     hc: HeaderCarrier
-  ): Future[Submission] =
+  ): Future[Option[Submission]] =
     gformConnector.submissionDetails(formIdData, envelopeId)
 
   def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](

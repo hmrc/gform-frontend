@@ -88,7 +88,7 @@ class NewFormControllerSpec
       .thenReturn(
         Future.successful(Some(authCacheWithForm.form))
       )
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(Future.successful(Option.empty[Submission]))
 
     val result: Future[Result] = newFormController
@@ -125,7 +125,7 @@ class NewFormControllerSpec
       .thenReturn(
         Future.successful(Some(authCacheWithForm.form.copy(status = Submitted)))
       )
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
 
     val result: Future[Result] = newFormController
@@ -147,7 +147,7 @@ class NewFormControllerSpec
       .thenReturn(
         Future.successful(Some(version1Form))
       )
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(Future.successful(None))
     when(
       mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
@@ -176,7 +176,7 @@ class NewFormControllerSpec
         Future.successful(Some(authCacheWithForm.form)),
         Future.successful(Some(authCacheWithForm.form.copy(status = InProgress)))
       )
-    when(mockGformConnector.maybeSubmissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
       .thenReturn(Future.successful(Option.empty[Submission]))
     when(
       mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
