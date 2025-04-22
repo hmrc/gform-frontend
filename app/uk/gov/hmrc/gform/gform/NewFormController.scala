@@ -320,7 +320,7 @@ class NewFormController(
               .filter(_.status === Submitted && cache.formTemplate.downloadPreviousSubmissionPdf)
               .fold(Option.empty[Submission].pure[Future]) { form =>
                 gformConnector
-                  .maybeSubmissionDetails(
+                  .submissionDetails(
                     FormIdData(cache.retrievals, cache.formTemplate._id, noAccessCode),
                     form.envelopeId
                   )

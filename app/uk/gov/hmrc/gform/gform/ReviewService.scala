@@ -121,17 +121,21 @@ class ReviewService[F[_]: Monad](
     sse: SmartStringEvaluator
   ): F[HttpResponse] =
     for {
-      submission <-
+      maybeSubmission <-
         gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode), cache.form.envelopeId)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
-      result <- gformBackEnd.submitWithUpdatedFormStatus(
-                  formStatus,
-                  cache,
-                  maybeAccessCode,
-                  Some(SubmissionDetails(submission, "")),
-                  customerId,
-                  Attachments.empty,
-                  formModelOptics
+      result <- maybeSubmission.fold(
+                  throw new RuntimeException(s"Submission not found for ${cache.form.envelopeId.value}")
+                )(submission =>
+                  gformBackEnd.submitWithUpdatedFormStatus(
+                    formStatus,
+                    cache,
+                    maybeAccessCode,
+                    Some(SubmissionDetails(submission, "")),
+                    customerId,
+                    Attachments.empty,
+                    formModelOptics
+                  )
                 )
     } yield result._1
 

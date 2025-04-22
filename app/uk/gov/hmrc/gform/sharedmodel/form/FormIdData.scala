@@ -42,11 +42,6 @@ sealed trait FormIdData {
   def maybeAccessCode: Option[AccessCode] =
     fold(_ => Option.empty[AccessCode])(withAccessCode => Some(withAccessCode.accessCode))
 
-  def withOriginalTemplateId(formTemplate: FormTemplate): FormIdData =
-    fold[FormIdData](_.copy(formTemplateId = formTemplate.originalId)) {
-      _.copy(formTemplateId = formTemplate.originalId)
-    }
-
   def withTemplateId(formTemplateId: FormTemplateId): FormIdData =
     fold[FormIdData](_.copy(formTemplateId = formTemplateId)) {
       _.copy(formTemplateId = formTemplateId)
@@ -61,9 +56,7 @@ object FormIdData {
   def fromForm(form: Form, maybeAccessCode: Option[AccessCode]): FormIdData = {
     val userId = form.userId
     val formTemplateId = form.formTemplateId
-    maybeAccessCode.fold[FormIdData](FormIdData.Plain(userId, formTemplateId)) { accessCode =>
-      FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
-    }
+    apply(userId, formTemplateId, maybeAccessCode)
   }
 
   def apply(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode]): FormIdData =
