@@ -45,7 +45,12 @@ object LangADT {
   }
 
   def fromRequest(request: RequestHeader, langs: Langs)(implicit messagesApi: MessagesApi): LangADT = {
-    val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+    val maybeLangFromCookie =
+      try request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+      catch {
+        case _: java.util.NoSuchElementException => None
+      }
+
     val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     stringToLangADT(lang.code)
   }
