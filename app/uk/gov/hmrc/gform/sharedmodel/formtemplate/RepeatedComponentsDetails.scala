@@ -27,7 +27,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
   * - RepeatingPage components: The key and value are the same, representing the RepeatingPage's field ID.
   */
 case class RepeatedComponentsDetails(
-  val componentToParentMapping: collection.Map[FormComponentId, FormComponentId]
+  private val componentToParentMapping: Map[FormComponentId, FormComponentId]
 ) {
 
   // Checks if a given form component ID corresponds to a repeated component.
