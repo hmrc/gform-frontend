@@ -75,13 +75,11 @@ class Recalculation[F[_]: Monad, E](
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
-    val repeatedComponentsDetailsMap =
-      mutable.Map.newBuilder.addAll(formTemplate.formKind.repeatedComponentsDetails.componentToParentMapping).result()
 
     val startEvResults = EvaluationResults(
       exprMap,
       SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formDataMap))),
-      RepeatedComponentsDetails(repeatedComponentsDetailsMap)
+      formTemplate.formKind.repeatedComponentsDetails
     )
     val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
       thirdPartyData.booleanExprCache.mapping
@@ -96,10 +94,10 @@ class Recalculation[F[_]: Monad, E](
       for {
         graphTopologicalOrder <- orderedGraph
       } yield {
-        val recalc = graphTopologicalOrder.toList.reverse.traverse { case (_, graphLayer) =>
+        val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
           recalculateGraphLayer(
             graphLayer,
-            startEvResults.pure[F],
+            state.map(_ => startEvResults),
             retrievals,
             evaluationContext,
             messages,
@@ -161,7 +159,7 @@ class Recalculation[F[_]: Monad, E](
           .stringRepresentation(typeInfo, messages)
       }
 
-      val graphLayerResult = graphLayer.traverse {
+      val graphLayerResult = graphLayer.traverseVoid {
 
         case GraphNode.Simple(fcId) =>
           val fc: Option[FormComponent] = formModel.fcLookup.get(fcId)
@@ -284,7 +282,7 @@ class Recalculation[F[_]: Monad, E](
         exprMap,
         booleanExprCacheMap
       ) >> {
-        if (graphLayer.isEmpty) evResult.pure[F].void else graphLayerResult.void
+        if (graphLayer.isEmpty) evResult.pure[F].void else graphLayerResult
       }
 
     }
