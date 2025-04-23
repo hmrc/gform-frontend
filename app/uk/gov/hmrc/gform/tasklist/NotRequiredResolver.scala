@@ -18,10 +18,11 @@ package uk.gov.hmrc.gform.tasklist
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Coordinates
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Task }
 
 final class NotRequiredResolver[D <: DataOrigin](
-  formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  notRequiredIfEvalLookup: Set[Coordinates]
 ) {
   def resolveNotRequired(
     initialStatuses: NonEmptyList[(Coordinates, TaskStatus)]
@@ -31,7 +32,11 @@ final class NotRequiredResolver[D <: DataOrigin](
         taskStatus match {
           case TaskStatus.CannotStartYet => TaskStatus.CannotStartYet
           case otherwise =>
-            if (formModelVisibilityOptics.allEditableFormComponentsForCoordinates(coordinates).isEmpty) {
+            if (
+              notRequiredIfEvalLookup(coordinates) || formModelVisibilityOptics
+                .allEditableFormComponentsForCoordinates(coordinates)
+                .isEmpty
+            ) {
 
               TaskStatus.NotRequired
             } else otherwise
@@ -42,6 +47,15 @@ final class NotRequiredResolver[D <: DataOrigin](
 }
 
 object NotRequiredResolver {
-  def create[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D]): NotRequiredResolver[D] =
-    new NotRequiredResolver(formModelVisibilityOptics)
+  def create[D <: DataOrigin](
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    taskCoordinatesLookup: Map[Task, Coordinates]
+  ): NotRequiredResolver[D] = {
+    val notRequiredIfEvalLookup: Set[Coordinates] = taskCoordinatesLookup.collect {
+      case (task, coordinates)
+          if task.notRequiredIf.fold(false)(formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
+        coordinates
+    }.toSet
+    new NotRequiredResolver(formModelVisibilityOptics, notRequiredIfEvalLookup)
+  }
 }
