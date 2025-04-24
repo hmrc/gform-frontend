@@ -41,7 +41,7 @@ class UpscanService(
   private val logger = LoggerFactory.getLogger(getClass)
 
   def upscanInitiate(
-    fileUploadIds: List[FormComponentId],
+    fileUploadIds: List[(FormComponentId, Int)],
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
     form: Form,
@@ -52,7 +52,7 @@ class UpscanService(
     for {
       formIdDataCrypted <- gformConnector.upscanEncrypt(formIdData)
       fcIdWithResponse <-
-        fileUploadIds.traverse(formComponentId =>
+        fileUploadIds.traverse { case (formComponentId, maxFileSize) =>
           upscanConnector
             .upscanInitiate(
               toRequest(
@@ -61,7 +61,8 @@ class UpscanService(
                 formComponentId,
                 form.envelopeId,
                 formIdData,
-                formIdDataCrypted
+                formIdDataCrypted,
+                maxFileSize
               )
             )
             .map { response =>
@@ -70,7 +71,7 @@ class UpscanService(
               )
               formComponentId -> response
             }
-        )
+        }
     } yield UpscanInitiate(fcIdWithResponse.toMap)
 
   private def toRequest(
@@ -79,7 +80,8 @@ class UpscanService(
     formComponentId: FormComponentId,
     envelopeId: EnvelopeId,
     formIdData: FormIdData,
-    formIdDataCrypted: Crypted
+    formIdDataCrypted: Crypted,
+    maxFileSizeMB: Int
   ): UpscanInitiateRequest = {
 
     val baseUrl = appConfig.`gform-frontend-base-url`
@@ -96,7 +98,8 @@ class UpscanService(
     UpscanInitiateRequest(
       callback,
       successRedirect,
-      errorRedirect
+      errorRedirect,
+      maxFileSizeMB * 1024 * 1024 // Convert to bytes
     )
   }
 

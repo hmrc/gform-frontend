@@ -22,7 +22,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 trait UpscanAlgebra[F[_]] {
   def upscanInitiate(
-    fileUploadIds: List[FormComponentId],
+    fileUploadIds: List[(FormComponentId, Int)],
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
     form: Form,

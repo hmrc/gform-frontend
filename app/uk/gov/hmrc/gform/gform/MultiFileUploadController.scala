@@ -100,9 +100,10 @@ class MultiFileUploadController(
           objectStoreAlgebra
             .getEnvelope(cache.form.envelopeId)
             .flatMap { envelope =>
+              val defaultMaxFileSize = cache.formTemplate.fileSizeLimit.getOrElse(appConfig.formMaxAttachmentSizeMB)
               upscanService
                 .upscanInitiate(
-                  singleton.upscanInitiateRequests,
+                  singleton.upscanInitiateRequests(defaultMaxFileSize),
                   cache.formTemplateId,
                   browserSectionNumber,
                   cache.form,
