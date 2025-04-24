@@ -87,10 +87,10 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
       case Some(confirmation) => ConfirmationPage.fromConfirmation(confirmation)
     }
 
-  def upscanInitiateRequests: List[FormComponentId] =
+  def upscanInitiateRequests(defaultMaximumFileSize: Int): List[(FormComponentId, Int)] =
     fold(_.page.allFieldsNested.collect {
-      case fc @ IsFileUpload(_)      => fc.id
-      case fc @ IsMultiFileUpload(_) => fc.id
+      case fc @ IsFileUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
+      case fc @ IsMultiFileUpload(fu) => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
     })(_ => Nil)(_ => Nil)
 
   def postcodeLookup: Option[FormComponent] = fold(_.page.allFields.collectFirst { case fc @ IsPostcodeLookup(_) =>

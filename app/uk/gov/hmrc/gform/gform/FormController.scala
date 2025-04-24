@@ -104,12 +104,13 @@ class FormController(
               sectionNumber: SectionNumber,
               handlerResult: FormHandlerResult
             ) = {
-              val fileUploadIds = singleton.upscanInitiateRequests
+              val defaultMaxFileSize = cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB)
+              val fileUploadIds = singleton.upscanInitiateRequests(defaultMaxFileSize)
               for {
                 upscanInitiate <- if (fileUploadIds.isEmpty) UpscanInitiate.empty.pure[Future]
                                   else
                                     upscanService.upscanInitiate(
-                                      singleton.upscanInitiateRequests,
+                                      fileUploadIds,
                                       cache.formTemplateId,
                                       sectionNumber,
                                       cache.form,
@@ -162,32 +163,30 @@ class FormController(
                   .get(sectionNumber)
                   .map { pageModel =>
                     pageModel.allFormComponents
-                      .collect { fc =>
-                        fc.`type` match {
-                          case MiniSummaryList(rows, _, _) =>
-                            rows.collect {
-                              case MiniSummaryRow.ValueRow(
-                                    _,
-                                    MiniSummaryListValue.Reference(FormCtx(r)),
-                                    _,
-                                    _
-                                  ) =>
-                                List(r)
-                              case MiniSummaryRow.ATLRow(atlId, _, rs) =>
-                                atlId ::
-                                  rs collect {
-                                    case MiniSummaryRow.ValueRow(
-                                          _,
-                                          MiniSummaryListValue.Reference(FormCtx(r)),
-                                          _,
-                                          _
-                                        ) =>
-                                      r
-                                  }
-                            }
-                          case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)), _, _)) => List(List(r))
-                          case IsAddress(Address(_, _, _, Some(FormCtx(r))))                       => List(List(r))
-                        }
+                      .collect {
+                        case IsMiniSummaryList(MiniSummaryList(rows, _, _)) =>
+                          rows.collect {
+                            case MiniSummaryRow.ValueRow(
+                                  _,
+                                  MiniSummaryListValue.Reference(FormCtx(r)),
+                                  _,
+                                  _
+                                ) =>
+                              List(r)
+                            case MiniSummaryRow.ATLRow(atlId, _, rs) =>
+                              atlId ::
+                                rs collect {
+                                  case MiniSummaryRow.ValueRow(
+                                        _,
+                                        MiniSummaryListValue.Reference(FormCtx(r)),
+                                        _,
+                                        _
+                                      ) =>
+                                    r
+                                }
+                          }
+                        case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)), _, _)) => List(List(r))
+                        case IsAddress(Address(_, _, _, Some(FormCtx(r))))                       => List(List(r))
                       }
                       .flatten
                       .flatten
