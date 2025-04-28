@@ -18,13 +18,14 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.gform.eval.AllPageModelExpressionsGetter
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
-import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
+import uk.gov.hmrc.gform.models.{ Bracket, ConfirmationAction, ConfirmationPage, DataExpanded, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormCtx, FormTemplateId, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplateId, SectionNumber, SuppressErrors }
 
 class ConfirmationService(
   formProcessor: FormProcessor
@@ -141,10 +142,7 @@ class ConfirmationService(
         .map(fc => FormCtx(fc.id))
 
       val changedConfirmationPages = formModel.confirmationPageMap.collect {
-        case (sn, confirmation)
-            if impactedExprs.exists(
-              formModel.brackets.withSectionNumber(sn).allExprs(formModel).flatMap(_.leafs()).contains
-            ) =>
+        case (sn, confirmation) if impactedExprs.exists(getAllExprs(formModel, sn).flatMap(_.leafs()).contains) =>
           confirmation
       }
 
@@ -159,6 +157,17 @@ class ConfirmationService(
           )
       }
     } else None
+  }
+
+  private def getAllExprs(formModel: FormModel[DataExpanded], sectionNumber: SectionNumber): Seq[Expr] = {
+    val bracket = formModel.brackets.withSectionNumber(sectionNumber)
+
+    bracket match {
+      case bracket @ Bracket.AddToList(_, _) =>
+        val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterationForSectionNumber(sectionNumber)
+        iteration.singletons.map(_.singleton).toList.flatMap(AllPageModelExpressionsGetter.fromSingleton(formModel))
+      case _ => bracket.allExprs(formModel)
+    }
   }
 
   def purgeConfirmationData(
