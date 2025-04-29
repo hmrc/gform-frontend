@@ -73,7 +73,7 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
     val modelComponentId = expr.formComponentId.modelComponentId
-    if (false) { //if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
+    if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
       ListResult(
         exprMap
           .collect {
@@ -511,7 +511,7 @@ case class EvaluationResults(
             .addressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
           val modelComponentId = formComponentId.modelComponentId
-          if (false) { //if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
+          if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
             val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
               indexedComponentId =>
                 getAddressResult(indexedComponentId)
