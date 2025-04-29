@@ -73,7 +73,7 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
     val modelComponentId = expr.formComponentId.modelComponentId
-    if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
+    if (false) { //if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
       ListResult(
         exprMap
           .collect {
@@ -511,7 +511,7 @@ case class EvaluationResults(
             .addressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
           val modelComponentId = formComponentId.modelComponentId
-          if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
+          if (false) { //if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
             val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
               indexedComponentId =>
                 getAddressResult(indexedComponentId)
@@ -1116,22 +1116,15 @@ case class EvaluationResults(
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext
   ): ExpressionResult =
-    typeInfo.staticTypeData.exprType.fold { number =>
-      evalNumber(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { string =>
-      evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { choiceSelection =>
-      evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { dateString =>
-      evalDateString(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { addressString =>
-      evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { period =>
-      evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { taxPeriod =>
-      evalTaxPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
-    } { illegal =>
-      ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
+    typeInfo.staticTypeData.exprType match {
+      case _: ExprType.Number.type          => evalNumber(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.String.type          => evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.ChoiceSelection.type => evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.DateString.type      => evalDateString(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.AddressString.type   => evalString(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.Period.type          => evalPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.TaxPeriod.type       => evalTaxPeriod(typeInfo, recData, booleanExprResolver, evaluationContext)
+      case _: ExprType.Illegal.type         => ExpressionResult.invalid("[evalTyped] Illegal expression " + typeInfo.expr)
     }
 }
 

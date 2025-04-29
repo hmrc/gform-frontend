@@ -18,35 +18,7 @@ package uk.gov.hmrc.gform.eval
 
 import cats.Eq
 
-sealed trait ExprType extends Product with Serializable {
-  def fold[B](
-    a: ExprType.Number.type => B
-  )(
-    b: ExprType.String.type => B
-  )(
-    c: ExprType.ChoiceSelection.type => B
-  )(
-    d: ExprType.DateString.type => B
-  )(
-    e: ExprType.AddressString.type => B
-  )(
-    f: ExprType.Period.type => B
-  )(
-    g: ExprType.TaxPeriod.type => B
-  )(
-    h: ExprType.Illegal.type => B
-  ): B =
-    this match {
-      case t: ExprType.Number.type          => a(t)
-      case t: ExprType.String.type          => b(t)
-      case t: ExprType.ChoiceSelection.type => c(t)
-      case t: ExprType.DateString.type      => d(t)
-      case t: ExprType.AddressString.type   => e(t)
-      case t: ExprType.Period.type          => f(t)
-      case t: ExprType.TaxPeriod.type       => g(t)
-      case t: ExprType.Illegal.type         => h(t)
-    }
-}
+sealed trait ExprType extends Product with Serializable
 
 object ExprType {
 
