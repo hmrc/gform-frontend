@@ -100,9 +100,14 @@ object PDFCustomRender {
       override def getPageTitle(page: Page[_], maybePresentationHint: Option[PresentationHint])(implicit
         lise: SmartStringEvaluator
       ): Option[String] =
-        maybePresentationHint
-          .filter(_ == InvisiblePageTitle)
-          .fold[Option[String]](page.shortName.orElse(Some(page.title)).map(_.value()))(_ => None)
+        maybePresentationHint match {
+          case Some(InvisiblePageTitle) => None
+          case _ =>
+            page.shortName.orElse(Some(page.title)).flatMap { s =>
+              val evaluated = s.value()
+              if (evaluated.isEmpty) None else Some(evaluated)
+            }
+        }
 
       override def getFormComponentLabel(formComponent: FormComponent)(implicit
         lise: SmartStringEvaluator
