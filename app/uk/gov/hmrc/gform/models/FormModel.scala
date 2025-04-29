@@ -380,8 +380,7 @@ object FormModel {
     modelComponentList.foreach {
       case mcId if mcId.indexedComponentId.isIndexed =>
         val bcId = mcId.baseComponentId
-        val l = map.getOrElse(bcId, mutable.ListBuffer.empty).addOne(mcId)
-        map.addOne((bcId, l))
+        map.getOrElseUpdate(bcId, mutable.ListBuffer.empty) += mcId
       case _ => ()
     }
     map
