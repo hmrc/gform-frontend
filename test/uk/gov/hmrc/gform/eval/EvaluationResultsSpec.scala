@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empt
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.ShowAll.Enabled
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.DataRetrieveAll
+import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModel }
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -85,7 +85,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
           )
         )
       ),
-      indexedComponentIds,
+      FormModel.modelComponentsToIndexedComponentMap(indexedComponentIds),
       Set.empty,
       FileSizeLimit(1),
       DataRetrieveAll.empty,
@@ -906,7 +906,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       (
         TypeInfo(Sum(FormCtx(FormComponentId("addToListQuestion"))), StaticTypeData(ExprType.number, None)),
         recData,
-        evaluationContext.copy(indexedComponentIds = List(toModelComponentId("1_addToListQuestion"))),
+        evaluationContext.copy(indexedComponentIds =
+          FormModel.modelComponentsToIndexedComponentMap(List(toModelComponentId("1_addToListQuestion")))
+        ),
         NumberResult(1),
         Map[Expr, ExpressionResult](
           FormCtx(FormComponentId("1_addToListQuestion")) -> NumberResult(0),

@@ -79,7 +79,7 @@ trait ExampleEvaluationContext {
       Map.empty,
       LangADT.En,
       Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
-      List.empty,
+      Map.empty,
       Set.empty,
       FileSizeLimit(1),
       DataRetrieveAll.empty,

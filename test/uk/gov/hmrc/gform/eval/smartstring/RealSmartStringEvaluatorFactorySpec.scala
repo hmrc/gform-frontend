@@ -498,7 +498,7 @@ class RealSmartStringEvaluatorFactorySpec
           Map.empty,
           LangADT.En,
           messages,
-          indexedComponentIds,
+          FormModel.modelComponentsToIndexedComponentMap(indexedComponentIds),
           Set.empty,
           FileSizeLimit(1),
           DataRetrieveAll.empty,

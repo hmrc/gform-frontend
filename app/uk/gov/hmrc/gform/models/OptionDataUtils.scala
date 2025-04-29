@@ -153,8 +153,7 @@ object OptionDataUtils {
     fmvo: FormModelVisibilityOptics[D]
   ): NonEmptyList[A] = {
     val modelComponentIds =
-      fmvo.formModel.allIndexedComponentIds
-        .filter(_.baseComponentId == dynamic.formComponentId.baseComponentId)
+      fmvo.formModel.allIndexedComponentIds.get(dynamic.formComponentId.baseComponentId).toList.flatten
 
     NonEmptyList.fromList(modelComponentIds) match {
       case None => NonEmptyList.one(valueBased)

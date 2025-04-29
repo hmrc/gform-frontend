@@ -19,9 +19,12 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.eval.{ AllPageModelExpressions, ExprMetadata, ExprType, RevealingChoiceInfo, StandaloneSumInfo, StaticTypeData, StaticTypeInfo, SumInfo, TypeInfo }
+import uk.gov.hmrc.gform.models.FormModel.modelComponentsToIndexedComponentMap
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+import scala.collection.mutable
 
 case class FormModel[A <: PageMode](
   brackets: BracketsWithSectionNumber[A],
@@ -109,9 +112,8 @@ case class FormModel[A <: PageMode](
       fc.modelComponentId
     }.toSet
 
-  def allIndexedComponentIds: List[ModelComponentId] = allFormComponents.map(_.modelComponentId).collect {
-    case mcId if mcId.indexedComponentId.isIndexed => mcId
-  }
+  def allIndexedComponentIds: Map[BaseComponentId, List[ModelComponentId]] =
+    modelComponentsToIndexedComponentMap(allFormComponents.map(_.modelComponentId))
 
   val allMultiSelectionIds: Set[ModelComponentId] = allFormComponents
     .collect {
@@ -370,6 +372,23 @@ case class FormModel[A <: PageMode](
 }
 
 object FormModel {
+
+  def modelComponentsToIndexedComponentMap(
+    modelComponentList: List[ModelComponentId]
+  ): Map[BaseComponentId, List[ModelComponentId]] = {
+    val map: mutable.Map[BaseComponentId, mutable.ListBuffer[ModelComponentId]] = mutable.Map.empty
+    modelComponentList.foreach {
+      case mcId if mcId.indexedComponentId.isIndexed =>
+        val bcId = mcId.baseComponentId
+        map.getOrElseUpdate(bcId, mutable.ListBuffer.empty) += mcId
+      case _ => ()
+    }
+    map
+      .foldLeft(Map.newBuilder[BaseComponentId, List[ModelComponentId]]) { case (builder, (bcId, lmcId)) =>
+        builder.addOne((bcId, lmcId.toList))
+      }
+      .result()
+  }
 
   def fromEnrolmentSection[A <: PageMode](enrolmentSection: EnrolmentSection): FormModel[A] = {
     val singleton = Singleton(enrolmentSection.toPage).asInstanceOf[Singleton[A]]

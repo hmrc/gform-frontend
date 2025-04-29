@@ -76,7 +76,7 @@ object FormModelOptics {
         Map.empty,
         lang,
         messages,
-        List.empty,
+        Map.empty,
         Set.empty[BaseComponentId],
         FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
         DataRetrieveAll.empty,
