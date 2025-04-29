@@ -1005,20 +1005,22 @@ class TestOnlyController(
   ) =
     for {
       s <- gformConnector.snapshotOverview(snapshotId)
-      redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+      restoreTemplateId = if (useOriginalTemplate) s.originalTemplateId else s.templateId
+      continueUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
                       .restoreAllGet(
-                        if (useOriginalTemplate) s.originalTemplateId else s.templateId,
+                        restoreTemplateId,
                         maybeAccessCode,
                         snapshotId,
                         useOriginalTemplate
                       )
                       .url
+      redirectUrl = uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(restoreTemplateId).url
       result <- s.ggFormData match {
                   case Some(ggFormData) =>
                     authLoginStubService
                       .getSession(ggFormData.withRedirectionUrl(redirectUrl))
-                      .map(Redirect(redirectUrl).withSession)
-                  case None => Redirect(redirectUrl).pure[Future]
+                      .map(Redirect(continueUrl).withSession)
+                  case None => Redirect(continueUrl).pure[Future]
                 }
     } yield result
 

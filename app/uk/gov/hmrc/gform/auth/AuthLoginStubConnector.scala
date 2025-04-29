@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.testonly.snapshot._
 
 class AuthLoginStubConnector(baseUrl: String, wsClient: WSClient) {
-  val serviceUrl = baseUrl
 
   private val authLoginStubUrl: String =
     s"$baseUrl/auth-login-stub/gg-sign-in"
