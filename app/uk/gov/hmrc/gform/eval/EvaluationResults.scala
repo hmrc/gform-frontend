@@ -61,9 +61,7 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): Boolean = {
     val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
-    val isReferenceIndexed = evaluationContext.indexedComponentIds.exists(
-      _.baseComponentId === modelComponentId.baseComponentId
-    )
+    val isReferenceIndexed = evaluationContext.indexedComponentIds.contains(modelComponentId.baseComponentId)
     isModelFormComponentIdPure && isReferenceIndexed
   }
 

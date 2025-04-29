@@ -69,7 +69,7 @@ lazy val microservice = (project in file("."))
       "views.html.helper.CSPNonce"
     ),
     scalacOptions ++= Seq(
-      //"-Xfatal-warnings",
+      "-Xfatal-warnings",
       "-Xlint:-missing-interpolator,_",
       "-Xlint:-byname-implicit",
       "-Ywarn-numeric-widen",

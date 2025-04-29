@@ -69,7 +69,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Map.empty,
       lang,
       messages,
-      List.empty,
+      Map.empty,
       Set.empty,
       FileSizeLimit(1),
       DataRetrieveAll.empty,
