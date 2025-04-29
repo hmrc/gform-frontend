@@ -537,7 +537,7 @@ object SummaryRenderingService {
             heading -> middleRows
           }
 
-          begin_section(iteration.repeater.repeater.expandedShortName) ::
+          getHeadingHtml(iteration.repeater.repeater.expandedShortName) ::
             summarizeGroupedRows(headingSummaryListRows).flatMap { case (heading, middleRows) =>
               summaryList(heading, middleRows, None)
             }
@@ -623,16 +623,26 @@ object SummaryRenderingService {
       )
     )
 
+    def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
+      val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+
+      (isEmpty, addToListSection) match {
+        case (true, _)      => HtmlFormat.empty
+        case (false, true)  => begin_addToList_section(pageTitle)
+        case (false, false) => begin_section(pageTitle)
+      }
+    }
+
     def getPageTitle(source: Section, page: Page[Visibility]) = {
       val pageTitle = page.shortName.getOrElse(page.title)
       source.fold { _ =>
         page.presentationHint
           .filter(_ == InvisiblePageTitle)
-          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
+          .fold(getHeadingHtml(pageTitle))(_ => HtmlFormat.empty)
       } { _ =>
         page.presentationHint
           .filter(_ == InvisiblePageTitle)
-          .fold(begin_section(pageTitle))(_ => HtmlFormat.empty)
+          .fold(getHeadingHtml(pageTitle))(_ => HtmlFormat.empty)
       } { addToList =>
         val hidePageTitle =
           addToList.presentationHint
@@ -640,7 +650,7 @@ object SummaryRenderingService {
         if (hidePageTitle)
           HtmlFormat.empty
         else
-          begin_addToList_section(pageTitle)
+          getHeadingHtml(pageTitle, addToListSection = true)
       }
     }
 
