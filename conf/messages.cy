@@ -423,6 +423,7 @@ taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 # File upload
 file.upload=Uwchlwytho’r ffeil
 file.upload.done=<strong>Uwchlwythwyd {0}</strong>
+file.upload.success=<strong>{0}</strong> ???
 file.delete=Dileu
 file.delete.confirm=A ydych yn siŵr eich bod am ddileu’r y ffeil?
 file.remove=Tynnu
@@ -436,7 +437,7 @@ file.error.type=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
 file.error.missing=Dewiswch {0}
 file.error.invalid.argument=Dewiswch {1}. Mae'n rhaid i'r ffeil fod ar ffurf {0}.
 file.error.rejected=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
-file.uploaded=Wedi’i uwchlwytho
+file.uploaded=Ffeil wedi’i uwchlwytho
 file.upload.another=Llwythwch ffeil arall i fyny
 
 # Assistive text
