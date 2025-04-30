@@ -20,13 +20,16 @@ import play.api.Mode
 import play.api.libs.json.Json
 import cats.implicits._
 import play.api.mvc._
-
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 class ObjectStoreAdminController(
+  auth: AuthenticatedRequestActions,
+  frontendAppConfig: FrontendAppConfig,
   controllerComponents: MessagesControllerComponents,
   objectStoreAdminConnector: ObjectStoreAdminConnector,
   mode: Mode
@@ -82,7 +85,9 @@ class ObjectStoreAdminController(
 
   }
 
-  def objectStoreContent(envelopeId: EnvelopeId) = Action.async { request =>
+  def objectStoreContent(
+    envelopeId: EnvelopeId
+  ) = Action.async { request =>
     withValidToken(request) {
       "/objects/gform/envelopes/" + envelopeId.value
     }
