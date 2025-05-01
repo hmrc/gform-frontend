@@ -20,21 +20,15 @@
 
 @(
   formComponentId: FormComponentId,
-  currentValues: List[(FileId, String, Call)],
-  promptUrl: Call,
-  showPrompt: Boolean,
-  uploadAnotherLabel: String
+  currentValues: List[(FileId, String, Call)]
 )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
 @govukButton = @{new GovukButton()}
 
 @uploaded_files_wrapper(formComponentId){
-  @if(!showPrompt && currentValues.nonEmpty) {
-    <button type="submit" class="govuk-button govuk-button--secondary" data-module="govuk-button" formaction="@promptUrl">
-      @{uploadAnotherLabel}
-    </button>
+  @if(currentValues.nonEmpty) {
+    <dl class="govuk-summary-list govuk-summary-list--long-key">
   }
-  <dl class="govuk-summary-list govuk-summary-list--long-key">
   @currentValues.map { case (fileId, currentValue, deleteUrl) =>
     @defining(currentValue.replace(fileId.value + "_", "")) { fileName =>
       @defining(fileName + " " + messages("file.delete")) { ariaLabel =>
@@ -54,5 +48,7 @@
       }
     }
   }
-  </dl>
+  @if(currentValues.nonEmpty) {
+    </dl>
+  }
 }

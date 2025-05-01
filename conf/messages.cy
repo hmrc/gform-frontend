@@ -437,7 +437,8 @@ file.error.type=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
 file.error.missing=Dewiswch {0}
 file.error.invalid.argument=Dewiswch {1}. Mae'n rhaid i'r ffeil fod ar ffurf {0}.
 file.error.rejected=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
-file.uploaded=Ffeil wedi’i uwchlwytho
+file.uploaded=Wedi’i uwchlwytho
+file.fileuploaded=Ffeil wedi’i uwchlwytho
 file.upload.another=Llwythwch ffeil arall i fyny
 
 # Assistive text

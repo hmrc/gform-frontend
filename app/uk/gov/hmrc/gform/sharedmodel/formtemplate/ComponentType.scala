@@ -540,7 +540,8 @@ case class MultiFileUpload(
   fileSizeLimit: Option[Int],
   allowedFileTypes: Option[AllowedFileTypes],
   hint: Option[SmartString],
-  uploadAnotherLabel: Option[SmartString]
+  uploadAnotherLabel: Option[SmartString],
+  continueText: Option[SmartString]
 ) extends ComponentType
 
 case class StartTime(time: LocalTime) extends AnyVal

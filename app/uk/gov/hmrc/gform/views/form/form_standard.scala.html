@@ -23,7 +23,8 @@
   renderingInfo: SectionRenderingInformation,
   shouldDisplayContinue: Boolean,
   saveAndComeBackLaterButton: Button,
-  isFileUploadOnlyPage: Boolean
+  isFileUploadOnlyPage: Boolean,
+  maybeButtonName: Option[String]
 )(
   implicit
   request: Request[_],
@@ -52,7 +53,7 @@
         inputType = Some("submit"),
         attributes = otherAttributes,
         classes = classes,
-        name = if(isFileUploadOnlyPage) Some("singleFile") else None
+        name = maybeButtonName
       )
     )
   }

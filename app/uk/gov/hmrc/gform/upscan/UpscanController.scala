@@ -82,7 +82,7 @@ class UpscanController(
                                  SuppressErrors.No
                                )
                     } yield {
-                      val header = request.messages.messages("file.uploaded")
+                      val header = request.messages.messages("file.fileuploaded")
                       val filename =
                         confirmation.filename.getOrElse(SmartString.blank.transform(_ => "File", _ => "Ffeil").value())
                       val content = request.messages.messages("file.upload.success", filename)
