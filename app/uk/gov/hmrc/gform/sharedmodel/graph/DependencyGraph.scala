@@ -25,6 +25,8 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, Model
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import scala.collection.mutable
+
 object DependencyGraph {
 
   def toGraph(
@@ -85,66 +87,77 @@ object DependencyGraph {
         }
         .toSet
 
-    def boolenExprDeps(
-      booleanExpr: BooleanExpr,
-      dependingFCs: Set[FormComponent],
-      cycleBreaker: GraphNode.Expr => Boolean
-    ): Set[DiEdge[GraphNode]] = {
+    def getAllEdges = {
+      val allEdges: mutable.Set[DiEdge[GraphNode]] = mutable.Set
+        .from(formModel.allFormComponents)
+        .flatMap(edges)
 
-      val allExprGNs: Set[GraphNode.Expr] =
-        booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply).toSet
+      def boolenExprDeps(
+        booleanExpr: BooleanExpr,
+        dependingFCs: Set[FormComponent],
+        cycleBreaker: Option[GraphNode.Expr => Boolean]
+      ): Unit = {
 
-      val dependingFCIds = dependingFCs.map(_.id)
+        val allExprGNs: Set[GraphNode.Expr] =
+          booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply).toSet
 
-      val deps1: Set[DiEdge[GraphNode]] =
-        for {
-          exprGN        <- allExprGNs.filterNot(cycleBreaker)
-          dependingFCId <- dependingFCIds
-        } yield GraphNode.Simple(dependingFCId) ~> exprGN
+        val dependingFCIds = dependingFCs.map(_.id)
 
-      val deps2: Set[DiEdge[GraphNode]] =
-        allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))
-
-      deps1 ++ deps2
-    }
-    val validIfs: Set[DiEdge[GraphNode]] = formModel.allValidIfs.flatMap { case (validIfs, fc) =>
-      validIfs.flatMap(validIf =>
-        boolenExprDeps(
-          validIf.booleanExpr,
-          Set(fc),
-          graphNodeExpr => eqBaseComponentId(graphNodeExpr.expr, fc)
+        allEdges.addAll(
+          for {
+            exprGN        <- cycleBreaker.map(cycleBreaker => allExprGNs.filterNot(cycleBreaker)).getOrElse(allExprGNs)
+            dependingFCId <- dependingFCIds
+          } yield GraphNode.Simple(dependingFCId) ~> exprGN
         )
-      )
-    }.toSet
-    val componentIncludeIfs: Set[DiEdge[GraphNode]] = formModel.allComponentIncludeIfs.flatMap { case (includeIf, fc) =>
-      boolenExprDeps(includeIf.booleanExpr, Set(fc), _ => false)
-    }.toSet
 
-    val includeIfs: Set[DiEdge[GraphNode]] = formModel.allIncludeIfsWithDependingFormComponents.flatMap {
-      case (includeIf, dependingFCs) =>
-        boolenExprDeps(includeIf.booleanExpr, dependingFCs.toSet, _ => false)
-    }.toSet
+        allExprGNs.foreach(exprGN =>
+          toFormComponentId(exprGN.expr).foreach(fcId => allEdges.addOne(exprGN ~> GraphNode.Simple(fcId)))
+        )
+      }
 
-    val sections: Set[DiEdge[GraphNode]] = {
-      val templateAndPageExprs: Set[Expr] = (formTemplateExprs ++ formModel.exprsMetadata.toSet).map(_.expr)
+      def addValidIfs() = formModel.allValidIfs.foreach { case (validIfs, fc) =>
+        validIfs.foreach(validIf =>
+          boolenExprDeps(
+            validIf.booleanExpr,
+            Set(fc),
+            Some(graphNodeExpr => eqBaseComponentId(graphNodeExpr.expr, fc))
+          )
+        )
+      }
 
-      val allExprGNs: Set[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply)
-      val allSectionDeps: Set[DiEdge[GraphNode]] =
-        allExprGNs.flatMap(exprGN => toFormComponentId(exprGN.expr).map(fcId => exprGN ~> GraphNode.Simple(fcId)))
+      def addComponentIncludeIfs() = formModel.allComponentIncludeIfs.foreach { case (includeIf, fc) =>
+        boolenExprDeps(includeIf.booleanExpr, Set(fc), None)
+      }
 
-      val allRepeatExprDeps: Set[DiEdge[GraphNode]] =
-        formModel.fcIdRepeatsExprLookup.map { case (fcId, repeatsExpr) =>
-          GraphNode.Simple(fcId) ~> GraphNode.Expr(repeatsExpr)
-        }.toSet
+      def addIncludeIfs() = formModel.allIncludeIfsWithDependingFormComponents.foreach {
+        case (includeIf, dependingFCs) =>
+          boolenExprDeps(includeIf.booleanExpr, dependingFCs.toSet, None)
+      }
 
-      allSectionDeps ++ allRepeatExprDeps
+      def addSections() = {
+        val templateAndPageExprs: Set[Expr] = (formTemplateExprs ++ formModel.exprsMetadata.toSet).map(_.expr)
+
+        val allExprGNs: Set[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply)
+
+        allExprGNs.foreach(exprGN =>
+          toFormComponentId(exprGN.expr).foreach(fcId => allEdges.addOne(exprGN ~> GraphNode.Simple(fcId)))
+        )
+
+        formModel.fcIdRepeatsExprLookup.foreach { case (fcId, repeatsExpr) =>
+          allEdges.addOne(GraphNode.Simple(fcId) ~> GraphNode.Expr(repeatsExpr))
+        }
+      }
+
+      addValidIfs()
+      addComponentIncludeIfs()
+      addIncludeIfs()
+      addSections()
+      allEdges
     }
 
-    val allEdges: Set[DiEdge[GraphNode]] =
-      formModel.allFormComponents.toSet
-        .flatMap(edges) ++ includeIfs ++ componentIncludeIfs ++ validIfs ++ sections
+    val allEdges = getAllEdges
 
-    val allFcIds: Set[ModelComponentId] = allEdges.flatMap { diEdge =>
+    val allFcIds: mutable.Set[ModelComponentId] = allEdges.flatMap { diEdge =>
       Seq(diEdge.source, diEdge.target).collectFirst {
         case GraphNode.Expr(FormCtx(fcId)) => fcId.modelComponentId
         case GraphNode.Simple(fcId)        => fcId.modelComponentId
@@ -189,24 +202,24 @@ object DependencyGraph {
     // This represents either
     //  - references to atl fields made outside of atl
     //  - references to repeating section fields made outside of repeating section
-    val repeatedStructureEdges: Iterable[DiEdge[GraphNode]] =
+    def addRepeatedStructureEdges(set: mutable.Set[DiEdge[GraphNode]]): Unit =
       allFcIds
         .groupBy(_.baseComponentId)
-        .collect {
+        .foreach {
           case (k, _) if repeatedSectionBaseIds(k) =>
             val indexedComponentIds: List[IndexedComponentId] =
               repeatingPageLookup.get(k).toList.flatten.map(_.modelComponentId.indexedComponentId)
-            mkOutsideToInsideEdge(indexedComponentIds, k)
+            set.addAll(mkOutsideToInsideEdge(indexedComponentIds, k))
 
           case (k, _) if atlFieldsBaseIds(k) =>
             val indexedComponentIds: List[IndexedComponentId] =
               atlLookup.get(k).toList.flatten.map(_.modelComponentId.indexedComponentId)
-            mkOutsideToInsideEdge(indexedComponentIds, k)
+            set.addAll(mkOutsideToInsideEdge(indexedComponentIds, k))
+          case _ => ()
         }
-        .flatten
 
-    val emptyGraph: Graph[GraphNode, DiEdge[GraphNode]] = Graph.empty
-    emptyGraph ++ (allEdges ++ repeatedStructureEdges)
+    addRepeatedStructureEdges(allEdges)
+    Graph.from(allEdges)
   }
 
   def constructDependencyGraph(
