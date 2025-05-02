@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
