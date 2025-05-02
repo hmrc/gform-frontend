@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.pdf
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
@@ -32,6 +33,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, PdfContent }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.html.summary.{ summaryPdf, summaryTabularPdf }
+import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
+import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper.convertFOP
 import uk.gov.hmrc.gform.views.xml.summary.pdf.summary
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -84,10 +87,10 @@ class PDFRenderService(
           title,
           maybeFormName,
           pdfModel,
-          maybeHeaderFooter.flatMap(_.header.map(_.rawDefaultValue).filter(_.nonEmpty)),
-          maybeHeaderFooter.flatMap(_.footer.map(_.rawDefaultValue).filter(_.nonEmpty)),
+          maybeHeaderFooter.flatMap(_.header.map(markDownParser(_).body)).map(convertFOP),
+          maybeHeaderFooter.flatMap(_.footer.map(markDownParser(_).body)).map(convertFOP),
           maybeSubmissionDetails,
-          summaryDeclaration,
+          summaryDeclaration.map(_.body).map(PdfHelper.convertFOP),
           maybeDraftText,
           includeSignatureBox
         ).body

@@ -10,7 +10,7 @@
   maybeHeader: Option[String],
   maybeFooter: Option[String],
   maybeSubmissionDetails: Option[SubmissionDetails],
-  summarySectionDeclaration: Option[Html],
+  summarySectionDeclaration: Option[String],
   maybeDraftText: Option[String],
   includeSignatureBox: Boolean)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 <?xml version='1.0' encoding='utf-8'?>
@@ -149,7 +149,6 @@
             <!-- header -->
             @maybeHeader.map { header =>
                 <fo:block role="Div"
-                          padding-before="1cm"
                           font-size="14px"
                           font-weight="normal"
                           line-height="14pt">
@@ -164,32 +163,29 @@
             </fo:block>
             <!-- end summary data -->
 
-            <!-- footer -->
-            @maybeFooter.map { footer =>
-                <fo:block role="Div"
-                          padding-before="1cm"
-                          font-size="14px"
-                          font-weight="normal"
-                          line-height="14pt">
-                        @XmlFormat.raw(footer)
-                </fo:block>
-            }
-            <!-- end footer -->
-
             <!-- declaration -->
             @summarySectionDeclaration.map{ declaration =>
-                @if(declaration.body.nonEmpty) {
-                    <fo:block role="Div" padding-before="30px">
-                        <fo:block role="H3"
-                                  font-size="14px"
+                    <fo:block role="Div" padding-before="1cm">
+                        <fo:block font-size="12px"
                                   font-weight="normal"
                                   line-height="14pt">
-                            @declaration
+                                        @XmlFormat.raw(declaration)
                         </fo:block>
                     </fo:block>
-                }
             }
             <!-- end declaration -->
+
+            <!-- footer -->
+            @maybeFooter.map { footer =>
+            <fo:block role="Div"
+                      padding-before="1cm"
+                      font-size="12px"
+                      font-weight="normal"
+                      line-height="14pt">
+                @XmlFormat.raw(footer)
+            </fo:block>
+            }
+            <!-- end footer -->
 
             <!-- submission details -->
             @{SummaryRenderingService.renderSubmissionDetails(maybeSubmissionDetails)}
