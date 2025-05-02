@@ -73,8 +73,7 @@
    }
 
   // Error handling
-  function handleError($input, msg, submitButton) {
-    submitButton.css("display", "none");
+  function handleError($input, msg) {
     const errorEl = '<span class="govuk-error-message" role="alert">' + msg + "</span>";
     $(errorEl).insertBefore($input);
   }
@@ -130,14 +129,13 @@
     );
 
     if (file.size == 0) {
-      return handleError($input, strings.emptyFileSizeError[lang], submitButton);
+      return handleError($input, strings.emptyFileSizeError[lang]);
     }
 
     if (file.size > maxFileSize * 1024 * 1024) {
       return handleError(
         $input,
-        interpolate(strings.maxSizeError[lang], [maxFileSize]),
-        submitButton
+        interpolate(strings.maxSizeError[lang], [maxFileSize])
       );
     }
     submitButton.off("click"); // Remove any previously attached click event handler

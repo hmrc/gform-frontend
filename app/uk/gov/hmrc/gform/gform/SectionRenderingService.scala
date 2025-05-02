@@ -137,6 +137,8 @@ class SectionRenderingService(
         cache.retrievals
       )
 
+    val envelopeUpd = envelope.byPurpose(SummaryPagePurpose.ForUser)
+
     val summaryListRecords: List[SummaryList] = SectionRenderingService.summaryList(
       formTemplate._id,
       checkYourAnswers,
@@ -145,7 +147,7 @@ class SectionRenderingService(
       maybeAccessCode,
       cache,
       validationResult,
-      envelope,
+      envelopeUpd,
       addressRecordLookup,
       sectionNumber,
       fastForward
