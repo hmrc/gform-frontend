@@ -394,17 +394,7 @@ object TextChecker {
           SmartString.blank.transform(_ => "an", identity).value().pure[List]
         ))
       ),
-      nonEmptyCheck = List(
-        validateTextConstraint(
-          fieldValue,
-          inputText,
-          0,
-          ValidationValues.emailLimit,
-          Some(emailErrorFirstPlaceholder()),
-          true
-        ),
-        email(fieldValue, inputText)
-      ).shortCircuitProgram
+      nonEmptyCheck = email(fieldValue, inputText)
     )
     def emailVerifiedByCheck(c: EmailVerifiedBy): CheckProgram[Unit] = List(
       validateTextConstraint(
