@@ -72,14 +72,24 @@ class UpscanController(
               confirmation.status match {
                 case UpscanFileStatus.Ready =>
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
-                    fastForwardService
-                      .redirectStopAt[SectionSelectorType.Normal](
-                        sectionNumber,
-                        cache.copy(form = form),
-                        maybeAccessCode,
-                        formModelOptics,
-                        SuppressErrors.No
+                    for {
+                      res <- fastForwardService
+                               .redirectStopAt[SectionSelectorType.Normal](
+                                 sectionNumber,
+                                 cache.copy(form = form),
+                                 maybeAccessCode,
+                                 formModelOptics,
+                                 SuppressErrors.No
+                               )
+                    } yield {
+                      val header = request.messages.messages("file.fileuploaded")
+                      val filename =
+                        confirmation.filename.getOrElse(SmartString.blank.transform(_ => "File", _ => "Ffeil").value())
+                      val content = request.messages.messages("file.upload.success", filename)
+                      res.flashing(
+                        "success" -> s"$header|$content"
                       )
+                    }
                   }
                 case UpscanFileStatus.Failed =>
                   val fileId = FileId(formComponentId.value)
@@ -152,22 +162,23 @@ class UpscanController(
         // Note. This is not an issue for non-js journey as non-js users have never a chance to reuse upscan reference
         upscanService.deleteConfirmation(upscanReference).map { _ =>
           confirmation match {
-            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _)) | None => NoContent
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _, _)) | None => NoContent
             case Some(
                   UpscanConfirmation(
                     _,
                     UpscanFileStatus.Failed,
-                    ConfirmationFailure.GformValidationFailure(failureDetails)
+                    ConfirmationFailure.GformValidationFailure(failureDetails),
+                    _
                   )
                 ) =>
               Ok(failureDetails.toJsCode)
             case Some(
-                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.UpscanFailure(failureDetails))
+                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.UpscanFailure(failureDetails), _)
                 ) =>
               Ok(failureDetails.failureReason)
 
             case Some(
-                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.AllOk)
+                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.AllOk, _)
                 ) =>
               throw new Exception("Upscan problem - 'Failed' status cannot have ConfirmationFailure.AllOk")
           }

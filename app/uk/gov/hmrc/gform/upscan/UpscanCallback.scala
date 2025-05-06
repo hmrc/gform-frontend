@@ -115,7 +115,8 @@ object UpscanValidationFailure {
 final case class UpscanConfirmation(
   _id: UpscanReference,
   status: UpscanFileStatus,
-  confirmationFailure: ConfirmationFailure
+  confirmationFailure: ConfirmationFailure,
+  filename: Option[String]
 )
 
 object UpscanConfirmation {

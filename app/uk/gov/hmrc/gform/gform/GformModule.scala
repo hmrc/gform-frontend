@@ -370,23 +370,6 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
-  val multiFileUploadController = new MultiFileUploadController(
-    configModule.appConfig,
-    configModule.frontendAppConfig,
-    playBuiltInsModule.i18nSupport,
-    controllersModule.authenticatedRequestActions,
-    objectStoreModule.objectStoreService,
-    upscanModule.upscanService,
-    validationModule.validationService,
-    sectionRenderingService,
-    gformBackendModule.gformConnector,
-    processDataService,
-    formControllerRequestHandler,
-    fastForwardService,
-    graphModule.recalculation,
-    controllersModule.messagesControllerComponents
-  )
-
   val languageSwitchController: LanguageSwitchController =
     new LanguageSwitchController(
       controllersModule.authenticatedRequestActions,
