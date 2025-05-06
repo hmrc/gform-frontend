@@ -66,6 +66,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -83,6 +84,11 @@ object FormTemplateBuilder {
     None,
     None,
     addToListQuestion("addToListQuestion"),
+    None,
+    None,
+    None,
+    None,
+    None,
     None,
     None,
     None,
@@ -115,7 +121,10 @@ object FormTemplateBuilder {
       None,
       None,
       None,
-      cyaPage
+      cyaPage,
+      None,
+      None,
+      None
     )
 
   def mkRepeatingPageSection(formComponents: List[FormComponent]): Section.RepeatingPage =
@@ -142,6 +151,7 @@ object FormTemplateBuilder {
         None,
         Some(includeIf),
         formComponents,
+        None,
         None,
         None,
         None,
@@ -363,6 +373,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -376,6 +387,7 @@ object FormTemplateBuilder {
       None,
       Some(includeIf),
       formComponents,
+      None,
       None,
       None,
       None,

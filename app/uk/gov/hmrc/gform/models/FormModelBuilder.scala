@@ -302,6 +302,14 @@ class FormModelBuilder[E, F[_]: Functor](
             formModelVisibilityOptics.formModel,
             phase
           )
+        } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
+          !FormModelBuilder.evalIncludeIf(
+            includeIf,
+            formModelVisibilityOptics.recalculationResult,
+            formModelVisibilityOptics.recData,
+            formModelVisibilityOptics.formModel,
+            phase
+          )
         }
       }
       .map[Visibility] { singleton: Singleton[DataExpanded] =>
@@ -466,7 +474,8 @@ class FormModelBuilder[E, F[_]: Functor](
       expandedFields,
       s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
       s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
-      expandAtlDescriptionTotal(s.descriptionTotal)
+      expandAtlDescriptionTotal(s.descriptionTotal),
+      s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds)))
     )
   }
 
@@ -486,7 +495,7 @@ class FormModelBuilder[E, F[_]: Functor](
     val addToListPages: Option[Page[Basic]] = s.defaultPage
 
     addToListPages.map { page =>
-      val page2: Page[Basic] = mkSingleton(page, 1)(s)
+      val page2: Page[Basic] = mkSingleton(page, 1)(s).copy(notRequiredIf = s.notRequiredIf)
       val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
       val sectionNumber = mkSectionNumber(
         SectionNumber.Classic.AddToListPage.DefaultPage(templateSectionIndex),
@@ -508,7 +517,9 @@ class FormModelBuilder[E, F[_]: Functor](
       val addToListPages: NonEmptyList[Page[Basic]] = s.pages
 
       addToListPages.zipWithIndex.map { case (page, pageIndex) =>
-        val page1: Page[Basic] = s.includeIf.fold(page)(includeIf => mergeIncludeIfs(includeIf, page))
+        val page1: Page[Basic] = s.includeIf
+          .fold(page)(includeIf => mergeIncludeIfs(includeIf, page))
+          .copy(notRequiredIf = s.notRequiredIf)
         val page2: Page[Basic] = mkSingleton(page1, iterationIndex)(s)
         val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
         val sectionNumber = mkSectionNumber(

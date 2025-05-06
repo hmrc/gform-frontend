@@ -186,7 +186,8 @@ class SectionRenderingService(
                   redirects = None,
                   hideSaveAndComeBackButton = None,
                   removeItemIf = None,
-                  displayWidth = None
+                  displayWidth = None,
+                  notRequiredIf = None
                 )
 
               val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
@@ -406,7 +407,8 @@ class SectionRenderingService(
                   redirects = None,
                   hideSaveAndComeBackButton = None,
                   removeItemIf = None,
-                  displayWidth = None
+                  displayWidth = None,
+                  notRequiredIf = None
                 )
               val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
 

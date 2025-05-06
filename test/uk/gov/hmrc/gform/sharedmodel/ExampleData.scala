@@ -666,6 +666,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         None,
+        None,
         None
       )
     )
@@ -718,6 +719,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         None,
+        None,
         None
       ),
       repeats = repeatsExpr
@@ -758,7 +760,10 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
       errorMessage.map(toSmartString),
       None,
       defaultPage,
-      cyaPage
+      cyaPage,
+      None,
+      None,
+      None
     )
 
   def toPage(
@@ -787,6 +792,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
+    None,
     None,
     None,
     None,

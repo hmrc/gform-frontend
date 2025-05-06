@@ -72,7 +72,8 @@ object Section {
     defaultPage: Option[Page[Basic]] = None,
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,
-    pageIdToDisplayAfterRemove: Option[PageId] = None
+    pageIdToDisplayAfterRemove: Option[PageId] = None,
+    notRequiredIf: Option[IncludeIf]
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
@@ -143,7 +144,8 @@ case class DeclarationSection(
       redirects = None,
       hideSaveAndComeBackButton = None,
       removeItemIf = None,
-      displayWidth = None
+      displayWidth = None,
+      notRequiredIf = None
     )
 }
 
@@ -185,7 +187,8 @@ case class AcknowledgementSection(
       redirects = None,
       hideSaveAndComeBackButton = None,
       removeItemIf = None,
-      displayWidth = None
+      displayWidth = None,
+      notRequiredIf = None
     )
 }
 
@@ -223,7 +226,8 @@ case class EnrolmentSection(
       redirects = None,
       hideSaveAndComeBackButton = None,
       removeItemIf = None,
-      displayWidth = None
+      displayWidth = None,
+      notRequiredIf = None
     )
 }
 
