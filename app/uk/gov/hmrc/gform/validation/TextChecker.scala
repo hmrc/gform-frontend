@@ -393,35 +393,9 @@ object TextChecker {
           SmartString.blank.transform(_ => "an", identity).value().pure[List]
         ))
       ),
-      nonEmptyCheck = List(
-        validateTextConstraint(
-          fieldValue,
-          inputText,
-          0,
-          ValidationValues.emailLimit,
-          Some(emailErrorFirstPlaceholder()),
-          true
-        ),
-        email(fieldValue, inputText)
-      ).shortCircuitProgram
+      nonEmptyCheck = email(fieldValue, inputText)
     )
-    def emailVerifiedByCheck(c: EmailVerifiedBy): CheckProgram[Unit] = List(
-      validateTextConstraint(
-        fieldValue,
-        inputText,
-        0,
-        ValidationValues.emailLimit,
-        Some(emailErrorFirstPlaceholder())
-      ),
-      email(fieldValue, inputText)
-    ).shortCircuitProgram
-
-    def emailErrorFirstPlaceholder(): String = fieldValue.errorShortNameStart
-      .flatMap(_.nonBlankValue())
-      .map(s => SmartString.blank.transform(_ => s + " email", _ => "gyfeiriad e-bost " + s).value())
-      .getOrElse(
-        SmartString.blank.transform(_ => "Email", _ => "gyfeiriad e-bost").value()
-      )
+    def emailVerifiedByCheck(c: EmailVerifiedBy): CheckProgram[Unit] = email(fieldValue, inputText)
 
     def utrCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
