@@ -58,6 +58,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     None,
     None,
     None,
+    None,
     None
   )
   private val emptyAddToList: Section.AddToList = Section.AddToList(
@@ -74,6 +75,11 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     None,
     None,
     mkFormComponent("choice", Value),
+    None,
+    None,
+    None,
+    None,
+    None,
     None,
     None,
     None,

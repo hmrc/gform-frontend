@@ -124,6 +124,7 @@ trait SectionGen {
       redirects.map(NonEmptyList.one),
       None,
       removeItemIf,
+      None,
       None
     )
 
@@ -175,7 +176,12 @@ trait SectionGen {
         presentationHint,
         infoMessage,
         errorMessage,
-        Some(AtlDescription.KeyValueBased(descriptionTotal, descriptionTotal))
+        Some(AtlDescription.KeyValueBased(descriptionTotal, descriptionTotal)),
+        None,
+        None,
+        None,
+        None,
+        None
       )
 
   def sectionGen: Gen[Section] = Gen.oneOf(nonRepeatingPageSectionGen, repeatingPageSectionGen)

@@ -55,7 +55,8 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
       dataRetrieve = NonEmptyList.fromList(page.dataRetrieves().map(expandDataRetrieve)),
       confirmation = page.confirmation.map(expandConfirmation),
-      removeItemIf = page.removeItemIf.map(expandRemoveItemIf)
+      removeItemIf = page.removeItemIf.map(expandRemoveItemIf),
+      notRequiredIf = page.notRequiredIf.map(expandIncludeIf)
     )
 }
 
