@@ -289,11 +289,11 @@ object TextChecker {
         validateShortTextConstraint(fieldValue, inputText, c.min, c.max, c.min <= 1)
       )
     )
-    def lookupCheck(c: Lookup): CheckProgram[Unit] =
+    def lookupCheck(c: Lookup, messageKey: String): CheckProgram[Unit] =
       conditionalMandatoryCheck(
         mandatoryFailure = validationFailure(
           fieldValue,
-          genericErrorTextRequired,
+          messageKey,
           (Some(errorShortNameWithFallback(fieldValue).pure[List]))
         ),
         nonEmptyCheck = lookupValidation(
@@ -493,8 +493,6 @@ object TextChecker {
       nonEmptyCheck = checkChildBenefitNumber(fieldValue, inputText)
     )
 
-    def radioLookupCheck(): CheckProgram[Unit] = validationFailure(fieldValue, choiceErrorRequired, None)
-
     def yearFormatCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
         fieldValue,
@@ -624,8 +622,8 @@ object TextChecker {
       case EORI                           => eoriCheck()
       case UkEORI                         => ukEoriCheck()
       case ChildBenefitNumber             => childBenefitNumberCheck()
-      case IsRadioLookupTextConstraint(_) => radioLookupCheck()
-      case c: Lookup                      => lookupCheck(c)
+      case IsRadioLookupTextConstraint(r) => lookupCheck(r, choiceErrorRequired)
+      case c: Lookup                      => lookupCheck(c, genericErrorTextRequired)
       case YearFormat                     => yearFormatCheck()
       case TimeFormat                     => timeFormatCheck()
       case _                              => catchAllCheck()
