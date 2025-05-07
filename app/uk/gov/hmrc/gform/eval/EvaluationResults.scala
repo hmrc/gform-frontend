@@ -137,7 +137,8 @@ case class EvaluationResults(
       val count = evaluationContext.multiFilesData.get(formComponentId.modelComponentId).fold(0)(l => l.size)
       NumberResult(count)
     } else {
-      if (evaluationContext.addToListIds.contains(AddToListId(formComponentId))) {
+      val unIndexedId = formComponentId.modelComponentId.removeIndex.toFormComponentId
+      if (evaluationContext.addToListIds.contains(AddToListId(unIndexedId))) {
         val firstQuestionFcId = formComponentId.withFirstIndex
         val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
         if (isHidden.contains(Hidden)) {
