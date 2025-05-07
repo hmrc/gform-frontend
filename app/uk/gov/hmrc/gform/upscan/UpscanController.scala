@@ -20,6 +20,7 @@ import org.apache.pekko.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
@@ -85,7 +86,8 @@ class UpscanController(
                       val header = request.messages.messages("file.fileuploaded")
                       val filename =
                         confirmation.filename.getOrElse(SmartString.blank.transform(_ => "File", _ => "Ffeil").value())
-                      val content = request.messages.messages("file.upload.success", filename)
+
+                      val content = request.messages.messages("file.upload.success", HtmlFormat.escape(filename))
                       res.flashing(
                         "success" -> s"$header|$content"
                       )
