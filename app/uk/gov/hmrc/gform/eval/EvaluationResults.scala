@@ -211,7 +211,11 @@ case class EvaluationResults(
   ): Option[Int] =
     for {
       dataRetrieve <- evaluationContext.thirdPartyData.dataRetrieve
-      result       <- dataRetrieve.get(dataRetrieveCount.id)
+      result <- dataRetrieve
+                  .get(dataRetrieveCount.id)
+                  .orElse(
+                    dataRetrieve.get(dataRetrieveCount.id.modelPageId.baseId)
+                  )
     } yield result.data.size
 
   private def getChoicesSelected(
