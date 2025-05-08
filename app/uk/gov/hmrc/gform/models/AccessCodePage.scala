@@ -27,7 +27,6 @@ object AccessCodePage {
   val key = "accessCode"
   val optionKey = "accessOption"
   val isContinueKey = "isContinue"
-  val optionAccess = "access"
   val optionNew = "new"
   val optionContinue = "continue"
   val optionDownload = "downloadPrevious"
