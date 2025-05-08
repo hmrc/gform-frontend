@@ -178,66 +178,74 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
     val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcherProvided(formComponent)
 
-    formComponent.`type` match {
-      case date @ Date(_, _, _) =>
-        validIf(
-          new DateChecker[D]().runCheck(checkerDependency)
-        )
-      case CalendarDate =>
-        validIf(
-          new CalendarDateChecker[D]().runCheck(checkerDependency)
-        )
-      case PostcodeLookup(_, _, _) =>
-        validIf(
-          new PostcodeLookupChecker[D]().runCheck(checkerDependency)
-        )
-      case TaxPeriodDate =>
-        validIf(
-          new TaxPeriodDateChecker[D]().runCheck(checkerDependency)
-        )
-      case emailCodeFieldMatcher.EmailCodeField(emailField) =>
-        validIf(
-          new EmailFieldIdChecker[D]().runCheck(checkerDependency)
-        )
-      case Text(constraint, _, _, _, _, _, _) =>
-        validIf(
-          new TextChecker[D]().runCheck(checkerDependency)
-        )
+    val overrideValidIfs = self.cache.formTemplate.overrides.fold(false)(o => o.disableValidIfs.getOrElse(false))
 
-      case TextArea(constraint, _, _, _, _, _) =>
-        validIf(
-          new TextChecker[D]().runCheck(checkerDependency)
-        )
-      case address @ Address(_, _, _, _) =>
-        validIf(
-          new AddressChecker[D]().runCheck(checkerDependency)
-        )
-      case overseasAddress @ OverseasAddress(_, _, _, _, _, _) =>
-        validIf(
-          new OverseasAddressChecker[D]().runCheck(checkerDependency)
-        )
-      case Choice(_, _, _, _, _, _, _, _, _, _, _) =>
-        validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
-      case _: RevealingChoice =>
-        validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
-      case Group(_, _, _, _, _) => validationSuccess.pure[F]
-      case FileUpload(_, _) =>
-        validIf(
-          new FileUploadChecker[D]().runCheck(checkerDependency)
-        )
-      case MultiFileUpload(_, _, _, _, _) =>
-        validIf(
-          new FileUploadChecker[D]().runCheck(checkerDependency)
-        )
-      case InformationMessage(_, _, _) => validationSuccess.pure[F]
-      case HmrcTaxPeriod(_, _, _) =>
-        validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
-      case t @ Time(_, _) =>
-        validIf(new TimeChecker[D]().runCheck(checkerDependency))
-      case MiniSummaryList(_, _, _) => validationSuccess.pure[F]
-      case _: TableComp             => validationSuccess.pure[F]
-      case _: Button                => validationSuccess.pure[F]
+    if (overrideValidIfs)
+      validationSuccess.pure[F]
+    else {
+      formComponent.`type` match {
+        case date @ Date(_, _, _) =>
+          validIf(
+            new DateChecker[D]().runCheck(checkerDependency)
+          )
+        case CalendarDate =>
+          validIf(
+            new CalendarDateChecker[D]().runCheck(checkerDependency)
+          )
+        case PostcodeLookup(_, _, _) =>
+          validIf(
+            new PostcodeLookupChecker[D]().runCheck(checkerDependency)
+          )
+        case TaxPeriodDate =>
+          validIf(
+            new TaxPeriodDateChecker[D]().runCheck(checkerDependency)
+          )
+        case emailCodeFieldMatcher.EmailCodeField(emailField) =>
+          validIf(
+            new EmailFieldIdChecker[D]().runCheck(checkerDependency)
+          )
+        case Text(constraint, _, _, _, _, _, _) =>
+          validIf(
+            new TextChecker[D]().runCheck(checkerDependency)
+          )
+
+        case TextArea(constraint, _, _, _, _, _) =>
+          validIf(
+            new TextChecker[D]().runCheck(checkerDependency)
+          )
+        case address @ Address(_, _, _, _) =>
+          validIf(
+            new AddressChecker[D]().runCheck(checkerDependency)
+          )
+        case overseasAddress @ OverseasAddress(_, _, _, _, _, _) =>
+          validIf(
+            new OverseasAddressChecker[D]().runCheck(checkerDependency)
+          )
+        case Choice(_, _, _, _, _, _, _, _, _, _, _) =>
+          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+        case _: RevealingChoice =>
+          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+        case Group(_, _, _, _, _) => validationSuccess.pure[F]
+        case FileUpload(_, _) =>
+          validIf(
+            new FileUploadChecker[D]().runCheck(checkerDependency)
+          )
+        case MultiFileUpload(_, _, _, _, _) =>
+          validIf(
+            new FileUploadChecker[D]().runCheck(checkerDependency)
+          )
+        case InformationMessage(_, _, _) => validationSuccess.pure[F]
+        case HmrcTaxPeriod(_, _, _) =>
+          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+        case t @ Time(_, _) =>
+          validIf(new TimeChecker[D]().runCheck(checkerDependency))
+        case MiniSummaryList(_, _, _) => validationSuccess.pure[F]
+        case _: TableComp             => validationSuccess.pure[F]
+        case _: Button                => validationSuccess.pure[F]
+      }
+
     }
+
   }
 
 }
