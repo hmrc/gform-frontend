@@ -73,8 +73,10 @@ object FormModelBuilder {
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
     formModel: FormModel[T],
-    phase: Option[FormPhase]
-  ): Boolean = evalBooleanExpr[T](includeIf.booleanExpr, recalculationResult, recData, formModel, phase)
+    phase: Option[FormPhase],
+    isOverride: Boolean
+  ): Boolean =
+    if (isOverride) true else evalBooleanExpr[T](includeIf.booleanExpr, recalculationResult, recData, formModel, phase)
 
   private def evalBooleanExpr[T <: PageMode](
     booleanExpr: BooleanExpr,
@@ -273,7 +275,8 @@ class FormModelBuilder[E, F[_]: Functor](
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
       formModelVisibilityOptics.recData,
-      formModelVisibilityOptics.recalculationResult
+      formModelVisibilityOptics.recalculationResult,
+      formModelVisibilityOptics.overrides
     )
 
     val formModelRenderPageOptics = FormModelRenderPageOptics[D](
@@ -300,7 +303,8 @@ class FormModelBuilder[E, F[_]: Functor](
             formModelVisibilityOptics.recalculationResult,
             formModelVisibilityOptics.recData,
             formModelVisibilityOptics.formModel,
-            phase
+            phase,
+            formModelVisibilityOptics.isOverrideIncludeIf
           )
         } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
           !FormModelBuilder.evalIncludeIf(
@@ -308,7 +312,8 @@ class FormModelBuilder[E, F[_]: Functor](
             formModelVisibilityOptics.recalculationResult,
             formModelVisibilityOptics.recData,
             formModelVisibilityOptics.formModel,
-            phase
+            phase,
+            false
           )
         }
       }
@@ -327,7 +332,8 @@ class FormModelBuilder[E, F[_]: Functor](
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    overrides: Option[Overrides]
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
@@ -338,7 +344,8 @@ class FormModelBuilder[E, F[_]: Functor](
         data,
         formModel,
         recalculationResult,
-        phase
+        phase,
+        overrides
       )
     }
   }
@@ -347,10 +354,12 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[OutOfDate],
     formModel: FormModel[Interim],
     recalculationResult: RecalculationResult,
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    overrides: Option[Overrides]
   )(implicit messages: Messages): FormModelVisibilityOptics[D] = {
     val evaluationResults = recalculationResult.evaluationResults
     val dataOld = RecData(data).asInstanceOf[RecData[SourceOrigin.Current]]
+    val overrideIncludeIfs = overrides.fold(false)(o => o.disableIncludeIfs.getOrElse(false))
     val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
       pageModel.getIncludeIf.fold(true) { includeIf =>
         FormModelBuilder.evalIncludeIf(
@@ -358,7 +367,8 @@ class FormModelBuilder[E, F[_]: Functor](
           recalculationResult,
           dataOld,
           formModel,
-          phase
+          phase,
+          overrideIncludeIfs
         )
       }
     }
@@ -373,7 +383,8 @@ class FormModelBuilder[E, F[_]: Functor](
         recalculationResult,
         dataOld,
         visibilityFormModel,
-        phase
+        phase,
+        false
       )
     )
 
@@ -391,7 +402,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
 
-    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult)
+    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult, formTemplate.overrides)
   }
 
   def expand[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](

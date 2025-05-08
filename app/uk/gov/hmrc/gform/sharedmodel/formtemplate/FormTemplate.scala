@@ -60,7 +60,8 @@ case class FormTemplate(
   accessiblePdf: Boolean,
   displayAccountHeader: Boolean,
   serviceStartPageUrl: Option[ServiceStartPageUrl],
-  downloadPreviousSubmissionPdf: Boolean
+  downloadPreviousSubmissionPdf: Boolean,
+  overrides: Option[Overrides]
 ) {
 
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
