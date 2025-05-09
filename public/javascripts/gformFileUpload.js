@@ -33,12 +33,16 @@
     // Set up event handlers etc
     function init() {
       $(".govuk-file-upload").on("change", handleFileUpload);
-      $('button[name$="multiFile"]').on("click", handleEmptyFileUploadMulti);
       $('button[name$="singleFile"]').on("click", handleEmptyFileUpload);
+      getSubmitButton().on("click", handleEmptyFileUploadMultiEvent);
     }
 
-    function handleEmptyFileUploadMulti(e) {
+    function handleEmptyFileUploadMultiEvent(e) {
       e.preventDefault();
+      handleEmptyFileUploadMulti(function () { })
+    }
+
+    function handleEmptyFileUploadMulti(uploadFile) {
       const input = $(".govuk-file-upload")
       var inputFile = input[0];
       if (inputFile.files.length === 0) {
@@ -51,6 +55,8 @@
         const queryString = $.param(params);
         const errorUrl = errorRedirect + "?" + queryString;
         window.location.href = errorUrl;
+      } else {
+        uploadFile();
       }
     }
 
@@ -152,11 +158,13 @@
         // is updated. To do so we prevent default action of
         // submitButton from happening.
         e.preventDefault();
-        // The reason to call gform service first before calling upscan
-        // is because upscan doesn't allow to pass metadata via their
-        // upload request (this is needed by upload or type pattern).
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        dataSubmit(form, dataForm, submitButton, id)
+        handleEmptyFileUploadMulti(function () {
+          // The reason to call gform service first before calling upscan
+          // is because upscan doesn't allow to pass metadata via their
+          // upload request (this is needed by upload or type pattern).
+          // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          dataSubmit(form, dataForm, submitButton, id)
+        })
       });
     }
 
