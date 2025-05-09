@@ -23,6 +23,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, OperationWithForm }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
@@ -40,7 +41,8 @@ class AcknowledgementController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
   acknowledgementPdfService: AcknowledgementPdfService,
   renderer: SectionRenderingService,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  frontendAppConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -120,8 +122,12 @@ class AcknowledgementController(
     }
 
   def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    Action.async { request =>
-      Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
+    Action.async { _ =>
+      Future.successful(
+        Redirect(
+          frontendAppConfig.getBasGatewayFrontendSignOutUrl(Option(s"/feedback/${formTemplateId.value}"))
+        )
+      )
     }
 
 }

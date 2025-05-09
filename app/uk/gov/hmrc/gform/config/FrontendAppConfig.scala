@@ -90,4 +90,9 @@ case class FrontendAppConfig(
 
   def refreshSession(templateId: String): String = refreshSessionUrl + "/" + templateId
 
+  def getBasGatewayFrontendSignOutUrl(continueUrl: Option[String] = None): String =
+    continueUrl match {
+      case Some(url) => s"/bas-gateway/sign-out-without-state?continue=$url"
+      case None      => s"/bas-gateway/sign-out-without-state"
+    }
 }
