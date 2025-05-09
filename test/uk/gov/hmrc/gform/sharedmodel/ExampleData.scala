@@ -1083,7 +1083,6 @@ trait ExampleFrontendAppConfig {
     refreshSessionUrl = "refreshSessionUrl",
     isProd = true,
     configuration = context.initialConfiguration,
-    submittedFormExpiryDays = 7,
-    basGatewayFrontendHost = "http://localhost:9553"
+    submittedFormExpiryDays = 7
   )
 }

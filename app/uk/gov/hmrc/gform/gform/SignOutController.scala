@@ -46,12 +46,12 @@ class SignOutController(
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) with I18nSupport {
 
-  def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { implicit request => _ =>
+  def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => _ =>
     val formTemplateContext = request.attrs(FormTemplateKey)
     val formTemplate = formTemplateContext.formTemplate
     val redirect = Redirect(
       frontendConfig.getBasGatewayFrontendSignOutUrl(
-        Option(routes.SignOutController.showSignedOutPage(formTemplate._id).absoluteURL())
+        Option(routes.SignOutController.showSignedOutPage(formTemplate._id).url)
       )
     )
 

@@ -43,8 +43,7 @@ case class FrontendAppConfig(
   refreshSessionUrl: String,
   isProd: Boolean,
   configuration: Configuration,
-  submittedFormExpiryDays: Int,
-  basGatewayFrontendHost: String
+  submittedFormExpiryDays: Int
 ) {
 
   def languageSwitchCall(
@@ -93,7 +92,7 @@ case class FrontendAppConfig(
 
   def getBasGatewayFrontendSignOutUrl(continueUrl: Option[String] = None): String =
     continueUrl match {
-      case Some(url) => basGatewayFrontendHost + s"/bas-gateway/sign-out-without-state?continue=$url"
-      case None      => basGatewayFrontendHost + s"/bas-gateway/sign-out-without-state"
+      case Some(url) => s"/bas-gateway/sign-out-without-state?continue=$url"
+      case None      => s"/bas-gateway/sign-out-without-state"
     }
 }

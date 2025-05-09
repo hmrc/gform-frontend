@@ -103,8 +103,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       refreshSessionUrl = typesafeConfig.getString("refresh-session-url"),
       isProd = isProd,
       configuration = playConfiguration,
-      submittedFormExpiryDays = typesafeConfig.getInt("submittedFormExpiryDays"),
-      basGatewayFrontendHost = typesafeConfig.getString("bas-gateway-frontend-host")
+      submittedFormExpiryDays = typesafeConfig.getInt("submittedFormExpiryDays")
     )
   }
 }

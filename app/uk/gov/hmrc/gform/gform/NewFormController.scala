@@ -131,10 +131,10 @@ class NewFormController(
 
   /** To request a new confirmation code when verifying an email, user will have to start whole journey again in new session.
     */
-  def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+  def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { _ =>
     Redirect(
       frontendConfig.getBasGatewayFrontendSignOutUrl(
-        Option(routes.NewFormController.dashboard(formTemplateId).absoluteURL())
+        Option(routes.NewFormController.dashboard(formTemplateId).url)
       )
     ).pure[Future]
   }
