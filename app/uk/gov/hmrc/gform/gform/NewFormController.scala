@@ -769,7 +769,7 @@ class NewFormController(
             case otherwise =>
               Future.failed(
                 new Exception(
-                  s"newFormPost endpoint called, unknown choice selected: $otherwise"
+                  s"newFormPost endpoint called for '${formTemplateId.value}', unknown choice selected: $otherwise"
                 )
               )
           }
