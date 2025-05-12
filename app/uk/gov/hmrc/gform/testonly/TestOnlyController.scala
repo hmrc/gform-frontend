@@ -56,6 +56,7 @@ import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
+import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Fieldset, InsetText, Label, Legend, RadioItem, Radios, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukFieldset, GovukHint, GovukInsetText, GovukLabel, GovukRadios, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -478,9 +479,11 @@ class TestOnlyController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit request: Request[AnyContent], lang: LangADT, hc: HeaderCarrier, message: Messages): Future[Result] = {
 
-    def extractExprMeta(expr: Expr): (String, String, String, String) = {
+    def extractExprMeta(expr: Expr): (String, String, String, String, String) = {
       val evaluated = formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
       val staticTypeData = evaluated.typeInfo.staticTypeData
+
+      val tcType = staticTypeData.textConstraint.fold("")(tc => tc.getClass.getSimpleName.stripSuffix("$"))
 
       val rounding = staticTypeData.textConstraint
         .collect {
@@ -497,10 +500,21 @@ class TestOnlyController(
         }
         .getOrElse("")
 
-      val resultType = staticTypeData.exprType.toString
+      val resultType = evaluated.expressionResult match {
+        case ExpressionResult.Invalid(explanation)  => s"Invalid: $explanation"
+        case ExpressionResult.NumberResult(_)       => "Number Result"
+        case ExpressionResult.StringResult(_)       => "String Result"
+        case ExpressionResult.DateResult(_)         => "Date Result"
+        case ExpressionResult.TaxPeriodResult(_, _) => "Tax Period Result"
+        case ExpressionResult.PeriodResult(_)       => "Period Result"
+        case ExpressionResult.OptionResult(_)       => "Option Result"
+        case ExpressionResult.ListResult(_)         => "List Result"
+        case ExpressionResult.AddressResult(_)      => "Address Result"
+        case _                                      => ""
+      }
       val value = evaluated.stringRepresentation
 
-      (rounding, fractionalDigits, resultType, value)
+      (tcType, rounding, fractionalDigits, resultType, value)
     }
 
     def buildExprRow(key: String, value: JsValue, maybeExpr: Option[Expr]): Seq[TableRow] = {
@@ -509,13 +523,14 @@ class TestOnlyController(
         .orElse((value \ "value").asOpt[String])
         .getOrElse(Json.prettyPrint(value))
 
-      val (rounding, fractionalDigits, resultType, valueStr) = maybeExpr
+      val (tcType, rounding, fractionalDigits, resultType, valueStr) = maybeExpr
         .map(extractExprMeta)
-        .getOrElse(("not found", "not found", "not found", "not found"))
+        .getOrElse(("not found", "not found", "not found", "not found", "not found"))
 
       Seq(
         TableRow(HtmlContent(key)),
         TableRow(Text(exprStr)),
+        TableRow(Text(tcType)),
         TableRow(Text(rounding)),
         TableRow(Text(fractionalDigits)),
         TableRow(Text(resultType)),
@@ -548,7 +563,7 @@ class TestOnlyController(
           caption = Some("expressions"),
           captionClasses = "govuk-table__caption--m",
           head = Some(
-            Seq("Id", "Expression", "Round", "Fractional Digits", "Result Type", "Value")
+            Seq("Id", "Expression", "Type", "Round", "Fractional Digits", "Result Type", "Value")
               .map(label => HeadCell(Text(label)))
           ),
           rows = expressions.value.map { case (key, value) =>
