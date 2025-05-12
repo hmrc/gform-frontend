@@ -499,102 +499,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
               val arrayNode = ArrayNode(answers.map(_.trim).filterNot(_.isEmpty).map(TextNode).toList)
               Field(FieldName(pure.baseComponentId.value), arrayNode, Map.empty)
             } else {
-
-              val answer = answers.headOption.getOrElse("")
-
-              val maybeChoiceWithDynamic: Option[
-                (
-                  ModelComponentId,
-                  Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]]
-                )
-              ] =
-                choicesWithDynamic.find(_._1 === modelComponentId)
-
-              val default: StructuredFormValue = TextNode(answer)
-
-              val fieldValue: StructuredFormValue = maybeChoiceWithDynamic.fold(default) {
-                case (_, Left(valueBasedNel)) =>
-                  val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
-                    case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value, _))
-                        if (value match {
-                          case OptionDataValue.StringBased(v) => v === answer
-                          case OptionDataValue.ExprBased(expr) =>
-                            formModelVisibilityOptics
-                              .evalAndApplyTypeInfoFirst(expr)
-                              .stringRepresentation === answer
-                          case _ => false
-                        }) =>
-                      selectedIndex -> pointer
-                  }
-
-                  val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = valueBasedNel.collectFirst {
-                    case (
-                          selectedIndex,
-                          OptionData.ValueBased(
-                            _,
-                            _,
-                            _,
-                            Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
-                            value,
-                            _
-                          )
-                        ) if (value match {
-                          case OptionDataValue.StringBased(v) => v === answer
-                          case OptionDataValue.ExprBased(expr) =>
-                            formModelVisibilityOptics
-                              .evalAndApplyTypeInfoFirst(expr)
-                              .stringRepresentation === answer
-                          case _ => false
-                        }) =>
-                      selectedIndex -> indexOfDataRetrieveCtx.ctx
-                  }
-
-                  maybeDynamicOptionData
-                    .map(createObjectStructureForSelectedIndex)
-                    .orElse(maybeDataRetrieveCtx.flatMap(dataRetrieveToObjectStructure))
-                    .getOrElse(default)
-
-                case (_, Right(indexBasedNel)) =>
-                  val indexAnswer: Int = Try(answer.toInt).toOption.getOrElse(
-                    throw new Exception(s"Cannot convert answer $answer to an Int")
-                  )
-
-                  val maybeDynamicIndexBased: Option[(Int, FormComponentId)] =
-                    indexBasedNel.zipWithIndex.collectFirst {
-                      case (
-                            (
-                              selectedIndex,
-                              OptionData.IndexBased(_, _, _, Some(Dynamic.ATLBased(pointer)), _)
-                            ),
-                            i
-                          ) if indexAnswer === i =>
-                        selectedIndex -> pointer
-                    }
-
-                  val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = indexBasedNel.zipWithIndex.collectFirst {
-                    case (
-                          (
-                            selectedIndex,
-                            OptionData.IndexBased(
-                              _,
-                              _,
-                              _,
-                              Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
-                              _
-                            )
-                          ),
-                          i
-                        ) if indexAnswer === i =>
-                      selectedIndex -> indexOfDataRetrieveCtx.ctx
-                  }
-
-                  maybeDynamicIndexBased
-                    .map(createObjectStructureForSelectedIndex)
-                    .orElse(maybeDataRetrieveCtx.flatMap(dataRetrieveToObjectStructure))
-                    .getOrElse(default)
-
-              }
-
+              val fieldValue = evalChoicesWithDynamic(answers, modelComponentId)
               Field(FieldName(pure.baseComponentId.value), fieldValue, Map.empty)
             }
           }
@@ -610,6 +515,105 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     }.map(_.collect { case Some(x) =>
       x
     })
+
+  private def evalChoicesWithDynamic(
+    answers: Seq[String],
+    modelComponentId: ModelComponentId.Pure
+  )(implicit m: Messages): StructuredFormValue = {
+    val answer = answers.headOption.getOrElse("")
+    val maybeChoiceWithDynamic: Option[
+      (
+        ModelComponentId,
+        Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]]
+      )
+    ] =
+      choicesWithDynamic.find(_._1 === modelComponentId)
+
+    val default: StructuredFormValue = TextNode(answer)
+
+    maybeChoiceWithDynamic.fold(default) {
+      case (_, Left(valueBasedNel)) =>
+        val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
+          case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value, _))
+              if (value match {
+                case OptionDataValue.StringBased(v) => v === answer
+                case OptionDataValue.ExprBased(expr) =>
+                  formModelVisibilityOptics
+                    .evalAndApplyTypeInfoFirst(expr)
+                    .stringRepresentation === answer
+                case _ => false
+              }) =>
+            selectedIndex -> pointer
+        }
+
+        val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = valueBasedNel.collectFirst {
+          case (
+                selectedIndex,
+                OptionData.ValueBased(
+                  _,
+                  _,
+                  _,
+                  Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
+                  value,
+                  _
+                )
+              ) if (value match {
+                case OptionDataValue.StringBased(v) => v === answer
+                case OptionDataValue.ExprBased(expr) =>
+                  formModelVisibilityOptics
+                    .evalAndApplyTypeInfoFirst(expr)
+                    .stringRepresentation === answer
+                case _ => false
+              }) =>
+            selectedIndex -> indexOfDataRetrieveCtx.ctx.copy(id = indexOfDataRetrieveCtx.ctx.id.modelPageId.baseId)
+        }
+
+        maybeDynamicOptionData
+          .map(createObjectStructureForSelectedIndex)
+          .orElse(maybeDataRetrieveCtx.flatMap(dataRetrieveToObjectStructure))
+          .getOrElse(default)
+
+      case (_, Right(indexBasedNel)) =>
+        val indexAnswer: Int = Try(answer.toInt).toOption.getOrElse(
+          throw new Exception(s"Cannot convert answer $answer to an Int")
+        )
+
+        val maybeDynamicIndexBased: Option[(Int, FormComponentId)] =
+          indexBasedNel.zipWithIndex.collectFirst {
+            case (
+                  (
+                    selectedIndex,
+                    OptionData.IndexBased(_, _, _, Some(Dynamic.ATLBased(pointer)), _)
+                  ),
+                  i
+                ) if indexAnswer === i =>
+              selectedIndex -> pointer
+          }
+
+        val maybeDataRetrieveCtx: Option[(Int, DataRetrieveCtx)] = indexBasedNel.zipWithIndex.collectFirst {
+          case (
+                (
+                  selectedIndex,
+                  OptionData.IndexBased(
+                    _,
+                    _,
+                    _,
+                    Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
+                    _
+                  )
+                ),
+                i
+              ) if indexAnswer === i =>
+            selectedIndex -> indexOfDataRetrieveCtx.ctx.copy(id = indexOfDataRetrieveCtx.ctx.id.modelPageId.baseId)
+        }
+
+        maybeDynamicIndexBased
+          .map(createObjectStructureForSelectedIndex)
+          .orElse(maybeDataRetrieveCtx.flatMap(dataRetrieveToObjectStructure))
+          .getOrElse(default)
+
+    }
+  }
 
   private def createObjectStructureForSelectedIndex(
     data: (Int, FormComponentId)
@@ -652,7 +656,8 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     xs: List[(BaseComponentId, List[(ModelComponentId.Pure, IndexedComponentId.Indexed)])],
     indexedIsPure: Boolean
   )(implicit
-    l: LangADT
+    l: LangADT,
+    m: Messages
   ): F[List[Field]] =
     xs.traverse { case (baseComponentId, xss) =>
       val textNodesF: F[List[StructuredFormValue]] = xss
@@ -665,7 +670,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                 if (isStrictlyMultiSelectionIds(modelComponentId)) {
                   ArrayNode(answers.map(TextNode).toList): StructuredFormValue
                 } else {
-                  TextNode(answers.headOption.getOrElse(""))
+                  evalChoicesWithDynamic(answers, modelComponentId)
                 }
               }
               .pure[F]
