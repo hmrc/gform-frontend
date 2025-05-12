@@ -20,15 +20,15 @@ import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, Expressi
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormComponent, FormComponentId, FormPhase, IncludeIf, Overrides, RemoveItemIf, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormPhase, IncludeIf, RemoveItemIf, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveResult, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 import com.softwaremill.quicklens._
 
 case class FormModelVisibilityOptics[D <: DataOrigin](
   formModel: FormModel[Visibility],
   recData: RecData[SourceOrigin.Current],
-  recalculationResult: RecalculationResult,
-  overrides: Option[Overrides]
+  recalculationResult: RecalculationResult
 ) {
 
   val evaluationResults: EvaluationResults = recalculationResult.evaluationResults
@@ -73,10 +73,8 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
       typeInfo
     )
 
-  def isOverrideIncludeIf: Boolean = overrides.fold(false)(o => o.disableIncludeIfs.getOrElse(false))
-
   def evalIncludeIfExpr(includeIf: IncludeIf, phase: Option[FormPhase]): Boolean =
-    FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, phase, isOverrideIncludeIf)
+    FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, phase)
 
   def evalRemoveItemIf(removeItemIf: RemoveItemIf): Boolean =
     FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel)

@@ -93,8 +93,7 @@ object FormModelOptics {
       FormModelVisibilityOptics(
         FormModel.fromEnrolmentSection[Visibility](enrolmentSection),
         RecData.empty,
-        RecalculationResult.empty(evaluationContext),
-        cache.formTemplate.overrides
+        RecalculationResult.empty(evaluationContext)
       )
     )
   }
@@ -123,7 +122,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, cache.formTemplate.overrides)
+      formModelBuilder.visibilityModel(data, phase)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
