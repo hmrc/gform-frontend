@@ -2286,7 +2286,7 @@ class SectionRenderingService(
 
     val isOneOrMoreFilesUploaded: Boolean = currentValues match {
       case _ :: _ => true
-      case Nil    => false
+      case Nil    => ei.getButtonName(validationResult).isEmpty
     }
 
     val labelContent: content.Text = if (isOneOrMoreFilesUploaded) {

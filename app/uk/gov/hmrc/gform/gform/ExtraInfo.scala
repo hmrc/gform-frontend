@@ -94,8 +94,9 @@ final case class ExtraInfo(
     renderableAsSingleFileUpload match {
       case (fc @ IsFileUpload(_)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
         Some("singleFile")
-      case (fc @ IsMultiFileUpload(_)) :: Nil if !isMultiAlreadyUploaded(fc, validationResult) => Some("multiFile")
-      case _                                                                                   => None
+      case (fc @ IsMultiFileUpload(_)) :: Nil if fc.mandatory && !isMultiAlreadyUploaded(fc, validationResult) =>
+        Some("multiFile")
+      case _ => None
     }
 
   def isAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
