@@ -43,7 +43,8 @@ case class FrontendAppConfig(
   refreshSessionUrl: String,
   isProd: Boolean,
   configuration: Configuration,
-  submittedFormExpiryDays: Int
+  submittedFormExpiryDays: Int,
+  optimizelyUrl: Option[String]
 ) {
 
   def languageSwitchCall(

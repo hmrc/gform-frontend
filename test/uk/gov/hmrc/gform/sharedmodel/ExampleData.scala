@@ -1083,6 +1083,7 @@ trait ExampleFrontendAppConfig {
     refreshSessionUrl = "refreshSessionUrl",
     isProd = true,
     configuration = context.initialConfiguration,
-    submittedFormExpiryDays = 7
+    submittedFormExpiryDays = 7,
+    optimizelyUrl = None
   )
 }

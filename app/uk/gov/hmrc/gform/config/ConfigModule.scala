@@ -103,7 +103,11 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       refreshSessionUrl = typesafeConfig.getString("refresh-session-url"),
       isProd = isProd,
       configuration = playConfiguration,
-      submittedFormExpiryDays = typesafeConfig.getInt("submittedFormExpiryDays")
+      submittedFormExpiryDays = typesafeConfig.getInt("submittedFormExpiryDays"),
+      optimizelyUrl = for {
+        url       <- playConfiguration.getOptional[String]("optimizely.url")
+        projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
+      } yield s"$url$projectId.js"
     )
   }
 }
