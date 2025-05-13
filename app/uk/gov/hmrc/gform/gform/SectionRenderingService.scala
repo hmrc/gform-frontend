@@ -137,6 +137,8 @@ class SectionRenderingService(
         cache.retrievals
       )
 
+    val envelopeUpd = envelope.byPurpose(SummaryPagePurpose.ForUser)
+
     val summaryListRecords: List[SummaryList] = SectionRenderingService.summaryList(
       formTemplate._id,
       checkYourAnswers,
@@ -145,7 +147,7 @@ class SectionRenderingService(
       maybeAccessCode,
       cache,
       validationResult,
-      envelope,
+      envelopeUpd,
       addressRecordLookup,
       sectionNumber,
       fastForward
@@ -184,7 +186,8 @@ class SectionRenderingService(
                   redirects = None,
                   hideSaveAndComeBackButton = None,
                   removeItemIf = None,
-                  displayWidth = None
+                  displayWidth = None,
+                  notRequiredIf = None
                 )
 
               val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
@@ -404,7 +407,8 @@ class SectionRenderingService(
                   redirects = None,
                   hideSaveAndComeBackButton = None,
                   removeItemIf = None,
-                  displayWidth = None
+                  displayWidth = None,
+                  notRequiredIf = None
                 )
               val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
 
@@ -761,7 +765,7 @@ class SectionRenderingService(
         retrievals.continueLabelKey,
         DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
-        ei.isFileUploadOnlyPage(validationResult).isDefined
+        ei.getButtonName(validationResult).isDefined
       ),
       formMaxAttachmentSizeMB,
       allowedFileTypes,
@@ -776,7 +780,8 @@ class SectionRenderingService(
       renderingInfo,
       shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver),
       ei.saveAndComeBackLaterButton,
-      ei.isFileUploadOnlyPage(validationResult).isDefined
+      ei.isFileUploadOnlyPage(validationResult).isDefined,
+      ei.getButtonName(validationResult)
     )
 
     html.form.form(
@@ -1046,7 +1051,8 @@ class SectionRenderingService(
       renderingInfo,
       shouldDisplayContinue = true,
       ei.saveAndComeBackLaterButton,
-      isFileUploadOnlyPage = false
+      isFileUploadOnlyPage = false,
+      None
     )
     html.form.form(
       formTemplate,
@@ -1147,7 +1153,8 @@ class SectionRenderingService(
       renderingInfo,
       shouldDisplayContinue = true,
       ei.saveAndComeBackLaterButton,
-      isFileUploadOnlyPage = false
+      isFileUploadOnlyPage = false,
+      None
     )
     html.form.form(
       formTemplate,
@@ -1400,7 +1407,8 @@ class SectionRenderingService(
       renderingInfo,
       shouldDisplayContinue = true,
       ei.saveAndComeBackLaterButton,
-      isFileUploadOnlyPage = false
+      isFileUploadOnlyPage = false,
+      None
     )
     html.form
       .form(
@@ -1541,7 +1549,7 @@ class SectionRenderingService(
                 htmlForFileUploadSingle(formComponent, ei, upscanData, additionalAttributes)
             }
 
-          case mfu @ MultiFileUpload(_, allowedFileTypes, _, _) =>
+          case mfu @ MultiFileUpload(_, allowedFileTypes, _, _, _) =>
             val allowedContentTypes = allowedFileTypes
               .map(_.contentTypes)
               .getOrElse(ei.formTemplate.allowedFileTypes.contentTypes)
@@ -2231,13 +2239,16 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ) = {
 
-    val showFileUpload: Option[String] = request.getQueryString("showFileUpload") // This is ugly
+    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
-    val formFieldValidationResult = validationResult(formComponent)
+    val flashError: Option[String] = request.flash.get(GformFlashKeys.FileUploadError)
+    val errors: Option[String] =
+      if (flashError.isDefined)
+        flashError
+      else
+        ValidationUtil.renderErrors(formFieldValidationResult).headOption
 
-    val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption
-
-    val errorMessage = errors.map(error =>
+    val errorMessage: Option[ErrorMessage] = errors.map(error =>
       ErrorMessage.errorMessageWithDefaultStringsTranslated(
         content = content.Text(error)
       )
@@ -2273,11 +2284,20 @@ class SectionRenderingService(
       case _ => List.empty[(FileId, String, Call)]
     }
 
-    val labelContent = content.Text(formComponent.label.value())
+    val isOneOrMoreFilesUploaded: Boolean = currentValues match {
+      case _ :: _ => true
+      case Nil    => false
+    }
 
-    val isPageHeading = ei.formLevelHeading
+    val labelContent: content.Text = if (isOneOrMoreFilesUploaded) {
+      content.Text(multiFileUpload.uploadAnotherLabel.getOrElse(formComponent.label).value())
+    } else {
+      content.Text(formComponent.label.value())
+    }
 
-    val label = Label(
+    val isPageHeading: Boolean = ei.formLevelHeading
+
+    val label: Label = Label(
       isPageHeading = isPageHeading,
       classes = getLabelClasses(isPageHeading, formComponent.labelSize),
       content = labelContent
@@ -2292,28 +2312,20 @@ class SectionRenderingService(
       attributes = attributes
     )
 
-    val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
-    val sn = ei.sectionNumber
-    val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
-    val promptUrl =
-      uk.gov.hmrc.gform.gform.routes.MultiFileUploadController.multi(
-        formTemplateId,
-        ei.maybeAccessCode,
-        ei.sectionNumber,
-        sectionTitle4Ga,
-        SuppressErrors.Yes,
-        List(FastForward.StopAt(ei.sectionNumber)),
-        true
-      )
-
     val fileInput: Html =
       new components.GovukFileUpload(govukLabel, govukFormGroup, govukHintAndErrorMessage)(fileUpload)
+
+    val submitButtonClasses = if (isOneOrMoreFilesUploaded) {
+      "govuk-button--secondary"
+    } else {
+      "govuk-button--secondary js-hidden"
+    }
 
     val submitButton: GovukButton = GovukButton(
       name = Some(s"${formComponent.id}-uploadButton"),
       content = content.Text(messages("file.upload")),
       inputType = Some("submit"),
-      classes = "govuk-button--secondary",
+      classes = submitButtonClasses,
       attributes = Map(
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
@@ -2323,38 +2335,25 @@ class SectionRenderingService(
 
     val submitButtonHtml: Html = new components.GovukButton()(submitButton)
 
-    val singleton = ei.singleton
-    val page = singleton.page
-    val formLevelHeading = shouldDisplayHeading(singleton)
-    val sectionHeader = html.form.snippets.header_multi_file(page.sectionHeader().sectionTitle)
-
-    val showPrompt = showFileUpload.contains("true")
-    val uploadAnotherLabel =
-      multiFileUpload.uploadAnotherLabel.map(_.value()).getOrElse(messages("file.upload.another"))
     val hint: Html =
       multiFileUpload.hint.map(hint => html.form.snippets.multi_file_hint(hint.value())).getOrElse(HtmlFormat.empty)
+
     val uploadedFiles: Html =
       html.form.snippets
         .uploaded_files_multi(
           formComponent.id,
-          currentValues,
-          promptUrl,
-          showPrompt,
-          uploadAnotherLabel
+          currentValues
         )
 
-    currentValues match {
-      case _ :: _ =>
-        if (showPrompt) {
-          HtmlFormat.fill(List(hint, fileInput, submitButtonHtml, uploadedFiles))
-        } else {
-          if (formLevelHeading) {
-            HtmlFormat.fill(List(hint, sectionHeader, uploadedFiles))
-          } else {
-            HtmlFormat.fill(List(hint, uploadedFiles))
-          }
-        }
-      case Nil => HtmlFormat.fill(List(hint, fileInput, uploadedFiles, submitButtonHtml))
+    val continueText: Html =
+      multiFileUpload.continueText
+        .map(continue => html.form.snippets.markdown_wrapper(HtmlFormat.raw(continue.value())))
+        .getOrElse(HtmlFormat.empty)
+
+    if (isOneOrMoreFilesUploaded) {
+      HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml, continueText))
+    } else {
+      HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml))
     }
   }
 
@@ -3538,6 +3537,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator,
     m: Messages
   ): Html = {
+
     val errors: Option[String] = request.flash.get(GformFlashKeys.FileUploadError)
 
     val errorMessage = errors.map(error =>
@@ -3713,7 +3713,7 @@ class SectionRenderingService(
   def shouldDisplayHeading(
     singleton: Singleton[DataExpanded]
   ): Boolean =
-    singleton.page.allFields.dropWhile(_.onlyShowOnSummary).headOption.map(_.isPageHeading).getOrElse(false)
+    singleton.page.allFields.dropWhile(_.onlyShowOnSummary).headOption.exists(_.isPageHeading)
 
   private def dataLabelAttribute(label: SmartString, resolver: BooleanExpr => Boolean): Map[String, String] =
     dataLabelAttribute(label.localised(resolver).value(LangADT.En))

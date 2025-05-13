@@ -832,9 +832,13 @@ object SummaryRenderingService {
 
   def renderPageField(field: PageField): XmlFormat.Appendable = field match {
     case SimpleField(label, values) =>
-      listItem(label, simpleField(values.map(v => PdfHelper.sanitiseHtml(v.body))))
+      if (values.isEmpty) XmlFormat.empty
+      else
+        listItem(label, simpleField(values.map(v => PdfHelper.sanitiseHtml(v.body))))
     case ChoiceField(label, values) =>
-      listItem(label, choiceField(values.map(v => PdfHelper.sanitiseHtml(v.body))))
+      if (values.isEmpty) XmlFormat.empty
+      else
+        listItem(label, choiceField(values.map(v => PdfHelper.sanitiseHtml(v.body))))
     case rc: RevealingChoiceField =>
       val renderedElements = if (rc.isSeparate) {
         listItem(rc.label, revealingChoiceField(rc.choiceElements.map(ce => ce.label))) ::

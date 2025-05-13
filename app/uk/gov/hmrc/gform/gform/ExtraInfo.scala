@@ -20,13 +20,12 @@ import cats.syntax.all._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.SaveAndExit
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.FastForward
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ DataExpanded, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, Singleton }
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FileUpload, FormComponent, FormTemplate, IsFileUpload, IsInformationMessage, IsTableComp, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicValue }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -91,7 +90,17 @@ final case class ExtraInfo(
       case _ => None
     }
 
+  def getButtonName(validationResult: ValidationResult): Option[String] =
+    renderableAsSingleFileUpload match {
+      case (fc @ IsFileUpload(_)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
+        Some("singleFile")
+      case (fc @ IsMultiFileUpload(_)) :: Nil if !isMultiAlreadyUploaded(fc, validationResult) => Some("multiFile")
+      case _                                                                                   => None
+    }
+
   def isAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
     !validationResult(formComponent).getCurrentValue.forall(_ === "")
 
+  def isMultiAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
+    validationResult(formComponent).getComponentFieldIndices(formComponent.id).nonEmpty
 }

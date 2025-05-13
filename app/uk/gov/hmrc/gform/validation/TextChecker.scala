@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
@@ -290,11 +289,11 @@ object TextChecker {
         validateShortTextConstraint(fieldValue, inputText, c.min, c.max, c.min <= 1)
       )
     )
-    def lookupCheck(c: Lookup): CheckProgram[Unit] =
+    def lookupCheck(c: Lookup, messageKey: String): CheckProgram[Unit] =
       conditionalMandatoryCheck(
         mandatoryFailure = validationFailure(
           fieldValue,
-          genericErrorTextRequired,
+          messageKey,
           (Some(errorShortNameWithFallback(fieldValue).pure[List]))
         ),
         nonEmptyCheck = lookupValidation(
@@ -394,35 +393,9 @@ object TextChecker {
           SmartString.blank.transform(_ => "an", identity).value().pure[List]
         ))
       ),
-      nonEmptyCheck = List(
-        validateTextConstraint(
-          fieldValue,
-          inputText,
-          0,
-          ValidationValues.emailLimit,
-          Some(emailErrorFirstPlaceholder()),
-          true
-        ),
-        email(fieldValue, inputText)
-      ).shortCircuitProgram
+      nonEmptyCheck = email(fieldValue, inputText)
     )
-    def emailVerifiedByCheck(c: EmailVerifiedBy): CheckProgram[Unit] = List(
-      validateTextConstraint(
-        fieldValue,
-        inputText,
-        0,
-        ValidationValues.emailLimit,
-        Some(emailErrorFirstPlaceholder())
-      ),
-      email(fieldValue, inputText)
-    ).shortCircuitProgram
-
-    def emailErrorFirstPlaceholder(): String = fieldValue.errorShortNameStart
-      .flatMap(_.nonBlankValue())
-      .map(s => SmartString.blank.transform(_ => s + " email", _ => "gyfeiriad e-bost " + s).value())
-      .getOrElse(
-        SmartString.blank.transform(_ => "Email", _ => "gyfeiriad e-bost").value()
-      )
+    def emailVerifiedByCheck(c: EmailVerifiedBy): CheckProgram[Unit] = email(fieldValue, inputText)
 
     def utrCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
@@ -519,8 +492,6 @@ object TextChecker {
       ),
       nonEmptyCheck = checkChildBenefitNumber(fieldValue, inputText)
     )
-
-    def radioLookupCheck(): CheckProgram[Unit] = validationFailure(fieldValue, choiceErrorRequired, None)
 
     def yearFormatCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
       mandatoryFailure = validationFailure(
@@ -651,8 +622,8 @@ object TextChecker {
       case EORI                           => eoriCheck()
       case UkEORI                         => ukEoriCheck()
       case ChildBenefitNumber             => childBenefitNumberCheck()
-      case IsRadioLookupTextConstraint(_) => radioLookupCheck()
-      case c: Lookup                      => lookupCheck(c)
+      case IsRadioLookupTextConstraint(r) => lookupCheck(r, choiceErrorRequired)
+      case c: Lookup                      => lookupCheck(c, genericErrorTextRequired)
       case YearFormat                     => yearFormatCheck()
       case TimeFormat                     => timeFormatCheck()
       case _                              => catchAllCheck()

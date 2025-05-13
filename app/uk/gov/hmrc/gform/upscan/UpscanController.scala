@@ -20,6 +20,7 @@ import org.apache.pekko.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
@@ -72,14 +73,25 @@ class UpscanController(
               confirmation.status match {
                 case UpscanFileStatus.Ready =>
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
-                    fastForwardService
-                      .redirectStopAt[SectionSelectorType.Normal](
-                        sectionNumber,
-                        cache.copy(form = form),
-                        maybeAccessCode,
-                        formModelOptics,
-                        SuppressErrors.No
+                    for {
+                      res <- fastForwardService
+                               .redirectStopAt[SectionSelectorType.Normal](
+                                 sectionNumber,
+                                 cache.copy(form = form),
+                                 maybeAccessCode,
+                                 formModelOptics,
+                                 SuppressErrors.No
+                               )
+                    } yield {
+                      val header = request.messages.messages("file.fileuploaded")
+                      val filename =
+                        confirmation.filename.getOrElse(SmartString.blank.transform(_ => "File", _ => "Ffeil").value())
+
+                      val content = request.messages.messages("file.upload.success", HtmlFormat.escape(filename))
+                      res.flashing(
+                        "success" -> s"$header|$content"
                       )
+                    }
                   }
                 case UpscanFileStatus.Failed =>
                   val fileId = FileId(formComponentId.value)
@@ -152,22 +164,23 @@ class UpscanController(
         // Note. This is not an issue for non-js journey as non-js users have never a chance to reuse upscan reference
         upscanService.deleteConfirmation(upscanReference).map { _ =>
           confirmation match {
-            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _)) | None => NoContent
+            case Some(UpscanConfirmation(_, UpscanFileStatus.Ready, _, _)) | None => NoContent
             case Some(
                   UpscanConfirmation(
                     _,
                     UpscanFileStatus.Failed,
-                    ConfirmationFailure.GformValidationFailure(failureDetails)
+                    ConfirmationFailure.GformValidationFailure(failureDetails),
+                    _
                   )
                 ) =>
               Ok(failureDetails.toJsCode)
             case Some(
-                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.UpscanFailure(failureDetails))
+                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.UpscanFailure(failureDetails), _)
                 ) =>
               Ok(failureDetails.failureReason)
 
             case Some(
-                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.AllOk)
+                  UpscanConfirmation(_, UpscanFileStatus.Failed, ConfirmationFailure.AllOk, _)
                 ) =>
               throw new Exception("Upscan problem - 'Failed' status cannot have ConfirmationFailure.AllOk")
           }

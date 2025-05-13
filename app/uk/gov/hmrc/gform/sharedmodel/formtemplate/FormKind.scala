@@ -56,7 +56,8 @@ sealed trait FormKind extends Product with Serializable {
         taskSection.tasks.zipWithIndex.map { case (task, taskIndex) =>
           Coordinates(TaskSectionNumber(taskSectionIndex), TaskNumber(taskIndex)) -> updateIncludeIf(
             task.sections.toList,
-            task.includeIf
+            task.includeIf,
+            task.notRequiredIf
           ).zipWithIndex.map { case (s, i) => IndexedSection.SectionIndex(s, TemplateSectionIndex(i)) }
         }
       }
@@ -81,11 +82,27 @@ sealed trait FormKind extends Product with Serializable {
     atlMap ++ groupMap ++ repeatingMap
   )
 
-  private def updateIncludeIf(sections: List[Section], includeIf: Option[IncludeIf]): List[Section] =
+  private def updateIncludeIf(
+    sections: List[Section],
+    includeIf: Option[IncludeIf],
+    notRequiredIf: Option[IncludeIf]
+  ): List[Section] =
     sections.map {
-      case s: Section.NonRepeatingPage => s.modify(_.page.includeIf).using(andIncludeIfs(_, includeIf))
-      case s: Section.RepeatingPage    => s.modify(_.page.includeIf).using(andIncludeIfs(_, includeIf))
-      case s: Section.AddToList        => s.modify(_.includeIf).using(andIncludeIfs(_, includeIf))
+      case s: Section.NonRepeatingPage =>
+        s.modify(_.page.includeIf)
+          .using(andIncludeIfs(_, includeIf))
+          .modify(_.page.notRequiredIf)
+          .using(andIncludeIfs(_, notRequiredIf))
+      case s: Section.RepeatingPage =>
+        s.modify(_.page.includeIf)
+          .using(andIncludeIfs(_, includeIf))
+          .modify(_.page.notRequiredIf)
+          .using(andIncludeIfs(_, notRequiredIf))
+      case s: Section.AddToList =>
+        s.modify(_.includeIf)
+          .using(andIncludeIfs(_, includeIf))
+          .modify(_.notRequiredIf)
+          .using(andIncludeIfs(_, notRequiredIf))
     }
 
   private def andIncludeIfs(includeIf1: Option[IncludeIf], includeIf2: Option[IncludeIf]): Option[IncludeIf] =

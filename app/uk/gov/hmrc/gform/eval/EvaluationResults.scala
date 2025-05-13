@@ -128,31 +128,36 @@ case class EvaluationResults(
     } else body
   }
 
-  private def addToListCount(
+  private def addToListOrMultiFileCount(
     formComponentId: FormComponentId,
     recData: RecData[SourceOrigin.OutOfDate],
     evaluationContext: EvaluationContext
   ): NumberResult =
-    if (evaluationContext.addToListIds.contains(AddToListId(formComponentId))) {
-      val firstQuestionFcId = formComponentId.withFirstIndex
-      val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
-      if (isHidden.contains(Hidden)) {
-        NumberResult(0)
+    if (evaluationContext.fileIdsWithMapping.isMultiFileField(formComponentId.modelComponentId)) {
+      val count = evaluationContext.multiFilesData.get(formComponentId.modelComponentId).fold(0)(l => l.size)
+      NumberResult(count)
+    } else {
+      val unIndexedId = formComponentId.modelComponentId.removeIndex.toFormComponentId
+      if (evaluationContext.addToListIds.contains(AddToListId(unIndexedId))) {
+        val firstQuestionFcId = formComponentId.withFirstIndex
+        val isHidden = exprMap.get(FormCtx(firstQuestionFcId))
+        if (isHidden.contains(Hidden)) {
+          NumberResult(0)
+        } else {
+          val xs: Iterable[(ModelComponentId, VariadicValue)] =
+            recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
+          val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
+          NumberResult(zeros + 1)
+        }
       } else {
         val xs: Iterable[(ModelComponentId, VariadicValue)] =
-          recData.variadicFormData.forBaseComponentId(formComponentId.baseComponentId)
-        val zeros: Int = xs.map(_._2).count(_.contains(0.toString))
-        NumberResult(zeros + 1)
+          recData.variadicFormData
+            .forBaseComponentId(formComponentId.baseComponentId)
+            .filterNot { case (baseId, _) =>
+              exprMap.get(FormCtx(baseId.toFormComponentId)).contains(Hidden)
+            }
+        NumberResult(xs.size)
       }
-    } else {
-      val xs: Iterable[(ModelComponentId, VariadicValue)] =
-        recData.variadicFormData
-          .forBaseComponentId(formComponentId.baseComponentId)
-          .filterNot { case (baseId, _) =>
-            exprMap.get(FormCtx(baseId.toFormComponentId)).contains(Hidden)
-          }
-
-      NumberResult(xs.size)
     }
 
   private def addToListIndex(
@@ -328,7 +333,7 @@ case class EvaluationResults(
       case Sum(_) =>
         val substitutions = SummarySubstitutions(exprMap, repeatedComponentsDetails)
         loop(implicitly[Substituter[SummarySubstitutions, Expr]].substitute(substitutions, expr))
-      case Count(formComponentId)   => addToListCount(formComponentId, recData, evaluationContext)
+      case Count(formComponentId)   => addToListOrMultiFileCount(formComponentId, recData, evaluationContext)
       case Index(formComponentId)   => addToListIndex(formComponentId, recData)
       case AuthCtx(value: AuthInfo) => unsupportedOperation("Number")(expr)
       case UserCtx(value: UserField) =>
@@ -538,7 +543,7 @@ case class EvaluationResults(
       case Count(formComponentId) =>
         nonEmptyStringResult(
           StringResult(
-            addToListCount(formComponentId, recData, evaluationContext)
+            addToListOrMultiFileCount(formComponentId, recData, evaluationContext)
               .stringRepresentation(typeInfo, evaluationContext.messages)
           )
         )

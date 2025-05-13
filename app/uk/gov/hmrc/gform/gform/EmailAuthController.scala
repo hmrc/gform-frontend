@@ -23,7 +23,6 @@ import org.typelevel.ci.CIString
 import play.api.data
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
-import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.{ CompositeAuthDetails, EmailAuthDetails, InvalidEmail, ValidEmail }
 import uk.gov.hmrc.gform.commons.MarkDownUtil
@@ -40,7 +39,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, E
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
-import uk.gov.hmrc.gform.validation.ValidationValues
+import uk.gov.hmrc.gform.validation.{ EmailAddress, ValidationValues }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content

@@ -437,6 +437,7 @@ taxPeriod.noResults.getHelp=Contact HMRC to get help.
 # File upload
 file.upload=Upload file
 file.upload.done=<strong>{0} has been uploaded</strong>
+file.upload.success=<strong>{0}</strong> was successfully uploaded
 file.delete=Delete
 file.delete.confirm=Are you sure you want to remove the file?
 file.remove=Remove
@@ -451,6 +452,7 @@ file.error.missing=Select {0}
 file.error.invalid.argument=Select {1}. It must be a {0}.
 file.error.rejected=The selected file must be a {0}
 file.uploaded=Uploaded
+file.fileuploaded=File uploaded
 file.upload.another=Upload another file
 
 # Assistive text

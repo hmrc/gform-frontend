@@ -102,7 +102,8 @@ trait FormTemplateSample {
               redirects = None,
               hideSaveAndComeBackButton = None,
               removeItemIf = None,
-              displayWidth = None
+              displayWidth = None,
+              notRequiredIf = None
             )
           )
         )

@@ -147,7 +147,8 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
               redirects = None,
               hideSaveAndComeBackButton = None,
               removeItemIf = None,
-              displayWidth = None
+              displayWidth = None,
+              notRequiredIf = None
             )
           )
         )

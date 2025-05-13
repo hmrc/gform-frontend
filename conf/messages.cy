@@ -423,6 +423,7 @@ taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 # File upload
 file.upload=Uwchlwytho’r ffeil
 file.upload.done=<strong>Uwchlwythwyd {0}</strong>
+file.upload.success=Uwchlwythodd <strong>{0}</strong> yn llwyddiannus.
 file.delete=Dileu
 file.delete.confirm=A ydych yn siŵr eich bod am ddileu’r y ffeil?
 file.remove=Tynnu
@@ -437,6 +438,7 @@ file.error.missing=Dewiswch {0}
 file.error.invalid.argument=Dewiswch {1}. Mae'n rhaid i'r ffeil fod ar ffurf {0}.
 file.error.rejected=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
 file.uploaded=Wedi’i uwchlwytho
+file.fileuploaded=Ffeil wedi’i uwchlwytho
 file.upload.another=Llwythwch ffeil arall i fyny
 
 # Assistive text
@@ -460,7 +462,7 @@ ack.feedbackText2=nawr
 # Access code start page
 accessCode.formAccessCodeForAgents=cod mynediad
 accessCode.title=Defnyddio’r gwasanaeth hwn
-accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir cod mynediad i chi.
+accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir cod mynediad i chi
 accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am cod mynediad dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.
 accessCode.p3=Beth hoffech ei wneud?
 accessCode.startNew=Dechrau {0} newydd
@@ -472,10 +474,10 @@ accessCode.enter.continue.p1=Bydd angen i chi ddarparu’r cod mynediad perthnas
 accessCode.enter.download.p1=Bydd angen i chi nodi’r cod mynediad perthnasol i lawrlwytho copi o {0} a gyflwynwyd yn flaenorol
 accessCode.enter.continue.p2=Rhoddwyd cod mynediad i chi pan ddechreuoch neu pan gadwoch {0} ar gyfer y gwasanaeth hwn. Mae’n ddilys am 28 diwrnod
 accessCode.enter.download.p2=Rhoddwyd cod mynediad i chi pan ddechreuoch neu pan gadwoch {0} ar gyfer y gwasanaeth hwn. Bydd copi o {0} a gyflwynwyd gennych yn flaenorol dim ond ar gael am hyd at {1} diwrnod ar ôl iddi gael ei chyflwyno
-accessCode.enterKey=Nodwch y cod cyrchu
+accessCode.enterKey=Nodwch y cod mynediad
 accessCode.formAccessCodeForAgents.keyHintText=Mae gan hyn 12 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, A12-B456-8ZZ
 accessCode.submissionReference.keyHintText=Mae gan hyn 14 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, AB12-B456-98ZZ
-accessCode.new.title=Gwnewch nodyn o’r cod cyrchu
+accessCode.new.title=Gwnewch nodyn o’r cod mynediad
 accessCode.whatYouCanDoNext=Yr hyn y gallwch ei wneud nesaf
 accessCode.new.keepNote=Gwnewch nodyn o’ch cod mynediad ar gyfer y {1} hwn
 accessCode.new.youWillBeAsked=Gofynnir i chi amdani bob tro y byddwch yn dod yn ôl i barhau i weithio ar y {0} hwn

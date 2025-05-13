@@ -55,7 +55,7 @@ import uk.gov.hmrc.gform.views.html.debug.{ toolbox, viewExpressions }
 import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
-import uk.gov.hmrc.gform.{ BuildInfo, FormTemplateKey }
+import uk.gov.hmrc.gform.{ BuildInfo }
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Fieldset, InsetText, Label, Legend, RadioItem, Radios, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukFieldset, GovukHint, GovukInsetText, GovukLabel, GovukRadios, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -1013,13 +1013,7 @@ class TestOnlyController(
                         useOriginalTemplate
                       )
                       .url
-      result <- s.ggFormData match {
-                  case Some(ggFormData) =>
-                    authLoginStubService
-                      .getSession(ggFormData.withRedirectionUrl(redirectUrl))
-                      .map(Redirect(redirectUrl).withSession)
-                  case None => Redirect(redirectUrl).pure[Future]
-                }
+      result <- getSessionAndRedirect(s.ggFormData, redirectUrl)
     } yield result
 
   def restoreAllGet(
@@ -1029,13 +1023,11 @@ class TestOnlyController(
     useOriginalTemplate: Boolean
   ) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
-      implicit request => implicit lang => cache =>
-        val formTemplateContext = request.attrs(FormTemplateKey)
+      implicit request => lang => cache =>
         for {
           _ <- if (useOriginalTemplate) {
                  ().pure[Future]
                } else gformConnector.restoreSnapshotTemplate(snapshotId.value)
-          _ <- newFormController.continue(cache, formTemplateContext.formTemplate, SuppressErrors.Yes)
         } yield Redirect(
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController.restoreContinue(
             formTemplateId,
@@ -1060,9 +1052,18 @@ class TestOnlyController(
     for {
       snapshot <- gformConnector.restoreForm(snapshotId, formId, useOriginalTemplate)
       restoreTemplateId = if (useOriginalTemplate) snapshot.originalTemplateId else snapshot.templateId
-    } yield Redirect(
-      uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(restoreTemplateId)
-    )
+      redirectUrl: String = uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(restoreTemplateId).url
+      result <- getSessionAndRedirect(snapshot.ggFormData, redirectUrl)
+    } yield result
+
+  private def getSessionAndRedirect(ggFormData: Option[GovernmentGatewayFormData], redirectUrl: String) =
+    ggFormData match {
+      case Some(ggFormData) =>
+        authLoginStubService
+          .getSession(ggFormData.withRedirectionUrl(redirectUrl))
+          .map(Redirect(redirectUrl).withSession)
+      case None => Redirect(redirectUrl).pure[Future]
+    }
 
   def updateSnapshotPage(
     formTemplateId: FormTemplateId,

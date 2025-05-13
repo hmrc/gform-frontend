@@ -82,12 +82,25 @@
     @pageLevelError.render
 
     @request.flash.get("success").fold(Html("")) { successMessage =>
-        @govukNotificationBanner(NotificationBanner(
-            title = Text(messages("generic.Success")),
-            content = Text(successMessage),
-            bannerType = Some("success"),
-            role=Some("alert"))
-        )
+        @{
+            val parts = successMessage.split("\\|")
+            val content = if(parts.size == 2)
+                HtmlContent(
+                    s"""
+                       |<h3 class="govuk-notification-banner__heading">${parts(0)}</h3>
+                       |<p class="govuk-body">${parts(1)}</p>
+                       |""".stripMargin
+                )
+            else
+                Text(parts(0))
+
+            govukNotificationBanner(NotificationBanner(
+                title = Text(messages("generic.Success")),
+                content = content,
+                bannerType = Some("success"),
+                role=Some("alert"))
+            )
+        }
     }
 
     @titleContent {
