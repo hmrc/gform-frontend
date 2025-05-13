@@ -55,7 +55,8 @@ import uk.gov.hmrc.gform.views.html.debug.{ toolbox, viewExpressions }
 import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
-import uk.gov.hmrc.gform.{ BuildInfo }
+import uk.gov.hmrc.gform.BuildInfo
+import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Fieldset, InsetText, Label, Legend, RadioItem, Radios, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukFieldset, GovukHint, GovukInsetText, GovukLabel, GovukRadios, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -476,59 +477,112 @@ class TestOnlyController(
     formTemplateId: FormTemplateId,
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(implicit request: Request[AnyContent], lang: LangADT, hc: HeaderCarrier, message: Messages) =
+  )(implicit request: Request[AnyContent], lang: LangADT, hc: HeaderCarrier, message: Messages): Future[Result] = {
+
+    def extractExprMeta(expr: Expr): (String, String, String, String, String) = {
+      val evaluated = formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
+      val staticTypeData = evaluated.typeInfo.staticTypeData
+
+      val tcType = staticTypeData.textConstraint.fold("")(tc => tc.getClass.getSimpleName.stripSuffix("$"))
+
+      val rounding = staticTypeData.textConstraint
+        .collect {
+          case Number(_, _, roundingMode, _)         => roundingMode.toString
+          case PositiveNumber(_, _, roundingMode, _) => roundingMode.toString
+          case Sterling(roundingMode, _)             => roundingMode.toString
+        }
+        .getOrElse("")
+
+      val fractionalDigits = staticTypeData.textConstraint
+        .collect {
+          case Number(_, maxFractionalDigits, _, _)         => maxFractionalDigits.toString
+          case PositiveNumber(_, maxFractionalDigits, _, _) => maxFractionalDigits.toString
+        }
+        .getOrElse("")
+
+      val resultType = evaluated.expressionResult match {
+        case ExpressionResult.Invalid(explanation)  => s"Invalid: $explanation"
+        case ExpressionResult.NumberResult(_)       => "Number Result"
+        case ExpressionResult.StringResult(_)       => "String Result"
+        case ExpressionResult.DateResult(_)         => "Date Result"
+        case ExpressionResult.TaxPeriodResult(_, _) => "Tax Period Result"
+        case ExpressionResult.PeriodResult(_)       => "Period Result"
+        case ExpressionResult.OptionResult(_)       => "Option Result"
+        case ExpressionResult.ListResult(_)         => "List Result"
+        case ExpressionResult.AddressResult(_)      => "Address Result"
+        case _                                      => ""
+      }
+      val value = evaluated.stringRepresentation
+
+      (tcType, rounding, fractionalDigits, resultType, value)
+    }
+
+    def buildExprRow(key: String, value: JsValue, maybeExpr: Option[Expr]): Seq[TableRow] = {
+      val exprStr = value
+        .asOpt[String]
+        .orElse((value \ "value").asOpt[String])
+        .getOrElse(Json.prettyPrint(value))
+
+      val (tcType, rounding, fractionalDigits, resultType, valueStr) = maybeExpr
+        .map(extractExprMeta)
+        .getOrElse(("not found", "not found", "not found", "not found", "not found"))
+
+      Seq(
+        TableRow(HtmlContent(key)),
+        TableRow(Text(exprStr)),
+        TableRow(Text(tcType)),
+        TableRow(Text(rounding)),
+        TableRow(Text(fractionalDigits)),
+        TableRow(Text(resultType)),
+        TableRow(Text(valueStr))
+      )
+    }
+
+    def buildBooleanExprRow(key: String, value: JsValue, maybeExpr: Option[BooleanExpr]): Seq[TableRow] = {
+      val exprStr = value.asOpt[String].getOrElse(Json.prettyPrint(value))
+      val resolved = maybeExpr
+        .map(be => formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(be).toString)
+        .getOrElse("not found")
+
+      Seq(
+        TableRow(HtmlContent(key)),
+        TableRow(Text(exprStr)),
+        TableRow(Text(resolved))
+      )
+    }
+
     for {
       exprsFromTemplate <- gformConnector.getExpressions(formTemplateId)
       rawTemplateJson   <- gformConnector.getFormTemplateRaw(formTemplateId)
     } yield rawTemplateJson.asOpt[JsObject].fold[Result](NotFound("Form template not found")) { json =>
-      val expressions: JsObject =
-        (json \ "expressions").validate[JsObject].getOrElse(Json.obj())
-
-      val booleanExpressions: JsObject =
-        (json \ "booleanExpressions").validate[JsObject].getOrElse(Json.obj())
+      val expressions = (json \ "expressions").validate[JsObject].getOrElse(Json.obj())
+      val booleanExpressions = (json \ "booleanExpressions").validate[JsObject].getOrElse(Json.obj())
 
       val expressionsTable = new GovukTable()(
         Table(
           caption = Some("expressions"),
           captionClasses = "govuk-table__caption--m",
-          rows = expressions.value.map { case (key, value) =>
-            val maybeExpr: Option[Expr] = exprsFromTemplate.expressions
-              .get(ExpressionId(key))
-
-            val exprValue = maybeExpr.fold("not found")(expr =>
-              formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult.toString
-            )
-
-            val expr: String = value
-              .asOpt[String]
-              .orElse {
-                (value \ "value").asOpt[String]
-              }
-              .getOrElse(Json.prettyPrint(value))
-
-            Seq(
-              TableRow(
-                content = HtmlContent(key)
-              ),
-              TableRow(
-                content = Text(expr)
-              ),
-              TableRow(
-                content = Text(exprValue)
-              )
-            )
-          }.toSeq,
           head = Some(
+            Seq("Id", "Expression", "Type", "Round", "Fractional Digits", "Result Type", "Value")
+              .map(label => HeadCell(Text(label)))
+          ),
+          rows = expressions.value.map { case (key, value) =>
+            buildExprRow(key, value, exprsFromTemplate.expressions.get(ExpressionId(key)))
+          }.toSeq
+        )
+      )
+
+      val fieldsTable = new GovukTable()(
+        Table(
+          caption = Some("fields"),
+          captionClasses = "govuk-table__caption--m",
+          head = Some(
+            Seq("Id", "Value").map(label => HeadCell(Text(label)))
+          ),
+          rows = cache.form.formData.fields.map(f =>
             Seq(
-              HeadCell(
-                content = Text("Id")
-              ),
-              HeadCell(
-                content = Text("Expression")
-              ),
-              HeadCell(
-                content = Text("Value")
-              )
+              TableRow(Text(f.id.toFormComponentId.value)),
+              TableRow(Text(f.value))
             )
           )
         )
@@ -538,40 +592,12 @@ class TestOnlyController(
         Table(
           caption = Some("booleanExpressions"),
           captionClasses = "govuk-table__caption--m",
-          rows = booleanExpressions.value.map { case (key, value) =>
-            val maybeBooleanExpr = exprsFromTemplate.booleanExpressions.get(BooleanExprId(key))
-            val booleanExprValue: String =
-              maybeBooleanExpr.fold("not found")(be =>
-                formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(be).toString
-              )
-
-            val booleanExpr = value.asOpt[String].getOrElse(Json.prettyPrint(value))
-
-            Seq(
-              TableRow(
-                content = HtmlContent(key)
-              ),
-              TableRow(
-                content = Text(booleanExpr)
-              ),
-              TableRow(
-                content = Text(booleanExprValue)
-              )
-            )
-          }.toSeq,
           head = Some(
-            Seq(
-              HeadCell(
-                content = Text("Id")
-              ),
-              HeadCell(
-                content = Text("Expression")
-              ),
-              HeadCell(
-                content = Text("Value")
-              )
-            )
-          )
+            Seq("Id", "Expression", "Value").map(label => HeadCell(Text(label)))
+          ),
+          rows = booleanExpressions.value.map { case (key, value) =>
+            buildBooleanExprRow(key, value, exprsFromTemplate.booleanExpressions.get(BooleanExprId(key)))
+          }.toSeq
         )
       )
 
@@ -580,10 +606,12 @@ class TestOnlyController(
           cache.formTemplate,
           expressionsTable,
           booleanExpressionsTable,
+          fieldsTable,
           frontendAppConfig
         )
       )
     }
+  }
 
   private def reportsTab(formTemplate: FormTemplate, accessCode: Option[AccessCode]) = {
     val viewFormTemplateDetailsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
