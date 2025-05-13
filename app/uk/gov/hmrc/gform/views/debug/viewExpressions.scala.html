@@ -22,6 +22,7 @@
   formTemplate: FormTemplate,
   expressionTable: Html,
   booleanExpressionTable: Html,
+  fieldsTable: Html,
   frontendAppConfig: FrontendAppConfig
 )(implicit
   request: Request[_],
@@ -37,5 +38,6 @@
   accessCode = None
 ) {
     @expressionTable
+    @fieldsTable
     @booleanExpressionTable
 }

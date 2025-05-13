@@ -572,6 +572,22 @@ class TestOnlyController(
         )
       )
 
+      val fieldsTable = new GovukTable()(
+        Table(
+          caption = Some("fields"),
+          captionClasses = "govuk-table__caption--m",
+          head = Some(
+            Seq("Id", "Value").map(label => HeadCell(Text(label)))
+          ),
+          rows = cache.form.formData.fields.map(f =>
+            Seq(
+              TableRow(Text(f.id.toFormComponentId.value)),
+              TableRow(Text(f.value))
+            )
+          )
+        )
+      )
+
       val booleanExpressionsTable = new GovukTable()(
         Table(
           caption = Some("booleanExpressions"),
@@ -590,6 +606,7 @@ class TestOnlyController(
           cache.formTemplate,
           expressionsTable,
           booleanExpressionsTable,
+          fieldsTable,
           frontendAppConfig
         )
       )
