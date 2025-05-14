@@ -56,6 +56,10 @@ case class SummarySection(
       displayWidth = None,
       notRequiredIf = None
     )
+
+  def excludeFieldsFromPDF: SummarySection = copy(
+    fields = fields.map(_.filterNot(fc => excludeFromPdf.getOrElse(Nil).contains(fc.id))).flatMap(NonEmptyList.fromList)
+  )
 }
 
 object SummarySection extends JsonUtils {

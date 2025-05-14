@@ -170,7 +170,7 @@ class GformBackEndService(
       cache,
       formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
       maybeAccessCode,
-      None
+      Some(cache.formTemplate.summarySection.excludeFieldsFromPDF)
     )
 
     val maybePDFOptions = cache.formTemplate.destinations match {

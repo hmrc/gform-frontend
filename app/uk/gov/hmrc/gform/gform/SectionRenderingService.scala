@@ -933,14 +933,7 @@ class SectionRenderingService(
     val retrievals = cache.retrievals
 
     val summarySection = maybeSummarySection.getOrElse(formTemplate.summarySection)
-    val excludeFromPdf = summarySection.excludeFromPdf.fold(List.empty[FormComponentId])(_.toList)
-    val page = summarySection
-      .copy(fields =
-        summarySection.fields.flatMap(fields =>
-          NonEmptyList.fromList(fields.toList.filterNot(fc => excludeFromPdf.contains(fc.id)))
-        )
-      )
-      .toPage
+    val page = summarySection.toPage
     val ei = ExtraInfo(
       Singleton(page.asInstanceOf[Page[DataExpanded]]),
       maybeAccessCode,

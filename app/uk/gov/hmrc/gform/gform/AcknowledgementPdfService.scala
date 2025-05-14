@@ -115,7 +115,7 @@ class AcknowledgementPdfService(
       cache,
       formModelOptics,
       maybeAccessCode,
-      None
+      Some(cache.formTemplate.summarySection.excludeFieldsFromPDF)
     )
 
     for {
