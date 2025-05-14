@@ -1316,7 +1316,7 @@ object TextChecker {
     sse: SmartStringEvaluator
   ) = {
     val str = value.replace(" ", "")
-    val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
+    val ValidCRN = "[A-Z]{1,2}[0-9]{6,8}|[0-9]{8}".r
 
     val isCRN = str match {
       case ValidCRN() => true
