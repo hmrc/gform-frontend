@@ -27,6 +27,8 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, IncludeIf, IsText }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
+import scala.util.{ Success, Try }
+
 object MiniSummaryListHelper {
   def getFormattedExprStr[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D], e: Expr)(implicit
     l: LangADT,
@@ -52,9 +54,9 @@ object MiniSummaryListHelper {
   def checkAndReturnSuffix(expr: Expr, formModel: FormModel[Visibility])(implicit sse: SmartStringEvaluator): String =
     expr match {
       case formCtx: FormCtx =>
-        formModel.fcLookup(formCtx.formComponentId) match {
-          case IsText(text) => text.suffix.fold("")(" " + _.value())
-          case _            => ""
+        Try(formModel.fcLookup(formCtx.formComponentId)) match {
+          case Success(IsText(text)) => text.suffix.fold("")(" " + _.value())
+          case _                     => ""
         }
       case _ => ""
     }
