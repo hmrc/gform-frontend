@@ -604,9 +604,8 @@ class NewFormControllerSpec
       )
 
       when(
-        mockGformConnector.newForm(*[FormTemplateId], *[UserId], *[Option[AffinityGroup]], *[QueryParams])(
-          *[HeaderCarrier],
-          *[ExecutionContext]
+        mockGformBackend.newForm(*[FormTemplateId], *[MaterialisedRetrievals], *[QueryParams])(
+          *[HeaderCarrier]
         )
       ).thenReturn(Future.successful(FormIdData.apply(authCacheWithForm, None)))
 

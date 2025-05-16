@@ -825,12 +825,7 @@ class NewFormController(
     formTemplateId: FormTemplateId,
     retrievals: MaterialisedRetrievals,
     queryParams: QueryParams
-  )(implicit hc: HeaderCarrier): Future[FormIdData] =
-    for {
-      newFormData <-
-        gformConnector
-          .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals), queryParams)
-    } yield newFormData
+  )(implicit hc: HeaderCarrier): Future[FormIdData] = gformBackEnd.newForm(formTemplateId, retrievals, queryParams)
 
   private def handleForm[A](
     formIdData: FormIdData,
