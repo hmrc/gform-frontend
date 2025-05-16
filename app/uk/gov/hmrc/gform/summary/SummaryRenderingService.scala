@@ -490,7 +490,7 @@ object SummaryRenderingService {
           currentHeading.map(ct => resultBuffer :+ (ct, accumulatedRows)).getOrElse(resultBuffer)
       }
 
-    def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
+    def addToListRenderBracket(bracket: Bracket.AddToList[Visibility], ignoreCard: Boolean): List[Html] = {
       val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
 
       val hidePageTitleByComponent = bracket.source.fold(_ => false)(_ => false)(addToList =>
@@ -503,7 +503,7 @@ object SummaryRenderingService {
         val hideAllPageTitle =
           singletons.forall(_.singleton.page.presentationHint.filter(_ === InvisiblePageTitle).fold(false)(_ => true))
 
-        if (hidePageTitleByComponent || hideAllPageTitle) {
+        if ((hidePageTitleByComponent || hideAllPageTitle) && !ignoreCard) {
           val middleRows = singletons.flatMap { singletonWithNumber =>
             middleSummaryListRows(
               singletonWithNumber.singleton,
@@ -654,6 +654,11 @@ object SummaryRenderingService {
       }
     }
 
+    val ignoreCard = brackets
+      .collect { case bracket @ Bracket.AddToList(_, _) => bracket }
+      .flatMap(_.iterations.toList.flatMap(_.singletons.filter(_.singleton.page.shortName.isDefined)))
+      .nonEmpty
+
     val (accumulatedRows, summaryLists) =
       brackets.foldLeft((Map.empty[HtmlFormat.Appendable, List[SummaryListRow]], List.empty[HtmlFormat.Appendable])) {
         case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _)) =>
@@ -663,11 +668,15 @@ object SummaryRenderingService {
                 accList ++ summaryList(heading, rows, None) ++ List(
                   addToListSummary(bracket)
                 ) ++ addToListRenderBracket(
-                  bracket
+                  bracket,
+                  ignoreCard
                 )
               (Map.empty, updatedList)
             case None =>
-              (accumulatedRows, accList ++ List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket))
+              (
+                accumulatedRows,
+                accList ++ List(addToListSummary(bracket)) ++ addToListRenderBracket(bracket, ignoreCard)
+              )
           }
 
         case ((accumulatedRows, accList), Bracket.RepeatingPage(singletons, source)) =>
