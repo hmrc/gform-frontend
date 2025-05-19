@@ -70,7 +70,8 @@ final case class PortLookupInfo(
 final case class SicCodeLookupInfo(
   id: LookupId,
   index: Int,
-  section: LookupSicCodeSection
+  section: LookupSicCodeSection,
+  columns: Map[String, String]
 ) extends LookupInfo
 
 final case class AgentComplaintCategoriesLookupInfo(
