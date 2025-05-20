@@ -102,7 +102,10 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
   private val emptyInformationMessage = InformationMessage(StandardInfo, toSmartString(""))
 
-  private val dummyFormTemplate = mkFormTemplate(mkSection(mkFormComponent("dummy", Value)))
+  private val (dummyFormTemplate, dummySection) = {
+    val section = mkSection(mkFormComponent("dummy", Value))
+    mkFormTemplate(section) -> section
+  }
 
   "Dependency Graph" should "handle component's value expression" in {
     val sections = List(
@@ -789,7 +792,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, fm.pages.headOption)
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)
