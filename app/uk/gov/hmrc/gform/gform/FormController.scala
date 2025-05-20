@@ -486,48 +486,50 @@ class FormController(
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val bracket = formModel.bracket(toSectionNumber)
 
-        bracket match {
-          case Bracket.NonRepeatingPage(_, _) => goBack(toSectionNumber)
-          case Bracket.RepeatingPage(_, _)    => goBack(toSectionNumber)
-          case bracket @ Bracket.AddToList(iterations, _) =>
-            val iteration: Bracket.AddToListIteration[DataExpanded] =
-              bracket.iterationForSectionNumber(toSectionNumber)
-            val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
-            if (
-              iteration.repeater.sectionNumber === toSectionNumber && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
-            ) {
-              val isCommited =
-                formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber).withAddToListBracket {
-                  addToListBracket =>
-                    addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(cache.form.visitsIndex)
+            bracket match {
+              case Bracket.NonRepeatingPage(_, _) => goBack(toSectionNumber)
+              case Bracket.RepeatingPage(_, _)    => goBack(toSectionNumber)
+              case bracket @ Bracket.AddToList(iterations, _) =>
+                val iteration: Bracket.AddToListIteration[DataExpanded] =
+                  bracket.iterationForSectionNumber(toSectionNumber)
+                val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
+                if (
+                  iteration.repeater.sectionNumber === toSectionNumber && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
+                ) {
+                  val isCommited =
+                    formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber).withAddToListBracket {
+                      addToListBracket =>
+                        addToListBracket.iterationForSectionNumber(sectionNumber).isCommited(cache.form.visitsIndex)
+                    }
+                  if (isCommited) {
+                    goBack(toSectionNumber)
+                  } else {
+                    for {
+                      processData <- processDataService
+                                       .getProcessData[SectionSelectorType.Normal](
+                                         formModelOptics.formModelRenderPageOptics.recData.variadicFormData
+                                           .asInstanceOf[VariadicFormData[OutOfDate]],
+                                         cache,
+                                         formModelOptics,
+                                         gformConnector.getAllTaxPeriods,
+                                         NoSpecificAction,
+                                         Some(sectionNumber)
+                                       )
+                      redirect <- formProcessor.processRemoveAddToList(
+                                    cache,
+                                    maybeAccessCode,
+                                    List(FastForward.Yes),
+                                    formModelOptics,
+                                    processData,
+                                    sectionNumber.templateSectionIndex,
+                                    bracket.iterations.size - 1,
+                                    bracket.source.id
+                                  )
+                    } yield redirect
+                  }
+                } else {
+                  goBack(toSectionNumber)
                 }
-              if (isCommited) {
-                goBack(toSectionNumber)
-              } else {
-                for {
-                  processData <- processDataService
-                                   .getProcessData[SectionSelectorType.Normal](
-                                     formModelOptics.formModelRenderPageOptics.recData.variadicFormData
-                                       .asInstanceOf[VariadicFormData[OutOfDate]],
-                                     cache,
-                                     formModelOptics,
-                                     gformConnector.getAllTaxPeriods,
-                                     NoSpecificAction
-                                   )
-                  redirect <- formProcessor.processRemoveAddToList(
-                                cache,
-                                maybeAccessCode,
-                                List(FastForward.Yes),
-                                formModelOptics,
-                                processData,
-                                sectionNumber.templateSectionIndex,
-                                bracket.iterations.size - 1,
-                                bracket.source.id
-                              )
-                } yield redirect
-              }
-            } else {
-              goBack(toSectionNumber)
             }
         }
 
@@ -577,38 +579,40 @@ class FormController(
           ).pure[Future]
         }
 
-        for {
-          processData <- processDataService
-                           .getProcessData[SectionSelectorType.Normal](
-                             formModelOptics.formModelVisibilityOptics.recData.variadicFormData
-                               .asInstanceOf[VariadicFormData[OutOfDate]],
-                             cache,
-                             formModelOptics,
-                             gformConnector.getAllTaxPeriods,
-                             NoSpecificAction
-                           )
-          res <- direction match {
-                   case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
-                   case SaveAndContinue | SaveAndExit   =>
-                     // This request should have been a POST, with user data. However we have sporadically seen GET requests sent instead of POST to this endpoint
-                     // the cause of which is not known yet. We redirect the user the page he/she is currently on, instead of throwing an error page
-                     // e.g: GET /submissions/form/XXXX/-/0?ff=t&action=SaveAndContinue
-                     logger.warn(s"Received GET request with direction $direction. Doing a redirect!")
-                     val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
-                     Redirect(
-                       routes.FormController
-                         .form(
-                           cache.formTemplateId,
-                           maybeAccessCode,
-                           sectionNumber,
-                           sectionTitle4Ga,
-                           SuppressErrors.Yes,
-                           fastForward
-                         )
-                     ).pure[Future]
-                   case _ => throw new IllegalArgumentException(s"Direction $direction is not supported here")
-                 }
-        } yield res
+            for {
+              processData <- processDataService
+                               .getProcessData[SectionSelectorType.Normal](
+                                 formModelOptics.formModelVisibilityOptics.recData.variadicFormData
+                                   .asInstanceOf[VariadicFormData[OutOfDate]],
+                                 cache,
+                                 formModelOptics,
+                                 gformConnector.getAllTaxPeriods,
+                                 NoSpecificAction,
+                                 Some(sectionNumber)
+                               )
+              res <- direction match {
+                       case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
+                       case SaveAndContinue | SaveAndExit   =>
+                         // This request should have been a POST, with user data. However we have sporadically seen GET requests sent instead of POST to this endpoint
+                         // the cause of which is not known yet. We redirect the user the page he/she is currently on, instead of throwing an error page
+                         // e.g: GET /submissions/form/XXXX/-/0?ff=t&action=SaveAndContinue
+                         logger.warn(s"Received GET request with direction $direction. Doing a redirect!")
+                         val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
+                         Redirect(
+                           routes.FormController
+                             .form(
+                               cache.formTemplateId,
+                               maybeAccessCode,
+                               sectionNumber,
+                               sectionTitle4Ga,
+                               SuppressErrors.Yes,
+                               fastForward
+                             )
+                         ).pure[Future]
+                       case _ => throw new IllegalArgumentException(s"Direction $direction is not supported here")
+                     }
+            } yield res
+        }
 
     }
 
@@ -618,7 +622,7 @@ class FormController(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],
     save: Direction
-  ) =
+  ) = {
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val formModel = formModelOptics.formModelVisibilityOptics.formModel
@@ -898,68 +902,73 @@ class FormController(
                 }
             }
 
-            val variadicFormData = processData.formModelOptics.pageOpticsData
-            val updatedVariadicFormData = variadicFormData.addOne(incremented -> "")
-            for {
-              updFormModelOptics <- FormModelOptics
-                                      .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                        updatedVariadicFormData
-                                          .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                        cache,
-                                        recalculation
-                                      )
-              res <- handleGroup(
-                       cache,
-                       processData.copy(formModelOptics = updFormModelOptics),
-                       anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse("")
-                     )
-            } yield res
-
-          }
-
-          def processRemoveGroup(processData: ProcessData, modelComponentId: ModelComponentId): Future[Result] = {
-            val (updData, componentIdToFileId, filesToDelete) =
-              GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache.form.componentIdToFileId)
-            val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
-            for {
-              updFormModelOptics <- FormModelOptics
-                                      .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                        updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                        cache,
-                                        recalculation
-                                      )
-              res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
-              _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)
-            } yield res
-          }
-
-          for {
-            processData <- processDataService
-                             .getProcessData[SectionSelectorType.Normal](
-                               variadicFormData,
-                               cache,
-                               formModelOptics,
-                               gformConnector.getAllTaxPeriods,
-                               NoSpecificAction
-                             )
-            res <- save match {
-                     case SaveAndContinue => processSaveAndContinue(processData)
-                     case SaveAndExit =>
-                       processSaveAndExit(processData).map { result =>
-                         auditService.formSavedEvent(
-                           cache.form,
-                           cache.retrievals
+                val variadicFormData = processData.formModelOptics.pageOpticsData
+                val updatedVariadicFormData = variadicFormData.addOne(incremented -> "")
+                for {
+                  updFormModelOptics <- FormModelOptics
+                                          .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                            updatedVariadicFormData
+                                              .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                            cache,
+                                            recalculation,
+                                            currentPage = formModel.pageModelLookup.get(sectionNumber)
+                                          )
+                  res <- handleGroup(
+                           cache,
+                           processData.copy(formModelOptics = updFormModelOptics),
+                           anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse("")
                          )
-                         result
+                } yield res
+
+          }
+
+              def processRemoveGroup(processData: ProcessData, modelComponentId: ModelComponentId): Future[Result] = {
+                val (updData, componentIdToFileId, filesToDelete) =
+                  GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache.form.componentIdToFileId)
+                val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
+                for {
+                  updFormModelOptics <- FormModelOptics
+                                          .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                                            updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                                            cache,
+                                            recalculation,
+                                            currentPage = formModel.pageModelLookup.get(sectionNumber)
+                                          )
+                  res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
+                  _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)
+                } yield res
+              }
+
+              for {
+                processData <- processDataService
+                                 .getProcessData[SectionSelectorType.Normal](
+                                   variadicFormData,
+                                   cache,
+                                   formModelOptics,
+                                   gformConnector.getAllTaxPeriods,
+                                   NoSpecificAction,
+                                   Some(sectionNumber)
+                                 )
+                res <- save match {
+                         case SaveAndContinue => processSaveAndContinue(processData)
+                         case SaveAndExit =>
+                           processSaveAndExit(processData).map { result =>
+                             auditService.formSavedEvent(
+                               cache.form,
+                               cache.retrievals
+                             )
+                             result
+                           }
+                         case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
+                         case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
+                         case _                             => throw new IllegalArgumentException(s"Direction $save is not supported here")
                        }
-                     case AddGroup(modelComponentId)    => processAddGroup(processData, modelComponentId)
-                     case RemoveGroup(modelComponentId) => processRemoveGroup(processData, modelComponentId)
-                     case _                             => throw new IllegalArgumentException(s"Direction $save is not supported here")
-                   }
-          } yield res
+              } yield res
+            }
         }
 
     }
+  }
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
   private val restrictedFileExtensions = appConfig.restrictedFileExtensions
