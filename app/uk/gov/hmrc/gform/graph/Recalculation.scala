@@ -19,8 +19,9 @@ package uk.gov.hmrc.gform.graph
 import cats.syntax.all._
 import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
-import scalax.collection.edges.DiEdge
+import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
+import scalax.collection.io.dot.DotRootGraph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval._
@@ -32,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
 
+import java.nio.file.{ Files, Paths }
 import scala.collection.{ immutable, mutable }
 
 sealed trait GraphException {
@@ -67,7 +69,38 @@ class Recalculation[F[_]: Monad, E](
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
+    val dotRoot = DotRootGraph(
+      true,
+      Some(scalax.collection.io.dot.Id("ExampleGraph"))
+    )
+
     val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs)
+    graph.edges.map { x =>
+      //println(x)
+    }
+    //println()
+    import scalax.collection.io.dot._
+    var exprPar = 0
+    def edgeTransformer(innerEdge: Graph[GraphNode, DiEdge[GraphNode]]#EdgeT): Option[(DotGraph, DotEdgeStmt)] = {
+      val edge = innerEdge.outer
+      def toId(g: GraphNode) =
+        g match {
+          case GraphNode.Simple(formComponentId) => NodeId(formComponentId.value)
+          case GraphNode.Expr(expr) =>
+            exprPar = exprPar + 1
+            NodeId(expr.toString)
+        }
+      Some(
+        dotRoot ->
+          DotEdgeStmt(
+            NodeId(edge.source.toString),
+            NodeId(edge.target.toString)
+          )
+      )
+    }
+
+    val dot = graph.toDot(dotRoot, edgeTransformer)
+    Files.write(Paths.get("graph.dot"), dot.getBytes)
 
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
@@ -95,6 +128,7 @@ class Recalculation[F[_]: Monad, E](
         graphTopologicalOrder <- orderedGraph
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
+          //println(graphLayer)
           recalculateGraphLayer(
             graphLayer,
             state.map(_ => startEvResults),

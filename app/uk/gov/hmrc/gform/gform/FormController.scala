@@ -650,7 +650,7 @@ class FormController(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],
     save: Direction
-  ) =
+  ) = {
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val formModel = formModelOptics.formModelVisibilityOptics.formModel
@@ -670,15 +670,17 @@ class FormController(
 
               def processSaveAndContinue(
                 processData: ProcessData
-              ): Future[Result] =
-                confirmationService.processConfirmation(
+              ): Future[Result] = {
+                val status = confirmationService.processConfirmation(
                   sectionNumber,
                   processData,
                   cache.formTemplateId,
                   maybeAccessCode,
                   formModelOptics,
                   fastForward
-                ) match {
+                )
+                println(status)
+                status match {
                   case ConfirmationAction.NotConfirmed(redirect) => redirect.pure[Future]
                   case ConfirmationAction.UpdateConfirmation(processDataUpdater, isConfirmationPage) =>
                     val processDataUpd = processDataUpdater(processData)
@@ -732,7 +734,8 @@ class FormController(
                             )
                           }
 
-                      def continueJourney: Result =
+                      def continueJourney: Result = {
+                        println(maybeSn)
                         maybeSn match {
                           case SectionOrSummary.Section(sn) =>
                             val endOfTask: Option[Coordinates] =
@@ -830,6 +833,7 @@ class FormController(
                               )
                             )
                         }
+                      }
 
                       maybeRedirectUrl match {
                         case Some(r) => Redirect(r)
@@ -849,6 +853,7 @@ class FormController(
                       }
                     }
                 }
+              }
 
               def processSaveAndExit(processData: ProcessData): Future[Result] = {
 
@@ -997,6 +1002,7 @@ class FormController(
         }
 
     }
+  }
 
   private val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
   private val restrictedFileExtensions = appConfig.restrictedFileExtensions

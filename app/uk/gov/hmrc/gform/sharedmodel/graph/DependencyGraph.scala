@@ -39,6 +39,16 @@ object DependencyGraph {
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata]
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
+    def p[TT](x: TT) = {
+      println(x)
+      x
+    }
+    println()
+//    formModel.brackets.map { singleton =>
+//      println(singleton.title)
+//      println(singleton)
+//      singleton
+//    }(p)(p)
 
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
