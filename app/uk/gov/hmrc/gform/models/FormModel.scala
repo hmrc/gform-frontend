@@ -434,7 +434,7 @@ object FormModel {
   }
 }
 
-private object HasIncludeIf {
+object HasIncludeIf {
   def unapply(pageModel: PageModel[_ <: PageMode]): Option[IncludeIf] =
     pageModel.fold(_.page.includeIf)(_ => None)(_.includeIf)
 }

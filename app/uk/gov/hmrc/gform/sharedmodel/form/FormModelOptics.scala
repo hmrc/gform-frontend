@@ -20,17 +20,17 @@ import cats.syntax.functor._
 import cats.{ Functor, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
+import uk.gov.hmrc.gform.controllers.{AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData}
+import uk.gov.hmrc.gform.eval.{EvaluationContext, FileIdsWithMapping}
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.{BaseComponentId, ModelComponentId}
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{ Instant, LocalDate }
+import java.time.{Instant, LocalDate}
 
 case class FormModelOptics[D <: DataOrigin](
   formModelRenderPageOptics: FormModelRenderPageOptics[D],
@@ -85,7 +85,8 @@ object FormModelOptics {
         Map.empty,
         Map.empty,
         TaskIdTaskStatusMapping.empty,
-        LocalDate.now()
+        LocalDate.now(),
+        None
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -105,7 +106,8 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    formStartDate: Instant
+    formStartDate: Instant,
+    currentPage: Option[PageModel[_]]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -122,7 +124,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, formStartDate)
+      formModelBuilder.visibilityModel(data, phase, formStartDate, currentPage)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -132,7 +134,8 @@ object FormModelOptics {
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
-    phase: Option[FormPhase] = None
+    phase: Option[FormPhase] = None,
+    currentPage: Option[PageModel[_]] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -147,6 +150,7 @@ object FormModelOptics {
       phase,
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
-      cache.form.startDate
+      cache.form.startDate,
+      currentPage
     )
 }

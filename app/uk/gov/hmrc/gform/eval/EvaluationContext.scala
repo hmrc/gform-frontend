@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.DataRetrieveAll
+import uk.gov.hmrc.gform.models.{ Basic, DataRetrieveAll, PageModel }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -59,5 +59,6 @@ final case class EvaluationContext(
   lookupRegister: Map[BaseComponentId, Register],
   constraints: Map[BaseComponentId, TextConstraint],
   taskIdTaskStatus: TaskIdTaskStatusMapping,
-  formStartDate: LocalDate
+  formStartDate: LocalDate,
+  currentPage: Option[PageModel[_]] = None
 )
