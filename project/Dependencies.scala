@@ -28,6 +28,7 @@ object Dependencies {
     "org.jetbrains"                % "markdown"                   % "0.1.46",
     "com.chuusai"                 %% "shapeless"                  % "2.3.13",
     "org.scala-graph"             %% "graph-core"                 % "2.0.3" exclude("org.scalacheck", "scalacheck_2.13"),
+    //"org.scala-graph"             %% "graph-dot"                 % "2.0.0",
     "com.softwaremill.quicklens"  %% "quicklens"                  % "1.9.12",
     "com.nrinaudo"                %% "kantan.csv"                 % "0.8.0",
     "com.miguelfonseca.completely" % "completely-core"            % "0.9.0",
