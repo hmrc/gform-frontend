@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
 import org.scalactic.source.Position
+import org.scalatest.{ FixtureContext, Succeeded }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor3
 import uk.gov.hmrc.gform.Helpers._
@@ -39,6 +40,9 @@ import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+
+import scala.util.{ Failure, Success, Try }
 
 class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec with FormModelSupport {
 
@@ -1128,7 +1132,13 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+    val fm = mkFormModelBuilder(mkFormTemplate(sections)).dependencyGraphValidation[SectionSelectorType.Normal]
+
+    val currentPage = fm.pageModelLookup.get(
+      fm.sectionNumberLookup(sections.head.fold(_.page)(_.page)(_.pages.head).allFields.head.id)
+    )
+
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData, currentPage)
 
     formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
     formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
@@ -1184,7 +1194,12 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+    val fm = mkFormModelBuilder(mkFormTemplate(sections)).dependencyGraphValidation[SectionSelectorType.Normal]
+
+    val currentPage = fm.pageModelLookup.get(
+      fm.sectionNumberLookup(sections.head.fold(_.page)(_.page)(_.pages.head).allFields.head.id)
+    )
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData, currentPage = currentPage)
 
     formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
     formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
@@ -1387,7 +1402,13 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     position: Position
   ) = {
     val formTemplate: FormTemplate = mkFormTemplate(sections)
-    val formModelOptics = mkFormModelOptics(formTemplate, input)
+    val formModel = mkFormModelBuilder(formTemplate)
+      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](input, None, None)
+      .formModel
+    val currentPage = formModel.pageModelLookup.get(
+      formModel.sectionNumberLookup(sections.head.fold(_.page)(_.page)(_.pages.head).allFields.head.id)
+    )
+    val formModelOptics = mkFormModelOptics(formTemplate, input, currentPage)
     val outputRecData: RecData[SourceOrigin.Current] = formModelOptics.formModelVisibilityOptics.recData
     val output: EvaluationResults = formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults
 

@@ -431,7 +431,12 @@ class AuthenticatedRequestActions(
 
         formModelOptics <-
           FormModelOptics
-            .mkFormModelOptics[DataOrigin.Mongo, Future, U](cache.variadicFormData, cache, recalculation)
+            .mkFormModelOptics[DataOrigin.Mongo, Future, U](
+              cache.variadicFormData,
+              cache,
+              recalculation,
+              currentPage = None
+            )
 
         formModelOpticsUpd =
           formModelOptics
