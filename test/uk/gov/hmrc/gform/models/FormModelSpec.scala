@@ -131,7 +131,6 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcB = mkFormComponent("b", Text(PositiveNumber(), Value))
     val fcC = mkFormComponent("c", Text(Sterling(RoundingMode.Up, true), Add(FormCtx("a"), FormCtx("b"))))
       .copy(label = toSmartStringExpression("", Add(FormCtx("a"), FormCtx("b"))))
-
     val section1 = mkSection(List(fcA))
     val section2 = mkSection(List(fcB))
     val section3 = mkSection(List(fcC))
@@ -163,8 +162,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     forAll(table) { case (data, expected) =>
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -207,8 +213,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     forAll(table) { case (data, expected) =>
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -287,8 +300,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       )
       val fmb = mkFormModelFromSections(sections)
       val data = variadicFormData[SourceOrigin.OutOfDate]()
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
 
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -330,8 +350,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val fmb = mkFormModelFromSections(sections)
       val data = variadicFormData[SourceOrigin.OutOfDate]("a" -> "123")
 
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.recData.variadicFormData shouldBe expectedVariadicData
@@ -451,8 +478,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     forAll(table) { case (data, expected, expectedPages) =>
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -555,8 +589,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     forAll(table) { case (data, expected, expectedPages) =>
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -640,8 +681,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     forAll(table) { case (data, expected, expectedPages) =>
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -716,8 +764,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     forAll(table) { case (data, expected) =>
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -916,8 +971,15 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     forAll(table) { case (data, expectedData, expectedPages) =>
+      val fm = fmb
+        .dependencyGraphValidation[SectionSelectorType.Normal]
+
       val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+        )
 
       val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 

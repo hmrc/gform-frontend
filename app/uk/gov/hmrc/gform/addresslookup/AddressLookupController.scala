@@ -645,7 +645,8 @@ class AddressLookupController(
                   .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
                     variadicFormData,
                     syntheticCache,
-                    recalculation
+                    recalculation,
+                    currentPage = None
                   )
 
                 val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, syntheticCache.form)
@@ -802,7 +803,7 @@ class AddressLookupController(
     val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]
 
     val formModelVisibilityOpticsF: Future[FormModelVisibilityOptics[DataOrigin.Mongo]] =
-      formModelBuilder.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      formModelBuilder.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
     formModelVisibilityOpticsF
       .map { formModelVisibilityOptics =>

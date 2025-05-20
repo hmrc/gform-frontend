@@ -852,7 +852,8 @@ class NewFormController(
       formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
                            cacheWithForm.variadicFormData[SectionSelectorType.Normal],
                            cacheWithForm,
-                           recalculation
+                           recalculation,
+                           currentPage = None
                          )
       cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
       r <- cache.formTemplate.formKind.fold { classic =>

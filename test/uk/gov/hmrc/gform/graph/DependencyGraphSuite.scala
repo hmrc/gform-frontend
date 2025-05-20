@@ -358,8 +358,10 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
+    val currentPage = fm.pages.headOption
+
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, currentPage)
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)

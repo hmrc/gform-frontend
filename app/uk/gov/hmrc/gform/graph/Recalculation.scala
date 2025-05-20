@@ -19,19 +19,25 @@ package uk.gov.hmrc.gform.graph
 import cats.syntax.all._
 import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
-import scalax.collection.edges.DiEdge
+import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
+
+import scala.util.Try
+//import scalax.collection.io.dot.DotRootGraph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
+import uk.gov.hmrc.gform.models.{ Basic, FormModel, Interim, PageModel, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.LangADT.{ Cy, En }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SourceOrigin, VariadicFormData, VariadicValue }
 
+import java.nio.file.{ Files, Paths }
 import scala.collection.{ immutable, mutable }
 
 sealed trait GraphException {
@@ -65,13 +71,185 @@ class Recalculation[F[_]: Monad, E](
 
     implicit val fm: FormModel[Interim] = formModel
 
-    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+    val page = evaluationContext.currentPage.flatMap {
+      _.fold[Option[Singleton[_]]](Some(_))(_ => None)(_ => None)
+    }
 
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs)
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
+
+//    def dotRoot = DotRootGraph(
+//      true,
+//      Some(scalax.collection.io.dot.Id("ExampleGraph"))
+//    )
+
+//    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
+//      index
+//        .fold[Option[(Int, Int, Int)]] {
+//          case Classic.NormalPage(sectionIndex)               => Some((0, sectionIndex.index, 0))
+//          case Classic.RepeatedPage(sectionIndex, pageNumber) => Some((0, sectionIndex.index, pageNumber))
+//          case page: Classic.AddToListPage =>
+//            Some((0, 0, 0))
+//        } { taskList =>
+//          Some(
+//            taskList.coordinates.taskSectionNumber.value,
+//            taskList.coordinates.taskNumber.value,
+//            taskList.templateSectionIndex.index
+//          )
+//        }
+//        .getOrElse(0, 0, 0)
+
+//    formModel.addToListBrackets
+//      .flatMap(_.toPageModelWithNumber.toList)
+
+//    val list = formModel.brackets.toPageModelWithNumber.toList.map(x => x._1 -> toIndexToInts(x._2))
+
+//    val orderedList = list.sortWith { case ((page, (a, b, c)), (page2, (a2, b2, c2))) =>
+//      a < a2 && b < b2 && c < c2
+//    }
+
+    //val pageToIndex: Map[PageModel[_], (Int, Int, Int)] = list.toMap
+    //val indexToPage = pageToIndex.map(x => x._2 -> x._1)
+
+    //println(orderedList.map(_._2))
+
+//    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] = {
+//      var prevPageOrigin: PageModel[Interim] = orderedList.head._1
+//      Graph.from(orderedList.zipWithIndex.tail.flatMap { case ((page, sectionNumber), index) =>
+//        val pageInternal = page.fold[Option[Page[Interim]]](x => Some(x.page))(_ => None)(_ => None)
+//        val containsExpr = pageInternal.exists(AllFormTemplateExpressions.fromPage(_).nonEmpty)
+//        if (containsExpr) {
+//          val pageOrigin = prevPageOrigin
+//          prevPageOrigin = page
+//          Some(pageOrigin ~> page)
+//        } else {
+//          None
+//        }
+//      })
+//    }
+
+//    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] =
+//      Graph.from(orderedList.zipWithIndex.tail.map { case ((page, sectionNumber), index) =>
+//        val pageOrigin = orderedList(index - 1)._1
+//        pageOrigin ~> page
+//      })
+
+//    println("total form expressions: " + formTemplateExprs.size)
+//
+//    println("total form expression comp size: " + formTemplateExprs.flatMap(_.expr.allFormComponentIds()).size)
+
+//    val formComponents = page
+//      .map { page =>
+//        val set = mutable.Set[FormComponent]()
+//        def addSetOfFormComponents(node: PageModel[_], set: mutable.Set[FormComponent]): Unit = {
+//          val pageInternal = page.fold[Option[Page[_]]](x => Some(x.page))(_ => None)(_ => None)
+//          pageInternal.foreach { page =>
+//            val exprs = AllFormTemplateExpressions
+//              .fromPage(page)
+//            val formIds = exprs.flatMap(expr => expr.expr.allFormComponentIds())
+//            val formComponents = formIds.map(formModel.fcLookup)
+//            set.addAll(formComponents)
+//            val pages = formIds.map(formModel.pageLookup)
+//            println("pages size: " + pages.size)
+//            pages.foreach {
+//              case page if page != node =>
+//                addSetOfFormComponents(page, set)
+//            }
+//          }
+//          //          set.addAll(AllFormTemplateExpressions.fromPage(pageInternal))
+//          //          node.outgoing.foreach { edge =>
+//          //            addSetOfFormComponents(edge.targets.head, set)
+//          //          }
+//        }
+//
+//        addSetOfFormComponents(page, set)
+//        set
+//      }
+//      .getOrElse(mutable.Set())
+
+//    println("pageGraph edge size: " + pageGraph.edges.size)
+//
+//    val formComponents = page
+//      .map { page =>
+//        val set = mutable.Set[FormComponent]()
+//        def addSetOfFormComponents(node: pageGraph.NodeT, set: mutable.Set[FormComponent]): Unit = {
+//          // val pageInternal = page.fold[Option[Page[_]]](x => Some(x.page))(_ => None)(_ => None)
+////          pageInternal.foreach { page =>
+////            set.addAll(
+////              AllFormTemplateExpressions
+////                .fromPage(page)
+////                .flatMap(_.expr.allFormComponentIds().map(fcId => formModel.fcLookup(fcId)))
+////                .map { fc =>
+////                  formModel.pageLookup
+////                }
+////            )
+////          }
+//          set.addAll(node.allFormComponents)
+//          node.outgoing.foreach { edge =>
+//            addSetOfFormComponents(edge.targets.head, set)
+//          }
+//        }
+//        if (pageGraph.isEmpty) {
+//          set.addAll(page.allFormComponents)
+//        } else {
+//          addSetOfFormComponents(pageGraph.get(page), set)
+//        }
+//        set
+//      }
+//      .getOrElse(mutable.Set())
+
+//    println("formComponents size: " + formComponents.size)
+
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs, page)
+
+    //    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
+//      .map { page =>
+//        DependencyGraph.toGraph(formModel, formTemplateExprs, page)
+//      }
+//      .getOrElse(Graph.empty)
+
+    //import scalax.collection.io.dot._
+//    var exprPar = 0
+//    def edgeTransformer(innerEdge: Graph[GraphNode, DiEdge[GraphNode]]#EdgeT): Option[(DotGraph, DotEdgeStmt)] = {
+//      val edge = innerEdge.outer
+//      def toId(g: GraphNode) =
+//        g match {
+//          case GraphNode.Simple(formComponentId) => NodeId(formComponentId.value)
+//          case GraphNode.Expr(expr) =>
+//            exprPar = exprPar + 1
+//            NodeId(expr.toString)
+//        }
+//      Some(
+//        dotRoot ->
+//          DotEdgeStmt(
+//            NodeId(edge.source.toString),
+//            NodeId(edge.target.toString)
+//          )
+//      )
+//    }
+//
+//    def edgeTransformerPageModel(
+//      innerEdge: Graph[String, DiEdge[String]]#EdgeT
+//    ): Option[(DotGraph, DotEdgeStmt)] = {
+//      val edge = innerEdge.outer
+//      Some(
+//        dotRoot ->
+//          DotEdgeStmt(
+//            NodeId(edge.source),
+//            NodeId(edge.target)
+//          )
+//      )
+//    }
+
+//    val dot = graph.toDot(dotRoot, edgeTransformer)
+//    Files.write(Paths.get("graph.dot"), dot.getBytes)
+//    val dotFormComponent = pageGraph.toDot(dotRoot, edgeTransformerPageModel)
+//    Files.write(Paths.get("graph-page.dot"), dotFormComponent.getBytes)
 
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.outer, graph))
+
+    //println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
@@ -95,6 +273,8 @@ class Recalculation[F[_]: Monad, E](
         graphTopologicalOrder <- orderedGraph
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
+          //println(graphLayer)
+          //println(graphLayer.length)
           recalculateGraphLayer(
             graphLayer,
             state.map(_ => startEvResults),
