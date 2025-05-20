@@ -23,15 +23,13 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.DataRetrieveAll
+import uk.gov.hmrc.gform.models.{ DataExpanded, DataRetrieveAll, FormModel, FormModelBuilder, PageModel, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormComponent, FormPhase, Page }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class FormModelOptics[D <: DataOrigin](
@@ -86,7 +84,8 @@ object FormModelOptics {
         cache.lookupRegistry,
         Map.empty,
         Map.empty,
-        TaskIdTaskStatusMapping.empty
+        TaskIdTaskStatusMapping.empty,
+        None
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -105,7 +104,8 @@ object FormModelOptics {
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
-    taskIdTaskStatusMapping: TaskIdTaskStatusMapping
+    taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
+    currentPage: Option[PageModel[_]]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -122,7 +122,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase)
+      formModelBuilder.visibilityModel(data, phase, currentPage)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -132,7 +132,8 @@ object FormModelOptics {
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
-    phase: Option[FormPhase] = None
+    phase: Option[FormPhase] = None,
+    currentPage: Option[PageModel[_]] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -146,6 +147,7 @@ object FormModelOptics {
       recalculation,
       phase,
       cache.form.componentIdToFileId,
-      cache.form.taskIdTaskStatus
+      cache.form.taskIdTaskStatus,
+      currentPage
     )
 }
