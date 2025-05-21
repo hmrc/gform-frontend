@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.retrieval.AuthRetrievals
+import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsByFormIdData }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summary.SubmissionDetails
@@ -405,8 +405,9 @@ class GformBackEndService(
       newFormData <-
         gformConnector
           .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals), queryParams)
-      form <- gformConnector.getForm(newFormData)
-      _    <- gformConnector.upsertAuthRetrievals(AuthRetrievals(form.envelopeId, Json.toJson(retrievals)))
+      _ <- gformConnector.upsertAuthRetrievalsByFormIdData(
+             AuthRetrievalsByFormIdData(newFormData, Json.toJson(retrievals))
+           )
     } yield newFormData
 
 }
