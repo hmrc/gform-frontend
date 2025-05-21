@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.bars
 
+import uk.gov.hmrc.gform.gform.{ DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
-import uk.gov.hmrc.gform.gform.DataRetrieveConnectorBlueprint
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -40,12 +40,37 @@ trait BankAccountReputationConnector[F[_]] {
 class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
 
+  val exceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "SORT_CODE_ON_DENY_LIST",
+        """{"accountNumberIsWellFormatted":"indeterminate","accountExists":"indeterminate","nameMatches":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"indeterminate","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"","sortCodeSupportsDirectCredit":"","iban":""}"""
+      )
+    )
+  )
+
   val validateBankDetailsB =
-    new DataRetrieveConnectorBlueprint(ws, baseUrl + "/validate/bank-details", "validate bank details")
+    new DataRetrieveConnectorBlueprint(
+      ws,
+      baseUrl + "/validate/bank-details",
+      "validate bank details",
+      exceptionalResponses
+    )
   val businessBankAccountExistenceB =
-    new DataRetrieveConnectorBlueprint(ws, baseUrl + "/verify/business", "business bank account existence")
+    new DataRetrieveConnectorBlueprint(
+      ws,
+      baseUrl + "/verify/business",
+      "business bank account existence",
+      exceptionalResponses
+    )
   val personalBankAccountExistenceB =
-    new DataRetrieveConnectorBlueprint(ws, baseUrl + "/verify/personal", "personal bank account existence")
+    new DataRetrieveConnectorBlueprint(
+      ws,
+      baseUrl + "/verify/personal",
+      "personal bank account existence",
+      exceptionalResponses
+    )
 
   override def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier

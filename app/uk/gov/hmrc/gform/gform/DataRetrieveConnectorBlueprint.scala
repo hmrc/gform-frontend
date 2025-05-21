@@ -17,14 +17,20 @@
 package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsValue, Json }
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
 
-class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: String) {
+class DataRetrieveConnectorBlueprint(
+  ws: WSHttp,
+  rawUrl: String,
+  identifier: String,
+  exceptionalResponses: Option[List[ExceptionalResponse]] = None
+) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -71,11 +77,15 @@ class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: Str
       request.json,
       header
     ).map { httpResponse =>
-      val status = httpResponse.status
-      status match {
-        case 200 =>
+      val status: Int = httpResponse.status
+      val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponses.flatMap(_.find { ex =>
+        status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
+      })
+
+      (maybeExceptionalResponse, status) match {
+        case (Some(_), _) | (_, 200) =>
           dataRetrieve
-            .processResponse(httpResponse.json)
+            .processResponse(maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response)))
             .fold(
               invalid => {
                 logger.error(
@@ -88,7 +98,7 @@ class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: Str
                 ServiceResponse(valid)
               }
             )
-        case other =>
+        case (_, other) =>
           logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
           CannotRetrieveResponse
       }
@@ -98,3 +108,5 @@ class DataRetrieveConnectorBlueprint(ws: WSHttp, rawUrl: String, identifier: Str
     }
   }
 }
+
+case class ExceptionalResponse(statusMatch: Int, responseMatch: String, response: String)
