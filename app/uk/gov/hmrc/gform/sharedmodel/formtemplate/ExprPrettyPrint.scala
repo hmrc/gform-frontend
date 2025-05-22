@@ -96,6 +96,7 @@ object ExprPrettyPrint {
     case ChoicesRevealedField(_)       => "ChoicesRevealedField"
     case ChoicesSelected(_)            => "ChoicesSelected"
     case ChoicesAvailable(_)           => "ChoicesAvailable"
+    case ChoicesSelectedSum(_)         => "ChoicesSelectedSum"
     case TaskStatus(_)                 => "TaskStatus"
     case LookupOps(_, lookupFnc)       => lookupFnc.toString
   }

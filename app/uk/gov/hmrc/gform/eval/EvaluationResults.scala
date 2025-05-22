@@ -232,6 +232,21 @@ case class EvaluationResults(
     NumberResult(choicesSelected)
   }
 
+  private def sumSelectedChoices(
+    formComponentId: FormComponentId
+  ): NumberResult = {
+    val modelComponentId = formComponentId.modelComponentId
+    val allAnswerData: Iterable[(ModelComponentId, VariadicValue)] =
+      recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId)
+    val allAnswers: Iterable[String] = allAnswerData.flatMap(_._2.toSeq)
+    val answers: Option[Seq[String]] = recData.variadicFormData.many(modelComponentId)
+    val count = answers match {
+      case Some(answer) => allAnswers.toList.count(r => answer.contains(r))
+      case None         => 0
+    }
+    NumberResult(count)
+  }
+
   private def getChoicesAvailable(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext,
@@ -408,8 +423,9 @@ case class EvaluationResults(
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
-      case TaskStatus(_)   => unsupportedOperation("Number")(expr)
-      case LookupOps(_, _) => unsupportedOperation("Number")(expr)
+      case ChoicesSelectedSum(formComponentId) => sumSelectedChoices(formComponentId)
+      case TaskStatus(_)                       => unsupportedOperation("Number")(expr)
+      case LookupOps(_, _)                     => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -1093,12 +1109,13 @@ case class EvaluationResults(
         TypeInfo(expr, StaticTypeData(ExprType.dateString, Some(Number())))
       case DataRetrieveCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
-      case Period(_, _) | PeriodValue(_)            => TypeInfo(expr, StaticTypeData(ExprType.period, None))
-      case Typed(_, tpe)                            => TypeInfo(expr, StaticTypeData.from(tpe))
-      case DateFunction(_)                          => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case ChoicesSelected(_) | ChoicesAvailable(_) => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case AuthCtx(AuthInfo.ItmpAddress)            => TypeInfo(expr, StaticTypeData(ExprType.address, None))
-      case _                                        => TypeInfo(expr, StaticTypeData(ExprType.string, None))
+      case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
+      case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
+      case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case ChoicesSelected(_) | ChoicesAvailable(_) | ChoicesSelectedSum(_) =>
+        TypeInfo(expr, StaticTypeData(ExprType.number, None))
+      case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
+      case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
   }
 
