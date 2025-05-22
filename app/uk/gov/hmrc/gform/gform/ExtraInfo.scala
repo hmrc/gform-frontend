@@ -20,6 +20,7 @@ import cats.syntax.all._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.SaveAndExit
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, Singleton }
@@ -31,6 +32,8 @@ import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+
+import scala.util.{ Failure, Success, Try }
 
 final case class ExtraInfo(
   singleton: Singleton[DataExpanded],
@@ -90,18 +93,27 @@ final case class ExtraInfo(
       case _ => None
     }
 
-  def getButtonName(validationResult: ValidationResult): Option[String] =
+  def getButtonName(validationResult: ValidationResult, sse: SmartStringEvaluator): Option[String] =
     renderableAsSingleFileUpload match {
       case (fc @ IsFileUpload(_)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
         Some("singleFile")
-      case (fc @ IsMultiFileUpload(_)) :: Nil if fc.mandatory && !isMultiAlreadyUploaded(fc, validationResult) =>
-        Some("multiFile")
+      case (fc @ IsMultiFileUpload(fu)) :: Nil if fc.mandatory =>
+        val minFilesRequired =
+          if (!fc.mandatory) 0
+          else
+            Try(fu.minFiles.map(sse(_, markDown = false)).getOrElse("1").toInt) match {
+              case Success(value) => value
+              case Failure(_)     => 1
+            }
+        if (validationResult(fc).getComponentFieldIndices(fc.id).size < minFilesRequired)
+          Some("multiFile")
+        else None
       case _ => None
     }
 
   def isAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
     !validationResult(formComponent).getCurrentValue.forall(_ === "")
 
-  def isMultiAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
-    validationResult(formComponent).getComponentFieldIndices(formComponent.id).nonEmpty
+//  def isMultiAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
+//    validationResult(formComponent).getComponentFieldIndices(formComponent.id).nonEmpty
 }
