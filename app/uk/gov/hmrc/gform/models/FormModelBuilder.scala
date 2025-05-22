@@ -48,7 +48,7 @@ object FormModelBuilder {
   )(implicit
     hc: HeaderCarrier,
     me: MonadError[F, E]
-  ): FormModelBuilder[E, F] = {
+  ): FormModelBuilder[E, F] =
     new FormModelBuilder(
       cache.retrievals,
       cache.formTemplate,
@@ -60,7 +60,6 @@ object FormModelBuilder {
       lookupRegistry,
       taskIdTaskStatus
     )
-  }
 
   def evalRemoveItemIf[T <: PageMode](
     removeItemIf: RemoveItemIf,
