@@ -2305,28 +2305,22 @@ class SectionRenderingService(
     val fileInput: Html =
       new components.GovukFileUpload(govukLabel, govukFormGroup, govukHintAndErrorMessage)(fileUpload)
 
-    val submitButtonClasses = if (isMinimumFilesUploaded) {
+    val submitButtonClasses: String = if (isMinimumFilesUploaded) {
       "govuk-button--secondary"
     } else {
       "govuk-button--secondary js-hidden"
     }
 
-    val maxFilesRequired = Try(multiFileUpload.maxFiles.map(sse(_, markDown = false)).getOrElse("5").toInt) match {
-      case Success(value) => value
-      case Failure(_)     => 5
-    }
-    val uploadButtonDisabled = currentValues.size >= maxFilesRequired
     val submitButton: GovukButton = GovukButton(
       name = Some(s"${formComponent.id}-uploadButton"),
       content = content.Text(messages("file.upload")),
-      inputType = if (uploadButtonDisabled) Some("disabled") else Some("submit"),
+      inputType = Some("submit"),
       classes = submitButtonClasses,
       attributes = Map(
         "formaction"  -> formAction,
         "formenctype" -> "multipart/form-data"
       ) ++ attributes,
-      preventDoubleClick = Some(true),
-      disabled = uploadButtonDisabled
+      preventDoubleClick = Some(true)
     )
 
     val submitButtonHtml: Html = new components.GovukButton()(submitButton)
@@ -2346,10 +2340,16 @@ class SectionRenderingService(
         .map(continue => html.form.snippets.markdown_wrapper(HtmlFormat.raw(continue.value())))
         .getOrElse(HtmlFormat.empty)
 
-    if (isMinimumFilesUploaded) {
-      HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml, continueText))
-    } else {
-      HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml))
+    val maxFilesRequired: Int = Try(multiFileUpload.maxFiles.map(sse(_, markDown = false)).getOrElse("5").toInt) match {
+      case Success(maxFiles) => maxFiles
+      case Failure(_)        => 5
+    }
+    val isMaximumFilesUploaded: Boolean = currentValues.size >= maxFilesRequired
+
+    (isMinimumFilesUploaded, isMaximumFilesUploaded) match {
+      case (true, true)  => HtmlFormat.fill(List(hint, uploadedFiles, continueText))
+      case (true, false) => HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml, continueText))
+      case (false, _)    => HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml))
     }
   }
 
