@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.implicits.catsSyntaxEq
 import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.eval.AllPageModelExpressionsGetter
@@ -163,9 +164,12 @@ class ConfirmationService(
     val bracket = formModel.brackets.withSectionNumber(sectionNumber)
 
     bracket match {
-      case bracket @ Bracket.AddToList(_, _) =>
-        val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterationForSectionNumber(sectionNumber)
-        iteration.singletons.map(_.singleton).toList.flatMap(AllPageModelExpressionsGetter.fromSingleton(formModel))
+      case atl @ Bracket.AddToList(_, _) =>
+        val iteration: Bracket.AddToListIteration[DataExpanded] = atl.iterationForSectionNumber(sectionNumber)
+        iteration.singletons
+          .filter(_.sectionNumber === sectionNumber)
+          .map(_.singleton)
+          .flatMap(AllPageModelExpressionsGetter.fromSingleton(formModel))
       case _ => bracket.allExprs(formModel)
     }
   }
