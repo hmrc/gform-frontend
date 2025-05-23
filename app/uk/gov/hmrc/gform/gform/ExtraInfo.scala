@@ -97,23 +97,29 @@ final case class ExtraInfo(
     renderableAsSingleFileUpload match {
       case (fc @ IsFileUpload(_)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
         Some("singleFile")
-      case (fc @ IsMultiFileUpload(fu)) :: Nil if fc.mandatory =>
-        val minFilesRequired =
-          if (!fc.mandatory) 0
-          else
-            Try(fu.minFiles.map(sse(_, markDown = false)).getOrElse("1").toInt) match {
-              case Success(value) => value
-              case Failure(_)     => 1
-            }
-        if (validationResult(fc).getComponentFieldIndices(fc.id).size < minFilesRequired)
-          Some("multiFile")
-        else None
+      case (fc @ IsMultiFileUpload(fu)) :: Nil if isMultiUploadMandatory(fc, fu, validationResult, sse) =>
+        Some("multiFile")
       case _ => None
     }
 
   def isAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
     !validationResult(formComponent).getCurrentValue.forall(_ === "")
 
-//  def isMultiAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
-//    validationResult(formComponent).getComponentFieldIndices(formComponent.id).nonEmpty
+  def isMultiUploadMandatory(
+    formComponent: FormComponent,
+    fileUpload: MultiFileUpload,
+    validationResult: ValidationResult,
+    sse: SmartStringEvaluator
+  ): Boolean = {
+    val minFilesRequired: Int =
+      if (!formComponent.mandatory) 0
+      else
+        Try(fileUpload.minFiles.map(sse(_, markDown = false)).getOrElse("1").toInt) match {
+          case Success(minFiles) => minFiles
+          case Failure(_)        => 1
+        }
+    val numberUploadedSoFar: Int = validationResult(formComponent).getComponentFieldIndices(formComponent.id).size
+
+    minFilesRequired > numberUploadedSoFar
+  }
 }
