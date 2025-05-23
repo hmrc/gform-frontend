@@ -85,7 +85,7 @@ sealed trait Expr extends Product with Serializable {
       case ChoicesRevealedField(_)                 => expr :: Nil
       case ChoicesSelected(_)                      => expr :: Nil
       case ChoicesAvailable(_)                     => expr :: Nil
-      case ChoicesSelectedSum(_)                   => expr :: Nil
+      case CountSelectedChoices(_)                 => expr :: Nil
       case TaskStatus(_)                           => expr :: Nil
       case LookupOps(_, _)                         => expr :: Nil
 
@@ -148,7 +148,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesRevealedField(formComponentId)    => FormCtx(formComponentId) :: Nil
     case ChoicesSelected(formComponentId)         => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)        => FormCtx(formComponentId) :: Nil
-    case ChoicesSelectedSum(formComponentId)      => FormCtx(formComponentId) :: Nil
+    case CountSelectedChoices(formComponentId)    => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                            => this :: Nil
     case LookupOps(expr, _)                       => expr.leafs(formModel)
   }
@@ -197,7 +197,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesRevealedField(_)                  => Nil
     case ChoicesSelected(_)                       => Nil
     case ChoicesAvailable(_)                      => Nil
-    case ChoicesSelectedSum(_)                    => Nil
+    case CountSelectedChoices(_)                  => Nil
     case TaskStatus(_)                            => Nil
     case LookupOps(_, _)                          => Nil
   }
@@ -247,7 +247,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesRevealedField(formComponentId)     => FormCtx(formComponentId) :: Nil
     case ChoicesSelected(formComponentId)          => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)         => FormCtx(formComponentId) :: Nil
-    case ChoicesSelectedSum(formComponentId)       => FormCtx(formComponentId) :: Nil
+    case CountSelectedChoices(formComponentId)     => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                             => this :: Nil
     case LookupOps(expr, _)                        => expr.leafs()
   }
@@ -298,7 +298,7 @@ final case object CountryOfItmpAddress extends Expr
 final case class ChoicesRevealedField(formComponentId: FormComponentId) extends Expr
 final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
 final case class ChoicesAvailable(formComponentId: FormComponentId) extends Expr
-final case class ChoicesSelectedSum(formComponentId: FormComponentId) extends Expr
+final case class CountSelectedChoices(formComponentId: FormComponentId) extends Expr
 final case class TaskStatus(taskId: TaskId) extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
