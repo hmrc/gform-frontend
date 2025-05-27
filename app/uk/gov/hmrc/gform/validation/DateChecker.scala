@@ -121,7 +121,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       .flatMap(_.nonBlankValue())
       .getOrElse(SmartString.blank.transform(_ => "a date", _ => "ddyddiad").value())
     val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
-    println(placeholder1, placeholder2)
+    //println(placeholder1, placeholder2)
     errorProgram[Unit](
       Map[ModelComponentId, LinkedHashSet[String]](
         modelComponentId -> errors(

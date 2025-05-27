@@ -189,6 +189,7 @@ class Recalculation[F[_]: Monad, E](
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
           //println(graphLayer)
+          //println(graphLayer.length)
           recalculateGraphLayer(
             graphLayer,
             state.map(_ => startEvResults),

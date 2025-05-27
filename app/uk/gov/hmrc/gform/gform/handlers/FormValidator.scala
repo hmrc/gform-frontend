@@ -231,7 +231,6 @@ class FormValidator(implicit ec: ExecutionContext) {
         }
       case _ =>
         ffYesSnF.map { ffYesSn =>
-          println((ffYesSn, nextFrom))
           (ffYesSn, nextFrom) match {
             case (None, None) =>
               if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary

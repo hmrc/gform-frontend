@@ -733,8 +733,7 @@ class FormController(
                             )
                           }
 
-                      def continueJourney: Result = {
-                        println(maybeSn)
+                      def continueJourney: Result =
                         maybeSn match {
                           case SectionOrSummary.Section(sn) =>
                             val endOfTask: Option[Coordinates] =
@@ -832,7 +831,6 @@ class FormController(
                               )
                             )
                         }
-                      }
 
                       maybeRedirectUrl match {
                         case Some(r) => Redirect(r)
