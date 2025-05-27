@@ -21,7 +21,7 @@ import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
 import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
-import scalax.collection.io.dot.DotRootGraph
+//import scalax.collection.io.dot.DotRootGraph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval._
@@ -75,32 +75,32 @@ class Recalculation[F[_]: Monad, E](
       )
       .getOrElse(Set.empty)
 
-    def dotRoot = DotRootGraph(
-      true,
-      Some(scalax.collection.io.dot.Id("ExampleGraph"))
-    )
+//    def dotRoot = DotRootGraph(
+//      true,
+//      Some(scalax.collection.io.dot.Id("ExampleGraph"))
+//    )
+//
+//    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
+//      index
+//        .fold[Option[(Int, Int, Int)]] { classic =>
+//          None
+//        } { taskList =>
+//          Some(
+//            taskList.coordinates.taskSectionNumber.value,
+//            taskList.coordinates.taskNumber.value,
+//            taskList.templateSectionIndex.index
+//          )
+//        }
+//        .getOrElse(0, 0, 0)
+//
+//    formModel.addToListBrackets
+//      .flatMap(_.toPageModelWithNumber.toList)
 
-    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
-      index
-        .fold[Option[(Int, Int, Int)]] { classic =>
-          None
-        } { taskList =>
-          Some(
-            taskList.coordinates.taskSectionNumber.value,
-            taskList.coordinates.taskNumber.value,
-            taskList.templateSectionIndex.index
-          )
-        }
-        .getOrElse(0, 0, 0)
+//    val list =
+//      formModel.brackets.toPageModelWithNumber ++ formModel.addToListBrackets.flatMap(_.toPageModelWithNumber.toList)
 
-    formModel.addToListBrackets
-      .flatMap(_.toPageModelWithNumber.toList)
-
-    val list =
-      formModel.brackets.toPageModelWithNumber ++ formModel.addToListBrackets.flatMap(_.toPageModelWithNumber.toList)
-
-    val pageToIndex = list.toList.map(x => x._1 -> toIndexToInts(x._2)).toMap
-    val indexToPage = pageToIndex.map(x => x._2 -> x._1)
+//    val pageToIndex = list.toList.map(x => x._1 -> toIndexToInts(x._2)).toMap
+//    val indexToPage = pageToIndex.map(x => x._2 -> x._1)
 
 //    val pageGraph = Graph.from(pageToIndex.map { case (page, index) =>
 //      def i(a: Int, b: Int, c: Int) =
@@ -124,45 +124,41 @@ class Recalculation[F[_]: Monad, E](
         DependencyGraph.toGraph(formModel, formTemplateExprs, page.allFields)
       }
       .getOrElse(Graph.empty)
-    graph.edges.map { x =>
-      //println(x)
-    }
-    //println()
-    import scalax.collection.io.dot._
-    var exprPar = 0
-    def edgeTransformer(innerEdge: Graph[GraphNode, DiEdge[GraphNode]]#EdgeT): Option[(DotGraph, DotEdgeStmt)] = {
-      val edge = innerEdge.outer
-      def toId(g: GraphNode) =
-        g match {
-          case GraphNode.Simple(formComponentId) => NodeId(formComponentId.value)
-          case GraphNode.Expr(expr) =>
-            exprPar = exprPar + 1
-            NodeId(expr.toString)
-        }
-      Some(
-        dotRoot ->
-          DotEdgeStmt(
-            NodeId(edge.source.toString),
-            NodeId(edge.target.toString)
-          )
-      )
-    }
+    //import scalax.collection.io.dot._
+//    var exprPar = 0
+//    def edgeTransformer(innerEdge: Graph[GraphNode, DiEdge[GraphNode]]#EdgeT): Option[(DotGraph, DotEdgeStmt)] = {
+//      val edge = innerEdge.outer
+//      def toId(g: GraphNode) =
+//        g match {
+//          case GraphNode.Simple(formComponentId) => NodeId(formComponentId.value)
+//          case GraphNode.Expr(expr) =>
+//            exprPar = exprPar + 1
+//            NodeId(expr.toString)
+//        }
+//      Some(
+//        dotRoot ->
+//          DotEdgeStmt(
+//            NodeId(edge.source.toString),
+//            NodeId(edge.target.toString)
+//          )
+//      )
+//    }
+//
+//    def edgeTransformerPageModel(
+//      innerEdge: Graph[String, DiEdge[String]]#EdgeT
+//    ): Option[(DotGraph, DotEdgeStmt)] = {
+//      val edge = innerEdge.outer
+//      Some(
+//        dotRoot ->
+//          DotEdgeStmt(
+//            NodeId(edge.source),
+//            NodeId(edge.target)
+//          )
+//      )
+//    }
 
-    def edgeTransformerPageModel(
-      innerEdge: Graph[String, DiEdge[String]]#EdgeT
-    ): Option[(DotGraph, DotEdgeStmt)] = {
-      val edge = innerEdge.outer
-      Some(
-        dotRoot ->
-          DotEdgeStmt(
-            NodeId(edge.source),
-            NodeId(edge.target)
-          )
-      )
-    }
-
-    val dot = graph.toDot(dotRoot, edgeTransformer)
-    Files.write(Paths.get("graph.dot"), dot.getBytes)
+//    val dot = graph.toDot(dotRoot, edgeTransformer)
+//    Files.write(Paths.get("graph.dot"), dot.getBytes)
 //    val dotFormComponent = pageGraph.toDot(dotRoot, edgeTransformerPageModel)
 //    Files.write(Paths.get("graph-page.dot"), dotFormComponent.getBytes)
 
