@@ -459,7 +459,7 @@ object SummaryRenderingService {
           SummaryList(
             rows = rows,
             card = card,
-            classes = "govuk-!-margin-bottom-0"
+            classes = "govuk-!-margin-bottom-8"
           )
         )
         List(heading, govukSummaryList)
@@ -614,7 +614,7 @@ object SummaryRenderingService {
             }
         )
         .getOrElse(List.empty[SummaryListRow])
-      new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-0")) :: htmls
+      new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
     def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
