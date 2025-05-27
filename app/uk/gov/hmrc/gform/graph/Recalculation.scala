@@ -26,12 +26,13 @@ import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
+import uk.gov.hmrc.gform.models.{ Basic, FormModel, Interim, PageModel, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.LangADT.{ Cy, En }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SourceOrigin, VariadicFormData, VariadicValue }
 
 import java.nio.file.{ Files, Paths }
 import scala.collection.{ immutable, mutable }
@@ -67,14 +68,62 @@ class Recalculation[F[_]: Monad, E](
 
     implicit val fm: FormModel[Interim] = formModel
 
-    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+    val page = evaluationContext.currentPage
+    val formTemplateExprs: Set[ExprMetadata] = page
+      .map(
+        AllFormTemplateExpressions.fromPage(_).toSet
+      )
+      .getOrElse(Set.empty)
 
-    val dotRoot = DotRootGraph(
+    def dotRoot = DotRootGraph(
       true,
       Some(scalax.collection.io.dot.Id("ExampleGraph"))
     )
 
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs)
+    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
+      index
+        .fold[Option[(Int, Int, Int)]] { classic =>
+          None
+        } { taskList =>
+          Some(
+            taskList.coordinates.taskSectionNumber.value,
+            taskList.coordinates.taskNumber.value,
+            taskList.templateSectionIndex.index
+          )
+        }
+        .getOrElse(0, 0, 0)
+
+    formModel.addToListBrackets
+      .flatMap(_.toPageModelWithNumber.toList)
+
+    val list =
+      formModel.brackets.toPageModelWithNumber ++ formModel.addToListBrackets.flatMap(_.toPageModelWithNumber.toList)
+
+    val pageToIndex = list.toList.map(x => x._1 -> toIndexToInts(x._2)).toMap
+    val indexToPage = pageToIndex.map(x => x._2 -> x._1)
+
+//    val pageGraph = Graph.from(pageToIndex.map { case (page, index) =>
+//      def i(a: Int, b: Int, c: Int) =
+//        if (c > 0) (a, b, c - 1)
+//        else if (b > 0) (a, b - 1, 0)
+//        else (a - 1, 0, 0)
+//
+//      def pageGraphLabel(page: PageModel[_], section: (Int, Int, Int)) =
+//        page.title.rawDefaultValue(LangADT.En) + " " + section
+//
+//      index match {
+//        case (0, 0, 0) => "taskList" ~> pageGraphLabel(page, (0, 0, 0))
+//        case (a, b, c) =>
+//          val pageOrigin = indexToPage(i(a, b, c))
+//          pageGraphLabel(pageOrigin, i(a, b, c)) ~> pageGraphLabel(page, (a, b, c))
+//      }
+//    })
+
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
+      .map { page =>
+        DependencyGraph.toGraph(formModel, formTemplateExprs, page.allFields)
+      }
+      .getOrElse(Graph.empty)
     graph.edges.map { x =>
       //println(x)
     }
@@ -99,8 +148,23 @@ class Recalculation[F[_]: Monad, E](
       )
     }
 
+    def edgeTransformerPageModel(
+      innerEdge: Graph[String, DiEdge[String]]#EdgeT
+    ): Option[(DotGraph, DotEdgeStmt)] = {
+      val edge = innerEdge.outer
+      Some(
+        dotRoot ->
+          DotEdgeStmt(
+            NodeId(edge.source),
+            NodeId(edge.target)
+          )
+      )
+    }
+
     val dot = graph.toDot(dotRoot, edgeTransformer)
     Files.write(Paths.get("graph.dot"), dot.getBytes)
+//    val dotFormComponent = pageGraph.toDot(dotRoot, edgeTransformerPageModel)
+//    Files.write(Paths.get("graph-page.dot"), dotFormComponent.getBytes)
 
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)

@@ -31,19 +31,16 @@ object DependencyGraph {
 
   def toGraph(
     formModel: FormModel[Interim],
-    formTemplateExprs: Set[ExprMetadata]
+    formTemplateExprs: Set[ExprMetadata],
+    formComponents: List[FormComponent]
   ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs)
+    graphFrom(formModel, formTemplateExprs, formComponents)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
-    formTemplateExprs: Set[ExprMetadata]
+    formTemplateExprs: Set[ExprMetadata],
+    formComponents: List[FormComponent]
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
-    def p[TT](x: TT) = {
-      println(x)
-      x
-    }
-    println()
 //    formModel.brackets.map { singleton =>
 //      println(singleton.title)
 //      println(singleton)
@@ -60,7 +57,9 @@ object DependencyGraph {
             case SelfReferenceProjection(
                   IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_))
                 ) =>
-              (fc.id :: Nil).map(fcId => GraphNode.Simple(fc.id) ~> GraphNode.Simple(fcId))
+              Set(
+                GraphNode.Simple(fc.id) ~> GraphNode.Simple(fc.id)
+              )
             case SelfReferenceProjection(IsSelfReferring.No(expr)) =>
               toDiEdge(fc, expr, _ => false)
             case SelfReferenceProjection(IsSelfReferring.Yes(expr, selfReference)) =>
@@ -69,9 +68,8 @@ object DependencyGraph {
           }
         case isSum.IsSum(values) =>
           values.flatMap { value =>
-            GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) ::
-              GraphNode.Simple(value) ~> GraphNode.Expr(FormCtx(fc.id)) :: Nil
-          }
+            GraphNode.Simple(value) ~> GraphNode.Expr(FormCtx(fc.id)) :: Nil
+          } + GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id)
         case isStandaloneSum.IsSum(fcId) =>
           Set(GraphNode.Expr(FormCtx(fcId)) ~> GraphNode.Simple(fcId))
         case _ => Set.empty
@@ -99,7 +97,7 @@ object DependencyGraph {
 
     def getAllEdges = {
       val allEdges: mutable.Set[DiEdge[GraphNode]] = mutable.Set
-        .from(formModel.allFormComponents)
+        .from(formComponents)
         .flatMap(edges)
 
       def boolenExprDeps(

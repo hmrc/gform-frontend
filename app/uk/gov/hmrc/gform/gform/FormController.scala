@@ -679,7 +679,6 @@ class FormController(
                   formModelOptics,
                   fastForward
                 )
-                println(status)
                 status match {
                   case ConfirmationAction.NotConfirmed(redirect) => redirect.pure[Future]
                   case ConfirmationAction.UpdateConfirmation(processDataUpdater, isConfirmationPage) =>
@@ -947,7 +946,11 @@ class FormController(
                                             updatedVariadicFormData
                                               .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                             cache,
-                                            recalculation
+                                            recalculation,
+                                            currentPage = formModel.pageModelLookup(sectionNumber) match {
+                                              case Singleton(page) => Some(page)
+                                              case _               => None
+                                            }
                                           )
                   res <- handleGroup(
                            cache,
@@ -967,7 +970,11 @@ class FormController(
                                           .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
                                             updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                             cache,
-                                            recalculation
+                                            recalculation,
+                                            currentPage = formModel.pageModelLookup(sectionNumber) match {
+                                              case Singleton(page) => Some(page)
+                                              case _               => None
+                                            }
                                           )
                   res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
                   _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)

@@ -90,8 +90,9 @@ class ProcessDataService[F[_]: Monad](
 
     for {
 
-      browserFormModelOptics <- FormModelOptics
-                                  .mkFormModelOptics[DataOrigin.Browser, F, U](dataRaw, cache, recalculation)
+      browserFormModelOptics <-
+        FormModelOptics
+          .mkFormModelOptics[DataOrigin.Browser, F, U](dataRaw, cache, recalculation, currentPage = None)
 
       obligations <- taxPeriodStateChecker.callDesIfNeeded(
                        getAllTaxPeriods,

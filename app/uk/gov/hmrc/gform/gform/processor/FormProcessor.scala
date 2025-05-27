@@ -215,7 +215,8 @@ class FormProcessor(
                               .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
                                 updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                 cache,
-                                recalculation
+                                recalculation,
+                                currentPage = None
                               )
       redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds, dataRetrieveIds)
       _        <- objectStoreService.deleteFiles(cache.form.envelopeId, filesToDelete)

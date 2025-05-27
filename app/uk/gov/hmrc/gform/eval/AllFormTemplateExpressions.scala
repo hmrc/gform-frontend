@@ -27,6 +27,18 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ De
  * This doesn't include expressions in sections
  */
 object AllFormTemplateExpressions extends ExprExtractorHelpers {
+
+  def fromPage(page: Page[_]): List[ExprMetadata] =
+    page.allFields.flatMap(AllFormComponentExpressions.unapply).flatten ++
+      toPlainExprs(
+        fromSmartStrings(page.title),
+        fromOption(
+          page.description,
+          page.shortName,
+          page.continueLabel
+        )
+      )
+
   def apply(formTemplate: FormTemplate): Set[ExprMetadata] = {
     val emailExprs: List[Expr] = fromOptionF(formTemplate.emailParameters)(_.toList.map(_.value))
     val summarySectionExprs: List[Expr] = {
