@@ -205,6 +205,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 3185,AO,2,SVP,,Kuito Airport - SVP,Kuito Airport - SVP,,4,NULL,1,
 3188,AO,2,LOB,,Lobito Airport - LOB,Lobito Airport - LOB,,4,NULL,1,
 3189,AO,3,LAD,,Luanda Port - LAD,Luanda Port - LAD,,4,NULL,1,
+3190,AO,2,LAD,Quatro de Fevereiro Angola,Luanda International Airport - LAD,Luanda International Airport - LAD,,4,NULL,1,
 3191,AO,2,UAL,,Luau Airport - UAL,Luau Airport - UAL,,4,NULL,1,
 3193,AO,2,SDD,,Lubango Airport - SDD,Lubango Airport - SDD,,4,NULL,1,
 3195,AO,3,LUC,,Lucira Seaport - LUC,Lucira Seaport - LUC,,4,NULL,1,
