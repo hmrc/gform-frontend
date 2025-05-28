@@ -327,7 +327,7 @@ class LookupLoader {
 
   private def readSicCode(
     filename: String,
-    id: String,
+    idColumnName: String,
     englishLabel: String,
     welshLabel: String,
     section: String,
@@ -337,13 +337,16 @@ class LookupLoader {
     type ColumnData = (LookupLabel, LookupLabel, LookupId, LookupSicCodeSection)
 
     val headerDecoder: HeaderDecoder[ColumnData] =
-      HeaderDecoder.decoder(englishLabel, welshLabel, id, section)(
+      HeaderDecoder.decoder(englishLabel, welshLabel, idColumnName, section)(
         (_: LookupLabel, _: LookupLabel, _: LookupId, _: LookupSicCodeSection)
       )
 
+    val csvWithColumns = CsvUtils.readCsvWithColumns(filename)
     def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
       val (enLabel, cyLabel, id, sicCodeSection) = columnData
-      val li = SicCodeLookupInfo(id, index, sicCodeSection)
+
+      val columns = csvWithColumns.find(_(idColumnName) == id.id).get
+      val li = SicCodeLookupInfo(id, index, sicCodeSection, columns)
       ((enLabel, li), (cyLabel, li))
     }
 
@@ -459,7 +462,7 @@ object LookupLoader {
         case (ll, PortLookupInfo(_, _, k, p, _, _, _, _))        => engine.add(new LookupRecord(ll.label, p, k))
         case (ll, AgentComplaintCategoriesLookupInfo(_, _, k, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), k))
-        case (ll, SicCodeLookupInfo(_, _, _)) =>
+        case (ll, SicCodeLookupInfo(_, _, _, _)) =>
           engine.add(new LookupRecord(ll.label, LookupPriority(1), LookupKeywords(None)))
         case (ll, FiveColumnLookupInfo(_, _, k, p, _)) => engine.add(new LookupRecord(ll.label, p, k))
       }

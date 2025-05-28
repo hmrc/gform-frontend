@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.sharedmodel.retrieval.AuthRetrievals
+import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsByFormIdData }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
@@ -724,6 +724,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     retrievals: AuthRetrievals
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     ws.POST[AuthRetrievals, HttpResponse](s"$baseUrl/retrieval", retrievals)
+      .map(_ => ())
+
+  def upsertAuthRetrievalsByFormIdData(
+    retrievals: AuthRetrievalsByFormIdData
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+    ws.POST[AuthRetrievalsByFormIdData, HttpResponse](s"$baseUrl/retrieval-by-form", retrievals)
       .map(_ => ())
 
   def translationAudit(

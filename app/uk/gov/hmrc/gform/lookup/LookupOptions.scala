@@ -53,7 +53,7 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
           }
         case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)
         case (label, PortLookupInfo(_, _, _, priority, _, _, _, _))  => (priority, label)
-        case (label, SicCodeLookupInfo(_, _, _))                     => (LookupPriority(1), label)
+        case (label, SicCodeLookupInfo(_, _, _, _))                  => (LookupPriority(1), label)
         case (label, AgentComplaintCategoriesLookupInfo(_, _, _, _)) => (LookupPriority(1), label)
         case (label, FiveColumnLookupInfo(_, _, _, priority, _))     => (priority, label)
       }
@@ -80,7 +80,9 @@ object LookupOptions {
       case (PortLookupInfo(_, _, _, _, _, portType, _, _), CsvColumnName.portType)        => Some(portType.portType)
       case (PortLookupInfo(_, _, _, _, _, _, countryCode, _), CsvColumnName.countryCode)  => Some(countryCode.countryCode)
       case (PortLookupInfo(_, _, _, _, _, _, _, portCode), CsvColumnName.portCode)        => Some(portCode.portCode)
-      case (SicCodeLookupInfo(_, _, section), CsvColumnName.section)                      => Some(section.section)
+      case (SicCodeLookupInfo(_, _, section, _), CsvColumnName.section)                   => Some(section.section)
+      case (SicCodeLookupInfo(_, _, _, columns), column)                                  =>
+        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (AgentComplaintCategoriesLookupInfo(_, _, _, columns), column) =>
         Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
       case (FiveColumnLookupInfo(_,_,_,_,columns), column)                                =>

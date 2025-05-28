@@ -230,7 +230,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           validIf(
             new FileUploadChecker[D]().runCheck(checkerDependency)
           )
-        case MultiFileUpload(_, _, _, _, _) =>
+        case MultiFileUpload(_, _, _, _, _, _, _) =>
           validIf(
             new FileUploadChecker[D]().runCheck(checkerDependency)
           )

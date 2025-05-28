@@ -21,6 +21,7 @@ import cats.instances.future._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import cats.syntax.all._
+import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.objectStore.Attachments
@@ -30,8 +31,8 @@ import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSess
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.pdf.model.PDFCustomRender
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.InstructionPdfFields
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfContent, SourceOrigin, SubmissionData, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, UserData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfContent, SourceOrigin, SubmissionData, UserId, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, QueryParams, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateContext, FormTemplateId, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -40,7 +41,7 @@ import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.retrieval.AuthRetrievals
+import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsByFormIdData }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summary.SubmissionDetails
@@ -90,6 +91,10 @@ trait GformBackEndAlgebra[F[_]] {
   ): F[Unit]
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
+
+  def newForm(formTemplateId: FormTemplateId, retrievals: MaterialisedRetrievals, queryParams: QueryParams)(implicit
+    hc: HeaderCarrier
+  ): F[FormIdData]
 }
 
 class GformBackEndService(
@@ -393,4 +398,17 @@ class GformBackEndService(
 
       case _ => None
     }
+
+  override def newForm(formTemplateId: FormTemplateId, retrievals: MaterialisedRetrievals, queryParams: QueryParams)(
+    implicit hc: HeaderCarrier
+  ): Future[FormIdData] =
+    for {
+      newFormData <-
+        gformConnector
+          .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals), queryParams)
+      _ <- gformConnector.upsertAuthRetrievalsByFormIdData(
+             AuthRetrievalsByFormIdData(newFormData, Json.toJson(retrievals))
+           )
+    } yield newFormData
+
 }

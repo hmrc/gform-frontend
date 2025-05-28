@@ -52,6 +52,7 @@ import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.mongo.MongoModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContextCacheManager
+import uk.gov.hmrc.play.bootstrap.LoggerModule
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -72,6 +73,9 @@ class ApplicationModule(context: Context)
     extends BuiltInComponentsFromContext(context) with AssetsComponents with AhcWSComponents with I18nComponents
     with CSRFComponents {
   self =>
+
+  private val loggerModule = new LoggerModule
+  loggerModule.bindings(environment, configuration)
 
   private val logger = LoggerFactory.getLogger(getClass)
 

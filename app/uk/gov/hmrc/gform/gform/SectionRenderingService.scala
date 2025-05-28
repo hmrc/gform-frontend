@@ -98,6 +98,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.Key
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 
 import scala.annotation.tailrec
+import scala.util.{ Failure, Success, Try }
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -765,7 +766,7 @@ class SectionRenderingService(
         retrievals.continueLabelKey,
         DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
-        ei.getButtonName(validationResult).isDefined
+        ei.getButtonName(validationResult, sse).isDefined
       ),
       formMaxAttachmentSizeMB,
       allowedFileTypes,
@@ -781,7 +782,7 @@ class SectionRenderingService(
       shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver),
       ei.saveAndComeBackLaterButton,
       ei.isFileUploadOnlyPage(validationResult).isDefined,
-      ei.getButtonName(validationResult)
+      ei.getButtonName(validationResult, sse)
     )
 
     html.form.form(
@@ -1542,7 +1543,7 @@ class SectionRenderingService(
                 htmlForFileUploadSingle(formComponent, ei, upscanData, additionalAttributes)
             }
 
-          case mfu @ MultiFileUpload(_, allowedFileTypes, _, _, _) =>
+          case mfu @ MultiFileUpload(_, allowedFileTypes, _, _, _, _, _) =>
             val allowedContentTypes = allowedFileTypes
               .map(_.contentTypes)
               .getOrElse(ei.formTemplate.allowedFileTypes.contentTypes)
@@ -2231,7 +2232,6 @@ class SectionRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ) = {
-
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
     val flashError: Option[String] = request.flash.get(GformFlashKeys.FileUploadError)
@@ -2277,12 +2277,9 @@ class SectionRenderingService(
       case _ => List.empty[(FileId, String, Call)]
     }
 
-    val isOneOrMoreFilesUploaded: Boolean = currentValues match {
-      case _ :: _ => true
-      case Nil    => ei.getButtonName(validationResult).isEmpty
-    }
+    val isMinimumFilesUploaded: Boolean = ei.getButtonName(validationResult, sse).isEmpty
 
-    val labelContent: content.Text = if (isOneOrMoreFilesUploaded) {
+    val labelContent: content.Text = if (isMinimumFilesUploaded) {
       content.Text(multiFileUpload.uploadAnotherLabel.getOrElse(formComponent.label).value())
     } else {
       content.Text(formComponent.label.value())
@@ -2308,7 +2305,7 @@ class SectionRenderingService(
     val fileInput: Html =
       new components.GovukFileUpload(govukLabel, govukFormGroup, govukHintAndErrorMessage)(fileUpload)
 
-    val submitButtonClasses = if (isOneOrMoreFilesUploaded) {
+    val submitButtonClasses: String = if (isMinimumFilesUploaded) {
       "govuk-button--secondary"
     } else {
       "govuk-button--secondary js-hidden"
@@ -2343,10 +2340,16 @@ class SectionRenderingService(
         .map(continue => html.form.snippets.markdown_wrapper(HtmlFormat.raw(continue.value())))
         .getOrElse(HtmlFormat.empty)
 
-    if (isOneOrMoreFilesUploaded) {
-      HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml, continueText))
-    } else {
-      HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml))
+    val maxFilesRequired: Int = Try(multiFileUpload.maxFiles.map(sse(_, markDown = false)).getOrElse("5").toInt) match {
+      case Success(maxFiles) => maxFiles
+      case Failure(_)        => 5
+    }
+    val isMaximumFilesUploaded: Boolean = currentValues.size >= maxFilesRequired
+
+    (isMinimumFilesUploaded, isMaximumFilesUploaded) match {
+      case (true, true)  => HtmlFormat.fill(List(hint, uploadedFiles, continueText))
+      case (true, false) => HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml, continueText))
+      case (false, _)    => HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml))
     }
   }
 

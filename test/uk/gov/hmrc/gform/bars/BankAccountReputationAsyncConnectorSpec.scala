@@ -228,6 +228,43 @@ class BankAccountReputationAsyncConnectorSpec
     }
   }
 
+  it should "call the validate bank details service endpoint and override bad request with exceptional response" in new TestFixture {
+    stubFor(
+      WireMock
+        .post(s"/validate/bank-details")
+        .withHeader("Content-Type", equalTo("application/json"))
+        .willReturn(
+          badRequest().withBody("""
+                                  |{
+                                  |    "code": "SORT_CODE_ON_DENY_LIST",
+                                  |    "desc": "some description"
+                                  |}
+                                  |""".stripMargin)
+        )
+    )
+
+    val future = bankAccountReputationAsyncConnector.validateBankDetails(
+      dataRetrieveValidateBankDetails,
+      request
+    )
+
+    whenReady(future) { response =>
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(
+          Map(
+            DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "indeterminate",
+            DataRetrieve.Attribute("sortCodeBankName")                         -> "",
+            DataRetrieve.Attribute("isValid")                                  -> "indeterminate",
+            DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "",
+            DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "",
+            DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "no",
+            DataRetrieve.Attribute("iban")                                     -> ""
+          )
+        )
+      )
+    }
+  }
+
   "ConstructAttribute.Concat" should "should concat fields from json response" in new TestFixture {
 
     stubFor(
