@@ -98,7 +98,6 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.Key
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 
 import scala.annotation.tailrec
-import scala.util.{ Failure, Success, Try }
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
@@ -766,7 +765,7 @@ class SectionRenderingService(
         retrievals.continueLabelKey,
         DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
-        ei.getButtonName(validationResult, sse).isDefined
+        ei.getButtonName(validationResult).isDefined
       ),
       formMaxAttachmentSizeMB,
       allowedFileTypes,
@@ -782,7 +781,7 @@ class SectionRenderingService(
       shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver),
       ei.saveAndComeBackLaterButton,
       ei.isFileUploadOnlyPage(validationResult).isDefined,
-      ei.getButtonName(validationResult, sse)
+      ei.getButtonName(validationResult)
     )
 
     html.form.form(
@@ -2277,7 +2276,7 @@ class SectionRenderingService(
       case _ => List.empty[(FileId, String, Call)]
     }
 
-    val isMinimumFilesUploaded: Boolean = ei.getButtonName(validationResult, sse).isEmpty
+    val isMinimumFilesUploaded: Boolean = ei.getButtonName(validationResult).isEmpty
 
     val labelContent: content.Text = if (isMinimumFilesUploaded) {
       content.Text(multiFileUpload.uploadAnotherLabel.getOrElse(formComponent.label).value())
@@ -2340,10 +2339,7 @@ class SectionRenderingService(
         .map(continue => html.form.snippets.markdown_wrapper(HtmlFormat.raw(continue.value())))
         .getOrElse(HtmlFormat.empty)
 
-    val maxFilesRequired: Int = Try(multiFileUpload.maxFiles.map(sse(_, markDown = false)).getOrElse("5").toInt) match {
-      case Success(maxFiles) => maxFiles
-      case Failure(_)        => 5
-    }
+    val maxFilesRequired: Int = ei.maxFilesRequired(multiFileUpload.maxFiles)
     val isMaximumFilesUploaded: Boolean = currentValues.size >= maxFilesRequired
 
     (isMinimumFilesUploaded, isMaximumFilesUploaded) match {
