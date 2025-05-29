@@ -20,7 +20,6 @@ import cats.syntax.all._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.SaveAndExit
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, Singleton }
@@ -51,6 +50,8 @@ final case class ExtraInfo(
 ) {
 
   val formTemplateId = formTemplate._id
+  private val defaultMaxFiles = 5
+  private val defaultMultiUploadMandatory = 1
 
   private val modelComponentIds: List[ModelComponentId] =
     singleton.allFormComponents.flatMap(_.multiValueId.toModelComponentIds)
@@ -93,30 +94,52 @@ final case class ExtraInfo(
       case _ => None
     }
 
-  def getButtonName(validationResult: ValidationResult, sse: SmartStringEvaluator): Option[String] =
+  def getButtonName(validationResult: ValidationResult): Option[String] =
     renderableAsSingleFileUpload match {
       case (fc @ IsFileUpload(_)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
         Some("singleFile")
-      case (fc @ IsMultiFileUpload(fu)) :: Nil if isMultiUploadMandatory(fc, fu, validationResult, sse) =>
+      case (fc @ IsMultiFileUpload(fu)) :: Nil if isMultiUploadMandatory(fc, fu, validationResult) =>
         Some("multiFile")
       case _ => None
     }
 
+  def maxFilesRequired(maxFiles: Option[Expr]): Int = Try(
+    maxFiles
+      .map(
+        formModelOptics.formModelVisibilityOptics
+          .evalAndApplyTypeInfoFirst(_)
+          .numberRepresentation
+          .fold(defaultMaxFiles)(_.toInt)
+      )
+      .getOrElse(defaultMaxFiles)
+  ) match {
+    case Success(maxFiles) => maxFiles
+    case Failure(_)        => defaultMaxFiles
+  }
+
   def isAlreadyUploaded(formComponent: FormComponent, validationResult: ValidationResult): Boolean =
     !validationResult(formComponent).getCurrentValue.forall(_ === "")
 
-  def isMultiUploadMandatory(
+  private def isMultiUploadMandatory(
     formComponent: FormComponent,
     fileUpload: MultiFileUpload,
-    validationResult: ValidationResult,
-    sse: SmartStringEvaluator
+    validationResult: ValidationResult
   ): Boolean = {
     val minFilesRequired: Int =
       if (!formComponent.mandatory) 0
       else
-        Try(fileUpload.minFiles.map(sse(_, markDown = false)).getOrElse("1").toInt) match {
+        Try(
+          fileUpload.minFiles
+            .map(
+              formModelOptics.formModelVisibilityOptics
+                .evalAndApplyTypeInfoFirst(_)
+                .numberRepresentation
+                .fold(defaultMultiUploadMandatory)(_.toInt)
+            )
+            .getOrElse(defaultMultiUploadMandatory)
+        ) match {
           case Success(minFiles) => minFiles
-          case Failure(_)        => 1
+          case Failure(_)        => defaultMultiUploadMandatory
         }
     val numberUploadedSoFar: Int = validationResult(formComponent).getComponentFieldIndices(formComponent.id).size
 
