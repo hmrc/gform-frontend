@@ -237,7 +237,8 @@ class FastForwardService(
                      .modify(_.booleanExprCache)
                      .setTo(processData.booleanExprCache),
                    cache.form.componentIdToFileId,
-                   cache.form.taskIdTaskStatus
+                   cache.form.taskIdTaskStatus,
+                   processData.confirmationExprMapping
                  )
       res <- gformConnector
                .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)

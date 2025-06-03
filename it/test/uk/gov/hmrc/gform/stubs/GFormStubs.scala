@@ -74,7 +74,8 @@ trait GFormStubs extends FormTemplateSample {
                 ThirdPartyData.empty,
                 None,
                 FormComponentIdToFileIdMapping.empty,
-                TaskIdTaskStatusMapping.empty
+                TaskIdTaskStatusMapping.empty,
+                ConfirmationExprMapping.empty
               )
             )
           )
