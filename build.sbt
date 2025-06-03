@@ -15,8 +15,6 @@ ThisBuild / scalaVersion := "2.13.16"
 lazy val microservice = (project in file("."))
   .enablePlugins(
     play.sbt.PlayScala,
-    SbtAutoBuildPlugin,
-    SbtGitVersioning,
     SbtDistributablesPlugin,
     SbtWeb,
     BuildInfoPlugin
@@ -87,14 +85,6 @@ lazy val microservice = (project in file("."))
     pipelineStages := Seq(digest),
     Assets / pipelineStages := Seq(concat, uglify),
     Assets / unmanagedResourceDirectories += baseDirectory.value / "builder" / "dist"
-  )
-  .settings(
-    resolvers ++= Seq(
-      Resolver.bintrayRepo("jetbrains", "markdown"),
-      Resolver.jcenterRepo,
-      "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
-      "bintray" at "https://dl.bintray.com/webjars/maven"
-    )
   )
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](version),
