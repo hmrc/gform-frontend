@@ -15,39 +15,34 @@
  */
 
 package uk.gov.hmrc.gform.auth
-
 import cats.data.EitherT
 import cats.syntax.either._
-import play.api.libs.ws.WSClient
-import play.api.libs.ws.WSResponse
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.testonly.snapshot._
-
-class AuthLoginStubConnector(baseUrl: String, wsClient: WSClient) {
-  val serviceUrl = baseUrl
-
+class AuthLoginStubConnector(baseUrl: String, httpClientV2: HttpClientV2) {
   private val authLoginStubUrl: String =
     s"$baseUrl/auth-login-stub/gg-sign-in"
-
   def login(
     loginData: GovernmentGatewayFormData
-  )(implicit ec: ExecutionContext): EitherT[Future, UnexpectedState, WSResponse] = {
-
+  )(implicit ec: ExecutionContext): EitherT[Future, UnexpectedState, HttpResponse] = {
     val formData =
       GovernmentGatewayFormData.toUrlEncoded(loginData)
-
-    EitherT[Future, UnexpectedState, WSResponse](
-      wsClient
-        .url(authLoginStubUrl)
-        .withFollowRedirects(false)
-        .withHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
-        .post(formData)
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    EitherT[Future, UnexpectedState, HttpResponse](
+      httpClientV2
+        .post(url"$authLoginStubUrl")
+        .withBody(formData)
+        .setHeader("Content-Type" -> "application/x-www-form-urlencoded")
+        .transform(_.withFollowRedirects(false))
+        .execute[HttpResponse]
         .map(_.asRight[UnexpectedState])
-        .recover { case NonFatal(e) => UnexpectedState(e.getMessage()).asLeft[WSResponse] }
+        .recover { case NonFatal(e) => UnexpectedState(e.getMessage).asLeft[HttpResponse] }
     )
   }
-
 }

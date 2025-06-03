@@ -22,7 +22,7 @@ import play.api._
 import play.api.http._
 import play.api.i18n.{ I18nComponents, Lang, Messages }
 import play.api.inject.{ Injector, SimpleInjector }
-import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfigFactory, AhcWSComponents }
 import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
 import uk.gov.hmrc.crypto.ApplicationCrypto
@@ -54,6 +54,7 @@ import uk.gov.hmrc.gform.mongo.MongoModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContextCacheManager
 import uk.gov.hmrc.play.bootstrap.LoggerModule
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
+import uk.gov.hmrc.http.client.{ HttpClientV2, HttpClientV2Impl }
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
 
@@ -107,7 +108,15 @@ class ApplicationModule(context: Context)
 
   val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
 
-  protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
+  private val httpClientV2: HttpClientV2 =
+    new HttpClientV2Impl(
+      wsClient = AhcWSClient(AhcWSClientConfigFactory.forConfig(configuration.underlying)),
+      actorSystem,
+      configuration,
+      hooks = Seq.empty
+    )
+
+  protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, httpClientV2)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
 

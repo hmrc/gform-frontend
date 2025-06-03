@@ -35,7 +35,6 @@ object AuthContextPrepop {
     case AuthInfo.CtUtr                  => StringResult(retrievals.getTaxIdValue(IRCT()))
     case AuthInfo.EtmpRegistrationNumber => StringResult(retrievals.getTaxIdValue(HMRCOBTDSORG()))
     case AuthInfo.EmailId                => StringResult(retrievals.getEmail.toString)
-    case AuthInfo.Name                   => StringResult(retrievals.getName)
     case AuthInfo.ItmpName               => StringResult(getItmpName(itmpRetrievals))
     case AuthInfo.ItmpNameLens(focus)    => StringResult(getItmpNameFocus(itmpRetrievals, focus))
     case AuthInfo.ItmpDateOfBirth        => StringResult(getItmpDateOfBirth(itmpRetrievals))

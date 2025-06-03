@@ -16,46 +16,98 @@
 
 package uk.gov.hmrc.gform.wshttp
 
-import org.apache.pekko.actor.ActorSystem
-import com.typesafe.config.{ Config, ConfigFactory }
+import izumi.reflect.Tag
 import play.api.libs.json.Writes
-import play.api.libs.ws.WSClient
-import uk.gov.hmrc.http.hooks.HttpHook
+import play.api.libs.ws.{ BodyWritable, WSRequest }
+import uk.gov.hmrc.http.client.{ RequestBuilder, StreamHttpReads }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, UpstreamErrorResponse }
 
+import java.net.URL
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HttpResponse
 
 /** Stubbed WSHttp which responses always with the same HttpResponse. Use it for test purposes
   */
 class StubbedWSHttp(response: HttpResponse) extends WSHttp {
-  override def doGet(url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+
+  override def get(url: URL)(implicit hc: HeaderCarrier): RequestBuilder = new StubbedRequestBuilder(response)
+  override def post(url: URL)(implicit hc: HeaderCarrier): RequestBuilder = new StubbedRequestBuilder(response)
+  override def put(url: URL)(implicit hc: HeaderCarrier): RequestBuilder = new StubbedRequestBuilder(response)
+  override def delete(url: URL)(implicit hc: HeaderCarrier): RequestBuilder = new StubbedRequestBuilder(response)
+  override def head(url: URL)(implicit hc: HeaderCarrier): RequestBuilder = new StubbedRequestBuilder(response)
+
+  override protected def mkRequestBuilder(url: URL, method: String)(implicit hc: HeaderCarrier): RequestBuilder =
+    new StubbedRequestBuilder(response)
+
+  override def GET[A](
+    url: String,
+    queryParams: Seq[(String, String)] = Seq.empty,
+    headers: Seq[(String, String)] = Seq.empty
+  )(implicit rds: HttpReads[A], hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
+    handleResponse("GET", url, response, rds)
+
+  override def POST[I, O](url: String, body: I, headers: Seq[(String, String)] = Seq.empty)(implicit
+    wts: Writes[I],
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[HttpResponse] = Future.successful(response)
-  override def doPost[A](url: String, body: A, headers: Seq[(String, String)])(implicit
-    rds: Writes[A],
+  ): Future[O] =
+    handleResponse("POST", url, response, rds)
+
+  override def POSTEmpty[O](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
     ec: ExecutionContext
-  ) = Future.successful(response)
-  override def doFormPost(url: String, body: Map[String, Seq[String]], headers: Seq[(String, String)] = Seq.empty)(
-    implicit ec: ExecutionContext
-  ) =
-    Future.successful(response)
-  override def doPostString(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+  ): Future[O] =
+    handleResponse("POST", url, response, rds)
+
+  override def PUT[I, O](url: String, body: I, headers: Seq[(String, String)] = Seq.empty)(implicit
+    wts: Writes[I],
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
     ec: ExecutionContext
-  ) =
-    Future.successful(response)
-  override def doEmptyPost[A](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit ec: ExecutionContext) =
-    Future.successful(response)
-  //TODO: PUT, PATCH, DELETE
+  ): Future[O] =
+    handleResponse("PUT", url, response, rds)
 
-  override val hooks: Seq[HttpHook] = Seq.empty
+  override def PATCH[I, O](url: String, body: I, headers: Seq[(String, String)] = Seq.empty)(implicit
+    wts: Writes[I],
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[O] =
+    handleResponse("PATCH", url, response, rds)
 
-  override protected def actorSystem: ActorSystem = null
+  override def DELETE[O](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+    rds: HttpReads[O],
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[O] =
+    handleResponse("DELETE", url, response, rds)
 
-  override protected def configuration: Config = ConfigFactory.parseString("""
-                                                                             |internalServiceHostPatterns = []
-                                                                             |bootstrap.http.headersAllowlist = []
-                                                                             |http-verbs.retries.intervals = []
-                                                                             |""".stripMargin)
+  private def handleResponse[A](method: String, url: String, response: HttpResponse, rds: HttpReads[A]): Future[A] =
+    response.status match {
+      case status if status >= 400 && status < 500 =>
+        Future.failed(UpstreamErrorResponse(response.body, status, status, response.headers))
+      case status if status >= 500 =>
+        Future.failed(UpstreamErrorResponse(response.body, status, status, response.headers))
+      case _ =>
+        Future.successful(rds.read(method, url, response))
+    }
+}
 
-  override val wsClient: WSClient = null
+private class StubbedRequestBuilder(response: HttpResponse) extends RequestBuilder {
+  override def execute[A](implicit rds: HttpReads[A], ec: ExecutionContext): Future[A] =
+    response.status match {
+      case status if status >= 400 && status < 500 =>
+        Future.failed(UpstreamErrorResponse(response.body, status, status, response.headers))
+      case status if status >= 500 =>
+        Future.failed(UpstreamErrorResponse(response.body, status, status, response.headers))
+      case _ =>
+        Future.successful(rds.read("STUBBED", "http://stubbed-url", response))
+    }
+
+  override def setHeader(headers: (String, String)*): RequestBuilder = this
+  override def transform(transform: WSRequest => WSRequest): RequestBuilder = this
+  override def stream[A: StreamHttpReads](implicit ec: ExecutionContext): Future[A] = execute[A]
+  override def withProxy: RequestBuilder = this
+  override def withBody[B: BodyWritable: Tag](body: B)(implicit ec: ExecutionContext): RequestBuilder = this
 }

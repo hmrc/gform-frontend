@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.api
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.typesafe.config.{ Config, ConfigFactory }
 import org.apache.pekko.actor.ActorSystem
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
@@ -26,8 +25,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import play.api.libs.json.Json
-import play.api.libs.ws.WSClient
-import play.api.test.WsTestClient.InternalWSClient
 import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.WiremockSupport
 import uk.gov.hmrc.gform.auth.AuthConnector
@@ -35,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ Attribute, Response }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx }
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.hooks.HttpHook
+import uk.gov.hmrc.gform.wshttp.WSHttpTestUtils
 import uk.gov.hmrc.http.{ Authorization, HeaderCarrier }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -66,19 +63,7 @@ class DelegatedAgentAuthConnectorSpec
 
   val url = s"http://localhost:$wiremockPort"
 
-  val wsHttp = new WSHttp {
-    override protected def actorSystem: ActorSystem = system
-
-    override protected def configuration: Config = ConfigFactory.parseString("""
-                                                                               |internalServiceHostPatterns = []
-                                                                               |bootstrap.http.headersAllowlist = []
-                                                                               |http-verbs.retries.intervals = []
-                                                                               |""".stripMargin)
-
-    override val hooks: Seq[HttpHook] = Seq.empty
-
-    override protected def wsClient: WSClient = new InternalWSClient("http", wiremockPort)
-  }
+  val wsHttp: WSHttp = WSHttpTestUtils.getTestImpl(wiremockPort)
 
   val environment: Environment = Environment.simple()
   val configuration: Configuration = Configuration.load(environment)

@@ -26,6 +26,7 @@ import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.auth.AuthLoginStubConnector
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
+import uk.gov.hmrc.http.HttpResponse
 
 class AuthLoginStubService(
   connector: AuthLoginStubConnector,
@@ -62,13 +63,28 @@ class AuthLoginStubService(
       else {
         val sessionOpt =
           for {
-            cookie <- httpResponse.cookie("mdtp")
-            decrypted = Cookie(name = "mdtp", value = sessionCookieCrypto.crypto.decrypt(Crypted(cookie.value)).value)
+            cookieValue <- extractMDTPCookieValue(httpResponse)
+            decrypted = Cookie(name = "mdtp", value = sessionCookieCrypto.crypto.decrypt(Crypted(cookieValue)).value)
             session = sessionCookieBaker.decodeFromCookie(Some(decrypted))
           } yield session
 
         Either.fromOption(sessionOpt, UnexpectedState("Could not extract session"))
       }
     }
+
+  private def extractMDTPCookieValue(httpResponse: HttpResponse): Option[String] = {
+    val setCookieHeaders = httpResponse.headers.getOrElse("Set-Cookie", Seq.empty)
+
+    setCookieHeaders
+      .find(_.startsWith("mdtp="))
+      .map { cookieHeader =>
+        val valueStartIndex: Int = cookieHeader.indexOf("=") + 1
+        val valueEndIndex: Int = cookieHeader.indexOf(";", valueStartIndex) match {
+          case -1    => cookieHeader.length
+          case index => index
+        }
+        cookieHeader.substring(valueStartIndex, valueEndIndex)
+      }
+  }
 
 }

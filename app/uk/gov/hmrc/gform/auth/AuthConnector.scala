@@ -18,11 +18,9 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.Configuration
 import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
-class AuthConnector(baseUrl: String, wsHttp: WSHttp, configuration: Configuration)
+class AuthConnector(baseUrl: String, override val httpClientV2: HttpClientV2, configuration: Configuration)
     extends ServicesConfig(configuration) with PlayAuthConnector {
-  val serviceUrl = baseUrl
-  lazy val http = wsHttp
+  val serviceUrl: String = baseUrl
 }
