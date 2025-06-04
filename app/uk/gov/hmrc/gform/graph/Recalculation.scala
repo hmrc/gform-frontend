@@ -101,47 +101,22 @@ class Recalculation[F[_]: Monad, E](
     formModel.addToListBrackets
       .flatMap(_.toPageModelWithNumber.toList)
 
-    val list = formModel.brackets.toPageModelWithNumber
+    val list = formModel.brackets.toPageModelWithNumber.toList.map(x => x._1 -> toIndexToInts(x._2))
 
-    val pageToIndex: Map[PageModel[_], (Int, Int, Int)] = list.toList.map(x => x._1 -> toIndexToInts(x._2)).toMap
-//      list.toList.toMap
-    val indexToPage = pageToIndex.map(x => x._2 -> x._1)
-
-    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] = Graph.from(pageToIndex.flatMap { case (page, index) =>
-      def i(a: Int, b: Int, c: Int) =
-        if (c > 0) (a, b, c - 1)
-        else if (b > 0) (a, b - 1, 0)
-        else (a - 1, 0, 0)
-
-      formModel.nextVisibleSectionNumber
-//      val pageNext = formModel.nextVisibleSectionNumber(index)
-//      pageNext.map { pageNext =>
-//        page ~> indexToPage(pageNext)
-//      }
-
-      index match {
-        case (0, 0, 0) => None
-        case (a, b, c) =>
-          Some {
-
-            def getPageOrigin(a: Int, b: Int, c: Int): PageModel[_] = {
-              val newIndex = i(a, b, c)
-              indexToPage.get(newIndex) match {
-                case Some(value) => value
-                case None =>
-                  val newI = i(newIndex._1, newIndex._2, newIndex._3)
-                  getPageOrigin(newI._1, newI._2, newI._3)
-              }
-            }
-            val pageOrigin = getPageOrigin(a, b, c)
-            pageOrigin ~> page
-          }
-      }
-    })
-
-    page.map { page =>
-      println(pageToIndex.get(page))
+    val orderedList = list.sortWith { case ((page, (a, b, c)), (page2, (a2, b2, c2))) =>
+      a < a2 && b < b2 && c < c2
     }
+
+    //val pageToIndex: Map[PageModel[_], (Int, Int, Int)] = list.toMap
+    //val indexToPage = pageToIndex.map(x => x._2 -> x._1)
+
+    //println(orderedList.map(_._2))
+
+    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] =
+      Graph.from(orderedList.zipWithIndex.tail.map { case ((page, sectionNumber), index) =>
+        val pageOrigin = orderedList(index - 1)._1
+        pageOrigin ~> page
+      })
 
     val formComponents = page
       .map { page =>
@@ -204,6 +179,8 @@ class Recalculation[F[_]: Monad, E](
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.outer, graph))
+
+    println(orderedGraph.right.get.flatMap(_._2).size)
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
