@@ -945,10 +945,7 @@ class FormController(
                                               .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                             cache,
                                             recalculation,
-                                            currentPage = formModel.pageModelLookup(sectionNumber) match {
-                                              case Singleton(page) => Some(page)
-                                              case _               => None
-                                            }
+                                            currentPage = formModel.pageModelLookup.get(sectionNumber)
                                           )
                   res <- handleGroup(
                            cache,
@@ -969,10 +966,7 @@ class FormController(
                                             updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                             cache,
                                             recalculation,
-                                            currentPage = formModel.pageModelLookup(sectionNumber) match {
-                                              case Singleton(page) => Some(page)
-                                              case _               => None
-                                            }
+                                            currentPage = formModel.pageModelLookup.get(sectionNumber)
                                           )
                   res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
                   _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)

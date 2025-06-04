@@ -23,9 +23,8 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.DataRetrieveAll
+import uk.gov.hmrc.gform.models.{ DataExpanded, DataRetrieveAll, FormModel, FormModelBuilder, PageModel, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
@@ -106,7 +105,7 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    currentPage: Option[Page[_]]
+    currentPage: Option[PageModel[_]]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -134,7 +133,7 @@ object FormModelOptics {
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None,
-    currentPage: Option[Page[_]]
+    currentPage: Option[PageModel[_]] = None
   )(implicit
     messages: Messages,
     lang: LangADT,

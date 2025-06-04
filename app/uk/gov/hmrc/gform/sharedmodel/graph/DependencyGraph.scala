@@ -32,14 +32,14 @@ object DependencyGraph {
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata],
-    formComponents: List[FormComponent]
+    formComponents: Set[FormComponent]
   ): Graph[GraphNode, DiEdge[GraphNode]] =
     graphFrom(formModel, formTemplateExprs, formComponents)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata],
-    formComponents: List[FormComponent]
+    formComponents: Set[FormComponent]
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 //    formModel.brackets.map { singleton =>
 //      println(singleton.title)

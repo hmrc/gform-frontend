@@ -21,6 +21,9 @@ import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
 import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
+
+import scala.util.Try
 //import scalax.collection.io.dot.DotRootGraph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
@@ -68,62 +71,98 @@ class Recalculation[F[_]: Monad, E](
 
     implicit val fm: FormModel[Interim] = formModel
 
-    val page = evaluationContext.currentPage
-    val formTemplateExprs: Set[ExprMetadata] = page
-      .map(
-        AllFormTemplateExpressions.fromPage(_).toSet
-      )
-      .getOrElse(Set.empty)
+    val page = evaluationContext.currentPage.flatMap {
+      _.fold[Option[Singleton[_]]](Some(_))(_ => None)(_ => None)
+    }
+
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
 
 //    def dotRoot = DotRootGraph(
 //      true,
 //      Some(scalax.collection.io.dot.Id("ExampleGraph"))
 //    )
-//
-//    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
-//      index
-//        .fold[Option[(Int, Int, Int)]] { classic =>
-//          None
-//        } { taskList =>
-//          Some(
-//            taskList.coordinates.taskSectionNumber.value,
-//            taskList.coordinates.taskNumber.value,
-//            taskList.templateSectionIndex.index
-//          )
-//        }
-//        .getOrElse(0, 0, 0)
-//
-//    formModel.addToListBrackets
-//      .flatMap(_.toPageModelWithNumber.toList)
 
-//    val list =
-//      formModel.brackets.toPageModelWithNumber ++ formModel.addToListBrackets.flatMap(_.toPageModelWithNumber.toList)
+    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
+      index
+        .fold[Option[(Int, Int, Int)]] {
+          case Classic.NormalPage(sectionIndex)               => Some((0, sectionIndex.index, 0))
+          case Classic.RepeatedPage(sectionIndex, pageNumber) => Some((0, sectionIndex.index, pageNumber))
+          case page: Classic.AddToListPage =>
+            Some((0, 0, 0))
+        } { taskList =>
+          Some(
+            taskList.coordinates.taskSectionNumber.value,
+            taskList.coordinates.taskNumber.value,
+            taskList.templateSectionIndex.index
+          )
+        }
+        .getOrElse(0, 0, 0)
 
-//    val pageToIndex = list.toList.map(x => x._1 -> toIndexToInts(x._2)).toMap
-//    val indexToPage = pageToIndex.map(x => x._2 -> x._1)
+    formModel.addToListBrackets
+      .flatMap(_.toPageModelWithNumber.toList)
 
-//    val pageGraph = Graph.from(pageToIndex.map { case (page, index) =>
-//      def i(a: Int, b: Int, c: Int) =
-//        if (c > 0) (a, b, c - 1)
-//        else if (b > 0) (a, b - 1, 0)
-//        else (a - 1, 0, 0)
-//
-//      def pageGraphLabel(page: PageModel[_], section: (Int, Int, Int)) =
-//        page.title.rawDefaultValue(LangADT.En) + " " + section
-//
-//      index match {
-//        case (0, 0, 0) => "taskList" ~> pageGraphLabel(page, (0, 0, 0))
-//        case (a, b, c) =>
-//          val pageOrigin = indexToPage(i(a, b, c))
-//          pageGraphLabel(pageOrigin, i(a, b, c)) ~> pageGraphLabel(page, (a, b, c))
+    val list = formModel.brackets.toPageModelWithNumber
+
+    val pageToIndex: Map[PageModel[_], (Int, Int, Int)] = list.toList.map(x => x._1 -> toIndexToInts(x._2)).toMap
+//      list.toList.toMap
+    val indexToPage = pageToIndex.map(x => x._2 -> x._1)
+
+    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] = Graph.from(pageToIndex.flatMap { case (page, index) =>
+      def i(a: Int, b: Int, c: Int) =
+        if (c > 0) (a, b, c - 1)
+        else if (b > 0) (a, b - 1, 0)
+        else (a - 1, 0, 0)
+
+      formModel.nextVisibleSectionNumber
+//      val pageNext = formModel.nextVisibleSectionNumber(index)
+//      pageNext.map { pageNext =>
+//        page ~> indexToPage(pageNext)
 //      }
-//    })
 
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
-      .map { page =>
-        DependencyGraph.toGraph(formModel, formTemplateExprs, page.allFields)
+      index match {
+        case (0, 0, 0) => None
+        case (a, b, c) =>
+          Some {
+
+            def getPageOrigin(a: Int, b: Int, c: Int): PageModel[_] = {
+              val newIndex = i(a, b, c)
+              indexToPage.get(newIndex) match {
+                case Some(value) => value
+                case None =>
+                  val newI = i(newIndex._1, newIndex._2, newIndex._3)
+                  getPageOrigin(newI._1, newI._2, newI._3)
+              }
+            }
+            val pageOrigin = getPageOrigin(a, b, c)
+            pageOrigin ~> page
+          }
       }
-      .getOrElse(Graph.empty)
+    })
+
+    page.map { page =>
+      println(pageToIndex.get(page))
+    }
+
+    val formComponents = page
+      .map { page =>
+        val set = mutable.Set[FormComponent]()
+        def addSetOfFormComponents(node: pageGraph.NodeT, set: mutable.Set[FormComponent]): Unit = {
+          set.addAll(node.allFormComponents)
+          node.outgoing.foreach { edge =>
+            addSetOfFormComponents(edge.targets.head, set)
+          }
+        }
+        if (pageGraph.isEmpty) {
+          set.addAll(page.allFormComponents)
+        } else {
+          addSetOfFormComponents(pageGraph.get(page), set)
+        }
+        set
+      }
+      .getOrElse(mutable.Set())
+
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] =
+      DependencyGraph.toGraph(formModel, formTemplateExprs, formComponents.toSet)
     //import scalax.collection.io.dot._
 //    var exprPar = 0
 //    def edgeTransformer(innerEdge: Graph[GraphNode, DiEdge[GraphNode]]#EdgeT): Option[(DotGraph, DotEdgeStmt)] = {
