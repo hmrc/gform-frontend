@@ -325,7 +325,8 @@ class GformBackEndService(
           updatedForm.visitsIndex,
           updatedForm.thirdPartyData,
           updatedForm.componentIdToFileId,
-          updatedForm.taskIdTaskStatus
+          updatedForm.taskIdTaskStatus,
+          updatedForm.confirmationExpr
         )
       )
 

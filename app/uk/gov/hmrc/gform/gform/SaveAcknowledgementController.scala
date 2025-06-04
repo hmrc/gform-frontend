@@ -212,7 +212,8 @@ class SaveAcknowledgementController(
                 cache.form.visitsIndex,
                 cache.form.thirdPartyData,
                 cache.form.componentIdToFileId,
-                cache.form.taskIdTaskStatus
+                cache.form.taskIdTaskStatus,
+                cache.form.confirmationExpr
               )
             )
             .flatMap { _ =>

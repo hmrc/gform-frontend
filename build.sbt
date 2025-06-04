@@ -15,8 +15,6 @@ ThisBuild / scalaVersion := "2.13.16"
 lazy val microservice = (project in file("."))
   .enablePlugins(
     play.sbt.PlayScala,
-    SbtAutoBuildPlugin,
-    SbtGitVersioning,
     SbtDistributablesPlugin,
     SbtWeb,
     BuildInfoPlugin
@@ -28,9 +26,7 @@ lazy val microservice = (project in file("."))
     name := "gform-frontend",
     PlayKeys.playDefaultPort := 9195,
     PlayKeys.playRunHooks += Parcel(baseDirectory.value),
-    DefaultBuildSettings.scalaSettings,
     ParcelBuild.parcelBundleSetting,
-    DefaultBuildSettings.defaultSettings(),
     scalafmtOnCompile := true,
     Test / testOptions := (Test / testOptions).value
       .map {

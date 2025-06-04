@@ -207,7 +207,8 @@ class ObjectStoreController(
                          cacheWithFileRemoved.form.visitsIndex,
                          cacheWithFileRemoved.form.thirdPartyData,
                          cacheWithFileRemoved.form.componentIdToFileId,
-                         cacheWithFileRemoved.form.taskIdTaskStatus
+                         cacheWithFileRemoved.form.taskIdTaskStatus,
+                         cacheWithFileRemoved.form.confirmationExpr
                        )
                      )
             } yield {

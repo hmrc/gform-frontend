@@ -123,7 +123,8 @@ class LanguageSwitchController(
               visitsIndex = form.visitsIndex,
               thirdPartyData = form.thirdPartyData,
               componentIdToFileId = form.componentIdToFileId,
-              taskIdTaskStatus = form.taskIdTaskStatus
+              taskIdTaskStatus = form.taskIdTaskStatus,
+              confirmationExpr = form.confirmationExpr
             )
 
             gformConnector.updateUserData(formIdData, userData).flatMap { _ =>
