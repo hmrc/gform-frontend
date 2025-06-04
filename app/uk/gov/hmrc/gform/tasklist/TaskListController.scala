@@ -23,16 +23,15 @@ import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
-import uk.gov.hmrc.gform.gform.{ FastForwardService, SectionRenderingService }
 import uk.gov.hmrc.gform.gform.routes.SummaryController
+import uk.gov.hmrc.gform.gform.{ FastForwardService, SectionRenderingService }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ Basic, DataExpanded, FastForward, SectionSelectorType, Singleton }
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.models.FormModelExpander
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -81,6 +80,36 @@ class TaskListController(
         TaskListUtils.withTask(cache.formTemplate, taskSectionNumber, taskNumber) { task =>
           val sectionTitle4Ga: SectionTitle4Ga = SectionTitle4Ga(task.title.value())
 
+          def getSectionNumber: SectionNumber = {
+            val coordinates: Coordinates = Coordinates(taskSectionNumber, taskNumber)
+            val formModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
+
+            val maybeSn: Option[SectionNumber] = formModel.availableSectionNumbers.collectFirst {
+              case sectionNumber if sectionNumber.maybeCoordinates.contains(coordinates) => sectionNumber
+            }
+
+            val firstAvailableSn: SectionNumber =
+              maybeSn.getOrElse(
+                throw new Exception(s"Cannot determine first sectionNumber for task with $coordinates")
+              )
+
+            formModel.bracket(firstAvailableSn) match {
+              case Bracket.AddToList(iterations, _) =>
+                val lastIteration: Bracket.AddToListIteration[_] = iterations.last
+
+                if (lastIteration.isCommited(cache.form.visitsIndex)) {
+                  lastIteration.repeater.sectionNumber
+                } else {
+                  val firstSn: SectionNumber = lastIteration.firstSectionNumber
+                  if (cache.form.visitsIndex.contains(firstSn))
+                    firstSn
+                  else
+                    lastIteration.defaultPageOrFirstSectionNumber
+                }
+              case _ => firstAvailableSn
+            }
+          }
+
           def sectionUrl(sectionNumber: SectionNumber) = uk.gov.hmrc.gform.gform.routes.FormController.form(
             cache.formTemplate._id,
             maybeAccessCode,
@@ -106,43 +135,12 @@ class TaskListController(
                   )
               ).pure[Future]
             } else {
-              val coordinates = Coordinates(taskSectionNumber, taskNumber)
-              val formModel = formModelOptics.formModelVisibilityOptics.formModel
-
-              val maybeSn: Option[SectionNumber] = formModel.availableSectionNumbers.collectFirst {
-                case sectionNumber if sectionNumber.maybeCoordinates.contains(coordinates) => sectionNumber
-              }
-
-              val nextVisibleSectionNumber =
-                maybeSn.getOrElse(
-                  throw new Exception(s"Cannot determine first sectionNumber for task with $coordinates")
-                )
-
-              val isAddToListSectionNumber = formModel.addToListSectionNumbers.contains(nextVisibleSectionNumber)
-
-              val sn =
-                if (isAddToListSectionNumber)
-                  formModel.addToListRepeaterSectionNumbers
-                    .find(_ >= nextVisibleSectionNumber)
-                    .getOrElse(nextVisibleSectionNumber)
-                else nextVisibleSectionNumber
-
-              Redirect(sectionUrl(sn)).pure[Future]
+              Redirect(sectionUrl(getSectionNumber)).pure[Future]
             }
           } else {
-
-            val coordinates = Coordinates(taskSectionNumber, taskNumber)
-
-            val formModel = formModelOptics.formModelVisibilityOptics.formModel
-
-            val maybeSn: Option[SectionNumber] = formModel.availableSectionNumbers.collectFirst {
-              case sectionNumber if sectionNumber.maybeCoordinates.contains(coordinates) => sectionNumber
-            }
-            val sn =
-              maybeSn.getOrElse(throw new Exception(s"Cannot determine first sectionNumber for task with $coordinates"))
+            val sn: SectionNumber = getSectionNumber
 
             if (cache.formTemplate.isSpecimen) {
-
               Redirect(sectionUrl(sn)).pure[Future]
             } else {
               fastForwardService
