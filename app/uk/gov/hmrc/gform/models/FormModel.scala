@@ -80,7 +80,6 @@ case class FormModel[A <: PageMode](
   }
 
   val nextVisibleSectionNumber: SectionNumber => Option[SectionNumber] = {
-    case r: SectionNumber.Legacy => availableSectionNumbers.headOption
     case sectionNumber: SectionNumber.TaskList =>
       availableSectionNumbers
         .collect { case t: SectionNumber.TaskList => t }

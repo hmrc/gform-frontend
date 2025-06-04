@@ -115,7 +115,7 @@ class BuilderController(
               }
             }(repeatingPage => Option.empty[Json]) { addToList =>
               sectionNumber match {
-                case SectionNumber.Legacy(_) => Option.empty[Json]
+                case SectionNumber.Classic.FixedPage(_) => Option.empty[Json]
                 case SectionNumber.Classic.NormalPage(_) | SectionNumber.Classic.RepeatedPage(_, _) =>
                   Option.empty[Json]
                 case SectionNumber.Classic.AddToListPage.DefaultPage(_) |

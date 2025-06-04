@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
 sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Serializable {
 
   def isAddToList: Boolean = this match {
-    case _: SectionNumber.Legacy                             => false
+    case _: SectionNumber.Classic.FixedPage                  => false
     case _: SectionNumber.Classic.NormalPage                 => false
     case _: SectionNumber.Classic.RepeatedPage               => false
     case _: SectionNumber.Classic.AddToListPage.DefaultPage  => true
@@ -48,7 +48,6 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
     this match {
       case n: SectionNumber.Classic  => f(n)
       case r: SectionNumber.TaskList => g(r)
-      case r: SectionNumber.Legacy   => throw new Exception("Trying to fold over Legacy")
     }
 
   def isTaskList: Boolean = fold(_ => false)(_ => true)
@@ -59,9 +58,7 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
       if (tsn0 === tsn1 && tn0 === tn1) sn0.compare(sn1)
       else if (tsn0 === tsn1) tn0.compare(tn1)
       else tsn0.compare(tsn1)
-    case (a: SectionNumber.Legacy, _) => -1
-    case (_, a: SectionNumber.Legacy) => 1
-    case (l, r)                       => throw new Exception(s"Cannot compare SectionNumber: $l with $r")
+    case (l, r) => throw new Exception(s"Cannot compare SectionNumber: $l with $r")
   }
 
   def maybeCoordinates: Option[Coordinates] =
@@ -89,6 +86,7 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
     fold(classic => throw new Exception("unsafeToTaskList invoked on Classic type: " + classic))(identity)
 
   def value: String = this match {
+    case SectionNumber.Classic.FixedPage(TemplateSectionIndex(sectionIndex))  => "fixed-page"
     case SectionNumber.Classic.NormalPage(TemplateSectionIndex(sectionIndex)) => "n" + sectionIndex.toString
     case SectionNumber.Classic.AddToListPage.DefaultPage(TemplateSectionIndex(sectionIndex)) =>
       "ad" + sectionIndex.toString
@@ -102,8 +100,6 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
       "r" + sectionIndex.toString + "." + pageNumber.toString
     case SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), sectionNumber) =>
       List(taskSectionNumber.value.toString, taskNumber.value.toString, sectionNumber.value).mkString(",")
-
-    case r: SectionNumber.Legacy => throw new Exception("Trying to render Legacy")
   }
 }
 
@@ -156,6 +152,7 @@ object SectionNumber {
     }
   }
   object Classic {
+    case class FixedPage(sectionIndex: TemplateSectionIndex) extends Classic
     case class NormalPage(sectionIndex: TemplateSectionIndex) extends Classic
     case class RepeatedPage(sectionIndex: TemplateSectionIndex, pageNumber: Int) extends Classic
     sealed trait AddToListPage extends Classic {
@@ -198,10 +195,6 @@ object SectionNumber {
     implicit val equal: Eq[SectionNumber.Classic] = Eq.fromUniversalEquals
   }
 
-  final case class Legacy(
-    sectionNumber: String
-  ) extends SectionNumber
-
   final case class TaskList(
     coordinates: Coordinates,
     sectionNumber: Classic
@@ -212,6 +205,8 @@ object SectionNumber {
   }
 
   val classicZero = Classic.NormalPage(TemplateSectionIndex(0))
+  val classicFixed = Classic.FixedPage(TemplateSectionIndex(0))
+
   val taskListZero = TaskList(Coordinates(TaskSectionNumber(0), TaskNumber(0)), classicZero)
 
   implicit val equal: Eq[SectionNumber] = Eq.fromUniversalEquals
