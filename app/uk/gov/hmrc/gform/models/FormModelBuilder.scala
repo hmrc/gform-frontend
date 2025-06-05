@@ -582,7 +582,7 @@ class FormModelBuilder[E, F[_]: Functor](
         case IndexedSection.SectionNoIndex(s) =>
           val page = formModelExpander.lift(s.page, data)
           val sectionNumber =
-            mkSectionNumber(SectionNumber.classicZero, maybeCoordinates)
+            mkSectionNumber(SectionNumber.classicFixed, maybeCoordinates)
           Some(Bracket.NonRepeatingPage(SingletonWithNumber[T](Singleton(page), sectionNumber), s))
         case IndexedSection.SectionIndex(s: Section.NonRepeatingPage, index) =>
           val page = formModelExpander.lift(s.page, data)

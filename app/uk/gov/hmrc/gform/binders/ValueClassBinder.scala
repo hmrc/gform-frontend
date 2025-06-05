@@ -65,8 +65,7 @@ object ValueClassBinder {
       val sectionNumber: Option[SectionNumber] = SectionNumber.parse(value)
       sectionNumber
         .map(_.asRight)
-        .getOrElse(SectionNumber.Legacy(value).asRight)
-      //.getOrElse(s"No valid value in path $key: $value".asLeft)
+        .getOrElse(s"No valid value in path $key: $value".asLeft)
     }
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value
   }
@@ -195,8 +194,7 @@ object ValueClassBinder {
         SectionNumber
           .parse(value)
           .map(_.asRight)
-          .getOrElse(SectionNumber.Legacy(value).asRight)
-      //.getOrElse(s"No valid value in path $key: $value".asLeft)
+          .getOrElse(s"No valid value in path $key: $value".asLeft)
       }
 
     override def unbind(key: String, sectionNumber: SectionNumber): String =
@@ -237,8 +235,7 @@ object ValueClassBinder {
       private def toSectionNumber(key: String, value: String): Either[String, SectionNumber] =
         SectionNumber
           .parse(value)
-          .fold[Either[String, SectionNumber]](SectionNumber.Legacy(value).asRight)(sn => sn.asRight)
-      //.fold[Either[String, SectionNumber]](s"No valid value in path $key: $value".asLeft)(sn => sn.asRight)
+          .fold[Either[String, SectionNumber]](s"No valid value in path $key: $value".asLeft)(sn => sn.asRight)
 
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, FastForward]] =
         params.get(key).flatMap(_.headOption).map {

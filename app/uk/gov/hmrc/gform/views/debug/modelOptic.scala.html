@@ -33,7 +33,9 @@
           @bracket.fold { nonRepeatingPage =>
             <td>@nonRepeatingPage.singleton.sectionNumber.value</td>
           } { repeatingPage =>
-            <td>RepeatingPage TODO implement me</td>
+            @repeatingPage.singletons.toList.map{ singleton =>
+              <td>@singleton.sectionNumber.value</td>
+            }
           } { addToList =>
             @addToList.iterations.toList.map { it =>
               @it.defaultPage.map { dp => <td>@dp.sectionNumber.value</td>}.getOrElse("")
@@ -53,7 +55,9 @@
           @bracket.fold { nonRepeatingPage =>
             @pageModelHeader(nonRepeatingPage.singleton.singleton)
           } { repeatingPage =>
-            <td>RepeatingPage TODO implement me</td>
+            @repeatingPage.singletons.toList.map{ singleton =>
+              @pageModelHeader(singleton.singleton)
+            }
           } { addToList =>
             @addToList.iterations.toList.map { it =>
               @it.defaultPage.map { dp => @pageModelHeader(dp.singleton)}.getOrElse("")
@@ -68,30 +72,25 @@
       }
     </tr>
     <tr>
-    @for(columnNumber <- 0 until totalColumns) {
-        @defining(SectionNumber.Classic.NormalPage(TemplateSectionIndex(columnNumber))) { sectionNumber =>
-        @if(formModel.availableSectionNumbers.contains(sectionNumber)) {
-            @defining(formModel(sectionNumber)) { pageModel =>
-            @pageModelHeader(pageModel)
+      @formModel.brackets.fold { classic =>
+        @classic.brackets.toList.map { bracket =>
+          @bracket.fold { nonRepeatingPage =>
+            @pageModelBody(nonRepeatingPage.singleton.singleton)
+          } { repeatingPage =>
+            @repeatingPage.singletons.toList.map{ singleton =>
+              @pageModelBody(singleton.singleton)
             }
-        } else {
-            <td> - hidden - </td>
-        }
-        }
-    }
-    </tr>
-
-    <tr>
-    @for(columnNumber <- 0 until totalColumns) {
-        @defining(SectionNumber.Classic.NormalPage(TemplateSectionIndex(columnNumber))) { sectionNumber =>
-        @if(formModel.availableSectionNumbers.contains(sectionNumber)) {
-            @defining(formModel(sectionNumber)) { pageModel =>
-            @pageModelBody(pageModel)
+          } { addToList =>
+            @addToList.iterations.toList.map { it =>
+              @it.defaultPage.map { dp => @pageModelBody(dp.singleton)}.getOrElse("")
+              @it.singletons.toList.map{singleton => @pageModelBody(singleton.singleton)}
+              @it.checkYourAnswers.map{cya => @pageModelBody(cya.checkYourAnswers)}.getOrElse("")
+                @pageModelBody(it.repeater.repeater)
             }
-        } else {
-            <td></td>
+          }
         }
-        }
-    }
+      } { taskList =>
+        <td>TaskList TODO implement me</td>
+      }
     </tr>
 </tbody>
