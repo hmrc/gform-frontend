@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.api
 
 import uk.gov.hmrc.gform.gform.DataRetrieveConnectorBlueprint
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
-import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -30,10 +30,11 @@ trait NinoInsightsConnector[F[_]] {
   ): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
-class NinoInsightsAsyncConnector(ws: WSHttp, baseUrl: String, authorizationToken: String)(implicit ex: ExecutionContext)
-    extends NinoInsightsConnector[Future] {
+class NinoInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String, authorizationToken: String)(implicit
+  ex: ExecutionContext
+) extends NinoInsightsConnector[Future] {
 
-  val insightsB = new DataRetrieveConnectorBlueprint(ws, s"$baseUrl/check/insights", "nino insights")
+  val insightsB = new DataRetrieveConnectorBlueprint(httpClient, s"$baseUrl/check/insights", "nino insights")
 
   override def insights(
     dataRetrieve: DataRetrieve,

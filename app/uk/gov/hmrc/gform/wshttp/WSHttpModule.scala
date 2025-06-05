@@ -16,19 +16,9 @@
 
 package uk.gov.hmrc.gform.wshttp
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.config.ConfigModule
 class WSHttpModule(
-  auditingModule: AuditingModule,
-  configModule: ConfigModule,
   httpClientV2: HttpClientV2
 ) {
-  lazy val auditableWSHttp: WSHttp = new WSHttpImpl(
-    configModule.appConfig.appName,
-    auditingModule.auditConnector,
-    configModule.typesafeConfig,
-    httpClientV2
-  )
 
   def httpClient: HttpClientV2 = httpClientV2
 }

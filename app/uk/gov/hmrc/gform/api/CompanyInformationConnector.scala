@@ -21,9 +21,9 @@ import org.slf4j.{ Logger, LoggerFactory }
 import play.api.http.Status
 import play.api.libs.json.{ JsError, JsNumber, JsObject, JsResult, JsSuccess, JsValue, Json }
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -39,7 +39,7 @@ trait CompanyInformationConnector[F[_]] {
   )(implicit hc: HeaderCarrier): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
-class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
+class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit ex: ExecutionContext)
     extends CompanyInformationConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -54,7 +54,9 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
   )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
     val url = request.fillPlaceholders(profileUrlWithPlaceholders)
 
-    ws.GET[HttpResponse](url)
+    httpClient
+      .get(url"$url")
+      .execute[HttpResponse]
       .map { httpResponse =>
         httpResponse.status match {
           case Status.OK =>
@@ -91,7 +93,9 @@ class CompanyInformationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex:
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
     val url = request.fillPlaceholders(officersUrlWithPlaceholders)
 
-    ws.GET[HttpResponse](url)
+    httpClient
+      .get(url"$url")
+      .execute[HttpResponse]
       .map { httpResponse =>
         httpResponse.status match {
           case Status.OK =>

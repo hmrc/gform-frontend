@@ -22,9 +22,9 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
-import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -39,7 +39,7 @@ object TaxEnrolment {
   implicit val format: OFormat[TaxEnrolment] = Json.format[TaxEnrolment]
 }
 
-class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
+class TaxEnrolmentsConnector(baseUrl: String, httpClient: HttpClientV2) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -54,11 +54,12 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
       .map(identifier => identifier.key + "~" + identifier.value)
       .mkString("~")
 
-    http
-      .POST[TaxEnrolmentPayload, HttpResponse](
-        s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
-        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
+    httpClient
+      .post(url"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey")
+      .withBody(
+        Json.toJson(TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment"))
       )
+      .execute[HttpResponse]
       .map { httpResponse =>
         val status = httpResponse.status
         status match {

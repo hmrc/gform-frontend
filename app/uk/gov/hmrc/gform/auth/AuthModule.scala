@@ -27,28 +27,28 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule)(implici
 
   lazy val authConnector = new AuthConnector(
     configModule.serviceConfig.baseUrl("auth"),
-    wSHttpModule.auditableWSHttp,
+    wSHttpModule.httpClient,
     configModule.playConfiguration
   )
 
   lazy val ggConnector = new GovernmentGatewayConnector(
     configModule.serviceConfig.baseUrl("gg"),
-    wSHttpModule.auditableWSHttp
+    wSHttpModule.httpClient
   )
 
   lazy val taxEnrolmentsConnector = new TaxEnrolmentsConnector(
     configModule.serviceConfig.baseUrl("tax-enrolments"),
-    wSHttpModule.auditableWSHttp
+    wSHttpModule.httpClient
   )
 
   lazy val selfEmployedIncomeSupportEligibilityConnector = new SelfEmployedIncomeSupportEligibilityConnector(
     configModule.serviceConfig.baseUrl("seiss"),
-    wSHttpModule.auditableWSHttp
+    wSHttpModule.httpClient
   )
 
   lazy val enrolmentStoreProxyConnector = new EnrolmentStoreProxyConnector(
     configModule.serviceConfig.baseUrl("enrolment-store-proxy"),
-    wSHttpModule.auditableWSHttp
+    wSHttpModule.httpClient
   )
 
   lazy val delegatedEnrolmentService = new DelegatedEnrolmentService(

@@ -31,8 +31,8 @@ import uk.gov.hmrc.gform.auth.AuthConnector
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ Attribute, Response }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx }
-import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.gform.wshttp.WSHttpTestUtils
+import uk.gov.hmrc.gform.wshttp.HttpTestUtils
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ Authorization, HeaderCarrier }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -63,7 +63,7 @@ class DelegatedAgentAuthConnectorSpec
 
   val url = s"http://localhost:$wiremockPort"
 
-  val wsHttp: WSHttp = WSHttpTestUtils.getTestImpl(wiremockPort)
+  val wsHttp: HttpClientV2 = HttpTestUtils.getTestImpl(wiremockPort)
 
   val environment: Environment = Environment.simple()
   val configuration: Configuration = Configuration.load(environment)

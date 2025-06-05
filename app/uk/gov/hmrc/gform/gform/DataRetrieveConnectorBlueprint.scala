@@ -21,12 +21,12 @@ import play.api.libs.json.{ JsValue, Json }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
+import uk.gov.hmrc.http.client.HttpClientV2
 
 class DataRetrieveConnectorBlueprint(
-  ws: WSHttp,
+  httpClient: HttpClientV2,
   rawUrl: String,
   identifier: String,
   exceptionalResponses: Option[List[ExceptionalResponse]] = None
@@ -41,7 +41,9 @@ class DataRetrieveConnectorBlueprint(
 
     val url = request.fillPlaceholders(rawUrl)
 
-    ws.GET[JsValue](url)
+    httpClient
+      .get(url"$url")
+      .execute[JsValue]
       .map { response =>
         dataRetrieve
           .processResponse(response)
@@ -72,40 +74,42 @@ class DataRetrieveConnectorBlueprint(
 
     val url = request.fillPlaceholders(rawUrl)
 
-    ws.POST[JsValue, HttpResponse](
-      url,
-      request.json,
-      header
-    ).map { httpResponse =>
-      val status: Int = httpResponse.status
-      val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponses.flatMap(_.find { ex =>
-        status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
-      })
+    httpClient
+      .post(url"$url")
+      .withBody(Json.toJson(request.json))
+      .setHeader(header: _*)
+      .execute[HttpResponse]
+      .map { httpResponse =>
+        val status: Int = httpResponse.status
+        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponses.flatMap(_.find { ex =>
+          status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
+        })
 
-      (maybeExceptionalResponse, status) match {
-        case (Some(_), _) | (_, 200) =>
-          dataRetrieve
-            .processResponse(maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response)))
-            .fold(
-              invalid => {
-                logger.error(
-                  s"Calling $identifier returned $status, but marshalling of data failed with: $invalid"
-                )
-                CannotRetrieveResponse
-              },
-              valid => {
-                logger.info(s"Calling $identifier returned $status: Success.")
-                ServiceResponse(valid)
-              }
-            )
-        case (_, other) =>
-          logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
-          CannotRetrieveResponse
+        (maybeExceptionalResponse, status) match {
+          case (Some(_), _) | (_, 200) =>
+            dataRetrieve
+              .processResponse(maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response)))
+              .fold(
+                invalid => {
+                  logger.error(
+                    s"Calling $identifier returned $status, but marshalling of data failed with: $invalid"
+                  )
+                  CannotRetrieveResponse
+                },
+                valid => {
+                  logger.info(s"Calling $identifier returned $status: Success.")
+                  ServiceResponse(valid)
+                }
+              )
+          case (_, other) =>
+            logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
+            CannotRetrieveResponse
+        }
       }
-    }.recover { ex =>
-      logger.error(s"Unknown problem when calling $identifier", ex)
-      CannotRetrieveResponse
-    }
+      .recover { ex =>
+        logger.error(s"Unknown problem when calling $identifier", ex)
+        CannotRetrieveResponse
+      }
   }
 }
 

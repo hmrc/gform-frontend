@@ -28,7 +28,8 @@ import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.WiremockSupport
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, Fetch, ServiceResponse }
-import uk.gov.hmrc.gform.wshttp.{ WSHttp, WSHttpTestUtils }
+import uk.gov.hmrc.gform.wshttp.HttpTestUtils
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -58,7 +59,7 @@ class CompanyInformationConnectorSpec
 
   val url = s"http://localhost:$wiremockPort"
 
-  val wsHttp: WSHttp = WSHttpTestUtils.getTestImpl(wiremockPort)
+  val wsHttp: HttpClientV2 = HttpTestUtils.getTestImpl(wiremockPort)
 
   val companyInformationAsyncConnector = new CompanyInformationAsyncConnector(wsHttp, url)
 

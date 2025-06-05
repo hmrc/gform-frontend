@@ -17,8 +17,7 @@
 package uk.gov.hmrc.gform.payment
 
 import org.slf4j.LoggerFactory
-import play.api.libs.json.{ JsObject, Json }
-import uk.gov.hmrc.gform.wshttp.WSHttp
+import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
@@ -30,13 +29,15 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
+import uk.gov.hmrc.http.StringContextOps
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.util.{ Failure, Success, Try }
 
 class PaymentController(
   auth: AuthenticatedRequestActions,
-  ws: WSHttp,
+  httpClient: HttpClientV2,
   messagesControllerComponents: MessagesControllerComponents,
   appConfig: AppConfig,
   serviceConfig: ServicesConfig
@@ -73,7 +74,10 @@ class PaymentController(
         "backUrl"       -> backUrl
       )
 
-      ws.POST[JsObject, VatCToCResponse](url, vatCToCRequest)
+      httpClient
+        .post(url"$url")
+        .withBody(vatCToCRequest)
+        .execute[VatCToCResponse]
         .map { response =>
           logger.info(
             s"Redirecting to payment journey with formTemplateId: ${formTemplateId.value}, reference: ${reference.value}, journeyId: ${response.journeyId}"

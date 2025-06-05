@@ -19,7 +19,8 @@ package uk.gov.hmrc.gform
 import org.scalatestplus.play.{ BaseOneServerPerSuite, FakeApplicationFactory }
 import play.api.ApplicationLoader.Context
 import play.api._
-import uk.gov.hmrc.gform.wshttp.{ StubbedWSHttp, WSHttp, WSHttpModule }
+import uk.gov.hmrc.gform.wshttp.{ StubbedHttpClientV2, WSHttpModule }
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 trait SpecWithFakeApp extends Spec with BaseOneServerPerSuite with FakeApplicationFactory {
@@ -31,8 +32,8 @@ trait SpecWithFakeApp extends Spec with BaseOneServerPerSuite with FakeApplicati
 
   lazy val applicationModule = new ApplicationModule(context) {
     override val httpFilters = Nil
-    override lazy val wSHttpModule = new WSHttpModule(null, null, null) {
-      override lazy val auditableWSHttp: WSHttp = new StubbedWSHttp(
+    override lazy val wSHttpModule = new WSHttpModule(null) {
+      override def httpClient: HttpClientV2 = new StubbedHttpClientV2(
         HttpResponse(200, null)
       )
     }

@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.api
 
 import uk.gov.hmrc.gform.gform.DataRetrieveConnectorBlueprint
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
-import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -30,11 +30,11 @@ trait BankAccountInsightsConnector[F[_]] {
   ): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
-class BankAccountInsightsAsyncConnector(ws: WSHttp, baseUrl: String, authorizationToken: String)(implicit
+class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String, authorizationToken: String)(implicit
   ex: ExecutionContext
 ) extends BankAccountInsightsConnector[Future] {
 
-  val insightsB = new DataRetrieveConnectorBlueprint(ws, s"$baseUrl/check/insights", "bankAccount insights")
+  val insightsB = new DataRetrieveConnectorBlueprint(httpClient, s"$baseUrl/check/insights", "bankAccount insights")
 
   override def insights(
     dataRetrieve: DataRetrieve,

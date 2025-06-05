@@ -17,90 +17,20 @@
 package uk.gov.hmrc.gform.wshttp
 
 import izumi.reflect.Tag
-import play.api.libs.json.{ JsValue, Json, Writes }
-import play.api.libs.ws.{ BodyWritable, WSClient, WSRequest, WSResponse }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.ws.{ BodyWritable, WSClient, WSRequest }
 import play.api.test.WsTestClient.InternalWSClient
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
-import uk.gov.hmrc.http.client.{ RequestBuilder, StreamHttpReads }
+import uk.gov.hmrc.http.client.{ HttpClientV2, RequestBuilder, StreamHttpReads }
 
 import java.net.URL
 import scala.concurrent.{ ExecutionContext, Future }
 
-object WSHttpTestUtils {
+object HttpTestUtils {
 
-  def getTestImpl(wiremockPort: Int): WSHttp =
-    new WSHttp {
+  def getTestImpl(wiremockPort: Int): HttpClientV2 =
+    new HttpClientV2 {
       private val wsClient = new InternalWSClient("http", wiremockPort)
-
-      override def GET[A](
-        url: String,
-        queryParams: Seq[(String, String)] = Seq.empty,
-        headers: Seq[(String, String)] = Seq.empty
-      )(implicit rds: HttpReads[A], hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
-        wsClient
-          .url(url)
-          .addQueryStringParameters(queryParams: _*)
-          .withHttpHeaders(headers: _*)
-          .get()
-          .map(wsResponse => rds.read("GET", url, convertWSResponse(wsResponse)))(ec)
-
-      override def POST[I, O](url: String, body: I, headers: Seq[(String, String)] = Seq.empty)(implicit
-        wts: Writes[I],
-        rds: HttpReads[O],
-        hc: HeaderCarrier,
-        ec: ExecutionContext
-      ): Future[O] =
-        wsClient
-          .url(url)
-          .withHttpHeaders(headers: _*)
-          .post(Json.toJson(body))
-          .map(wsResponse => rds.read("POST", url, convertWSResponse(wsResponse)))(ec)
-
-      override def POSTEmpty[O](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
-        rds: HttpReads[O],
-        hc: HeaderCarrier,
-        ec: ExecutionContext
-      ): Future[O] =
-        wsClient
-          .url(url)
-          .withHttpHeaders(headers: _*)
-          .post("")
-          .map(wsResponse => rds.read("POST", url, convertWSResponse(wsResponse)))(ec)
-
-      override def PUT[I, O](url: String, body: I, headers: Seq[(String, String)] = Seq.empty)(implicit
-        wts: Writes[I],
-        rds: HttpReads[O],
-        hc: HeaderCarrier,
-        ec: ExecutionContext
-      ): Future[O] =
-        wsClient
-          .url(url)
-          .withHttpHeaders(headers: _*)
-          .put(Json.toJson(body))
-          .map(wsResponse => rds.read("PUT", url, convertWSResponse(wsResponse)))(ec)
-
-      override def PATCH[I, O](url: String, body: I, headers: Seq[(String, String)] = Seq.empty)(implicit
-        wts: Writes[I],
-        rds: HttpReads[O],
-        hc: HeaderCarrier,
-        ec: ExecutionContext
-      ): Future[O] =
-        wsClient
-          .url(url)
-          .withHttpHeaders(headers: _*)
-          .patch(Json.toJson(body))
-          .map(wsResponse => rds.read("PATCH", url, convertWSResponse(wsResponse)))(ec)
-
-      override def DELETE[O](url: String, headers: Seq[(String, String)] = Seq.empty)(implicit
-        rds: HttpReads[O],
-        hc: HeaderCarrier,
-        ec: ExecutionContext
-      ): Future[O] =
-        wsClient
-          .url(url)
-          .withHttpHeaders(headers: _*)
-          .delete()
-          .map(wsResponse => rds.read("DELETE", url, convertWSResponse(wsResponse)))(ec)
 
       override def get(url: URL)(implicit hc: HeaderCarrier): RequestBuilder =
         new TestRequestBuilder(wsClient, url.toString, "GET")
@@ -184,13 +114,6 @@ object WSHttpTestUtils {
         }
         override def withProxy: RequestBuilder = this
       }
-
-      private def convertWSResponse(wsResponse: WSResponse): HttpResponse =
-        HttpResponse(
-          status = wsResponse.status,
-          body = wsResponse.body,
-          headers = wsResponse.headers.map { case (k, v) => k -> v.toSeq }
-        )
     }
 
 }

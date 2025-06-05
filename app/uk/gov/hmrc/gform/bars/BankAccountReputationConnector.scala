@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.bars
 
 import uk.gov.hmrc.gform.gform.{ DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
-import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -37,7 +37,7 @@ trait BankAccountReputationConnector[F[_]] {
   ): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
-class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit ex: ExecutionContext)
+class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
 
   val exceptionalResponses = Some(
@@ -52,21 +52,21 @@ class BankAccountReputationAsyncConnector(ws: WSHttp, baseUrl: String)(implicit 
 
   val validateBankDetailsB =
     new DataRetrieveConnectorBlueprint(
-      ws,
+      httpClient,
       baseUrl + "/validate/bank-details",
       "validate bank details",
       exceptionalResponses
     )
   val businessBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
-      ws,
+      httpClient,
       baseUrl + "/verify/business",
       "business bank account existence",
       exceptionalResponses
     )
   val personalBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
-      ws,
+      httpClient,
       baseUrl + "/verify/personal",
       "personal bank account existence",
       exceptionalResponses

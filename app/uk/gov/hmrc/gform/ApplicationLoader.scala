@@ -116,7 +116,7 @@ class ApplicationModule(context: Context)
       hooks = Seq.empty
     )
 
-  protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, httpClientV2)
+  protected lazy val wSHttpModule = new WSHttpModule(httpClientV2)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
 
