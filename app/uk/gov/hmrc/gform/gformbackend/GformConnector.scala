@@ -49,6 +49,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResp
 import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.matching.Regex
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
@@ -738,5 +739,21 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     import uk.gov.hmrc.http.HttpReads.Implicits._
     val url = s"$baseUrl/translation-audit/overview/${formTemplateId.value}"
     ws.GET[Option[TranslationAuditOverview]](url)
+  }
+
+  def validateFormHtml(
+    rawTemplateJson: JsValue
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
+    val url: String = s"$baseUrl/formtemplates/validate-html"
+    ws.POST[JsValue, HttpResponse](url, rawTemplateJson)
+      .map(_ => """{"valid":"No HTML validation errors detected"}""")
+      .recoverWith { case UpstreamErrorResponse(msg, _, _, _) =>
+        val extract: Regex = ".*Response body: '(.*)'".r
+        val result: String = msg match {
+          case extract(body) => body
+          case otherwise     => otherwise
+        }
+        result.pure[Future]
+      }
   }
 }
