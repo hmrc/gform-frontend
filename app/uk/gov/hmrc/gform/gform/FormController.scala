@@ -517,7 +517,8 @@ class FormController(
                                          cache,
                                          formModelOptics,
                                          gformConnector.getAllTaxPeriods,
-                                         NoSpecificAction
+                                         NoSpecificAction,
+                                         Some(sectionNumber)
                                        )
                       redirect <- formProcessor.processRemoveAddToList(
                                     cache,
@@ -596,7 +597,8 @@ class FormController(
                                  cache,
                                  formModelOptics,
                                  gformConnector.getAllTaxPeriods,
-                                 NoSpecificAction
+                                 NoSpecificAction,
+                                 Some(sectionNumber)
                                )
               res <- direction match {
                        case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
@@ -980,7 +982,8 @@ class FormController(
                                    cache,
                                    formModelOptics,
                                    gformConnector.getAllTaxPeriods,
-                                   NoSpecificAction
+                                   NoSpecificAction,
+                                   Some(sectionNumber)
                                  )
                 res <- save match {
                          case SaveAndContinue => processSaveAndContinue(processData)

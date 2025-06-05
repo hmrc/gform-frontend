@@ -469,7 +469,8 @@ class FormProcessor(
                                 cacheUpd,
                                 formModelOptics,
                                 gformConnector.getAllTaxPeriods,
-                                NoSpecificAction
+                                NoSpecificAction,
+                                Some(sectionNumber)
                               )
           res <-
             fastForwardService

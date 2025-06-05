@@ -22,24 +22,26 @@ import scalax.collection.immutable.Graph
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
+import uk.gov.hmrc.gform.models.{ FormModel, HasIncludeIf, Interim, PageMode, PageModel }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.mutable
+import scala.util.Try
 
 object DependencyGraph {
 
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata],
-    formComponents: Set[FormComponent]
+    currentPage: Option[PageModel[_]]
   ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs, formComponents)
+    graphFrom(formModel, formTemplateExprs, currentPage)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata],
-    formComponents: Set[FormComponent]
+    currentPage: Option[PageModel[_]]
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 //    formModel.brackets.map { singleton =>
 //      println(singleton.title)
@@ -47,8 +49,72 @@ object DependencyGraph {
 //      singleton
 //    }(p)(p)
 
+    //println(currentPage)
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
+
+    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
+      index
+        .fold[Option[(Int, Int, Int)]] {
+          case Classic.NormalPage(sectionIndex)               => Some((0, sectionIndex.index, 0))
+          case Classic.RepeatedPage(sectionIndex, pageNumber) => Some((0, sectionIndex.index, pageNumber))
+          case page: Classic.AddToListPage =>
+            Some((0, 0, 0))
+        } { taskList =>
+          Some(
+            taskList.coordinates.taskSectionNumber.value,
+            taskList.coordinates.taskNumber.value,
+            taskList.templateSectionIndex.index
+          )
+        }
+        .getOrElse(0, 0, 0)
+
+    val pagesWithSectionNumber = formModel.brackets.toPageModelWithNumber.toList.map(x => x._1 -> toIndexToInts(x._2))
+
+    val orderedPagesWithSectionNumber = pagesWithSectionNumber.sortWith {
+      case ((page, (a, b, c)), (page2, (a2, b2, c2))) =>
+        a < a2 && b < b2 && c < c2
+    }
+
+    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] =
+      Graph.from(orderedPagesWithSectionNumber.zipWithIndex.tail.map { case ((page, sectionNumber), index) =>
+        val pageOrigin = orderedPagesWithSectionNumber(index - 1)._1
+        pageOrigin ~> page
+      })
+
+//    val formComponents = formModel.allFormComponents
+
+    val (formComponents, pages) = currentPage
+      .map { currentPage =>
+        val pages = mutable.Set[PageModel[_]]()
+        val formComponents = mutable.Set[FormComponent]()
+        def addSetOfFormComponents(node: pageGraph.NodeT): Unit = {
+          formComponents.addAll(node.allFormComponents)
+          pages.add(node)
+          node.outgoing.foreach { edge =>
+            addSetOfFormComponents(edge.targets.head)
+          }
+        }
+        if (pageGraph.isEmpty) {
+          formComponents.addAll(currentPage.allFormComponents)
+        } else {
+          //TODO remove try
+          Try(pageGraph.get(currentPage)).foreach {
+            addSetOfFormComponents
+          }
+        }
+        formComponents -> pages
+      }
+      .getOrElse(Set.empty -> Set.empty)
+
+//    println("form components size: " + formComponents.size)
+//    println("Pages size: " + pages.size)
+
+    val formComponentsList = formComponents.toList
+
+    val pagesAllValidIfs = pages.flatMap { page =>
+      page.allValidIfs
+    }
 
     def edges(fc: FormComponent): Set[DiEdge[GraphNode]] =
       fc match {
@@ -87,7 +153,7 @@ object DependencyGraph {
 
     def toDiEdge(fc: FormComponent, expr: Expr, cycleBreaker: FormComponentId => Boolean): Set[DiEdge[GraphNode]] =
       expr
-        .leafs(formModel)
+        .leafs(formComponentsList)
         .flatMap { e =>
           val fcNodes = toFormComponentId(e).map(fcId => GraphNode.Expr(e) ~> GraphNode.Simple(fcId))
           if (cycleBreaker(fc.id) && eqBaseComponentId(e, fc)) fcNodes
@@ -107,7 +173,7 @@ object DependencyGraph {
       ): Unit = {
 
         val allExprGNs: Set[GraphNode.Expr] =
-          booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply).toSet
+          booleanExpr.allExpressions.flatMap(_.leafs(formComponentsList)).map(GraphNode.Expr.apply).toSet
 
         val dependingFCIds = dependingFCs.map(_.id)
 
@@ -123,7 +189,7 @@ object DependencyGraph {
         )
       }
 
-      def addValidIfs() = formModel.allValidIfs.foreach { case (validIfs, fc) =>
+      def addValidIfs() = pagesAllValidIfs.foreach { case (validIfs, fc) =>
         validIfs.foreach(validIf =>
           boolenExprDeps(
             validIf.booleanExpr,
@@ -133,19 +199,27 @@ object DependencyGraph {
         )
       }
 
-      def addComponentIncludeIfs() = formModel.allComponentIncludeIfs.foreach { case (includeIf, fc) =>
+      def addComponentIncludeIfs() = pages.flatMap(_.allComponentIncludeIfs).foreach { case (includeIf, fc) =>
         boolenExprDeps(includeIf.booleanExpr, Set(fc), None)
       }
 
-      def addIncludeIfs() = formModel.allIncludeIfsWithDependingFormComponents.foreach {
-        case (includeIf, dependingFCs) =>
-          boolenExprDeps(includeIf.booleanExpr, dependingFCs.toSet, None)
+      val allChoiceIncludeIfs = pages.flatMap(_.allChoiceIncludeIfs)
+
+      val allMiniSummaryListIncludeIfs = pages.flatMap(_.allMiniSummaryListIncludeIfs)
+
+      val allIncludeIfsWithDependingFormComponents = pages.collect { case pm @ HasIncludeIf(includeIf) =>
+        (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
+      } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
+
+      def addIncludeIfs() = allIncludeIfsWithDependingFormComponents.foreach { case (includeIf, dependingFCs) =>
+        boolenExprDeps(includeIf.booleanExpr, dependingFCs.toSet, None)
       }
 
       def addSections() = {
         val templateAndPageExprs: Set[Expr] = (formTemplateExprs ++ formModel.exprsMetadata.toSet).map(_.expr)
 
-        val allExprGNs: Set[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply)
+        val allExprGNs: Set[GraphNode.Expr] =
+          templateAndPageExprs.flatMap(_.leafs(formComponents.toList)).map(GraphNode.Expr.apply)
 
         allExprGNs.foreach(exprGN =>
           toFormComponentId(exprGN.expr).foreach(fcId => allEdges.addOne(exprGN ~> GraphNode.Simple(fcId)))
@@ -156,10 +230,15 @@ object DependencyGraph {
         }
       }
 
+//      println("all edges: " + allEdges.size)
       addValidIfs()
+//      println("all edges after add valid ifs: " + allEdges.size)
       addComponentIncludeIfs()
+//      println("all edges after add component include ifs: " + allEdges.size)
       addIncludeIfs()
+//      println("all edges after add include ifs: " + allEdges.size)
       addSections()
+//      println("all edges after add secions: " + allEdges.size)
       allEdges
     }
 
