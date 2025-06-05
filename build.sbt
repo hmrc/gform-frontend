@@ -85,14 +85,6 @@ lazy val microservice = (project in file("."))
     Assets / unmanagedResourceDirectories += baseDirectory.value / "builder" / "dist"
   )
   .settings(
-    resolvers ++= Seq(
-      Resolver.bintrayRepo("jetbrains", "markdown"),
-      Resolver.jcenterRepo,
-      "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
-      "bintray" at "https://dl.bintray.com/webjars/maven"
-    )
-  )
-  .settings(
     buildInfoKeys := Seq[BuildInfoKey](version),
     buildInfoPackage := "uk.gov.hmrc.gform"
   )
