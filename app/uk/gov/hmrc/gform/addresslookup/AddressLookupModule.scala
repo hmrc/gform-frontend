@@ -31,7 +31,7 @@ class AddressLookupModule(
 
   private val addressLookupBaseUrl = configModule.serviceConfig.baseUrl("address-lookup")
 
-  private val addressLookupConnector = AddressLookupConnector(wSHttpModule.auditableWSHttp, addressLookupBaseUrl)
+  private val addressLookupConnector = AddressLookupConnector(wSHttpModule.httpClient, addressLookupBaseUrl)
 
   val addressLookupService = AddressLookupService(addressLookupConnector, gformBackendModule.gformConnector)
 }

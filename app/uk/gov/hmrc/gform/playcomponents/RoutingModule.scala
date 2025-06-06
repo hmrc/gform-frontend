@@ -100,8 +100,6 @@ class RoutingModule(
     errorHandler,
     appRoutes,
     new HealthController(
-      configModule.playConfiguration,
-      configModule.environment,
       controllersModule.messagesControllerComponents
     )
   )

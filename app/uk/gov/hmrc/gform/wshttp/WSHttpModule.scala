@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,10 @@
  */
 
 package uk.gov.hmrc.gform.wshttp
-
-import play.api.libs.ws.WSClient
-import play.api.libs.ws.ahc.AhcWSComponents
-import uk.gov.hmrc.gform.akka.AkkaModule
-import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.config.ConfigModule
-
+import uk.gov.hmrc.http.client.HttpClientV2
 class WSHttpModule(
-  auditingModule: AuditingModule,
-  configModule: ConfigModule,
-  akkaModule: AkkaModule,
-  ahcWSComponents: AhcWSComponents
+  httpClientV2: HttpClientV2
 ) {
-  lazy val auditableWSHttp: WSHttp = new WSHttpImpl(
-    configModule.appConfig.appName,
-    auditingModule.auditConnector,
-    configModule.typesafeConfig,
-    akkaModule.actorSystem,
-    wsClient
-  )
 
-  def wsClient: WSClient = ahcWSComponents.wsClient
+  def httpClient: HttpClientV2 = httpClientV2
 }

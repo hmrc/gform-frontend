@@ -20,7 +20,7 @@ import cats.Eq
 import cats.implicits._
 import julienrf.json.derived
 import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName, Name }
+import uk.gov.hmrc.auth.core.retrieve.{ ItmpAddress, ItmpName }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.models.mappings._
@@ -71,12 +71,6 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     case EmailRetrievals(EmailId(email))                               => email
     case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals, _, _) => otherRetrievals.email.getOrElse("")
     case _                                                             => ""
-  }
-
-  def getName: String = this match {
-    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals, _, _) =>
-      otherRetrievals.name.map(n => concat(n.name, n.lastName)).getOrElse("")
-    case _ => ""
   }
 
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
@@ -158,13 +152,6 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   private def valueByNameAndId(name: String, id: String, enrolments: Enrolments) =
     enrolments.getEnrolment(name).flatMap(_.getIdentifier(id))
 
-  private def concat(xs: Option[String]*): String = {
-    val values = xs.collect {
-      case Some(s) if s.nonEmpty => s
-    }
-    values.mkString(" ")
-  }
-
 }
 
 object MaterialisedRetrievals {
@@ -213,14 +200,12 @@ object ItmpRetrievals {
 }
 
 final case class OtherRetrievals(
-  name: Option[Name],
   email: Option[String]
 )
 
 object OtherRetrievals {
-  val empty = OtherRetrievals(None, None)
+  val empty = OtherRetrievals(None)
 
-  implicit val nameFormat: OFormat[Name] = Json.format[Name]
   implicit val format: OFormat[OtherRetrievals] = Json.format[OtherRetrievals]
 }
 

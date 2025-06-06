@@ -16,20 +16,21 @@
 
 package uk.gov.hmrc.gform.upscan
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
+import play.api.libs.json.Json
 
-class UpscanConnector(ws: WSHttp, baseUrl: String)(implicit
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, StringContextOps }
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
+import uk.gov.hmrc.http.client.HttpClientV2
+
+class UpscanConnector(httpClient: HttpClientV2, baseUrl: String)(implicit
   ec: ExecutionContext
 ) {
 
   def upscanInitiate(request: UpscanInitiateRequest)(implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] =
-    ws.POST[UpscanInitiateRequest, UpscanInitiateResponse](
-      s"$baseUrl/v2/initiate",
-      request,
-      List.empty[(String, String)]
-    )
+    httpClient
+      .post(url"$baseUrl/v2/initiate")
+      .withBody(Json.toJson(request))
+      .execute[UpscanInitiateResponse]
 
 }

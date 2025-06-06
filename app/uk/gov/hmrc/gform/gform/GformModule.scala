@@ -146,14 +146,14 @@ class GformModule(
   private val barsBaseUrl = s"${configModule.serviceConfig.baseUrl("bars")}$barsBasePath"
 
   val bankAccountReputationConnector =
-    new BankAccountReputationAsyncConnector(wSHttpModule.auditableWSHttp, barsBaseUrl)
+    new BankAccountReputationAsyncConnector(wSHttpModule.httpClient, barsBaseUrl)
 
   private val chBasePath =
     configModule.serviceConfig.getString("microservice.services.companies-house-api-proxy.base-path")
   private val companyHouseBaseUrl = s"${configModule.serviceConfig.baseUrl("companies-house-api-proxy")}$chBasePath"
 
   val companyInformationConnector =
-    new CompanyInformationAsyncConnector(wSHttpModule.auditableWSHttp, companyHouseBaseUrl)
+    new CompanyInformationAsyncConnector(wSHttpModule.httpClient, companyHouseBaseUrl)
 
   private val ninoInsightsBasePath =
     configModule.serviceConfig.getString("microservice.services.nino-insights.base-path")
@@ -161,7 +161,7 @@ class GformModule(
   private val authorizationToken = configModule.typesafeConfig.getString("internal-auth.token")
 
   val ninoInsightsConnector =
-    new NinoInsightsAsyncConnector(wSHttpModule.auditableWSHttp, ninoInsightsUrl, authorizationToken)
+    new NinoInsightsAsyncConnector(wSHttpModule.httpClient, ninoInsightsUrl, authorizationToken)
 
   private val bankAccountInsightsBasePath =
     configModule.serviceConfig.getString("microservice.services.bank-account-insights.base-path")
@@ -169,7 +169,7 @@ class GformModule(
     s"${configModule.serviceConfig.baseUrl("bank-account-insights")}$bankAccountInsightsBasePath"
 
   val bankAccountInsightsConnector =
-    new BankAccountInsightsAsyncConnector(wSHttpModule.auditableWSHttp, bankAccountInsightsUrl, authorizationToken)
+    new BankAccountInsightsAsyncConnector(wSHttpModule.httpClient, bankAccountInsightsUrl, authorizationToken)
 
   val agentAccessControlConnector =
     new DelegatedAgentAuthAsyncConnector(
@@ -449,7 +449,7 @@ class GformModule(
 
   val buttonController: PaymentController = new PaymentController(
     controllersModule.authenticatedRequestActions,
-    wSHttpModule.auditableWSHttp,
+    wSHttpModule.httpClient,
     controllersModule.messagesControllerComponents,
     configModule.appConfig,
     configModule.serviceConfig

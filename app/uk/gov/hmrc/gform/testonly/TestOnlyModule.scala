@@ -74,7 +74,7 @@ class TestOnlyModule(
 
   lazy val authLoginStubConnector: AuthLoginStubConnector = new AuthLoginStubConnector(
     configModule.serviceConfig.baseUrl("auth-login-stub"),
-    wSHttpModule.wsClient
+    wSHttpModule.httpClient
   )
 
   lazy val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
@@ -115,7 +115,7 @@ class TestOnlyModule(
   )
 
   val objectStoreAdminConnector = new ObjectStoreAdminConnector(
-    wSHttpModule.wsClient
+    wSHttpModule.httpClient
   )
 
   val objectStoreAdminController = new ObjectStoreAdminController(

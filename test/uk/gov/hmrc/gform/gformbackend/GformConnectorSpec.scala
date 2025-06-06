@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
+import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
 import uk.gov.hmrc.http._
 
 class GformConnectorSpec extends Spec {
@@ -188,7 +188,7 @@ class GformConnectorSpec extends Spec {
       Map.empty[String, Seq[String]]
     )
 
-    lazy val wSHttp = new StubbedWSHttp(r)
+    lazy val wSHttp = new StubbedHttpClientV2(r)
     lazy val connector = new GformConnector(wSHttp, "http://localhost")
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

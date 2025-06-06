@@ -850,7 +850,6 @@ class TestOnlyController(
     Retrievals.groupIdentifier and
     Retrievals.nino and
     Retrievals.email and
-    Retrievals.name and
     Retrievals.confidenceLevel and
     Retrievals.itmpName and
     Retrievals.itmpDateOfBirth and
@@ -876,7 +875,6 @@ class TestOnlyController(
               maybeGroupIdentifier ~
               maybeNino ~
               maybeEmail ~
-              maybeName ~
               confidenceLevel ~
               itmpName ~
               itmpDateOfBirth ~
@@ -892,7 +890,6 @@ class TestOnlyController(
               .withGroupIdentifier(maybeGroupIdentifier)
               .withNino(maybeNino)
               .withEmail(maybeEmail)
-              .withName(maybeName)
               .withConfidenceLevel(confidenceLevel)
               .withItmpData(itmpName, itmpDateOfBirth, itmpAddress)
               .withAgent(agentInformation)

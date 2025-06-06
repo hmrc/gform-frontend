@@ -114,7 +114,6 @@ object ExprPrettyPrint {
     case AuthInfo.SaUtr                  => "SA UTR"
     case AuthInfo.CtUtr                  => "CT UTR"
     case AuthInfo.EtmpRegistrationNumber => "Etmp registration number"
-    case AuthInfo.Name                   => "Name"
     case AuthInfo.ItmpName               => "Itmp name"
     case AuthInfo.ItmpNameLens(focus)    => s"Itmp name ${prettyPrintItmpNameFocus(focus)}"
     case AuthInfo.ItmpDateOfBirth        => "Itmp date of birth"

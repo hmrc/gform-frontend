@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.auth
 
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -30,17 +30,17 @@ object UtrEligibilityRequest {
   implicit val format: OFormat[UtrEligibilityRequest] = Json.format[UtrEligibilityRequest]
 }
 
-class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, http: WSHttp) {
+class SelfEmployedIncomeSupportEligibilityConnector(baseUrl: String, httpClient: HttpClientV2) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   private def getUtrEligibility(
     request: UtrEligibilityRequest
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    http.POST[UtrEligibilityRequest, HttpResponse](
-      s"$baseUrl/self-employed-income-support-eligibility/utr-eligibility",
-      request
-    )
+    httpClient
+      .post(url"$baseUrl/self-employed-income-support-eligibility/utr-eligibility")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
 
   def eligibilityStatus(request: UtrEligibilityRequest, hc: HeaderCarrier)(implicit
     ec: ExecutionContext

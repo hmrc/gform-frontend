@@ -42,7 +42,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
         AffinityGroup.Individual,
         "TestGroupId",
         None,
-        OtherRetrievals(None, None),
+        OtherRetrievals(None),
         ConfidenceLevel.L50,
         Some(User)
       )
@@ -62,7 +62,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
         AffinityGroup.Agent,
         "TestGroupId",
         None,
-        OtherRetrievals(None, None),
+        OtherRetrievals(None),
         ConfidenceLevel.L50,
         Some(Assistant)
       )
@@ -82,7 +82,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
         AffinityGroup.Individual,
         "TestGroupId",
         None,
-        OtherRetrievals(None, None),
+        OtherRetrievals(None),
         ConfidenceLevel.L50,
         None
       )

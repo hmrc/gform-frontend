@@ -34,7 +34,7 @@ class UpscanModule(
     baseUrl + "/upscan"
   }
 
-  private val upscanConnector = new UpscanConnector(wSHttpModule.auditableWSHttp, upscanBaseUrl)
+  private val upscanConnector = new UpscanConnector(wSHttpModule.httpClient, upscanBaseUrl)
 
   val upscanService: UpscanService = new UpscanService(
     upscanConnector,
