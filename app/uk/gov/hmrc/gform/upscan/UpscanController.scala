@@ -111,6 +111,8 @@ class UpscanController(
                       mkFlash("file.error.empty")
                     case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.FileNameTooLong) =>
                       mkFlash("file.error.filename.too.long")
+                    case ConfirmationFailure.GformValidationFailure(UpscanValidationFailure.FileNameInvalid) =>
+                      mkFlash("file.error.filename.invalid")
                     case ConfirmationFailure.GformValidationFailure(
                           UpscanValidationFailure.InvalidFileExtension(extension)
                         ) =>

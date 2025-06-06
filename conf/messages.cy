@@ -431,6 +431,7 @@ file.delete.file=Dileu {0}
 file.error.generic=Nid oedd modd uwchlwytho’r ffeil. Uwchlwythwch ffeil wahanol.
 file.error.empty=Mae’r ffeil hon yn wag
 file.error.filename.too.long=Enw'r ffeil yn rhy hir
+file.error.filename.invalid=Enw’r ffeil yn annilys
 file.error.invalid.extension=Rhaid i’r ffeil a uwchlwythwyd gael yr estyniad cywir o {0}
 file.error.size=Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB
 file.error.type=Mae’n rhaid i’r ffeil dan sylw fod ar ffurf ${0}
