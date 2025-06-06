@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModel, HasIncludeIf, Interim, PageMode, PageModel }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.mutable
@@ -58,7 +59,8 @@ object DependencyGraph {
         .fold[Option[(Int, Int, Int)]] {
           case Classic.NormalPage(sectionIndex)               => Some((0, sectionIndex.index, 0))
           case Classic.RepeatedPage(sectionIndex, pageNumber) => Some((0, sectionIndex.index, pageNumber))
-          case page: Classic.AddToListPage =>
+          case page: Classic.AddToListPage                    =>
+            //TODO add match for page
             Some((0, 0, 0))
         } { taskList =>
           Some(
@@ -96,6 +98,7 @@ object DependencyGraph {
           }
         }
         if (pageGraph.isEmpty) {
+          pages.add(currentPage)
           formComponents.addAll(currentPage.allFormComponents)
         } else {
           //TODO remove try

@@ -1131,7 +1131,13 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+    val fm = mkFormModelBuilder(mkFormTemplate(sections)).dependencyGraphValidation[SectionSelectorType.Normal]
+
+    val currentPage = fm.pageModelLookup.get(
+      fm.sectionNumberLookup(sections.head.fold(_.page)(_.page)(_.pages.head).allFields.head.id)
+    )
+
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData, currentPage)
 
     formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
     formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap

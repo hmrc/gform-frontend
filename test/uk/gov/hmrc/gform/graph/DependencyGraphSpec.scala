@@ -772,7 +772,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
   forAll(formTemplateExpressionTable) { case (prop, formTemplate) =>
     it should s"support expression in formTemplate $prop property" in {
 
-      val res = layers(formTemplate, dummySection)
+      val res = layers(formTemplate)
 
       res shouldBe List(
         (0, Set(Expr(FormCtx("a")))),
@@ -782,26 +782,17 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
   }
 
   private def layers(sections: List[Section]): List[(Int, Set[GraphNode])] =
-    layers(mkFormTemplate(sections), sections.head)
+    layers(mkFormTemplate(sections))
 
-  private def layers(formTemplate: FormTemplate, firstSection: Section): List[(Int, Set[GraphNode])] = {
+  private def layers(formTemplate: FormTemplate): List[(Int, Set[GraphNode])] = {
     val fmb = mkFormModelBuilder(formTemplate)
 
     val fm: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
-    val currentPage = firstSection
-      .fold(x => List(x.page))(x => List(x.page))(_.pages.toList)
-      .flatMap(_.allFields)
-      .map(_.id)
-      .flatMap {
-        fm.pageLookup.get
-      }
-      .headOption
-
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, currentPage)
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, fm.pages.headOption)
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)

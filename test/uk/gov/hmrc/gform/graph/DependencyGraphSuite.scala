@@ -342,12 +342,11 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     sections: List[Section],
     variadicData: VariadicFormData[SourceOrigin.OutOfDate]
   ): List[(Int, Set[GraphNode])] =
-    layers(mkFormTemplate(sections), variadicData, sections.head)
+    layers(mkFormTemplate(sections), variadicData)
 
   private def layers(
     formTemplate: FormTemplate,
-    variadicData: VariadicFormData[SourceOrigin.OutOfDate],
-    firstSection: Section
+    variadicData: VariadicFormData[SourceOrigin.OutOfDate]
   ): List[(Int, Set[GraphNode])] = {
     val fmb: FormModelBuilder[Throwable, Id] = mkFormModelBuilder(formTemplate)
 
@@ -359,7 +358,8 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
-    val currentPage = fm.pageLookup.get(firstSection.fold(_.page)(_.page)(_.pages.head).allFields.head.id)
+    val currentPage = fm.pages.headOption
+
     DependencyGraph.constructDependencyGraph(
       DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, currentPage)
     ) match {
