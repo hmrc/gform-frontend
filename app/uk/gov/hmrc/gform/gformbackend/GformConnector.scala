@@ -22,6 +22,7 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._
+import com.fasterxml.jackson.databind.JsonMappingException
 import org.apache.commons.text.StringEscapeUtils
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.slf4j.LoggerFactory
@@ -48,7 +49,6 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, StringContextOps, UpstreamErrorResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.matching.Regex
 
 class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
@@ -773,18 +773,12 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   def validateFormHtml(
     rawTemplateJson: JsValue
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] =
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsValue] =
     httpClient
       .post(url"$baseUrl/formtemplates/validate-html")
       .withBody(rawTemplateJson)
-      .execute[HttpResponse]
-      .map(_ => """{"valid":"No HTML validation errors detected"}""")
-      .recoverWith { case UpstreamErrorResponse(msg, _, _, _) =>
-        val extract: Regex = ".*Response body: '(.*)'".r
-        val result: String = msg match {
-          case extract(body) => body
-          case otherwise     => otherwise
-        }
-        result.pure[Future]
+      .execute[JsValue](HttpReads.Implicits.readJsValue, ec)
+      .recover { case _: JsonMappingException =>
+        Json.parse("""{"valid":"No HTML validation errors detected"}""")
       }
 }
