@@ -93,8 +93,9 @@ object DependencyGraph {
       }
       .getOrElse(Set.empty -> Set.empty)
 
-//    println("form components size: " + formComponents.size)
-//    println("Pages size: " + pages.size)
+    //println(currentPage.map(_.title))
+    println("form components size: " + formComponents.size)
+    println("Pages size: " + pages.size)
 
     val formComponentsList = formComponents.toList
 
