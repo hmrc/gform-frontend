@@ -40,12 +40,12 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsByFormIdData }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.testonly.snapshot._
+import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, StringContextOps, UpstreamErrorResponse }
-import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, StringContextOps, UpstreamErrorResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.matching.Regex
@@ -773,9 +773,11 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   def validateFormHtml(
     rawTemplateJson: JsValue
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
-    val url: String = s"$baseUrl/formtemplates/validate-html"
-    ws.POST[JsValue, HttpResponse](url, rawTemplateJson)
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] =
+    httpClient
+      .post(url"$baseUrl/formtemplates/validate-html")
+      .withBody(rawTemplateJson)
+      .execute[HttpResponse]
       .map(_ => """{"valid":"No HTML validation errors detected"}""")
       .recoverWith { case UpstreamErrorResponse(msg, _, _, _) =>
         val extract: Regex = ".*Response body: '(.*)'".r
@@ -785,5 +787,4 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
         }
         result.pure[Future]
       }
-  }
 }
