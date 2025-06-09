@@ -445,6 +445,7 @@ file.delete.file=Delete {0}
 file.error.generic=File could not be uploaded. Upload a different file.
 file.error.empty=This file is empty
 file.error.filename.too.long=File name is too long
+file.error.filename.invalid=File name is invalid
 file.error.invalid.extension=The uploaded file must have the correct extension of {0}
 file.error.size=This file is larger than the maximum file size of {0}MB
 file.error.type=The selected file must be a {0}
