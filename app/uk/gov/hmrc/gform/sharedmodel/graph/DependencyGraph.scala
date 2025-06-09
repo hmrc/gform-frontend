@@ -149,6 +149,7 @@ object DependencyGraph {
         .toSet
 
     def getAllEdges = {
+      //println("all form component size:" + formModel.allFormComponents.size)
       val allEdges: mutable.Set[DiEdge[GraphNode]] = mutable.Set
         .from(formComponents)
         .flatMap(edges)
@@ -293,6 +294,7 @@ object DependencyGraph {
         }
 
     addRepeatedStructureEdges(allEdges)
+    //println("all edges size: " + allEdges.size)
     Graph.from(allEdges)
   }
 

@@ -427,14 +427,19 @@ class AuthenticatedRequestActions(
                   maybeAccessCode,
                   lookupRegistry
                 )
-
+        fm <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
+                cache.variadicFormData,
+                cache,
+                recalculation,
+                currentPage = None
+              ) //TODO FM is being generated twice here
         formModelOptics <-
           FormModelOptics
             .mkFormModelOptics[DataOrigin.Mongo, Future, U](
               cache.variadicFormData,
               cache,
               recalculation,
-              currentPage = None
+              currentPage = fm.formModelVisibilityOptics.formModel.pages.headOption
             )
 
         formModelOpticsUpd =
