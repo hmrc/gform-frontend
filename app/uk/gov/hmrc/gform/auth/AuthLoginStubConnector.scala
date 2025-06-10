@@ -18,12 +18,14 @@ package uk.gov.hmrc.gform.auth
 import cats.data.EitherT
 import cats.syntax.either._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, StringContextOps }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.testonly.snapshot._
+
 class AuthLoginStubConnector(baseUrl: String, httpClientV2: HttpClientV2) {
   private val authLoginStubUrl: String =
     s"$baseUrl/auth-login-stub/gg-sign-in"
@@ -33,7 +35,6 @@ class AuthLoginStubConnector(baseUrl: String, httpClientV2: HttpClientV2) {
     val formData = GovernmentGatewayFormData.toUrlEncoded(loginData)
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    implicit val rawHttpReads: HttpReads[HttpResponse] = HttpReads.Implicits.readRaw
     EitherT[Future, UnexpectedState, HttpResponse](
       httpClientV2
         .post(url"$authLoginStubUrl")
