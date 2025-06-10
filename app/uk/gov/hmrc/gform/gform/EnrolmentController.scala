@@ -435,7 +435,7 @@ class EnrolmentController(
                   None,
                   FormComponentIdToFileIdMapping.empty,
                   TaskIdTaskStatusMapping.empty,
-                  currentPage = None
+                  currentSection = None
                 )
               def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
                 val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
