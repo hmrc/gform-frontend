@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.auth
 import cats.data.EitherT
 import cats.syntax.either._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, StringContextOps }
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -31,15 +30,16 @@ class AuthLoginStubConnector(baseUrl: String, httpClientV2: HttpClientV2) {
   def login(
     loginData: GovernmentGatewayFormData
   )(implicit ec: ExecutionContext): EitherT[Future, UnexpectedState, HttpResponse] = {
-    val formData =
-      GovernmentGatewayFormData.toUrlEncoded(loginData)
+    val formData = GovernmentGatewayFormData.toUrlEncoded(loginData)
+
     implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rawHttpReads: HttpReads[HttpResponse] = HttpReads.Implicits.readRaw
     EitherT[Future, UnexpectedState, HttpResponse](
       httpClientV2
         .post(url"$authLoginStubUrl")
-        .withBody(formData)
         .setHeader("Content-Type" -> "application/x-www-form-urlencoded")
         .transform(_.withFollowRedirects(false))
+        .withBody(formData)
         .execute[HttpResponse]
         .map(_.asRight[UnexpectedState])
         .recover { case NonFatal(e) => UnexpectedState(e.getMessage).asLeft[HttpResponse] }
