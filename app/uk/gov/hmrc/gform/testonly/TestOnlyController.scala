@@ -65,7 +65,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.Select
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{ HeadCell, Table, TableRow }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl.idFunctor
 import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -87,7 +87,8 @@ class TestOnlyController(
   newFormController: NewFormController,
   authLoginStubService: AuthLoginStubService,
   summaryController: SummaryController,
-  acknowledgementPdfService: AcknowledgementPdfService
+  acknowledgementPdfService: AcknowledgementPdfService,
+  englishMessages: Messages
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -985,7 +986,8 @@ class TestOnlyController(
     snapshotId: SnapshotId,
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
-    implicit request => _ => cache => _ => formModelOptics =>
+    implicit request => implicit lang => cache => _ => formModelOptics =>
+      implicit val message = englishMessages
       restoreOptionUserData
         .bindFromRequest()
         .fold(
@@ -996,7 +998,19 @@ class TestOnlyController(
               val updateRequest = UpdateFormDataRequest(snapshotId, currentFormId)
               for {
                 saveReply <- gformConnector.updateFormData(updateRequest)
-              } yield Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+                res <- maybeAccessCode match {
+                         case Some(accessCode) =>
+                           newFormController.redirectContinue[SectionSelectorType.Normal](
+                             cache.toAuthCacheWithoutForm,
+                             cache.form,
+                             maybeAccessCode,
+                             request
+                           )
+                         case _ =>
+                           Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
+                             .pure[Future]
+                       }
+              } yield res
             } else {
               for {
                 overview <- gformConnector.snapshotOverview(snapshotId)
@@ -1034,10 +1048,10 @@ class TestOnlyController(
     implicit request: Request[AnyContent]
   ) =
     for {
-      s <- gformConnector.snapshotOverview(snapshotId)
+      s <- gformConnector.restoreForm(snapshotId, maybeAccessCode)
       redirectUrl = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
                       .restoreAllGet(
-                        if (useOriginalTemplate) s.originalTemplateId else s.templateId,
+                        s.originalTemplateId,
                         maybeAccessCode,
                         snapshotId,
                         useOriginalTemplate
@@ -1068,23 +1082,41 @@ class TestOnlyController(
         )
     }
 
+  def notFound(formIdData: FormIdData) =
+    Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found for agent."))
+
   def restoreContinue(
     formTemplateId: FormTemplateId,
     snapshotId: String,
     useOriginalTemplate: Boolean,
     maybeAccessCode: Option[AccessCode]
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
-    implicit request => _ => cache => _ => formModelOptics =>
-      restore(snapshotId, cache.form._id.value, useOriginalTemplate)
+    implicit request => implicit lang => cache => _ => formModelOptics =>
+      for {
+        snapshot <- gformConnector.snapshotOverview(SnapshotId(snapshotId))
+        formTemplate <- if (useOriginalTemplate) cache.formTemplate.pure[Future]
+                        else gformConnector.getFormTemplate(snapshot.templateId)
+        result <- maybeAccessCode match {
+                    case Some(accessCode) =>
+                      val formIdData =
+                        FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplate._id, accessCode)
+                      implicit val messages = englishMessages
+                      newFormController.handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
+                        newFormController.redirectContinue[SectionSelectorType.Normal](
+                          cache.toAuthCacheWithoutForm.copy(formTemplate = formTemplate),
+                          form,
+                          formIdData.maybeAccessCode,
+                          request
+                        )
+                      }
+                    case _ =>
+                      getSessionAndRedirect(
+                        snapshot.ggFormData,
+                        uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplate._id).url
+                      )
+                  }
+      } yield result
   }
-
-  private def restore(snapshotId: String, formId: String, useOriginalTemplate: Boolean)(implicit hc: HeaderCarrier) =
-    for {
-      snapshot <- gformConnector.restoreForm(snapshotId, formId, useOriginalTemplate)
-      restoreTemplateId = if (useOriginalTemplate) snapshot.originalTemplateId else snapshot.templateId
-      redirectUrl: String = uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(restoreTemplateId).url
-      result <- getSessionAndRedirect(snapshot.ggFormData, redirectUrl)
-    } yield result
 
   private def getSessionAndRedirect(ggFormData: Option[GovernmentGatewayFormData], redirectUrl: String) =
     ggFormData match {
