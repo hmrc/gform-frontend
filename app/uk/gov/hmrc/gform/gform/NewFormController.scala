@@ -858,7 +858,7 @@ class NewFormController(
                            cacheWithForm.variadicFormData[SectionSelectorType.Normal],
                            cacheWithForm,
                            recalculation,
-                           currentPage = None
+                           currentSection = None
                          )
       cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
       r <- cache.formTemplate.formKind.fold { classic =>
