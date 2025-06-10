@@ -629,7 +629,12 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyErrorMessageController.errorsUsageHtml(formTemplate._id, accessCode)
     )
 
-    val links = List(viewFormTemplateDetailsLink, viewErrorReport, viewErrorUsageReport)
+    val viewHtmlErrorsReport = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View HTML errors in form",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.validateFormHtml(formTemplate._id)
+    )
+
+    val links = List(viewFormTemplateDetailsLink, viewErrorReport, viewErrorUsageReport, viewHtmlErrorsReport)
 
     bulleted_list(links)
   }
@@ -1578,5 +1583,15 @@ class TestOnlyController(
           case _ => BadRequest("Cannot determine action").pure[Future]
         }
       }
+    }
+
+  def validateFormHtml(
+    formTemplateId: FormTemplateId
+  ) =
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) { implicit request => _ => _ =>
+      for {
+        rawTemplateJson    <- gformConnector.getFormTemplateRaw(formTemplateId)
+        validationResponse <- gformConnector.validateFormHtml(rawTemplateJson)
+      } yield Ok(validationResponse).as("application/json")
     }
 }

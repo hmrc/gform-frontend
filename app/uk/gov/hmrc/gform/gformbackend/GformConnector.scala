@@ -22,6 +22,7 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._
+import com.fasterxml.jackson.databind.JsonMappingException
 import org.apache.commons.text.StringEscapeUtils
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.slf4j.LoggerFactory
@@ -40,12 +41,12 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsByFormIdData }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.testonly.snapshot._
+import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, StringContextOps, UpstreamErrorResponse }
-import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, StringContextOps, UpstreamErrorResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -769,4 +770,15 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     val url = s"$baseUrl/translation-audit/overview/${formTemplateId.value}"
     httpClient.get(url"$url").execute[Option[TranslationAuditOverview]]
   }
+
+  def validateFormHtml(
+    rawTemplateJson: JsValue
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsValue] =
+    httpClient
+      .post(url"$baseUrl/formtemplates/validate-html")
+      .withBody(rawTemplateJson)
+      .execute[JsValue](HttpReads.Implicits.readJsValue, ec)
+      .recover { case _: JsonMappingException =>
+        Json.parse("""{"valid":"No HTML validation errors detected"}""")
+      }
 }
