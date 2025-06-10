@@ -71,7 +71,8 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
   def authAndRetrieveForm[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    operation: OperationWithForm
+    operation: OperationWithForm,
+    browserSectionNumber: Option[SectionNumber] = None
   )(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
       DataOrigin.Mongo
@@ -320,13 +321,14 @@ class AuthenticatedRequestActions(
   def authAndRetrieveForm[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    operation: OperationWithForm
+    operation: OperationWithForm,
+    browserSectionNumber: Option[SectionNumber]
   )(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
       DataOrigin.Mongo
     ] => Future[Result]
   ): Action[AnyContent] =
-    async(formTemplateId, maybeAccessCode) {
+    async(formTemplateId, maybeAccessCode, browserSectionNumber) {
       implicit request => lang => cache => smartStringEvaluator => formModelOptics =>
         val formTemplateContext = request.attrs(FormTemplateKey)
         val formTemplate = formTemplateContext.formTemplate
@@ -347,7 +349,8 @@ class AuthenticatedRequestActions(
 
   def async[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    browserSectionNumber: Option[SectionNumber] = None
   )(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
       DataOrigin.Mongo
@@ -373,7 +376,7 @@ class AuthenticatedRequestActions(
         result <- handleAuthResults(
                     authResult,
                     formTemplate,
-                    onSuccess = withForm[U](f(request)(l))(maybeAccessCode, formTemplateContext)
+                    onSuccess = withForm[U](f(request)(l))(maybeAccessCode, formTemplateContext, browserSectionNumber)
                   )
       } yield result
     }
@@ -382,7 +385,8 @@ class AuthenticatedRequestActions(
     f: AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
   )(
     maybeAccessCode: Option[AccessCode],
-    formTemplateContext: FormTemplateContext
+    formTemplateContext: FormTemplateContext,
+    browserSectionNumber: Option[SectionNumber]
   )(
     retrievals: MaterialisedRetrievals
   )(
@@ -408,7 +412,7 @@ class AuthenticatedRequestActions(
       formTemplateId.value.replace("specimen-", "")
     )
 
-    def whenFormExists(form: Form): Future[Result] =
+    def whenFormExists(form: Form, browserSectionNumber: Option[SectionNumber]): Future[Result] =
       for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
         formTemplateForForm <- if (form.formTemplateId === formTemplate._id)
@@ -428,19 +432,13 @@ class AuthenticatedRequestActions(
                   maybeAccessCode,
                   lookupRegistry
                 )
-        fm <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
-                cache.variadicFormData,
-                cache,
-                recalculation,
-                currentPage = None
-              ) //TODO FM is being generated twice here
         formModelOptics <-
           FormModelOptics
             .mkFormModelOptics[DataOrigin.Mongo, Future, U](
               cache.variadicFormData,
               cache,
               recalculation,
-              currentPage = fm.formModelVisibilityOptics.formModel.pages.headOption
+              currentSection = browserSectionNumber
             )
 
         formModelOpticsUpd =
@@ -458,7 +456,9 @@ class AuthenticatedRequestActions(
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
 
-    gformConnector.maybeForm(formIdData, formTemplate).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
+    gformConnector
+      .maybeForm(formIdData, formTemplate)
+      .flatMap(_.fold(formNotFound(formIdData))(form => whenFormExists(form, browserSectionNumber)))
   }
 
   private def handleAuthResults(

@@ -107,7 +107,7 @@ object FormModelOptics {
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
     formStartDate: Instant,
-    currentPage: Option[PageModel[_]]
+    currentSection: Option[SectionNumber]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -124,7 +124,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, formStartDate, currentPage)
+      formModelBuilder.visibilityModel(data, phase, formStartDate, currentSection)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -135,7 +135,7 @@ object FormModelOptics {
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None,
-    currentPage: Option[PageModel[_]] = None
+    currentSection: Option[SectionNumber] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -151,6 +151,6 @@ object FormModelOptics {
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
       cache.form.startDate,
-      currentPage
+      currentSection
     )
 }

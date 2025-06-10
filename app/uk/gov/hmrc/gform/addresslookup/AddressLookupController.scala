@@ -646,7 +646,7 @@ class AddressLookupController(
                     variadicFormData,
                     syntheticCache,
                     recalculation,
-                    currentPage = None
+                    currentSection = None
                   )
 
                 val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, syntheticCache.form)
