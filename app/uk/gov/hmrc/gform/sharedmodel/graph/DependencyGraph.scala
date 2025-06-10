@@ -62,6 +62,7 @@ object DependencyGraph {
         }
         .flatten
         .flatMap { exprMeta =>
+          println(exprMeta.expr.leafs())
           exprMeta.expr.allFormComponentIds()
         }
     }
@@ -74,15 +75,24 @@ object DependencyGraph {
         )
       }
 
-    val formComponents = allCurrentPageComponents.map(fcId => formModel.fcLookup.get(fcId) -> fcId).flatMap {
-      case (Some(fc), fcId) => List(fc)
-      case (None, fcId)     => baseFcLookup(fcId.baseComponentId).map(formModel.fcLookup)
-    }
+    val atlComponents = formModel.addToListIds.map(_.formComponentId)
+
+    val formComponents =
+      (allCurrentPageComponents ++ atlComponents).map(fcId => formModel.fcLookup.get(fcId) -> fcId).flatMap {
+        case (Some(fc), fcId) => List(fc)
+        case (None, fcId)     => baseFcLookup(fcId.baseComponentId).map(formModel.fcLookup)
+      }
+
+    val allfcs = Seq(
+      "1_atlField2",
+      "1_animal"
+    ).map(x => FormComponentId(x))
+
+    formComponents.map(_.id).map(println)
 
     println(currentPage.isDefined)
-    println(formComponents.map(_.id))
 
-    val pages = allCurrentPageComponents.flatMap(formModel.pageLookup.get)
+    val pages = formComponents.map(_.id).map(formModel.pageLookup)
 
 //    val formComponents = formModel.allFormComponents
 
