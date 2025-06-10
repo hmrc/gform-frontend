@@ -89,9 +89,6 @@ class ProcessDataService[F[_]: Monad](
   ): F[ProcessData] = {
 
     val cachedObligations: Obligations = cache.form.thirdPartyData.obligations
-    val fm = formModelOptics.formModelVisibilityOptics.formModel
-    val currentPage = sectionNumber.flatMap(sm => fm.pageModelLookup.get(sm))
-    println("currentPage: " + currentPage)
 
     for {
       browserFormModelOptics <-
@@ -100,7 +97,7 @@ class ProcessDataService[F[_]: Monad](
             dataRaw,
             cache,
             recalculation,
-            currentPage = currentPage
+            currentSection = sectionNumber
           )
 
       obligations <- taxPeriodStateChecker.callDesIfNeeded(

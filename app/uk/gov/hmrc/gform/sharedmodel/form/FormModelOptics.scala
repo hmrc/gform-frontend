@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormComponent, FormPhase, Page }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormComponent, FormPhase, Page, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -105,7 +105,7 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    currentPage: Option[PageModel[_]]
+    currentSection: Option[SectionNumber]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -122,7 +122,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, currentPage)
+      formModelBuilder.visibilityModel(data, phase, currentSection)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -133,7 +133,7 @@ object FormModelOptics {
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None,
-    currentPage: Option[PageModel[_]] = None
+    currentSection: Option[SectionNumber] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -148,6 +148,6 @@ object FormModelOptics {
       phase,
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
-      currentPage
+      currentSection
     )
 }
