@@ -44,18 +44,15 @@ import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
 import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
-import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpReadsInstances, HttpResponse, StringContextOps, UpstreamErrorResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   private val logger = LoggerFactory.getLogger(getClass)
-
-  implicit val legacyRawReads: HttpReads[HttpResponse] =
-    HttpReadsInstances.throwOnFailure(HttpReadsInstances.readEitherOf(HttpReadsInstances.readRaw))
 
   /** ****form******
     */
@@ -562,7 +559,6 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   def retrieveConfirmation(
     reference: UpscanReference
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[UpscanConfirmation]] = {
-    import uk.gov.hmrc.http.HttpReads.Implicits._
     val url = s"$baseUrl/upscan/${reference.value}"
     httpClient.get(url"$url").execute[Option[UpscanConfirmation]]
   }
@@ -583,7 +579,6 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     }
 
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Envelope] = {
-    import uk.gov.hmrc.http.HttpReads.Implicits._
     val url = s"$baseUrl/envelopes/${envelopeId.value}"
     httpClient.get(url"$url").execute[Envelope]
   }
@@ -766,7 +761,6 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   def translationAudit(
     formTemplateId: FormTemplateId
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[TranslationAuditOverview]] = {
-    import uk.gov.hmrc.http.HttpReads.Implicits._
     val url = s"$baseUrl/translation-audit/overview/${formTemplateId.value}"
     httpClient.get(url"$url").execute[Option[TranslationAuditOverview]]
   }
@@ -777,7 +771,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     httpClient
       .post(url"$baseUrl/formtemplates/validate-html")
       .withBody(rawTemplateJson)
-      .execute[JsValue](HttpReads.Implicits.readJsValue, ec)
+      .execute[JsValue]
       .recover { case _: JsonMappingException =>
         Json.parse("""{"valid":"No HTML validation errors detected"}""")
       }
