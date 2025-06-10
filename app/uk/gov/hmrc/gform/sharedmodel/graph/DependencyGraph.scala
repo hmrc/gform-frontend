@@ -61,11 +61,15 @@ object DependencyGraph {
         Try(sectionNumber1.compare(sectionNumber2) < 0).getOrElse(false)
     }
 
+    println("ordered pages size: " + orderedPagesWithSectionNumber.size)
+
     val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] =
       Graph.from(orderedPagesWithSectionNumber.zipWithIndex.tail.map { case ((page, sectionNumber), index) =>
         val pageOrigin = orderedPagesWithSectionNumber(index - 1)._1
         pageOrigin ~> page
       })
+
+    println("page graph edge size: " + pageGraph.edges.size)
 
 //    val formComponents = formModel.allFormComponents
 
@@ -76,8 +80,9 @@ object DependencyGraph {
         def addSetOfFormComponents(node: pageGraph.NodeT): Unit = {
           formComponents.addAll(node.allFormComponents)
           pages.add(node)
-          node.outgoing.foreach { edge =>
-            addSetOfFormComponents(edge.targets.head)
+          println(node.diSuccessors.size)
+          node.diSuccessors.foreach {
+            addSetOfFormComponents
           }
         }
         if (pageGraph.isEmpty) {
@@ -96,6 +101,7 @@ object DependencyGraph {
     //println(currentPage.map(_.title))
     println("form components size: " + formComponents.size)
     println("Pages size: " + pages.size)
+    println("formmodel pages size: " + formModel.pages.size)
 
     val formComponentsList = formComponents.toList
 
