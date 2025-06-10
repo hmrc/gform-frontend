@@ -371,24 +371,14 @@ class FormProcessor(
             }
         } else Future.successful(List() -> processData.formModelOptics.formModelVisibilityOptics)
       }
-
+      updatedCache = updateCacheFromValidatorsResult(cache, validatorsResult)
       updatePostcodeLookup <-
         if (isValid) {
-          val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
-            .updateFrom(validatorsResult)
-          val cacheUpd =
-            cache.copy(
-              form = cache.form
-                .copy(
-                  thirdPartyData = updatedThirdPartyData
-                )
-            )
-
           handler
             .handleFormValidation(
               processData.formModelOptics,
               validationSectionNumber,
-              cacheUpd.toCacheData,
+              updatedCache.toCacheData,
               envelopeWithMapping,
               validationService.validatePageModel,
               enteredVariadicFormData
@@ -406,7 +396,7 @@ class FormProcessor(
 
       taskIdTaskStatusMapping <- if (sectionNumber.isTaskList) {
                                    evalTaskIdTaskStatus(
-                                     cache,
+                                     updatedCache,
                                      envelopeWithMapping,
                                      DataOrigin.swapDataOrigin(processData.formModelOptics)
                                    )
@@ -429,7 +419,7 @@ class FormProcessor(
           }
 
         val formDataU = oldData.toFormData ++ formData
-        val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
+        val updatedThirdPartyData: ThirdPartyData = updatedCache.form.thirdPartyData
           .updateFrom(validatorsResult)
           .updateDataRetrieve(dataRetrieveResult)
           .removeDataRetrieves(dataRetrievesToRemove)
@@ -484,6 +474,17 @@ class FormProcessor(
         } yield res
       }
     } yield res
+  }
+
+  private def updateCacheFromValidatorsResult(cache: AuthCacheWithForm, validatorsResult: Option[ValidatorsResult]) = {
+    val updatedThirdPartyData: ThirdPartyData = cache.form.thirdPartyData
+      .updateFrom(validatorsResult)
+    cache.copy(
+      form = cache.form
+        .copy(
+          thirdPartyData = updatedThirdPartyData
+        )
+    )
   }
 
   private def evalTaskIdTaskStatus(
