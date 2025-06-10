@@ -336,9 +336,14 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase],
     formStartDate: Instant,
-    currentPage: Option[PageModel[_]] = None
+    currentSection: Option[SectionNumber] = None
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
-    val formModel: FormModel[Interim] = expand(data)
+    val (formModel, currentPage): (FormModel[Interim], Option[PageModel[Interim]]) = currentSection
+      .map { section =>
+        val (fm, currentPage) = expandWithCurrentPage[Interim, SectionSelectorType.Normal](data, section)
+        fm -> Some(currentPage)
+      }
+      .getOrElse(expand[Interim, SectionSelectorType.Normal](data) -> None)
 
     val recalculationResultF: F[RecalculationResult] =
       toRecalculationResults(data, formModel, phase, lang, messages, formStartDate, currentPage)
@@ -409,6 +414,14 @@ class FormModelBuilder[E, F[_]: Functor](
   ): FormModel[T] = {
     val basicFm: FormModel[T] = basic(data)
     mkFormModel(basicFm, data)
+  }
+
+  def expandWithCurrentPage[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](
+    data: VariadicFormData[SourceOrigin.OutOfDate],
+    currentSection: SectionNumber
+  ): (FormModel[T], PageModel[T]) = {
+    val fm = expand(data)
+    fm -> fm.pageModelLookup(currentSection)
   }
 
   private def mkCheckYourAnswers[T <: PageMode](
