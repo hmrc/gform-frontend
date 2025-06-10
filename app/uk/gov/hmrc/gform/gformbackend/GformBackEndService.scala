@@ -269,7 +269,7 @@ class GformBackEndService(
       cache,
       recalculation,
       Some(FormPhase(InstructionPDF)),
-      currentPage = None
+      currentSection = None
     )
 
     formModelOpticsUpdatedFuture.flatMap { formModelOpticsUpdated =>
