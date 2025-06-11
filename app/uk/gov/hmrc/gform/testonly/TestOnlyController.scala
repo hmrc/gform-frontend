@@ -985,27 +985,30 @@ class TestOnlyController(
     formTemplateId: FormTemplateId,
     snapshotId: SnapshotId,
     maybeAccessCode: Option[AccessCode]
-  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
-    implicit request => implicit lang => cache => _ => formModelOptics =>
+  ) = auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
+    implicit request => implicit lang => cache =>
       implicit val message = englishMessages
       restoreOptionUserData
         .bindFromRequest()
         .fold(
           formWithErrors => BadRequest("update form Data errors ${formWithErrors.errorsAsJson}").pure[Future],
           userData => {
-            val currentFormId = cache.form._id
+            val currentFormId = FormId(cache.retrievals, formTemplateId, maybeAccessCode)
             if (userData.restoreType === restoreOptionCurrentSession) {
               val updateRequest = UpdateFormDataRequest(snapshotId, currentFormId)
               for {
                 saveReply <- gformConnector.updateFormData(updateRequest)
+                formIdData = FormIdData(cache.retrievals, formTemplateId, maybeAccessCode)
                 res <- maybeAccessCode match {
                          case Some(accessCode) =>
-                           newFormController.redirectContinue[SectionSelectorType.Normal](
-                             cache.toAuthCacheWithoutForm,
-                             cache.form,
-                             maybeAccessCode,
-                             request
-                           )
+                           newFormController.handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
+                             newFormController.redirectContinue[SectionSelectorType.Normal](
+                               cache,
+                               form,
+                               maybeAccessCode,
+                               request
+                             )
+                           }
                          case _ =>
                            Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.newOrContinue(formTemplateId))
                              .pure[Future]
