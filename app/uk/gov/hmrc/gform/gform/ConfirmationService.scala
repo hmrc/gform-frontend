@@ -130,29 +130,7 @@ class ConfirmationService(
     pageModel: PageModel[Visibility]
   )(implicit messages: Messages): Option[ConfirmationAction.UpdateConfirmation] =
     pageModel.maybeConfirmation match {
-      case Some(confirmation) =>
-        val infoTexts: Seq[SmartString] = pageModel.allFormComponents.collect { case IsInformationMessage(im) =>
-          im.infoText
-        }
-
-        val infoTextExprs: Seq[Expr] = infoTexts.flatMap(_.allInterpolations)
-
-        val exprMap: Map[String, String] = infoTextExprs.map { expr =>
-          val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
-          val result =
-            processData.formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation
-          expr.toString -> result
-        }.toMap
-
-        Some(
-          ConfirmationAction.UpdateConfirmation(
-            processData =>
-              processData.copy(confirmationExprMapping =
-                ConfirmationExprMapping(Map(confirmation.question.id -> exprMap))
-              ),
-            true
-          )
-        )
+      case Some(confirmation) => None
       case _ =>
         val browserData =
           processData.formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
@@ -198,7 +176,7 @@ class ConfirmationService(
   )(implicit messages: Messages): Option[ConfirmationAction.UpdateConfirmation] = {
     val formModel = formModelVisibilityOptics.formModel
 
-    val changedConfirmationPages = formModel.confirmationPageMap.flatMap { case (sectionNumber, confirmation) =>
+    val confirmationPageExprsMap = formModel.confirmationPageMap.map { case (sectionNumber, confirmation) =>
       val pageModel: PageModel[Visibility] = formModel(sectionNumber)
 
       val infoTexts: Seq[SmartString] = pageModel.allFormComponents.collect { case IsInformationMessage(im) =>
@@ -214,7 +192,10 @@ class ConfirmationService(
           .stringRepresentation
         expr.toString -> result
       }.toMap
+      confirmation -> exprMap
+    }.toMap
 
+    val changedConfirmationPages = confirmationPageExprsMap.flatMap { case (confirmation, exprMap) =>
       val existingExprMap = confirmationExprMapping.mapping.getOrElse(confirmation.question.id, Map.empty)
 
       val addedOrChanged: Map[String, String] = exprMap.filter { case (k, v) =>
@@ -235,9 +216,16 @@ class ConfirmationService(
       }
     }
 
+    val newConfirmationExprMapping = confirmationPageExprsMap.map { case (confirmation, map) =>
+      confirmation.question.id -> map
+    }
+
     Some(
       ConfirmationAction.UpdateConfirmation(
-        processData => processData.removeConfirmation(changedConfirmationPages),
+        processData =>
+          processData
+            .copy(confirmationExprMapping = ConfirmationExprMapping(newConfirmationExprMapping))
+            .removeConfirmation(changedConfirmationPages.toList),
         true
       )
     )
