@@ -45,6 +45,7 @@ import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsB
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summary.SubmissionDetails
+import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -175,7 +176,8 @@ class GformBackEndService(
       cache,
       formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
       maybeAccessCode,
-      Some(cache.formTemplate.summarySection.excludeFieldsFromPDF)
+      cache.formTemplate.summarySection.excludeFieldsFromPDF,
+      ValidationResult.empty
     )
 
     val maybePDFOptions = cache.formTemplate.destinations match {

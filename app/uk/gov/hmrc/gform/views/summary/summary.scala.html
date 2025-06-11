@@ -92,7 +92,9 @@
                 @CSRF.formField
             }
 
-      	    @snippets
+            @if(!extraInfoSummary.hideDefaultRows) {
+      	       @snippets
+            }
         }
 
         @twoThirdsMainContent {

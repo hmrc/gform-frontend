@@ -920,7 +920,8 @@ class SectionRenderingService(
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeAccessCode: Option[AccessCode],
-    maybeSummarySection: Option[SummarySection]
+    summarySection: SummarySection,
+    validationResult: ValidationResult
   )(implicit
     request: RequestHeader,
     messages: Messages,
@@ -932,7 +933,6 @@ class SectionRenderingService(
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
 
-    val summarySection = maybeSummarySection.getOrElse(formTemplate.summarySection)
     val page = summarySection.toPage
     val ei = ExtraInfo(
       Singleton(page.asInstanceOf[Page[DataExpanded]]),
@@ -954,7 +954,7 @@ class SectionRenderingService(
         renderUnit,
         formTemplateId,
         ei,
-        ValidationResult.empty,
+        validationResult,
         obligations = NotChecked,
         UpscanInitiate.empty,
         Map.empty[FormComponentId, UpscanData]
@@ -1971,7 +1971,7 @@ class SectionRenderingService(
     val visibleRows: List[MiniSummaryRow] = rows
       .filter(r => isVisibleMiniSummaryListRow(r, ei.formModelOptics))
     val visibleRowsPartitioned: List[List[MiniSummaryRow]] = visibleRows
-      .foldLeft(List(List[MiniSummaryRow]()))((acc, row) =>
+      .foldLeft(List.empty[List[MiniSummaryRow]])((acc, row) =>
         row match {
           case _: HeaderRow      => List(row) :: acc
           case _: SmartStringRow => (row :: acc.head) :: acc.tail

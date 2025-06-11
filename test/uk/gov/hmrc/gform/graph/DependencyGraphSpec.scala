@@ -706,6 +706,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         KeyDisplayWidth.S,
         None,
         None,
+        None,
         None
       )
     val emptyPrintSectionPage = PrintSection.Page(emptySS, emptySS)

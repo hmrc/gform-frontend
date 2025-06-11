@@ -316,6 +316,7 @@ object FormTemplateBuilder {
       KeyDisplayWidth.S,
       None,
       None,
+      None,
       None
     ),
     None,
