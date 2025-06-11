@@ -199,7 +199,7 @@ class Recalculation[F[_]: Monad, E](
 //    println("formComponents size: " + formComponents.size)
 
     val graph: Graph[GraphNode, DiEdge[GraphNode]] =
-      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection, formTemplate)
+      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
 
     //    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
 //      .map { page =>
@@ -249,7 +249,7 @@ class Recalculation[F[_]: Monad, E](
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.outer, graph))
 
-    println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
+    //println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()

@@ -173,7 +173,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = fm.availableSectionNumbers.lastOption
+          currentSection = fm.availableSectionNumbers.lastOption.map(SectionOrSummary.Section.apply)
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -225,7 +225,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = fm.availableSectionNumbers.lastOption
+          currentSection = fm.availableSectionNumbers.lastOption.map(SectionOrSummary.Section.apply)
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -313,7 +313,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = fm.availableSectionNumbers.lastOption
+          currentSection = fm.availableSectionNumbers.lastOption.map(SectionOrSummary.Section.apply)
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -364,7 +364,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = fm.availableSectionNumbers.lastOption
+          currentSection = fm.availableSectionNumbers.lastOption.map(SectionOrSummary.Section.apply)
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -489,7 +489,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = fm.availableSectionNumbers.lastOption
+          currentSection = fm.availableSectionNumbers.lastOption.map(SectionOrSummary.Section.apply)
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -603,7 +603,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = Some(sectionF(fm))
+          currentSection = Some(SectionOrSummary.Section(sectionF(fm)))
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -696,7 +696,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentSection = Some(fm.availableSectionNumbers(1))
+          currentSection = Some(SectionOrSummary.Section(fm.availableSectionNumbers(1)))
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -796,7 +796,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             data,
             None,
             Instant.now,
-            currentSection = Some(sectionF(fm))
+            currentSection = Some(SectionOrSummary.Section(sectionF(fm)))
           )
         res.evaluationResults.exprMap shouldBe expected
       }
@@ -1050,7 +1050,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             data,
             None,
             Instant.now,
-            currentSection = Some(f(fm))
+            currentSection = Some(SectionOrSummary.Section(f(fm)))
           )
 
         val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
