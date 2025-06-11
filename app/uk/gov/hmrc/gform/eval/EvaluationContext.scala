@@ -58,5 +58,5 @@ final case class EvaluationContext(
   lookupRegister: Map[BaseComponentId, Register],
   constraints: Map[BaseComponentId, TextConstraint],
   taskIdTaskStatus: TaskIdTaskStatusMapping,
-  currentPage: Option[PageModel[_]] = None
+  currentSection: Option[SectionNumber] = None
 )

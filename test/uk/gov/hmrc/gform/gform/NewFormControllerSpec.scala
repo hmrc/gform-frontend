@@ -286,7 +286,8 @@ class NewFormControllerSpec
       .authAndRetrieveForm[SectionSelectorType.Normal](
         *[FormTemplateId],
         *[Option[AccessCode]],
-        *[OperationWithForm]
+        *[OperationWithForm],
+        *[Option[SectionNumber]]
       )(
         *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
           DataOrigin.Mongo
@@ -296,6 +297,7 @@ class NewFormControllerSpec
         _: FormTemplateId,
         _: Option[AccessCode],
         _: OperationWithForm,
+        _: Option[SectionNumber],
         f: Request[
           AnyContent
         ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[
@@ -493,7 +495,8 @@ class NewFormControllerSpec
         .authAndRetrieveForm[SectionSelectorType.Normal](
           *[FormTemplateId],
           *[Option[AccessCode]],
-          *[OperationWithForm]
+          *[OperationWithForm],
+          *[Option[SectionNumber]]
         )(
           *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
             DataOrigin.Mongo
@@ -503,6 +506,7 @@ class NewFormControllerSpec
           _: FormTemplateId,
           _: Option[AccessCode],
           _: OperationWithForm,
+          _: Option[SectionNumber],
           f: Request[
             AnyContent
           ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[
