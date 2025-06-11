@@ -36,14 +36,16 @@ object DependencyGraph {
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionNumber]
+    currentSection: Option[SectionOrSummary],
+    formTemplate: FormTemplate
   ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs, currentSection)
+    graphFrom(formModel, formTemplateExprs, currentSection, formTemplate)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionNumber]
+    currentSection: Option[SectionOrSummary],
+    formTemplate: FormTemplate
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 //    formModel.brackets.map { singleton =>
 //      println(singleton.title)
@@ -55,8 +57,13 @@ object DependencyGraph {
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
-    val currentPageBracket = currentSection.map { currentSection =>
-      formModel.bracket(currentSection)
+    println("available sections: " + formModel.availableSectionNumbers)
+    println("currentSection: " + currentSection)
+
+    val currentPageBracket = currentSection.collect {
+      case SectionOrSummary.Section(Classic.RepeatedPage(sectionIndex, pageNumber)) =>
+        formModel.bracket(Classic.RepeatedPage(sectionIndex, 0))
+      case SectionOrSummary.Section(currentSection) => formModel.bracket(currentSection)
     }
 
     val allCurrentPageExpressions = currentPageBracket.toList.flatMap { bracket =>
@@ -82,27 +89,40 @@ object DependencyGraph {
         )
       }
 
-    println("base fc keys: " + baseFcLookup.keys)
+//    println("base fc keys: " + baseFcLookup.keys)
 
     val atlComponents = formModel.addToListIds.map(_.formComponentId)
-    println("atl components: " + atlComponents)
+//    println("atl components: " + atlComponents)
+
+    val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+
+    def summaryFormComponents = currentSection match {
+      case Some(SectionOrSummary.Section(_)) | None => List()
+      case _                                        => formModel.allFormComponentIds
+    }
+
+    println("summary section fields: " + formTemplate.summarySection)
 
     val formComponents =
-      (allCurrentPageComponents ++ atlComponents).map(fcId => formModel.fcLookup.get(fcId) -> fcId).flatMap {
-        case (Some(fc), fcId) => List(fc)
-        case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
-      }
+      (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
+        .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
+        .flatMap {
+          case (Some(fc), fcId) => List(fc)
+          case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
+        }
 
     val allfcs = Seq(
       "1_atlField2",
       "1_animal"
     ).map(x => FormComponentId(x))
 
-    formComponents.map(_.id).map(println)
+//    formComponents.map(_.id).map(println)
 
     //println(currentPage.isDefined)
 
     val pages = formComponents.map(_.id).map(formModel.pageLookup)
+
+    println("all mini summary fm: " + formModel.allMiniSummaryListIncludeIfs.map(_._2.id))
 
 //    val formComponents = formModel.allFormComponents
 
@@ -132,10 +152,10 @@ object DependencyGraph {
 //      .getOrElse(Set.empty -> Set.empty)
 
     //println(currentPage.map(_.title))
-    println("form components size: " + formComponents.map(_.id))
-    println("form model form components size: " + formModel.allFormComponents.map(_.id))
-    println("Pages size: " + pages.size)
-    println("formmodel pages size: " + formModel.pages.size)
+//    println("form components size: " + formComponents.map(_.id))
+//    println("form model form components size: " + formModel.allFormComponents.map(_.id))
+//    println("Pages size: " + pages.size)
+//    println("formmodel pages size: " + formModel.pages.size)
 
 //    val formComponentsList = formComponents.toList
 
