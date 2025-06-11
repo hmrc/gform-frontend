@@ -827,7 +827,7 @@ class NewFormController(
     queryParams: QueryParams
   )(implicit hc: HeaderCarrier): Future[FormIdData] = gformBackEnd.newForm(formTemplateId, retrievals, queryParams)
 
-  private def handleForm[A](
+  def handleForm[A](
     formIdData: FormIdData,
     formTemplate: FormTemplate
   )(notFound: => Future[A])(found: Form => Future[A])(implicit hc: HeaderCarrier): Future[A] =
@@ -836,7 +836,7 @@ class NewFormController(
       result    <- maybeForm.fold(notFound)(found)
     } yield result
 
-  private def redirectContinue[U <: SectionSelectorType: SectionSelector](
+  def redirectContinue[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithoutForm,
     form: Form,
     accessCode: Option[AccessCode],

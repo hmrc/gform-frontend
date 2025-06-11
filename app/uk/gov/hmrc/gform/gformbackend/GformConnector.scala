@@ -625,11 +625,14 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     }
 
   def restoreForm(
-    savedId: String,
-    restoreId: String,
-    useOriginalTemplate: Boolean
+    snapshotId: SnapshotId,
+    maybeAccessCode: Option[AccessCode]
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
-    val url = s"$baseUrl/test-only/restore-form/$savedId/$restoreId?useOriginalTemplate=$useOriginalTemplate"
+    val url = maybeAccessCode match {
+      case Some(accessCode) =>
+        s"$baseUrl/test-only/restore-form/${snapshotId.value}/${accessCode.value}"
+      case _ => s"$baseUrl/test-only/restore-form/${snapshotId.value}"
+    }
     httpClient.get(url"$url").execute[SnapshotOverview]
   }
 

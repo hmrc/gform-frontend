@@ -231,7 +231,8 @@ class ApplicationModule(context: Context)
     gformModule,
     wSHttpModule,
     applicationCrypto,
-    hmrcSessionCookieBaker
+    hmrcSessionCookieBaker,
+    englishMessages
   )
 
   private val formTemplateContextCacheManager = new FormTemplateContextCacheManager()

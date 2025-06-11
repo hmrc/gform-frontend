@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.testonly
 
+import play.api.i18n.Messages
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.SessionCookieBaker
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -51,7 +52,8 @@ class TestOnlyModule(
   gformModule: GformModule,
   wSHttpModule: WSHttpModule,
   applicationCrypto: ApplicationCrypto,
-  sessionCookieBaker: SessionCookieBaker
+  sessionCookieBaker: SessionCookieBaker,
+  englishMessages: Messages
 )(implicit
   ec: ExecutionContext
 ) {
@@ -96,7 +98,8 @@ class TestOnlyModule(
     gformModule.newFormController,
     authLoginStubService,
     gformModule.summaryController,
-    gformModule.acknowledgementPdfService
+    gformModule.acknowledgementPdfService,
+    englishMessages
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
     playBuiltInsModule.i18nSupport,
