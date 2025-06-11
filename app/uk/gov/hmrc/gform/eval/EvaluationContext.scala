@@ -60,5 +60,5 @@ final case class EvaluationContext(
   constraints: Map[BaseComponentId, TextConstraint],
   taskIdTaskStatus: TaskIdTaskStatusMapping,
   formStartDate: LocalDate,
-  currentSection: Option[SectionNumber] = None
+  currentSection: Option[SectionOrSummary] = None
 )

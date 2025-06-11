@@ -473,7 +473,7 @@ class FormProcessor(
                                 formModelOptics,
                                 gformConnector.getAllTaxPeriods,
                                 NoSpecificAction,
-                                Some(sectionNumber)
+                                Some(SectionOrSummary.Section(sectionNumber))
                               )
           res <-
             fastForwardService
