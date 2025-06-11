@@ -86,11 +86,10 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     val formTemplate = mkFormTemplate(sectionsData)
     val fmb = mkFormModelBuilder(formTemplate)
     val fm = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
-    val currentPage = fm.pageLookup.get(
-      sectionsData.head.fold(_.page)(_.page)(_.pages.head).allFields.head.id
-    )
+    val selectSectionIndex = if (sectionsData.size > 2) sectionsData.size - 2 else sectionsData.size - 1
+    val currentSection = fm.availableSectionNumbers(selectSectionIndex)
     mkFormModelBuilder(formTemplate)
-      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None, currentPage)
+      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None, Some(currentSection))
       .formModel
   }
   def getNavigation(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =
@@ -164,6 +163,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
       Classic.NormalPage(TemplateSectionIndex(2)),
       Classic.NormalPage(TemplateSectionIndex(4))
     )
+
     result3 shouldBe List(
       Classic.NormalPage(TemplateSectionIndex(0)),
       Classic.NormalPage(TemplateSectionIndex(1)),

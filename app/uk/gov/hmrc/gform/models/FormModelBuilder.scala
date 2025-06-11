@@ -214,7 +214,7 @@ class FormModelBuilder[E, F[_]: Functor](
     formPhase: Option[FormPhase],
     lang: LangADT,
     messages: Messages,
-    currentPage: Option[PageModel[_]]
+    currentSection: Option[SectionNumber]
   ): F[RecalculationResult] = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
@@ -250,11 +250,19 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.lookupRegister,
         formModel.constraints,
         taskIdTaskStatus,
-        currentPage
+        currentSection
       )
 
     recalculation
-      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext, messages)
+      .recalculateFormDataNew(
+        data,
+        formModel,
+        formTemplate,
+        retrievals,
+        thirdPartyData,
+        evaluationContext,
+        messages
+      )
   }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
@@ -332,15 +340,10 @@ class FormModelBuilder[E, F[_]: Functor](
     phase: Option[FormPhase],
     currentSection: Option[SectionNumber] = None
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
-    val (formModel, currentPage): (FormModel[Interim], Option[PageModel[Interim]]) = currentSection
-      .map { section =>
-        val (fm, currentPage) = expandWithCurrentPage[Interim, SectionSelectorType.Normal](data, section)
-        fm -> Some(currentPage)
-      }
-      .getOrElse(expand[Interim, SectionSelectorType.Normal](data) -> None)
+    val formModel: FormModel[Interim] = expand(data)
 
     val recalculationResultF: F[RecalculationResult] =
-      toRecalculationResults(data, formModel, phase, lang, messages, currentPage)
+      toRecalculationResults(data, formModel, phase, lang, messages, currentSection)
 
     recalculationResultF.map { recalculationResult =>
       buildFormModelVisibilityOptics(
@@ -408,14 +411,6 @@ class FormModelBuilder[E, F[_]: Functor](
   ): FormModel[T] = {
     val basicFm: FormModel[T] = basic(data)
     mkFormModel(basicFm, data)
-  }
-
-  def expandWithCurrentPage[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](
-    data: VariadicFormData[SourceOrigin.OutOfDate],
-    currentSection: SectionNumber
-  ): (FormModel[T], PageModel[T]) = {
-    val fm = expand(data)
-    fm -> fm.pageModelLookup(currentSection)
   }
 
   private def mkCheckYourAnswers[T <: PageMode](
