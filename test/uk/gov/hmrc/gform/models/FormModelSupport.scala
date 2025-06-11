@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber, SectionOrSummary }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
@@ -114,7 +114,7 @@ trait FormModelSupport extends GraphSpec {
         data,
         authCache,
         recalculation,
-        currentSection = currentSection
+        currentSection = currentSection.map(SectionOrSummary.Section.apply)
       )
   }
 
