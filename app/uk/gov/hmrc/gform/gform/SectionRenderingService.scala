@@ -2278,7 +2278,7 @@ class SectionRenderingService(
 
     val isMinimumFilesUploaded: Boolean = ei.getButtonName(validationResult).isEmpty
 
-    val labelContent: content.Text = if (isMinimumFilesUploaded) {
+    val labelContent: content.Text = if (currentValues.nonEmpty) {
       content.Text(multiFileUpload.uploadAnotherLabel.getOrElse(formComponent.label).value())
     } else {
       content.Text(formComponent.label.value())
