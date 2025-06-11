@@ -71,7 +71,7 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm,
-    browserSectionNumber: Option[SectionNumber] = None
+    browserSectionNumber: Option[SectionOrSummary] = None
   )(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
       DataOrigin.Mongo
@@ -321,7 +321,7 @@ class AuthenticatedRequestActions(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm,
-    browserSectionNumber: Option[SectionNumber]
+    browserSectionNumber: Option[SectionOrSummary]
   )(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
       DataOrigin.Mongo
@@ -349,7 +349,7 @@ class AuthenticatedRequestActions(
   def async[U <: SectionSelectorType: SectionSelector](
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    browserSectionNumber: Option[SectionNumber] = None
+    browserSectionNumber: Option[SectionOrSummary] = None
   )(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
       DataOrigin.Mongo
@@ -385,7 +385,7 @@ class AuthenticatedRequestActions(
   )(
     maybeAccessCode: Option[AccessCode],
     formTemplateContext: FormTemplateContext,
-    browserSectionNumber: Option[SectionNumber]
+    browserSectionNumber: Option[SectionOrSummary]
   )(
     retrievals: MaterialisedRetrievals
   )(
@@ -411,7 +411,7 @@ class AuthenticatedRequestActions(
       formTemplateId.value.replace("specimen-", "")
     )
 
-    def whenFormExists(form: Form, browserSectionNumber: Option[SectionNumber]): Future[Result] =
+    def whenFormExists(form: Form, browserSectionNumber: Option[SectionOrSummary]): Future[Result] =
       for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
         formTemplateForForm <- if (form.formTemplateId === formTemplate._id)
