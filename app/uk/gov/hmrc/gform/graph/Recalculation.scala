@@ -71,9 +71,9 @@ class Recalculation[F[_]: Monad, E](
 
     implicit val fm: FormModel[Interim] = formModel
 
-    val page = evaluationContext.currentPage.flatMap {
-      _.fold[Option[Singleton[_]]](Some(_))(_ => None)(_ => None)
-    }
+//    val page = evaluationContext.currentPage.flatMap {
+//      _.fold[Option[Singleton[_]]](Some(_))(_ => None)(_ => None)
+//    }
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
 
@@ -199,7 +199,8 @@ class Recalculation[F[_]: Monad, E](
 
 //    println("formComponents size: " + formComponents.size)
 
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs, page)
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] =
+      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
 
     //    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
 //      .map { page =>
@@ -249,7 +250,7 @@ class Recalculation[F[_]: Monad, E](
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.outer, graph))
 
-    //println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
+    // println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
@@ -273,6 +274,10 @@ class Recalculation[F[_]: Monad, E](
         graphTopologicalOrder <- orderedGraph
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
+          println("graph layer fcids: " + graphLayer.flatMap {
+            case GraphNode.Simple(formComponentId) => List(formComponentId)
+            case GraphNode.Expr(expr)              => expr.allFormComponentIds()
+          })
           //println(graphLayer)
           //println(graphLayer.length)
           recalculateGraphLayer(
