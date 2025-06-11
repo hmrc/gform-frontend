@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormComponent, FormPhase, Page, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormComponent, FormPhase, Page, SectionNumber, SectionOrSummary }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -105,7 +105,7 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    currentSection: Option[SectionNumber]
+    currentSection: Option[SectionOrSummary]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -133,7 +133,7 @@ object FormModelOptics {
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None,
-    currentSection: Option[SectionNumber] = None
+    currentSection: Option[SectionOrSummary] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
