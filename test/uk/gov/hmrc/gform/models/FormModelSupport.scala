@@ -109,7 +109,7 @@ trait FormModelSupport extends GraphSpec {
   def mkFormModelOptics(
     formTemplate: FormTemplate,
     data: VariadicFormData[SourceOrigin.OutOfDate],
-    currentPage: Option[PageModel[_]] = None
+    currentSection: Option[SectionNumber] = None
   )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     FormModelOptics
@@ -117,7 +117,7 @@ trait FormModelSupport extends GraphSpec {
         data,
         authCache,
         recalculation,
-        currentPage = currentPage
+        currentSection = currentSection
       )
   }
 

@@ -173,7 +173,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = fm.availableSectionNumbers.lastOption
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -225,7 +225,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = fm.availableSectionNumbers.lastOption
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -313,7 +313,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = fm.availableSectionNumbers.lastOption
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -364,7 +364,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = fm.availableSectionNumbers.lastOption
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -431,11 +431,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       (
         variadicFormData[SourceOrigin.OutOfDate](),
         Map(
-          Constant("123") -> NumberResult(123),
-          Constant("456") -> NumberResult(456),
-          Constant("0")   -> NumberResult(0),
-          FormCtx("a2")   -> Empty,
-          FormCtx("c")    -> Hidden
+          Constant("0") -> NumberResult(0),
+          FormCtx("a2") -> Empty,
+          FormCtx("c")  -> Hidden
         ),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(
@@ -455,11 +453,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       (
         variadicFormDataMany("a2" -> List("0")) ++ variadicFormData[SourceOrigin.OutOfDate]("c" -> "X"),
         Map(
-          Constant("123") -> NumberResult(123),
-          Constant("456") -> NumberResult(456),
-          Constant("0")   -> NumberResult(0),
-          FormCtx("a2")   -> OptionResult(List("0")),
-          FormCtx("c")    -> StringResult("X")
+          Constant("0") -> NumberResult(0),
+          FormCtx("a2") -> OptionResult(List("0")),
+          FormCtx("c")  -> StringResult("X")
         ),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(
@@ -493,7 +489,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = fm.availableSectionNumbers.lastOption
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -549,7 +545,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     val table = Table(
-      ("data", "expected", "expectedFormModel"),
+      ("data", "expected", "expectedFormModel", "sectionF"),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "123") ++
           variadicFormDataMany("b"                   -> List("123")),
@@ -571,7 +567,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             SingletonWithNumber(Singleton(expectedPage3), SectionNumber.Classic.NormalPage(TemplateSectionIndex(2))),
             section3
           )
-        )
+        ),
+        { fm: FormModel[_] => fm.availableSectionNumbers(1) }
       ),
       (
         variadicFormDataMany("b" -> List("124")),
@@ -590,11 +587,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             SingletonWithNumber(Singleton(expectedPage3), SectionNumber.Classic.NormalPage(TemplateSectionIndex(2))),
             section3
           )
-        )
+        ),
+        { fm: FormModel[_] => fm.availableSectionNumbers(1) }
       )
     )
 
-    forAll(table) { case (data, expected, expectedPages) =>
+    forAll(table) { case (data, expected, expectedPages, sectionF) =>
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val fm = fmb
@@ -605,7 +603,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = Some(sectionF(fm))
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -698,7 +696,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
+          currentSection = Some(fm.availableSectionNumbers(1))
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -706,7 +704,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     }
   }
 
-  it should "use recalculate graph to correctly mark hidden fields" in {
+  {
 
     val fcA = mkFormComponent("a", Value)
     val fcB = mkFormComponent("b", Value)
@@ -738,7 +736,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fmb = mkFormModelFromSections(sections)
 
     val table = Table(
-      ("data", "expected"),
+      ("data", "expected", "sectionF", "prop"),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
         Map(
@@ -748,7 +746,18 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("d")      -> Hidden,
           FormCtx("e")      -> Hidden,
           Constant("WORLD") -> StringResult("WORLD")
-        )
+        ),
+        { fm: FormModel[_] => fm.availableSectionNumbers(4) },
+        "1"
+      ),
+      (
+        variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
+        Map(
+          FormCtx("a") -> StringResult("HELLO"),
+          FormCtx("b") -> StringResult("WORLD2")
+        ),
+        { fm: FormModel[_] => fm.availableSectionNumbers(5) },
+        "2"
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "HELLO", "c" -> "C", "e" -> "E", "d" -> "D"),
@@ -759,7 +768,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("d")      -> Hidden,
           FormCtx("e")      -> Hidden,
           Constant("WORLD") -> StringResult("WORLD")
-        )
+        ),
+        { fm: FormModel[_] => fm.availableSectionNumbers(4) },
+        "3"
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD", "c" -> "C", "e" -> "E", "d" -> "D"),
@@ -769,26 +780,30 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           FormCtx("c")      -> Hidden,
           FormCtx("d")      -> StringResult("D"),
           Constant("WORLD") -> StringResult("WORLD")
-        )
+        ),
+        { fm: FormModel[_] => fm.availableSectionNumbers(4) },
+        "4"
       )
     )
 
-    forAll(table) { case (data, expected) =>
-      val fm = fmb
-        .dependencyGraphValidation[SectionSelectorType.Normal]
+    forAll(table) { case (data, expected, sectionF, prop) =>
+      it should s"use recalculate graph to correctly mark hidden fields: $prop" in {
+        val fm = fmb
+          .dependencyGraphValidation[SectionSelectorType.Normal]
 
-      val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-          data,
-          None,
-          Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
-        )
-      res.evaluationResults.exprMap shouldBe expected
+        val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
+          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+            data,
+            None,
+            Instant.now,
+            currentSection = Some(sectionF(fm))
+          )
+        res.evaluationResults.exprMap shouldBe expected
+      }
     }
   }
 
-  "visibilityModel" should "return visibility model" in {
+  {
     val fcA = mkFormComponent("a", Value)
     val fcB = mkFormComponent("b", Value)
     val fcC = mkFormComponent("c", Value)
@@ -835,10 +850,17 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     )
 
     val table = Table(
-      ("data", "expectedData", "expectedPages"),
+      ("data", "expectedData", "expectedPages", "prop", "sectionF"),
       (
         variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
-        variadicFormData[SourceOrigin.Current]("a"   -> "HELLO", "b" -> "WORLD2", "c" -> "C", "e" -> "E", "d" -> "D"),
+        variadicFormData[SourceOrigin.Current](
+          "a" -> "HELLO",
+          "b" -> "WORLD2",
+          "c" -> "C",
+          "e" -> "E",
+          "d" -> "D",
+          "f" -> "C"
+        ),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(
             SingletonWithNumber(Singleton(expectedPageA), SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))),
@@ -856,7 +878,39 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             SingletonWithNumber(Singleton(expectedPageG), SectionNumber.Classic.NormalPage(TemplateSectionIndex(5))),
             section6
           )
-        )
+        ),
+        "1",
+        Some { fm: FormModel[_] => fm.availableSectionNumbers(5) }
+      ),
+      (
+        variadicFormData[SourceOrigin.OutOfDate]("a" -> "HELLO", "b" -> "WORLD2", "e" -> "E", "d" -> "D"),
+        variadicFormData[SourceOrigin.Current](
+          "a" -> "HELLO",
+          "b" -> "WORLD2",
+          "e" -> "E",
+          "d" -> "D",
+          "f" -> "D"
+        ),
+        NonEmptyList.of(
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageA), SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))),
+            section1
+          ),
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageB), SectionNumber.Classic.NormalPage(TemplateSectionIndex(1))),
+            section2
+          ),
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageF), SectionNumber.Classic.NormalPage(TemplateSectionIndex(4))),
+            section5
+          ),
+          Bracket.NonRepeatingPage(
+            SingletonWithNumber(Singleton(expectedPageG), SectionNumber.Classic.NormalPage(TemplateSectionIndex(5))),
+            section6
+          )
+        ),
+        "1_b",
+        None
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate](
@@ -895,20 +949,20 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             SingletonWithNumber(Singleton(expectedPageG), SectionNumber.Classic.NormalPage(TemplateSectionIndex(5))),
             section6
           )
-        )
+        ),
+        "2",
+        None
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate](
           "a" -> "HELLO",
           "b" -> "WORLD",
-          "c" -> "C",
           "d" -> "D",
           "e" -> "E"
         ),
         variadicFormData[SourceOrigin.Current](
           "a" -> "HELLO",
           "b" -> "WORLD",
-          "c" -> "C",
           "d" -> "D",
           "e" -> "E",
           "f" -> "D"
@@ -934,7 +988,9 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             SingletonWithNumber(Singleton(expectedPageG), SectionNumber.Classic.NormalPage(TemplateSectionIndex(5))),
             section6
           )
-        )
+        ),
+        "3",
+        None
       ),
       (
         variadicFormData[SourceOrigin.OutOfDate](
@@ -977,26 +1033,31 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
             SingletonWithNumber(Singleton(expectedPageG), SectionNumber.Classic.NormalPage(TemplateSectionIndex(5))),
             section6
           )
-        )
+        ),
+        "4",
+        None
       )
     )
 
-    forAll(table) { case (data, expectedData, expectedPages) =>
-      val fm = fmb
-        .dependencyGraphValidation[SectionSelectorType.Normal]
+    forAll(table) { case (data, expectedData, expectedPages, prop, sectionF) =>
+      "visibilityModel" should s"return visibility model $prop" in {
+        val fm = fmb
+          .dependencyGraphValidation[SectionSelectorType.Normal]
 
-      val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-          data,
-          None,
-          Instant.now,
-          currentPage = fm.pageModelLookup.get(fm.sectionNumberLookup(section1.page.allFields.head.id))
-        )
+        val f = sectionF.getOrElse { fm: FormModel[_] => fm.availableSectionNumbers.last }
+        val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+          fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+            data,
+            None,
+            Instant.now,
+            currentSection = Some(f(fm))
+          )
 
-      val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+        val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
-      visibilityOptics.formModel shouldBe expected
-      visibilityOptics.recData.variadicFormData shouldBe expectedData
+        visibilityOptics.formModel shouldBe expected
+        visibilityOptics.recData.variadicFormData shouldBe expectedData
+      }
     }
   }
 
