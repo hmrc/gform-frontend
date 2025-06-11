@@ -218,7 +218,7 @@ class FormModelBuilder[E, F[_]: Functor](
     lang: LangADT,
     messages: Messages,
     formStartDate: Instant,
-    currentSection: Option[SectionNumber]
+    currentSection: Option[SectionOrSummary]
   ): F[RecalculationResult] = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
@@ -344,7 +344,7 @@ class FormModelBuilder[E, F[_]: Functor](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase],
     formStartDate: Instant,
-    currentSection: Option[SectionNumber] = None
+    currentSection: Option[SectionOrSummary] = None
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 

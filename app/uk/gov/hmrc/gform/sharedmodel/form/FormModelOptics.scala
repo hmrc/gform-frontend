@@ -107,7 +107,7 @@ object FormModelOptics {
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
     formStartDate: Instant,
-    currentSection: Option[SectionNumber]
+    currentSection: Option[SectionOrSummary]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -135,7 +135,7 @@ object FormModelOptics {
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None,
-    currentSection: Option[SectionNumber] = None
+    currentSection: Option[SectionOrSummary] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
