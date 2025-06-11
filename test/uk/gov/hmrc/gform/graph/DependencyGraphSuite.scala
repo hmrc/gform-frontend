@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder, Interim, VariadicForm
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, FormTemplate, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, RevealingChoice, RevealingChoiceElement, Section, Sum, ValidIf, Value, Vertical }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, FormTemplate, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, RevealingChoice, RevealingChoiceElement, Section, SectionOrSummary, Sum, ValidIf, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
@@ -372,7 +372,11 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val currentSection = fm.availableSectionNumbers.lastOption
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, currentSection)
+      DependencyGraph.toGraph(
+        fm.asInstanceOf[FormModel[Interim]],
+        formTemplateExprs,
+        currentSection.map(SectionOrSummary.Section.apply)
+      )
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)

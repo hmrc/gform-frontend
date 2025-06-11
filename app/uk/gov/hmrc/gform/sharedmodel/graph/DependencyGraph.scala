@@ -36,16 +36,14 @@ object DependencyGraph {
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionOrSummary],
-    formTemplate: FormTemplate
+    currentSection: Option[SectionOrSummary]
   ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs, currentSection, formTemplate)
+    graphFrom(formModel, formTemplateExprs, currentSection)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionOrSummary],
-    formTemplate: FormTemplate
+    currentSection: Option[SectionOrSummary]
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 //    formModel.brackets.map { singleton =>
 //      println(singleton.title)
@@ -100,8 +98,6 @@ object DependencyGraph {
       case Some(SectionOrSummary.Section(_)) | None => List()
       case _                                        => formModel.allFormComponentIds
     }
-
-    println("summary section fields: " + formTemplate.summarySection)
 
     val formComponents =
       (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
