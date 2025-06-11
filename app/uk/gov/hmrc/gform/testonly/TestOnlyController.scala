@@ -280,7 +280,7 @@ class TestOnlyController(
       uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
         s"Download files for ${destination.description}",
         uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-          .proxyToGform(s"gform/test-only/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
+          .proxyToGform(s"gform/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
       )
 
     val downloadContents = List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent)
