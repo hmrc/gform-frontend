@@ -50,7 +50,7 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, FormTemplateVersion, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, FormTemplateVersion, Section, SectionNumber, SectionOrSummary, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.HeaderCarrier
@@ -287,7 +287,7 @@ class NewFormControllerSpec
         *[FormTemplateId],
         *[Option[AccessCode]],
         *[OperationWithForm],
-        *[Option[SectionNumber]]
+        *[Option[SectionOrSummary]]
       )(
         *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
           DataOrigin.Mongo
@@ -297,7 +297,7 @@ class NewFormControllerSpec
         _: FormTemplateId,
         _: Option[AccessCode],
         _: OperationWithForm,
-        _: Option[SectionNumber],
+        _: Option[SectionOrSummary],
         f: Request[
           AnyContent
         ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[
@@ -496,7 +496,7 @@ class NewFormControllerSpec
           *[FormTemplateId],
           *[Option[AccessCode]],
           *[OperationWithForm],
-          *[Option[SectionNumber]]
+          *[Option[SectionOrSummary]]
         )(
           *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
             DataOrigin.Mongo
@@ -506,7 +506,7 @@ class NewFormControllerSpec
           _: FormTemplateId,
           _: Option[AccessCode],
           _: OperationWithForm,
-          _: Option[SectionNumber],
+          _: Option[SectionOrSummary],
           f: Request[
             AnyContent
           ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[

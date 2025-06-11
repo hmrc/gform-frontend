@@ -89,7 +89,11 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     val selectSectionIndex = if (sectionsData.size > 2) sectionsData.size - 2 else sectionsData.size - 1
     val currentSection = fm.availableSectionNumbers(selectSectionIndex)
     mkFormModelBuilder(formTemplate)
-      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None, Some(currentSection))
+      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](
+        formData,
+        None,
+        Some(SectionOrSummary.Section(currentSection))
+      )
       .formModel
   }
   def getNavigation(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =
