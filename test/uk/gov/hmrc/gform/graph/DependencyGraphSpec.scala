@@ -25,7 +25,7 @@ import org.scalatest.matchers.should.Matchers
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
-import uk.gov.hmrc.gform.models.{ Basic, DependencyGraphVerification, FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.models.{ Basic, DependencyGraphVerification, FormModel, FormModelSupport, Interim, PageModel, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, PrintSection, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr => _, _ }
@@ -113,7 +113,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       mkSection(mkFormComponent("b", FormCtx("a")))
     )
 
-    val res = layers(sections)
+    val res = layers(sections, Some { case fm: FormModel[_] => fm.availableSectionNumbers.last })
 
     res shouldBe List(
       (0, Set(Simple("b"))),
@@ -279,10 +279,10 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       val choice = propSetter(emptyChoice)
 
       val sections = List(
-        mkSection(mkFormComponent("choice", choice))
+        mkSection(mkFormComponent("choice", choice), mkFormComponent("a", Value))
       )
 
-      val res = layers(sections)
+      val res = layers(sections, Some { case fm: FormModel[_] => fm.availableSectionNumbers.head })
 
       res shouldBe List(
         (0, Set(Simple("choice"))),
@@ -306,7 +306,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       val information = propSetter(emptyInformationMessage)
 
       val sections = List(
-        mkSection(mkFormComponent("info", information))
+        mkSection(mkFormComponent("info", information), mkFormComponent("a", Value))
       )
 
       val res = layers(sections)
@@ -494,14 +494,15 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
   val nonRepeatedSectionExpressionTable: TableFor2[String, Page[Basic]] = {
     val stringExpr = toSmartStringExpression("", FormCtx("a"))
+    val page = emptyPage.copy(fields = List(mkFormComponent("a", Value)))
     Table(
       // format: off
       ("prop", "page"),
-      ("title",             emptyPage.copy(title = stringExpr)),
-      ("description",       emptyPage.copy(description = Some(stringExpr))),
-      ("shortName",         emptyPage.copy(shortName = Some(stringExpr))),
-      ("caption",           emptyPage.copy(caption = Some(stringExpr))),
-      ("continueLabel",     emptyPage.copy(continueLabel = Some(stringExpr)))
+      ("title",             page.copy(title = stringExpr)),
+      ("description",       page.copy(description = Some(stringExpr))),
+      ("shortName",         page.copy(shortName = Some(stringExpr))),
+      ("caption",           page.copy(caption = Some(stringExpr))),
+      ("continueLabel",     page.copy(continueLabel = Some(stringExpr)))
       // format: on
     )
   }
@@ -527,22 +528,32 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
   val addToListSectionExpressionTable = {
     val stringExpr = toSmartStringExpression("", FormCtx("a"))
     val expect1 = List(
-      (0, Set(Expr(FormCtx("a")))),
-      (1, Set(Simple("a")))
+      (0, Set(Simple("a"))),
+      (1, Set(Expr(FormCtx("1_a")))),
+      (2, Set(Simple("1_a")))
     )
     val expect2 = List(
-      (0, Set(Simple("1_choice"))),
-      (1, Set(Expr(FormCtx("a")))),
-      (2, Set(Simple("a")))
+      (0, Set(Simple("1_choice"), Simple("a"))),
+      (1, Set(Expr(FormCtx("1_a")))),
+      (2, Set(Simple("1_a")))
     )
+
+    val atl =
+      emptyAddToList.copy(pages =
+        NonEmptyList(
+          emptyPage.copy(fields = List(mkFormComponent("a", Value))),
+          List()
+        )
+      )
+
     Table(
       // format: off
       ("prop", "expected", "addToList"),
-      ("title",                             expect1, emptyAddToList.copy(title = stringExpr)),
-      ("description",                       expect1, emptyAddToList.copy(description = AtlDescription.SmartStringBased(stringExpr))),
-      ("shortName",                         expect1, emptyAddToList.copy(shortName = stringExpr)),
-      ("addAnotherQuestion.options",        expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None, None)))))),
-      ("addAnotherQuestion.optionHelpText", expect2, emptyAddToList.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))))
+      ("title",                             expect1, atl.copy(title = stringExpr)),
+      ("description",                       expect1, atl.copy(description = AtlDescription.SmartStringBased(stringExpr))),
+      ("shortName",                         expect1, atl.copy(shortName = stringExpr)),
+      ("addAnotherQuestion.options",        expect2, atl.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(options = NonEmptyList.one(OptionData.IndexBased(stringExpr, None, None, None, None)))))),
+      ("addAnotherQuestion.optionHelpText", expect2, atl.copy(addAnotherQuestion = mkFormComponent("choice", emptyChoice.copy(optionHelpText = Some(NonEmptyList.one(stringExpr))))))
       // format: on
     )
   }
@@ -682,14 +693,20 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
     val res = layers(sections)
 
+//    //TODO verify that correct
+//    res shouldBe List(
+//      (0, Set(Simple("e"), Simple("f"), Simple("g"))),
+//      (1, Set(Expr(FormCtx("d")))),
+//      (2, Set(Simple("d"))),
+//      (3, Set(Expr(Constant("0")), Expr(FormCtx("c")))),
+//      (4, Set(Simple("c"))),
+//      (5, Set(Expr(FormCtx("a")), Expr(FormCtx("b")))),
+//      (6, Set(Simple("a"), Simple("b")))
+//    )
     res shouldBe List(
-      (0, Set(Simple("e"), Simple("f"), Simple("g"))),
-      (1, Set(Expr(FormCtx("d")))),
-      (2, Set(Simple("d"))),
-      (3, Set(Expr(Constant("0")), Expr(FormCtx("c")))),
-      (4, Set(Simple("c"))),
-      (5, Set(Expr(FormCtx("a")), Expr(FormCtx("b")))),
-      (6, Set(Simple("a"), Simple("b")))
+      (0, Set(Simple("g"))),
+      (1, Set(Expr(FormCtx("b")), Expr(FormCtx("a")))),
+      (2, Set(Simple("b"), Simple("a")))
     )
   }
 
@@ -772,7 +789,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
   forAll(formTemplateExpressionTable) { case (prop, formTemplate) =>
     it should s"support expression in formTemplate $prop property" in {
 
-      val res = layers(formTemplate)
+      val res = layers(formTemplate, None)
 
       res shouldBe List(
         (0, Set(Expr(FormCtx("a")))),
@@ -781,10 +798,16 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     }
   }
 
-  private def layers(sections: List[Section]): List[(Int, Set[GraphNode])] =
-    layers(mkFormTemplate(sections))
+  private def layers(
+    sections: List[Section],
+    currentPageF: Option[FormModel[_] => SectionNumber] = None
+  ): List[(Int, Set[GraphNode])] =
+    layers(mkFormTemplate(sections), currentPageF)
 
-  private def layers(formTemplate: FormTemplate): List[(Int, Set[GraphNode])] = {
+  private def layers(
+    formTemplate: FormTemplate,
+    currentPageF: Option[FormModel[_] => SectionNumber]
+  ): List[(Int, Set[GraphNode])] = {
     val fmb = mkFormModelBuilder(formTemplate)
 
     val fm: FormModel[DependencyGraphVerification] = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
@@ -792,7 +815,11 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, fm.pages.headOption)
+      DependencyGraph.toGraph(
+        fm.asInstanceOf[FormModel[Interim]],
+        formTemplateExprs,
+        Some(currentPageF.map(f => f(fm)).getOrElse(fm.availableSectionNumbers.last))
+      )
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)

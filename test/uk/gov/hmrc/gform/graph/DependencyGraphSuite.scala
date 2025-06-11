@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import FormTemplateBuilder._
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode.Simple
 
 class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
@@ -248,7 +249,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
       Section.NonRepeatingPage(
         emptyPage.copy(
           includeIf = Some(IncludeIf(Contains(FormCtx(FormComponentId("revealingChoiceField1")), Constant("1")))),
-          fields = List()
+          fields = List(mkFormComponent("test", Value, Number()))
         )
       )
     )
@@ -263,24 +264,31 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
       (
         0,
         Set(
-          GraphNode.Expr(FormCtx(FormComponentId("revealingChoiceField1")))
+          GraphNode.Simple("test")
         )
       ),
       (
         1,
         Set(
-          GraphNode.Simple(FormComponentId("revealingChoiceField1"))
+          GraphNode.Expr(Constant("1")),
+          GraphNode.Expr(FormCtx(FormComponentId("revealingChoiceField1")))
         )
       ),
       (
         2,
+        Set(
+          GraphNode.Simple(FormComponentId("revealingChoiceField1"))
+        )
+      ),
+      (
+        3,
         Set(
           GraphNode.Expr(FormCtx(FormComponentId("2_revealingChoiceField1"))),
           GraphNode.Expr(FormCtx(FormComponentId("1_revealingChoiceField1")))
         )
       ),
       (
-        3,
+        4,
         Set(
           GraphNode.Simple(FormComponentId("2_revealingChoiceField1")),
           GraphNode.Simple(FormComponentId("1_revealingChoiceField1"))
@@ -290,6 +298,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
 
     val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
 
+    println(res, expected)
     assertEquals(res, expected)
   }
 
@@ -358,10 +367,10 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
 
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
-    val currentPage = fm.pages.headOption
+    val currentSection = fm.availableSectionNumbers.lastOption
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, currentPage)
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs, currentSection)
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)
