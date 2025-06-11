@@ -95,7 +95,7 @@ class FormController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.EditForm,
-      Some(browserSectionNumber)
+      Some(SectionOrSummary.Section(browserSectionNumber))
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       val formModel = formModelOptics.formModelVisibilityOptics.formModel
       val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
@@ -332,7 +332,7 @@ class FormController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.EditForm,
-      Some(sectionNumber)
+      Some(SectionOrSummary.Section(sectionNumber))
     ) { _ => _ => cache => implicit sse => formModelOptics =>
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
       val sectionTitle4Ga = sectionTitle4GaFactory(formModel(sectionNumber), sectionNumber)
@@ -360,7 +360,7 @@ class FormController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.EditForm,
-      Some(sectionNumber)
+      Some(SectionOrSummary.Section(sectionNumber))
     ) { implicit request => implicit lang => cache => implicit sse => formModelOptics =>
       val formVisibilityModel = formModelOptics.formModelVisibilityOptics
       val fastForward = filterTerminatedFastForward(sectionNumber, rawFastForward, formVisibilityModel)
@@ -528,7 +528,7 @@ class FormController(
                                    formModelOptics,
                                    gformConnector.getAllTaxPeriods,
                                    NoSpecificAction,
-                                   Some(sectionNumber)
+                                   Some(SectionOrSummary.Section(sectionNumber))
                                  )
                 redirect <- formProcessor.processRemoveAddToList(
                               cache,
@@ -559,7 +559,7 @@ class FormController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.EditForm,
-      Some(sectionNumber)
+      Some(SectionOrSummary.Section(sectionNumber))
     ) { implicit request => implicit l => cache => _ => formModelOptics =>
       val fastForward = removeDuplications(rawFastForward)
       def processEditAddToList(processData: ProcessData, idx: Int, addToListId: AddToListId): Future[Result] = {
@@ -605,7 +605,7 @@ class FormController(
                            formModelOptics,
                            gformConnector.getAllTaxPeriods,
                            NoSpecificAction,
-                           Some(sectionNumber)
+                           Some(SectionOrSummary.Section(sectionNumber))
                          )
         res <- direction match {
                  case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
@@ -642,7 +642,7 @@ class FormController(
       formTemplateId,
       maybeAccessCode,
       OperationWithForm.EditForm,
-      Some(browserSectionNumber)
+      Some(SectionOrSummary.Section(browserSectionNumber))
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       val formModel = formModelOptics.formModelVisibilityOptics.formModel
       val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
@@ -930,7 +930,7 @@ class FormController(
                                         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                       cache,
                                       recalculation,
-                                      currentSection = Some(sectionNumber)
+                                      currentSection = Some(SectionOrSummary.Section(sectionNumber))
                                     )
             res <- handleGroup(
                      cache,
@@ -951,7 +951,7 @@ class FormController(
                                       updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                       cache,
                                       recalculation,
-                                      currentSection = Some(sectionNumber)
+                                      currentSection = Some(SectionOrSummary.Section(sectionNumber))
                                     )
             res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
             _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)
@@ -966,7 +966,7 @@ class FormController(
                              formModelOptics,
                              gformConnector.getAllTaxPeriods,
                              NoSpecificAction,
-                             Some(sectionNumber)
+                             Some(SectionOrSummary.Section(sectionNumber))
                            )
           res <- save match {
                    case SaveAndContinue => processSaveAndContinue(processData)
