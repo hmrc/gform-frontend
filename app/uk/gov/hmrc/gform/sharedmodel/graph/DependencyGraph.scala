@@ -23,7 +23,7 @@ import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ CheckYourAnswers, FormModel, HasIncludeIf, Interim, PageMode, PageModel, Repeater }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, DataExpanded, FormModel, HasIncludeIf, Interim, PageMode, PageModel, Repeater }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -36,14 +36,14 @@ object DependencyGraph {
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata],
-    currentPage: Option[PageModel[_]]
+    currentSection: Option[SectionNumber]
   ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs, currentPage)
+    graphFrom(formModel, formTemplateExprs, currentSection)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata],
-    currentPage: Option[PageModel[_]]
+    currentSection: Option[SectionNumber]
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 //    formModel.brackets.map { singleton =>
 //      println(singleton.title)
@@ -55,16 +55,23 @@ object DependencyGraph {
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
 
-    val allCurrentPageComponents = currentPage.toList.flatMap { pageModel =>
-      pageModel.allFormComponents
-        .flatMap {
-          AllFormComponentExpressions.unapply
+    val currentPageBracket = currentSection.map { currentSection =>
+      formModel.bracket(currentSection)
+    }
+
+    val allCurrentPageExpressions = currentPageBracket.toList.flatMap { bracket =>
+      AllPageModelExpressionsGetter
+        .allExprs(formModel.asInstanceOf[FormModel[DataExpanded]])(
+          bracket
+        )
+        .flatMap { expr =>
+          expr.leafs
         }
-        .flatten
-        .flatMap { exprMeta =>
-          println(exprMeta.expr.leafs())
-          exprMeta.expr.allFormComponentIds()
-        }
+    }
+
+    val allCurrentPageComponents = currentPageBracket.toList.flatMap { bracket =>
+      val expressionIds = allCurrentPageExpressions.collect { case FormCtx(fcId) => fcId }
+      expressionIds ++ bracket.toPageModel.toList.flatMap(_.allFormComponentIds)
     }
 
     val baseFcLookup = formModel.allFormComponentIds
@@ -75,12 +82,15 @@ object DependencyGraph {
         )
       }
 
+    println("base fc keys: " + baseFcLookup.keys)
+
     val atlComponents = formModel.addToListIds.map(_.formComponentId)
+    println("atl components: " + atlComponents)
 
     val formComponents =
       (allCurrentPageComponents ++ atlComponents).map(fcId => formModel.fcLookup.get(fcId) -> fcId).flatMap {
         case (Some(fc), fcId) => List(fc)
-        case (None, fcId)     => baseFcLookup(fcId.baseComponentId).map(formModel.fcLookup)
+        case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
       }
 
     val allfcs = Seq(
@@ -90,7 +100,7 @@ object DependencyGraph {
 
     formComponents.map(_.id).map(println)
 
-    println(currentPage.isDefined)
+    //println(currentPage.isDefined)
 
     val pages = formComponents.map(_.id).map(formModel.pageLookup)
 
@@ -122,8 +132,9 @@ object DependencyGraph {
 //      .getOrElse(Set.empty -> Set.empty)
 
     //println(currentPage.map(_.title))
-    println("form components size: " + formComponents.size)
-//    println("Pages size: " + pages.size)
+    println("form components size: " + formComponents.map(_.id))
+    println("form model form components size: " + formModel.allFormComponents.map(_.id))
+    println("Pages size: " + pages.size)
     println("formmodel pages size: " + formModel.pages.size)
 
 //    val formComponentsList = formComponents.toList
@@ -233,7 +244,7 @@ object DependencyGraph {
       }
 
       def addSections() = {
-        val templateAndPageExprs: Set[Expr] = (formTemplateExprs ++ formModel.exprsMetadata.toSet).map(_.expr)
+        val templateAndPageExprs: Set[Expr] = formTemplateExprs.map(_.expr) ++ allCurrentPageExpressions
 
         val allExprGNs: Set[GraphNode.Expr] =
           templateAndPageExprs.flatMap(_.leafs(formComponents.toList)).map(GraphNode.Expr.apply)
@@ -260,6 +271,8 @@ object DependencyGraph {
     }
 
     val allEdges = getAllEdges
+
+    println("allEdges: " + allEdges)
 
     val allFcIds: mutable.Set[ModelComponentId] = allEdges.flatMap { diEdge =>
       Seq(diEdge.source, diEdge.target).collectFirst {
@@ -323,7 +336,7 @@ object DependencyGraph {
         }
 
     addRepeatedStructureEdges(allEdges)
-    //println("all edges size: " + allEdges.size)
+    println("all edges: " + allEdges.size)
     Graph.from(allEdges)
   }
 
