@@ -381,7 +381,8 @@ class FormModelBuilder[E, F[_]: Functor](
               .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
               .flatMap {
                 case (Some(fc), fcId) => List(fc)
-                case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
+                case (None, fcId) =>
+                  baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
               }
 
           val er = formModelVisibilityOptics.evaluationResults
