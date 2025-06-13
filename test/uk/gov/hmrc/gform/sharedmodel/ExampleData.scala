@@ -873,6 +873,7 @@ trait ExampleFormTemplate {
       KeyDisplayWidth.S,
       None,
       None,
+      None,
       None
     )
 

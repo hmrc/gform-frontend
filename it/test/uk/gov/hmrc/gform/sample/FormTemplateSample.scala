@@ -56,6 +56,7 @@ trait FormTemplateSample {
       KeyDisplayWidth.S,
       None,
       None,
+      None,
       None
     ),
     submitSection = None,

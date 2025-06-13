@@ -40,5 +40,6 @@ final case class ExtraInfoSummary(
   displayWidth: LayoutDisplayWidth.LayoutDisplayWidth,
   pageLevelError: HasErrors,
   maybeCoordinates: Option[Coordinates],
-  taskCompleted: Option[Boolean]
+  taskCompleted: Option[Boolean],
+  hideDefaultRows: Boolean
 )

@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.Dest
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
+import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 
@@ -115,7 +116,8 @@ class AcknowledgementPdfService(
       cache,
       formModelOptics,
       maybeAccessCode,
-      Some(cache.formTemplate.summarySection.excludeFieldsFromPDF)
+      cache.formTemplate.summarySection.excludeFieldsFromPDF,
+      ValidationResult.empty
     )
 
     for {

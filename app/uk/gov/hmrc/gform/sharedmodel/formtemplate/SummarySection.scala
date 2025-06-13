@@ -32,7 +32,8 @@ case class SummarySection(
   keyDisplayWidth: KeyDisplayWidth.KeyDisplayWidth = KeyDisplayWidth.S,
   includeIf: Option[IncludeIf],
   pdf: Option[PdfCxt],
-  excludeFromPdf: Option[List[FormComponentId]]
+  excludeFromPdf: Option[List[FormComponentId]],
+  hideDefaultRows: Option[Boolean]
 ) {
   def toPage: Page[Basic] =
     Page(

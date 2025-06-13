@@ -174,9 +174,16 @@ class SummaryRenderingService(
         validationService
           .validateFormModel(cache.toCacheData, envelope, formModelOptics.formModelVisibilityOptics, maybeCoordinates)
     } yield {
-      val summaryDeclaration: Html =
-        renderer.renderSummarySectionDeclaration(cache, formModelOptics, maybeAccessCode, maybeSummarySection)
       val summarySection = maybeSummarySection.getOrElse(cache.formTemplate.summarySection)
+
+      val summaryDeclaration: Html =
+        renderer.renderSummarySectionDeclaration(
+          cache,
+          formModelOptics,
+          maybeAccessCode,
+          summarySection,
+          validationResult
+        )
 
       SummaryRenderingService.renderSummary(
         cache.formTemplate,
@@ -320,7 +327,8 @@ object SummaryRenderingService {
         summarySection.displayWidth,
         pageLevelErrorHtml,
         maybeCoordinates,
-        taskCompleted
+        taskCompleted,
+        summarySection.hideDefaultRows.getOrElse(false)
       )
     )
   }
@@ -384,7 +392,8 @@ object SummaryRenderingService {
         formTemplate.summarySection.displayWidth,
         NoErrors,
         None,
-        None
+        None,
+        hideDefaultRows = false
       )
     )
   }

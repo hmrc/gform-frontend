@@ -101,6 +101,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
       KeyDisplayWidth.S,
       None,
       None,
+      None,
       None
     ),
     submitSection = None,
