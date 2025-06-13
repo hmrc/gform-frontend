@@ -123,10 +123,19 @@ object FormModelOptics {
         cache.lookupRegistry,
         taskIdTaskStatusMapping
       )
+
+    val formModel: FormModel[Interim] = formModelBuilder.expand(data)
+
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
       formModelBuilder.visibilityModel(data, phase, formStartDate, currentSection)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
-      formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
+      formModelBuilder.renderPageModel(
+        formModelVisibilityOptics,
+        phase,
+        Some(RecData(data)),
+        Some(formModel),
+        Some(formModelBuilder.visibilityModel(data, phase, currentSection, _))
+      )
     }
   }
 
