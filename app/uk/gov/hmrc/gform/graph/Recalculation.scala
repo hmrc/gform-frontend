@@ -60,13 +60,29 @@ class Recalculation[F[_]: Monad, E](
 ) {
 
   def recalculateFormDataNew(
-    data: VariadicFormData[SourceOrigin.OutOfDate],
+                              data: VariadicFormData[SourceOrigin.OutOfDate],
+                              formModel: FormModel[Interim],
+                              formTemplate: FormTemplate,
+                              retrievals: MaterialisedRetrievals,
+                              thirdPartyData: ThirdPartyData,
+                              evaluationContext: EvaluationContext,
+                              messages: Messages
+                            )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
+    recalculateFromGraph(formModel, formTemplate, retrievals, evaluationContext, messages, graph, Map.empty, data.data, thirdPartyData.booleanExprCache.mapping)
+  }
+
+  def recalculateFromGraph(
     formModel: FormModel[Interim],
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
     evaluationContext: EvaluationContext,
-    messages: Messages
+    messages: Messages,
+    graph: Graph[GraphNode, DiEdge[GraphNode]],
+    exprMapStart: Map[Expr, ExpressionResult],
+    formDataMapStart: collection.Map[ModelComponentId, VariadicValue],
+    booleanExprCacheStart:  Map[DataSource, Map[String, Boolean]],
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
     implicit val fm: FormModel[Interim] = formModel
@@ -75,11 +91,10 @@ class Recalculation[F[_]: Monad, E](
 //      _.fold[Option[Singleton[_]]](Some(_))(_ => None)(_ => None)
 //    }
 
-    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
-//    def dotRoot = DotRootGraph(
-//      true,
-//      Some(scalax.collection.io.dot.Id("ExampleGraph"))
-//    )
+    //    def dotRoot = DotRootGraph(
+    //      true,
+    //      Some(scalax.collection.io.dot.Id("ExampleGraph"))
+    //    )
 
 //    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
 //      index
@@ -198,9 +213,6 @@ class Recalculation[F[_]: Monad, E](
 
 //    println("formComponents size: " + formComponents.size)
 
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] =
-      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
-
     //    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
 //      .map { page =>
 //        DependencyGraph.toGraph(formModel, formTemplateExprs, page)
@@ -251,8 +263,8 @@ class Recalculation[F[_]: Monad, E](
 
     //println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
 
-    val exprMap = mutable.Map[Expr, ExpressionResult]()
-    val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
+    val exprMap = mutable.Map.newBuilder.addAll(exprMapStart).result()
+    val formDataMap = mutable.Map.newBuilder.addAll(formDataMapStart).result()
 
     val startEvResults = EvaluationResults(
       exprMap,
@@ -260,7 +272,7 @@ class Recalculation[F[_]: Monad, E](
       formTemplate.formKind.repeatedComponentsDetails
     )
     val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
-      thirdPartyData.booleanExprCache.mapping
+      booleanExprCacheStart
         .foldLeft(
           mutable.Map.newBuilder[DataSource, mutable.Map[String, Boolean]]
         ) { case (builder, (key, value)) =>
@@ -471,7 +483,7 @@ class Recalculation[F[_]: Monad, E](
 
     }
 
-  private def evalBooleanExprPure(
+  def evalBooleanExprPure(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -527,7 +539,7 @@ class Recalculation[F[_]: Monad, E](
     loop(booleanExpr)
   }
 
-  private def evalBooleanExpr(
+  def evalBooleanExpr(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -557,7 +569,10 @@ class Recalculation[F[_]: Monad, E](
     }
 
     def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
-      case Equals(field1, field2)              => rr.compareF(field1, field2, _ identical _)
+      case Equals(field1, field2) =>
+        println("f1: " + field1)
+        println("f2: " + field2)
+        rr.compareF(field1, field2, _ identical _)
       case GreaterThan(field1, field2)         => rr.compareF(field1, field2, _ > _)
       case DateAfter(field1, field2)           => rr.compareDateF(field1, field2, _ after _)
       case GreaterThanOrEquals(field1, field2) => rr.compareF(field1, field2, _ >= _)

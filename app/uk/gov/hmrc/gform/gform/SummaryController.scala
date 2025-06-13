@@ -96,7 +96,7 @@ class SummaryController(
             cache.formTemplate,
             coordinates.taskSectionNumber,
             coordinates.taskNumber
-          )(task => task.summarySection)
+            )(task => task.summarySection)
         }
 
         val hasVisibleSummarySection = maybeTaskSummarySection

@@ -35,6 +35,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormComponentIdToFileIdM
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.collection.mutable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
 import scala.util.matching.Regex
 
 object FormModelBuilder {
@@ -95,6 +98,10 @@ object FormModelBuilder {
       val s = recalculationResult.evaluationResults
         .evalExprCurrent(typeInfo2, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo2)
+
+      println("expr1 :" + expr1)
+      println("expr2 :" + expr2)
+      println("compare bool res: " + f(r, s))
       f(r, s)
     }
 
@@ -270,7 +277,10 @@ class FormModelBuilder[E, F[_]: Functor](
 
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    recData: Option[RecData[SourceOrigin.OutOfDate]] = None,
+    formModelInterim: Option[FormModel[Interim]] = None,
+    vis: Option[Option[List[FormComponent]] => F[FormModelVisibilityOptics[D]]] = None
   )(implicit messages: Messages): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
@@ -278,7 +288,15 @@ class FormModelBuilder[E, F[_]: Functor](
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
     val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] = getVisibilityModel(formModel, formModelVisibilityOptics, phase)
+    val formModelVisibility: FormModel[Visibility] =
+      getVisibilityModel(
+        formModel,
+        formModelVisibilityOptics,
+        phase,
+        recData.getOrElse(formModelVisibilityOptics.recData.asInstanceOf[RecData[OutOfDate]]),
+        formModelInterim,
+        vis
+      )
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
@@ -297,7 +315,8 @@ class FormModelBuilder[E, F[_]: Functor](
   private def getVisibilityModel[D <: DataOrigin](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    recalculation: Recalculation[F, E]
   ): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
@@ -305,13 +324,78 @@ class FormModelBuilder[E, F[_]: Functor](
       .stripHiddenFormComponents(formModel)
       .filter { pageModel =>
         pageModel.getIncludeIf.fold(true) { includeIf =>
-          FormModelBuilder.evalIncludeIf(
-            includeIf,
-            formModelVisibilityOptics.recalculationResult,
-            formModelVisibilityOptics.recData,
-            formModelVisibilityOptics.formModel,
-            phase
-          )
+//          println("includeIf fcid: " + includeIf.booleanExpr.allExpressions.map(_.allFormComponentIds()))
+//          println(
+//            "includeIf eval res: " + FormModelBuilder.evalIncludeIf(
+//              includeIf,
+//              formModelVisibilityOptics.recalculationResult,
+//              formModelVisibilityOptics.recData,
+//              formModelVisibilityOptics.formModel,
+//              phase
+//            )
+//          )
+
+          val fm = formModelInterim.getOrElse(formModel)
+          val evResult = EvaluationResults.empty.copy(recData = recData.asInstanceOf[RecData[SourceOrigin.Current]])
+
+          vis.foreach { vis =>
+            val rr = Await.result(
+              vis(Some(includeIf.booleanExpr.allExpressions.flatMap(_.allFormComponentIds().flatMap(fm.fcLookup.get))))
+                .asInstanceOf[Future[FormModelVisibilityOptics[_]]],
+              Duration.Inf
+            )
+
+          }
+
+          val evaluationContext = formModelVisibilityOptics.recalculationResult.evaluationContext
+
+          val booleanExprResolver = BooleanExprResolver { booleanExpr =>
+            recalculation.evalBooleanExprPure(
+              booleanExpr,
+              evResult,
+              recData,
+              retrievals,
+              formModelVisibilityOptics.recalculationResult.evaluationContext
+            )(fm.asInstanceOf[FormModel[Interim]])
+          }
+
+          println(recData.variadicFormData.keySet())
+
+          val exprMap = mutable.Map[Expr, ExpressionResult]()
+
+          includeIf.booleanExpr.allExpressions.foreach {
+            case formCtx @ FormCtx(fcId) =>
+              val expr: Expr = formModel.fcLookup
+                .get(fcId)
+                .collect { case HasValueExpr(expr) =>
+                  expr
+                }
+                .getOrElse(formCtx)
+              val typeInfo: TypeInfo = fm.explicitTypedExpr(expr, fcId)
+
+              val exprResult: ExpressionResult =
+                evResult
+                  .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
+                  .applyTypeInfo(typeInfo)
+
+              println("exprResult: " + exprResult)
+              val newExpr = (
+                formCtx,
+                evResult.get(formCtx).fold(exprResult) {
+                  case ExpressionResult.Hidden => ExpressionResult.Hidden // If something is Hidden keep it so.
+                  case _                       => exprResult
+                }
+              )
+              exprMap.addOne(newExpr)
+            case _ =>
+          }
+
+          val result =
+            booleanExprResolver.resolve(includeIf.booleanExpr)
+
+          println(includeIf)
+          println(result)
+          result
         } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
           !FormModelBuilder.evalIncludeIf(
             includeIf,

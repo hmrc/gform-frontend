@@ -60,9 +60,13 @@ case class EvaluationResults(
     modelComponentId: ModelComponentId,
     evaluationContext: EvaluationContext
   ): Boolean = {
+
     val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
     val isReferenceIndexed = evaluationContext.indexedComponentIds.contains(modelComponentId.baseComponentId)
+    println("isReferenceIndexed: " + isReferenceIndexed)
+    println("isModelFormComponentIdPure: " + isModelFormComponentIdPure)
     isModelFormComponentIdPure && isReferenceIndexed
+    false
   }
 
   private def get(
@@ -71,6 +75,7 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext
   ): ExpressionResult = {
     val modelComponentId = expr.formComponentId.modelComponentId
+    println("get modelComponentId: " + modelComponentId)
     if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
       ListResult(
         exprMap
@@ -86,12 +91,25 @@ case class EvaluationResults(
           .map(_._2)
       )
     } else {
-      val expressionResult = exprMap.getOrElse(
-        expr,
-        recData.variadicFormData
-          .get(modelComponentId)
-          .fold(ExpressionResult.empty)(fromVariadicValue)
-      )
+
+      println("recData keys: " + recData.variadicFormData.keySet())
+
+      val mcId = modelComponentId match {
+        case ModelComponentId.Pure(IndexedComponentId.Pure(baseComponentId)) =>
+          ModelComponentId.Pure(IndexedComponentId.Indexed(baseComponentId, 1))
+        case _ => modelComponentId
+      }
+
+      val expressionResult = recData.variadicFormData
+        .get(mcId)
+        .fold(ExpressionResult.empty)(fromVariadicValue)
+
+//      val expressionResult = exprMap.getOrElse(
+//        expr,
+//        recData.variadicFormData
+//          .get(modelComponentId)
+//          .fold(ExpressionResult.empty)(fromVariadicValue)
+//      )
       if (evaluationContext.fileIdsWithMapping.isSingleFileField(modelComponentId))
         stripFileName(expressionResult, modelComponentId, evaluationContext.fileIdsWithMapping.mapping)
       else if (evaluationContext.fileIdsWithMapping.isMultiFileField(modelComponentId)) {
