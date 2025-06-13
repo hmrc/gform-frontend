@@ -60,17 +60,28 @@ class Recalculation[F[_]: Monad, E](
 ) {
 
   def recalculateFormDataNew(
-                              data: VariadicFormData[SourceOrigin.OutOfDate],
-                              formModel: FormModel[Interim],
-                              formTemplate: FormTemplate,
-                              retrievals: MaterialisedRetrievals,
-                              thirdPartyData: ThirdPartyData,
-                              evaluationContext: EvaluationContext,
-                              messages: Messages
-                            )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
+    data: VariadicFormData[SourceOrigin.OutOfDate],
+    formModel: FormModel[Interim],
+    formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
+    thirdPartyData: ThirdPartyData,
+    evaluationContext: EvaluationContext,
+    messages: Messages
+  )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
-    recalculateFromGraph(formModel, formTemplate, retrievals, evaluationContext, messages, graph, Map.empty, data.data, thirdPartyData.booleanExprCache.mapping)
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] =
+      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
+    recalculateFromGraph(
+      formModel,
+      formTemplate,
+      retrievals,
+      evaluationContext,
+      messages,
+      graph,
+      Map.empty,
+      data.data,
+      thirdPartyData.booleanExprCache.mapping
+    )
   }
 
   def recalculateFromGraph(
@@ -80,9 +91,9 @@ class Recalculation[F[_]: Monad, E](
     evaluationContext: EvaluationContext,
     messages: Messages,
     graph: Graph[GraphNode, DiEdge[GraphNode]],
-    exprMapStart: Map[Expr, ExpressionResult],
+    exprMapStart: collection.Map[Expr, ExpressionResult],
     formDataMapStart: collection.Map[ModelComponentId, VariadicValue],
-    booleanExprCacheStart:  Map[DataSource, Map[String, Boolean]],
+    booleanExprCacheStart: Map[DataSource, Map[String, Boolean]]
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
     implicit val fm: FormModel[Interim] = formModel

@@ -33,7 +33,10 @@ import scala.util.Try
 
 object DependencyGraph {
 
-  private def getFromComponentsAndExpressionsFromCurrentSection(currentSection: Option[SectionOrSummary], formModel: FormModel[Interim]) = {
+  private def getFromComponentsAndExpressionsFromCurrentSection(
+    currentSection: Option[SectionOrSummary],
+    formModel: FormModel[Interim]
+  ) = {
 
     println("available sections: " + formModel.availableSectionNumbers)
     println("currentSection: " + currentSection)
@@ -79,12 +82,12 @@ object DependencyGraph {
       case _                                        => formModel.allFormComponentIds
     }
 
-      (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
-        .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
-        .flatMap {
-          case (Some(fc), fcId) => List(fc)
-          case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
-        } -> allCurrentPageExpressions
+    (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
+      .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
+      .flatMap {
+        case (Some(fc), fcId) => List(fc)
+        case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
+      } -> allCurrentPageExpressions
   }
 
   def toGraph(
@@ -112,7 +115,6 @@ object DependencyGraph {
     //println(currentPage)
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
-
 
     //formComponents.map(_.id).map(println)
 
