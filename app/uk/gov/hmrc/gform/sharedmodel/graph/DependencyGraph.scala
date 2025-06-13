@@ -33,27 +33,7 @@ import scala.util.Try
 
 object DependencyGraph {
 
-  def toGraph(
-    formModel: FormModel[Interim],
-    formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionOrSummary]
-  ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs, currentSection)
-
-  private def graphFrom[T <: PageMode](
-    formModel: FormModel[T],
-    formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionOrSummary]
-  ): Graph[GraphNode, DiEdge[GraphNode]] = {
-//    formModel.brackets.map { singleton =>
-//      println(singleton.title)
-//      println(singleton)
-//      singleton
-//    }(p)(p)
-
-    //println(currentPage)
-    val isSum = new IsOneOfSum(formModel.sumInfo)
-    val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
+  private def getFromComponentsAndExpressionsFromCurrentSection(currentSection: Option[SectionOrSummary], formModel: FormModel[Interim]) = {
 
     println("available sections: " + formModel.availableSectionNumbers)
     println("currentSection: " + currentSection)
@@ -87,10 +67,10 @@ object DependencyGraph {
         )
       }
 
-//    println("base fc keys: " + baseFcLookup.keys)
+    //    println("base fc keys: " + baseFcLookup.keys)
 
     val atlComponents = formModel.addToListIds.map(_.formComponentId)
-//    println("atl components: " + atlComponents)
+    //    println("atl components: " + atlComponents)
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
 
@@ -99,20 +79,42 @@ object DependencyGraph {
       case _                                        => formModel.allFormComponentIds
     }
 
-    val formComponents =
       (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
         .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
         .flatMap {
           case (Some(fc), fcId) => List(fc)
           case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
-        }
+        } -> allCurrentPageExpressions
+  }
 
-    val allfcs = Seq(
-      "1_atlField2",
-      "1_animal"
-    ).map(x => FormComponentId(x))
+  def toGraph(
+    formModel: FormModel[Interim],
+    formTemplateExprs: Set[ExprMetadata],
+    currentSection: Option[SectionOrSummary]
+  ): Graph[GraphNode, DiEdge[GraphNode]] = {
 
-//    formComponents.map(_.id).map(println)
+    val (formComponents, exprs) = getFromComponentsAndExpressionsFromCurrentSection(currentSection, formModel)
+    graphFrom(formModel, formTemplateExprs, formComponents, exprs)
+  }
+
+  def graphFrom[T <: PageMode](
+    formModel: FormModel[T],
+    formTemplateExprs: Set[ExprMetadata],
+    formComponents: List[FormComponent],
+    expressionsToEvaluate: List[Expr]
+  ): Graph[GraphNode, DiEdge[GraphNode]] = {
+//    formModel.brackets.map { singleton =>
+//      println(singleton.title)
+//      println(singleton)
+//      singleton
+//    }(p)(p)
+
+    //println(currentPage)
+    val isSum = new IsOneOfSum(formModel.sumInfo)
+    val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
+
+
+    //formComponents.map(_.id).map(println)
 
     //println(currentPage.isDefined)
 
@@ -260,7 +262,7 @@ object DependencyGraph {
       }
 
       def addSections() = {
-        val templateAndPageExprs: Set[Expr] = formTemplateExprs.map(_.expr) ++ allCurrentPageExpressions
+        val templateAndPageExprs: Set[Expr] = formTemplateExprs.map(_.expr) ++ expressionsToEvaluate
 
         val allExprGNs: Set[GraphNode.Expr] =
           templateAndPageExprs.flatMap(_.leafs(formComponents.toList)).map(GraphNode.Expr.apply)

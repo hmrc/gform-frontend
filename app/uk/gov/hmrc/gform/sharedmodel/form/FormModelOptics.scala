@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.{ DataExpanded, DataRetrieveAll, FormModel, FormModelBuilder, PageModel, SectionSelector, SectionSelectorType, Visibility }
+import uk.gov.hmrc.gform.models.{ DataExpanded, DataRetrieveAll, FormModel, FormModelBuilder, Interim, PageModel, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.graph.RecData
@@ -121,10 +121,19 @@ object FormModelOptics {
         cache.lookupRegistry,
         taskIdTaskStatusMapping
       )
+
+    val formModel: FormModel[Interim] = formModelBuilder.expand(data)
+
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
       formModelBuilder.visibilityModel(data, phase, currentSection)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
-      formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
+      formModelBuilder.renderPageModel(
+        formModelVisibilityOptics,
+        phase,
+        Some(RecData(data)),
+        Some(formModel),
+        Some(formModelBuilder.visibilityModel(data, phase, currentSection, _))
+      )
     }
   }
 
