@@ -186,6 +186,10 @@ export const textReducer = (state: TextState, action: DispatchEvent<TextUpdateEv
       return { ...state, lookup: record.content };
     case TextUpdateEvent.IsMultiline:
       return { ...state, isMultiline: record.content };
+    case TextUpdateEvent.IsDisplayCharCount:
+      return { ...state, isDisplayCharCount: record.content };
+    case TextUpdateEvent.DataThreshold:
+      return { ...state, dataThreshold: record.content };
     default:
       return state;
   }
@@ -196,6 +200,8 @@ export const initialTextState = (formComponent: FormComponent): TextState => {
   const format = extractFormatPrefix(formComponent.format || "");
   const isLookup = formComponent.format?.startsWith("lookup") || false;
   const isMultiline = formComponent.multiline === true;
+  const isDisplayCharCount = formComponent.displayCharCount === undefined &&  isMultiline;
+  const dataThreshold = isDisplayCharCount ? formComponent.dataThreshold ?? 0 : formComponent.dataThreshold;
   const optional = isOptional(formComponent);
   const state: TextState = {
     label: formComponent.label,
@@ -215,6 +221,8 @@ export const initialTextState = (formComponent: FormComponent): TextState => {
     isLookup: isLookup,
     lookup: isLookup ? formComponent.format : "lookup(country)",
     isMultiline: isMultiline,
+    isDisplayCharCount: isDisplayCharCount,
+    dataThreshold: dataThreshold
   };
 
   const undo = replaceUndefinedByEmptyString(state);
@@ -281,10 +289,14 @@ export const TextPanelFactory =
 
       if (state.isMultiline) {
         formComponentPart["multiline"] = true;
+        formComponentPart["displayCharCount"] = state.isDisplayCharCount? "": false;
+        formComponentPart["dataThreshold"] = typeof state.dataThreshold === "number" ? (state.dataThreshold === 0 || !state.isDisplayCharCount) ? "": state.dataThreshold : "";
       } else if (state.isLookup) {
         formComponentPart["multiline"] = false;
       } else {
         formComponentPart["multiline"] = "";
+        formComponentPart["displayCharCount"] = "";
+        formComponentPart["dataThreshold"] = "";
       }
 
       formComponentPart["errorShortName"] = textState.errorShortName;
@@ -403,167 +415,197 @@ export const TextPanelFactory =
       dispatch(TextUpdateEvent.IsMultiline, input.checked);
     };
 
+    const onDisplayCharCountClick = (e: MouseEvent) => {
+      const input = e.target as HTMLInputElement;
+      dispatch(TextUpdateEvent.IsDisplayCharCount, input.checked);
+    };
+
+    const onDataThresholdKeyUp = (e: Event) => {
+      const input = e.target as HTMLInputElement;
+      const intValue = parseInt(input.value);
+      const validValue = intValue >= 1 && intValue <= 100 ? intValue : "";
+      dispatch(TextUpdateEvent.DataThreshold, isNaN(intValue) ? "" : validValue);
+    };
+
     const showLabel = visibility.field === FieldVisibility.Label;
     const showHelpText = visibility.field === FieldVisibility.HelpText;
     const showAllFields = visibility.field === FieldVisibility.AllComponent;
 
     const isPanelVisible = showLabel || showHelpText || showAllFields;
+    const isDisplayCharCountVisible = showAllFields && textState.isMultiline
+    const isDataThresholdVisible = isDisplayCharCountVisible && textState.isDisplayCharCount
 
     return (
-      <fieldset hidden={!isPanelVisible} class="panel">
-        <legend class="panel">Text component - id: {inputFormComponentId}</legend>
-        <div hidden={!(showAllFields || showLabel)}>
-          <SmartStringInput
-            id="edit-label"
-            value={textState.label}
-            onKeyUp={onLabelChange}
-            disabled={textState.pageHeading}
-          >
-            Label
-          </SmartStringInput>
-        </div>
-        <div hidden={!(showAllFields && interactionType === FieldInteractionType.TitleLabelWithSync)}>
-          <input type="checkbox" id="h1-checkbox" checked={textState.pageHeading} onClick={onH1FieldLabelToggle} />
-          <label for="h1-checkbox">Use field label as H1</label>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-shortName" value={textState.shortName} onKeyUp={onShortNameChange}>
-            Short name
-          </SmartStringInput>
-        </div>
-        <div hidden={!(showAllFields || showHelpText)}>
-          <SmartStringInput id="edit-helpText" value={textState.helpText} onKeyUp={onHelpTextChange}>
-            Help text
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <input type="checkbox" id="lookup" checked={textState.isLookup} onClick={isLookupToggle} />
-          <label for="lookup">Lookup</label>
-        </div>
-        <div hidden={textState.isLookup || !showAllFields}>
-          <label for="edit-format">Format</label>
-          <select id="edit-format" class="form-control" value={textState.format} onChange={onFormatChange}>
-            <option value="text">Text</option>
-            <option value="shortText">Shortext</option>
-            <option value="telephoneNumber">TelephoneNumber</option>
-            <option value="email">Email</option>
-            <option value="number">Number</option>
-            <option value="positiveNumber">PositiveNumber</option>
-            <option value="positiveWholeNumber">PositiveWholeNumber</option>
-            <option value="sterling">Sterling</option>
-            <option value="positiveSterling">PositiveSterling</option>
-            <option value="positiveWholeSterling">PositiveWholeSterling</option>
-            <option value="nino">Nino</option>
-            <option value="saUtr">SaUtr</option>
-            <option value="ctUtr">CtUtr</option>
-            <option value="ukVrn">UkVrn</option>
-            <option value="payeReference">PayeReference</option>
-            <option value="UkEORI">UkEORI</option>
-            <option value="childBenefitNumber">ChildBenefitNumber</option>
-            <option value="referenceNumber">ReferenceNumber</option>
-            <option value="ukBankAccountNumber">UkBankAccountNumber</option>
-            <option value="ukSortCode">UkSortCode</option>
-          </select>
-        </div>
-        <div
-          style={{
-            display: shouldDisplayFormatValues(textState.format || "") && !textState.isLookup ? "flex" : "none",
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <div hidden={!showAllFields}>
-            <label for="edit-formatLeft">{getFormatValueLabel(textState.format || "")?.left}</label>
-            <input
-              id="edit-formatLeft"
-              class="form-control"
-              type="number"
-              value={textState.formatParam1}
-              onKeyUp={onParam1KeyUp}
-              onChange={onParam1Change}
-            />
+        <fieldset hidden={!isPanelVisible} class="panel">
+          <legend class="panel">Text component - id: {inputFormComponentId}</legend>
+          <div hidden={!(showAllFields || showLabel)}>
+            <SmartStringInput
+                id="edit-label"
+                value={textState.label}
+                onKeyUp={onLabelChange}
+                disabled={textState.pageHeading}
+            >
+              Label
+            </SmartStringInput>
+          </div>
+          <div hidden={!(showAllFields && interactionType === FieldInteractionType.TitleLabelWithSync)}>
+            <input type="checkbox" id="h1-checkbox" checked={textState.pageHeading} onClick={onH1FieldLabelToggle}/>
+            <label htmlFor="h1-checkbox">Use field label as H1</label>
           </div>
           <div hidden={!showAllFields}>
-            <label for="edit-formatRight">{getFormatValueLabel(textState.format || "")?.right}</label>
+            <SmartStringInput id="edit-shortName" value={textState.shortName} onKeyUp={onShortNameChange}>
+              Short name
+            </SmartStringInput>
+          </div>
+          <div hidden={!(showAllFields || showHelpText)}>
+            <SmartStringInput id="edit-helpText" value={textState.helpText} onKeyUp={onHelpTextChange}>
+              Help text
+            </SmartStringInput>
+          </div>
+          <div hidden={!showAllFields}>
+            <input type="checkbox" id="lookup" checked={textState.isLookup} onClick={isLookupToggle}/>
+            <label htmlFor="lookup">Lookup</label>
+          </div>
+          <div hidden={textState.isLookup || !showAllFields}>
+            <label htmlFor="edit-format">Format</label>
+            <select id="edit-format" class="form-control" value={textState.format} onChange={onFormatChange}>
+              <option value="text">Text</option>
+              <option value="shortText">Shortext</option>
+              <option value="telephoneNumber">TelephoneNumber</option>
+              <option value="email">Email</option>
+              <option value="number">Number</option>
+              <option value="positiveNumber">PositiveNumber</option>
+              <option value="positiveWholeNumber">PositiveWholeNumber</option>
+              <option value="sterling">Sterling</option>
+              <option value="positiveSterling">PositiveSterling</option>
+              <option value="positiveWholeSterling">PositiveWholeSterling</option>
+              <option value="nino">Nino</option>
+              <option value="saUtr">SaUtr</option>
+              <option value="ctUtr">CtUtr</option>
+              <option value="ukVrn">UkVrn</option>
+              <option value="payeReference">PayeReference</option>
+              <option value="UkEORI">UkEORI</option>
+              <option value="childBenefitNumber">ChildBenefitNumber</option>
+              <option value="referenceNumber">ReferenceNumber</option>
+              <option value="ukBankAccountNumber">UkBankAccountNumber</option>
+              <option value="ukSortCode">UkSortCode</option>
+            </select>
+          </div>
+          <div
+              style={{
+                display: shouldDisplayFormatValues(textState.format || "") && !textState.isLookup ? "flex" : "none",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+          >
+            <div hidden={!showAllFields}>
+              <label htmlFor="edit-formatLeft">{getFormatValueLabel(textState.format || "")?.left}</label>
+              <input
+                  id="edit-formatLeft"
+                  className="form-control"
+                  type="number"
+                  value={textState.formatParam1}
+                  onKeyUp={onParam1KeyUp}
+                  onChange={onParam1Change}
+              />
+            </div>
+            <div hidden={!showAllFields}>
+              <label htmlFor="edit-formatRight">{getFormatValueLabel(textState.format || "")?.right}</label>
+              <input
+                  id="edit-formatRight"
+                  className="form-control"
+                  type="number"
+                  value={textState.formatParam2}
+                  onKeyUp={onParam2KeyUp}
+                  onChange={onParam2Change}
+              />
+            </div>
+          </div>
+          <div hidden={!(textState.isLookup && showAllFields)}>
+            <label htmlFor="edit-lookup">Lookup</label>
+            <select id="edit-lookup" class="form-control" value={textState.lookup} onChange={onLookupChange}>
+              <option value="lookup(country)">Country</option>
+              <option value="lookup(currency)">Currency</option>
+              <option value="lookup(port)">Port</option>
+              <option value="lookup(sicCode)">SicCode</option>
+            </select>
+          </div>
+          <div hidden={textState.isLookup || !showAllFields}>
+            <input type="checkbox" id="multiline" checked={textState.isMultiline} onClick={onMultilineClick}/>
+            <label htmlFor="multiline">Multiline</label>
+          </div>
+          <div hidden={!showAllFields}>
+            <SmartStringInput id="edit-errorShortName" value={textState.errorShortName}
+                              onKeyUp={onErrorShortNameChange}>
+              Error short name
+            </SmartStringInput>
+          </div>
+          <div hidden={!showAllFields}>
+            <SmartStringInput
+                id="edit-errorShortNameStart"
+                value={textState.errorShortNameStart}
+                onKeyUp={onErrorShortNameStartChange}
+            >
+              Error short name start
+            </SmartStringInput>
+          </div>
+          <div hidden={!showAllFields}>
+            <SmartStringInput id="edit-errorExample" value={textState.errorExample} onKeyUp={onErrorExampleChange}>
+              Error example
+            </SmartStringInput>
+          </div>
+          <div hidden={!showAllFields}>
+            <SmartStringInput id="edit-errorMessage" value={textState.errorMessage} onKeyUp={onErrorMessageChange}>
+              Error message
+            </SmartStringInput>
+          </div>
+          <div hidden={!showAllFields}>
+            <label htmlFor="edit-displayWidth">DisplayWidth</label>
+            <select
+                id="edit-displayWidth"
+                class="form-control"
+                value={textState.displayWidth}
+                onChange={onDisplayWidthChange}
+            >
+              <option value="">Default</option>
+              <option value="xs">xs - Very small</option>
+              <option value="s">s - Small</option>
+              <option value="m">m - Medium</option>
+              <option value="l">l - Large</option>
+              <option value="xl">xl - Very large</option>
+              <option value="xxl">xxl - Very very large</option>
+            </select>
+          </div>
+          <div hidden={!showAllFields}>
+            <label htmlFor="edit-labelSize">Label size</label>
+            <select id="edit-labelSize" class="form-control" value={textState.labelSize} onChange={onLabelSizeChange}>
+              <option value="">Default</option>
+              <option value="xs">xs - Very small</option>
+              <option value="s">s - Small</option>
+              <option value="m">m - Medium</option>
+              <option value="l">l - Large</option>
+              <option value="xl">xl - Very large</option>
+            </select>
+          </div>
+          <div hidden={!showAllFields}>
+            <input type="checkbox" id="optional" checked={textState.optional} onClick={optionalToggle}/>
+            <label htmlFor="optional">Optional</label>
+          </div>
+          <div hidden={!isDisplayCharCountVisible}>
+            <input type="checkbox" id="displayCharCount" checked={textState.isDisplayCharCount}
+                   onClick={onDisplayCharCountClick}/>
+            <label htmlFor="displayCharCount">Display characters remaining</label>
+          </div>
+          <div hidden={!isDataThresholdVisible}>
+            <label htmlFor="edit-dataThreshold">Data threshold</label>
             <input
-              id="edit-formatRight"
-              class="form-control"
-              type="number"
-              value={textState.formatParam2}
-              onKeyUp={onParam2KeyUp}
-              onChange={onParam2Change}
+                id="edit-dataThreshold"
+                className="form-control"
+                type="number"
+                value={textState.dataThreshold}
+                onKeyUp={onDataThresholdKeyUp}
             />
           </div>
-        </div>
-        <div hidden={!(textState.isLookup && showAllFields)}>
-          <label for="edit-lookup">Lookup</label>
-          <select id="edit-lookup" class="form-control" value={textState.lookup} onChange={onLookupChange}>
-            <option value="lookup(country)">Country</option>
-            <option value="lookup(currency)">Currency</option>
-            <option value="lookup(port)">Port</option>
-            <option value="lookup(sicCode)">SicCode</option>
-          </select>
-        </div>
-        <div hidden={textState.isLookup || !showAllFields}>
-          <input type="checkbox" id="multiline" checked={textState.isMultiline} onClick={onMultilineClick} />
-          <label for="multiline">Multiline</label>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-errorShortName" value={textState.errorShortName} onKeyUp={onErrorShortNameChange}>
-            Error short name
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput
-            id="edit-errorShortNameStart"
-            value={textState.errorShortNameStart}
-            onKeyUp={onErrorShortNameStartChange}
-          >
-            Error short name start
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-errorExample" value={textState.errorExample} onKeyUp={onErrorExampleChange}>
-            Error example
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <SmartStringInput id="edit-errorMessage" value={textState.errorMessage} onKeyUp={onErrorMessageChange}>
-            Error message
-          </SmartStringInput>
-        </div>
-        <div hidden={!showAllFields}>
-          <label for="edit-displayWidth">DisplayWidth</label>
-          <select
-            id="edit-displayWidth"
-            class="form-control"
-            value={textState.displayWidth}
-            onChange={onDisplayWidthChange}
-          >
-            <option value="">Default</option>
-            <option value="xs">xs - Very small</option>
-            <option value="s">s - Small</option>
-            <option value="m">m - Medium</option>
-            <option value="l">l - Large</option>
-            <option value="xl">xl - Very large</option>
-            <option value="xxl">xxl - Very very large</option>
-          </select>
-        </div>
-        <div hidden={!showAllFields}>
-          <label for="edit-labelSize">Label size</label>
-          <select id="edit-labelSize" class="form-control" value={textState.labelSize} onChange={onLabelSizeChange}>
-            <option value="">Default</option>
-            <option value="xs">xs - Very small</option>
-            <option value="s">s - Small</option>
-            <option value="m">m - Medium</option>
-            <option value="l">l - Large</option>
-            <option value="xl">xl - Very large</option>
-          </select>
-        </div>
-        <div hidden={!showAllFields}>
-          <input type="checkbox" id="optional" checked={textState.optional} onClick={optionalToggle} />
-          <label for="optional">Optional</label>
-        </div>
-      </fieldset>
+        </fieldset>
     );
   };

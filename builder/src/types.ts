@@ -416,6 +416,8 @@ export type FormComponent = {
   countryLookup?: boolean | "";
   countryDisplayed?: boolean | "";
   submitMode?: string;
+  displayCharCount?: boolean | "";
+  dataThreshold?: number | "";
 };
 
 export type FormComponentPart = Partial<FormComponent>;
@@ -779,6 +781,8 @@ export interface TextState {
   isLookup: boolean;
   lookup?: string;
   isMultiline: boolean;
+  isDisplayCharCount: boolean;
+  dataThreshold?: number | string;
   undo?: TextState;
 }
 
@@ -888,6 +892,8 @@ export enum TextUpdateEvent {
   IsLookup,
   Lookup,
   IsMultiline,
+  IsDisplayCharCount,
+  DataThreshold
 }
 
 export enum ChoiceUpdateEvent {
