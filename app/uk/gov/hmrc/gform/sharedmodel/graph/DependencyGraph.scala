@@ -79,7 +79,7 @@ object DependencyGraph {
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
 
-    println("currentSection: " + currentSection)
+    //println("currentSection: " + currentSection)
 
     def summaryFormComponents: List[FormComponentId] = currentSection match {
       case Some(SectionOrSummary.Section(_)) | None => List()
