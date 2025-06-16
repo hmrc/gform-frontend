@@ -89,7 +89,7 @@ class SummaryController(
         formTemplateId,
         maybeAccessCode,
         OperationWithForm.ViewSummary,
-        Some(SectionOrSummary.FormSummary)
+        Some(SectionOrSummary.MaybeTaskCoordinates(maybeCoordinates))
       ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val maybeTaskSummarySection = maybeCoordinates.flatMap { coordinates =>
           TaskListUtils.withTask(

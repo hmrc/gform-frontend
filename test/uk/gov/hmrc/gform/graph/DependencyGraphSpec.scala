@@ -824,7 +824,8 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
           currentPageF
             .map(f => SectionOrSummary.Section(f(fm)))
             .getOrElse(SectionOrSummary.Section(fm.availableSectionNumbers.last))
-        )
+        ),
+        formTemplate
       )
     ) match {
 
