@@ -296,10 +296,10 @@ class Recalculation[F[_]: Monad, E](
         graphTopologicalOrder <- orderedGraph
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
-          println("graph layer fcids: " + graphLayer.flatMap {
-            case GraphNode.Simple(formComponentId) => List(formComponentId)
-            case GraphNode.Expr(expr)              => expr.allFormComponentIds()
-          })
+//          println("graph layer fcids: " + graphLayer.flatMap {
+//            case GraphNode.Simple(formComponentId) => List(formComponentId)
+//            case GraphNode.Expr(expr)              => expr.allFormComponentIds()
+//          })
           //println(graphLayer)
           //println(graphLayer.length)
           recalculateGraphLayer(
@@ -581,8 +581,6 @@ class Recalculation[F[_]: Monad, E](
 
     def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
       case Equals(field1, field2) =>
-        println("f1: " + field1)
-        println("f2: " + field2)
         rr.compareF(field1, field2, _ identical _)
       case GreaterThan(field1, field2)         => rr.compareF(field1, field2, _ > _)
       case DateAfter(field1, field2)           => rr.compareDateF(field1, field2, _ after _)
