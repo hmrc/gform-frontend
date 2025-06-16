@@ -32,7 +32,8 @@ case class FormModel[A <: PageMode](
   revealingChoiceInfo: RevealingChoiceInfo,
   sumInfo: SumInfo,
   standaloneSumInfo: StandaloneSumInfo, // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
-  dataRetrieve: Option[NonEmptyList[DataRetrieve]]
+  dataRetrieve: Option[NonEmptyList[DataRetrieve]],
+  onDemandIncludeIf: Option[IncludeIf => Boolean] = None
 ) {
 
   val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.toPageModelWithNumber
