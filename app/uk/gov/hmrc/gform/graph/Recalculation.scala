@@ -70,7 +70,7 @@ class Recalculation[F[_]: Monad, E](
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
     val graph: Graph[GraphNode, DiEdge[GraphNode]] =
-      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection)
+      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection, formTemplate)
     recalculateFromGraph(
       formModel,
       formTemplate,
