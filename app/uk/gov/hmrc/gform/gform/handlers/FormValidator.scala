@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform.handlers
 
 import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, FormModel, ProcessData }
@@ -101,7 +102,7 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
     val availableSectionNumbers =
-      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
+      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelRenderPageOptics.formModel)
     def isValidSectionNumberF(sn: SectionNumber): Future[Boolean] =
       validatePageModelBySectionNumber(
         formModelOptics,
@@ -127,7 +128,11 @@ class FormValidator(implicit ec: ExecutionContext) {
               hasBeenVisited &&
               postcodeLookupHasAddress &&
               isValid &&
-              !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver)
+              !formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf.exists { includeIfF =>
+                page.isTerminationPage(
+                  BooleanExprResolver(expr => includeIfF(IncludeIf(expr)))
+                )
+              }
             ) None
             else Some(currentSn)
           case otherwise =>
@@ -214,9 +219,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       envelope,
       validatePageModel,
       maybeSectionNumber
-    ).map { maybeSn =>
-      maybeSn.find(sectionIsVisible)
-    }
+    )
     println("currentPage: " + maybeSectionNumber)
 
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
@@ -275,11 +278,11 @@ class FormValidator(implicit ec: ExecutionContext) {
               if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
             case (None, Some(sn)) =>
               println("atlHasSectionNumber: " + atlHasSectionNumber(sn))
-//              if (atlHasSectionNumber(sn)) {
-//                SectionOrSummary.Section(sn)
-//              } else {
-//                if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
-//              }
+              if (atlHasSectionNumber(sn)) {
+                SectionOrSummary.Section(sn)
+              } else {
+                if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+              }
               SectionOrSummary.Section(sn)
             case (Some(r), None) => SectionOrSummary.Section(r)
             case (Some(r), Some(sn)) =>
