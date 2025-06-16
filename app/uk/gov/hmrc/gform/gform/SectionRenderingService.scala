@@ -1973,10 +1973,13 @@ class SectionRenderingService(
     val visibleRowsPartitioned: List[List[MiniSummaryRow]] = visibleRows
       .foldLeft(List.empty[List[MiniSummaryRow]])((acc, row) =>
         row match {
-          case _: HeaderRow      => List(row) :: acc
-          case _: SmartStringRow => (row :: acc.head) :: acc.tail
-          case _: ValueRow       => (row :: acc.head) :: acc.tail
-          case _: ATLRow         => List(row) :: acc
+          case _: HeaderRow => List(row) :: acc
+          case _: ATLRow    => List(row) :: acc
+          case _: SmartStringRow | _: ValueRow =>
+            acc match {
+              case Nil          => List(List(row))
+              case head :: tail => (row :: head) :: tail
+            }
         }
       )
       .reverse
