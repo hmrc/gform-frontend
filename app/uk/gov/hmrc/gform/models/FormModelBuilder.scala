@@ -415,6 +415,9 @@ class FormModelBuilder[E, F[_]: Functor](
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
       .stripHiddenFormComponents(formModel)
       .filter { pageModel =>
+//        println("visibility page: " + pageModel)
+//
+//        println("visibility page include if: " + pageModel.getIncludeIf)
         pageModel.getNotRequiredIf.fold(true) { includeIf =>
           !FormModelBuilder.evalIncludeIf(
             includeIf,
