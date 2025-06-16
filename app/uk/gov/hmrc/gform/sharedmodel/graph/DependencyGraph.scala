@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.models.{ CheckYourAnswers, DataExpanded, FormModel, Has
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 
 import scala.collection.mutable
 import scala.util.Try
@@ -35,7 +36,8 @@ object DependencyGraph {
 
   private def getFromComponentsAndExpressionsFromCurrentSection(
     currentSection: Option[SectionOrSummary],
-    formModel: FormModel[Interim]
+    formModel: FormModel[Interim],
+    formTemplate: FormTemplate
   ) = {
 
 //    println("available sections: " + formModel.availableSectionNumbers)
@@ -77,9 +79,27 @@ object DependencyGraph {
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
 
-    def summaryFormComponents = currentSection match {
+    def summaryFormComponents: List[FormComponentId] = currentSection match {
       case Some(SectionOrSummary.Section(_)) | None => List()
-      case _                                        => formModel.allFormComponentIds
+      // case _                                        => formModel.allFormComponents.map(_.id)
+      case Some(SectionOrSummary.MaybeTaskCoordinates(maybeCoordinates)) =>
+        maybeCoordinates
+          .map { coordinates =>
+            TaskListUtils.withTask(
+              formTemplate,
+              coordinates.taskSectionNumber,
+              coordinates.taskNumber
+            )(task => task.summarySection) match {
+              case Some(taskSummary) => taskSummary.fields.toList.flatMap(_.toList)
+              case None              => formTemplate.summarySection.fields.toList.flatMap(_.toList)
+            }
+          }
+          .getOrElse(
+            formTemplate.summarySection.fields.toList.flatMap(_.toList)
+          )
+          .flatMap { fc =>
+            AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds())
+          }
     }
 
     (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
@@ -93,10 +113,12 @@ object DependencyGraph {
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata],
-    currentSection: Option[SectionOrSummary]
+    currentSection: Option[SectionOrSummary],
+    formTemplate: FormTemplate
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 
-    val (formComponents, exprs) = getFromComponentsAndExpressionsFromCurrentSection(currentSection, formModel)
+    val (formComponents, exprs) =
+      getFromComponentsAndExpressionsFromCurrentSection(currentSection, formModel, formTemplate)
     graphFrom(formModel, formTemplateExprs, formComponents, exprs)
   }
 
