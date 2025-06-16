@@ -79,6 +79,8 @@ object DependencyGraph {
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
 
+    println("currentSection: " + currentSection)
+
     def summaryFormComponents: List[FormComponentId] = currentSection match {
       case Some(SectionOrSummary.Section(_)) | None => List()
       // case _                                        => formModel.allFormComponents.map(_.id)
@@ -94,9 +96,12 @@ object DependencyGraph {
               case None              => formTemplate.summarySection.fields.toList.flatMap(_.toList)
             }
           }
-          .getOrElse(
-            formTemplate.summarySection.fields.toList.flatMap(_.toList)
-          )
+          .getOrElse {
+            //TODO: Figure out how to get a reference of non task list summary page
+            formModel.pages.lastOption.toList.flatMap { page =>
+              page.allFormComponents
+            }
+          }
           .flatMap { fc =>
             AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds())
           }
