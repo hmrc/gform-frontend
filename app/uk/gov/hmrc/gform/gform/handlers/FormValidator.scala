@@ -19,11 +19,14 @@ package uk.gov.hmrc.gform.gform.handlers
 import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.eval.BooleanExprResolver
+import uk.gov.hmrc.gform.models
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, FormModel, ProcessData }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, EnteredVariadicFormData, FastForward, FormModel, ProcessData, Repeater, Visibility }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationResult }
 import uk.gov.hmrc.gform.validation.ValidationUtil
@@ -84,6 +87,32 @@ class FormValidator(implicit ec: ExecutionContext) {
 
   }
 
+  private def sectionIsVisible(sectionNumber: SectionNumber, visibilityFormModel: FormModel[Visibility]) = {
+    val page = {
+      sectionNumber match {
+        case section @ AddToListPage.DefaultPage(sectionIndex) =>
+          List(
+            visibilityFormModel.pageModelLookup(AddToListPage.Page(sectionIndex, 1, 0)),
+            visibilityFormModel.pageModelLookup(section)
+          )
+
+        case section => List(visibilityFormModel.pageModelLookup(section))
+      }
+    }
+
+    //      println("page: " + page)
+    val pageIncludeIf = page.flatMap(_.getIncludeIf)
+    println("pageIncludeIf: " + pageIncludeIf)
+    println("page: " + page)
+    val res = pageIncludeIf.forall { includeIf =>
+      //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
+      visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
+    }
+    //      println("SectionNumber: " + sectionNumber)
+    println("Next section is visible: " + res)
+    res
+  }
+
   def toFormValidationOutcome(
     fhr: FormHandlerResult,
     enteredVariadicFormData: EnteredVariadicFormData
@@ -102,7 +131,7 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
     val availableSectionNumbers =
-      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelRenderPageOptics.formModel)
+      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
     def isValidSectionNumberF(sn: SectionNumber): Future[Boolean] =
       validatePageModelBySectionNumber(
         formModelOptics,
@@ -117,7 +146,7 @@ class FormValidator(implicit ec: ExecutionContext) {
         for {
           acc     <- accF
           isValid <- isValidSectionNumberF(currentSn)
-          page = formModelOptics.formModelRenderPageOptics.formModel(currentSn)
+          page = formModelOptics.formModelVisibilityOptics.formModel(currentSn)
           hasBeenVisited = processData.visitsIndex.contains(currentSn)
           postcodeLookupHasAddress = page.postcodeLookup.fold(true) { formComponent =>
                                        cache.thirdPartyData.addressIsConfirmed(formComponent.id)
@@ -134,7 +163,11 @@ class FormValidator(implicit ec: ExecutionContext) {
                 )
               }
             ) None
-            else Some(currentSn)
+            else {
+              if (sectionIsVisible(currentSn, formModelOptics.formModelVisibilityOptics.formModel)) {
+                Some(currentSn)
+              } else None
+            }
           case otherwise =>
             val isCurrentSection = maybeSectionNumber.contains(currentSn)
             if (isCurrentSection && !isValid)
@@ -167,34 +200,17 @@ class FormValidator(implicit ec: ExecutionContext) {
     fastForward: List[FastForward],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] = {
-
     val maybeCoordinates = maybeSectionNumber.flatMap(_.maybeCoordinates)
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
 
-    def atlHasSectionNumber(sectionNumber: SectionNumber): Boolean =
-      formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBrackets
-        .exists(_.hasSectionNumber(sectionNumber))
-
-    val availableSectionNumbers =
-      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelRenderPageOptics.formModel)
-
-    val renderFormModel = formModelOptics.formModelRenderPageOptics.formModel
     val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def sectionIsVisible(sectionNumber: SectionNumber) = {
-      val page = renderFormModel.pageModelLookup(sectionNumber)
-      //      println("page: " + page)
-      val pageIncludeIf = page.getIncludeIf
-      println("pageIncludeIf: " + pageIncludeIf)
-      println("page: " + page)
-      val res = pageIncludeIf.forall { includeIf =>
-        //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
-        visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
-      }
-      //      println("SectionNumber: " + sectionNumber)
-      println("Next section is visible: " + res)
-      res
-    }
+    def atlHasSectionNumber(sectionNumber: SectionNumber): Boolean =
+      formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
+        .exists(_.hasSectionNumber(sectionNumber) && sectionIsVisible(sectionNumber, visibilityFormModel))
+
+    val availableSectionNumbers =
+      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
 
     def findLastATLSectionNumber(sn: SectionNumber): SectionNumber = {
       val isAtlSection = atlHasSectionNumber(sn)
@@ -219,7 +235,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       envelope,
       validatePageModel,
       maybeSectionNumber
-    )
+    ).map(sn => sn.find(sn => sectionIsVisible(sn, visibilityFormModel)))
     println("currentPage: " + maybeSectionNumber)
 
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
@@ -228,7 +244,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       println("sections after current: " + sectionsAfterCurrent)
       sectionsAfterCurrent
     } collectFirst {
-      case sectionNumber if sectionIsVisible(sectionNumber) =>
+      case sectionNumber if sectionIsVisible(sectionNumber, visibilityFormModel) =>
         sectionNumber
     }
 
