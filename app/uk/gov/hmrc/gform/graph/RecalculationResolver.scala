@@ -55,10 +55,6 @@ class RecalculationResolver[F[_]: Applicative](
         .evalExpr(typeInfo2, recData, booleanExprResolver, evaluationContext)
         .applyTypeInfo(typeInfo2)
 
-    println("typeInfo1: " + typeInfo1)
-    println("typeInfo2: " + typeInfo2)
-    println("exprRes1: " + exprRes1)
-    println("exprRes2: " + exprRes2)
     val res: Boolean = f(exprRes1, exprRes2)
     res
   }
