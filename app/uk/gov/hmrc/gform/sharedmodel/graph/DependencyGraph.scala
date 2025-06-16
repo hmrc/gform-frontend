@@ -38,8 +38,8 @@ object DependencyGraph {
     formModel: FormModel[Interim]
   ) = {
 
-    println("available sections: " + formModel.availableSectionNumbers)
-    println("currentSection: " + currentSection)
+//    println("available sections: " + formModel.availableSectionNumbers)
+//    println("currentSection: " + currentSection)
 
     val currentPageBracket = currentSection.collect {
       case SectionOrSummary.Section(Classic.RepeatedPage(sectionIndex, pageNumber)) =>
@@ -122,7 +122,7 @@ object DependencyGraph {
 
     val pages = formComponents.map(_.id).map(formModel.pageLookup)
 
-    println("all mini summary fm: " + formModel.allMiniSummaryListIncludeIfs.map(_._2.id))
+//    println("all mini summary fm: " + formModel.allMiniSummaryListIncludeIfs.map(_._2.id))
 
 //    val formComponents = formModel.allFormComponents
 
@@ -292,7 +292,7 @@ object DependencyGraph {
 
     val allEdges = getAllEdges
 
-    println("allEdges: " + allEdges)
+//    println("allEdges: " + allEdges)
 
     val allFcIds: mutable.Set[ModelComponentId] = allEdges.flatMap { diEdge =>
       Seq(diEdge.source, diEdge.target).collectFirst {
@@ -356,7 +356,7 @@ object DependencyGraph {
         }
 
     addRepeatedStructureEdges(allEdges)
-    println("all edges: " + allEdges.size)
+//    println("all edges: " + allEdges.size)
     Graph.from(allEdges)
   }
 
