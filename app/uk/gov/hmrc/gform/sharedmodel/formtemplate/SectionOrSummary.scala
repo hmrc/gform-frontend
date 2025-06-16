@@ -22,4 +22,5 @@ object SectionOrSummary {
   case class Section(sectionNumber: SectionNumber) extends SectionOrSummary
   case object FormSummary extends SectionOrSummary
   case object TaskSummary extends SectionOrSummary
+  case class MaybeTaskCoordinates(maybeTaskCoordinates: Option[Coordinates]) extends SectionOrSummary
 }
