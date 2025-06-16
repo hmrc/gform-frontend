@@ -171,6 +171,24 @@ class FormValidator(implicit ec: ExecutionContext) {
 
     val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
 
+    val renderFormModel = formModelOptics.formModelRenderPageOptics.formModel
+    val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
+
+    def sectionIsVisible(sectionNumber: SectionNumber) = {
+      val page = renderFormModel.pageModelLookup(sectionNumber)
+      //      println("page: " + page)
+      val pageIncludeIf = page.getIncludeIf
+      println("pageIncludeIf: " + pageIncludeIf)
+      println("page: " + page)
+      val res = pageIncludeIf.forall { includeIf =>
+        //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
+        visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
+      }
+      //      println("SectionNumber: " + sectionNumber)
+      println("Next section is visible: " + res)
+      res
+    }
+
     def findLastATLSectionNumber(sn: SectionNumber): SectionNumber = {
       val isAtlSection = atlHasSectionNumber(sn)
       if (isAtlSection) {
@@ -188,23 +206,6 @@ class FormValidator(implicit ec: ExecutionContext) {
       } else sn
     }
 
-    val renderFormModel = formModelOptics.formModelRenderPageOptics.formModel
-    val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
-
-    def sectionIsVisible(sectionNumber: SectionNumber) = {
-      val page = renderFormModel.pageModelLookup(sectionNumber)
-//      println("page: " + page)
-      val pageIncludeIf = page.getIncludeIf
-      println("pageIncludeIf: " + pageIncludeIf)
-      val res = pageIncludeIf.forall { includeIf =>
-//        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
-        visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
-      }
-//      println("SectionNumber: " + sectionNumber)
-      println("Next section is visible: " + res)
-      res
-    }
-
     val ffYesSnF = mustBeVisitedSectionNumber(
       processData,
       cache,
@@ -214,9 +215,12 @@ class FormValidator(implicit ec: ExecutionContext) {
     ).map { maybeSn =>
       maybeSn.find(sectionIsVisible)
     }
+    println("currentPage: " + maybeSectionNumber)
 
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
-      renderFormModel.availableSectionNumbers.filter(_ > currentSectionNumber)
+      val sectionsAfterCurrent = availableSectionNumbers.filter(_ > currentSectionNumber)
+      println(sectionsAfterCurrent)
+      sectionsAfterCurrent
     } collectFirst {
       case sectionNumber if sectionIsVisible(sectionNumber) =>
         sectionNumber
@@ -276,11 +280,16 @@ class FormValidator(implicit ec: ExecutionContext) {
               SectionOrSummary.Section(sn)
             case (Some(r), None) => SectionOrSummary.Section(r)
             case (Some(r), Some(sn)) =>
-              val lsn =
+              val lsn = {
                 if (fastForward == List(FastForward.Yes))
                   findLastATLSectionNumber(sn)
                 else sn
-              if (r < lsn) SectionOrSummary.Section(r) else SectionOrSummary.Section(lsn)
+              }
+              val redirect =
+                if (r < lsn) SectionOrSummary.Section(r)
+                else SectionOrSummary.Section(lsn)
+              println("redirect: " + redirect)
+              redirect
           }
         }
     }
