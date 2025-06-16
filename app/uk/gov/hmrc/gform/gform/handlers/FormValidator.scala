@@ -187,34 +187,49 @@ class FormValidator(implicit ec: ExecutionContext) {
           .getOrElse(availableSectionNumbers.lastOption.getOrElse(sn))
       } else sn
     }
+
+    val renderFormModel = formModelOptics.formModelRenderPageOptics.formModel
+    val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
+
+    def sectionIsVisible(sectionNumber: SectionNumber) = {
+      val page = renderFormModel.pageModelLookup(sectionNumber)
+//      println("page: " + page)
+      val pageIncludeIf = page.getIncludeIf
+      println("pageIncludeIf: " + pageIncludeIf)
+      val res = pageIncludeIf.forall { includeIf =>
+//        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
+        visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
+      }
+//      println("SectionNumber: " + sectionNumber)
+      println("Next section is visible: " + res)
+      res
+    }
+
     val ffYesSnF = mustBeVisitedSectionNumber(
       processData,
       cache,
       envelope,
       validatePageModel,
       maybeSectionNumber
-    )
-
-    val formModel = formModelOptics.formModelVisibilityOptics.formModel
-
-    def sectionIsVisible(sectionNumber: SectionNumber) = {
-
-      val res = formModel.pageModelLookup(sectionNumber).getIncludeIf.forall { includeIf =>
-        formModel.onDemandIncludeIf.forall(f => f(includeIf))
-      }
-      println("SectionNumber: " + sectionNumber)
-      println("Next section is visible: " + res)
-      res
+    ).map { maybeSn =>
+      maybeSn.find(sectionIsVisible)
     }
 
-    val nextFrom = formModel.availableSectionNumbers collectFirst {
-      case sectionNumber if sectionIsVisible(sectionNumber) => sectionNumber
+    val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
+      renderFormModel.availableSectionNumbers.filter(_ > currentSectionNumber)
+    } collectFirst {
+      case sectionNumber if sectionIsVisible(sectionNumber) =>
+        sectionNumber
     }
+
+    println("nextFrom: " + nextFrom)
 
     /* val nextFrom = for {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next*/
+
+//    println("ff: " + fastForward)
 
     fastForward match {
       case FastForward.CYA(to) :: xs =>
@@ -247,15 +262,18 @@ class FormValidator(implicit ec: ExecutionContext) {
         }
       case _ =>
         ffYesSnF.map { ffYesSn =>
+          println("ffYesSn: " + ffYesSn)
           (ffYesSn, nextFrom) match {
             case (None, None) =>
               if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
             case (None, Some(sn)) =>
-              if (atlHasSectionNumber(sn)) {
-                SectionOrSummary.Section(sn)
-              } else {
-                if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
-              }
+              println("atlHasSectionNumber: " + atlHasSectionNumber(sn))
+//              if (atlHasSectionNumber(sn)) {
+//                SectionOrSummary.Section(sn)
+//              } else {
+//                if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
+//              }
+              SectionOrSummary.Section(sn)
             case (Some(r), None) => SectionOrSummary.Section(r)
             case (Some(r), Some(sn)) =>
               val lsn =
