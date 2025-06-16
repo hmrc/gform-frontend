@@ -195,10 +195,26 @@ class FormValidator(implicit ec: ExecutionContext) {
       maybeSectionNumber
     )
 
-    val nextFrom = for {
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+
+    def sectionIsVisible(sectionNumber: SectionNumber) = {
+
+      val res = formModel.pageModelLookup(sectionNumber).getIncludeIf.forall { includeIf =>
+        formModel.onDemandIncludeIf.forall(f => f(includeIf))
+      }
+      println("SectionNumber: " + sectionNumber)
+      println("Next section is visible: " + res)
+      res
+    }
+
+    val nextFrom = formModel.availableSectionNumbers collectFirst {
+      case sectionNumber if sectionIsVisible(sectionNumber) => sectionNumber
+    }
+
+    /* val nextFrom = for {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
-    } yield next
+    } yield next*/
 
     fastForward match {
       case FastForward.CYA(to) :: xs =>
