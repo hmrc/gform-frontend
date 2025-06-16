@@ -375,7 +375,8 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
       DependencyGraph.toGraph(
         fm.asInstanceOf[FormModel[Interim]],
         formTemplateExprs,
-        currentSection.map(SectionOrSummary.Section.apply)
+        currentSection.map(SectionOrSummary.Section.apply),
+        formTemplate
       )
     ) match {
 
