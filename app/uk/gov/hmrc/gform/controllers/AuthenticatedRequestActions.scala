@@ -452,10 +452,9 @@ class AuthenticatedRequestActions(
               formModelOpticsUpd.formModelVisibilityOptics
             )
         result <- f(cache)(smartStringEvaluator)(formModelOptics)
-      } yield {
-        println("auth section: " + browserSectionNumber)
-        result
-      }
+      } yield
+      //println("auth section: " + browserSectionNumber)
+      result
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
 

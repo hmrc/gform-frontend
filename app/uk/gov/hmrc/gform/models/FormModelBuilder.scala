@@ -102,9 +102,6 @@ object FormModelBuilder {
         .evalExprCurrent(typeInfo2, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo2)
 
-      println("expr1 :" + expr1)
-      println("expr2 :" + expr2)
-      println("compare bool res: " + f(r, s))
       f(r, s)
     }
 
@@ -322,106 +319,107 @@ class FormModelBuilder[E, F[_]: Functor](
   )(implicit messages: Messages, lang: LangADT): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
+    def onDemandPageIncludeIf(includeIf: IncludeIf) = {
+      val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
+        formModel.allMultiFileIds.map { modelComponentId =>
+          modelComponentId -> data.filesOfMultiFileComponent(modelComponentId)
+        }.toMap
+
+      val evaluationContext =
+        EvaluationContext(
+          formTemplate._id,
+          SubmissionRef(envelopeId),
+          maybeAccessCode,
+          retrievals,
+          thirdPartyData,
+          formTemplate.authConfig,
+          hc,
+          phase,
+          FileIdsWithMapping(formModel.allFileIds, formModel.allMultiFileIds, componentIdToFileId),
+          modelComponentId,
+          formModel.dateLookup,
+          formModel.addressLookup,
+          formModel.overseasAddressLookup,
+          formModel.postcodeLookup,
+          formModel.pageIdSectionNumberMap,
+          lang,
+          messages,
+          formModel.allIndexedComponentIds,
+          formModel.taxPeriodDate,
+          FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
+          formModel.dataRetrieveAll,
+          formModel.hideChoicesSelected,
+          formModel.choiceLookup,
+          formModel.addToListIds,
+          lookupRegistry,
+          formModel.lookupRegister,
+          formModel.constraints,
+          taskIdTaskStatus,
+          None
+        )
+
+      val exprs = includeIf.booleanExpr.allExpressions
+
+      val baseFcLookup = formModelInterim.allFormComponentIds
+        .map(fcId => fcId.baseComponentId -> fcId)
+        .foldLeft(mutable.Map.empty[BaseComponentId, List[FormComponentId]]) { case (acc, (baseId, fcId)) =>
+          acc.addOne(
+            baseId -> (acc.getOrElse(baseId, List()) :+ fcId)
+          )
+        }
+
+      //    println("base fc keys: " + baseFcLookup.keys)
+
+      val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
+      //    println("atl components: " + atlComponents)
+
+      val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+
+      val formComponents =
+        (exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds)
+          .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
+          .flatMap {
+            case (Some(fc), fcId) => List(fc)
+            case (None, fcId) =>
+              baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
+          }
+
+      val er = formModelVisibilityOptics.evaluationResults
+      val recalc = recalculation
+        .recalculateFromGraph(
+          formModel = formModelInterim,
+          formTemplate = formTemplate,
+          retrievals = retrievals,
+          evaluationContext = evaluationContext,
+          messages = messages,
+          graph = DependencyGraph.graphFrom(
+            formModel,
+            AllFormTemplateExpressions(formTemplate),
+            formComponents,
+            exprs
+          ),
+          exprMapStart = er.exprMap,
+          formDataMapStart = er.recData.variadicFormData.data,
+          booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
+        )
+
+      val newEr = recalc match {
+        case recalc: Future[RecalculationResult] =>
+          Await.result(
+            recalc,
+            Duration.Inf
+          )
+        case recalc: cats.Id[RecalculationResult] => recalc.asInstanceOf[RecalculationResult]
+        case _                                    => throw new RuntimeException("Unknown functor type")
+      }
+
+      FormModelBuilder.evalIncludeIf(includeIf, newEr, newEr.evaluationResults.recData, formModel, phase)
+    }
+
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
       .stripHiddenFormComponents(formModel)
       .filter { pageModel =>
-        pageModel.getIncludeIf.fold(true) { includeIf =>
-          val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
-            formModel.allMultiFileIds.map { modelComponentId =>
-              modelComponentId -> data.filesOfMultiFileComponent(modelComponentId)
-            }.toMap
-
-          val evaluationContext =
-            EvaluationContext(
-              formTemplate._id,
-              SubmissionRef(envelopeId),
-              maybeAccessCode,
-              retrievals,
-              thirdPartyData,
-              formTemplate.authConfig,
-              hc,
-              phase,
-              FileIdsWithMapping(formModel.allFileIds, formModel.allMultiFileIds, componentIdToFileId),
-              modelComponentId,
-              formModel.dateLookup,
-              formModel.addressLookup,
-              formModel.overseasAddressLookup,
-              formModel.postcodeLookup,
-              formModel.pageIdSectionNumberMap,
-              lang,
-              messages,
-              formModel.allIndexedComponentIds,
-              formModel.taxPeriodDate,
-              FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-              formModel.dataRetrieveAll,
-              formModel.hideChoicesSelected,
-              formModel.choiceLookup,
-              formModel.addToListIds,
-              lookupRegistry,
-              formModel.lookupRegister,
-              formModel.constraints,
-              taskIdTaskStatus,
-              None
-            )
-
-          val exprs = includeIf.booleanExpr.allExpressions
-
-          val baseFcLookup = formModelInterim.allFormComponentIds
-            .map(fcId => fcId.baseComponentId -> fcId)
-            .foldLeft(mutable.Map.empty[BaseComponentId, List[FormComponentId]]) { case (acc, (baseId, fcId)) =>
-              acc.addOne(
-                baseId -> (acc.getOrElse(baseId, List()) :+ fcId)
-              )
-            }
-
-          //    println("base fc keys: " + baseFcLookup.keys)
-
-          val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
-          //    println("atl components: " + atlComponents)
-
-          val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
-
-          val formComponents =
-            (exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds)
-              .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
-              .flatMap {
-                case (Some(fc), fcId) => List(fc)
-                case (None, fcId) =>
-                  baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
-              }
-
-          val er = formModelVisibilityOptics.evaluationResults
-          val recalc = recalculation
-            .recalculateFromGraph(
-              formModel = formModelInterim,
-              formTemplate = formTemplate,
-              retrievals = retrievals,
-              evaluationContext = evaluationContext,
-              messages = messages,
-              graph = DependencyGraph.graphFrom(
-                formModel,
-                AllFormTemplateExpressions(formTemplate),
-                formComponents,
-                exprs
-              ),
-              exprMapStart = er.exprMap,
-              formDataMapStart = er.recData.variadicFormData.data,
-              booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
-            )
-
-          val newEr = recalc match {
-            case recalc: Future[RecalculationResult] =>
-              Await.result(
-                recalc,
-                Duration.Inf
-              )
-            case recalc: cats.Id[RecalculationResult] => recalc.asInstanceOf[RecalculationResult]
-            case _                                    => throw new RuntimeException("Unknown functor type")
-          }
-
-          println("exprMap: " + newEr.evaluationResults.exprMap)
-          FormModelBuilder.evalIncludeIf(includeIf, newEr, newEr.evaluationResults.recData, formModel, phase)
-        } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
+        pageModel.getNotRequiredIf.fold(true) { includeIf =>
           !FormModelBuilder.evalIncludeIf(
             includeIf,
             formModelVisibilityOptics.recalculationResult,
@@ -442,6 +440,7 @@ class FormModelBuilder[E, F[_]: Functor](
       } { repeater: Repeater[DataExpanded] =>
         repeater.asInstanceOf[Repeater[Visibility]]
       }
+      .copy(onDemandIncludeIf = Some(onDemandPageIncludeIf))
   }
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
