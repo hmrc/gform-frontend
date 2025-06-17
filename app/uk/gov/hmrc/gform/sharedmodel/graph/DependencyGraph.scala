@@ -97,10 +97,7 @@ object DependencyGraph {
             }
           }
           .getOrElse {
-            //TODO: Figure out how to get a reference of non task list summary page
-            formModel.pages.lastOption.toList.flatMap { page =>
-              page.allFormComponents
-            }
+            formModel.allFormComponents
           }
           .flatMap { fc =>
             AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds())
