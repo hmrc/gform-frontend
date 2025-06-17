@@ -304,6 +304,7 @@ object SummaryRenderingService {
         maybeCoordinates,
         summarySection.keyDisplayWidth
       )
+
     summary(
       ExtraInfoSummary(
         formTemplate,
@@ -415,6 +416,9 @@ object SummaryRenderingService {
   ): List[Html] = {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
+
+    def includeIf(page: Page[_]) =
+      page.includeIf.forall(includeIf => formModel.onDemandIncludeIf.exists(f => f(includeIf)))
 
     def middleSummaryListRows(
       singleton: Singleton[Visibility],
@@ -552,6 +556,11 @@ object SummaryRenderingService {
             }
         }
       }
+//
+//      htmls.foreach { x =>
+//        println(x)
+//        println()
+//      }
 
       val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedSummaryDescription)
 
@@ -626,11 +635,20 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
-      maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
-        taskListBrackets.bracketsFor(coordinates).toBracketsList
+    def brackets: List[Bracket[Visibility]] = formModel.brackets
+      .fold(_.brackets.toList)(taskListBrackets =>
+        maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
+          taskListBrackets.bracketsFor(coordinates).toBracketsList
+        )
       )
-    )
+      .filter(
+        onDemandIncludeIfFilterForBrackets
+      )
+
+    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
+      bracket.toPageModel.exists(pm =>
+        pm.getIncludeIf.exists(includeIf => formModel.onDemandIncludeIf.exists(f => f(includeIf)))
+      )
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
       val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
