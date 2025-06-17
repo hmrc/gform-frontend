@@ -133,7 +133,8 @@ class ValidationService(
     //form component should only be included if both it's page and itself pass onDemandIncludeIf
     def onDemandIncludeIfFilter(formComponent: FormComponent): Boolean = {
       val page = formModel.pageLookup(formComponent.id)
-      def includeComponent = formComponent.includeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+      def includeComponent =
+        formComponent.includeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
       def includePage = page.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
       includeComponent && includePage
     }
