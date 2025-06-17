@@ -645,10 +645,14 @@ object SummaryRenderingService {
         onDemandIncludeIfFilterForBrackets
       )
 
+    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
-      bracket.toPageModel.exists(pm =>
-        pm.getIncludeIf.exists(includeIf => formModel.onDemandIncludeIf.exists(f => f(includeIf)))
-      )
+      bracket.toPageModel
+        .map { pm =>
+          pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+        }
+        .find(_ == true)
+        .getOrElse(false)
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
       val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
