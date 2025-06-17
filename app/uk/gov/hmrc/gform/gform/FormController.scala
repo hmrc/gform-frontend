@@ -219,10 +219,41 @@ class FormController(
 
               iteration.checkYourAnswers match {
                 case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
+                  def onDemandIncludeIfFilter(pageModel: PageModel[_]): Boolean = {
+                    val onDemandIf = formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf
+                    pageModel.allFormComponents
+                      .map { formComponent =>
+                        val formComponentIncludeIf = formComponent.includeIf.forall { includeIf =>
+                          onDemandIf.forall { f =>
+                            f(includeIf)
+                          }
+                        }
+                        def pageIncludeIf = formModel
+                          .pageLookup(formComponent.id)
+                          .getIncludeIf
+                          .forall { includeIf =>
+                            onDemandIf.forall { f =>
+                              f(includeIf)
+                            }
+                          }
+                        formComponentIncludeIf && pageIncludeIf
+                      }
+                      .find(_ == true)
+                      .getOrElse(false)
+                  }
+
                   val visibleIteration: Bracket.AddToListIteration[Visibility] =
                     formModelOptics.formModelVisibilityOptics.formModel
                       .bracket(sectionNumber)
                       .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
+                      .filter(onDemandIncludeIfFilter)
+                      .getOrElse(throw new RuntimeException("can't filter"))
+
+                  val visibleSectionNumbers =
+                    visibleIteration.singletons.filter(s => onDemandIncludeIfFilter(s.singleton)).map { s =>
+                      s.sectionNumber
+                    }
+
                   validateSections(
                     SuppressErrors.No,
                     visibleIteration.allSingletonSectionNumbers: _*
