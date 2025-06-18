@@ -33,6 +33,8 @@ import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfig, ControllerConfigs, ServicesConfig }
 import org.typelevel.ci._
 import play.api.http.HttpConfiguration
+import pureconfig.ConfigSource
+import pureconfig.generic.auto._
 
 class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule) {
 
@@ -69,6 +71,9 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
 
   def getOptionalNonEmptyCIStringList(emails: Option[String]): Option[NonEmptyList[CIString]] =
     emails.flatMap(v => NonEmptyList.fromList(v.split(":").toList.filter(_.trim.nonEmpty).map(email => ci"$email")))
+
+  val hipConfig: HipConnectorConfig =
+    ConfigSource.default.at("microservice.services.hip").loadOrThrow[HipConnectorConfig]
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
@@ -111,3 +116,11 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     )
   }
 }
+
+final case class HipConnectorConfig(
+  basePath: String,
+  clientId: String,
+  secret: String,
+  originatorId: String,
+  correlationId: String
+)
