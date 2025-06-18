@@ -79,7 +79,6 @@ case class Navigator(
           f(includeIf)
         }
       )
-      println("sectionIsVisible: " + sectionIsVisible)
       section < sectionNumber && sectionIsVisible
     }
 
