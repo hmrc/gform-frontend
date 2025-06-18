@@ -36,13 +36,13 @@ trait HipConnector[F[_]] {
   )(implicit hc: HeaderCarrier): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
-class HipAsyncConnector(httpClient: HttpClientV2, baseUrl: String, hipConfig: HipConnectorConfig)(implicit
+class HipAsyncConnector(httpClient: HttpClientV2, hipConfig: HipConnectorConfig)(implicit
   ec: ExecutionContext
 ) extends HipConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   private val employmentSummaryUrlWithPlaceholders =
-    s"$baseUrl${hipConfig.basePath}/nps/nps-json-service/nps/v1/api/employment/employment-summary/{{nino}}/taxYear/{{taxYear}}"
+    s"https://hip.ws.ibt.hmrc.gov.uk${hipConfig.basePath}/nps/nps-json-service/nps/v1/api/employment/employment-summary/{{nino}}/taxYear/{{taxYear}}"
   private val employmentSummaryIdentifier = "employment summary"
 
   private def authorization: String = {

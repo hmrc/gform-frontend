@@ -173,7 +173,6 @@ class GformModule(
 
   val hipConnector = new HipAsyncConnector(
     wSHttpModule.httpClient,
-    configModule.serviceConfig.baseUrl("hip"),
     configModule.hipConfig
   )
 
