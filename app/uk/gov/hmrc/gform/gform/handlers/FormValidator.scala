@@ -248,8 +248,6 @@ class FormValidator(implicit ec: ExecutionContext) {
         sectionNumber
     }
 
-
-
     /* val nextFrom = for {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
@@ -305,7 +303,6 @@ class FormValidator(implicit ec: ExecutionContext) {
               } else {
                 if (maybeCoordinates.isEmpty) SectionOrSummary.FormSummary else SectionOrSummary.TaskSummary
               }
-              SectionOrSummary.Section(sn)
             case (Some(r), None) => SectionOrSummary.Section(r)
             case (Some(r), Some(sn)) =>
               val lsn = {
