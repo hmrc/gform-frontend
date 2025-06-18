@@ -241,21 +241,27 @@ class FormValidator(implicit ec: ExecutionContext) {
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
       val sectionsAfterCurrent =
         availableSectionNumbers.filter(_ > currentSectionNumber)
-      // println("sections after current: " + sectionsAfterCurrent)
+      println("sections after current: " + sectionsAfterCurrent)
       sectionsAfterCurrent
     } collectFirst {
       case sectionNumber if sectionIsVisible(sectionNumber, visibilityFormModel) =>
         sectionNumber
     }
 
-    // println("nextFrom: " + nextFrom)
+
 
     /* val nextFrom = for {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next*/
 
-    // println("ff: " + fastForward)
+    println("nextFrom: " + nextFrom)
+
+    println("ff: " + fastForward)
+
+    ffYesSnF.map { ffYesSn =>
+      println("ffYesSn: " + ffYesSn)
+    }
 
     fastForward match {
       case FastForward.CYA(to) :: xs =>
