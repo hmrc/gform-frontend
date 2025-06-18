@@ -33,7 +33,7 @@ import play.api.test.Helpers.{ contentAsString, contentType, defaultAwaitTimeout
 import play.api.{ Configuration, Environment }
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.gform.PlayStubSupport
-import uk.gov.hmrc.gform.api.NinoInsightsConnector
+import uk.gov.hmrc.gform.api.{ HipConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
@@ -446,6 +446,7 @@ class NewFormControllerSpec
     lazy val mockGformBackend: GformBackEndAlgebra[Future] = mock[GformBackEndAlgebra[Future]]
     lazy val mockNinoInsightsConnector: NinoInsightsConnector[Future] = mock[NinoInsightsConnector[Future]]
     lazy val mockAcknowledgementPdfService: AcknowledgementPdfService = mock[AcknowledgementPdfService]
+    lazy val mockHipConnector: HipConnector[Future] = mock[HipConnector[Future]]
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
@@ -465,6 +466,7 @@ class NewFormControllerSpec
         messagesControllerComponents,
         mockGformBackend,
         mockNinoInsightsConnector,
+        mockHipConnector,
         messages,
         mockAcknowledgementPdfService
       )

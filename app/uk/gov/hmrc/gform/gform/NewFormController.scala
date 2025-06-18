@@ -26,7 +26,7 @@ import play.api.i18n.{ I18nSupport, Lang, Messages }
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.ConfidenceLevel
 import uk.gov.hmrc.gform.FormTemplateKey
-import uk.gov.hmrc.gform.api.NinoInsightsConnector
+import uk.gov.hmrc.gform.api.{ HipConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -67,6 +67,7 @@ class NewFormController(
   messagesControllerComponents: MessagesControllerComponents,
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
+  hipConnector: HipConnector[Future],
   englishMessages: Messages,
   acknowledgementPdfService: AcknowledgementPdfService
 )(implicit ec: ExecutionContext)
@@ -569,7 +570,8 @@ class NewFormController(
             None,
             cache.formTemplate.dataRetrieve,
             gformConnector,
-            ninoInsightsConnector
+            ninoInsightsConnector,
+            hipConnector
           )
       res <- newCache.formTemplate.draftRetrieval
                .flatMap(dr => newCache.retrievals.getAffinityGroup.flatMap(ag => dr.mapping.get(ag)))
@@ -893,7 +895,8 @@ class NewFormController(
             itmpRetrievals,
             formTemplate.dataRetrieve,
             gformConnector,
-            ninoInsightsConnector
+            ninoInsightsConnector,
+            hipConnector
           )
       initFormEvaluator = InitFormEvaluator(newCache, formTemplate.authConfig, itmpRetrievals)
       res <- {
