@@ -73,7 +73,15 @@ case class Navigator(
 ) extends Navigation {
 
   val previousSectionNumber: Option[SectionNumber] =
-    filteredSectionNumbers(sectionNumber).findLast(_ < sectionNumber)
+    filteredSectionNumbers(sectionNumber).findLast { section =>
+      def sectionIsVisible = formModel.onDemandIncludeIf.forall(f =>
+        formModel.pageModelLookup(section).getIncludeIf.forall { includeIf =>
+          f(includeIf)
+        }
+      )
+      println("sectionIsVisible: " + sectionIsVisible)
+      section < sectionNumber && sectionIsVisible
+    }
 
   val nextSectionNumber: SectionNumber = {
     val sn = sectionNumber.increment(formModel)
