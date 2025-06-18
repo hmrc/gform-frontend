@@ -280,7 +280,8 @@ class FormValidator(implicit ec: ExecutionContext) {
         )
       case FastForward.StopAt(to) :: xs =>
         ffYesSnF.map { ffYes =>
-          val visibleTo = availableSectionNumbers.find(_ >= to)
+          val visibleTo =
+            availableSectionNumbers.find(section => section >= to && sectionIsVisible(section, visibilityFormModel))
           (ffYes, visibleTo) match {
             case (None, None) if maybeCoordinates.isEmpty => SectionOrSummary.FormSummary
             case (None, None)                             => SectionOrSummary.TaskSummary
