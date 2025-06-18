@@ -21,13 +21,12 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, PageModel, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMapping }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ TaskStatus => TaskStatusExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormComponent, FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber, TaskStatus => TaskStatusExpr }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber }
 import uk.gov.hmrc.gform.tasklist.TaskStatus.NotStarted
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -107,6 +106,10 @@ object TaskListUtils {
 
       val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics, taskCoordinatesMap)
       val notRequiredResolver = NotRequiredResolver.create(formModelVisibilityOptics, taskCoordinatesMap)
+
+      def onDemandIncludeIfPageFilter(pageModel: PageModel[_]): Boolean =
+        pageModel.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+
       for {
         statusesLookup <- coordinates
                             .traverse { coordinate =>
@@ -115,6 +118,7 @@ object TaskListUtils {
                                   .forCoordinate(coordinate)
                               val hasTerminationPage = formModel.taskList
                                 .availablePages(coordinate)
+                                .filter(onDemandIncludeIfPageFilter)
                                 .exists(
                                   _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
                                 )
@@ -129,12 +133,18 @@ object TaskListUtils {
                                   )
                                 validatedATLs =
                                   validationService.validateATLs(
-                                    formModel.taskList.availablePages(
-                                      coordinate
-                                    ),
+                                    formModel.taskList
+                                      .availablePages(
+                                        coordinate
+                                      )
+                                      .filter(onDemandIncludeIfPageFilter),
                                     formModelVisibilityOptics
                                   )
                               } yield {
+                                println("formHandlerResult.isFormValid: " + formHandlerResult.isFormValid)
+                                println("!hasTerminationPage: " + !hasTerminationPage)
+                                println("validatedATLs.isValid: " + validatedATLs.isValid)
+
                                 val taskStatus =
                                   if (dataForCoordinate.isEmpty) {
                                     TaskStatus.NotStarted
