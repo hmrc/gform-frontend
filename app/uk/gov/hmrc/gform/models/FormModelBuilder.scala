@@ -405,7 +405,11 @@ class FormModelBuilder[E, F[_]: Functor](
             Duration.Inf
           )
         case recalc: cats.Id[RecalculationResult] => recalc.asInstanceOf[RecalculationResult]
-        case _                                    => throw new RuntimeException("Unknown functor type")
+        case recalc                               =>
+          //TODO: Remove for testing only
+          val err = new RuntimeException("Unknown functor type. " + recalc)
+          err.printStackTrace()
+          throw err
       }
 
       FormModelBuilder.evalIncludeIf(includeIf, newEr, newEr.evaluationResults.recData, formModel, phase)
