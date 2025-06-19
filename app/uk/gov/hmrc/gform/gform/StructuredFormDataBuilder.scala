@@ -298,7 +298,9 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
           bracket.toPageModel.toList.map(
             _.fold(singleton => bracket.source.id -> singleton.allMultiValueIds)(_ =>
               bracket.source.id -> List.empty[MultiValueId]
-            )(repeater => bracket.source.id -> repeater.allMultiValueIds)
+            )(repeater => bracket.source.id -> repeater.allMultiValueIds)(declaration =>
+              bracket.source.id -> declaration.allMultiValueIds
+            )
           )
         )
 

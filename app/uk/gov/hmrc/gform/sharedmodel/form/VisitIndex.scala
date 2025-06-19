@@ -82,13 +82,21 @@ sealed trait VisitIndex extends Product with Serializable {
           } else {
             a
           }
+        case a @ AddToListPage.DeclarationSection(sectionIndex, iterationIndex)
+            if iterationIndex =!= iterationIndexToRemove && sectionIndexToRemove === sectionIndex =>
+          if (iterationIndex > iterationIndexToRemove) {
+            AddToListPage.DeclarationSection(sectionIndex, iterationIndex - 1)
+          } else {
+            a
+          }
         case p @ AddToListPage.DefaultPage(sectionIndex) if !isLastIteration || sectionIndexToRemove =!= sectionIndex =>
           p
-        case p @ AddToListPage.Page(sectionIndex, _, _) if sectionIndexToRemove =!= sectionIndex      => p
-        case p @ AddToListPage.CyaPage(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex      => p
-        case p @ AddToListPage.RepeaterPage(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex => p
-        case np @ SectionNumber.Classic.NormalPage(_)                                                 => np
-        case rp @ SectionNumber.Classic.RepeatedPage(_, _)                                            => rp
+        case p @ AddToListPage.Page(sectionIndex, _, _) if sectionIndexToRemove =!= sectionIndex            => p
+        case p @ AddToListPage.CyaPage(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex            => p
+        case p @ AddToListPage.RepeaterPage(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex       => p
+        case p @ AddToListPage.DeclarationSection(sectionIndex, _) if sectionIndexToRemove =!= sectionIndex => p
+        case np @ SectionNumber.Classic.NormalPage(_)                                                       => np
+        case rp @ SectionNumber.Classic.RepeatedPage(_, _)                                                  => rp
       }
 
     fold[VisitIndex] { classic =>

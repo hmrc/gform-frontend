@@ -71,7 +71,7 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
           case group: Group => stripHiddenFormComponentsFromGroup(group)
           case i            => i
         }
-    }(identity)(identity)
+    }(identity)(identity)(identity)
 }
 
 object FormComponentVisibilityFilter {
