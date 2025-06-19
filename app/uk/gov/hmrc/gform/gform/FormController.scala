@@ -236,7 +236,23 @@ class FormController(
                               f(includeIf)
                             }
                           }
-                        formComponentIncludeIf && pageIncludeIf
+
+                        def includeRepeats = {
+                          val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
+
+                          val includeIf = repeatsExpr.map { repeatsExpr =>
+                            IncludeIf(GreaterThan(repeatsExpr, Constant("0")))
+                          }
+
+                          includeIf.forall { includeIf =>
+                            formModel.onDemandIncludeIf.forall { f =>
+                              f(includeIf)
+                            }
+                          }
+
+                        }
+
+                        formComponentIncludeIf && pageIncludeIf && includeRepeats
                       }
                       .find(_ == true)
                       .getOrElse(false)

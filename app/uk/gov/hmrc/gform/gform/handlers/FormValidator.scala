@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.models
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ CheckYourAnswers, EnteredVariadicFormData, FastForward, FormModel, ProcessData, Repeater, Visibility }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, EnteredVariadicFormData, FastForward, FormModel, PageMode, PageModel, ProcessData, Repeater, Visibility }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
@@ -88,26 +88,43 @@ class FormValidator(implicit ec: ExecutionContext) {
   }
 
   private def sectionIsVisible(sectionNumber: SectionNumber, visibilityFormModel: FormModel[Visibility]) = {
-    val page = {
+
+    def pageIncludeIf(list: List[PageModel[Visibility]]) = list.flatMap(_.getIncludeIf)
+    //    println("pageIncludeIf: " + pageIncludeIf)
+    // println("page: " + page)
+    def evalRes(pageIncludeIf: List[IncludeIf]) = pageIncludeIf.forall { includeIf =>
+      //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
+      visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
+    }
+
+    val res = {
       sectionNumber match {
         case section @ AddToListPage.DefaultPage(sectionIndex) =>
-          List(
-            visibilityFormModel.pageModelLookup(AddToListPage.Page(sectionIndex, 1, 0)),
-            visibilityFormModel.pageModelLookup(section)
+          evalRes(
+            pageIncludeIf(
+              List(
+                visibilityFormModel.pageModelLookup(AddToListPage.Page(sectionIndex, 1, 0)),
+                visibilityFormModel.pageModelLookup(section)
+              )
+            )
           )
+        case section @ Classic.RepeatedPage(sectionIndex, pageNumber) =>
+          val repeats =
+            visibilityFormModel.repeatingPageBrackets.find(_.hasSectionNumber(sectionNumber)).map(_.source.repeats)
 
-        case section => List(visibilityFormModel.pageModelLookup(section))
+          val res = repeats.flatMap { repeats =>
+            val includeIf = IncludeIf(GreaterThan(repeats, Constant(pageNumber.toString)))
+            visibilityFormModel.onDemandIncludeIf.map { f =>
+              f(includeIf)
+            }
+          }
+          res.getOrElse(true)
+        case section => evalRes(pageIncludeIf(List(visibilityFormModel.pageModelLookup(section))))
       }
     }
 
     //      println("page: " + page)
-    val pageIncludeIf = page.flatMap(_.getIncludeIf)
-    // println("pageIncludeIf: " + pageIncludeIf)
-    // println("page: " + page)
-    val res = pageIncludeIf.forall { includeIf =>
-      //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
-      visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
-    }
+
     //      println("SectionNumber: " + sectionNumber)
     // println("Next section is visible: " + res)
     res
@@ -314,7 +331,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               val redirect =
                 if (r < lsn) SectionOrSummary.Section(r)
                 else SectionOrSummary.Section(lsn)
-              // println("redirect: " + redirect)
+              println("redirect: " + redirect)
               redirect
           }
         }

@@ -136,7 +136,21 @@ class ValidationService(
       def includeComponent =
         formComponent.includeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
       def includePage = page.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
-      includeComponent && includePage
+      def includeRepeats = {
+        val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
+
+        val includeIf = repeatsExpr.map { repeatsExpr =>
+          IncludeIf(GreaterThan(repeatsExpr, Constant("0")))
+        }
+
+        includeIf.forall { includeIf =>
+          formModel.onDemandIncludeIf.forall { f =>
+            f(includeIf)
+          }
+        }
+
+      }
+      includeComponent && includePage && includeRepeats
     }
 
     val allFields = maybeCoordinates
