@@ -263,11 +263,6 @@ class FormController(
                       .filter(onDemandIncludeIfFilter)
                       .getOrElse(throw new RuntimeException("can't filter"))
 
-                  val visibleSectionNumbers =
-                    visibleIteration.singletons.filter(s => onDemandIncludeIfFilter(s.singleton)).map { s =>
-                      s.sectionNumber
-                    }
-
                   validateSections(
                     SuppressErrors.No,
                     visibleIteration.allSingletonSectionNumbers: _*
