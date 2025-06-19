@@ -213,8 +213,8 @@ class FormController(
                 val (lastRepeater, lastRepeaterSectionNumber) =
                   (iterations.last.repeater.repeater, iterations.last.repeater.sectionNumber)
 
-                iteration.checkYourAnswers match {
-                  case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
+                (iteration.checkYourAnswers, iteration.declarationSection) match {
+                  case (Some(checkYourAnswers), _) if checkYourAnswers.sectionNumber == sectionNumber =>
                     val visibleIteration: Bracket.AddToListIteration[Visibility] =
                       formModelOptics.formModelVisibilityOptics.formModel
                         .bracket(sectionNumber)
@@ -239,6 +239,31 @@ class FormController(
                               handlerResult.envelope,
                               AddressRecordLookup.from(cache.form.thirdPartyData),
                               fastForward
+                            )
+                        )
+                      )
+                    )
+                  case (_, Some(declarationSection)) if declarationSection.sectionNumber == sectionNumber =>
+                    val visibleIteration: Bracket.AddToListIteration[Visibility] =
+                      formModelOptics.formModelVisibilityOptics.formModel
+                        .bracket(sectionNumber)
+                        .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
+                    validateSections(
+                      SuppressErrors.No,
+                      visibleIteration.allSingletonSectionNumbers: _*
+                    )(handlerResult =>
+                      Future.successful(
+                        Ok(
+                          renderer
+                            .renderATLDeclarationSection(
+                              maybeAccessCode,
+                              cache.formTemplate,
+                              declarationSection.declaration,
+                              cache,
+                              handlerResult.validationResult,
+                              formModelOptics,
+                              fastForward,
+                              sectionNumber
                             )
                         )
                       )

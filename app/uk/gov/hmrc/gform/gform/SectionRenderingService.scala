@@ -30,7 +30,7 @@ import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Basic, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Basic, Bracket, CheckYourAnswers, DataExpanded, DateExpr, DeclarationPage, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
@@ -257,6 +257,169 @@ class SectionRenderingService(
       isMainContentFullWidth = checkYourAnswers.displayWidth.nonEmpty
     )
 
+  }
+
+  def renderATLDeclarationSection(
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate,
+    declarationPage: DeclarationPage[DataExpanded],
+    cache: AuthCacheWithForm,
+    validationResult: ValidationResult,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    fastForward: List[FastForward],
+    sectionNumber: SectionNumber
+  )(implicit
+    request: Request[_],
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+//    val displayWidth = checkYourAnswers.displayWidth.getOrElse(LayoutDisplayWidth.M)
+//    val keyDisplayWidth = checkYourAnswers.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
+    val listResult = validationResult.formFieldValidationResults
+    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
+//    val renderComeBackLater =
+//      cache.retrievals.renderSaveAndComeBackLater && !DraftRetrievalHelper.isNotPermitted(
+//        formTemplate,
+//        cache.retrievals
+//      )
+
+    val page: Page[DataExpanded] =
+      Page(
+        title = declarationPage.expandedTitle,
+        id = Some(declarationPage.expandedId),
+        noPIITitle = declarationPage.expandedNoPIITitle,
+        description = declarationPage.expandedDescription,
+        shortName = declarationPage.expandedShortName,
+        caption = declarationPage.expandedCaption,
+        includeIf = declarationPage.includeIf,
+        fields = declarationPage.fields,
+        continueLabel = declarationPage.expandedContinueLabel,
+        continueIf = None,
+        instruction = None,
+        presentationHint = None,
+        dataRetrieve = None,
+        confirmation = None,
+        redirects = None,
+        hideSaveAndComeBackButton = None,
+        removeItemIf = None,
+        displayWidth = Some(LayoutDisplayWidth.M),
+        notRequiredIf = None
+      )
+
+    val ei = ExtraInfo(
+      Singleton(page),
+      maybeAccessCode,
+      formTemplate.sectionNumberZero,
+      formModelOptics,
+      formTemplate,
+      EnvelopeId(""),
+      EnvelopeWithMapping.empty,
+      0,
+      cache.retrievals,
+      formLevelHeading = false,
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
+    )
+
+    val infoFields = declarationPage.fields
+      .filter { field =>
+        field.includeIf.fold(true) { includeIf =>
+          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+        }
+      }
+      .map {
+        case info @ IsInformationMessage(InformationMessage(infoType, infoText, _)) =>
+          htmlForInformationMessage(info, infoType, infoText)
+        case fc @ IsTableComp(table) =>
+          htmlForTableComp(fc, table, formModelOptics)
+        case fc @ IsMiniSummaryList(miniSummaryList) =>
+          htmlForMiniSummaryList(
+            fc,
+            formTemplate._id,
+            miniSummaryList.rows,
+            ei,
+            validationResult,
+            NotChecked,
+            KeyDisplayWidth.M
+          )
+        case unsupported =>
+          throw new Exception("AddToList.CheckYourAnswers.fields contains a non-Info component: " + unsupported)
+      }
+
+    val continueLabel = declarationPage.expandedContinueLabel.map(_.value()).getOrElse {
+      formTemplate.formCategory match {
+        case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
+        case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
+        case _              => messages("button.acceptAndSubmit")
+      }
+    }
+
+//    val snippets = declarationPage.renderUnits.map(renderUnit =>
+//      htmlFor(
+//        renderUnit,
+//        formTemplate._id,
+//        ei,
+//        validationResult,
+//        obligations = NotChecked,
+//        UpscanInitiate.empty,
+//        Map.empty[FormComponentId, UpscanData]
+//      )
+//    )
+//    val ff = fastForward match {
+//      case Nil                       => Nil
+//      case FastForward.CYA(to) :: xs => FastForward.CYA(to) :: xs
+//      case FastForward.StopAt(sn) :: xs =>
+//        FastForward.StopAt(sn.increment(formModelOptics.formModelVisibilityOptics.formModel)) :: xs
+//      case otherwise => otherwise
+//    }
+
+    val renderingInfo = SectionRenderingInformation(
+      formTemplate._id,
+      maybeAccessCode,
+      formTemplate.sectionNumberZero,
+      page.sectionHeader(),
+      declarationPage.noPIITitle.fold(
+        declarationPage.title.valueWithoutInterpolations(
+          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+        )
+      )(_.value()),
+      infoFields,
+      "",
+      EnvelopeId(""),
+      uk.gov.hmrc.gform.gform.routes.FormController
+        .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue),
+//      uk.gov.hmrc.gform.gform.routes.DeclarationController
+//        .submitDeclaration(formTemplate._id, maybeAccessCode, uk.gov.hmrc.gform.controllers.Continue),
+      false,
+      continueLabel,
+      0,
+      FileInfoConfig.allAllowedFileTypes,
+      Nil,
+      Map.empty,
+      Map.empty,
+      None,
+      false
+    )
+    val mainForm = html.form.form_standard(
+      renderingInfo,
+      shouldDisplayContinue = true,
+      ei.saveAndComeBackLaterButton,
+      isFileUploadOnlyPage = false,
+      None
+    )
+    html.form.form(
+      formTemplate,
+      pageLevelErrorHtml,
+      renderingInfo,
+      mainForm,
+      backLink = Some(mkBackLinkDeclaration(formTemplate, maybeAccessCode, None, None)),
+      shouldDisplayHeading = true,
+      frontendAppConfig,
+      fastForward = List(FastForward.Yes),
+      accessCode = maybeAccessCode
+    )
   }
 
   def renderAddToList(
