@@ -399,6 +399,7 @@ class Recalculation[F[_]: Monad, E](
                 .reduceOption(_ && _)
                 .getOrElse(true)
               !isHidden
+
             case _ => false
           }
 
@@ -438,7 +439,8 @@ class Recalculation[F[_]: Monad, E](
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
             if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
-              exprMap.addOne((FormCtx(fcId), ExpressionResult.Hidden))
+              exprMap.remove(FormCtx(fcId))
+              exprMap.addOne(FormCtx(fcId), ExpressionResult.Hidden)
               evResult
             } else {
               evResult
@@ -712,7 +714,7 @@ class Recalculation[F[_]: Monad, E](
     booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): F[Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    evalBooleanExpr(
+    val res = evalBooleanExpr(
       evaluationResults,
       recData,
       retrievals,
@@ -726,6 +728,8 @@ class Recalculation[F[_]: Monad, E](
         .flatMap(_.getIncludeIf)
         .map(_.booleanExpr)
     }
+    res.map(res => println(s"isHiddenByIncludeIf $fcId: " + res))
+    res
   }
 
   private def isHiddenByComponentIncludeIf(
