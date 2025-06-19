@@ -322,6 +322,8 @@ class FormModelBuilder[E, F[_]: Functor](
         checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
       } { repeater: Repeater[DataExpanded] =>
         repeater.asInstanceOf[Repeater[Visibility]]
+      } { declaration: DeclarationPage[DataExpanded] =>
+        declaration.asInstanceOf[DeclarationPage[Visibility]]
       }
   }
 
@@ -438,6 +440,27 @@ class FormModelBuilder[E, F[_]: Functor](
     )
   }
 
+  private def mkDeclaration[T <: PageMode](
+    d: DeclarationSection,
+    s: Section.AddToList,
+    index: Int
+  ): DeclarationPage[T] = {
+    val expandedFields = d.fields.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId)
+
+    DeclarationPage[T](
+      s.pageId.withIndex(index).withSuffix("DEC"),
+      d.caption.map(_.expand(index, s.allIds)),
+      d.title.expand(index, s.allIds),
+      d.noPIITitle.map(_.expand(index, s.allIds)),
+      d.description.map(_.expand(index, s.allIds)),
+      d.shortName.map(_.expand(index, s.allIds)),
+      d.continueLabel.map(_.expand(index, s.allIds)),
+      expandedFields,
+      index,
+      d.includeIf
+    )
+  }
+
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
@@ -542,6 +565,16 @@ class FormModelBuilder[E, F[_]: Functor](
       )
     )
 
+    val declaration: Option[DeclarationSectionWithNumber[T]] = s.declarationSection.map(d =>
+      DeclarationSectionWithNumber(
+        mkDeclaration(d, s, iterationIndex),
+        mkSectionNumber(
+          SectionNumber.Classic.AddToListPage.DeclarationSection(templateSectionIndex, iterationIndex),
+          maybeCoordinates
+        )
+      )
+    )
+
     NonEmptyList
       .fromList(singletons)
       .map(
@@ -549,6 +582,7 @@ class FormModelBuilder[E, F[_]: Functor](
           defaultPage,
           _,
           checkYourAnswers,
+          declaration,
           RepeaterWithNumber(
             repeater,
             mkSectionNumber(

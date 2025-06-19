@@ -33,7 +33,8 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
   def map[B <: PageMode](
     e: Singleton[A] => Singleton[B],
     f: CheckYourAnswers[A] => CheckYourAnswers[B],
-    g: Repeater[A] => Repeater[B]
+    g: Repeater[A] => Repeater[B],
+    h: DeclarationPage[A] => DeclarationPage[B]
   ): Bracket[B]
 
   def fold[B](
@@ -103,6 +104,7 @@ object Bracket {
     defaultPage: Option[SingletonWithNumber[A]], // Only first iteration can have default page
     singletons: NonEmptyList[SingletonWithNumber[A]], // There must be at least one page in Add-to-list iteration
     checkYourAnswers: Option[CheckYourAnswersWithNumber[A]],
+    declarationSection: Option[DeclarationSectionWithNumber[A]],
     repeater: RepeaterWithNumber[A]
   ) {
 
@@ -111,7 +113,9 @@ object Bracket {
     def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] = {
       val pageModels = singletons.map(_.toPageModelWithNumber) ++ checkYourAnswers.toList.map(c =>
         c.checkYourAnswers -> c.sectionNumber
-      ) ::: NonEmptyList.one(repeater.repeater -> repeater.sectionNumber)
+      ) ++ declarationSection.toList.map(ds => ds.declaration -> ds.sectionNumber) ::: NonEmptyList.one(
+        repeater.repeater -> repeater.sectionNumber
+      )
 
       defaultPage.map(_.toPageModelWithNumber).fold(pageModels)(_ :: pageModels)
     }
@@ -120,6 +124,7 @@ object Bracket {
       defaultPage.exists(_.sectionNumber === sectionNumber) ||
         repeater.sectionNumber === sectionNumber ||
         checkYourAnswers.exists(_.sectionNumber === sectionNumber) ||
+        declarationSection.exists(_.sectionNumber === sectionNumber) ||
         singletons.exists(_.sectionNumber === sectionNumber)
 
     def singleton(sectionNumber: SectionNumber): Singleton[A] =
@@ -135,18 +140,22 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B]
+      g: Repeater[A] => Repeater[B],
+      h: DeclarationPage[A] => DeclarationPage[B]
     ): AddToListIteration[B] =
       AddToListIteration(
         defaultPage.map(_.map(e)),
         singletons.map(_.map(e)),
         checkYourAnswers.map(_.map(f)),
+        declarationSection.map(_.map(h)),
         repeater.map(g)
       )
 
     def filter(predicate: PageModel[A] => Boolean): Option[AddToListIteration[A]] = {
       val filtered = singletons.filter(s => predicate(s.singleton))
-      NonEmptyList.fromList(filtered).map(AddToListIteration(defaultPage, _, checkYourAnswers, repeater))
+      NonEmptyList
+        .fromList(filtered)
+        .map(AddToListIteration(defaultPage, _, checkYourAnswers, declarationSection, repeater))
     }
 
     def defaultPageOrFirstSectionNumber: SectionNumber = defaultPage.map(_.sectionNumber).getOrElse(firstSectionNumber)
@@ -166,7 +175,8 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B]
+      g: Repeater[A] => Repeater[B],
+      h: DeclarationPage[A] => DeclarationPage[B]
     ): NonRepeatingPage[B] =
       NonRepeatingPage(
         SingletonWithNumber(e(singleton.singleton), singleton.sectionNumber),
@@ -183,7 +193,8 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B]
+      g: Repeater[A] => Repeater[B],
+      h: DeclarationPage[A] => DeclarationPage[B]
     ): RepeatingPage[B] =
       RepeatingPage(
         singletons.map(_.map(e)),
@@ -240,9 +251,10 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B]
+      g: Repeater[A] => Repeater[B],
+      h: DeclarationPage[A] => DeclarationPage[B]
     ): AddToList[B] = AddToList(
-      iterations.map(_.map(e, f, g)),
+      iterations.map(_.map(e, f, g, h)),
       source
     )
 

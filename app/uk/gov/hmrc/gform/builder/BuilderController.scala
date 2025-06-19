@@ -121,6 +121,7 @@ class BuilderController(
                 case SectionNumber.Classic.AddToListPage.DefaultPage(_) |
                     SectionNumber.Classic.AddToListPage.Page(_, _, _) |
                     SectionNumber.Classic.AddToListPage.CyaPage(_, _) |
+                    SectionNumber.Classic.AddToListPage.DeclarationSection(_, _) |
                     SectionNumber.Classic.AddToListPage.RepeaterPage(_, _) =>
                   originalSectionInAddToList(json, addToList, formModel, sectionNumber, Nil)
                 case SectionNumber.TaskList(coordinates, sn) =>
@@ -349,6 +350,20 @@ class BuilderController(
                     "sectionPath" := CursorOp.opsToPath(
                       history
                     ) // TODO sectionPath is not used, explore possibility of using this instead of using addToListId when updating mongo json
+                  )
+                )
+              } { declaration =>
+                val history: List[CursorOp] =
+                  List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
+                    historySuffix
+                Some(
+                  Json.obj(
+                    "atlIterationIndex" := declaration.index,
+                    "atlDeclarationPage" := true,
+                    "section" := addToListJson,
+                    "sectionPath" := CursorOp.opsToPath(
+                      history
+                    )
                   )
                 )
               }
@@ -1081,7 +1096,7 @@ class BuilderController(
                 badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")
               ) { repeater =>
                 Ok(f(implicitly[Messages])(sse)(repeater)(bracket))
-              }
+              }(declaration => badRequest("Invalid page model. Expected Repeater got DeclarationSection"))
               .pure[Future]
         }
     }

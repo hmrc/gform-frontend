@@ -197,8 +197,10 @@ case class FormModel[A <: PageMode](
     f: CheckYourAnswers[A] => CheckYourAnswers[B]
   )(
     g: Repeater[A] => Repeater[B]
+  )(
+    h: DeclarationPage[A] => DeclarationPage[B]
   ): FormModel[B] = FormModel(
-    brackets.map(e)(f)(g),
+    brackets.map(e)(f)(g)(h),
     staticTypeInfo,
     revealingChoiceInfo,
     sumInfo,
@@ -344,7 +346,7 @@ case class FormModel[A <: PageMode](
 
   def allIncludeIfsWithDependingFormComponents: List[(IncludeIf, List[FormComponent])] = pages.collect {
     case pm @ HasIncludeIf(includeIf) =>
-      (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
+      (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil)(_.fields.toList))
   } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
@@ -433,5 +435,5 @@ object FormModel {
 
 private object HasIncludeIf {
   def unapply(pageModel: PageModel[_ <: PageMode]): Option[IncludeIf] =
-    pageModel.fold(_.page.includeIf)(_ => None)(_.includeIf)
+    pageModel.fold(_.page.includeIf)(_ => None)(_.includeIf)(_.includeIf)
 }
