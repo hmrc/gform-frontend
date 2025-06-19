@@ -375,14 +375,20 @@ class FormModelBuilder[E, F[_]: Functor](
 
       val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
 
+      val formComponentIds = exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds
+
+      println("formComponentIds: " + formComponentIds)
+
       val formComponents =
-        (exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds)
+        formComponentIds
           .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
           .flatMap {
             case (Some(fc), fcId) => List(fc)
             case (None, fcId) =>
               baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
           }
+
+      //formComponentIds.foreach(x => println(formModel.pageLookup(x)))
 
       val er = formModelVisibilityOptics.evaluationResults
       val recalc = recalculation
@@ -403,6 +409,7 @@ class FormModelBuilder[E, F[_]: Functor](
           booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
         )
 
+      //TODO: Remove await. For testing only
       val newEr = recalc match {
         case recalc: Future[RecalculationResult] =>
           Await.result(
@@ -410,14 +417,23 @@ class FormModelBuilder[E, F[_]: Functor](
             Duration.Inf
           )
         case recalc: cats.Id[RecalculationResult] => recalc.asInstanceOf[RecalculationResult]
-        case recalc                               =>
-          //TODO: Remove for testing only
+        case recalc =>
           val err = new RuntimeException("Unknown functor type. " + recalc)
           err.printStackTrace()
           throw err
       }
 
-      FormModelBuilder.evalIncludeIf(includeIf, newEr, newEr.evaluationResults.recData, formModel, phase)
+      println(newEr.booleanExprCache)
+
+      newEr.evaluationResults.exprMap
+
+      FormModelBuilder.evalIncludeIf(
+        includeIf,
+        newEr,
+        newEr.evaluationResults.recData,
+        formModel,
+        phase
+      )
     }
 
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)

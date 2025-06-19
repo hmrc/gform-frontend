@@ -545,6 +545,7 @@ case class EvaluationResults(
             .overseasAddressLookup(formComponentId.baseComponentId) || evaluationContext
             .addressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
+          println("whenVisible fcid: " + formComponentId)
           val modelComponentId = formComponentId.modelComponentId
           if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
             val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {
