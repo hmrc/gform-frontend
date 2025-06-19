@@ -42,7 +42,7 @@ class HipAsyncConnector(httpClient: HttpClientV2, hipConfig: HipConnectorConfig)
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
   private val employmentSummaryUrlWithPlaceholders =
-    s"https://hip.ws.ibt.hmrc.gov.uk${hipConfig.basePath}/nps/nps-json-service/nps/v1/api/employment/employment-summary/{{nino}}/taxYear/{{taxYear}}"
+    s"https://hip.ws.ibt.hmrc.gov.uk:443${hipConfig.basePath}/nps/nps-json-service/nps/v1/api/employment/employment-summary/{{nino}}/taxYear/{{taxYear}}"
   private val employmentSummaryIdentifier = "employment summary"
 
   private def authorization: String = {
