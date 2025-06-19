@@ -52,6 +52,7 @@ import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 import java.time.format.DateTimeFormatter
+import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
@@ -632,6 +633,22 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
+    def cutBrackets(bracket: Bracket[Visibility]) =
+      bracket match {
+        case Bracket.RepeatingPage(singletons, source) =>
+          def eval(index: Int) =
+            formModel.onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
+          val newList = singletons.zipWithIndex.collect {
+            case (singleton, index) if eval(index) => singleton
+          }
+          if (newList.isEmpty) {
+            None
+          } else {
+            Some(Bracket.RepeatingPage[Visibility](NonEmptyList(newList.head, newList.tail), source))
+          }
+        case bracket => Some(bracket)
+      }
+
     def brackets: List[Bracket[Visibility]] = formModel.brackets
       .fold(_.brackets.toList)(taskListBrackets =>
         maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
@@ -641,15 +658,12 @@ object SummaryRenderingService {
       .filter(
         onDemandIncludeIfFilterForBrackets
       )
-
+      .flatMap {
+        cutBrackets
+      }
     //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
       bracket match {
-        case Bracket.RepeatingPage(singletons, source) =>
-          val includeIf = IncludeIf(GreaterThan(source.repeats, Constant("0")))
-          formModel.onDemandIncludeIf.forall { f =>
-            f(includeIf)
-          }
         case bracket =>
           bracket.toPageModel
             .map { case pm =>
