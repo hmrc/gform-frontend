@@ -417,9 +417,6 @@ object SummaryRenderingService {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def includeIf(page: Page[_]) =
-      page.includeIf.forall(includeIf => formModel.onDemandIncludeIf.exists(f => f(includeIf)))
-
     def middleSummaryListRows(
       singleton: Singleton[Visibility],
       sectionNumber: SectionNumber,
@@ -657,12 +654,20 @@ object SummaryRenderingService {
 
     //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
-      bracket.toPageModel
-        .map { pm =>
-          pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
-        }
-        .find(_ == true)
-        .getOrElse(false)
+      bracket match {
+        case Bracket.RepeatingPage(singletons, source) =>
+          val includeIf = IncludeIf(GreaterThan(source.repeats, Constant("0")))
+          formModel.onDemandIncludeIf.forall { f =>
+            f(includeIf)
+          }
+        case bracket =>
+          bracket.toPageModel
+            .map { case pm =>
+              pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+            }
+            .find(_ == true)
+            .getOrElse(false)
+      }
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
       val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
