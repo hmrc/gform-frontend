@@ -48,6 +48,7 @@ import uk.gov.hmrc.gform.upscan.{ UpscanAlgebra, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationService }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
+import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 class FormController(
@@ -219,7 +220,10 @@ class FormController(
 
               iteration.checkYourAnswers match {
                 case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
-                  var repeatIndex = 0
+                  val fieldsInRepeatingPageMap = formModel.repeatingPageBrackets.map { bracket =>
+                    bracket -> bracket.source.page.allFields.size
+                  }.toMap
+                  val formComponentsRepeated = mutable.Map[Bracket.RepeatingPage[_], Int]()
                   def onDemandIncludeIfFilter(pageModel: PageModel[_]): Boolean = {
                     val onDemandIf = formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf
                     pageModel.allFormComponents
@@ -242,8 +246,15 @@ class FormController(
                           val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
 
                           val includeIf = repeatsExpr.map { repeatsExpr =>
+                            val page = formModel.pageLookup(formComponent.id)
+                            val bracket = formModel.repeatingPageBrackets
+                              .find(_.singletons.find(_.singleton == page).isDefined)
+                              .getOrElse(throw new RuntimeException("bracket not found from singleton"))
+
+                            val formComponentRepeated = formComponentsRepeated.getOrElseUpdate(bracket, 0)
+                            val repeatIndex = formComponentRepeated / fieldsInRepeatingPageMap(bracket)
                             val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
-                            repeatIndex = repeatIndex + 1
+                            formComponentsRepeated(bracket) = formComponentRepeated + 1
                             res
                           }
 
