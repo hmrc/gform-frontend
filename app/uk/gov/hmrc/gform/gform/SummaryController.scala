@@ -427,7 +427,8 @@ class SummaryController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.DownloadSummaryPdf
+      OperationWithForm.DownloadSummaryPdf,
+      Some(SectionOrSummary.FormSummary)
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       val pdfContentF = createPDFContent(cache, formModelOptics)
 
