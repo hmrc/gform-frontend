@@ -728,7 +728,7 @@ class Recalculation[F[_]: Monad, E](
         .flatMap(_.getIncludeIf)
         .map(_.booleanExpr)
     }
-    res.map(res => println(s"isHiddenByIncludeIf $fcId: " + res))
+    //res.map(res => println(s"isHiddenByIncludeIf $fcId: " + res))
     res
   }
 

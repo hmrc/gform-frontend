@@ -129,18 +129,22 @@ class ValidationService(
   ): Future[ValidationResult] = {
 
     val formModel = formModelVisibilityOptics.formModel
-
+    var repeatIndex = 0
     //form component should only be included if both it's page and itself pass onDemandIncludeIf
     def onDemandIncludeIfFilter(formComponent: FormComponent): Boolean = {
       val page = formModel.pageLookup(formComponent.id)
       def includeComponent =
         formComponent.includeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
       def includePage = page.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+
       def includeRepeats = {
         val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
 
         val includeIf = repeatsExpr.map { repeatsExpr =>
-          IncludeIf(GreaterThan(repeatsExpr, Constant("0")))
+          println(repeatIndex)
+          val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
+          repeatIndex = repeatIndex + 1
+          res
         }
 
         includeIf.forall { includeIf =>
