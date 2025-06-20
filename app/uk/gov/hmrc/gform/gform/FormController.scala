@@ -217,6 +217,7 @@ class FormController(
 
               iteration.checkYourAnswers match {
                 case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
+                  var repeatIndex = 0
                   def onDemandIncludeIfFilter(pageModel: PageModel[_]): Boolean = {
                     val onDemandIf = formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf
                     pageModel.allFormComponents
@@ -239,7 +240,9 @@ class FormController(
                           val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
 
                           val includeIf = repeatsExpr.map { repeatsExpr =>
-                            IncludeIf(GreaterThan(repeatsExpr, Constant("0")))
+                            val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
+                            repeatIndex = repeatIndex + 1
+                            res
                           }
 
                           includeIf.forall { includeIf =>

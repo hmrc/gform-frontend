@@ -655,12 +655,12 @@ object SummaryRenderingService {
           taskListBrackets.bracketsFor(coordinates).toBracketsList
         )
       )
-      .filter(
-        onDemandIncludeIfFilterForBrackets
-      )
       .flatMap {
         cutBrackets
       }
+      .filter(
+        onDemandIncludeIfFilterForBrackets
+      )
     //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
       bracket match {
