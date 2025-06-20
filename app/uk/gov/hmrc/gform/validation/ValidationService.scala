@@ -129,13 +129,13 @@ class ValidationService(
   ): Future[ValidationResult] = {
 
     val formModel = formModelVisibilityOptics.formModel
-    val repeatIndexMap = mutable.Map[PageModel[_], Int]()
-    //form component should only be included if both it's page and itself pass onDemandIncludeIf
+
     val fieldsInRepeatingPageMap = formModel.repeatingPageBrackets.map { bracket =>
       bracket -> bracket.source.page.allFields.size
     }.toMap
     val formComponentsRepeated = mutable.Map[Bracket.RepeatingPage[_], Int]()
 
+    //form component should only be included if both it's page and itself pass onDemandIncludeIf
     def onDemandIncludeIfFilter(formComponent: FormComponent): Boolean = {
       val page = formModel.pageLookup(formComponent.id)
       def includeComponent =
