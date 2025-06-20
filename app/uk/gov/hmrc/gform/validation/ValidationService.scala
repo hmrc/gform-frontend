@@ -27,8 +27,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.PageModel
-import uk.gov.hmrc.gform.models.Visibility
+import uk.gov.hmrc.gform.models.{ Bracket, PageModel, Visibility }
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
@@ -44,9 +43,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import ComponentChecker.CheckInterpreter
 import GformError.linkedHashSetMonoid
+
+import scala.collection.mutable
 
 class ValidationService(
   booleanExprEval: BooleanExprEval[Future],
@@ -129,8 +129,13 @@ class ValidationService(
   ): Future[ValidationResult] = {
 
     val formModel = formModelVisibilityOptics.formModel
-    var repeatIndex = 0
+    val repeatIndexMap = mutable.Map[PageModel[_], Int]()
     //form component should only be included if both it's page and itself pass onDemandIncludeIf
+    val fieldsInRepeatingPageMap = formModel.repeatingPageBrackets.map { bracket =>
+      bracket -> bracket.source.page.allFields.size
+    }.toMap
+    val formComponentsRepeated = mutable.Map[Bracket.RepeatingPage[_], Int]()
+
     def onDemandIncludeIfFilter(formComponent: FormComponent): Boolean = {
       val page = formModel.pageLookup(formComponent.id)
       def includeComponent =
@@ -141,9 +146,14 @@ class ValidationService(
         val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
 
         val includeIf = repeatsExpr.map { repeatsExpr =>
-          println(repeatIndex)
+          val bracket = formModel.repeatingPageBrackets
+            .find(_.singletons.find(_.singleton == page).isDefined)
+            .getOrElse(throw new RuntimeException("bracket not found from singleton"))
+
+          val formComponentRepeated = formComponentsRepeated.getOrElseUpdate(bracket, 0)
+          val repeatIndex = formComponentRepeated / fieldsInRepeatingPageMap(bracket)
           val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
-          repeatIndex = repeatIndex + 1
+          formComponentsRepeated(bracket) = formComponentRepeated + 1
           res
         }
 
