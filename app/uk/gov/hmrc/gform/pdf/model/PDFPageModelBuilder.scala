@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
+import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -24,7 +25,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Section, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, GreaterThan, IncludeIf, Section, SectionNumber }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 
@@ -44,8 +45,47 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+
     def brackets: List[Bracket[Visibility]] =
-      formModelOptics.formModelVisibilityOptics.formModel.brackets.fold(_.brackets)(_.allBrackets).toList
+      formModel.brackets
+        .fold(_.brackets)(_.allBrackets)
+        .toList
+        .filter(
+          onDemandIncludeIfFilterForBrackets
+        )
+        .flatMap {
+          cutBrackets
+        }
+
+    def cutBrackets(bracket: Bracket[Visibility]) =
+      bracket match {
+        case Bracket.RepeatingPage(singletons, source) =>
+          def eval(index: Int) =
+            formModel.onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
+          val newList = singletons.zipWithIndex.collect {
+            case (singleton, index) if eval(index) => singleton
+          }
+          if (newList.isEmpty) {
+            None
+          } else {
+            Some(Bracket.RepeatingPage[Visibility](NonEmptyList(newList.head, newList.tail), source))
+          }
+        case bracket => Some(bracket)
+      }
+
+    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
+    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
+      bracket match {
+        case bracket =>
+          bracket.toPageModel
+            .map { case pm =>
+              pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+            }
+            .find(_ == true)
+            .getOrElse(false)
+      }
+
     val bracketsSorted: List[Bracket[Visibility]] = bracketOrdering.fold(brackets)(brackets.sorted(_))
 
     bracketsSorted.flatMap {
