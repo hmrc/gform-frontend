@@ -92,7 +92,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     def pageIncludeIf(list: List[PageModel[Visibility]]) = list.flatMap(_.getIncludeIf)
     //    println("pageIncludeIf: " + pageIncludeIf)
     // println("page: " + page)
-    def evalRes(pageIncludeIf: List[IncludeIf]) = pageIncludeIf.forall { includeIf =>
+    def evalIncludeIf(pageIncludeIf: List[IncludeIf]) = pageIncludeIf.forall { includeIf =>
       //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
       visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
     }
@@ -100,7 +100,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     val res = {
       sectionNumber match {
         case section @ AddToListPage.DefaultPage(sectionIndex) =>
-          evalRes(
+          evalIncludeIf(
             pageIncludeIf(
               List(
                 visibilityFormModel.pageModelLookup(AddToListPage.Page(sectionIndex, 1, 0)),
@@ -109,17 +109,24 @@ class FormValidator(implicit ec: ExecutionContext) {
             )
           )
         case section @ Classic.RepeatedPage(sectionIndex, pageNumber) =>
+          val repeatingPageBracket = visibilityFormModel.repeatingPageBrackets.find(_.hasSectionNumber(sectionNumber))
           val repeats =
-            visibilityFormModel.repeatingPageBrackets.find(_.hasSectionNumber(sectionNumber)).map(_.source.repeats)
+            repeatingPageBracket.map(_.source.repeats)
 
-          val res = repeats.flatMap { repeats =>
-            val includeIf = IncludeIf(GreaterThan(repeats, Constant(pageNumber.toString)))
-            visibilityFormModel.onDemandIncludeIf.map { f =>
-              f(includeIf)
-            }
+          def includeIf = repeatingPageBracket.flatMap(_.source.page.includeIf).forall { includeIf =>
+            evalIncludeIf(List(includeIf))
           }
-          res.getOrElse(true)
-        case section => evalRes(pageIncludeIf(List(visibilityFormModel.pageModelLookup(section))))
+
+          def repeatsBool = repeats
+            .flatMap { repeats =>
+              val includeIf = IncludeIf(GreaterThan(repeats, Constant(pageNumber.toString)))
+              visibilityFormModel.onDemandIncludeIf.map { f =>
+                f(includeIf)
+              }
+            }
+            .getOrElse(true)
+          includeIf && repeatsBool
+        case section => evalIncludeIf(pageIncludeIf(List(visibilityFormModel.pageModelLookup(section))))
       }
     }
 
