@@ -633,6 +633,19 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
+    def brackets: List[Bracket[Visibility]] = formModel.brackets
+      .fold(_.brackets.toList)(taskListBrackets =>
+        maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
+          taskListBrackets.bracketsFor(coordinates).toBracketsList
+        )
+      )
+      .filter(
+        onDemandIncludeIfFilterForBrackets
+      )
+      .flatMap {
+        cutBrackets
+      }
+
     def cutBrackets(bracket: Bracket[Visibility]) =
       bracket match {
         case Bracket.RepeatingPage(singletons, source) =>
@@ -649,18 +662,6 @@ object SummaryRenderingService {
         case bracket => Some(bracket)
       }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets
-      .fold(_.brackets.toList)(taskListBrackets =>
-        maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
-          taskListBrackets.bracketsFor(coordinates).toBracketsList
-        )
-      )
-      .flatMap {
-        cutBrackets
-      }
-      .filter(
-        onDemandIncludeIfFilterForBrackets
-      )
     //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
       bracket match {

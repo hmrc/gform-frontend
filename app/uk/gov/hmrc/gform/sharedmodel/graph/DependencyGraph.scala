@@ -81,9 +81,10 @@ object DependencyGraph {
 
     //println("currentSection: " + currentSection)
 
+    //TODO: Figure out how to reduce formModel.allFormComponents. This has an impact on expr labels in summaries
     def summaryFormComponents: List[FormComponentId] = currentSection match {
       case Some(SectionOrSummary.Section(_)) | None => List()
-      // case _                                        => formModel.allFormComponents.map(_.id)
+
       case Some(SectionOrSummary.MaybeTaskCoordinates(maybeCoordinates)) =>
         maybeCoordinates
           .map { coordinates =>
@@ -100,8 +101,13 @@ object DependencyGraph {
             formModel.allFormComponents
           }
           .flatMap { fc =>
-            AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds())
+            AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds() :+ fc.id)
           }
+
+      case _ =>
+        formModel.allFormComponents.flatMap { fc =>
+          AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds() :+ fc.id)
+        }
     }
 
     (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
