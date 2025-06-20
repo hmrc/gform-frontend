@@ -443,6 +443,10 @@ object FormComponentSummaryRenderer {
           HtmlFormat.escape
         )
 
+    println("label: " + label)
+    println("fcrd: " + fcrd)
+    println("fieldValue: " + fieldValue)
+
     val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
 
     List(
