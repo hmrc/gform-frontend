@@ -351,10 +351,10 @@ object AllMiniSummaryListIncludeIfs {
   def unapply(fc: FormComponent): Option[List[IncludeIf]] = fc match {
     case IsMiniSummaryList(c) =>
       Some(c.rows.flatMap {
-        case MiniSummaryRow.ValueRow(_, _, includeIf, _)       => includeIf
-        case MiniSummaryRow.SmartStringRow(_, _, includeIf, _) => includeIf
-        case MiniSummaryRow.HeaderRow(_)                       => None
-        case MiniSummaryRow.ATLRow(_, includeIf, _)            => includeIf
+        case MiniSummaryRow.ValueRow(_, _, includeIf, _, _)       => includeIf
+        case MiniSummaryRow.SmartStringRow(_, _, includeIf, _, _) => includeIf
+        case MiniSummaryRow.HeaderRow(_)                          => None
+        case MiniSummaryRow.ATLRow(_, includeIf, _)               => includeIf
       })
     case _ => None
   }

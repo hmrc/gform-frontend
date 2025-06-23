@@ -379,13 +379,13 @@ object FormComponentSummaryRenderer {
     if (miniSummaryList.displayInSummary === DisplayInSummary.Yes) {
       miniSummaryList.rows
         .collect {
-          case MiniSummaryRow.ValueRow(label, value, includeIf, _)
+          case MiniSummaryRow.ValueRow(label, value, includeIf, _, _)
               if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
             value match {
               case MiniSummaryListValue.AnyExpr(e)   => label -> getFormattedExprStr(formModelVisibilityOptics, e)
               case MiniSummaryListValue.Reference(e) => label -> getFormattedExprStr(formModelVisibilityOptics, e)
             }
-          case MiniSummaryRow.SmartStringRow(label, value, includeIf, _)
+          case MiniSummaryRow.SmartStringRow(label, value, includeIf, _, _)
               if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
             label -> value.value()
         }

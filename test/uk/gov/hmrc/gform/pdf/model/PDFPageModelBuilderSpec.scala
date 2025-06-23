@@ -77,6 +77,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
             Option(toSmartString("Key")),
             MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("name"))),
             None,
+            None,
             None
           )
         ),

@@ -1850,30 +1850,85 @@ class SectionRenderingService(
         )
       }
 
-      val slRows = rows.flatMap {
-        case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, maybePageId) =>
-          val formattedExprStr =
-            MiniSummaryListHelper.getFormattedExprStr(ei.formModelOptics.formModelVisibilityOptics, e)
-          maybePageId match {
-            case Some(pageId) => summaryListRowByPageId(key, formattedExprStr, pageId)
-            case None =>
-              List(
-                SummaryListRowHelper.summaryListRow(
-                  key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-                  Html(
-                    formattedExprStr + MiniSummaryListHelper
-                      .checkAndReturnSuffix(e, ei.formModelOptics.formModelVisibilityOptics.formModel)
-                  ),
-                  Some(""),
-                  SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
-                  "",
-                  "",
-                  List(),
-                  "govuk-summary-list__row--no-actions"
-                )
-              )
+      def summaryListRowByTaskId(key: Option[SmartString], value: String, taskId: TaskId) = {
+
+        val taskCoordinatesMap: Map[TaskId, (Task, Coordinates)] =
+          ei.formTemplate.formKind.fold(_ => Map.empty[TaskId, (Task, Coordinates)]) { _ =>
+            TaskListUtils.toTaskCoordinatesMap(ei.formTemplate).collect {
+              case (task, coordinates) if task.id.isDefined => task.id.get -> (task, coordinates)
+            }
           }
-        case ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _, _) =>
+
+        val link = taskCoordinatesMap
+          .get(taskId)
+          .map { case (task, coordinates) =>
+            if (task.summarySection.isDefined) {
+              uk.gov.hmrc.gform.gform.routes.SummaryController
+                .summaryById(formTemplateId, ei.maybeAccessCode, Some(coordinates), None)
+            } else {
+              uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                .newTask(
+                  formTemplateId,
+                  ei.maybeAccessCode,
+                  coordinates.taskSectionNumber,
+                  coordinates.taskNumber,
+                  true
+                )
+            }
+          }
+          .getOrElse(
+            throw new Exception(
+              s"TaskId $taskId not found in taskIdCoordinateMap. Available taskIds: " + taskCoordinatesMap.keys + "."
+                .mkString(", ")
+            )
+          )
+
+        List(
+          SummaryListRowHelper.summaryListRow(
+            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+            Html(value),
+            Some(""),
+            SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+            "",
+            "",
+            List(
+              (
+                link,
+                messages("summary.view"),
+                ""
+              )
+            ),
+            ""
+          )
+        )
+      }
+
+      val formattedExprStr = (e: Expr) =>
+        MiniSummaryListHelper.getFormattedExprStr(ei.formModelOptics.formModelVisibilityOptics, e)
+
+      val slRows = rows.flatMap {
+        case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, Some(pageId), _) =>
+          summaryListRowByPageId(key, formattedExprStr(e), pageId)
+        case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, _, Some(taskId)) =>
+          summaryListRowByTaskId(key, formattedExprStr(e), taskId)
+        case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, _, _) =>
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(
+                formattedExprStr(e) + MiniSummaryListHelper
+                  .checkAndReturnSuffix(e, ei.formModelOptics.formModelVisibilityOptics.formModel)
+              ),
+              Some(""),
+              SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+              "",
+              "",
+              List(),
+              "govuk-summary-list__row--no-actions"
+            )
+          )
+
+        case ValueRow(key, MiniSummaryListValue.Reference(FormCtx(formComponentId)), _, _, _) =>
           val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
 
           formModel.sectionNumberLookup
@@ -1902,23 +1957,22 @@ class SectionRenderingService(
             }
             .toList
             .flatten
-        case SmartStringRow(key, ss, _, maybePageId) =>
-          maybePageId match {
-            case Some(pageId) => summaryListRowByPageId(key, ss.value(), pageId)
-            case None =>
-              List(
-                SummaryListRowHelper.summaryListRow(
-                  key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-                  Html(ss.value()),
-                  Some(""),
-                  SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
-                  "",
-                  "",
-                  List(),
-                  "govuk-summary-list__row--no-actions"
-                )
-              )
-          }
+        case SmartStringRow(key, ss, _, Some(pageId), _) => summaryListRowByPageId(key, ss.value(), pageId)
+        case SmartStringRow(key, ss, _, _, Some(taskId)) => summaryListRowByTaskId(key, ss.value(), taskId)
+        case SmartStringRow(key, ss, _, _, _) =>
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(ss.value()),
+              Some(""),
+              SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+              "",
+              "",
+              List(),
+              "govuk-summary-list__row--no-actions"
+            )
+          )
+
         case HeaderRow(header)         => throw new Exception("should not have HeaderRow  here")
         case ATLRow(atlId, _, atlRows) => throw new Exception("should not have ATLRow here")
       }
@@ -1939,21 +1993,23 @@ class SectionRenderingService(
           mayBeIncludeIf.map(iIf => IncludeIf(BooleanExprUpdater(iIf.booleanExpr, index, baseIds)))
 
         val updatedATLRows = atlRows.map {
-          case ValueRow(key, MiniSummaryListValue.Reference(fCtx), includeIf, pageId) =>
+          case ValueRow(key, MiniSummaryListValue.Reference(fCtx), includeIf, pageId, taskId) =>
             ValueRow(
               key.map(_.expand(index, baseIds)),
               MiniSummaryListValue.Reference(ExprUpdater.formCtx(fCtx, index, baseIds)),
               updatedIncludeIf(includeIf),
-              pageId
+              pageId,
+              taskId
             )
 
           case HeaderRow(h) => HeaderRow(h.expand(index, baseIds))
-          case ValueRow(key, MiniSummaryListValue.AnyExpr(expr), includeIf, pageId) =>
+          case ValueRow(key, MiniSummaryListValue.AnyExpr(expr), includeIf, pageId, taskId) =>
             ValueRow(
               key.map(_.expand(index, baseIds)),
               MiniSummaryListValue.AnyExpr(ExprUpdater(expr, index, baseIds)),
               updatedIncludeIf(includeIf),
-              pageId
+              pageId,
+              taskId
             )
           case e => e
         }
