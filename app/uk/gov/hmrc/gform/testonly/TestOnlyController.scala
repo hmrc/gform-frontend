@@ -518,7 +518,12 @@ class TestOnlyController(
       (tcType, rounding, fractionalDigits, resultType, value)
     }
 
-    def buildExprRow(key: String, value: JsValue, maybeExpr: Option[Expr]): Seq[TableRow] = {
+    def buildExprRow(
+      key: String,
+      value: JsValue,
+      maybeExpr: Option[Expr],
+      maybeErrorMsg: Option[String]
+    ): Seq[TableRow] = {
       val exprStr = value
         .asOpt[String]
         .orElse((value \ "value").asOpt[String])
@@ -526,7 +531,11 @@ class TestOnlyController(
 
       val (tcType, rounding, fractionalDigits, resultType, valueStr) = maybeExpr
         .map(extractExprMeta)
-        .getOrElse(("not found", "not found", "not found", "not found", "not found"))
+        .getOrElse(
+          maybeErrorMsg.fold(("not found", "not found", "not found", "not found", "not found"))(msg =>
+            ("", "", "", "", s"Error evaluating expression: $msg")
+          )
+        )
 
       Seq(
         TableRow(HtmlContent(key)),
@@ -568,7 +577,12 @@ class TestOnlyController(
               .map(label => HeadCell(Text(label)))
           ),
           rows = expressions.value.map { case (key, value) =>
-            buildExprRow(key, value, exprsFromTemplate.expressions.get(ExpressionId(key)))
+            buildExprRow(
+              key,
+              value,
+              exprsFromTemplate.expressions.get(ExpressionId(key)),
+              exprsFromTemplate.errorMap.get(ExpressionId(key))
+            )
           }.toSeq
         )
       )
