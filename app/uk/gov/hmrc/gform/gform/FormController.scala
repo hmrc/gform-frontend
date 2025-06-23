@@ -170,6 +170,7 @@ class FormController(
                                   _,
                                   MiniSummaryListValue.Reference(FormCtx(r)),
                                   _,
+                                  _,
                                   _
                                 ) =>
                               List(r)
@@ -179,6 +180,7 @@ class FormController(
                                   case MiniSummaryRow.ValueRow(
                                         _,
                                         MiniSummaryListValue.Reference(FormCtx(r)),
+                                        _,
                                         _,
                                         _
                                       ) =>

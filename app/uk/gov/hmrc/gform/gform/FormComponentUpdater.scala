@@ -101,12 +101,12 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
   private def expandSummaryList(summaryList: MiniSummaryList): MiniSummaryList = {
     val expRows = summaryList.rows
       .map {
-        case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(exp), _, _) =>
+        case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.AnyExpr(exp), _, _, _) =>
           r.copy(value = MiniSummaryListValue.AnyExpr(expandExpr(exp)))
-        case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(ref), _, _) =>
+        case r @ MiniSummaryRow.ValueRow(_, MiniSummaryListValue.Reference(ref), _, _, _) =>
           r.copy(value = MiniSummaryListValue.Reference(expandFormCtx(ref)))
-        case r @ MiniSummaryRow.SmartStringRow(_, _, _, _) => r
-        case r @ MiniSummaryRow.HeaderRow(_)               => r
+        case r @ MiniSummaryRow.SmartStringRow(_, _, _, _, _) => r
+        case r @ MiniSummaryRow.HeaderRow(_)                  => r
         case r @ MiniSummaryRow.ATLRow(ref, includeIf, rows) =>
           r.copy(
             atlId = expandFormCtx(FormCtx(ref)).formComponentId,
@@ -116,7 +116,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
           )
       }
       .map {
-        case r @ MiniSummaryRow.ValueRow(ss, _, includeIf, _) =>
+        case r @ MiniSummaryRow.ValueRow(ss, _, includeIf, _, _) =>
           r.copy(key = ss.map(expandSmartString), includeIf = includeIf.map(expandIncludeIf))
         case otherwise => otherwise
       }

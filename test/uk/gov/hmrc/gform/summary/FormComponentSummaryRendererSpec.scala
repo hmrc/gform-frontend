@@ -85,6 +85,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 Option(toSmartString("Name")),
                 MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
                 None,
+                None,
                 None
               )
             ),
@@ -105,6 +106,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
               ValueRow(
                 Option(toSmartString("Name")),
                 MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
+                None,
                 None,
                 None
               )
@@ -127,6 +129,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 Option(toSmartString("Name")),
                 MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
                 Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("nameValue")))),
+                None,
                 None
               )
             ),
@@ -148,6 +151,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
                 Option(toSmartString("Name")),
                 MiniSummaryListValue.AnyExpr(FormCtx(FormComponentId("nameField"))),
                 Option(IncludeIf(Equals(FormCtx(FormComponentId("nameField")), Constant("notTheValue")))),
+                None,
                 None
               )
             ),
