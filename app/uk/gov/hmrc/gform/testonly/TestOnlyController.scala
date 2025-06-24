@@ -57,6 +57,7 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
 import uk.gov.hmrc.gform.eval.ExpressionResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary.FormSummary
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ Fieldset, InsetText, Label, Legend, RadioItem, Radios, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukFieldset, GovukHint, GovukInsetText, GovukLabel, GovukRadios, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -467,7 +468,7 @@ class TestOnlyController(
   }
 
   def showExpressions(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, accessCode) {
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, accessCode, None) {
       implicit request => implicit langADT => cache => _ => formModelOptics =>
         import i18nSupport._
 
