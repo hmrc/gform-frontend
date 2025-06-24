@@ -229,7 +229,9 @@ class SummaryController(
                     .landingPage(formTemplateId, maybeAccessCode)
                 ) { taskDeclaration =>
                   val isTaskDeclarationVisible = taskDeclaration.includeIf.fold(true)(includeIf =>
-                    formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                    formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf.forall { f =>
+                      f(includeIf)
+                    }
                   )
 
                   if (isTaskDeclarationVisible) {
@@ -252,7 +254,9 @@ class SummaryController(
             cache.formTemplate.destinations match {
               case DestinationList(_, _, Some(declarationSection)) =>
                 val isDeclarationSectionVisible = declarationSection.includeIf.fold(true)(includeIf =>
-                  formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                  formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf.forall { f =>
+                    f(includeIf)
+                  }
                 )
                 if (isDeclarationSectionVisible) {
                   Redirect(
