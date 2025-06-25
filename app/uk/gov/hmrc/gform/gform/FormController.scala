@@ -257,13 +257,14 @@ class FormController(
                           renderer
                             .renderATLDeclarationSection(
                               maybeAccessCode,
-                              cache.formTemplate,
                               declarationSection.declaration,
                               cache,
-                              handlerResult.validationResult,
+                              handlerResult,
                               formModelOptics,
                               fastForward,
-                              sectionNumber
+                              sectionNumber,
+                              formMaxAttachmentSizeMB,
+                              restrictedFileExtensions
                             )
                         )
                       )

@@ -153,9 +153,10 @@ object Bracket {
 
     def filter(predicate: PageModel[A] => Boolean): Option[AddToListIteration[A]] = {
       val filtered = singletons.filter(s => predicate(s.singleton))
+      val maybeDeclaration = declarationSection.filter(d => predicate(d.declaration))
       NonEmptyList
         .fromList(filtered)
-        .map(AddToListIteration(defaultPage, _, checkYourAnswers, declarationSection, repeater))
+        .map(AddToListIteration(defaultPage, _, checkYourAnswers, maybeDeclaration, repeater))
     }
 
     def defaultPageOrFirstSectionNumber: SectionNumber = defaultPage.map(_.sectionNumber).getOrElse(firstSectionNumber)
