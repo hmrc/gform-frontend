@@ -329,6 +329,8 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val allFormComponentExpressions = AllFormTemplateExpressions(formTemplate)
 
+    val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
+
     def onDemandPageIncludeIf(includeIf: IncludeIf) = {
 
       def getRecalculation(includeIf: IncludeIf) = {
@@ -371,10 +373,10 @@ class FormModelBuilder[E, F[_]: Functor](
           )
       }
 
-      val recalc = recalcCache.getOrElseUpdate(includeIf, getRecalculation(includeIf))
+      def recalc = recalcCache.getOrElseUpdate(includeIf, getRecalculation(includeIf))
 
       //TODO: Remove await. For testing only
-      val newEr = recalc match {
+      def newEr = recalc match {
         case recalc: Future[RecalculationResult] =>
           Await.result(
             recalc,
@@ -389,13 +391,17 @@ class FormModelBuilder[E, F[_]: Functor](
 
       //println(newEr.booleanExprCache)
 
-      FormModelBuilder.evalIncludeIf(
+      evalIncludeIfCache.getOrElseUpdate(
         includeIf,
-        newEr,
-        newEr.evaluationResults.recData,
-        formModel,
-        phase
+        FormModelBuilder.evalIncludeIf(
+          includeIf,
+          newEr,
+          newEr.evaluationResults.recData,
+          formModel,
+          phase
+        )
       )
+
     }
 
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)

@@ -117,7 +117,10 @@ class ValidationService(
   }
 
   //form component should only be included if both it's page and itself pass onDemandIncludeIf
-  def onDemandIncludeIfFilter(
+  private def onDemandIncludeIfPage(page: PageModel[_], formModel: FormModel[_]) =
+    page.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+
+  private def onDemandIncludeIfFilter(
     formComponent: FormComponent,
     formModel: FormModel[Visibility],
     formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[Visibility], Int],
@@ -126,7 +129,6 @@ class ValidationService(
     val page = formModel.pageLookup(formComponent.id)
     def includeComponent =
       formComponent.includeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
-    def includePage = page.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
 
     def includeRepeats = {
       val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
@@ -150,7 +152,7 @@ class ValidationService(
       }
 
     }
-    includeComponent && includePage && includeRepeats
+    onDemandIncludeIfPage(page, formModel) && includeComponent && includeRepeats
   }
 
   def validateFormModel[D <: DataOrigin](
@@ -174,7 +176,7 @@ class ValidationService(
     val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[Visibility], Int] =
       mutable.Map[Bracket.RepeatingPage[Visibility], Int]()
 
-    val allFields = maybeCoordinates
+    def allFields = maybeCoordinates
       .fold(formModelVisibilityOptics.allFormComponents)(
         formModelVisibilityOptics.allFormComponentsForCoordinates
       )
@@ -184,6 +186,7 @@ class ValidationService(
 
     for {
       v <- formModel.pages
+             .filter(page => onDemandIncludeIfPage(page, formModel))
              .traverse(pageModel =>
                validatePageModel(
                  pageModel,
