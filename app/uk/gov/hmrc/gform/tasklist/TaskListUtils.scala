@@ -21,11 +21,11 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, PageModel, Visibility }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, PageModel, TaskModel, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMapping }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormComponent, FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber, TaskStatus => TaskStatusExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormComponent, FormKind, FormTemplate, SectionNumber, Task, TaskNumber, TaskSection, TaskSectionNumber, TaskStatus => TaskStatusExpr }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicValue }
 import uk.gov.hmrc.gform.tasklist.TaskStatus.NotStarted
 import uk.gov.hmrc.gform.validation.ValidationService
@@ -98,7 +98,8 @@ object TaskListUtils {
   ): Future[NonEmptyList[(Coordinates, TaskStatus)]] = {
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
     val taskList: BracketsWithSectionNumber.TaskList[Visibility] = formModel.brackets.unsafeToTaskList
-    val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
+    val coordinates: NonEmptyList[Coordinates] = taskList.brackets
+      .map(_._1)
     if (cache.formTemplate.isSpecimen) {
       Future.successful(coordinates.map(coordinates => coordinates -> TaskStatus.NotStarted))
     } else {
@@ -116,12 +117,6 @@ object TaskListUtils {
                               val dataForCoordinate: Set[VariadicValue] =
                                 formModelVisibilityOptics.data
                                   .forCoordinate(coordinate)
-                              val hasTerminationPage = formModel.taskList
-                                .availablePages(coordinate)
-                                .filter(onDemandIncludeIfPageFilter)
-                                .exists(
-                                  _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
-                                )
 
                               for {
                                 formHandlerResult <-
@@ -141,9 +136,26 @@ object TaskListUtils {
                                     formModelVisibilityOptics
                                   )
                               } yield {
-                                println("formHandlerResult.isFormValid: " + formHandlerResult.isFormValid)
-                                println("!hasTerminationPage: " + !hasTerminationPage)
-                                println("validatedATLs.isValid: " + validatedATLs.isValid)
+//                                println("formHandlerResult.isFormValid: " + formHandlerResult.isFormValid)
+//                                println("!hasTerminationPage: " + !hasTerminationPage)
+//                                println("validatedATLs.isValid: " + validatedATLs.isValid)
+
+                                def hasTerminationPage = coordinates.exists { coordinate =>
+                                  val taskModel = formModel.brackets.unsafeToTaskList.bracketsFor(coordinate)
+                                  val availablePages = taskModel match {
+                                    case TaskModel.AllHidden() => List.empty
+                                    case TaskModel.Editable(xs) =>
+                                      val pagesWithIndex = xs.flatMap(_.toPageModelWithNumber)
+                                      val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
+                                      pages
+                                  }
+
+                                  availablePages
+                                    .find(
+                                      _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
+                                    )
+                                    .exists(onDemandIncludeIfPageFilter)
+                                }
 
                                 val taskStatus =
                                   if (dataForCoordinate.isEmpty) {

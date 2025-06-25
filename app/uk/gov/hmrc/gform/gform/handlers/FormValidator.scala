@@ -265,7 +265,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
       val sectionsAfterCurrent =
         availableSectionNumbers.filter(_ > currentSectionNumber)
-      println("sections after current: " + sectionsAfterCurrent)
+      // println("sections after current: " + sectionsAfterCurrent)
       sectionsAfterCurrent
     } collectFirst {
       case sectionNumber if sectionIsVisible(sectionNumber, visibilityFormModel) =>
@@ -277,12 +277,12 @@ class FormValidator(implicit ec: ExecutionContext) {
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next*/
 
-    println("nextFrom: " + nextFrom)
+    // println("nextFrom: " + nextFrom)
 
-    println("ff: " + fastForward)
+    //println("ff: " + fastForward)
 
     ffYesSnF.map { ffYesSn =>
-      println("ffYesSn: " + ffYesSn)
+      // println("ffYesSn: " + ffYesSn)
     }
 
     fastForward match {
@@ -338,7 +338,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               val redirect =
                 if (r < lsn) SectionOrSummary.Section(r)
                 else SectionOrSummary.Section(lsn)
-              println("redirect: " + redirect)
+              //println("redirect: " + redirect)
               redirect
           }
         }
