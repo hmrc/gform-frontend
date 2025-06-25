@@ -315,54 +315,11 @@ class FormModelBuilder[E, F[_]: Functor](
   )(implicit messages: Messages, lang: LangADT): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
+    val allExprsCache: mutable.Map[IncludeIf, List[Expr]] = mutable.Map()
+
     def onDemandPageIncludeIf(includeIf: IncludeIf) = {
-      val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
-        formModel.allMultiFileIds.map { modelComponentId =>
-          modelComponentId -> data.filesOfMultiFileComponent(modelComponentId)
-        }.toMap
 
-      val evaluationContext =
-        EvaluationContext(
-          formTemplate._id,
-          SubmissionRef(envelopeId),
-          maybeAccessCode,
-          retrievals,
-          thirdPartyData,
-          formTemplate.authConfig,
-          hc,
-          phase,
-          FileIdsWithMapping(formModel.allFileIds, formModel.allMultiFileIds, componentIdToFileId),
-          modelComponentId,
-          formModel.dateLookup,
-          formModel.addressLookup,
-          formModel.overseasAddressLookup,
-          formModel.postcodeLookup,
-          formModel.pageIdSectionNumberMap,
-          lang,
-          messages,
-          formModel.allIndexedComponentIds,
-          formModel.taxPeriodDate,
-          FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-          formModel.dataRetrieveAll,
-          formModel.hideChoicesSelected,
-          formModel.choiceLookup,
-          formModel.addToListIds,
-          lookupRegistry,
-          formModel.lookupRegister,
-          formModel.constraints,
-          taskIdTaskStatus,
-          None
-        )
-
-      val exprs = includeIf.booleanExpr.allExpressions
-
-      val baseFcLookup = formModelInterim.allFormComponentIds
-        .map(fcId => fcId.baseComponentId -> fcId)
-        .foldLeft(mutable.Map.empty[BaseComponentId, List[FormComponentId]]) { case (acc, (baseId, fcId)) =>
-          acc.addOne(
-            baseId -> (acc.getOrElse(baseId, List()) :+ fcId)
-          )
-        }
+      val exprs = allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
 
       //    println("base fc keys: " + baseFcLookup.keys)
 
@@ -373,7 +330,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
       val formComponentIds = exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds
 
-      println("formComponentIds: " + formComponentIds)
+      // println("formComponentIds: " + formComponentIds)
 
       val formComponents =
         formComponentIds
@@ -381,7 +338,7 @@ class FormModelBuilder[E, F[_]: Functor](
           .flatMap {
             case (Some(fc), fcId) => List(fc)
             case (None, fcId) =>
-              baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
+              formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
           }
 
       //formComponentIds.foreach(x => println(formModel.pageLookup(x)))
@@ -392,7 +349,7 @@ class FormModelBuilder[E, F[_]: Functor](
           formModel = formModelInterim,
           formTemplate = formTemplate,
           retrievals = retrievals,
-          evaluationContext = evaluationContext,
+          evaluationContext = formModelVisibilityOptics.recalculationResult.evaluationContext,
           messages = messages,
           graph = DependencyGraph.graphFrom(
             formModel,
@@ -455,7 +412,7 @@ class FormModelBuilder[E, F[_]: Functor](
 //          )
 //        }
       }
-      .map[Visibility] { singleton: Singleton[DataExpanded] =>
+      .mapWithOnDemand[Visibility] { singleton: Singleton[DataExpanded] =>
         val updatedFields = singleton.page.fields.flatMap {
           case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
           case otherwise                  => otherwise :: Nil
@@ -465,8 +422,9 @@ class FormModelBuilder[E, F[_]: Functor](
         checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
       } { repeater: Repeater[DataExpanded] =>
         repeater.asInstanceOf[Repeater[Visibility]]
+      } {
+        Some(onDemandPageIncludeIf)
       }
-      .copy(onDemandIncludeIf = Some(onDemandPageIncludeIf))
   }
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
