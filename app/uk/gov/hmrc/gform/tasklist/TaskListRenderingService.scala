@@ -59,7 +59,17 @@ class TaskListRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Html] = {
-    val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate)
+
+    def taskIsVisible(task: Task) = {
+      val fm = formModelOptics.formModelVisibilityOptics.formModel
+
+      task.includeIf.forall(includeIf => fm.onDemandIncludeIf.forall(f => f(includeIf)))
+    }
+
+    val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate).collect {
+      case (task, coordinates) if taskIsVisible(task) => task -> coordinates
+    }
+
     for {
       statusesLookup <-
         TaskListUtils
@@ -90,16 +100,7 @@ class TaskListRenderingService(
                          NoSpecificAction
                        )
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
-      def taskIsVisible(task: Task) = {
-        val fm = formModelOptics.formModelVisibilityOptics.formModel
-
-        task.includeIf.forall(includeIf => fm.onDemandIncludeIf.forall(f => f(includeIf)))
-      }
-
-      val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.collect {
-        case (task, coordinates) if taskIsVisible(task) =>
-          coordinates
-      }.toList
+      val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.values.toList
 
       val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
       val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -113,8 +114,8 @@ class TaskListRenderingService(
 
       val completedTasks = completedTasksCount(visibleTaskStatusesLookup)
 
-      println("visibleTaskCoordinates.size: " + visibleTaskCoordinates.size)
-      println("completedTasks: " + completedTasks)
+//      println("visibleTaskCoordinates.size: " + visibleTaskCoordinates.size)
+//      println("completedTasks: " + completedTasks)
 
       def taskUrl(coordinates: Coordinates, taskStatus: TaskStatus) =
         taskStatus match {
