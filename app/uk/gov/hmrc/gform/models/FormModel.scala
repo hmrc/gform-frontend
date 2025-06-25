@@ -33,8 +33,12 @@ case class FormModel[A <: PageMode](
   sumInfo: SumInfo,
   standaloneSumInfo: StandaloneSumInfo, // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
   dataRetrieve: Option[NonEmptyList[DataRetrieve]],
-  onDemandIncludeIf: Option[IncludeIf => Boolean] = None
+  onDemandIncludeIfBulk: Option[List[IncludeIf] => List[Boolean]] = None
 ) {
+
+  def onDemandIncludeIf: Option[IncludeIf => Boolean] = onDemandIncludeIfBulk.map { includeIfBulkF => includeIf =>
+    includeIfBulkF(List(includeIf)).head
+  }
 
   val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.toPageModelWithNumber
 
@@ -198,7 +202,7 @@ case class FormModel[A <: PageMode](
     f: CheckYourAnswers[A] => CheckYourAnswers[B]
   )(
     g: Repeater[A] => Repeater[B]
-  )(onDemand: Option[IncludeIf => Boolean]): FormModel[B] = FormModel(
+  )(onDemand: Option[List[IncludeIf] => List[Boolean]]): FormModel[B] = FormModel(
     brackets.map(e)(f)(g),
     staticTypeInfo,
     revealingChoiceInfo,
