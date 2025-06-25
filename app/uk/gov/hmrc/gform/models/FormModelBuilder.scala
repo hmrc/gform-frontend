@@ -321,50 +321,58 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val allExprsCache: mutable.Map[IncludeIf, List[Expr]] = mutable.Map()
 
+    val recalcCache: mutable.Map[IncludeIf, F[RecalculationResult]] = mutable.Map()
+
+    val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
+    //    println("atl components: " + atlComponents)
+
+    val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+
+    val allFormComponentExpressions = AllFormTemplateExpressions(formTemplate)
+
     def onDemandPageIncludeIf(includeIf: IncludeIf) = {
 
-      val exprs = allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
+      def getRecalculation(includeIf: IncludeIf) = {
+        val exprs = allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
 
-      //    println("base fc keys: " + baseFcLookup.keys)
+        //    println("base fc keys: " + baseFcLookup.keys)
 
-      val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
-      //    println("atl components: " + atlComponents)
+        val formComponentIds = exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds
 
-      val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+        // println("formComponentIds: " + formComponentIds)
 
-      val formComponentIds = exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds
+        val formComponents =
+          formComponentIds
+            .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
+            .flatMap {
+              case (Some(fc), fcId) => List(fc)
+              case (None, fcId) =>
+                formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
+            }
 
-      // println("formComponentIds: " + formComponentIds)
+        //formComponentIds.foreach(x => println(formModel.pageLookup(x)))
 
-      val formComponents =
-        formComponentIds
-          .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
-          .flatMap {
-            case (Some(fc), fcId) => List(fc)
-            case (None, fcId) =>
-              formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
-          }
+        val er = formModelVisibilityOptics.evaluationResults
+        recalculation
+          .recalculateFromGraph(
+            formModel = formModelInterim,
+            formTemplate = formTemplate,
+            retrievals = retrievals,
+            evaluationContext = formModelVisibilityOptics.recalculationResult.evaluationContext,
+            messages = messages,
+            graph = DependencyGraph.graphFrom(
+              formModel,
+              allFormComponentExpressions,
+              formComponents,
+              exprs
+            ),
+            exprMapStart = er.exprMap,
+            formDataMapStart = er.recData.variadicFormData.data,
+            booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
+          )
+      }
 
-      //formComponentIds.foreach(x => println(formModel.pageLookup(x)))
-
-      val er = formModelVisibilityOptics.evaluationResults
-      val recalc = recalculation
-        .recalculateFromGraph(
-          formModel = formModelInterim,
-          formTemplate = formTemplate,
-          retrievals = retrievals,
-          evaluationContext = formModelVisibilityOptics.recalculationResult.evaluationContext,
-          messages = messages,
-          graph = DependencyGraph.graphFrom(
-            formModel,
-            AllFormTemplateExpressions(formTemplate),
-            formComponents,
-            exprs
-          ),
-          exprMapStart = er.exprMap,
-          formDataMapStart = er.recData.variadicFormData.data,
-          booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
-        )
+      val recalc = recalcCache.getOrElseUpdate(includeIf, getRecalculation(includeIf))
 
       //TODO: Remove await. For testing only
       val newEr = recalc match {
@@ -380,9 +388,7 @@ class FormModelBuilder[E, F[_]: Functor](
           throw err
       }
 
-      println(newEr.booleanExprCache)
-
-      newEr.evaluationResults.exprMap
+      //println(newEr.booleanExprCache)
 
       FormModelBuilder.evalIncludeIf(
         includeIf,
