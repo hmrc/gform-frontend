@@ -121,38 +121,43 @@ class ValidationService(
     page.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
 
   private def onDemandIncludeIfFilter(
-    formComponent: FormComponent,
+    formComponents: List[FormComponent],
     formModel: FormModel[Visibility],
     formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[Visibility], Int],
     fieldsInRepeatingPageMap: Map[Bracket.RepeatingPage[Visibility], Int]
-  ): Boolean = {
-    val page = formModel.pageLookup(formComponent.id)
-    def includeComponent =
-      formComponent.includeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+  ): List[FormComponent] = {
 
-    def includeRepeats = {
-      val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
+    val includeIfs = formComponents.flatMap { formComponent =>
+      val page = formModel.pageLookup(formComponent.id)
+      def includeComponent = formComponent.includeIf
 
-      val includeIf = repeatsExpr.map { repeatsExpr =>
-        val bracket = formModel.repeatingPageBrackets
-          .find(_.singletons.find(_.singleton == page).isDefined)
-          .getOrElse(throw new RuntimeException("bracket not found from singleton"))
+      def includeRepeats = {
+        val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
 
-        val formComponentRepeated = formComponentsRepeated.getOrElseUpdate(bracket, 0)
-        val repeatIndex = formComponentRepeated / fieldsInRepeatingPageMap(bracket)
-        val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
-        formComponentsRepeated(bracket) = formComponentRepeated + 1
-        res
+        repeatsExpr.map { repeatsExpr =>
+          val bracket = formModel.repeatingPageBrackets
+            .find(_.singletons.find(_.singleton == page).isDefined)
+            .getOrElse(throw new RuntimeException("bracket not found from singleton"))
+
+          val formComponentRepeated = formComponentsRepeated.getOrElseUpdate(bracket, 0)
+          val repeatIndex = formComponentRepeated / fieldsInRepeatingPageMap(bracket)
+          val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
+          formComponentsRepeated(bracket) = formComponentRepeated + 1
+          res
+        }
+
       }
 
-      includeIf.forall { includeIf =>
-        formModel.onDemandIncludeIf.forall { f =>
-          f(includeIf)
+      List(page.getIncludeIf, includeComponent, includeRepeats)
+    }
+
+    formModel.onDemandIncludeIfBulk
+      .map { f =>
+        formComponents.zip(f(includeIfs).grouped(3)).collect {
+          case (fc, includes) if includes.forall(includeOpt => includeOpt.getOrElse(true)) => fc
         }
       }
-
-    }
-    onDemandIncludeIfPage(page, formModel) && includeComponent && includeRepeats
+      .getOrElse(formComponents)
   }
 
   def validateFormModel[D <: DataOrigin](
@@ -166,6 +171,7 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[ValidationResult] = {
+    println(maybeCoordinates)
 
     val formModel = formModelVisibilityOptics.formModel
 
@@ -176,28 +182,31 @@ class ValidationService(
     val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[Visibility], Int] =
       mutable.Map[Bracket.RepeatingPage[Visibility], Int]()
 
-    def allFields = maybeCoordinates
-      .fold(formModelVisibilityOptics.allFormComponents)(
-        formModelVisibilityOptics.allFormComponentsForCoordinates
-      )
-      .filter(fc => onDemandIncludeIfFilter(fc, formModel, formComponentsRepeated, fieldsInRepeatingPageMap))
+    def allFields = onDemandIncludeIfFilter(
+      maybeCoordinates
+        .fold(formModelVisibilityOptics.allFormComponents)(
+          formModelVisibilityOptics.allFormComponentsForCoordinates
+        ),
+      formModel,
+      formComponentsRepeated,
+      fieldsInRepeatingPageMap
+    )
 
     val emailCodeMatcher = GetEmailCodeFieldMatcher(formModel)
 
     val pages = formModel.onDemandIncludeIfBulk
       .map { f =>
         val results = f(formModel.pages.map { page =>
-          page.getIncludeIf.getOrElse(IncludeIf(Equals(Constant("1"), Constant("1"))))
+          page.getIncludeIf
         })
-        formModel.pages.zip(results).collect { case (page, true) =>
+        formModel.pages.zip(results).collect { case (page, Some(true)) =>
           page
         }
       }
       .getOrElse(formModel.pages)
 
     for {
-      v <- formModel.pages
-             .filter(page => onDemandIncludeIfPage(page, formModel))
+      v <- pages
              .traverse(pageModel =>
                validatePageModel(
                  pageModel,
@@ -271,9 +280,12 @@ class ValidationService(
     val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[Visibility], Int] =
       mutable.Map[Bracket.RepeatingPage[Visibility], Int]()
 
-    formModel.allFormComponents
-      .filterNot(_.onlyShowOnSummary)
-      .filter(fc => onDemandIncludeIfFilter(fc, formModel, formComponentsRepeated, fieldsInRepeatingPageMap))
+    onDemandIncludeIfFilter(
+      formModel.allFormComponents.filterNot(_.onlyShowOnSummary),
+      formModel,
+      formComponentsRepeated,
+      fieldsInRepeatingPageMap
+    )
       .traverse(fv =>
         validateFormComponent(
           fv,
