@@ -64,14 +64,6 @@ object DependencyGraph {
       expressionIds ++ bracket.toPageModel.toList.flatMap(_.allFormComponentIds)
     }
 
-    val baseFcLookup = formModel.allFormComponentIds
-      .map(fcId => fcId.baseComponentId -> fcId)
-      .foldLeft(mutable.Map.empty[BaseComponentId, List[FormComponentId]]) { case (acc, (baseId, fcId)) =>
-        acc.addOne(
-          baseId -> (acc.getOrElse(baseId, List()) :+ fcId)
-        )
-      }
-
     //    println("base fc keys: " + baseFcLookup.keys)
 
     val atlComponents = formModel.addToListIds.map(_.formComponentId)
@@ -114,7 +106,7 @@ object DependencyGraph {
       .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
       .flatMap {
         case (Some(fc), fcId) => List(fc)
-        case (None, fcId)     => baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
+        case (None, fcId)     => formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
       } -> allCurrentPageExpressions
   }
 

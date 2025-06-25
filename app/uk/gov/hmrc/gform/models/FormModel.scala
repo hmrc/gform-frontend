@@ -192,6 +192,22 @@ case class FormModel[A <: PageMode](
       fc.id.baseComponentId -> constraint
   }.toMap
 
+  def mapWithOnDemand[B <: PageMode](
+    e: Singleton[A] => Singleton[B]
+  )(
+    f: CheckYourAnswers[A] => CheckYourAnswers[B]
+  )(
+    g: Repeater[A] => Repeater[B]
+  )(onDemand: Option[IncludeIf => Boolean]): FormModel[B] = FormModel(
+    brackets.map(e)(f)(g),
+    staticTypeInfo,
+    revealingChoiceInfo,
+    sumInfo,
+    standaloneSumInfo,
+    dataRetrieve,
+    onDemand
+  )
+
   def map[B <: PageMode](
     e: Singleton[A] => Singleton[B]
   )(
@@ -373,6 +389,14 @@ case class FormModel[A <: PageMode](
 
   val addToListSectionNumbers = addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
   val addToListRepeaterSectionNumbers = addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
+
+  lazy val baseFcLookup: mutable.Map[BaseComponentId, List[FormComponentId]] = allFormComponentIds
+    .map(fcId => fcId.baseComponentId -> fcId)
+    .foldLeft(mutable.Map.empty[BaseComponentId, List[FormComponentId]]) { case (acc, (baseId, fcId)) =>
+      acc.addOne(
+        baseId -> (acc.getOrElse(baseId, List()) :+ fcId)
+      )
+    }
 }
 
 object FormModel {

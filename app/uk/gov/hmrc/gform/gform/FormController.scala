@@ -160,48 +160,48 @@ class FormController(
           val formModel = formModelOptics.formModelRenderPageOptics.formModel
           val bracket = formModel.bracket(sectionNumber)
 
-            bracket match {
-              case Bracket.NonRepeatingPage(SingletonWithNumber(singleton, sectionNumber), _) =>
-                val formModel = formModelOptics.formModelVisibilityOptics.formModel
-                // section numbers with form components that other components may refer to
-                val sns = formModel.pageModelLookup
-                  .get(sectionNumber)
-                  .map { pageModel =>
-                    pageModel.allFormComponents
-                      .collect {
-                        case IsMiniSummaryList(MiniSummaryList(rows, _, _)) =>
-                          rows.collect {
-                            case MiniSummaryRow.ValueRow(
-                                  _,
-                                  MiniSummaryListValue.Reference(FormCtx(r)),
-                                  _,
-                                  _,
-                                  _
-                                ) =>
-                              List(r)
-                            case MiniSummaryRow.ATLRow(atlId, _, rs) =>
-                              atlId ::
-                                rs collect {
-                                  case MiniSummaryRow.ValueRow(
-                                        _,
-                                        MiniSummaryListValue.Reference(FormCtx(r)),
-                                        _,
-                                        _,
-                                        _
-                                      ) =>
-                                    r
-                                }
-                          }
-                        case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)), _, _)) => List(List(r))
-                        case IsAddress(Address(_, _, _, Some(FormCtx(r))))                       => List(List(r))
-                      }
-                      .flatten
-                      .flatten
-                      .flatMap(fcId =>
-                        formModel.sectionNumberLookup.view.filterKeys(_.baseComponentId === fcId.baseComponentId).values
-                      )
-                  }
-                  .getOrElse(List())
+          bracket match {
+            case Bracket.NonRepeatingPage(SingletonWithNumber(singleton, sectionNumber), _) =>
+              val formModel = formModelOptics.formModelVisibilityOptics.formModel
+              // section numbers with form components that other components may refer to
+              val sns = formModel.pageModelLookup
+                .get(sectionNumber)
+                .map { pageModel =>
+                  pageModel.allFormComponents
+                    .collect {
+                      case IsMiniSummaryList(MiniSummaryList(rows, _, _)) =>
+                        rows.collect {
+                          case MiniSummaryRow.ValueRow(
+                                _,
+                                MiniSummaryListValue.Reference(FormCtx(r)),
+                                _,
+                                _,
+                                _
+                              ) =>
+                            List(r)
+                          case MiniSummaryRow.ATLRow(atlId, _, rs) =>
+                            atlId ::
+                              rs collect {
+                                case MiniSummaryRow.ValueRow(
+                                      _,
+                                      MiniSummaryListValue.Reference(FormCtx(r)),
+                                      _,
+                                      _,
+                                      _
+                                    ) =>
+                                  r
+                              }
+                        }
+                      case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(r)), _, _)) => List(List(r))
+                      case IsAddress(Address(_, _, _, Some(FormCtx(r))))                       => List(List(r))
+                    }
+                    .flatten
+                    .flatten
+                    .flatMap(fcId =>
+                      formModel.sectionNumberLookup.view.filterKeys(_.baseComponentId === fcId.baseComponentId).values
+                    )
+                }
+                .getOrElse(List())
 
               validateSections(suppressErrors, (sectionNumber :: sns): _*)(
                 renderSingleton(singleton, sectionNumber, _)
