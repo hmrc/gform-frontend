@@ -275,13 +275,6 @@ class SectionRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Html = {
-    val listResult = formHandlerResult.validationResult.formFieldValidationResults
-    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
-
-    val originSection = Origin(
-      DataOrigin.unSwapDataOrigin(formModelOptics).formModelVisibilityOptics.formModel
-    ).minSectionNumber
-
     val page: Page[DataExpanded] =
       Page(
         title = declarationPage.expandedTitle,
@@ -299,103 +292,30 @@ class SectionRenderingService(
         dataRetrieve = None,
         confirmation = None,
         redirects = None,
-        hideSaveAndComeBackButton = None,
+        hideSaveAndComeBackButton = Some(true),
         removeItemIf = None,
-        displayWidth = Some(LayoutDisplayWidth.M),
+        displayWidth = None,
         notRequiredIf = None
       )
 
-    val ei = ExtraInfo(
-      Singleton(page),
+    renderSection(
       maybeAccessCode,
-      cache.formTemplate.sectionNumberZero,
-      formModelOptics,
+      sectionNumber,
+      formHandlerResult,
       cache.formTemplate,
-      EnvelopeId(""),
-      EnvelopeWithMapping.empty,
-      0,
-      cache.retrievals,
-      formLevelHeading = false,
-      specialAttributes = Map.empty,
-      AddressRecordLookup.from(cache.form.thirdPartyData)
-    )
-
-    val infoFields = declarationPage.fields
-      .filter { field =>
-        field.includeIf.fold(true) { includeIf =>
-          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
-        }
-      }
-      .map {
-        case info @ IsInformationMessage(InformationMessage(infoType, infoText, _)) =>
-          htmlForInformationMessage(info, infoType, infoText)
-        case fc @ IsTableComp(table) =>
-          htmlForTableComp(fc, table, formModelOptics)
-        case fc @ IsMiniSummaryList(miniSummaryList) =>
-          htmlForMiniSummaryList(
-            fc,
-            cache.formTemplate._id,
-            miniSummaryList.rows,
-            ei,
-            formHandlerResult.validationResult,
-            NotChecked,
-            KeyDisplayWidth.M
-          )
-        case unsupported =>
-          throw new Exception("AddToList.CheckYourAnswers.fields contains a non-Info component: " + unsupported)
-      }
-
-    val continueLabel = declarationPage.expandedContinueLabel.map(_.value()).getOrElse(messages("button.continue"))
-
-    val renderingInfo = SectionRenderingInformation(
-      cache.formTemplate._id,
-      maybeAccessCode,
-      cache.formTemplate.sectionNumberZero,
-      page.sectionHeader(),
-      declarationPage.noPIITitle.fold(
-        declarationPage.title.valueWithoutInterpolations(
-          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
-        )
-      )(_.value()),
-      infoFields,
-      "",
+      cache.formTemplateContext.specimenSource,
       cache.form.envelopeId,
-      uk.gov.hmrc.gform.gform.routes.FormController
-        .updateFormData(cache.formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue),
-      false,
-      continueLabel,
-      0,
-      FileInfoConfig.allAllowedFileTypes,
-      Nil,
-      Map.empty,
-      Map.empty,
-      None,
-      false
-    )
-    val mainForm = html.form.form_standard(
-      renderingInfo,
-      shouldDisplayContinue = true,
-      ei.saveAndComeBackLaterButton,
-      isFileUploadOnlyPage = false,
-      None
-    )
-    html.form.form(
-      cache.formTemplate,
-      pageLevelErrorHtml,
-      renderingInfo,
-      mainForm,
-      backLink = mkBackLink(
-        cache.formTemplate,
-        maybeAccessCode,
-        sectionNumber,
-        originSection,
-        fastForward,
-        false
-      ),
-      shouldDisplayHeading = true,
-      frontendAppConfig,
-      fastForward = fastForward,
-      accessCode = maybeAccessCode
+      Singleton(page),
+      cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
+      cache.formTemplate.allowedFileTypes,
+      restrictedFileExtensions,
+      cache.retrievals,
+      cache.form.thirdPartyData.obligations,
+      fastForward,
+      formModelOptics,
+      UpscanInitiate.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData),
+      overrideSaveIsNotPermitted = true
     )
   }
 
@@ -796,7 +716,8 @@ class SectionRenderingService(
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     upscanInitiate: UpscanInitiate,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    overrideSaveIsNotPermitted: Boolean = false
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -903,7 +824,7 @@ class SectionRenderingService(
       renderComeBackLater,
       SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
-        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
+        if (overrideSaveIsNotPermitted) true else DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
         ei.getButtonName(validationResult).isDefined
       ),
