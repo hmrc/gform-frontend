@@ -114,11 +114,7 @@ object TaskListUtils {
       for {
         statusesLookup <- coordinates
                             .traverse { coordinate =>
-                              val dataForCoordinate: Set[VariadicValue] =
-                                formModelVisibilityOptics.data
-                                  .forCoordinate(coordinate)
-
-                              for {
+                              def processStatus = for {
                                 formHandlerResult <-
                                   validationService.validateFormModel(
                                     cache,
@@ -136,9 +132,9 @@ object TaskListUtils {
                                     formModelVisibilityOptics
                                   )
                               } yield {
-//                                println("formHandlerResult.isFormValid: " + formHandlerResult.isFormValid)
-//                                println("!hasTerminationPage: " + !hasTerminationPage)
-//                                println("validatedATLs.isValid: " + validatedATLs.isValid)
+                                //                                println("formHandlerResult.isFormValid: " + formHandlerResult.isFormValid)
+                                //                                println("!hasTerminationPage: " + !hasTerminationPage)
+                                //                                println("validatedATLs.isValid: " + validatedATLs.isValid)
 
                                 def hasTerminationPage = coordinates.exists { coordinate =>
                                   val taskModel = formModel.brackets.unsafeToTaskList.bracketsFor(coordinate)
@@ -158,17 +154,24 @@ object TaskListUtils {
                                 }
 
                                 val taskStatus =
-                                  if (dataForCoordinate.isEmpty) {
-                                    TaskStatus.NotStarted
-                                  } else if (
-                                    formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid
-                                  ) {
+                                  if (formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid) {
                                     TaskStatus.Completed
                                   } else {
                                     TaskStatus.InProgress
                                   }
                                 coordinate -> taskStatus
                               }
+
+                              val dataForCoordinate: Set[VariadicValue] =
+                                formModelVisibilityOptics.data
+                                  .forCoordinate(coordinate)
+
+                              if (dataForCoordinate.isEmpty) {
+                                Future.successful(coordinate -> TaskStatus.NotStarted)
+                              } else {
+                                processStatus
+                              }
+
                             }
                             .map(notRequiredResolver.resolveNotRequired)
                             .map(
