@@ -87,7 +87,7 @@ trait SectionGen {
       continueLabel <- Gen.option(smartStringGen)
       fields        <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen())
       includeIf     <- Gen.option(IncludeIfGen.includeIfGen)
-    } yield DeclarationSection(title, noPIITitle, description, shortName, continueLabel, fields.toList, includeIf)
+    } yield DeclarationSection(title, None, noPIITitle, description, shortName, continueLabel, fields.toList, includeIf)
 
   def pageGen: Gen[Page[Basic]] =
     for {

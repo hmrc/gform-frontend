@@ -457,7 +457,7 @@ class FormModelBuilder[E, F[_]: Functor](
       d.continueLabel.map(_.expand(index, s.allIds)),
       expandedFields,
       index,
-      d.includeIf
+      d.includeIf.map(i => IncludeIf(BooleanExprUpdater(i.booleanExpr, index, s.allIds)))
     )
   }
 

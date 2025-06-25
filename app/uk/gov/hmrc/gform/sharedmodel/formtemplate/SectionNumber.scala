@@ -193,8 +193,8 @@ object SectionNumber {
         case (AddToListPage.Page(sn0, in0, _), AddToListPage.DeclarationSection(sn1, in1))            => comp(-1, sn0, in0, sn1, in1)
         case (AddToListPage.DeclarationSection(sn0, in0), AddToListPage.CyaPage(sn1, in1))            => comp(1, sn0, in0, sn1, in1)
         case (AddToListPage.CyaPage(sn0, in0), AddToListPage.DeclarationSection(sn1, in1))            => comp(-1, sn0, in0, sn1, in1)
-        case (AddToListPage.DeclarationSection(sn0, in0), AddToListPage.RepeaterPage(sn1, in1))       => comp(1, sn0, in0, sn1, in1)
-        case (AddToListPage.RepeaterPage(sn0, in0), AddToListPage.DeclarationSection(sn1, in1))       => comp(-1, sn0, in0, sn1, in1)
+        case (AddToListPage.DeclarationSection(sn0, in0), AddToListPage.RepeaterPage(sn1, in1))       => comp(-1, sn0, in0, sn1, in1)
+        case (AddToListPage.RepeaterPage(sn0, in0), AddToListPage.DeclarationSection(sn1, in1))       => comp(1, sn0, in0, sn1, in1)
         case (AddToListPage.DeclarationSection(sn0, in0), AddToListPage.DeclarationSection(sn1, in1)) => comp(0, sn0, in0, sn1, in1)
         // format: on
       }
