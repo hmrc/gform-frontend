@@ -320,15 +320,17 @@ class FormModelBuilder[E, F[_]: Functor](
     val recalcCache: mutable.Map[List[IncludeIf], F[RecalculationResult]] = mutable.Map()
 
     val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
-    //    println("atl components: " + atlComponents)
+    println("atl components: " + atlComponents.size)
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+
+    println("standaloneSumsFcIds: " + standaloneSumsFcIds.size)
 
     val allFormComponentExpressions = AllFormTemplateExpressions(formTemplate)
 
     val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
 
-    def onDemandPageIncludeIf(includeIf: List[IncludeIf]) = {
+    def onDemandPageIncludeIf(includeIf: List[Option[IncludeIf]]) = {
 
       def getRecalculation(includeIf: List[IncludeIf]) = {
         val exprs = includeIf.flatMap { includeIf =>
@@ -371,8 +373,12 @@ class FormModelBuilder[E, F[_]: Functor](
             booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
           )
       }
+      val includeIfFlat = includeIf.flatten
 
-      def recalc = recalcCache.getOrElseUpdate(includeIf, getRecalculation(includeIf))
+      def recalc = recalcCache.getOrElseUpdate(
+        includeIfFlat,
+        getRecalculation(includeIfFlat)
+      )
 
       //TODO: Remove await. For testing only
       def newEr = recalc match {
@@ -390,17 +396,19 @@ class FormModelBuilder[E, F[_]: Functor](
 
       //println(newEr.booleanExprCache)
 
-      includeIf.map { includeIf =>
-        evalIncludeIfCache.getOrElseUpdate(
-          includeIf,
-          FormModelBuilder.evalIncludeIf(
+      includeIf.map { includeIfOpt =>
+        includeIfOpt.map { includeIf =>
+          evalIncludeIfCache.getOrElseUpdate(
             includeIf,
-            newEr,
-            newEr.evaluationResults.recData,
-            formModel,
-            phase
+            FormModelBuilder.evalIncludeIf(
+              includeIf,
+              newEr,
+              formModelVisibilityOptics.recData,
+              formModel,
+              phase
+            )
           )
-        )
+        }
       }
     }
 
