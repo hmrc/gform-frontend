@@ -184,6 +184,17 @@ class ValidationService(
 
     val emailCodeMatcher = GetEmailCodeFieldMatcher(formModel)
 
+    val pages = formModel.onDemandIncludeIfBulk
+      .map { f =>
+        val results = f(formModel.pages.map { page =>
+          page.getIncludeIf.getOrElse(IncludeIf(Equals(Constant("1"), Constant("1"))))
+        })
+        formModel.pages.zip(results).collect { case (page, true) =>
+          page
+        }
+      }
+      .getOrElse(formModel.pages)
+
     for {
       v <- formModel.pages
              .filter(page => onDemandIncludeIfPage(page, formModel))

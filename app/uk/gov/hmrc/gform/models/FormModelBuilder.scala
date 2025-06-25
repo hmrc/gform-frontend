@@ -317,7 +317,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val allExprsCache: mutable.Map[IncludeIf, List[Expr]] = mutable.Map()
 
-    val recalcCache: mutable.Map[IncludeIf, F[RecalculationResult]] = mutable.Map()
+    val recalcCache: mutable.Map[List[IncludeIf], F[RecalculationResult]] = mutable.Map()
 
     val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
     //    println("atl components: " + atlComponents)
@@ -328,10 +328,12 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
 
-    def onDemandPageIncludeIf(includeIf: IncludeIf) = {
+    def onDemandPageIncludeIf(includeIf: List[IncludeIf]) = {
 
-      def getRecalculation(includeIf: IncludeIf) = {
-        val exprs = allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
+      def getRecalculation(includeIf: List[IncludeIf]) = {
+        val exprs = includeIf.flatMap { includeIf =>
+          allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
+        }
 
         //    println("base fc keys: " + baseFcLookup.keys)
 
@@ -388,17 +390,18 @@ class FormModelBuilder[E, F[_]: Functor](
 
       //println(newEr.booleanExprCache)
 
-      evalIncludeIfCache.getOrElseUpdate(
-        includeIf,
-        FormModelBuilder.evalIncludeIf(
+      includeIf.map { includeIf =>
+        evalIncludeIfCache.getOrElseUpdate(
           includeIf,
-          newEr,
-          newEr.evaluationResults.recData,
-          formModel,
-          phase
+          FormModelBuilder.evalIncludeIf(
+            includeIf,
+            newEr,
+            newEr.evaluationResults.recData,
+            formModel,
+            phase
+          )
         )
-      )
-
+      }
     }
 
     FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
