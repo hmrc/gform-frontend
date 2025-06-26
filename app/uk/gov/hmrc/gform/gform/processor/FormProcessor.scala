@@ -334,7 +334,7 @@ class FormProcessor(
             else Set.empty[BaseComponentId]
           }
           val dataRetrievesOnThisPage: List[DataRetrieve] = pageModel
-            .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())(_ => List())
+            .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
           val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)
           val dataRetrievesRequiringReeval: List[DataRetrieve] =
             processData.formModel.dataRetrieveAll.lookup.toList.flatMap { case (drId, dataRetrieve) =>

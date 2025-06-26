@@ -25,28 +25,27 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMini
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
-  def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)(_.expandedTitle)
-  def caption: Option[SmartString] = fold(_.page.caption)(_.expandedCaption)(_.expandedCaption)(_.expandedCaption)
+  def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
+  def caption: Option[SmartString] = fold(_.page.caption)(_.expandedCaption)(_.expandedCaption)
   def noPIITitle: Option[SmartString] =
-    fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)(_.expandedNoPIITitle)
-  def id: Option[PageId] = fold(_.page.id)(c => Some(c.expandedId))(r => Some(r.expandedId))(d => Some(d.expandedId))
+    fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)
+  def id: Option[PageId] = fold(_.page.id)(c => Some(c.expandedId))(r => Some(r.expandedId))
 
   def isTerminationPage(booleanExprResolver: BooleanExprResolver) =
-    fold(_.page.isTerminationPage(booleanExprResolver))(_ => false)(_ => false)(_ => false)
+    fold(_.page.isTerminationPage(booleanExprResolver))(_ => false)(_ => false)
 
-  def fold[B](e: Singleton[A] => B)(f: CheckYourAnswers[A] => B)(g: Repeater[A] => B)(h: DeclarationPage[A] => B): B =
+  def fold[B](e: Singleton[A] => B)(f: CheckYourAnswers[A] => B)(g: Repeater[A] => B): B =
     this match {
       case s: Singleton[A]        => e(s)
       case c: CheckYourAnswers[A] => f(c)
       case r: Repeater[A]         => g(r)
-      case d: DeclarationPage[A]  => h(d)
     }
 
   private def nestedFields(formComponent: FormComponent): List[FormComponent] =
     formComponent :: formComponent.childrenFormComponents
 
   def allFormComponents: List[FormComponent] =
-    fold(_.page.allFields.flatMap(nestedFields))(_.formComponent :: Nil)(_.addAnotherQuestion :: Nil)(_.fields)
+    fold(_.page.allFields.flatMap(nestedFields))(_.formComponent :: Nil)(_.addAnotherQuestion :: Nil)
 
   def allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
 
@@ -59,36 +58,32 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
       acc + (fc.id -> this)
     }
 
-  def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_.includeIf)(_.includeIf)
+  def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_.includeIf)
 
-  def getNotRequiredIf: Option[IncludeIf] = fold(_.page.notRequiredIf)(_ => None)(_.notRequiredIf)(_ => None)
+  def getNotRequiredIf: Option[IncludeIf] = fold(_.page.notRequiredIf)(_ => None)(_.notRequiredIf)
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
-    fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)(_ => Nil)
+    fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
   def allChoiceIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.allFields.collect { case fc @ AllChoiceIncludeIfs(includeIfs) => includeIfs.map((_, fc)) }.flatten)(_ =>
       Nil
-    )(_ => Nil)(_ => Nil)
+    )(_ => Nil)
 
   def allMiniSummaryListIncludeIfs: List[(IncludeIf, FormComponent)] =
     fold(_.page.allFields.collect { case fc @ AllMiniSummaryListIncludeIfs(includeIfs) =>
       includeIfs.map((_, fc))
-    }.flatten)(_ => Nil)(_ => Nil)(_.fields.collect { case fc @ AllMiniSummaryListIncludeIfs(includeIfs) =>
-      includeIfs.map((_, fc))
-    }.flatten)
+    }.flatten)(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
-    fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)(
-      _.fields.flatMap(fc => fc.includeIf.map(_ -> fc))
-    )
+    fold(_.page.allFields.flatMap(fc => fc.includeIf.map(_ -> fc)))(_ => Nil)(_ => Nil)
 
   def allATLRepeatsWhiles =
     fold(_ => List.empty[(BaseComponentId, List[IncludeIf])])(_ => List.empty[(BaseComponentId, List[IncludeIf])])(
       repeater => List(repeater.addAnotherQuestion.id.baseComponentId -> repeater.repeatsWhile.toList)
-    )(_ => List.empty[(BaseComponentId, List[IncludeIf])])
+    )
 
-  def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)(_ => None)
+  def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)
 
   def confirmationPage(confirmationLookup: Map[ModelPageId, ConfirmationPage.Confirmee]): ConfirmationPage =
     maybeConfirmation match {
@@ -100,19 +95,16 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
     fold(_.page.allFieldsNested.collect {
       case fc @ IsFileUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
       case fc @ IsMultiFileUpload(fu) => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
-    })(_ => Nil)(_ => Nil)(_ => Nil)
+    })(_ => Nil)(_ => Nil)
 
   def postcodeLookup: Option[FormComponent] = fold(_.page.allFields.collectFirst { case fc @ IsPostcodeLookup(_) =>
     fc
-  })(_ => None)(_ => None)(_ => None)
+  })(_ => None)(_ => None)
 
-  def redirects: List[RedirectCtx] = fold(_.page.redirects.map(_.toList).toList.flatten)(_ => Nil)(_ => Nil)(_ => Nil)
+  def redirects: List[RedirectCtx] = fold(_.page.redirects.map(_.toList).toList.flatten)(_ => Nil)(_ => Nil)
 
   def dataRetrieves: List[DataRetrieve] =
-    fold(_.page.dataRetrieve.toList.flatMap(_.toList))(_ => List.empty[DataRetrieve])(_ => List.empty[DataRetrieve])(
-      _ => List.empty[DataRetrieve]
-    )
-
+    fold(_.page.dataRetrieve.toList.flatMap(_.toList))(_ => List.empty[DataRetrieve])(_ => List.empty[DataRetrieve])
 }
 
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
@@ -152,16 +144,4 @@ case class Repeater[A <: PageMode](
   repeatsWhile: Option[IncludeIf],
   expandedDescriptionTotal: Option[AtlDescription.KeyValueBased],
   notRequiredIf: Option[IncludeIf]
-) extends PageModel[A]
-case class DeclarationPage[A <: PageMode](
-  expandedId: PageId,
-  expandedCaption: Option[SmartString],
-  expandedTitle: SmartString,
-  expandedNoPIITitle: Option[SmartString],
-  expandedDescription: Option[SmartString],
-  expandedShortName: Option[SmartString],
-  expandedContinueLabel: Option[SmartString],
-  fields: List[FormComponent],
-  index: Int,
-  includeIf: Option[IncludeIf]
 ) extends PageModel[A]

@@ -322,8 +322,8 @@ class FormModelBuilder[E, F[_]: Functor](
         checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
       } { repeater: Repeater[DataExpanded] =>
         repeater.asInstanceOf[Repeater[Visibility]]
-      } { declaration: DeclarationPage[DataExpanded] =>
-        declaration.asInstanceOf[DeclarationPage[Visibility]]
+      } { declaration: Singleton[DataExpanded] =>
+        declaration.asInstanceOf[Singleton[Visibility]]
       }
   }
 
@@ -444,20 +444,31 @@ class FormModelBuilder[E, F[_]: Functor](
     d: DeclarationSection,
     s: Section.AddToList,
     index: Int
-  ): DeclarationPage[T] = {
+  ): Singleton[T] = {
     val expandedFields = d.fields.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId)
 
-    DeclarationPage[T](
-      s.pageId.withIndex(index).withSuffix("DEC"),
-      d.caption.map(_.expand(index, s.allIds)),
-      d.title.expand(index, s.allIds),
-      d.noPIITitle.map(_.expand(index, s.allIds)),
-      d.description.map(_.expand(index, s.allIds)),
-      d.shortName.map(_.expand(index, s.allIds)),
-      d.continueLabel.map(_.expand(index, s.allIds)),
-      expandedFields,
-      index,
-      d.includeIf.map(i => IncludeIf(BooleanExprUpdater(i.booleanExpr, index, s.allIds)))
+    Singleton(
+      Page(
+        title = d.title.expand(index, s.allIds),
+        id = Some(s.pageId.withIndex(index).withSuffix("DEC")),
+        noPIITitle = d.noPIITitle.map(_.expand(index, s.allIds)),
+        description = d.description.map(_.expand(index, s.allIds)),
+        shortName = d.shortName.map(_.expand(index, s.allIds)),
+        caption = d.caption.map(_.expand(index, s.allIds)),
+        includeIf = d.includeIf.map(i => IncludeIf(BooleanExprUpdater(i.booleanExpr, index, s.allIds))),
+        fields = expandedFields,
+        continueLabel = d.continueLabel.map(_.expand(index, s.allIds)),
+        continueIf = None,
+        instruction = None,
+        presentationHint = None,
+        dataRetrieve = None,
+        confirmation = None,
+        redirects = None,
+        hideSaveAndComeBackButton = Some(true),
+        removeItemIf = None,
+        displayWidth = None,
+        notRequiredIf = None
+      )
     )
   }
 
@@ -565,8 +576,8 @@ class FormModelBuilder[E, F[_]: Functor](
       )
     )
 
-    val declaration: Option[DeclarationSectionWithNumber[T]] = s.declarationSection.map(d =>
-      DeclarationSectionWithNumber(
+    val declaration: Option[SingletonWithNumber[T]] = s.declarationSection.map(d =>
+      SingletonWithNumber(
         mkDeclaration(d, s, iterationIndex),
         mkSectionNumber(
           SectionNumber.Classic.AddToListPage.DeclarationSection(templateSectionIndex, iterationIndex),
@@ -611,8 +622,8 @@ class FormModelBuilder[E, F[_]: Functor](
     val revealingChoiceInfo: RevealingChoiceInfo =
       allSections.sections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.section.revealingChoiceInfo)
 
-    val brackets: BracketPlainCoordinated[T] = allSections.mapSection { maybeCoordinates => indexedSection =>
-      indexedSection match {
+    val brackets: BracketPlainCoordinated[T] = allSections.mapSection { maybeCoordinates =>
+      {
         case IndexedSection.SectionNoIndex(s) =>
           val page = formModelExpander.lift(s.page, data)
           val sectionNumber =

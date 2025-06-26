@@ -45,7 +45,7 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
   )(
     g: Repeater[A] => Repeater[B]
   )(
-    h: DeclarationPage[A] => DeclarationPage[B]
+    h: Singleton[A] => Singleton[B]
   ) = this match {
     case BracketsWithSectionNumber.Classic(brackets) =>
       BracketsWithSectionNumber.Classic(
