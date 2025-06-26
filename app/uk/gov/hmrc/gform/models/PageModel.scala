@@ -27,19 +27,17 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDispl
 sealed trait PageModel[A <: PageMode] extends Product with Serializable {
   def title: SmartString = fold(_.page.title)(_.expandedUpdateTitle)(_.expandedTitle)
   def caption: Option[SmartString] = fold(_.page.caption)(_.expandedCaption)(_.expandedCaption)
-  def noPIITitle: Option[SmartString] =
-    fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)
+  def noPIITitle: Option[SmartString] = fold(_.page.noPIITitle)(_.expandedNoPIIUpdateTitle)(_.expandedNoPIITitle)
   def id: Option[PageId] = fold(_.page.id)(c => Some(c.expandedId))(r => Some(r.expandedId))
 
   def isTerminationPage(booleanExprResolver: BooleanExprResolver) =
     fold(_.page.isTerminationPage(booleanExprResolver))(_ => false)(_ => false)
 
-  def fold[B](e: Singleton[A] => B)(f: CheckYourAnswers[A] => B)(g: Repeater[A] => B): B =
-    this match {
-      case s: Singleton[A]        => e(s)
-      case c: CheckYourAnswers[A] => f(c)
-      case r: Repeater[A]         => g(r)
-    }
+  def fold[B](e: Singleton[A] => B)(f: CheckYourAnswers[A] => B)(g: Repeater[A] => B): B = this match {
+    case s: Singleton[A]        => e(s)
+    case c: CheckYourAnswers[A] => f(c)
+    case r: Repeater[A]         => g(r)
+  }
 
   private def nestedFields(formComponent: FormComponent): List[FormComponent] =
     formComponent :: formComponent.childrenFormComponents
@@ -105,6 +103,7 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def dataRetrieves: List[DataRetrieve] =
     fold(_.page.dataRetrieve.toList.flatMap(_.toList))(_ => List.empty[DataRetrieve])(_ => List.empty[DataRetrieve])
+
 }
 
 case class Singleton[A <: PageMode](page: Page[A]) extends PageModel[A]
