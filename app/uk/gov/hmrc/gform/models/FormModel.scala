@@ -197,10 +197,8 @@ case class FormModel[A <: PageMode](
     f: CheckYourAnswers[A] => CheckYourAnswers[B]
   )(
     g: Repeater[A] => Repeater[B]
-  )(
-    h: Singleton[A] => Singleton[B]
   ): FormModel[B] = FormModel(
-    brackets.map(e)(f)(g)(h),
+    brackets.map(e)(f)(g),
     staticTypeInfo,
     revealingChoiceInfo,
     sumInfo,
