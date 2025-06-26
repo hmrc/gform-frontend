@@ -322,8 +322,6 @@ class FormModelBuilder[E, F[_]: Functor](
         checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
       } { repeater: Repeater[DataExpanded] =>
         repeater.asInstanceOf[Repeater[Visibility]]
-      } { declaration: Singleton[DataExpanded] =>
-        declaration.asInstanceOf[Singleton[Visibility]]
       }
   }
 

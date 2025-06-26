@@ -44,16 +44,14 @@ sealed trait BracketsWithSectionNumber[A <: PageMode] extends Product with Seria
     f: CheckYourAnswers[A] => CheckYourAnswers[B]
   )(
     g: Repeater[A] => Repeater[B]
-  )(
-    h: Singleton[A] => Singleton[B]
   ) = this match {
     case BracketsWithSectionNumber.Classic(brackets) =>
       BracketsWithSectionNumber.Classic(
-        brackets.map(_.map(e, f, g, h))
+        brackets.map(_.map(e, f, g))
       )
     case BracketsWithSectionNumber.TaskList(brackets) =>
       BracketsWithSectionNumber.TaskList(brackets.map { case (coor, taskModel) =>
-        coor -> taskModel.mapBracket(_.map(e, f, g, h))
+        coor -> taskModel.mapBracket(_.map(e, f, g))
       })
   }
   def addToListById(addToListId: AddToListId, idx: Int): Bracket.AddToListIteration[A] =

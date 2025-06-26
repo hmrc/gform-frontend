@@ -33,8 +33,7 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
   def map[B <: PageMode](
     e: Singleton[A] => Singleton[B],
     f: CheckYourAnswers[A] => CheckYourAnswers[B],
-    g: Repeater[A] => Repeater[B],
-    h: Singleton[A] => Singleton[B]
+    g: Repeater[A] => Repeater[B]
   ): Bracket[B]
 
   def fold[B](
@@ -140,14 +139,13 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B],
-      h: Singleton[A] => Singleton[B]
+      g: Repeater[A] => Repeater[B]
     ): AddToListIteration[B] =
       AddToListIteration(
         defaultPage.map(_.map(e)),
         singletons.map(_.map(e)),
         checkYourAnswers.map(_.map(f)),
-        declarationSection.map(_.map(h)),
+        declarationSection.map(_.map(e)),
         repeater.map(g)
       )
 
@@ -176,8 +174,7 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B],
-      h: Singleton[A] => Singleton[B]
+      g: Repeater[A] => Repeater[B]
     ): NonRepeatingPage[B] =
       NonRepeatingPage(
         SingletonWithNumber(e(singleton.singleton), singleton.sectionNumber),
@@ -194,8 +191,7 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B],
-      h: Singleton[A] => Singleton[B]
+      g: Repeater[A] => Repeater[B]
     ): RepeatingPage[B] =
       RepeatingPage(
         singletons.map(_.map(e)),
@@ -252,10 +248,9 @@ object Bracket {
     def map[B <: PageMode](
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
-      g: Repeater[A] => Repeater[B],
-      h: Singleton[A] => Singleton[B]
+      g: Repeater[A] => Repeater[B]
     ): AddToList[B] = AddToList(
-      iterations.map(_.map(e, f, g, h)),
+      iterations.map(_.map(e, f, g)),
       source
     )
 
