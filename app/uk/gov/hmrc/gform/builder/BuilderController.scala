@@ -352,20 +352,6 @@ class BuilderController(
                     ) // TODO sectionPath is not used, explore possibility of using this instead of using addToListId when updating mongo json
                   )
                 )
-              } { declaration =>
-                val history: List[CursorOp] =
-                  List.fill(sectionIndex)(MoveRight) ::: List(DownArray, DownField("sections")) :::
-                    historySuffix
-                Some(
-                  Json.obj(
-                    "atlIterationIndex" := declaration.index,
-                    "atlDeclarationPage" := true,
-                    "section" := addToListJson,
-                    "sectionPath" := CursorOp.opsToPath(
-                      history
-                    )
-                  )
-                )
               }
             }
         }
@@ -1096,7 +1082,7 @@ class BuilderController(
                 badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")
               ) { repeater =>
                 Ok(f(implicitly[Messages])(sse)(repeater)(bracket))
-              }(declaration => badRequest("Invalid page model. Expected Repeater got DeclarationSection"))
+              }
               .pure[Future]
         }
     }

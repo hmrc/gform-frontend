@@ -34,7 +34,7 @@ sealed trait Bracket[A <: PageMode] extends Product with Serializable {
     e: Singleton[A] => Singleton[B],
     f: CheckYourAnswers[A] => CheckYourAnswers[B],
     g: Repeater[A] => Repeater[B],
-    h: DeclarationPage[A] => DeclarationPage[B]
+    h: Singleton[A] => Singleton[B]
   ): Bracket[B]
 
   def fold[B](
@@ -104,7 +104,7 @@ object Bracket {
     defaultPage: Option[SingletonWithNumber[A]], // Only first iteration can have default page
     singletons: NonEmptyList[SingletonWithNumber[A]], // There must be at least one page in Add-to-list iteration
     checkYourAnswers: Option[CheckYourAnswersWithNumber[A]],
-    declarationSection: Option[DeclarationSectionWithNumber[A]],
+    declarationSection: Option[SingletonWithNumber[A]],
     repeater: RepeaterWithNumber[A]
   ) {
 
@@ -113,7 +113,7 @@ object Bracket {
     def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] = {
       val pageModels = singletons.map(_.toPageModelWithNumber) ++ checkYourAnswers.toList.map(c =>
         c.checkYourAnswers -> c.sectionNumber
-      ) ++ declarationSection.toList.map(ds => ds.declaration -> ds.sectionNumber) ::: NonEmptyList.one(
+      ) ++ declarationSection.toList.map(ds => ds.singleton -> ds.sectionNumber) ::: NonEmptyList.one(
         repeater.repeater -> repeater.sectionNumber
       )
 
@@ -141,7 +141,7 @@ object Bracket {
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
       g: Repeater[A] => Repeater[B],
-      h: DeclarationPage[A] => DeclarationPage[B]
+      h: Singleton[A] => Singleton[B]
     ): AddToListIteration[B] =
       AddToListIteration(
         defaultPage.map(_.map(e)),
@@ -153,7 +153,7 @@ object Bracket {
 
     def filter(predicate: PageModel[A] => Boolean): Option[AddToListIteration[A]] = {
       val filtered = singletons.filter(s => predicate(s.singleton))
-      val maybeDeclaration = declarationSection.filter(d => predicate(d.declaration))
+      val maybeDeclaration = declarationSection.filter(d => predicate(d.singleton))
       NonEmptyList
         .fromList(filtered)
         .map(AddToListIteration(defaultPage, _, checkYourAnswers, maybeDeclaration, repeater))
@@ -177,7 +177,7 @@ object Bracket {
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
       g: Repeater[A] => Repeater[B],
-      h: DeclarationPage[A] => DeclarationPage[B]
+      h: Singleton[A] => Singleton[B]
     ): NonRepeatingPage[B] =
       NonRepeatingPage(
         SingletonWithNumber(e(singleton.singleton), singleton.sectionNumber),
@@ -195,7 +195,7 @@ object Bracket {
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
       g: Repeater[A] => Repeater[B],
-      h: DeclarationPage[A] => DeclarationPage[B]
+      h: Singleton[A] => Singleton[B]
     ): RepeatingPage[B] =
       RepeatingPage(
         singletons.map(_.map(e)),
@@ -253,7 +253,7 @@ object Bracket {
       e: Singleton[A] => Singleton[B],
       f: CheckYourAnswers[A] => CheckYourAnswers[B],
       g: Repeater[A] => Repeater[B],
-      h: DeclarationPage[A] => DeclarationPage[B]
+      h: Singleton[A] => Singleton[B]
     ): AddToList[B] = AddToList(
       iterations.map(_.map(e, f, g, h)),
       source

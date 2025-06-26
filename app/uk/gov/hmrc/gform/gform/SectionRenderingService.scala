@@ -30,7 +30,7 @@ import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Basic, Bracket, CheckYourAnswers, DataExpanded, DateExpr, DeclarationPage, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Basic, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
@@ -257,66 +257,6 @@ class SectionRenderingService(
       isMainContentFullWidth = checkYourAnswers.displayWidth.nonEmpty
     )
 
-  }
-
-  def renderATLDeclarationSection(
-    maybeAccessCode: Option[AccessCode],
-    declarationPage: DeclarationPage[DataExpanded],
-    cache: AuthCacheWithForm,
-    formHandlerResult: FormHandlerResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    fastForward: List[FastForward],
-    sectionNumber: SectionNumber,
-    formMaxAttachmentSizeMB: Int,
-    restrictedFileExtensions: List[FileExtension]
-  )(implicit
-    request: Request[_],
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator
-  ): Html = {
-    val page: Page[DataExpanded] =
-      Page(
-        title = declarationPage.expandedTitle,
-        id = Some(declarationPage.expandedId),
-        noPIITitle = declarationPage.expandedNoPIITitle,
-        description = declarationPage.expandedDescription,
-        shortName = declarationPage.expandedShortName,
-        caption = declarationPage.expandedCaption,
-        includeIf = declarationPage.includeIf,
-        fields = declarationPage.fields,
-        continueLabel = declarationPage.expandedContinueLabel,
-        continueIf = None,
-        instruction = None,
-        presentationHint = None,
-        dataRetrieve = None,
-        confirmation = None,
-        redirects = None,
-        hideSaveAndComeBackButton = Some(true),
-        removeItemIf = None,
-        displayWidth = None,
-        notRequiredIf = None
-      )
-
-    renderSection(
-      maybeAccessCode,
-      sectionNumber,
-      formHandlerResult,
-      cache.formTemplate,
-      cache.formTemplateContext.specimenSource,
-      cache.form.envelopeId,
-      Singleton(page),
-      cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
-      cache.formTemplate.allowedFileTypes,
-      restrictedFileExtensions,
-      cache.retrievals,
-      cache.form.thirdPartyData.obligations,
-      fastForward,
-      formModelOptics,
-      UpscanInitiate.empty,
-      AddressRecordLookup.from(cache.form.thirdPartyData),
-      overrideSaveIsNotPermitted = true
-    )
   }
 
   def renderAddToList(

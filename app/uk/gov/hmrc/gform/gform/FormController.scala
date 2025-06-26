@@ -255,16 +255,24 @@ class FormController(
                       Future.successful(
                         Ok(
                           renderer
-                            .renderATLDeclarationSection(
+                            .renderSection(
                               maybeAccessCode,
-                              declarationSection.declaration,
-                              cache,
-                              handlerResult,
-                              formModelOptics,
-                              fastForward,
                               sectionNumber,
-                              formMaxAttachmentSizeMB,
-                              restrictedFileExtensions
+                              handlerResult,
+                              cache.formTemplate,
+                              cache.formTemplateContext.specimenSource,
+                              cache.form.envelopeId,
+                              declarationSection.singleton,
+                              cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
+                              cache.formTemplate.allowedFileTypes,
+                              restrictedFileExtensions,
+                              cache.retrievals,
+                              cache.form.thirdPartyData.obligations,
+                              fastForward,
+                              formModelOptics,
+                              UpscanInitiate.empty,
+                              AddressRecordLookup.from(cache.form.thirdPartyData),
+                              overrideSaveIsNotPermitted = true
                             )
                         )
                       )
