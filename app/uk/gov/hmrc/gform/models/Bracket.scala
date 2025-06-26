@@ -112,7 +112,7 @@ object Bracket {
     def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] = {
       val pageModels = singletons.map(_.toPageModelWithNumber) ++ checkYourAnswers.toList.map(c =>
         c.checkYourAnswers -> c.sectionNumber
-      ) ++ declarationSection.toList.map(ds => ds.singleton -> ds.sectionNumber) ::: NonEmptyList.one(
+      ) ++ declarationSection.toList.map(_.toPageModelWithNumber) ::: NonEmptyList.one(
         repeater.repeater -> repeater.sectionNumber
       )
 
