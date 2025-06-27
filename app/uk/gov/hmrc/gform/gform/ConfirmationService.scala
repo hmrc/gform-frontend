@@ -19,14 +19,14 @@ package uk.gov.hmrc.gform.gform
 import cats.implicits.catsSyntaxEq
 import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.gform.eval.{ AllPageModelExpressionsGetter, TypeInfo }
+import uk.gov.hmrc.gform.eval.AllPageModelExpressionsGetter
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.models.{ Bracket, ConfirmationAction, ConfirmationPage, DataExpanded, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SmartString, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.form.{ ConfirmationExprMapping, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplateId, IsInformationMessage, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, FormTemplateId, SectionNumber, SuppressErrors }
 
 class ConfirmationService(
   formProcessor: FormProcessor
@@ -44,7 +44,7 @@ class ConfirmationService(
     val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
     val pageModel: PageModel[Visibility] = formModel(sectionNumber)
 
-    updateConfirmationPagesForChangedExprs(processData, formModelOptics, sectionNumber, formModel, pageModel) match {
+    updateConfirmationPagesForChangedExprs(processData, formModelOptics, sectionNumber) match {
       case Some(confirmationAction) => confirmationAction
       case _ =>
         val confirmationPage: ConfirmationPage = pageModel.confirmationPage(formModel.reverseConfirmationMap)
@@ -125,110 +125,39 @@ class ConfirmationService(
   private def updateConfirmationPagesForChangedExprs(
     processData: ProcessData,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
-    sectionNumber: SectionNumber,
-    formModel: FormModel[Visibility],
-    pageModel: PageModel[Visibility]
-  )(implicit messages: Messages): Option[ConfirmationAction.UpdateConfirmation] =
-    pageModel.maybeConfirmation match {
-      case Some(confirmation) => None
-      case _ =>
-        val browserData =
-          processData.formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
-        val mongoData = formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
+    sectionNumber: SectionNumber
+  ): Option[ConfirmationAction.UpdateConfirmation] = {
+    val browserData =
+      processData.formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
+    val mongoData = formModelOptics.formModelVisibilityOptics.data.allWithSectionNumber(sectionNumber).toMap
 
-        val changedIds = browserData.collect {
-          case (id, value) if mongoData.get(id).exists(_ != value) => id
-        }
+    val changedIds = browserData.collect {
+      case (id, value) if mongoData.get(id).exists(_ != value) => id
+    }
 
-        if (changedIds.nonEmpty) {
-          val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    if (changedIds.nonEmpty) {
+      val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
-          val impactedExprs = changedIds
-            .flatMap(id => formModel.fcLookup.get(id.toFormComponentId))
-            .map(fc => FormCtx(fc.id))
+      val impactedExprs = changedIds
+        .flatMap(id => formModel.fcLookup.get(id.toFormComponentId))
+        .map(fc => FormCtx(fc.id))
 
-          val changedConfirmationPages = formModel.confirmationPageMap.collect {
-            case (sn, confirmation) if impactedExprs.exists(getAllExprs(formModel, sn).flatMap(_.leafs()).contains) =>
-              confirmation
-          }
+      val changedConfirmationPages = formModel.confirmationPageMap.collect {
+        case (sn, confirmation) if impactedExprs.exists(getAllExprs(formModel, sn).flatMap(_.leafs()).contains) =>
+          confirmation
+      }
 
-          changedConfirmationPages match {
-            case Nil => None
-            case confirmationPages =>
-              Some(
-                ConfirmationAction.UpdateConfirmation(
-                  processData => processData.removeConfirmation(confirmationPages),
-                  true
-                )
-              )
-          }
-        } else {
-          processAllConfirmationExprs(
-            processData.formModelOptics.formModelVisibilityOptics,
-            processData.confirmationExprMapping
+      changedConfirmationPages match {
+        case Nil => None
+        case confirmationPages =>
+          Some(
+            ConfirmationAction.UpdateConfirmation(
+              processData => processData.removeConfirmation(confirmationPages),
+              true
+            )
           )
-        }
-    }
-
-  def processAllConfirmationExprs(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
-    confirmationExprMapping: ConfirmationExprMapping
-  )(implicit messages: Messages): Option[ConfirmationAction.UpdateConfirmation] = {
-    val formModel = formModelVisibilityOptics.formModel
-
-    val confirmationPageExprsMap = formModel.confirmationPageMap.map { case (sectionNumber, confirmation) =>
-      val pageModel: PageModel[Visibility] = formModel(sectionNumber)
-
-      val infoTexts: Seq[SmartString] = pageModel.allFormComponents.collect { case IsInformationMessage(im) =>
-        im.infoText
       }
-
-      val infoTextExprs: Seq[Expr] = infoTexts.flatMap(_.allInterpolations)
-
-      val exprMap: Map[String, String] = infoTextExprs.map { expr =>
-        val typeInfo: TypeInfo = formModel.toFirstOperandTypeInfo(expr)
-        val result = formModelVisibilityOptics
-          .evalAndApplyTypeInfo(typeInfo)
-          .stringRepresentation
-        expr.toString -> result
-      }.toMap
-      confirmation -> exprMap
-    }.toMap
-
-    val changedConfirmationPages = confirmationPageExprsMap.flatMap { case (confirmation, exprMap) =>
-      val existingExprMap = confirmationExprMapping.mapping.getOrElse(confirmation.question.id, Map.empty)
-
-      val addedOrChanged: Map[String, String] = exprMap.filter { case (k, v) =>
-        !existingExprMap.get(k).contains(v)
-      }
-
-      val removed: Map[String, String] = existingExprMap.keySet
-        .diff(exprMap.keySet)
-        .map { k =>
-          k -> existingExprMap(k)
-        }
-        .toMap
-
-      if (addedOrChanged.nonEmpty || removed.nonEmpty) {
-        Some(confirmation)
-      } else {
-        None
-      }
-    }
-
-    val newConfirmationExprMapping = confirmationPageExprsMap.map { case (confirmation, map) =>
-      confirmation.question.id -> map
-    }
-
-    Some(
-      ConfirmationAction.UpdateConfirmation(
-        processData =>
-          processData
-            .copy(confirmationExprMapping = ConfirmationExprMapping(newConfirmationExprMapping))
-            .removeConfirmation(changedConfirmationPages.toList),
-        true
-      )
-    )
+    } else None
   }
 
   private def getAllExprs(formModel: FormModel[DataExpanded], sectionNumber: SectionNumber): Seq[Expr] = {

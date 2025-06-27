@@ -446,8 +446,7 @@ class FormProcessor(
                 thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
                 formData = formDataU,
                 visitsIndex = updatedVisitsIndex,
-                taskIdTaskStatus = taskIdTaskStatusMapping,
-                confirmationExpr = processData.confirmationExprMapping
+                taskIdTaskStatus = taskIdTaskStatusMapping
               )
           )
 

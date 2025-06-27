@@ -37,8 +37,7 @@ object FileUploadUtils {
       form.visitsIndex,
       form.thirdPartyData,
       mappingUpd,
-      form.taskIdTaskStatus,
-      form.confirmationExpr
+      form.taskIdTaskStatus
     )
   }
 

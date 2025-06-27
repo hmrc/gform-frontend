@@ -206,8 +206,7 @@ class SummaryController(
           cache.form.visitsIndex,
           cache.form.thirdPartyData,
           cache.form.componentIdToFileId,
-          cache.form.taskIdTaskStatus,
-          cache.form.confirmationExpr
+          cache.form.taskIdTaskStatus
         )
       )
       .flatMap { _ =>

@@ -76,8 +76,7 @@ class TaskListRenderingService(
             cache.form.visitsIndex,
             cache.form.thirdPartyData,
             cache.form.componentIdToFileId,
-            taskIdTaskStatusMapping,
-            cache.form.confirmationExpr
+            taskIdTaskStatusMapping
           )
         )
       cacheUpd = cache.copy(form = cache.form.copy(taskIdTaskStatus = taskIdTaskStatusMapping))

@@ -78,8 +78,7 @@ trait FormModelSupport extends GraphSpec {
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
     componentIdToFileId = FormComponentIdToFileIdMapping.empty,
-    taskIdTaskStatus = TaskIdTaskStatusMapping.empty,
-    confirmationExpr = ConfirmationExprMapping.empty
+    taskIdTaskStatus = TaskIdTaskStatusMapping.empty
   )
 
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
@@ -135,7 +134,7 @@ trait FormModelSupport extends GraphSpec {
     val booleanExprCache: BooleanExprCache = BooleanExprCache.empty
     val obligations: Obligations = NotChecked
 
-    ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache, ConfirmationExprMapping.empty)
+    ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache)
   }
 
   def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
