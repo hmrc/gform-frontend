@@ -160,8 +160,7 @@ object AddressLookupService {
           visitsIndex = form.visitsIndex,
           thirdPartyData = updatedThirdPartyData,
           componentIdToFileId = form.componentIdToFileId,
-          taskIdTaskStatus = form.taskIdTaskStatus,
-          confirmationExpr = form.confirmationExpr
+          taskIdTaskStatus = form.taskIdTaskStatus
         )
         gformConnector.updateUserData(formIdData, userData)
       } else
@@ -194,8 +193,7 @@ object AddressLookupService {
         visitsIndex = form.visitsIndex,
         thirdPartyData = form.thirdPartyData,
         componentIdToFileId = form.componentIdToFileId,
-        taskIdTaskStatus = form.taskIdTaskStatus,
-        confirmationExpr = form.confirmationExpr
+        taskIdTaskStatus = form.taskIdTaskStatus
       )
       gformConnector.updateUserData(formIdData, userData)
     }
@@ -216,8 +214,7 @@ object AddressLookupService {
         visitsIndex = form.visitsIndex,
         thirdPartyData = updatedThirdPartyData,
         componentIdToFileId = form.componentIdToFileId,
-        taskIdTaskStatus = form.taskIdTaskStatus,
-        confirmationExpr = form.confirmationExpr
+        taskIdTaskStatus = form.taskIdTaskStatus
       )
       gformConnector.updateUserData(formIdData, userData)
     }
@@ -262,8 +259,7 @@ object AddressLookupService {
         visitsIndex = form.visitsIndex,
         thirdPartyData = form.thirdPartyData.confirmAddress(formComponentId),
         componentIdToFileId = form.componentIdToFileId,
-        taskIdTaskStatus = form.taskIdTaskStatus,
-        confirmationExpr = form.confirmationExpr
+        taskIdTaskStatus = form.taskIdTaskStatus
       )
       gformConnector.updateUserData(formIdData, userData)
     }

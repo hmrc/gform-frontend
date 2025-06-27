@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, ConfirmationExprMapping, EnvelopeId, FileId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, FileId, Form, FormComponentIdToFileIdMapping, FormData, FormField, FormId, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
@@ -51,8 +51,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ),
       None,
       mapping,
-      TaskIdTaskStatusMapping.empty,
-      ConfirmationExprMapping.empty
+      TaskIdTaskStatusMapping.empty
     )
 
     val mapping1 = FormComponentIdToFileIdMapping.empty
@@ -99,8 +98,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ),
       None,
       mapping,
-      TaskIdTaskStatusMapping.empty,
-      ConfirmationExprMapping.empty
+      TaskIdTaskStatusMapping.empty
     )
 
     val mapping2 = Map("file" -> "x_file").toMapping

@@ -39,8 +39,7 @@ case class Form(
   thirdPartyData: ThirdPartyData,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
   componentIdToFileId: FormComponentIdToFileIdMapping,
-  taskIdTaskStatus: TaskIdTaskStatusMapping,
-  confirmationExpr: ConfirmationExprMapping
+  taskIdTaskStatus: TaskIdTaskStatusMapping
 )
 
 object Form {
@@ -49,7 +48,6 @@ object Form {
   private val componentIdToFileId = "componentIdToFileId"
   private val formTemplateVersion = "version"
   private val taskIdTaskStatus = "taskIdTaskStatus"
-  private val confirmationExpr = "confirmationExpr"
 
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ thirdPartyData).read[ThirdPartyData]
@@ -57,9 +55,6 @@ object Form {
     (__ \ componentIdToFileId).read[FormComponentIdToFileIdMapping]
   private val taskIdTaskStatusMappingReads: Reads[TaskIdTaskStatusMapping] =
     (__ \ taskIdTaskStatus).read[TaskIdTaskStatusMapping]
-
-  private val confirmationExprMappingReads: Reads[ConfirmationExprMapping] =
-    (__ \ confirmationExpr).read[ConfirmationExprMapping]
 
   private val formTemplateVersionWithFallback: Reads[Option[FormTemplateVersion]] =
     (__ \ formTemplateVersion)
@@ -84,8 +79,7 @@ object Form {
       thirdPartyDataWithFallback and
       EnvelopeExpiryDate.optionFormat and
       componentIdToFileIdReads and
-      taskIdTaskStatusMappingReads and
-      confirmationExprMappingReads
+      taskIdTaskStatusMappingReads
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](form =>
@@ -100,8 +94,7 @@ object Form {
       Json.obj(thirdPartyData -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
       EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
       Json.obj(componentIdToFileId -> FormComponentIdToFileIdMapping.format.writes(form.componentIdToFileId)) ++
-      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus)) ++
-      Json.obj(confirmationExpr -> ConfirmationExprMapping.format.writes(form.confirmationExpr))
+      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus))
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
