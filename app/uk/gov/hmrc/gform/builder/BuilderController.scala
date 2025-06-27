@@ -121,6 +121,7 @@ class BuilderController(
                 case SectionNumber.Classic.AddToListPage.DefaultPage(_) |
                     SectionNumber.Classic.AddToListPage.Page(_, _, _) |
                     SectionNumber.Classic.AddToListPage.CyaPage(_, _) |
+                    SectionNumber.Classic.AddToListPage.DeclarationSection(_, _) |
                     SectionNumber.Classic.AddToListPage.RepeaterPage(_, _) =>
                   originalSectionInAddToList(json, addToList, formModel, sectionNumber, Nil)
                 case SectionNumber.TaskList(coordinates, sn) =>

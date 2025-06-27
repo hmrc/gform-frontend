@@ -294,7 +294,7 @@ object FormTemplateBuilder {
       ),
       ackSection,
       declarationSection.orElse(
-        Some(DeclarationSection(toSmartString("Declaration"), None, None, None, None, Nil, None))
+        Some(DeclarationSection(toSmartString("Declaration"), None, None, None, None, None, Nil, None))
       )
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
