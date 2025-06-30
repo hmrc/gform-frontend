@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import munit.FunSuite
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber._
 
 class SectionNumberSuite extends FunSuite {
@@ -30,8 +31,9 @@ class SectionNumberSuite extends FunSuite {
       ("ap0.0.0"          -> Classic.AddToListPage.Page(TemplateSectionIndex(0), 0, 0)),
       ("ap1000.1001.1002" -> Classic.AddToListPage.Page(TemplateSectionIndex(1000), 1001, 1002)),
       ("ad0"              -> Classic.AddToListPage.DefaultPage(TemplateSectionIndex(0))),
-      ("ac0.0"            -> Classic.AddToListPage.CyaPage(TemplateSectionIndex(0), 0)),
-      ("ar0.0"            -> Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(0), 0)),
+      ("ac0.0"            -> Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 0, TerminalPageKind.CyaPage)),
+      ("as0.0"            -> Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 0, TerminalPageKind.DeclarationPage)),
+      ("ar0.0"            -> Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 0, TerminalPageKind.RepeaterPage)),
       ("r0.0"             -> Classic.RepeatedPage(TemplateSectionIndex(0), 0)),
       ("r100.1001"        -> Classic.RepeatedPage(TemplateSectionIndex(100), 1001))
     )
@@ -53,20 +55,50 @@ class SectionNumberSuite extends FunSuite {
       (Classic.NormalPage(TemplateSectionIndex(0)), Classic.NormalPage(TemplateSectionIndex(1)), LT),
       (Classic.NormalPage(TemplateSectionIndex(0)), Classic.AddToListPage.Page(TemplateSectionIndex(1), 5, 5), LT),
       (Classic.NormalPage(TemplateSectionIndex(0)), Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)), LT),
-      (Classic.NormalPage(TemplateSectionIndex(0)), Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 5), LT),
+      (
+        Classic.NormalPage(TemplateSectionIndex(0)),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.CyaPage),
+        LT
+      ),
       (Classic.NormalPage(TemplateSectionIndex(0)), Classic.RepeatedPage(TemplateSectionIndex(1), 5), LT),
       (Classic.NormalPage(TemplateSectionIndex(1)), Classic.NormalPage(TemplateSectionIndex(0)), GT),
       (Classic.NormalPage(TemplateSectionIndex(1)), Classic.AddToListPage.Page(TemplateSectionIndex(0), 5, 5), GT),
       (Classic.NormalPage(TemplateSectionIndex(1)), Classic.RepeatedPage(TemplateSectionIndex(0), 5), GT),
       (Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)), Classic.NormalPage(TemplateSectionIndex(0)), GT),
       (Classic.AddToListPage.Page(TemplateSectionIndex(1), 5, 5), Classic.NormalPage(TemplateSectionIndex(0)), GT),
-      (Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 5), Classic.NormalPage(TemplateSectionIndex(0)), GT),
-      (Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 5), Classic.NormalPage(TemplateSectionIndex(0)), GT),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.CyaPage),
+        Classic.NormalPage(TemplateSectionIndex(0)),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.DeclarationPage),
+        Classic.NormalPage(TemplateSectionIndex(0)),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.RepeaterPage),
+        Classic.NormalPage(TemplateSectionIndex(0)),
+        GT
+      ),
       (Classic.RepeatedPage(TemplateSectionIndex(1), 5), Classic.NormalPage(TemplateSectionIndex(0)), GT),
       (Classic.AddToListPage.DefaultPage(TemplateSectionIndex(0)), Classic.NormalPage(TemplateSectionIndex(1)), LT),
       (Classic.AddToListPage.Page(TemplateSectionIndex(0), 5, 5), Classic.NormalPage(TemplateSectionIndex(1)), LT),
-      (Classic.AddToListPage.CyaPage(TemplateSectionIndex(0), 5), Classic.NormalPage(TemplateSectionIndex(1)), LT),
-      (Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(0), 5), Classic.NormalPage(TemplateSectionIndex(1)), LT),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 5, TerminalPageKind.CyaPage),
+        Classic.NormalPage(TemplateSectionIndex(1)),
+        LT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 5, TerminalPageKind.DeclarationPage),
+        Classic.NormalPage(TemplateSectionIndex(1)),
+        LT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 5, TerminalPageKind.RepeaterPage),
+        Classic.NormalPage(TemplateSectionIndex(1)),
+        LT
+      ),
       (Classic.RepeatedPage(TemplateSectionIndex(0), 5), Classic.NormalPage(TemplateSectionIndex(1)), LT),
       (
         Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
@@ -74,9 +106,18 @@ class SectionNumberSuite extends FunSuite {
         GT
       ),
       (Classic.AddToListPage.Page(TemplateSectionIndex(1), 5, 5), Classic.RepeatedPage(TemplateSectionIndex(0), 5), GT),
-      (Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 5), Classic.RepeatedPage(TemplateSectionIndex(0), 5), GT),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 5),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.CyaPage),
+        Classic.RepeatedPage(TemplateSectionIndex(0), 5),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.DeclarationPage),
+        Classic.RepeatedPage(TemplateSectionIndex(0), 5),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.RepeaterPage),
         Classic.RepeatedPage(TemplateSectionIndex(0), 5),
         GT
       ),
@@ -86,10 +127,19 @@ class SectionNumberSuite extends FunSuite {
         LT
       ),
       (Classic.RepeatedPage(TemplateSectionIndex(0), 5), Classic.AddToListPage.Page(TemplateSectionIndex(1), 5, 5), LT),
-      (Classic.RepeatedPage(TemplateSectionIndex(0), 5), Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 5), LT),
       (
         Classic.RepeatedPage(TemplateSectionIndex(0), 5),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 5),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.CyaPage),
+        LT
+      ),
+      (
+        Classic.RepeatedPage(TemplateSectionIndex(0), 5),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.DeclarationPage),
+        LT
+      ),
+      (
+        Classic.RepeatedPage(TemplateSectionIndex(0), 5),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 5, TerminalPageKind.RepeaterPage),
         LT
       ),
       (Classic.RepeatedPage(TemplateSectionIndex(0), 1), Classic.RepeatedPage(TemplateSectionIndex(0), 1), EQ),
@@ -126,12 +176,17 @@ class SectionNumberSuite extends FunSuite {
         LT
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 0, 0),
         GT
       ),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
+        Classic.AddToListPage.Page(TemplateSectionIndex(1), 0, 0),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 0, 0),
         GT
       ),
@@ -142,82 +197,132 @@ class SectionNumberSuite extends FunSuite {
       ),
       (
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 0, 0),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
         LT
       ),
       (
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 0, 0),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
         LT
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.Page(TemplateSectionIndex(1), 0, 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        LT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
         EQ
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 1),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 1, TerminalPageKind.CyaPage),
         LT
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 1),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 1, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
         GT
       ),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
         EQ
       ),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 1),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 1, TerminalPageKind.DeclarationPage),
         LT
       ),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 1),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 1, TerminalPageKind.DeclarationPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
         GT
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        EQ
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 1, TerminalPageKind.RepeaterPage),
         LT
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(2), 0),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 1, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
         GT
       ),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(1), 0),
-        GT
-      ),
-      (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(2), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
         LT
       ),
       (
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
+        LT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 0, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 0, TerminalPageKind.CyaPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.CyaPage),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.DeclarationPage),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 0, TerminalPageKind.CyaPage),
+        LT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 0, TerminalPageKind.DeclarationPage),
+        LT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 1, 0),
         LT
       ),
       (
         Classic.AddToListPage.Page(TemplateSectionIndex(1), 1, 0),
-        Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(1), 0),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(1), 0, TerminalPageKind.RepeaterPage),
         GT
       ),
       (
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(0), 1),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 1, TerminalPageKind.CyaPage),
         Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
         LT
       ),
       (
         Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
-        Classic.AddToListPage.CyaPage(TemplateSectionIndex(0), 1),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 1, TerminalPageKind.CyaPage),
+        GT
+      ),
+      (
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 1, TerminalPageKind.DeclarationPage),
+        Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
+        LT
+      ),
+      (
+        Classic.AddToListPage.DefaultPage(TemplateSectionIndex(1)),
+        Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 1, TerminalPageKind.DeclarationPage),
         GT
       )
     )
