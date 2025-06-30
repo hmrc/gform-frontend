@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 
 import scala.util.matching.Regex
 
@@ -568,7 +569,8 @@ class FormModelBuilder[E, F[_]: Functor](
       CheckYourAnswersWithNumber(
         mkCheckYourAnswers(c, s, iterationIndex),
         mkSectionNumber(
-          SectionNumber.Classic.AddToListPage.CyaPage(templateSectionIndex, iterationIndex),
+          SectionNumber.Classic.AddToListPage
+            .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.CyaPage),
           maybeCoordinates
         )
       )
@@ -578,7 +580,8 @@ class FormModelBuilder[E, F[_]: Functor](
       SingletonWithNumber(
         mkDeclaration(d, s, iterationIndex),
         mkSectionNumber(
-          SectionNumber.Classic.AddToListPage.DeclarationSection(templateSectionIndex, iterationIndex),
+          SectionNumber.Classic.AddToListPage
+            .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.DeclarationPage),
           maybeCoordinates
         )
       )
@@ -595,7 +598,8 @@ class FormModelBuilder[E, F[_]: Functor](
           RepeaterWithNumber(
             repeater,
             mkSectionNumber(
-              SectionNumber.Classic.AddToListPage.RepeaterPage(templateSectionIndex, iterationIndex),
+              SectionNumber.Classic.AddToListPage
+                .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.RepeaterPage),
               maybeCoordinates
             )
           )
