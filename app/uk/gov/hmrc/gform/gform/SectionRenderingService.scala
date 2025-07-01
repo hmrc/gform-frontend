@@ -1821,7 +1821,10 @@ class SectionRenderingService(
             sectionNumber
           }
 
-        val sectionTitle4Ga = sectionTitle4GaFactory(formModel.pageModelLookup(sn), sn)
+        val pageModel = formModel.pageModelLookup(sn)
+        val pageHasEditableField = pageModel.allFormComponents.exists(_.editable)
+
+        val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
         List(
           SummaryListRowHelper.summaryListRow(
             key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
@@ -1841,7 +1844,7 @@ class SectionRenderingService(
                     SuppressErrors.Yes,
                     List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))
                   ),
-                messages("summary.view"),
+                messages(if (pageHasEditableField) "summary.change" else "summary.view"),
                 ""
               )
             ),
@@ -1894,7 +1897,7 @@ class SectionRenderingService(
             List(
               (
                 link,
-                messages("summary.view"),
+                messages("summary.change"),
                 ""
               )
             ),
