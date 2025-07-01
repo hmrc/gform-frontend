@@ -160,10 +160,10 @@ object SectionNumber {
         case (AddToListPage.Page(sn0, _, _), AddToListPage.DefaultPage(sn1))                      => compDef(1, sn0, sn1)
         case (AddToListPage.DefaultPage(sn0), AddToListPage.TerminalPage(sn1, _, _))              => compDef(-1, sn0, sn1)
         case (AddToListPage.TerminalPage(sn0, _, _), AddToListPage.DefaultPage(sn1))              => compDef(1, sn0, sn1)
-        case (AddToListPage.TerminalPage(sn0, in0, _), AddToListPage.Page(sn1, in1, _))           => comp(1, sn0, in0, None, sn1, in1, None)
-        case (AddToListPage.Page(sn0, in0, _), AddToListPage.TerminalPage(sn1, in1, _))           => comp(-1, sn0, in0, None, sn1, in1, None)
-        case (AddToListPage.TerminalPage(sn0, in0, t0), AddToListPage.TerminalPage(sn1, in1, t1)) => comp(0, sn0, in0, Some(t0), sn1, in1, Some(t1))
-        case (AddToListPage.Page(sn0, in0, pn0), AddToListPage.Page(sn1, in1, pn1))               => comp(pn0.compare(pn1), sn0, in0, None, sn1, in1, None)
+        case (AddToListPage.TerminalPage(sn0, in0, _), AddToListPage.Page(sn1, in1, _))           => comp(1, sn0, in0, sn1, in1)
+        case (AddToListPage.Page(sn0, in0, _), AddToListPage.TerminalPage(sn1, in1, _))           => comp(-1, sn0, in0, sn1, in1)
+        case (AddToListPage.TerminalPage(sn0, in0, t0), AddToListPage.TerminalPage(sn1, in1, t1)) => comp(t0.compare(t1), sn0, in0, sn1, in1)
+        case (AddToListPage.Page(sn0, in0, pn0), AddToListPage.Page(sn1, in1, pn1))               => comp(pn0.compare(pn1), sn0, in0, sn1, in1)
         // format: on
       }
 
@@ -171,29 +171,16 @@ object SectionNumber {
         if (sn0 === sn1) default
         else sn0.index.compare(sn1.index)
 
-      private def comp(
-        default: Int,
-        sn0: TemplateSectionIndex,
-        in0: Int,
-        maybeTp0: Option[TerminalPageKind],
-        sn1: TemplateSectionIndex,
-        in1: Int,
-        maybeTp1: Option[TerminalPageKind]
-      ): Int = {
-        val terminalPageOrDefault = (maybeTp0, maybeTp1) match {
-          case (Some(tp0), Some(tp1)) => tp0.sortOrder.compare(tp1.sortOrder)
-          case (_, _)                 => default
-        }
-
-        if (sn0 === sn1 && in0 === in1) terminalPageOrDefault
+      private def comp(default: Int, sn0: TemplateSectionIndex, in0: Int, sn1: TemplateSectionIndex, in1: Int): Int =
+        if (sn0 === sn1 && in0 === in1) default
         else if (sn0 === sn1) in0.compare(in1)
         else sn0.index.compare(sn1.index)
-      }
     }
 
     object AddToListPage {
-      sealed trait TerminalPageKind {
+      sealed trait TerminalPageKind extends Ordered[TerminalPageKind] {
         val sortOrder: Int
+        def compare(other: TerminalPageKind): Int = this.sortOrder.compare(other.sortOrder)
       }
 
       case object TerminalPageKind {
