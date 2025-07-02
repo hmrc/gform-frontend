@@ -188,13 +188,16 @@ class FormValidator(implicit ec: ExecutionContext) {
               }
             ) None
             else {
-              if (sectionIsVisible(currentSn, formModelOptics.formModelVisibilityOptics.formModel)) {
-                Some(currentSn)
-              } else None
+              Some(currentSn)
             }
           case otherwise =>
             val isCurrentSection = maybeSectionNumber.contains(currentSn)
-            if (isCurrentSection && !isValid)
+            if (
+              isCurrentSection && !isValid && !sectionIsVisible(
+                currentSn,
+                formModelOptics.formModelVisibilityOptics.formModel
+              )
+            )
               maybeSectionNumber
             else
               otherwise
