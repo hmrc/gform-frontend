@@ -188,6 +188,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
       declarationSection = Some(
         DeclarationSection(
           title = toSmartString("Declaration Page"),
+          caption = None,
           noPIITitle = None,
           description = None,
           shortName = None,

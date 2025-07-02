@@ -165,6 +165,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
       None,
       None,
       None,
+      None,
       Some(toSmartString("ContinueLabel")),
       decFormComponent,
       None
@@ -173,6 +174,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
   def mkDecSection(noPIITitle: Option[String] = None) =
     DeclarationSection(
       toSmartString("declaration section"),
+      None,
       noPIITitle.map(toSmartString),
       None,
       None,
@@ -853,6 +855,7 @@ trait ExampleFormTemplate {
   def declarationSection =
     DeclarationSection(
       toSmartString("Declaration"),
+      None,
       None,
       None,
       None,

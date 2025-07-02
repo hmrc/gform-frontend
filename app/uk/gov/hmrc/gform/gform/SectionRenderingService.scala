@@ -656,7 +656,8 @@ class SectionRenderingService(
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     upscanInitiate: UpscanInitiate,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    overrideSaveIsNotPermitted: Boolean = false
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -763,7 +764,7 @@ class SectionRenderingService(
       renderComeBackLater,
       SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
-        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
+        if (overrideSaveIsNotPermitted) true else DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
         ei.getButtonName(validationResult).isDefined
       ),
