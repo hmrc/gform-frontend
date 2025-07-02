@@ -171,7 +171,7 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[ValidationResult] = {
-    println(maybeCoordinates)
+    // println(maybeCoordinates)
 
     val formModel = formModelVisibilityOptics.formModel
 

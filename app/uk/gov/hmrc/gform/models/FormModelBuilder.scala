@@ -320,17 +320,18 @@ class FormModelBuilder[E, F[_]: Functor](
     val recalcCache: mutable.Map[List[IncludeIf], F[RecalculationResult]] = mutable.Map()
 
     val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
-    println("atl components: " + atlComponents.size)
+    //println("atl components: " + atlComponents.size)
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
 
-    println("standaloneSumsFcIds: " + standaloneSumsFcIds.size)
+    //println("standaloneSumsFcIds: " + standaloneSumsFcIds.size)
 
     val allFormComponentExpressions = AllFormTemplateExpressions(formTemplate)
 
     val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
 
     def onDemandPageIncludeIf(includeIf: List[Option[IncludeIf]]) = {
+//      println(includeIf)
 
       def getRecalculation(includeIf: List[IncludeIf]) = {
         val exprs = includeIf.flatMap { includeIf =>
