@@ -244,36 +244,18 @@ class FormController(
                       )
                     )
                   case (_, Some(declarationSection)) if declarationSection.sectionNumber == sectionNumber =>
-                    val visibleIteration: Bracket.AddToListIteration[Visibility] =
-                      formModelOptics.formModelVisibilityOptics.formModel
-                        .bracket(sectionNumber)
-                        .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
-                    validateSections(
-                      SuppressErrors.No,
-                      visibleIteration.allSingletonSectionNumbers: _*
-                    )(handlerResult =>
+                    validateSections(suppressErrors, sectionNumber)(handlerResult =>
                       Future.successful(
                         Ok(
-                          renderer
-                            .renderSection(
-                              maybeAccessCode,
-                              sectionNumber,
-                              handlerResult,
-                              cache.formTemplate,
-                              cache.formTemplateContext.specimenSource,
-                              cache.form.envelopeId,
-                              declarationSection.singleton,
-                              cache.formTemplate.fileSizeLimit.getOrElse(formMaxAttachmentSizeMB),
-                              cache.formTemplate.allowedFileTypes,
-                              restrictedFileExtensions,
-                              cache.retrievals,
-                              cache.form.thirdPartyData.obligations,
-                              fastForward,
-                              formModelOptics,
-                              UpscanInitiate.empty,
-                              AddressRecordLookup.from(cache.form.thirdPartyData),
-                              overrideSaveIsNotPermitted = true
-                            )
+                          renderer.renderATLDeclarationSection(
+                            maybeAccessCode,
+                            declarationSection.singleton,
+                            cache,
+                            handlerResult,
+                            formModelOptics,
+                            fastForward,
+                            sectionNumber
+                          )
                         )
                       )
                     )

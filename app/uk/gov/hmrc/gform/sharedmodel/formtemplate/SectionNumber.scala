@@ -35,12 +35,20 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
     case SectionNumber.TaskList(_, sectionNumber)            => sectionNumber.isAddToList
   }
 
-  def isAddToListRepeaterPage: Boolean = this match {
-    case SectionNumber.Classic.AddToListPage
-          .TerminalPage(_, _, TerminalPageKind.RepeaterPage) =>
-      true
-    case SectionNumber.TaskList(_, sectionNumber) => sectionNumber.isAddToListRepeaterPage
-    case _                                        => false
+  def isAddToListTerminalSpecific(pageKind: TerminalPageKind): Boolean = this match {
+    case SectionNumber.Classic.AddToListPage.TerminalPage(_, _, `pageKind`) => true
+    case SectionNumber.TaskList(_, sectionNumber)                           => sectionNumber.isAddToListTerminalSpecific(pageKind)
+    case _                                                                  => false
+  }
+
+  def isAddToListRepeaterPage: Boolean = isAddToListTerminalSpecific(TerminalPageKind.RepeaterPage)
+
+  def isAddToListDeclarationPage: Boolean = isAddToListTerminalSpecific(TerminalPageKind.DeclarationPage)
+
+  def isAddToListTerminalPage: Boolean = this match {
+    case SectionNumber.Classic.AddToListPage.TerminalPage(_, _, _) => true
+    case SectionNumber.TaskList(_, sectionNumber)                  => sectionNumber.isAddToListTerminalPage
+    case _                                                         => false
   }
 
   def templateSectionIndex: TemplateSectionIndex =

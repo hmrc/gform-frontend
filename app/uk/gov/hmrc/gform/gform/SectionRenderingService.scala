@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, EditAddToList, GformFlashKeys, Origin, SaveAndContinue }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, EditAddToList, GformFlashKeys, Navigator, Origin, SaveAndContinue }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.lookup._
@@ -224,13 +224,17 @@ class SectionRenderingService(
     val (title, noPIITitle) =
       SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers, formModelOptics)
 
+    val navigator = Navigator(sectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
+    val isDecSectionAvailable = navigator.nextSectionNumber.isAddToListDeclarationPage
+
     val ff = fastForward match {
       case Nil                       => Nil
       case FastForward.CYA(to) :: xs => FastForward.CYA(to) :: xs
-      case FastForward.StopAt(sn) :: xs =>
+      case FastForward.StopAt(sn) :: xs if !isDecSectionAvailable =>
         FastForward.StopAt(sn.increment(formModelOptics.formModelVisibilityOptics.formModel)) :: xs
       case otherwise => otherwise
     }
+
     html.form.addToListCheckYourAnswers(
       title,
       checkYourAnswers.expandedCaption.map(_.value()),
@@ -257,6 +261,123 @@ class SectionRenderingService(
       isMainContentFullWidth = checkYourAnswers.displayWidth.nonEmpty
     )
 
+  }
+
+  def renderATLDeclarationSection(
+    maybeAccessCode: Option[AccessCode],
+    declarationPage: Singleton[DataExpanded],
+    cache: AuthCacheWithForm,
+    formHandlerResult: FormHandlerResult,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    fastForward: List[FastForward],
+    sectionNumber: SectionNumber
+  )(implicit
+    request: Request[_],
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+    val listResult = formHandlerResult.validationResult.formFieldValidationResults
+    val pageLevelErrorHtml = PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
+
+    val ei = ExtraInfo(
+      declarationPage,
+      maybeAccessCode,
+      cache.formTemplate.sectionNumberZero,
+      formModelOptics,
+      cache.formTemplate,
+      cache.form.envelopeId,
+      EnvelopeWithMapping.empty,
+      0,
+      cache.retrievals,
+      formLevelHeading = false,
+      specialAttributes = Map.empty,
+      AddressRecordLookup.from(cache.form.thirdPartyData)
+    )
+
+    val infoFields = declarationPage.page.fields
+      .filter { field =>
+        field.includeIf.fold(true) { includeIf =>
+          formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+        }
+      }
+      .map {
+        case info @ IsInformationMessage(InformationMessage(infoType, infoText, _)) =>
+          htmlForInformationMessage(info, infoType, infoText)
+        case fc @ IsTableComp(table) =>
+          htmlForTableComp(fc, table, formModelOptics)
+        case fc @ IsMiniSummaryList(miniSummaryList) =>
+          htmlForMiniSummaryList(
+            fc,
+            cache.formTemplate._id,
+            miniSummaryList.rows,
+            ei,
+            formHandlerResult.validationResult,
+            NotChecked,
+            KeyDisplayWidth.M
+          )
+        case unsupported =>
+          throw new Exception("AddToList.DeclarationPage.fields contains a non-read only component: " + unsupported)
+      }
+
+    val continueLabel = declarationPage.page.continueLabel.map(_.value()).getOrElse(messages("button.continue"))
+
+    val renderingInfo = SectionRenderingInformation(
+      cache.formTemplate._id,
+      maybeAccessCode,
+      sectionNumber,
+      declarationPage.page.sectionHeader(),
+      declarationPage.noPIITitle.fold(
+        declarationPage.title.valueWithoutInterpolations(
+          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+        )
+      )(_.value()),
+      infoFields,
+      "",
+      cache.form.envelopeId,
+      uk.gov.hmrc.gform.gform.routes.FormController
+        .updateFormData(cache.formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue),
+      false,
+      continueLabel,
+      0,
+      FileInfoConfig.allAllowedFileTypes,
+      Nil,
+      Map.empty,
+      Map.empty,
+      None,
+      false
+    )
+    val mainForm = html.form.form_standard(
+      renderingInfo,
+      shouldDisplayContinue = true,
+      ei.saveAndComeBackLaterButton,
+      isFileUploadOnlyPage = false,
+      None
+    )
+
+    val href = uk.gov.hmrc.gform.gform.routes.FormController
+      .backAction(
+        cache.formTemplate._id,
+        maybeAccessCode,
+        sectionNumber,
+        fastForward
+      )
+
+    val backLink =
+      new BackLink(href = href.path, content = content.Text(messages("linkText.back")))
+
+    html.form.form(
+      cache.formTemplate,
+      pageLevelErrorHtml,
+      renderingInfo,
+      mainForm,
+      backLink = Some(backLink),
+      shouldDisplayHeading = true,
+      frontendAppConfig,
+      fastForward = fastForward,
+      accessCode = maybeAccessCode
+    )
   }
 
   def renderAddToList(
@@ -656,8 +777,7 @@ class SectionRenderingService(
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     upscanInitiate: UpscanInitiate,
-    addressRecordLookup: AddressRecordLookup,
-    overrideSaveIsNotPermitted: Boolean = false
+    addressRecordLookup: AddressRecordLookup
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -764,7 +884,7 @@ class SectionRenderingService(
       renderComeBackLater,
       SectionRenderingService.determineContinueLabelKey(
         retrievals.continueLabelKey,
-        if (overrideSaveIsNotPermitted) true else DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
+        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
         page.continueLabel,
         ei.getButtonName(validationResult).isDefined
       ),
