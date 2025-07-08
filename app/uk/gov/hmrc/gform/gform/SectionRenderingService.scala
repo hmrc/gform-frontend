@@ -232,7 +232,8 @@ class SectionRenderingService(
       case FastForward.CYA(to) :: xs => FastForward.CYA(to) :: xs
       case FastForward.StopAt(sn) :: xs if !isDecSectionAvailable =>
         FastForward.StopAt(sn.increment(formModelOptics.formModelVisibilityOptics.formModel)) :: xs
-      case otherwise => otherwise
+      case otherwise if isDecSectionAvailable => FastForward.StopAt(sectionNumber) :: otherwise
+      case _                                  => fastForward
     }
 
     html.form.addToListCheckYourAnswers(
