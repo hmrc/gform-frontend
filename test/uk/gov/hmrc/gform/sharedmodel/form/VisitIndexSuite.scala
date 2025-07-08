@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import munit.FunSuite
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, SectionNumber, TaskNumber, TaskSectionNumber, TemplateSectionIndex }
 
 class VisitIndexSuite extends FunSuite {
@@ -50,14 +51,16 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 2),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 3),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 2),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 2),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2)
       )
     )
@@ -69,8 +72,9 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 3),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2)
       )
     )
@@ -81,8 +85,9 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 3),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2)
       )
     )
@@ -100,8 +105,9 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2)
       )
     )
@@ -131,14 +137,16 @@ class VisitIndexSuite extends FunSuite {
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 0),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
-            SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-            SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 0),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 1),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 2),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 3),
-            SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 2),
-            SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 2),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.CyaPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.DeclarationPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.RepeaterPage),
             SectionNumber.Classic.NormalPage(normalIndex2)
           )
       )
@@ -153,8 +161,9 @@ class VisitIndexSuite extends FunSuite {
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 3),
-            SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-            SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
             SectionNumber.Classic.NormalPage(normalIndex2)
           )
       )
@@ -168,8 +177,9 @@ class VisitIndexSuite extends FunSuite {
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
             SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 3),
-            SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-            SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+            SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
             SectionNumber.Classic.NormalPage(normalIndex2)
           )
       )
@@ -189,8 +199,9 @@ class VisitIndexSuite extends FunSuite {
           SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 0),
           SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 1),
           SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 2),
-          SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-          SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+          SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+          SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+          SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
           SectionNumber.Classic.NormalPage(normalIndex2)
         )
       )
@@ -219,19 +230,22 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.AddToListPage.DefaultPage(atlIndex1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 1, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 1, 1),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex1, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex1, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 2, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 2, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 2, 2),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex1, 2),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex1, 2),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 2, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 2, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 2, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2),
         SectionNumber.Classic.AddToListPage.DefaultPage(atlIndex3),
         SectionNumber.Classic.AddToListPage.Page(atlIndex3, 1, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex3, 1, 1),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex3, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex3, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex3, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex3, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex3, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex4)
       )
     )
@@ -241,13 +255,15 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.AddToListPage.DefaultPage(atlIndex1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 1, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 1, 1),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex1, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex1, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 2, 0),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 2, 1),
         SectionNumber.Classic.AddToListPage.Page(atlIndex1, 2, 2),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex1, 2),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex1, 2),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 2, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 2, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex1, 2, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2),
         SectionNumber.Classic.NormalPage(normalIndex4)
       )
@@ -269,14 +285,17 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.NormalPage(normalIndex0),
         SectionNumber.Classic.AddToListPage.DefaultPage(atlIndex),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 0),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 0),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 2),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 2),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 3, 0),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 3),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 3),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 3, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 3, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 3, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2)
       )
     )
@@ -285,11 +304,13 @@ class VisitIndexSuite extends FunSuite {
         SectionNumber.Classic.NormalPage(normalIndex0),
         SectionNumber.Classic.AddToListPage.DefaultPage(atlIndex),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 1, 0),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 1),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 1),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 1, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.AddToListPage.Page(atlIndex, 2, 0),
-        SectionNumber.Classic.AddToListPage.CyaPage(atlIndex, 2),
-        SectionNumber.Classic.AddToListPage.RepeaterPage(atlIndex, 2),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.CyaPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.DeclarationPage),
+        SectionNumber.Classic.AddToListPage.TerminalPage(atlIndex, 2, TerminalPageKind.RepeaterPage),
         SectionNumber.Classic.NormalPage(normalIndex2)
       )
     )

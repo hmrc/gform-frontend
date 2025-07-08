@@ -21,6 +21,7 @@ import cats.implicits._
 import play.api.libs.json._
 import scala.util.Try
 import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
+import SectionNumber.Classic.AddToListPage.TerminalPageKind
 
 sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Serializable {
 
@@ -30,15 +31,24 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
     case _: SectionNumber.Classic.RepeatedPage               => false
     case _: SectionNumber.Classic.AddToListPage.DefaultPage  => true
     case _: SectionNumber.Classic.AddToListPage.Page         => true
-    case _: SectionNumber.Classic.AddToListPage.CyaPage      => true
-    case _: SectionNumber.Classic.AddToListPage.RepeaterPage => true
+    case _: SectionNumber.Classic.AddToListPage.TerminalPage => true
     case SectionNumber.TaskList(_, sectionNumber)            => sectionNumber.isAddToList
   }
 
-  def isAddToListRepeaterPage: Boolean = this match {
-    case _: SectionNumber.Classic.AddToListPage.RepeaterPage => true
-    case SectionNumber.TaskList(_, sectionNumber)            => sectionNumber.isAddToListRepeaterPage
-    case _                                                   => false
+  def isAddToListTerminalSpecific(pageKind: TerminalPageKind): Boolean = this match {
+    case SectionNumber.Classic.AddToListPage.TerminalPage(_, _, `pageKind`) => true
+    case SectionNumber.TaskList(_, sectionNumber)                           => sectionNumber.isAddToListTerminalSpecific(pageKind)
+    case _                                                                  => false
+  }
+
+  def isAddToListRepeaterPage: Boolean = isAddToListTerminalSpecific(TerminalPageKind.RepeaterPage)
+
+  def isAddToListDeclarationPage: Boolean = isAddToListTerminalSpecific(TerminalPageKind.DeclarationPage)
+
+  def isAddToListTerminalPage: Boolean = this match {
+    case SectionNumber.Classic.AddToListPage.TerminalPage(_, _, _) => true
+    case SectionNumber.TaskList(_, sectionNumber)                  => sectionNumber.isAddToListTerminalPage
+    case _                                                         => false
   }
 
   def templateSectionIndex: TemplateSectionIndex =
@@ -92,10 +102,13 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
       "ad" + sectionIndex.toString
     case SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(sectionIndex), iterationNumber, pageNumber) =>
       "ap" + sectionIndex.toString + "." + iterationNumber.toString + "." + pageNumber.toString
-    case SectionNumber.Classic.AddToListPage.CyaPage(TemplateSectionIndex(sectionIndex), iterationNumber) =>
-      "ac" + sectionIndex.toString + "." + iterationNumber.toString
-    case SectionNumber.Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(sectionIndex), iterationNumber) =>
-      "ar" + sectionIndex.toString + "." + iterationNumber.toString
+    case SectionNumber.Classic.AddToListPage
+          .TerminalPage(TemplateSectionIndex(sectionIndex), iterationNumber, terminalPage) =>
+      (terminalPage match {
+        case TerminalPageKind.CyaPage         => "ac"
+        case TerminalPageKind.DeclarationPage => "as"
+        case TerminalPageKind.RepeaterPage    => "ar"
+      }) + sectionIndex.toString + "." + iterationNumber.toString
     case SectionNumber.Classic.RepeatedPage(TemplateSectionIndex(sectionIndex), pageNumber) =>
       "r" + sectionIndex.toString + "." + pageNumber.toString
     case SectionNumber.TaskList(Coordinates(taskSectionNumber, taskNumber), sectionNumber) =>
@@ -114,35 +127,27 @@ object SectionNumber {
         sn0.index.compare(sn1.index)
       case (Classic.NormalPage(sn0), Classic.AddToListPage.Page(sn1, _, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
-      case (Classic.NormalPage(sn0), Classic.AddToListPage.CyaPage(sn1, _)) if sn0 =!= sn1 =>
-        sn0.index.compare(sn1.index)
-      case (Classic.NormalPage(sn0), Classic.AddToListPage.RepeaterPage(sn1, _)) if sn0 =!= sn1 =>
+      case (Classic.NormalPage(sn0), Classic.AddToListPage.TerminalPage(sn1, _, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (Classic.NormalPage(sn0), Classic.RepeatedPage(sn1, _)) if sn0 =!= sn1 => sn0.index.compare(sn1.index)
       case (Classic.AddToListPage.DefaultPage(sn0), Classic.NormalPage(sn1)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (Classic.AddToListPage.Page(sn0, _, _), Classic.NormalPage(sn1)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
-      case (Classic.AddToListPage.CyaPage(sn0, _), Classic.NormalPage(sn1)) if sn0 =!= sn1 =>
-        sn0.index.compare(sn1.index)
-      case (Classic.AddToListPage.RepeaterPage(sn0, _), Classic.NormalPage(sn1)) if sn0 =!= sn1 =>
+      case (Classic.AddToListPage.TerminalPage(sn0, _, _), Classic.NormalPage(sn1)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (Classic.RepeatedPage(sn0, _), Classic.NormalPage(sn1)) if sn0 =!= sn1 => sn0.index.compare(sn1.index)
       case (Classic.AddToListPage.DefaultPage(sn0), Classic.RepeatedPage(sn1, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (Classic.AddToListPage.Page(sn0, _, _), Classic.RepeatedPage(sn1, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
-      case (Classic.AddToListPage.CyaPage(sn0, _), Classic.RepeatedPage(sn1, _)) if sn0 =!= sn1 =>
-        sn0.index.compare(sn1.index)
-      case (Classic.AddToListPage.RepeaterPage(sn0, _), Classic.RepeatedPage(sn1, _)) if sn0 =!= sn1 =>
+      case (Classic.AddToListPage.TerminalPage(sn0, _, _), Classic.RepeatedPage(sn1, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (Classic.RepeatedPage(sn0, _), Classic.AddToListPage.DefaultPage(sn1)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (Classic.RepeatedPage(sn0, _), Classic.AddToListPage.Page(sn1, _, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
-      case (Classic.RepeatedPage(sn0, _), Classic.AddToListPage.CyaPage(sn1, _)) if sn0 =!= sn1 =>
-        sn0.index.compare(sn1.index)
-      case (Classic.RepeatedPage(sn0, _), Classic.AddToListPage.RepeaterPage(sn1, _)) if sn0 =!= sn1 =>
+      case (Classic.RepeatedPage(sn0, _), Classic.AddToListPage.TerminalPage(sn1, _, _)) if sn0 =!= sn1 =>
         sn0.index.compare(sn1.index)
       case (a: Classic.AddToListPage, b: Classic.AddToListPage) => a.compareAddToListPage(b)
       case (Classic.RepeatedPage(sn0, pn0), Classic.RepeatedPage(sn1, pn1)) =>
@@ -157,23 +162,17 @@ object SectionNumber {
     case class RepeatedPage(sectionIndex: TemplateSectionIndex, pageNumber: Int) extends Classic
     sealed trait AddToListPage extends Classic {
       def compareAddToListPage(that: AddToListPage): Int = (this, that) match {
-        case (AddToListPage.DefaultPage(sn0), AddToListPage.DefaultPage(sn1))             => compDef(0, sn0, sn1)
-        case (AddToListPage.DefaultPage(sn0), AddToListPage.Page(sn1, _, _))              => compDef(-1, sn0, sn1)
-        case (AddToListPage.Page(sn0, _, _), AddToListPage.DefaultPage(sn1))              => compDef(1, sn0, sn1)
-        case (AddToListPage.DefaultPage(sn0), AddToListPage.CyaPage(sn1, _))              => compDef(-1, sn0, sn1)
-        case (AddToListPage.CyaPage(sn0, _), AddToListPage.DefaultPage(sn1))              => compDef(1, sn0, sn1)
-        case (AddToListPage.DefaultPage(sn0), AddToListPage.RepeaterPage(sn1, _))         => compDef(-1, sn0, sn1)
-        case (AddToListPage.RepeaterPage(sn0, _), AddToListPage.DefaultPage(sn1))         => compDef(1, sn0, sn1)
-        case (AddToListPage.CyaPage(sn0, in0), AddToListPage.Page(sn1, in1, _))           => comp(1, sn0, in0, sn1, in1)
-        case (AddToListPage.Page(sn0, in0, _), AddToListPage.CyaPage(sn1, in1))           => comp(-1, sn0, in0, sn1, in1)
-        case (AddToListPage.RepeaterPage(sn0, in0), AddToListPage.Page(sn1, in1, _))      => comp(1, sn0, in0, sn1, in1)
-        case (AddToListPage.Page(sn0, in0, _), AddToListPage.RepeaterPage(sn1, in1))      => comp(-1, sn0, in0, sn1, in1)
-        case (AddToListPage.RepeaterPage(sn0, in0), AddToListPage.CyaPage(sn1, in1))      => comp(1, sn0, in0, sn1, in1)
-        case (AddToListPage.CyaPage(sn0, in0), AddToListPage.RepeaterPage(sn1, in1))      => comp(-1, sn0, in0, sn1, in1)
-        case (AddToListPage.RepeaterPage(sn0, in0), AddToListPage.RepeaterPage(sn1, in1)) => comp(0, sn0, in0, sn1, in1)
-        case (AddToListPage.CyaPage(sn0, in0), AddToListPage.CyaPage(sn1, in1))           => comp(0, sn0, in0, sn1, in1)
-        case (AddToListPage.Page(sn0, in0, pn0), AddToListPage.Page(sn1, in1, pn1)) =>
-          comp(pn0.compare(pn1), sn0, in0, sn1, in1)
+        // format: off
+        case (AddToListPage.DefaultPage(sn0), AddToListPage.DefaultPage(sn1))                     => compDef(0, sn0, sn1)
+        case (AddToListPage.DefaultPage(sn0), AddToListPage.Page(sn1, _, _))                      => compDef(-1, sn0, sn1)
+        case (AddToListPage.Page(sn0, _, _), AddToListPage.DefaultPage(sn1))                      => compDef(1, sn0, sn1)
+        case (AddToListPage.DefaultPage(sn0), AddToListPage.TerminalPage(sn1, _, _))              => compDef(-1, sn0, sn1)
+        case (AddToListPage.TerminalPage(sn0, _, _), AddToListPage.DefaultPage(sn1))              => compDef(1, sn0, sn1)
+        case (AddToListPage.TerminalPage(sn0, in0, _), AddToListPage.Page(sn1, in1, _))           => comp(1, sn0, in0, sn1, in1)
+        case (AddToListPage.Page(sn0, in0, _), AddToListPage.TerminalPage(sn1, in1, _))           => comp(-1, sn0, in0, sn1, in1)
+        case (AddToListPage.TerminalPage(sn0, in0, t0), AddToListPage.TerminalPage(sn1, in1, t1)) => comp(t0.compare(t1), sn0, in0, sn1, in1)
+        case (AddToListPage.Page(sn0, in0, pn0), AddToListPage.Page(sn1, in1, pn1))               => comp(pn0.compare(pn1), sn0, in0, sn1, in1)
+        // format: on
       }
 
       private def compDef(default: Int, sn0: TemplateSectionIndex, sn1: TemplateSectionIndex): Int =
@@ -187,10 +186,29 @@ object SectionNumber {
     }
 
     object AddToListPage {
+      sealed trait TerminalPageKind extends Ordered[TerminalPageKind] {
+        val sortOrder: Int
+        def compare(other: TerminalPageKind): Int = this.sortOrder.compare(other.sortOrder)
+      }
+
+      case object TerminalPageKind {
+        case object CyaPage extends TerminalPageKind {
+          override val sortOrder: Int = 0
+        }
+        case object DeclarationPage extends TerminalPageKind {
+          override val sortOrder: Int = 1
+        }
+        case object RepeaterPage extends TerminalPageKind {
+          override val sortOrder: Int = 2
+        }
+      }
       case class DefaultPage(sectionIndex: TemplateSectionIndex) extends AddToListPage
       case class Page(sectionIndex: TemplateSectionIndex, iterationNumber: Int, pageNumber: Int) extends AddToListPage
-      case class CyaPage(sectionIndex: TemplateSectionIndex, iterationNumber: Int) extends AddToListPage
-      case class RepeaterPage(sectionIndex: TemplateSectionIndex, iterationNumber: Int) extends AddToListPage
+      case class TerminalPage(
+        sectionIndex: TemplateSectionIndex,
+        iterationNumber: Int,
+        terminalKind: TerminalPageKind
+      ) extends AddToListPage
     }
     implicit val equal: Eq[SectionNumber.Classic] = Eq.fromUniversalEquals
   }
@@ -225,12 +243,13 @@ object SectionNumber {
   implicit val writer: Writes[SectionNumber] = Writes[SectionNumber](a => JsString(a.value))
 
   // format: off
-  private val NormalPageRegex            = "^n(\\d+)$".r
-  private val AddToListDefaultPageRegex  = "^ad(\\d+)$".r
-  private val AddToListPageRegex         = "^ap(\\d+)\\.(\\d+)\\.(\\d+)$".r
-  private val AddToListCyaPageRegex      = "^ac(\\d+)\\.(\\d+)$".r
-  private val AddToListRepeaterPageRegex = "^ar(\\d+)\\.(\\d+)$".r
-  private val RepeatedPageRegex          = "^r(\\d+)\\.(\\d+)$".r
+  private val NormalPageRegex                  = "^n(\\d+)$".r
+  private val AddToListDefaultPageRegex        = "^ad(\\d+)$".r
+  private val AddToListPageRegex               = "^ap(\\d+)\\.(\\d+)\\.(\\d+)$".r
+  private val AddToListCyaPageRegex            = "^ac(\\d+)\\.(\\d+)$".r
+  private val AddToListRepeaterPageRegex       = "^ar(\\d+)\\.(\\d+)$".r
+  private val AddToListDeclarationSectionRegex = "^as(\\d+)\\.(\\d+)$".r
+  private val RepeatedPageRegex                = "^r(\\d+)\\.(\\d+)$".r
   // format: on
 
   def parseClassic(string: String): Option[SectionNumber.Classic] =
@@ -245,19 +264,23 @@ object SectionNumber {
             .Page(TemplateSectionIndex(sectionIndex.toInt), iterationNumber.toInt, pageNumber.toInt)
         )
       case AddToListCyaPageRegex(sectionIndex, iterationNumber) =>
-        Some(
-          SectionNumber.Classic.AddToListPage
-            .CyaPage(TemplateSectionIndex(sectionIndex.toInt), iterationNumber.toInt)
-        )
+        Some(mkAtlTerminalPage(sectionIndex, iterationNumber, TerminalPageKind.CyaPage))
+      case AddToListDeclarationSectionRegex(sectionIndex, iterationNumber) =>
+        Some(mkAtlTerminalPage(sectionIndex, iterationNumber, TerminalPageKind.DeclarationPage))
       case AddToListRepeaterPageRegex(sectionIndex, iterationNumber) =>
-        Some(
-          SectionNumber.Classic.AddToListPage
-            .RepeaterPage(TemplateSectionIndex(sectionIndex.toInt), iterationNumber.toInt)
-        )
+        Some(mkAtlTerminalPage(sectionIndex, iterationNumber, TerminalPageKind.RepeaterPage))
       case RepeatedPageRegex(sectionIndex, pageNumber) =>
         Some(SectionNumber.Classic.RepeatedPage(TemplateSectionIndex(sectionIndex.toInt), pageNumber.toInt))
       case _ => None
     }
+
+  private def mkAtlTerminalPage(
+    sectionIndex: String,
+    iterationNumber: String,
+    kind: TerminalPageKind
+  ): SectionNumber.Classic =
+    SectionNumber.Classic.AddToListPage
+      .TerminalPage(TemplateSectionIndex(sectionIndex.toInt), iterationNumber.toInt, kind)
 
   def parse(string: String): Option[SectionNumber] =
     if (string.contains(",")) {

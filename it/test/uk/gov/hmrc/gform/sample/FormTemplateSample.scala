@@ -143,6 +143,7 @@ trait FormTemplateSample {
       declarationSection = Some(
         DeclarationSection(
           title = toSmartString("Declaration Page"),
+          caption = None,
           noPIITitle = None,
           description = None,
           shortName = None,

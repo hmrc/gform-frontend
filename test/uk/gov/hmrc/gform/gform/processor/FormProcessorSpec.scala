@@ -211,7 +211,8 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         visibilityPageModel,
         initialVisitsIndex,
         formModelOptics,
-        enteredVariadicFormData
+        enteredVariadicFormData,
+        Classic.NormalPage(TemplateSectionIndex(0))
       )
 
       expected shouldBe actual

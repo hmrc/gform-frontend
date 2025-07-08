@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.controllers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.{ SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
-
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -34,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
 import uk.gov.hmrc.gform.models.VariadicFormDataSupport
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import SectionNumber.Classic
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSupport with GraphSpec {
 
   override val envelopeId: EnvelopeId = EnvelopeId("dummy")
@@ -179,24 +179,24 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
       Classic.NormalPage(TemplateSectionIndex(0)),
       Classic.NormalPage(TemplateSectionIndex(1)),
       Classic.AddToListPage.Page(TemplateSectionIndex(2), 1, 0),
-      Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(2), 1)
+      Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 1, TerminalPageKind.RepeaterPage)
     )
 
     ffNavigator.addToListRepeaterSectionNumbers shouldBe List(
-      Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(2), 1)
+      Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 1, TerminalPageKind.RepeaterPage)
     )
     ffNavigator.addToListNonRepeaterSectionNumbers shouldBe List(
       Classic.AddToListPage.Page(TemplateSectionIndex(2), 1, 0)
     )
     ffNavigator.addToListSectionNumbers shouldBe List(
       Classic.AddToListPage.Page(TemplateSectionIndex(2), 1, 0),
-      Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(2), 1)
+      Classic.AddToListPage.TerminalPage(TemplateSectionIndex(2), 1, TerminalPageKind.RepeaterPage)
     )
     Navigator(Classic.NormalPage(TemplateSectionIndex(0)), formModel).nextSectionNumber shouldBe (Classic.NormalPage(
       TemplateSectionIndex(1)
     ))
     Navigator(Classic.NormalPage(TemplateSectionIndex(1)), formModel).nextSectionNumber shouldBe (Classic.AddToListPage
-      .RepeaterPage(TemplateSectionIndex(2), 1))
+      .TerminalPage(TemplateSectionIndex(2), 1, TerminalPageKind.RepeaterPage))
   }
 
 }

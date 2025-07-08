@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 
 import scala.util.matching.Regex
 
@@ -438,6 +439,38 @@ class FormModelBuilder[E, F[_]: Functor](
     )
   }
 
+  private def mkDeclaration[T <: PageMode](
+    d: DeclarationSection,
+    s: Section.AddToList,
+    index: Int
+  ): Singleton[T] = {
+    val expandedFields = d.fields.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId)
+
+    Singleton(
+      Page(
+        title = d.title.expand(index, s.allIds),
+        id = Some(s.pageId.withIndex(index).withSuffix("DEC")),
+        noPIITitle = d.noPIITitle.map(_.expand(index, s.allIds)),
+        description = d.description.map(_.expand(index, s.allIds)),
+        shortName = d.shortName.map(_.expand(index, s.allIds)),
+        caption = d.caption.map(_.expand(index, s.allIds)),
+        includeIf = d.includeIf.map(i => IncludeIf(BooleanExprUpdater(i.booleanExpr, index, s.allIds))),
+        fields = expandedFields,
+        continueLabel = d.continueLabel.map(_.expand(index, s.allIds)),
+        continueIf = None,
+        instruction = None,
+        presentationHint = None,
+        dataRetrieve = None,
+        confirmation = None,
+        redirects = None,
+        hideSaveAndComeBackButton = Some(true),
+        removeItemIf = None,
+        displayWidth = None,
+        notRequiredIf = None
+      )
+    )
+  }
+
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
@@ -536,7 +569,19 @@ class FormModelBuilder[E, F[_]: Functor](
       CheckYourAnswersWithNumber(
         mkCheckYourAnswers(c, s, iterationIndex),
         mkSectionNumber(
-          SectionNumber.Classic.AddToListPage.CyaPage(templateSectionIndex, iterationIndex),
+          SectionNumber.Classic.AddToListPage
+            .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.CyaPage),
+          maybeCoordinates
+        )
+      )
+    )
+
+    val declaration: Option[SingletonWithNumber[T]] = s.declarationSection.map(d =>
+      SingletonWithNumber(
+        mkDeclaration(d, s, iterationIndex),
+        mkSectionNumber(
+          SectionNumber.Classic.AddToListPage
+            .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.DeclarationPage),
           maybeCoordinates
         )
       )
@@ -549,10 +594,12 @@ class FormModelBuilder[E, F[_]: Functor](
           defaultPage,
           _,
           checkYourAnswers,
+          declaration,
           RepeaterWithNumber(
             repeater,
             mkSectionNumber(
-              SectionNumber.Classic.AddToListPage.RepeaterPage(templateSectionIndex, iterationIndex),
+              SectionNumber.Classic.AddToListPage
+                .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.RepeaterPage),
               maybeCoordinates
             )
           )
@@ -577,8 +624,8 @@ class FormModelBuilder[E, F[_]: Functor](
     val revealingChoiceInfo: RevealingChoiceInfo =
       allSections.sections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.section.revealingChoiceInfo)
 
-    val brackets: BracketPlainCoordinated[T] = allSections.mapSection { maybeCoordinates => indexedSection =>
-      indexedSection match {
+    val brackets: BracketPlainCoordinated[T] = allSections.mapSection { maybeCoordinates =>
+      {
         case IndexedSection.SectionNoIndex(s) =>
           val page = formModelExpander.lift(s.page, data)
           val sectionNumber =

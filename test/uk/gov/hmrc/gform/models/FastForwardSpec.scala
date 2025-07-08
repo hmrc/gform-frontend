@@ -24,6 +24,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, TemplateSectionIndex, Value }
 
@@ -76,7 +77,7 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
           ),
           List("1_fc1" -> "a"),
           SectionNumber.Classic.AddToListPage.Page(TemplateSectionIndex(0), 1, 0),
-          SectionNumber.Classic.AddToListPage.RepeaterPage(TemplateSectionIndex(0), 1)
+          SectionNumber.Classic.AddToListPage.TerminalPage(TemplateSectionIndex(0), 1, TerminalPageKind.RepeaterPage)
         )
       )
 

@@ -213,8 +213,8 @@ class FormController(
                 val (lastRepeater, lastRepeaterSectionNumber) =
                   (iterations.last.repeater.repeater, iterations.last.repeater.sectionNumber)
 
-                iteration.checkYourAnswers match {
-                  case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
+                (iteration.checkYourAnswers, iteration.declarationSection) match {
+                  case (Some(checkYourAnswers), _) if checkYourAnswers.sectionNumber == sectionNumber =>
                     val visibleIteration: Bracket.AddToListIteration[Visibility] =
                       formModelOptics.formModelVisibilityOptics.formModel
                         .bracket(sectionNumber)
@@ -240,6 +240,22 @@ class FormController(
                               AddressRecordLookup.from(cache.form.thirdPartyData),
                               fastForward
                             )
+                        )
+                      )
+                    )
+                  case (_, Some(declarationSection)) if declarationSection.sectionNumber == sectionNumber =>
+                    validateSections(suppressErrors, sectionNumber)(handlerResult =>
+                      Future.successful(
+                        Ok(
+                          renderer.renderATLDeclarationSection(
+                            maybeAccessCode,
+                            declarationSection.singleton,
+                            cache,
+                            handlerResult,
+                            formModelOptics,
+                            fastForward,
+                            sectionNumber
+                          )
                         )
                       )
                     )

@@ -242,7 +242,8 @@ class FormProcessor(
     pageModel: PageModel[Visibility],
     visitsIndex: VisitIndex,
     formModelOptics: FormModelOptics[Mongo],
-    enteredVariadicFormData: EnteredVariadicFormData
+    enteredVariadicFormData: EnteredVariadicFormData,
+    sectionNumber: SectionNumber
   ): VisitIndex = {
     val formComponentsUpdated: Set[ModelComponentId] =
       getComponentsWithUpdatedValues(formModelOptics.pageOpticsData.data, enteredVariadicFormData.userData.data)
@@ -268,7 +269,18 @@ class FormProcessor(
         }.toSet
     }
 
-    sectionsToRevisit.foldLeft(visitsIndex) {
+    val additionalSections =
+      if (formComponentsUpdated.nonEmpty && sectionNumber.isAddToList && !sectionNumber.isAddToListTerminalPage) {
+        val bracket = formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber)
+        bracket match {
+          case bracket @ Bracket.AddToList(_, _) =>
+            val iteration = bracket.iterationForSectionNumber(sectionNumber)
+            Set(iteration.checkYourAnswers.map(_.sectionNumber), iteration.declarationSection.map(_.sectionNumber))
+          case _ => Set.empty[Option[SectionNumber]]
+        }
+      } else Set.empty[Option[SectionNumber]]
+
+    (sectionsToRevisit ++ additionalSections).foldLeft(visitsIndex) {
       case (acc, Some(sn)) => acc.unvisit(sn)
       case (acc, None)     => acc
     }
@@ -437,7 +449,8 @@ class FormProcessor(
             processData.visitsIndex.visit(sectionNumber)
           else processData.visitsIndex.unvisit(sectionNumber)
 
-        val updatedVisitsIndex = checkForRevisits(pageModel, visitsIndex, formModelOptics, enteredVariadicFormData)
+        val updatedVisitsIndex =
+          checkForRevisits(pageModel, visitsIndex, formModelOptics, enteredVariadicFormData, sectionNumber)
 
         val cacheUpd =
           cache.copy(
