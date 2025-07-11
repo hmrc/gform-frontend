@@ -468,7 +468,7 @@ object SummaryRenderingService {
           SummaryList(
             rows = rows,
             card = card,
-            classes = "govuk-!-margin-bottom-8"
+            classes = if (card.isDefined) "" else "govuk-!-margin-bottom-8"
           )
         )
         List(heading, govukSummaryList)
