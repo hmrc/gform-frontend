@@ -63,7 +63,7 @@ trait HtmlSupport {
       buildSummaryLists(
         document
           .select(
-            "h2[class='govuk-heading-m govuk-!-margin-top-0'],h3[class='govuk-heading-m govuk-!-margin-top-0'],dl[class='govuk-summary-list govuk-!-margin-bottom-8']"
+            "h2[class='govuk-heading-m govuk-!-margin-top-0'],h3[class='govuk-heading-m govuk-!-margin-top-0'],dl[class='govuk-summary-list'],dl[class='govuk-summary-list govuk-!-margin-bottom-8']"
           )
           .asScala
           .toList
