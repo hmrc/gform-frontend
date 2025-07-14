@@ -451,7 +451,7 @@ class EnrolmentController(
                 val formHandlerResultF: Future[FormHandlerResult] =
                   formValidator.validatePageModelBySectionNumber[DataOrigin.Mongo](
                     formModelOptics,
-                    formTemplate.sectionNumberZero,
+                    SectionNumber.classicFixed,
                     cache.toCacheData,
                     EnvelopeWithMapping.empty,
                     validationService.validatePageModel
