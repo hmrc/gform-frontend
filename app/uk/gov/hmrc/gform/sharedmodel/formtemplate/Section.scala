@@ -73,7 +73,8 @@ object Section {
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,
     pageIdToDisplayAfterRemove: Option[PageId] = None,
-    notRequiredIf: Option[IncludeIf]
+    notRequiredIf: Option[IncludeIf],
+    declarationSection: Option[DeclarationSection] = None
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
@@ -116,6 +117,7 @@ object AtlDescription {
 
 case class DeclarationSection(
   title: SmartString,
+  caption: Option[SmartString],
   noPIITitle: Option[SmartString],
   description: Option[SmartString],
   shortName: Option[SmartString],
@@ -132,7 +134,7 @@ case class DeclarationSection(
       noPIITitle = noPIITitle,
       description = description,
       shortName = shortName,
-      caption = None,
+      caption = caption,
       includeIf = None,
       fields = fields,
       continueLabel = continueLabel,

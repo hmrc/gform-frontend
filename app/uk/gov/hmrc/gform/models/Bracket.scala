@@ -103,6 +103,7 @@ object Bracket {
     defaultPage: Option[SingletonWithNumber[A]], // Only first iteration can have default page
     singletons: NonEmptyList[SingletonWithNumber[A]], // There must be at least one page in Add-to-list iteration
     checkYourAnswers: Option[CheckYourAnswersWithNumber[A]],
+    declarationSection: Option[SingletonWithNumber[A]],
     repeater: RepeaterWithNumber[A]
   ) {
 
@@ -111,7 +112,9 @@ object Bracket {
     def toPageModelWithNumber: NonEmptyList[(PageModel[A], SectionNumber)] = {
       val pageModels = singletons.map(_.toPageModelWithNumber) ++ checkYourAnswers.toList.map(c =>
         c.checkYourAnswers -> c.sectionNumber
-      ) ::: NonEmptyList.one(repeater.repeater -> repeater.sectionNumber)
+      ) ++ declarationSection.toList.map(_.toPageModelWithNumber) ::: NonEmptyList.one(
+        repeater.repeater -> repeater.sectionNumber
+      )
 
       defaultPage.map(_.toPageModelWithNumber).fold(pageModels)(_ :: pageModels)
     }
@@ -120,6 +123,7 @@ object Bracket {
       defaultPage.exists(_.sectionNumber === sectionNumber) ||
         repeater.sectionNumber === sectionNumber ||
         checkYourAnswers.exists(_.sectionNumber === sectionNumber) ||
+        declarationSection.exists(_.sectionNumber === sectionNumber) ||
         singletons.exists(_.sectionNumber === sectionNumber)
 
     def singleton(sectionNumber: SectionNumber): Singleton[A] =
@@ -141,12 +145,16 @@ object Bracket {
         defaultPage.map(_.map(e)),
         singletons.map(_.map(e)),
         checkYourAnswers.map(_.map(f)),
+        declarationSection.map(_.map(e)),
         repeater.map(g)
       )
 
     def filter(predicate: PageModel[A] => Boolean): Option[AddToListIteration[A]] = {
       val filtered = singletons.filter(s => predicate(s.singleton))
-      NonEmptyList.fromList(filtered).map(AddToListIteration(defaultPage, _, checkYourAnswers, repeater))
+      val maybeDeclaration = declarationSection.filter(d => predicate(d.singleton))
+      NonEmptyList
+        .fromList(filtered)
+        .map(AddToListIteration(defaultPage, _, checkYourAnswers, maybeDeclaration, repeater))
     }
 
     def defaultPageOrFirstSectionNumber: SectionNumber = defaultPage.map(_.sectionNumber).getOrElse(firstSectionNumber)

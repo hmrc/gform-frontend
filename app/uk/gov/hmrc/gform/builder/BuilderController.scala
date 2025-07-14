@@ -120,8 +120,7 @@ class BuilderController(
                   Option.empty[Json]
                 case SectionNumber.Classic.AddToListPage.DefaultPage(_) |
                     SectionNumber.Classic.AddToListPage.Page(_, _, _) |
-                    SectionNumber.Classic.AddToListPage.CyaPage(_, _) |
-                    SectionNumber.Classic.AddToListPage.RepeaterPage(_, _) =>
+                    SectionNumber.Classic.AddToListPage.TerminalPage(_, _, _) =>
                   originalSectionInAddToList(json, addToList, formModel, sectionNumber, Nil)
                 case SectionNumber.TaskList(coordinates, sn) =>
                   json.hcursor
