@@ -537,8 +537,7 @@ submission.details=Manylion y cyflwyniad
 # Save4later
 save4later.saved.title=Cadwyd eich {0}
 save4later.weWillKeepYourAnswersFor=Byddwn yn cadw’ch atebion am {0} o ddiwrnodau
-save4later.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
-save4later.retrieve=Bydd yn rhaid i chi fewngofnodi i’r dudalen fewngofnodi er mwyn adalw eich {0}
+save4later.retrieve=I barhau, bydd yn rhaid i chi fewngofnodi i'ch cyfrif eto.
 save4later.youCan=Gallwch wneud y canlynol:
 save4later.delete=Dileu’r ffurflen hon a dechrau eto
 save4later.continue=Yn eich blaen gyda’r {0}

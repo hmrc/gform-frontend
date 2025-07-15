@@ -73,6 +73,11 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     case _                                                             => ""
   }
 
+  def getGGEmail: Option[String] = this match {
+    case AuthenticatedRetrievals(_, _, _, _, _, otherRetrievals, _, _) => otherRetrievals.email
+    case _                                                             => None
+  }
+
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
     case AnonymousRetrievals(_) => ""
     case EmailRetrievals(_)     => ""

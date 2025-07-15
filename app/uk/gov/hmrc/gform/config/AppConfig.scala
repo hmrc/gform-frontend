@@ -38,7 +38,8 @@ case class AppConfig(
   `case-worker-assumed-identity-cookie`: String,
   fileMaxUploadedSizeMB: Long,
   `proxy-timeout`: FiniteDuration,
-  formTemplateCacheTTL: FiniteDuration
+  formTemplateCacheTTL: FiniteDuration,
+  `email-to-gg-migration`: Boolean
 ) {
 
   def restrictedFileExtensions: List[FileExtension] =

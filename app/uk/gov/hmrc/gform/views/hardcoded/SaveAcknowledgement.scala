@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeExpiryDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.views.html.localisedDateString
 import uk.gov.hmrc.govukfrontend.views.html.components._
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ p, pWithBreak }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.pWithBreak
 
 class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Option[EnvelopeExpiryDate])(implicit
   messages: Messages
@@ -45,10 +45,4 @@ class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Op
 
   val panelHtml: Html = new GovukPanel()(panel)
 
-  private val insetText =
-    InsetText(
-      content = HtmlContent(p(messages("save4later.mustSubmit", formCat), "govuk-!-font-weight-bold"))
-    )
-
-  val insetHtml: Html = new GovukInsetText()(insetText)
 }

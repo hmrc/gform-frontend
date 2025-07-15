@@ -346,6 +346,7 @@ class GformModule(
   )
 
   val newFormController: NewFormController = new NewFormController(
+    configModule.appConfig,
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,

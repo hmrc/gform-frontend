@@ -26,9 +26,12 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import org.apache.commons.text.StringEscapeUtils
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.slf4j.LoggerFactory
+import org.typelevel.ci.CIString
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
+import uk.gov.hmrc.gform.auth.models.{ EmailRetrievals, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
+import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -778,4 +781,33 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       .recover { case _: JsonMappingException =>
         Json.parse("""{"valid":"No HTML validation errors detected"}""")
       }
+
+  def migrateEmailToGG(
+    formIdData: FormIdData,
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    val emailFormData: Option[EmailRetrievals] =
+      retrievals.getGGEmail.map(ggEmail => EmailRetrievals(EmailId(CIString(ggEmail))))
+
+    emailFormData match {
+      case None => Future.successful(())
+      case Some(email) =>
+        formIdData match {
+          case p @ FormIdData.Plain(_, _) =>
+            val emailToGGMigration = EmailToGGMigration(p, email.groupId, formTemplate._id)
+            val url = s"$baseUrl/email-migration"
+            httpClient
+              .post(url"$url")
+              .withBody(Json.toJson(emailToGGMigration))
+              .execute[HttpResponse]
+              .void
+          case FormIdData.WithAccessCode(_, _, _) =>
+            Future.successful(())
+
+        }
+    }
+
+  }
+
 }
