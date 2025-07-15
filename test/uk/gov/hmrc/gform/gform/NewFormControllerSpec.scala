@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.PlayStubSupport
 import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
@@ -454,6 +455,7 @@ class NewFormControllerSpec
 
     lazy val newFormController =
       new NewFormController(
+        AppConfig.loadOrThrow(),
         frontendAppConfig,
         i18nSupport,
         mockAuth,
