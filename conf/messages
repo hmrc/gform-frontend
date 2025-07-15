@@ -559,8 +559,7 @@ submission.details=Submission details
 # Save4later
 save4later.saved.title=Your {0} has been saved
 save4later.weWillKeepYourAnswersFor=We will keep your answers for {0} days
-save4later.mustSubmit=For us to consider your {0}, you’ll need to submit it
-save4later.retrieve=You’ll need to log in to the sign-in page to retrieve your {0}
+save4later.retrieve=To continue, you’ll have to sign in to your account again.
 save4later.youCan=You can:
 save4later.delete=Delete this form and start again
 save4later.continue=Continue this {0}
@@ -570,6 +569,9 @@ save4later.until=until
 save4later.backTo=Back to
 save4later.weSavedYourAnswers=We saved your answers
 save4later.toContinueSignInWithEmail=To continue, sign in again and confirm your email address
+save4later.oneLoginChange1=How you sign in is changing
+save4later.oneLoginChange2=In future you’ll sign in using GOV.UK One Login. You’ll be able to create a GOV.UK One Login if you do not already have one.
+save4later.oneLoginChange3=You should use the same email address to create your GOV.UK One Login that you use for this form. This is so you keep the existing information in your account.
 
 # Helper for grammatical order
 helper.order={0} {1}

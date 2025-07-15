@@ -112,8 +112,6 @@ case object Returning extends FormStatus
 case object Accepted extends FormStatus
 case object Submitting extends FormStatus
 case object Submitted extends FormStatus
-case object Discarded extends FormStatus
-case object ManuallySubmitted extends FormStatus
 
 object FormStatus {
   implicit val equal: Eq[FormStatus] = Eq.fromUniversalEquals
@@ -131,9 +129,7 @@ object FormStatus {
       Accepting,
       Accepted,
       Submitting,
-      Submitted,
-      Discarded,
-      ManuallySubmitted
+      Submitted
     )
 
   def unapply(s: String): Option[FormStatus] = all.find(_.toString === s)

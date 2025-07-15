@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.api.NinoInsightsConnector
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
@@ -56,6 +56,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 case class AccessCodeForm(accessCode: String, isContinue: String)
 
 class NewFormController(
+  appConfig: AppConfig,
   frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
@@ -373,8 +374,12 @@ class NewFormController(
     lang: LangADT
   ): Future[Result] = {
     val queryParams: QueryParams = QueryParams.fromRequest(request)
+
     for {
       formIdData <- Future.successful(FormIdData.Plain(UserId(cache.retrievals), formTemplate._id))
+      _ <- if (appConfig.`email-to-gg-migration`) {
+             gformConnector.migrateEmailToGG(formIdData, cache.retrievals, formTemplate)
+           } else { Future.successful(()) }
       res <-
         handleForm(formIdData, formTemplate)(
           Redirect(routes.NewFormController.downloadOldOrNewForm(formTemplate._id).url, queryParams.toPlayQueryParams)
