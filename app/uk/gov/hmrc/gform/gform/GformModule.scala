@@ -148,12 +148,8 @@ class GformModule(
   val bankAccountReputationConnector =
     new BankAccountReputationAsyncConnector(wSHttpModule.httpClient, barsBaseUrl)
 
-  private val chBasePath =
-    configModule.serviceConfig.getString("microservice.services.companies-house-api-proxy.base-path")
-  private val companyHouseBaseUrl = s"${configModule.serviceConfig.baseUrl("companies-house-api-proxy")}$chBasePath"
-
   val companyInformationConnector =
-    new CompanyInformationAsyncConnector(wSHttpModule.httpClient, companyHouseBaseUrl)
+    new CompanyInformationAsyncConnector(wSHttpModule.httpClient, gformBackendModule.gformBaseUrl)
 
   private val ninoInsightsBasePath =
     configModule.serviceConfig.getString("microservice.services.nino-insights.base-path")
