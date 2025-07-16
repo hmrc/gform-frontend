@@ -43,9 +43,9 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
     extends CompanyInformationConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private val profileUrlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}"
+  private val profileUrlWithPlaceholders = s"$baseUrl/companieshouse/company/{{companyNumber}}"
   private val profileIdentifier = "company profile"
-  private val officersUrlWithPlaceholders = s"$baseUrl/companies-house-api-proxy/company/{{companyNumber}}/officers"
+  private val officersUrlWithPlaceholders = s"$baseUrl/companieshouse/company/{{companyNumber}}/officers"
   private val officersIdentifier = "company officers"
 
   override def companyProfile(
