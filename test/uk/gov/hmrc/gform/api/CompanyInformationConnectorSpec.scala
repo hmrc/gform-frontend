@@ -270,7 +270,7 @@ class CompanyInformationConnectorSpec
 
     stubFor(
       WireMock
-        .get(s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D")
+        .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
         .willReturn(
           ok(companyReturn.toString)
         )
@@ -301,7 +301,7 @@ class CompanyInformationConnectorSpec
   it should "call the companies house api proxy endpoint and return empty company details when the company is not found from the API" in new TestFixture {
     stubFor(
       WireMock
-        .get(s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D")
+        .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
         .willReturn(
           notFound()
         )
@@ -319,7 +319,7 @@ class CompanyInformationConnectorSpec
   it should "call the companies house api proxy endpoint and return the cannot retrieve response when there is an error accessing the API" in new TestFixture {
     stubFor(
       WireMock
-        .get(s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D")
+        .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
         .willReturn(
           serverError()
         )
@@ -366,7 +366,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers"
+          s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D/officers"
         )
         .willReturn(
           ok(companyActiveOfficersReturn.toString)
@@ -392,7 +392,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers"
+          s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D/officers"
         )
         .willReturn(
           notFound()
@@ -412,7 +412,7 @@ class CompanyInformationConnectorSpec
     stubFor(
       WireMock
         .get(
-          s"/companies-house-api-proxy/company/%7B%7BcompanyNumber%7D%7D/officers"
+          s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D/officers"
         )
         .willReturn(
           serverError()
