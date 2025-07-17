@@ -758,7 +758,8 @@ class SectionRenderingService(
       maybeAccessCode,
       sectionNumber,
       fastForward,
-      summaryList.getOrElse(HtmlFormat.empty)
+      summaryList.getOrElse(HtmlFormat.empty),
+      repeater.displayWidth.getOrElse(LayoutDisplayWidth.M)
     )
   }
 

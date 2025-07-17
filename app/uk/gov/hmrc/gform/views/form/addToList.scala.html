@@ -14,11 +14,14 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
+@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 @import uk.gov.hmrc.gform.controllers.SaveAndExit
@@ -42,7 +45,8 @@
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     fastForward: List[FastForward],
-    summaryList: Html
+    summaryList: Html,
+    displayWidth: LayoutDisplayWidth
 )(
     implicit
     request: Request[_],
@@ -60,63 +64,81 @@
                content = new Text(messages("linkText.back")))
 }
 
+@twoThirdsMainContent = @{new TwoThirdsMainContent}
+@fullMainContent = @{new FullMainContent}
+@threeQuartersMainContent = @{new ThreeQuartersMainContent}
+
+@mainContent = @{
+    contentBlock: Html => displayWidth match {
+        case LayoutDisplayWidth.L  => threeQuartersMainContent(contentBlock)
+        case LayoutDisplayWidth.XL => fullMainContent(contentBlock)
+        case LayoutDisplayWidth.M  => twoThirdsMainContent(contentBlock)
+        case _                     => twoThirdsMainContent(contentBlock)
+    }
+}
+
 @main_template(
   title = noPIITitle,
   formTemplate = formTemplate,
   containsErrors = pageLevelError.hasErrors,
   frontendAppConfig = frontendAppConfig,
   backLink = if(shouldDisplayBack) Some(backLink) else None,
-  accessCode = maybeAccessCode
+  accessCode = maybeAccessCode,
+  isMainContentFullWidth = true
 ) {
 
     @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
 
+    @twoThirdsMainContent {
+        @pageLevelError.render
 
-    @pageLevelError.render
+        @request.flash.get("success").fold(Html("")) { successMessage =>
+            @govukNotificationBanner(NotificationBanner(
+                title = Text(messages("generic.Success")),
+                content = Text(successMessage),
+                bannerType = Some("success"),
+                role=Some("alert"))
+            )
+        }
 
-    @request.flash.get("success").fold(Html("")) { successMessage =>
-        @govukNotificationBanner(NotificationBanner(
-            title = Text(messages("generic.Success")),
-            content = Text(successMessage),
-            bannerType = Some("success"),
-            role=Some("alert"))
-        )
+        @page_heading(title, caption)
     }
 
-    @page_heading(title, caption)
+    @mainContent {
 
-    <div class="govuk-form-group">
+        <div class="govuk-form-group">
 
-        <div class="govuk-body">
-            @summaryList
-            @for(infoMessage <- bracket.source.infoMessage) {
-                @markDownParser(infoMessage)
-            }
+            <div class="govuk-body">
+                @summaryList
+                @for(infoMessage <- bracket.source.infoMessage) {
+                    @markDownParser(infoMessage)
+                }
+            </div>
         </div>
-    </div>
 
-    @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+        @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
-      @{snippets}
+          @{snippets}
 
-        <div class="govuk-button-group">
-           @govukButton(Button(content = Text(messages(continueLabelKey)),
-                    inputType=Some("submit"),
-                    name=Some("save"),
-                    attributes = Map("formaction" -> formAction.path)
+            <div class="govuk-button-group">
+               @govukButton(Button(content = Text(messages(continueLabelKey)),
+                        inputType=Some("submit"),
+                        name=Some("save"),
+                        attributes = Map("formaction" -> formAction.path)
+                    )
                 )
-            )
 
-           @if(renderComeBackLater) {
-              @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
-                   inputType=Some("submit"),
-                   name=Some("save"),
-                   classes="govuk-button--secondary",
-                   attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.Yes), SaveAndExit).path)
-                )
-              )
-           }
-        </div>
+               @if(renderComeBackLater) {
+                  @govukButton(Button(content = Text(messages("linkText.saveAndComeBackLater")),
+                       inputType=Some("submit"),
+                       name=Some("save"),
+                       classes="govuk-button--secondary",
+                       attributes = Map("formaction" -> uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, List(FastForward.Yes), SaveAndExit).path)
+                    )
+                  )
+               }
+            </div>
+        }
     }
 
     @specimenNavigation

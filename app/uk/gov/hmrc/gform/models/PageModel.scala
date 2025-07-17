@@ -142,5 +142,6 @@ case class Repeater[A <: PageMode](
   repeatsUntil: Option[IncludeIf],
   repeatsWhile: Option[IncludeIf],
   expandedDescriptionTotal: Option[AtlDescription.KeyValueBased],
-  notRequiredIf: Option[IncludeIf]
+  notRequiredIf: Option[IncludeIf],
+  displayWidth: Option[LayoutDisplayWidth]
 ) extends PageModel[A]

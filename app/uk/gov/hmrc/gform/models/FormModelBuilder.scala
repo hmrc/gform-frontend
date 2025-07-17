@@ -508,7 +508,8 @@ class FormModelBuilder[E, F[_]: Functor](
       s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
       s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
       expandAtlDescriptionTotal(s.descriptionTotal),
-      s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds)))
+      s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
+      s.displayWidth
     )
   }
 
