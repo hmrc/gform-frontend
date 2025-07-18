@@ -54,6 +54,7 @@ object DataRetrieveService {
           bankAccountReputationConnector.map(_.personalBankAccountExistence)
         case DataRetrieve.Type("companyHouseProfile")        => companyInformationConnector.map(_.companyProfile)
         case DataRetrieve.Type("companyHouseActiveOfficers") => companyInformationConnector.map(_.companyOfficers)
+        case DataRetrieve.Type("companyHouseInsolvency")     => companyInformationConnector.map(_.companyInsolvency)
         case DataRetrieve.Type("ninoInsights")               => ninoInsightsConnector.map(_.insights)
         case DataRetrieve.Type("bankAccountInsights")        => bankAccountInsightConnector.map(_.insights)
         case DataRetrieve.Type("employments")                => gformConnector.map(_.getEmployments)
