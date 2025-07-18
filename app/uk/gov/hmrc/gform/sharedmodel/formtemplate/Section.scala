@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceInfo, StaticTypeData, S
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 sealed trait Section extends Product with Serializable {
 
@@ -74,7 +75,8 @@ object Section {
     fields: Option[NonEmptyList[FormComponent]] = None,
     pageIdToDisplayAfterRemove: Option[PageId] = None,
     notRequiredIf: Option[IncludeIf],
-    declarationSection: Option[DeclarationSection] = None
+    declarationSection: Option[DeclarationSection] = None,
+    displayWidth: Option[LayoutDisplayWidth] = None
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
