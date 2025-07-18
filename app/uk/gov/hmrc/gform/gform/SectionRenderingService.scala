@@ -1934,7 +1934,7 @@ class SectionRenderingService(
     def renderRows(rows: List[MiniSummaryRow], keyDisplayWidth: KeyDisplayWidth) = {
 
       def summaryListRowByPageId(key: Option[SmartString], value: String, pageId: PageId) = {
-        val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
+        val formModel = ei.formModelOptics.formModelRenderPageOptics.formModel
         val sn: SectionNumber = formModel.pageIdSectionNumberMap.toList
           .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
           .find { case (modelPageId, _) =>
@@ -1946,34 +1946,41 @@ class SectionRenderingService(
 
         val pageModel = formModel.pageModelLookup(sn)
         val pageHasEditableField = pageModel.allFormComponents.exists(_.editable)
-
-        val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
-        List(
-          SummaryListRowHelper.summaryListRow(
-            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-            Html(value),
-            Some(""),
-            SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
-            "",
-            "",
-            List(
-              (
-                uk.gov.hmrc.gform.gform.routes.FormController
-                  .form(
-                    formTemplateId,
-                    ei.maybeAccessCode,
-                    sn,
-                    sectionTitle4Ga,
-                    SuppressErrors.Yes,
-                    List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))
-                  ),
-                messages(if (pageHasEditableField) "summary.change" else "summary.view"),
-                ""
-              )
-            ),
-            ""
-          )
+        val visible = pageModel.getIncludeIf.fold(true)(inclIf =>
+          ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(inclIf, None)
         )
+
+        if (!visible) {
+          List.empty[SummaryListRow]
+        } else {
+          val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(value),
+              Some(""),
+              SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+              "",
+              "",
+              List(
+                (
+                  uk.gov.hmrc.gform.gform.routes.FormController
+                    .form(
+                      formTemplateId,
+                      ei.maybeAccessCode,
+                      sn,
+                      sectionTitle4Ga,
+                      SuppressErrors.Yes,
+                      List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))
+                    ),
+                  messages(if (pageHasEditableField) "summary.change" else "summary.view"),
+                  ""
+                )
+              ),
+              ""
+            )
+          )
+        }
       }
 
       def summaryListRowByTaskId(key: Option[SmartString], value: String, taskId: TaskId) = {
@@ -1985,48 +1992,58 @@ class SectionRenderingService(
             }
           }
 
-        val link = taskCoordinatesMap
-          .get(taskId)
-          .map { case (task, coordinates) =>
-            if (task.summarySection.isDefined) {
-              uk.gov.hmrc.gform.gform.routes.SummaryController
-                .summaryById(formTemplateId, ei.maybeAccessCode, Some(coordinates), None)
-            } else {
-              uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                .newTask(
-                  formTemplateId,
-                  ei.maybeAccessCode,
-                  coordinates.taskSectionNumber,
-                  coordinates.taskNumber,
-                  true
-                )
+        val visible = taskCoordinatesMap.get(taskId).fold(true) { case (task, _) =>
+          task.includeIf.fold(true)(inclIf =>
+            ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(inclIf, None)
+          )
+        }
+
+        if (!visible) {
+          List.empty[SummaryListRow]
+        } else {
+          val link = taskCoordinatesMap
+            .get(taskId)
+            .map { case (task, coordinates) =>
+              if (task.summarySection.isDefined) {
+                uk.gov.hmrc.gform.gform.routes.SummaryController
+                  .summaryById(formTemplateId, ei.maybeAccessCode, Some(coordinates), None)
+              } else {
+                uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                  .newTask(
+                    formTemplateId,
+                    ei.maybeAccessCode,
+                    coordinates.taskSectionNumber,
+                    coordinates.taskNumber,
+                    true
+                  )
+              }
             }
-          }
-          .getOrElse(
-            throw new Exception(
-              s"TaskId $taskId not found in taskIdCoordinateMap. Available taskIds: " + taskCoordinatesMap.keys + "."
-                .mkString(", ")
+            .getOrElse(
+              throw new Exception(
+                s"TaskId $taskId not found in taskIdCoordinateMap. Available taskIds: " + taskCoordinatesMap.keys + "."
+                  .mkString(", ")
+              )
+            )
+
+          List(
+            SummaryListRowHelper.summaryListRow(
+              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              Html(value),
+              Some(""),
+              SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+              "",
+              "",
+              List(
+                (
+                  link,
+                  messages("summary.change"),
+                  ""
+                )
+              ),
+              ""
             )
           )
-
-        List(
-          SummaryListRowHelper.summaryListRow(
-            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-            Html(value),
-            Some(""),
-            SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
-            "",
-            "",
-            List(
-              (
-                link,
-                messages("summary.change"),
-                ""
-              )
-            ),
-            ""
-          )
-        )
+        }
       }
 
       val formattedExprStr = (e: Expr) =>
