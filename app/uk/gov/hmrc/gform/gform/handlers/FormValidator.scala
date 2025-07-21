@@ -182,8 +182,9 @@ class FormValidator(implicit ec: ExecutionContext) {
               postcodeLookupHasAddress &&
               isValid &&
               !formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf.exists { includeIfF =>
+                def booleanExprResolver = BooleanExprResolver(expr => includeIfF(IncludeIf(expr)))
                 page.isTerminationPage(
-                  BooleanExprResolver(expr => includeIfF(IncludeIf(expr)))
+                  booleanExprResolver
                 )
               }
             ) None
