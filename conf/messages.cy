@@ -547,6 +547,9 @@ save4later.until=tan
 save4later.backTo=Yn ôl i
 save4later.weSavedYourAnswers=Gwnaethom gadw’ch atebion
 save4later.toContinueSignInWithEmail=I fynd yn eich blaen, mewngofnodwch eto a chadarnhewch eich cyfeiriad e-bost
+save4later.oneLoginChange1=Mae'r ffordd rydych chi'n mewngofnodi yn newid
+save4later.oneLoginChange2=Yn y dyfodol, byddwch yn mewngofnodi gan ddefnyddio GOV.UK One Login. Os nad oes gennych GOV.UK One Login eisoes, byddwch yn medru creu un.
+save4later.oneLoginChange3=Dylech ddefnyddio'r un cyfeiriad e-bost yr ydych yn ei ddefnyddio ar y ffurflen hon er mwyn creu GOV.UK One Login. Mae hyn fel eich bod yn cadw'r wybodaeth sy'n bodoli eisoes ar eich cyfrif.
 
 # Helper for grammatical order
 helper.order={1} {0}
