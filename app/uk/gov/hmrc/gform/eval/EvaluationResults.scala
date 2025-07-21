@@ -760,10 +760,7 @@ case class EvaluationResults(
       case IndexOfDataRetrieveCtx(ctx, index) =>
         loop(ctx) match {
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-          // TODO - need to solve this somehow - it should be illegal, but standard attribute
-          //        retrieve isn't preserving list result type if there is only 1 item in the
-          //        result set. This at least still retrieves attribute.
-          case otherwise      => otherwise
+          case otherwise      => otherwise // Retrieves the only item from result set
         }
       case NumberedList(fcId) => loop(FormCtx(fcId))
       case BulletedList(fcId) => loop(FormCtx(fcId))
