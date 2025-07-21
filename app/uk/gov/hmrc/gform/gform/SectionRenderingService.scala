@@ -1933,27 +1933,39 @@ class SectionRenderingService(
   ): Html = {
     def renderRows(rows: List[MiniSummaryRow], keyDisplayWidth: KeyDisplayWidth) = {
 
-      def summaryListRowByPageId(key: Option[SmartString], value: String, pageId: PageId) = {
+      def summaryListRowByPageId(
+        key: Option[SmartString],
+        value: String,
+        pageId: PageId
+      ): List[SummaryListRow] = {
+
         val formModel = ei.formModelOptics.formModelRenderPageOptics.formModel
-        val sn: SectionNumber = formModel.pageIdSectionNumberMap.toList
+
+        val sn = formModel.pageIdSectionNumberMap.toList
           .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
-          .find { case (modelPageId, _) =>
-            modelPageId.baseId == pageId.modelPageId.baseId
+          .collectFirst {
+            case (modelPageId, sn) if modelPageId.baseId == pageId.modelPageId.baseId => sn
           }
-          .fold(throw new Exception(s"No section number found for pageId ${pageId.id}")) { case (_, sectionNumber) =>
-            sectionNumber
-          }
+          .getOrElse(throw new Exception(s"No section number found for pageId ${pageId.id}"))
 
         val pageModel = formModel.pageModelLookup(sn)
-        val pageHasEditableField = pageModel.allFormComponents.exists(_.editable)
-        val visible = pageModel.getIncludeIf.fold(true)(inclIf =>
+        val isEditable = pageModel.allFormComponents.exists(_.editable)
+        val isVisible = pageModel.getIncludeIf.forall(inclIf =>
           ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(inclIf, None)
         )
 
-        if (!visible) {
-          List.empty[SummaryListRow]
-        } else {
-          val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
+        if (!isVisible) Nil
+        else {
+          val sectionTitle = sectionTitle4GaFactory(pageModel, sn)
+          val link = uk.gov.hmrc.gform.gform.routes.FormController.form(
+            formTemplateId,
+            ei.maybeAccessCode,
+            sn,
+            sectionTitle,
+            SuppressErrors.Yes,
+            List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))
+          )
+
           List(
             SummaryListRowHelper.summaryListRow(
               key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
@@ -1962,87 +1974,67 @@ class SectionRenderingService(
               SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
               "",
               "",
-              List(
-                (
-                  uk.gov.hmrc.gform.gform.routes.FormController
-                    .form(
-                      formTemplateId,
-                      ei.maybeAccessCode,
-                      sn,
-                      sectionTitle4Ga,
-                      SuppressErrors.Yes,
-                      List(FastForward.CYA(SectionOrSummary.Section(ei.sectionNumber)))
-                    ),
-                  messages(if (pageHasEditableField) "summary.change" else "summary.view"),
-                  ""
-                )
-              ),
+              List((link, messages(if (isEditable) "summary.change" else "summary.view"), "")),
               ""
             )
           )
         }
       }
 
-      def summaryListRowByTaskId(key: Option[SmartString], value: String, taskId: TaskId) = {
+      def summaryListRowByTaskId(
+        key: Option[SmartString],
+        value: String,
+        taskId: TaskId
+      ): List[SummaryListRow] = {
 
         val taskCoordinatesMap: Map[TaskId, (Task, Coordinates)] =
           ei.formTemplate.formKind.fold(_ => Map.empty[TaskId, (Task, Coordinates)]) { _ =>
             TaskListUtils.toTaskCoordinatesMap(ei.formTemplate).collect {
-              case (task, coordinates) if task.id.isDefined => task.id.get -> (task, coordinates)
+              case (task, coordinates) if task.id.isDefined =>
+                task.id.get -> (task, coordinates)
             }
           }
 
-        val visible = taskCoordinatesMap.get(taskId).fold(true) { case (task, _) =>
-          task.includeIf.fold(true)(inclIf =>
-            ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(inclIf, None)
-          )
-        }
-
-        if (!visible) {
-          List.empty[SummaryListRow]
-        } else {
-          val link = taskCoordinatesMap
-            .get(taskId)
-            .map { case (task, coordinates) =>
-              if (task.summarySection.isDefined) {
-                uk.gov.hmrc.gform.gform.routes.SummaryController
-                  .summaryById(formTemplateId, ei.maybeAccessCode, Some(coordinates), None)
-              } else {
-                uk.gov.hmrc.gform.tasklist.routes.TaskListController
-                  .newTask(
-                    formTemplateId,
-                    ei.maybeAccessCode,
-                    coordinates.taskSectionNumber,
-                    coordinates.taskNumber,
-                    true
-                  )
-              }
-            }
-            .getOrElse(
-              throw new Exception(
-                s"TaskId $taskId not found in taskIdCoordinateMap. Available taskIds: " + taskCoordinatesMap.keys + "."
-                  .mkString(", ")
-              )
+        taskCoordinatesMap.get(taskId) match {
+          case Some((task, coordinates)) =>
+            val isVisible = task.includeIf.forall(inclIf =>
+              ei.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(inclIf, None)
             )
 
-          List(
-            SummaryListRowHelper.summaryListRow(
-              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
-              Html(value),
-              Some(""),
-              SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
-              "",
-              "",
+            if (!isVisible) Nil
+            else {
+              val link =
+                if (task.summarySection.isDefined)
+                  uk.gov.hmrc.gform.gform.routes.SummaryController
+                    .summaryById(formTemplateId, ei.maybeAccessCode, Some(coordinates), None)
+                else
+                  uk.gov.hmrc.gform.tasklist.routes.TaskListController
+                    .newTask(
+                      formTemplateId,
+                      ei.maybeAccessCode,
+                      coordinates.taskSectionNumber,
+                      coordinates.taskNumber,
+                      true
+                    )
+
               List(
-                (
-                  link,
-                  messages("summary.change"),
+                SummaryListRowHelper.summaryListRow(
+                  key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+                  Html(value),
+                  Some(""),
+                  SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+                  "",
+                  "",
+                  List((link, messages("summary.change"), "")),
                   ""
                 )
-              ),
-              ""
+              )
+            }
+
+          case None =>
+            throw new Exception(
+              s"TaskId $taskId not found in taskCoordinatesMap. Available taskIds: ${taskCoordinatesMap.keys.mkString(", ")}"
             )
-          )
         }
       }
 
