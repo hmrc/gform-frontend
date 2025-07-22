@@ -292,10 +292,13 @@ case class FormModel[A <: PageMode](
           Size(_, _) | CsvCountryCountCheck(_, _, _) | Count(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) |
-          DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) =>
+          DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) |
+          DataRetrieveCtx(_, DataRetrieve.Attribute("primaryAddress")) =>
         TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case DataRetrieveCtx(id, attribute) if dataRetrieveAll.isNumber(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
+      case IndexOfDataRetrieveCtx(DataRetrieveCtx(_, DataRetrieve.Attribute("primaryAddress")), _) =>
+        TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isNumber(id, attribute) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, Some(Number())))
       case IndexOfDataRetrieveCtx(DataRetrieveCtx(id, attribute), _) if dataRetrieveAll.isDate(id, attribute) =>

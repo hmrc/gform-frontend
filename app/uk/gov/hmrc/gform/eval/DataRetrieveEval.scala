@@ -18,8 +18,10 @@ package uk.gov.hmrc.gform.eval
 
 import cats.instances.list._
 import cats.syntax.traverse._
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, Empty, ListResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataRetrieveCtx
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, RetrieveDataType }
 
 object DataRetrieveEval {
@@ -44,33 +46,38 @@ object DataRetrieveEval {
 
   private[eval] def getDataRetrieveAddressAttribute(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
-    dataRetrieveId: DataRetrieveId
-  ): List[String] = {
-    def getAttr(attr: String) =
-      getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(dataRetrieveId, DataRetrieve.Attribute(attr)))
-        .flatMap(_.headOption)
+    dataRetrieveCtx: DataRetrieveCtx
+  ): ExpressionResult = {
+    def getAddressResult(row: Map[Attribute, String]) = {
+      def getAttr(attr: String) = row.get(DataRetrieve.Attribute(attr))
 
-    {
-      for {
-        addressLine1 <- getAttr("address_line_1")
-        addressLine2 <- getAttr("address_line_2")
-        poBox        <- getAttr("po_box")
-        locality     <- getAttr("locality")
-        region       <- getAttr("region")
-        postalCode   <- getAttr("postal_code")
-        country      <- getAttr("country")
-      } yield List(
-        addressLine1,
-        addressLine2,
-        poBox,
-        locality,
-        region,
-        postalCode,
-        if (isInUK(country)) "" else country
+      AddressResult(
+        List(
+          getAttr("address_line_1"),
+          getAttr("address_line_2"),
+          getAttr("po_box"),
+          getAttr("locality"),
+          getAttr("region"),
+          getAttr("postal_code"),
+          getAttr("country").map(c => if (isInUK(c)) "" else c)
+        )
+          .map(_.getOrElse(""))
+          .filter(!_.isBlank)
       )
     }
-      .getOrElse(List.empty[String])
-      .filter(!_.isBlank)
+
+    def getResult(id: DataRetrieveId) = dataRetrieve
+      .get(id)
+      .map { case DataRetrieveResult(_, data, _) =>
+        data match {
+          case RetrieveDataType.ObjectType(row) => getAddressResult(row)
+          case RetrieveDataType.ListType(xs)    => ListResult(xs.map(row => getAddressResult(row)))
+        }
+      }
+
+    getResult(dataRetrieveCtx.id).getOrElse(
+      getResult(dataRetrieveCtx.id.modelPageId.baseId).getOrElse(Empty)
+    )
   }
 
   def getDataRetrieveAddressMap(

@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.wshttp.HttpTestUtils
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId }
 
+import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class CompanyInformationConnectorSpec
@@ -146,13 +147,95 @@ class CompanyInformationConnectorSpec
       None
     )
 
+    val dataRetrieveCompanyHouseInsolvency =
+      DataRetrieve(
+        DataRetrieve.Type("companyHouseInsolvency"),
+        DataRetrieveId("insolvency"),
+        Attr.FromArray(
+          List(
+            AttributeInstruction(
+              DataRetrieve.Attribute("caseType"),
+              ConstructAttribute.AsIs(Fetch(List("caseType")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("caseNumber"),
+              ConstructAttribute.AsIs(Fetch(List("caseNumber")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("name"),
+              ConstructAttribute.AsIs(Fetch(List("name")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("role"),
+              ConstructAttribute.AsIs(Fetch(List("role")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("address_line_1"),
+              ConstructAttribute.AsIs(Fetch(List("address", "address_line_1")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("address_line_2"),
+              ConstructAttribute.AsIs(Fetch(List("address", "address_line_2")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("locality"),
+              ConstructAttribute.AsIs(Fetch(List("address", "locality")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("region"),
+              ConstructAttribute.AsIs(Fetch(List("address", "region")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("postal_code"),
+              ConstructAttribute.AsIs(Fetch(List("address", "postal_code")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("country"),
+              ConstructAttribute.AsIs(Fetch(List("address", "country")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("primaryAddress"),
+              ConstructAttribute.Combine(
+                List(
+                  DataRetrieve.Attribute("address_line_1") -> Fetch(List("address", "address_line_1")),
+                  DataRetrieve.Attribute("address_line_2") -> Fetch(List("address", "address_line_2")),
+                  DataRetrieve.Attribute("locality")       -> Fetch(List("address", "locality")),
+                  DataRetrieve.Attribute("region")         -> Fetch(List("address", "region")),
+                  DataRetrieve.Attribute("postal_code")    -> Fetch(List("address", "postal_code")),
+                  DataRetrieve.Attribute("country")        -> Fetch(List("address", "country"))
+                )
+              )
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("appointedOn"),
+              ConstructAttribute.AsIs(Fetch(List("appointedOn")))
+            )
+          )
+        ),
+        Map(
+          DataRetrieve.Attribute("caseType")       -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("caseNumber")     -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("name")           -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("role")           -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("address_line_1") -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("address_line_1") -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("locality")       -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("region")         -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("postal_code")    -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("country")        -> DataRetrieve.AttrType.String,
+          DataRetrieve.Attribute("appointedOn")    -> DataRetrieve.AttrType.Date
+        ),
+        List.empty[DataRetrieve.ParamExpr],
+        None
+      )
+
     val request = DataRetrieve.Request(
       Json.obj(),
       List.empty[(String, String)]
     ) // Request Doesn't matter since response is mocked
   }
 
-  "companyProfile" should "call the companies house api proxy endpoint and return valid company details when valid data is received from the API" in new TestFixture {
+  "companyProfile" should "call the gform companies house endpoint and return valid company details when valid data is received from the API" in new TestFixture {
     val companyReturn: JsValue = Json.parse("""{
                                               |  "accounts": {
                                               |    "accounting_reference_date": {
@@ -298,7 +381,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "call the companies house api proxy endpoint and return empty company details when the company is not found from the API" in new TestFixture {
+  it should "call the gform companies house endpoint and return empty company details when the company is not found from the API" in new TestFixture {
     stubFor(
       WireMock
         .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
@@ -316,7 +399,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "call the companies house api proxy endpoint and return the cannot retrieve response when there is an error accessing the API" in new TestFixture {
+  it should "call the gform companies house endpoint and return the cannot retrieve response when there is an error accessing the API" in new TestFixture {
     stubFor(
       WireMock
         .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
@@ -332,7 +415,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  "companyHouseActiveOfficers" should "call the companies house api proxy endpoint and return valid company active officers when valid data is received from the API" in new TestFixture {
+  "companyHouseActiveOfficers" should "call the gform companies house endpoint and return valid company active officers when valid data is received from the API" in new TestFixture {
     val companyActiveOfficersReturn: JsValue = Json.parse("""{
                                                             |   "items": [
                                                             |       {
@@ -388,7 +471,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "call the companies house api proxy endpoint and return empty company active officers details when the company active officers is not found from the API" in new TestFixture {
+  it should "call the gform companies house endpoint and return empty company active officers details when the company active officers is not found from the API" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -425,4 +508,215 @@ class CompanyInformationConnectorSpec
       response shouldBe CannotRetrieveResponse
     }
   }
+
+  "companyInsolvency" should "call the gform companies house endpoint and return valid company insolvency details when valid data is received from the API" in new TestFixture {
+    val companyInsolvency: JsValue = Json.parse(s"""
+                                                   |{
+                                                   |  "etag": "somelongstring",
+                                                   |  "cases": [
+                                                   |    {
+                                                   |      "type": "receiver-manager",
+                                                   |      "dates": [],
+                                                   |      "practitioners": [
+                                                   |        {
+                                                   |          "name": "John Smith",
+                                                   |          "address": {
+                                                   |            "address_line_1": "1 Somewhere St",
+                                                   |            "address_line_2": "Someburb",
+                                                   |            "locality": "Somewheresville",
+                                                   |            "postal_code": "SM1 2WH"
+                                                   |          },
+                                                   |          "appointed_on": "2022-08-05",
+                                                   |          "role": "receiver-manager"
+                                                   |        },
+                                                   |        {
+                                                   |          "name": "Jane Doe",
+                                                   |          "address": {
+                                                   |            "address_line_1": "1 Somewhere St",
+                                                   |            "address_line_2": "Someburb",
+                                                   |            "locality": "Somewheresville",
+                                                   |            "postal_code": "SM1 2WH"
+                                                   |          },
+                                                   |          "appointed_on": "2022-08-05",
+                                                   |          "role": "receiver-manager"
+                                                   |        }
+                                                   |      ],
+                                                   |      "links": {
+                                                   |        "charge": "/company/00000001/charges/somestring"
+                                                   |      },
+                                                   |      "number": "1"
+                                                   |    },
+                                                   |    {
+                                                   |      "type": "receiver-manager",
+                                                   |      "dates": [],
+                                                   |      "practitioners": [
+                                                   |        {
+                                                   |          "name": "John Smith",
+                                                   |          "address": {
+                                                   |            "address_line_1": "1 Somewhere St",
+                                                   |            "address_line_2": "Someburb",
+                                                   |            "locality": "Somewheresville",
+                                                   |            "postal_code": "SM1 2WH"
+                                                   |          },
+                                                   |          "appointed_on": "2022-08-05",
+                                                   |          "ceased_to_act_on": "2023-10-01",
+                                                   |          "role": "receiver-manager"
+                                                   |        },
+                                                   |        {
+                                                   |          "name": "Jane Doe",
+                                                   |          "address": {
+                                                   |            "address_line_1": "1 Somewhere St",
+                                                   |            "address_line_2": "Someburb",
+                                                   |            "locality": "Somewheresville",
+                                                   |            "postal_code": "SM1 2WH"
+                                                   |          },
+                                                   |          "appointed_on": "2022-08-05",
+                                                   |          "role": "receiver-manager"
+                                                   |        }
+                                                   |      ],
+                                                   |      "links": {
+                                                   |        "charge": "/company/00000001/charges/somestring"
+                                                   |      },
+                                                   |      "number": "2"
+                                                   |    },
+                                                   |    {
+                                                   |      "type": "in-administration",
+                                                   |      "dates": [
+                                                   |        {
+                                                   |          "type": "administration-started-on",
+                                                   |          "date": "2022-10-21"
+                                                   |        }
+                                                   |      ],
+                                                   |      "practitioners": [
+                                                   |        {
+                                                   |          "name": "John McSmith",
+                                                   |          "address": {
+                                                   |            "address_line_1": "58 Somewhere Rd",
+                                                   |            "locality": "Somewheresville",
+                                                   |            "region": "Somewhereshire",
+                                                   |            "postal_code": "SM2 1WH"
+                                                   |          },
+                                                   |          "role": "practitioner"
+                                                   |        }
+                                                   |      ],
+                                                   |      "number": "3"
+                                                   |    }
+                                                   |  ],
+                                                   |  "status": [
+                                                   |    "in-administration",
+                                                   |    "receiver-manager"
+                                                   |  ]
+                                                   |}
+                                                   |""".stripMargin)
+
+    stubFor(
+      WireMock
+        .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D/insolvency")
+        .willReturn(
+          ok(companyInsolvency.toString)
+        )
+    )
+
+    val future = companyInformationAsyncConnector.companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
+
+    whenReady(future) { response =>
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Array(
+          List(
+            Map(
+              Attribute("locality")       -> "Somewheresville",
+              Attribute("address_line_1") -> "1 Somewhere St",
+              Attribute("caseNumber")     -> "1",
+              Attribute("country")        -> "",
+              Attribute("name")           -> "John Smith",
+              Attribute("caseType")       -> "receiver-manager",
+              Attribute("address_line_2") -> "Someburb",
+              Attribute("region")         -> "",
+              Attribute("postal_code")    -> "SM1 2WH",
+              Attribute("appointedOn")    -> "2022-08-05",
+              Attribute("role")           -> "receiver-manager"
+            ),
+            Map(
+              Attribute("locality")       -> "Somewheresville",
+              Attribute("address_line_1") -> "1 Somewhere St",
+              Attribute("caseNumber")     -> "1",
+              Attribute("country")        -> "",
+              Attribute("name")           -> "Jane Doe",
+              Attribute("caseType")       -> "receiver-manager",
+              Attribute("address_line_2") -> "Someburb",
+              Attribute("region")         -> "",
+              Attribute("postal_code")    -> "SM1 2WH",
+              Attribute("appointedOn")    -> "2022-08-05",
+              Attribute("role")           -> "receiver-manager"
+            ),
+            Map(
+              Attribute("locality")       -> "Somewheresville",
+              Attribute("address_line_1") -> "1 Somewhere St",
+              Attribute("caseNumber")     -> "2",
+              Attribute("country")        -> "",
+              Attribute("name")           -> "Jane Doe",
+              Attribute("caseType")       -> "receiver-manager",
+              Attribute("address_line_2") -> "Someburb",
+              Attribute("region")         -> "",
+              Attribute("postal_code")    -> "SM1 2WH",
+              Attribute("appointedOn")    -> "2022-08-05",
+              Attribute("role")           -> "receiver-manager"
+            ),
+            Map(
+              Attribute("locality")       -> "Somewheresville",
+              Attribute("address_line_1") -> "58 Somewhere Rd",
+              Attribute("caseNumber")     -> "3",
+              Attribute("country")        -> "",
+              Attribute("name")           -> "John McSmith",
+              Attribute("caseType")       -> "in-administration",
+              Attribute("address_line_2") -> "",
+              Attribute("region")         -> "Somewhereshire",
+              Attribute("postal_code")    -> "SM2 1WH",
+              Attribute("appointedOn")    -> "",
+              Attribute("role")           -> "practitioner"
+            )
+          )
+        )
+      )
+    }
+  }
+
+  it should "call the gform companies house endpoint and return empty company insolvency details when the company insolvency detais are not found from the API" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(
+          s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D/insolvency"
+        )
+        .willReturn(
+          notFound()
+        )
+    )
+
+    val future = companyInformationAsyncConnector.companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
+
+    whenReady(future) { response =>
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Array(List.empty)
+      )
+    }
+  }
+
+  it should "call the companies house insolvency details api proxy endpoint and return the cannot retrieve response when there is an error accessing the API" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(
+          s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D/insolvency"
+        )
+        .willReturn(
+          serverError()
+        )
+    )
+
+    val future = companyInformationAsyncConnector.companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
+
+    whenReady(future) { response =>
+      response shouldBe CannotRetrieveResponse
+    }
+  }
+
 }
