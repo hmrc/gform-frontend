@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.api
 import play.api.libs.json.{ JsPath, Json, OFormat, Reads }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OFormatWithTemplateReadFallback
 
+import java.time.LocalDate
+
 case class Officers(items: List[Officer])
 
 object Officers {
@@ -34,4 +36,50 @@ object Officer {
   } yield Officer(officerRole, resignedOn)
 
   implicit val format: OFormat[Officer] = OFormatWithTemplateReadFallback(reads)
+}
+
+case class Insolvency(cases: List[InsolvencyCase])
+
+object Insolvency {
+  implicit val format: OFormat[Insolvency] = Json.format[Insolvency]
+}
+
+case class InsolvencyCase(
+  `type`: String,
+  number: String,
+  practitioners: List[InsolvencyPractitioner]
+)
+
+object InsolvencyCase {
+  implicit val format: OFormat[InsolvencyCase] = Json.format[InsolvencyCase]
+}
+
+case class InsolvencyPractitioner(
+  name: String,
+  address: InsolvencyPractitionerAddress,
+  role: String,
+  appointed_on: Option[LocalDate],
+  ceased_to_act_on: Option[LocalDate]
+)
+
+object InsolvencyPractitioner {
+  implicit val format: OFormat[InsolvencyPractitioner] = Json.format[InsolvencyPractitioner]
+}
+
+case class InsolvencyPractitionerAddress(
+  address_line_1: String,
+  address_line_2: Option[String],
+  country: Option[String],
+  locality: Option[String],
+  postal_code: Option[String],
+  region: Option[String]
+) {
+  override def toString: String = Seq(Some(address_line_1), address_line_2, locality, region, postal_code, country)
+    .filter(_.isDefined)
+    .map(_.get)
+    .mkString(", ")
+}
+
+object InsolvencyPractitionerAddress {
+  implicit val format: OFormat[InsolvencyPractitionerAddress] = Json.format[InsolvencyPractitionerAddress]
 }

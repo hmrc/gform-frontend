@@ -683,13 +683,18 @@ case class EvaluationResults(
             .getOrElse(ExpressionResult.empty)
         }
       case LangCtx => StringResult(evaluationContext.lang.langADTToString)
-      case DataRetrieveCtx(dataRetrieveId, DataRetrieve.Attribute("registeredOfficeAddress")) =>
-        AddressResult(
-          DataRetrieveEval.getDataRetrieveAddressAttribute(
-            evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
-            dataRetrieveId
-          )
+      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) =>
+        val exprResult = DataRetrieveEval.getDataRetrieveAddressAttribute(
+          evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
+          drCtx
         )
+        nonEmptyExpressionResult(exprResult)
+      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("primaryAddress")) =>
+        val exprResult = DataRetrieveEval.getDataRetrieveAddressAttribute(
+          evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
+          drCtx
+        )
+        nonEmptyExpressionResult(exprResult)
       case d @ DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) =>
         evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
           DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
@@ -755,7 +760,7 @@ case class EvaluationResults(
       case IndexOfDataRetrieveCtx(ctx, index) =>
         loop(ctx) match {
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-          case _              => unsupportedOperation("String")(expr)
+          case otherwise      => otherwise // Retrieves the only item from result set
         }
       case NumberedList(fcId) => loop(FormCtx(fcId))
       case BulletedList(fcId) => loop(FormCtx(fcId))
