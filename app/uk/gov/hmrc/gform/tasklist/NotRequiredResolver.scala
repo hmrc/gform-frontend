@@ -32,12 +32,21 @@ final class NotRequiredResolver[D <: DataOrigin](
         taskStatus match {
           case TaskStatus.CannotStartYet => TaskStatus.CannotStartYet
           case otherwise =>
-            if (
-              notRequiredIfEvalLookup(coordinates) || formModelVisibilityOptics
-                .allEditableFormComponentsForCoordinates(coordinates)
-                .isEmpty
-            ) {
+            def allEditableFormComponentsForCoordinates = {
+              val fm = formModelVisibilityOptics.formModel
+              val availableFormComponents = fm.taskList
+                .availablePages(coordinates)
+                .filter { page =>
+                  page.getIncludeIf.forall { includeIf =>
+                    NotRequiredResolver.onDemandEvalIncludeIf(formModelVisibilityOptics, includeIf)
+                  }
+                }
+                .flatMap(_.allFormComponents)
 
+              !availableFormComponents.exists(_.editable)
+            }
+
+            if (notRequiredIfEvalLookup(coordinates) || allEditableFormComponentsForCoordinates) {
               TaskStatus.NotRequired
             } else otherwise
         }
@@ -47,16 +56,17 @@ final class NotRequiredResolver[D <: DataOrigin](
 }
 
 object NotRequiredResolver {
+  def onDemandEvalIncludeIf(formModelVisibilityOptics: FormModelVisibilityOptics[_], includeIf: IncludeIf): Boolean = {
+    val fm = formModelVisibilityOptics.formModel
+    fm.onDemandIncludeIf.forall(f => f(includeIf))
+  }
   def create[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     taskCoordinatesLookup: Map[Task, Coordinates]
   ): NotRequiredResolver[D] = {
-    def onDemandEvalIncludeIf(includeIf: IncludeIf) = {
-      val fm = formModelVisibilityOptics.formModel
-      fm.onDemandIncludeIf.forall(f => f(includeIf))
-    }
+
     val notRequiredIfEvalLookup: Set[Coordinates] = taskCoordinatesLookup.collect {
-      case (task, coordinates) if task.notRequiredIf.fold(false)(onDemandEvalIncludeIf) =>
+      case (task, coordinates) if task.notRequiredIf.fold(false)(onDemandEvalIncludeIf(formModelVisibilityOptics, _)) =>
         coordinates
     }.toSet
     new NotRequiredResolver(formModelVisibilityOptics, notRequiredIfEvalLookup)
