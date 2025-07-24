@@ -337,7 +337,7 @@ class FormModelBuilder[E, F[_]: Functor](
 
     val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
 
-    def onDemandPageIncludeIf(includeIf: List[Option[IncludeIf]]) = {
+    def onDemandPageIncludeIf(includeIf: List[List[IncludeIf]]) = {
 //      println(includeIf)
 
       def getRecalculation(includeIf: List[IncludeIf]) = {
