@@ -281,7 +281,8 @@ class FormModelBuilder[E, F[_]: Functor](
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase],
-    formModelInterim: Option[FormModel[Interim]] = None
+    formModelInterim: Option[FormModel[Interim]] = None,
+    currentSection: Option[SectionOrSummary] = None
   )(implicit messages: Messages, lang: LangADT): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
@@ -294,7 +295,8 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel,
         formModelVisibilityOptics,
         phase,
-        formModelInterim.getOrElse(formModel).asInstanceOf[FormModel[Interim]]
+        formModelInterim.getOrElse(formModel).asInstanceOf[FormModel[Interim]],
+        currentSection
       )
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
@@ -315,7 +317,8 @@ class FormModelBuilder[E, F[_]: Functor](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     phase: Option[FormPhase],
-    formModelInterim: FormModel[Interim]
+    formModelInterim: FormModel[Interim],
+    currentSection: Option[SectionOrSummary]
   )(implicit messages: Messages, lang: LangADT): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
@@ -417,42 +420,51 @@ class FormModelBuilder[E, F[_]: Functor](
       }
     }
 
-    FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
-      .stripHiddenFormComponents(formModel)
-      .filter { pageModel =>
-        true
-//        pageModel.getIncludeIf.fold(true) { includeIf =>
-//          FormModelBuilder.evalIncludeIf(
-//            includeIf,
-//            formModelVisibilityOptics.recalculationResult,
-//            formModelVisibilityOptics.recData,
-//            formModelVisibilityOptics.formModel,
-//            phase
-//          )
-//        } &&
-//        pageModel.getNotRequiredIf.fold(true) { includeIf =>
-//          !FormModelBuilder.evalIncludeIf(
-//            includeIf,
-//            formModelVisibilityOptics.recalculationResult,
-//            formModelVisibilityOptics.recData,
-//            formModelVisibilityOptics.formModel,
-//            phase
-//          )
-//        }
-      }
-      .mapWithOnDemand[Visibility] { singleton: Singleton[DataExpanded] =>
-        val updatedFields = singleton.page.fields.flatMap {
-          case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
-          case otherwise                  => otherwise :: Nil
+    val fmFiltered: FormModel[DataExpanded] = {
+      val fm = FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
+        .stripHiddenFormComponents(formModel)
+
+      def fmWithFilter: FormModel[DataExpanded] =
+        fm.filter { pageModel =>
+          pageModel.getIncludeIf.fold(true) { includeIf =>
+            FormModelBuilder.evalIncludeIf(
+              includeIf,
+              formModelVisibilityOptics.recalculationResult,
+              formModelVisibilityOptics.recData,
+              formModelVisibilityOptics.formModel,
+              phase
+            )
+          } &&
+          pageModel.getNotRequiredIf.fold(true) { includeIf =>
+            !FormModelBuilder.evalIncludeIf(
+              includeIf,
+              formModelVisibilityOptics.recalculationResult,
+              formModelVisibilityOptics.recData,
+              formModelVisibilityOptics.formModel,
+              phase
+            )
+          }
         }
-        singleton.copy(page = singleton.page.copy(fields = updatedFields))
-      } { checkYourAnswers: CheckYourAnswers[DataExpanded] =>
-        checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
-      } { repeater: Repeater[DataExpanded] =>
-        repeater.asInstanceOf[Repeater[Visibility]]
-      } {
-        Some(onDemandPageIncludeIf)
+
+      currentSection match {
+        case Some(SectionOrSummary.TaskSummary) => fmWithFilter
+        case _                                  => fm
       }
+    }
+
+    fmFiltered.mapWithOnDemand[Visibility] { singleton: Singleton[DataExpanded] =>
+      val updatedFields = singleton.page.fields.flatMap {
+        case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
+        case otherwise                  => otherwise :: Nil
+      }
+      singleton.copy(page = singleton.page.copy(fields = updatedFields))
+    } { checkYourAnswers: CheckYourAnswers[DataExpanded] =>
+      checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
+    } { repeater: Repeater[DataExpanded] =>
+      repeater.asInstanceOf[Repeater[Visibility]]
+    } {
+      Some(onDemandPageIncludeIf)
+    }
   }
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](

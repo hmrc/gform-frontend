@@ -132,7 +132,8 @@ object FormModelOptics {
       formModelBuilder.renderPageModel(
         formModelVisibilityOptics,
         phase,
-        Some(formModel)
+        Some(formModel),
+        currentSection
       )
     }
   }
