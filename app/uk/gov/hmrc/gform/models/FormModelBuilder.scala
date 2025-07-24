@@ -447,8 +447,9 @@ class FormModelBuilder[E, F[_]: Functor](
         }
 
       currentSection match {
-        case Some(SectionOrSummary.TaskSummary) => fmWithFilter
-        case _                                  => fm
+        case Some(SectionOrSummary.TaskSummary)                                                     => fmWithFilter
+        case Some(SectionOrSummary.Section(sectionNumber)) if sectionNumber.isAddToListTerminalPage => fmWithFilter
+        case _                                                                                      => fm
       }
     }
 
