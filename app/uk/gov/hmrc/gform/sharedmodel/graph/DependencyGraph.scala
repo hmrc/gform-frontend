@@ -102,12 +102,14 @@ object DependencyGraph {
         }
     }
 
-    (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
+    val formComponents = (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
       .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
       .flatMap {
         case (Some(fc), fcId) => List(fc)
         case (None, fcId)     => formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
-      } -> allCurrentPageExpressions
+      }
+
+    formComponents -> allCurrentPageExpressions
   }
 
   def toGraph(
