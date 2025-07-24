@@ -88,24 +88,29 @@ class FormValidator(implicit ec: ExecutionContext) {
   }
 
   private def sectionIsVisible(sectionNumber: SectionNumber, visibilityFormModel: FormModel[Visibility]) = {
-
-    def pageIncludeIf(list: List[PageModel[Visibility]]) = list.flatMap(_.getIncludeIf)
-    //    println("pageIncludeIf: " + pageIncludeIf)
-    // println("page: " + page)
     def evalIncludeIf(pageIncludeIf: List[IncludeIf]) = pageIncludeIf.forall { includeIf =>
       //        println("onDemandIncludeIf: " + visibilityFormModel.onDemandIncludeIf)
       visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
     }
 
+    evalIncludeIf(getSectionIncludeIfs(sectionNumber, visibilityFormModel).toList)
+  }
+
+  private def getSectionIncludeIfs(sectionNumber: SectionNumber, visibilityFormModel: FormModel[Visibility]) = {
+
+    def pageIncludeIf(list: List[PageModel[Visibility]]) = list.flatMap(_.getIncludeIf)
+    //    println("pageIncludeIf: " + pageIncludeIf)
+    // println("page: " + page)
+
+    println(sectionNumber)
+
     val res = {
       sectionNumber match {
         case section @ AddToListPage.DefaultPage(sectionIndex) =>
-          evalIncludeIf(
-            pageIncludeIf(
-              List(
-                visibilityFormModel.pageModelLookup(AddToListPage.Page(sectionIndex, 1, 0)),
-                visibilityFormModel.pageModelLookup(section)
-              )
+          pageIncludeIf(
+            List(
+              visibilityFormModel.pageModelLookup(AddToListPage.Page(sectionIndex, 1, 0)),
+              visibilityFormModel.pageModelLookup(section)
             )
           )
         case section @ Classic.RepeatedPage(sectionIndex, pageNumber) =>
@@ -113,20 +118,14 @@ class FormValidator(implicit ec: ExecutionContext) {
           val repeats =
             repeatingPageBracket.map(_.source.repeats)
 
-          def includeIf = repeatingPageBracket.flatMap(_.source.page.includeIf).forall { includeIf =>
-            evalIncludeIf(List(includeIf))
-          }
+          def includeIf = repeatingPageBracket.flatMap(_.source.page.includeIf)
 
           def repeatsBool = repeats
-            .flatMap { repeats =>
-              val includeIf = IncludeIf(GreaterThan(repeats, Constant(pageNumber.toString)))
-              visibilityFormModel.onDemandIncludeIf.map { f =>
-                f(includeIf)
-              }
+            .map { repeats =>
+              IncludeIf(GreaterThan(repeats, Constant(pageNumber.toString)))
             }
-            .getOrElse(true)
-          includeIf && repeatsBool
-        case section => evalIncludeIf(pageIncludeIf(List(visibilityFormModel.pageModelLookup(section))))
+          includeIf ++ repeatsBool
+        case section => pageIncludeIf(List(visibilityFormModel.pageModelLookup(section)))
       }
     }
 
@@ -165,7 +164,27 @@ class FormValidator(implicit ec: ExecutionContext) {
         validatePageModel
       ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty).isValid)
 
-    availableSectionNumbers
+    val sectionIsVisible = formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIfBulk
+      .map { f =>
+        f(
+          availableSectionNumbers.map(section =>
+            getSectionIncludeIfs(section, formModelOptics.formModelVisibilityOptics.formModel).toList
+          )
+        )
+      }
+      .getOrElse(List())
+      .map {
+        _.forall(_ == true)
+      }
+
+    val visibleSectionNumbers = availableSectionNumbers
+      .zip(
+        sectionIsVisible
+      )
+      .filter(_._2 == true)
+      .map(_._1)
+
+    visibleSectionNumbers
       .foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
         for {
           acc     <- accF
@@ -189,9 +208,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               }
             ) None
             else {
-              if (sectionIsVisible(currentSn, formModelOptics.formModelVisibilityOptics.formModel)) {
-                Some(currentSn)
-              } else None
+              Some(currentSn)
             }
           case otherwise =>
             val isCurrentSection = maybeSectionNumber.contains(currentSn)

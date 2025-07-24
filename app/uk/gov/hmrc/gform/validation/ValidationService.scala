@@ -129,10 +129,10 @@ class ValidationService(
 
     val includeIfs = formComponents.flatMap { formComponent =>
       val page = formModel.pageLookup(formComponent.id)
-      def includeComponent = formComponent.includeIf
+      def includeComponent = formComponent.includeIf.toList
 
       def includeRepeats = {
-        val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
+        val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id).toList
 
         repeatsExpr.map { repeatsExpr =>
           val bracket = formModel.repeatingPageBrackets
@@ -148,13 +148,13 @@ class ValidationService(
 
       }
 
-      List(page.getIncludeIf, includeComponent, includeRepeats)
+      List(page.getIncludeIf.toList, includeComponent, includeRepeats)
     }
 
     formModel.onDemandIncludeIfBulk
       .map { f =>
         formComponents.zip(f(includeIfs).grouped(3)).collect {
-          case (fc, includes) if includes.forall(includeOpt => includeOpt.getOrElse(true)) => fc
+          case (fc, includes) if includes.forall(includeOpt => includeOpt.headOption.getOrElse(true)) => fc
         }
       }
       .getOrElse(formComponents)
@@ -197,9 +197,9 @@ class ValidationService(
     val pages = formModel.onDemandIncludeIfBulk
       .map { f =>
         val results = f(formModel.pages.map { page =>
-          page.getIncludeIf
+          page.getIncludeIf.toList
         })
-        formModel.pages.zip(results).collect { case (page, Some(true)) =>
+        formModel.pages.zip(results).collect { case (page, List(true)) =>
           page
         }
       }
