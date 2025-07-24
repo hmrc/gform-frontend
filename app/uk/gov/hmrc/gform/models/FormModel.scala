@@ -33,11 +33,11 @@ case class FormModel[A <: PageMode](
   sumInfo: SumInfo,
   standaloneSumInfo: StandaloneSumInfo, // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
   dataRetrieve: Option[NonEmptyList[DataRetrieve]],
-  onDemandIncludeIfBulk: Option[List[Option[IncludeIf]] => List[Option[Boolean]]] = None
+  onDemandIncludeIfBulk: Option[List[List[IncludeIf]] => List[List[Boolean]]] = None
 ) {
 
   def onDemandIncludeIf: Option[IncludeIf => Boolean] = onDemandIncludeIfBulk.map { includeIfBulkF => includeIf =>
-    includeIfBulkF(List(Some(includeIf))).head
+    includeIfBulkF(List(List(includeIf))).head.headOption
       .getOrElse(throw new RuntimeException("Were not able to retrieve option"))
   }
 
@@ -203,7 +203,7 @@ case class FormModel[A <: PageMode](
     f: CheckYourAnswers[A] => CheckYourAnswers[B]
   )(
     g: Repeater[A] => Repeater[B]
-  )(onDemand: Option[List[Option[IncludeIf]] => List[Option[Boolean]]]): FormModel[B] = FormModel(
+  )(onDemand: Option[List[List[IncludeIf]] => List[List[Boolean]]]): FormModel[B] = FormModel(
     brackets.map(e)(f)(g),
     staticTypeInfo,
     revealingChoiceInfo,
