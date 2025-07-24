@@ -51,20 +51,24 @@ class TaskListController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]
   ) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        for {
-          envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
-          html <-
-            taskListRenderingService
-              .renderTaskList(
-                cache.formTemplate,
-                maybeAccessCode,
-                cache,
-                EnvelopeWithMapping(envelope, cache.form),
-                formModelOptics
-              )
-        } yield Ok(html)
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.EditForm,
+      Some(SectionOrSummary.TaskSummary)
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      for {
+        envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
+        html <-
+          taskListRenderingService
+            .renderTaskList(
+              cache.formTemplate,
+              maybeAccessCode,
+              cache,
+              EnvelopeWithMapping(envelope, cache.form),
+              formModelOptics
+            )
+      } yield Ok(html)
 
     }
 
