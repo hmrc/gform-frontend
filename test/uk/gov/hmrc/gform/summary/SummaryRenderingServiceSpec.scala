@@ -494,7 +494,7 @@ class SummaryRenderingServiceSpec
                     formModelOptics.copy(formModelVisibilityOptics =
                       formModelOptics.formModelVisibilityOptics.copy(
                         formModel = formModelOptics.formModelVisibilityOptics.formModel.copy(
-                          onDemandIncludeIf = None
+                          onDemandIncludeIfBulk = None
                         )
                       )
                     ),
