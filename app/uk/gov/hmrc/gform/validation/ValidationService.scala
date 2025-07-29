@@ -199,8 +199,9 @@ class ValidationService(
         val results = f(formModel.pages.map { page =>
           page.getIncludeIf.toList
         })
-        formModel.pages.zip(results).collect { case (page, List(true)) =>
-          page
+        formModel.pages.zip(results).collect {
+          case (page, List(true)) => page
+          case (page, List())     => page
         }
       }
       .getOrElse(formModel.pages)

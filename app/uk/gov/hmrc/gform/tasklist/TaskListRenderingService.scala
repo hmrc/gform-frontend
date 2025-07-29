@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ ProcessDataService, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, TaskIdTaskStatusMapping, UserData, Validated }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, Task }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle }
@@ -59,17 +59,7 @@ class TaskListRenderingService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): Future[Html] = {
-
-    def taskIsVisible(task: Task) = {
-      val fm = formModelOptics.formModelVisibilityOptics.formModel
-
-      task.includeIf.forall(includeIf => fm.onDemandIncludeIf.forall(f => f(includeIf)))
-    }
-
-    val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate).collect {
-      case (task, coordinates) if taskIsVisible(task) => task -> coordinates
-    }
-
+    val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate)
     for {
       statusesLookup <-
         TaskListUtils
@@ -100,7 +90,11 @@ class TaskListRenderingService(
                          NoSpecificAction
                        )
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
-      val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.values.toList
+      val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.collect {
+        case (task, coordinates)
+            if task.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
+          coordinates
+      }.toList
 
       val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
       val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -113,9 +107,6 @@ class TaskListRenderingService(
       }
 
       val completedTasks = completedTasksCount(visibleTaskStatusesLookup)
-
-//      println("visibleTaskCoordinates.size: " + visibleTaskCoordinates.size)
-//      println("completedTasks: " + completedTasks)
 
       def taskUrl(coordinates: Coordinates, taskStatus: TaskStatus) =
         taskStatus match {

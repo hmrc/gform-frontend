@@ -21,12 +21,13 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, PageModel, TaskModel, Visibility }
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMapping }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormComponent, FormKind, FormTemplate, SectionNumber, Task, TaskNumber, TaskSection, TaskSectionNumber, TaskStatus => TaskStatusExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ TaskStatus => TaskStatusExpr }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber }
 import uk.gov.hmrc.gform.tasklist.TaskStatus.NotStarted
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -98,8 +99,7 @@ object TaskListUtils {
   ): Future[NonEmptyList[(Coordinates, TaskStatus)]] = {
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
     val taskList: BracketsWithSectionNumber.TaskList[Visibility] = formModel.brackets.unsafeToTaskList
-    val coordinates: NonEmptyList[Coordinates] = taskList.brackets
-      .map(_._1)
+    val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
     if (cache.formTemplate.isSpecimen) {
       Future.successful(coordinates.map(coordinates => coordinates -> TaskStatus.NotStarted))
     } else {
@@ -107,14 +107,19 @@ object TaskListUtils {
 
       val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics, taskCoordinatesMap)
       val notRequiredResolver = NotRequiredResolver.create(formModelVisibilityOptics, taskCoordinatesMap)
-
-      def onDemandIncludeIfPageFilter(pageModel: PageModel[_]): Boolean =
-        pageModel.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
-
       for {
         statusesLookup <- coordinates
                             .traverse { coordinate =>
-                              def processStatus = for {
+                              val dataForCoordinate: Set[VariadicValue] =
+                                formModelVisibilityOptics.data
+                                  .forCoordinate(coordinate)
+                              val hasTerminationPage = formModel.taskList
+                                .availablePages(coordinate)
+                                .exists(
+                                  _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
+                                )
+
+                              for {
                                 formHandlerResult <-
                                   validationService.validateFormModel(
                                     cache,
@@ -124,54 +129,24 @@ object TaskListUtils {
                                   )
                                 validatedATLs =
                                   validationService.validateATLs(
-                                    formModel.taskList
-                                      .availablePages(
-                                        coordinate
-                                      )
-                                      .filter(onDemandIncludeIfPageFilter),
+                                    formModel.taskList.availablePages(
+                                      coordinate
+                                    ),
                                     formModelVisibilityOptics
                                   )
                               } yield {
-                                //                                println("formHandlerResult.isFormValid: " + formHandlerResult.isFormValid)
-                                //                                println("!hasTerminationPage: " + !hasTerminationPage)
-                                //                                println("validatedATLs.isValid: " + validatedATLs.isValid)
-
-                                def hasTerminationPage = coordinates.exists { coordinate =>
-                                  val taskModel = formModel.brackets.unsafeToTaskList.bracketsFor(coordinate)
-                                  val availablePages = taskModel match {
-                                    case TaskModel.AllHidden() => List.empty
-                                    case TaskModel.Editable(xs) =>
-                                      val pagesWithIndex = xs.flatMap(_.toPageModelWithNumber)
-                                      val (pages, availableSectionNumbers) = pagesWithIndex.toList.unzip
-                                      pages
-                                  }
-
-                                  availablePages
-                                    .find(
-                                      _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
-                                    )
-                                    .exists(onDemandIncludeIfPageFilter)
-                                }
-
                                 val taskStatus =
-                                  if (formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid) {
+                                  if (dataForCoordinate.isEmpty) {
+                                    TaskStatus.NotStarted
+                                  } else if (
+                                    formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid
+                                  ) {
                                     TaskStatus.Completed
                                   } else {
                                     TaskStatus.InProgress
                                   }
                                 coordinate -> taskStatus
                               }
-
-                              val dataForCoordinate: Set[VariadicValue] =
-                                formModelVisibilityOptics.data
-                                  .forCoordinate(coordinate)
-
-                              if (dataForCoordinate.isEmpty) {
-                                Future.successful(coordinate -> TaskStatus.NotStarted)
-                              } else {
-                                processStatus
-                              }
-
                             }
                             .map(notRequiredResolver.resolveNotRequired)
                             .map(
