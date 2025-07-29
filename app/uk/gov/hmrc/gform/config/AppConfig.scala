@@ -39,6 +39,7 @@ case class AppConfig(
   fileMaxUploadedSizeMB: Long,
   `proxy-timeout`: FiniteDuration,
   formTemplateCacheTTL: FiniteDuration,
+  indexPath: String,
   `email-to-gg-migration`: Boolean
 ) {
 

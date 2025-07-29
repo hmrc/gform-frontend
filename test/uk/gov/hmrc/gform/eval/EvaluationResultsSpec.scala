@@ -20,7 +20,7 @@ import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core.{ Assistant, Enrolment, EnrolmentIdentifier, Enrolments, User }
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.{ LookupLoader, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
@@ -40,6 +40,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import java.time.LocalDate
 
 class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
+
+  private val lookupLoader = new LookupLoader("target/scala-2.13/resource_managed/main/conf/index")
+
+  private val countryLookup = lookupLoader.mkIndexSearcher("country")
 
   private val booleanExprResolver = BooleanExprResolver(_ => false)
   private val recDataEmpty = RecData[OutOfDate](
@@ -421,7 +425,6 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                         LookupLabel("United Kingdom") -> CountryLookupInfo(
                           LookupId("GB"),
                           0,
-                          LookupKeywords(Some("England Great Britain")),
                           LookupPriority(1),
                           LookupPriority(1),
                           LookupRegion("1"),
@@ -432,7 +435,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     )
                   )
                 ),
-                Map.empty,
+                countryLookup,
                 Enabled
               )
             )
@@ -474,7 +477,6 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                         LookupLabel("United Kingdom") -> CountryLookupInfo(
                           LookupId("GB"),
                           0,
-                          LookupKeywords(Some("England Great Britain")),
                           LookupPriority(1),
                           LookupPriority(1),
                           LookupRegion("1"),
@@ -485,7 +487,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     )
                   )
                 ),
-                Map.empty,
+                countryLookup,
                 Enabled
               )
             )
@@ -531,7 +533,6 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                           LookupLabel("United Kingdom") -> CountryLookupInfo(
                             LookupId("GB"),
                             0,
-                            LookupKeywords(Some("England Great Britain")),
                             LookupPriority(1),
                             LookupPriority(1),
                             LookupRegion("1"),
@@ -542,7 +543,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                       )
                     )
                   ),
-                  Map.empty,
+                  countryLookup,
                   Enabled
                 )
               )
@@ -574,7 +575,6 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                         LookupLabel("United Kingdom") -> CountryLookupInfo(
                           LookupId("GB"),
                           0,
-                          LookupKeywords(Some("England Great Britain")),
                           LookupPriority(1),
                           LookupPriority(1),
                           LookupRegion("1"),
@@ -585,7 +585,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     )
                   )
                 ),
-                Map.empty,
+                countryLookup,
                 Enabled
               )
             )

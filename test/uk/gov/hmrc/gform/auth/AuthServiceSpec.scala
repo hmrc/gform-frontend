@@ -55,6 +55,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     fileMaxUploadedSizeMB = 145,
     `proxy-timeout` = FiniteDuration.apply(120, SECONDS),
     formTemplateCacheTTL = FiniteDuration.apply(120, SECONDS),
+    indexPath = "conf/index",
     `email-to-gg-migration` = false
   )
 

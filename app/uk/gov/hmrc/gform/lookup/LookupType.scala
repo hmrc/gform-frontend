@@ -16,15 +16,14 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import com.miguelfonseca.completely.AutocompleteEngine
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import org.apache.lucene.search.IndexSearcher
 
 sealed trait LookupType extends Product with Serializable
 
 case class RadioLookup(options: LocalisedLookupOptions) extends LookupType
 case class AjaxLookup(
   options: LocalisedLookupOptions,
-  autocomplete: Map[LangADT, AutocompleteEngine[LookupRecord]],
+  searcher: IndexSearcher,
   showAll: ShowAll
 ) extends LookupType
 

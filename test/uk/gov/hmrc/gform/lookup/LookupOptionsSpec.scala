@@ -29,7 +29,6 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
     LookupLabel("Great Britain") -> CountryLookupInfo(
       LookupId("GB"),
       0,
-      LookupKeywords(Some("Britain")),
       LookupPriority(1),
       LookupPriority(1),
       LookupRegion("1"),
@@ -39,7 +38,6 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
     LookupLabel("France") -> CountryLookupInfo(
       LookupId("FR"),
       1,
-      LookupKeywords(Some("France")),
       LookupPriority(1),
       LookupPriority(1),
       LookupRegion("2"),
@@ -52,7 +50,6 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
     LookupLabel("London Heathrow Airport") -> PortLookupInfo(
       LookupId("1"),
       0,
-      LookupKeywords(Some("London Heathrow")),
       LookupPriority(1),
       LookupRegion("1"),
       LookupPortType("T2"),
@@ -62,7 +59,6 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
     LookupLabel("London Gatwick Airport") -> PortLookupInfo(
       LookupId("2"),
       1,
-      LookupKeywords(Some("London Gatwick")),
       LookupPriority(2),
       LookupRegion("1"),
       LookupPortType("T2"),
@@ -72,7 +68,6 @@ class LookupOptionsSpec extends AnyFlatSpecLike with Matchers {
     LookupLabel("Charles de Gaulle Airport") -> PortLookupInfo(
       LookupId("3"),
       2,
-      LookupKeywords(Some("Paris")),
       LookupPriority(1),
       LookupRegion("2"),
       LookupPortType("T2"),

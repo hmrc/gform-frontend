@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.lookup
+val luceneVersion = "10.2.2"
 
-case class LookupKeywords(keywords: Option[String]) extends AnyVal
+libraryDependencies ++= Seq(
+  "org.apache.lucene"     % "lucene-core"            % luceneVersion,
+  "org.apache.lucene"     % "lucene-analysis-common" % luceneVersion,
+  "com.github.tototoshi" %% "scala-csv"              % "2.0.0"
+)

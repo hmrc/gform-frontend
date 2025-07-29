@@ -28,6 +28,7 @@ import play.api.http.HttpConfiguration
 import play.api.i18n._
 import uk.gov.hmrc.gform.Helpers.mkDataOutOfDate
 import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.LookupLoader
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkSection
@@ -42,7 +43,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormatExprGen
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.LookupLoader.mkAutocomplete
 import ComponentChecker._
 import org.scalacheck.Gen
 
@@ -51,6 +51,8 @@ import scala.collection.mutable
 class TextCheckerSpec
     extends AnyFlatSpecLike with ScalaCheckDrivenPropertyChecks with Matchers with IdiomaticMockito
     with FormModelSupport {
+
+  val lookupLoader = new LookupLoader("target/scala-2.13/resource_managed/main/conf/index")
 
   val formTemplate: FormTemplate = mock[FormTemplate]
   val envlopeId: EnvelopeId = mock[EnvelopeId]
@@ -624,13 +626,14 @@ class TextCheckerSpec
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
         mkDataOutOfDate(textComponent.id.value -> inputData)
       )
+
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
         formModelOptics.formModelVisibilityOptics,
         new LookupRegistry(
           Map(
             Register.Country -> AjaxLookup(
               countryLookupOptions,
-              mkAutocomplete(countryLookupOptions),
+              lookupLoader.mkIndexSearcher("country"),
               ShowAll.Enabled
             )
           )
@@ -656,7 +659,7 @@ class TextCheckerSpec
         Map(
           Register.Port -> AjaxLookup(
             portLookupOptions,
-            mkAutocomplete(portLookupOptions),
+            lookupLoader.mkIndexSearcher("port"),
             ShowAll.Enabled
           )
         )
@@ -684,7 +687,6 @@ class TextCheckerSpec
             LookupLabel("United Kingdom") -> CountryLookupInfo(
               LookupId("GB"),
               0,
-              LookupKeywords(Some("England Great Britain")),
               LookupPriority(1),
               LookupPriority(1),
               LookupRegion("1"),
@@ -694,7 +696,6 @@ class TextCheckerSpec
             LookupLabel("United States") -> CountryLookupInfo(
               LookupId("US"),
               1,
-              LookupKeywords(Some("USA")),
               LookupPriority(1),
               LookupPriority(1),
               LookupRegion("2"),
@@ -718,7 +719,6 @@ class TextCheckerSpec
             LookupLabel("LHR") -> PortLookupInfo(
               LookupId("LHR"),
               0,
-              LookupKeywords(Some("London Heathrow")),
               LookupPriority(1),
               LookupRegion("1"),
               LookupPortType("Airport"),

@@ -29,7 +29,6 @@ final case class DefaultLookupInfo(
 final case class CountryLookupInfo(
   id: LookupId,
   index: Int,
-  keywords: LookupKeywords,
   priority: LookupPriority,
   priorityUk: LookupPriority,
   region: LookupRegion,
@@ -40,7 +39,6 @@ final case class CountryLookupInfo(
 final case class NationalityLookupInfo(
   id: LookupId,
   index: Int,
-  keywords: LookupKeywords,
   priority: LookupPriority,
   priorityUk: LookupPriority,
   region: LookupRegion,
@@ -51,7 +49,6 @@ final case class NationalityLookupInfo(
 final case class CurrencyLookupInfo(
   id: LookupId,
   index: Int,
-  keywords: LookupKeywords,
   priority: LookupPriority,
   countryCode: LookupCountryCode
 ) extends LookupInfo
@@ -59,7 +56,6 @@ final case class CurrencyLookupInfo(
 final case class PortLookupInfo(
   id: LookupId,
   index: Int,
-  keywords: LookupKeywords,
   priority: LookupPriority,
   region: LookupRegion,
   portType: LookupPortType,
@@ -77,14 +73,12 @@ final case class SicCodeLookupInfo(
 final case class AgentComplaintCategoriesLookupInfo(
   id: LookupId,
   index: Int,
-  keywords: LookupKeywords,
   columns: Map[String, String]
 ) extends LookupInfo
 
 final case class FiveColumnLookupInfo(
   id: LookupId,
   index: Int,
-  keywords: LookupKeywords,
   priority: LookupPriority,
   columns: Map[String, String]
 ) extends LookupInfo

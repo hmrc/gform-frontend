@@ -40,22 +40,22 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
     options.toList
       .sortBy {
         case (label, DefaultLookupInfo(_, _)) => (LookupPriority(1), label)
-        case (label, CountryLookupInfo(_, _, _, priority, priorityUk, _, _, _)) =>
+        case (label, CountryLookupInfo(_, _, priority, priorityUk, _, _, _)) =>
           priorityType match {
             case Some(priorityType) => if (priorityType === Uk) (priorityUk, label) else (priority, label)
             case _                  => (priority, label)
           }
-        case (_, NationalityLookupInfo(LookupId(id), _, _, priority, priorityUk, _, _, _)) =>
+        case (_, NationalityLookupInfo(LookupId(id), _, priority, priorityUk, _, _, _)) =>
           priorityType match {
             case Some(priorityType) =>
               if (priorityType === Uk) (priorityUk, LookupLabel(id)) else (priority, LookupLabel(id))
             case _ => (priority, LookupLabel(id))
           }
-        case (label, CurrencyLookupInfo(_, _, _, priority, _))       => (priority, label)
-        case (label, PortLookupInfo(_, _, _, priority, _, _, _, _))  => (priority, label)
-        case (label, SicCodeLookupInfo(_, _, _, _))                  => (LookupPriority(1), label)
-        case (label, AgentComplaintCategoriesLookupInfo(_, _, _, _)) => (LookupPriority(1), label)
-        case (label, FiveColumnLookupInfo(_, _, _, priority, _))     => (priority, label)
+        case (label, CurrencyLookupInfo(_, _, priority, _))       => (priority, label)
+        case (label, PortLookupInfo(_, _, priority, _, _, _, _))  => (priority, label)
+        case (label, SicCodeLookupInfo(_, _, _, _))               => (LookupPriority(1), label)
+        case (label, AgentComplaintCategoriesLookupInfo(_, _, _)) => (LookupPriority(1), label)
+        case (label, FiveColumnLookupInfo(_, _, priority, _))     => (priority, label)
       }
       .map(_._1)
 }
@@ -65,29 +65,24 @@ object LookupOptions {
   def getLookupValue(lookupInfo: LookupInfo, columnName: String): Option[String] =
     (lookupInfo, columnName) match {
       // format: off
-      case (CountryLookupInfo(_, _, _, _, _, region, _, _), CsvColumnName.region)          => Some(region.region)
-      case (CountryLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.countryCode)         => Some(id.id)
-      case (CountryLookupInfo(_, _, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta)               => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
-      case (CountryLookupInfo(_, _, _, _, _, _, _, columns), column)                       =>
-        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
-      case (NationalityLookupInfo(_, _, _, _, _, region, _, _), CsvColumnName.region)      => Some(region.region)
-      case (NationalityLookupInfo(_, _, _, _, _, _, _, columns), column)                   =>
-        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
-      case (CurrencyLookupInfo(id, _, _, _, _), CsvColumnName.currencyCode)               => Some(id.id)
-      case (CurrencyLookupInfo(_, _, _, _, countryCode), CsvColumnName.countryCode)       => Some(countryCode.countryCode)
-      case (PortLookupInfo(id, _, _, _, _, _, _, _), CsvColumnName.portId)                => Some(id.id)
-      case (PortLookupInfo(_, _, _, _, region, _, _, _), CsvColumnName.region)            => Some(region.region)
-      case (PortLookupInfo(_, _, _, _, _, portType, _, _), CsvColumnName.portType)        => Some(portType.portType)
-      case (PortLookupInfo(_, _, _, _, _, _, countryCode, _), CsvColumnName.countryCode)  => Some(countryCode.countryCode)
-      case (PortLookupInfo(_, _, _, _, _, _, _, portCode), CsvColumnName.portCode)        => Some(portCode.portCode)
-      case (SicCodeLookupInfo(_, _, section, _), CsvColumnName.section)                   => Some(section.section)
-      case (SicCodeLookupInfo(_, _, _, columns), column)                                  =>
-        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
-      case (AgentComplaintCategoriesLookupInfo(_, _, _, columns), column) =>
-        Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
-      case (FiveColumnLookupInfo(_,_,_,_,columns), column)                                =>
-        Some (columns.getOrElse (column, throw new Exception (s"Invalid column name $column") ) )
-      case _                                                                              => None
+      case (CountryLookupInfo(_, _, _, _, region, _, _), CsvColumnName.region)        => Some(region.region)
+      case (CountryLookupInfo(id, _, _, _, _, _, _), CsvColumnName.countryCode)       => Some(id.id)
+      case (CountryLookupInfo(_, _, _, _, _, inGibraltarEuEeaEfta, _), CsvColumnName.inGibraltarEuEeaEfta) => Some(inGibraltarEuEeaEfta.inGibraltarEuEeaEfta)
+      case (CountryLookupInfo(_, _, _, _, _, _, columns), column)                     => Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
+      case (NationalityLookupInfo(_, _, _, _, region, _, _), CsvColumnName.region)    => Some(region.region)
+      case (NationalityLookupInfo(_, _, _, _, _, _, columns), column)                 => Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
+      case (CurrencyLookupInfo(id, _, _, _), CsvColumnName.currencyCode)              => Some(id.id)
+      case (CurrencyLookupInfo(_, _, _, countryCode), CsvColumnName.countryCode)      => Some(countryCode.countryCode)
+      case (PortLookupInfo(id, _, _, _, _, _, _), CsvColumnName.portId)               => Some(id.id)
+      case (PortLookupInfo(_, _, _, region, _, _, _), CsvColumnName.region)           => Some(region.region)
+      case (PortLookupInfo(_, _, _, _, portType, _, _), CsvColumnName.portType)       => Some(portType.portType)
+      case (PortLookupInfo(_, _, _, _, _, countryCode, _), CsvColumnName.countryCode) => Some(countryCode.countryCode)
+      case (PortLookupInfo(_, _, _, _, _, _, portCode), CsvColumnName.portCode)       => Some(portCode.portCode)
+      case (SicCodeLookupInfo(_, _, section, _), CsvColumnName.section)               => Some(section.section)
+      case (SicCodeLookupInfo(_, _, _, columns), column)                              => Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
+      case (AgentComplaintCategoriesLookupInfo(_, _, columns), column)                => Some(columns.getOrElse(column, throw new Exception(s"Invalid column name $column")))
+      case (FiveColumnLookupInfo(_, _, _, columns), column)                           => Some(columns.getOrElse (column, throw new Exception (s"Invalid column name $column")))
+      case _                                                                          => None
       // format: on
     }
 
