@@ -277,7 +277,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       envelope,
       validatePageModel,
       maybeSectionNumber
-    ).map(sn => sn.find(sn => sectionIsVisible(sn, visibilityFormModel)))
+    )
     // println("currentPage: " + maybeSectionNumber)
 
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
