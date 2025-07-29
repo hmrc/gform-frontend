@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExplicitExprType, Number, Sterling, TextConstraint }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExplicitExprType, Number, Sterling, TextConstraint, WholeSterling }
 
 case class StaticTypeInfo(lookup: Map[BaseComponentId, StaticTypeData]) extends AnyVal {
   def get(baseComponentId: BaseComponentId): Option[StaticTypeData] = lookup.get(baseComponentId)
@@ -39,6 +39,8 @@ object StaticTypeData {
     case ExplicitExprType.Text => StaticTypeData(ExprType.string, None)
     case ExplicitExprType.Sterling(roundingMode) =>
       StaticTypeData(ExprType.number, Some(Sterling(roundingMode, false)))
+    case ExplicitExprType.PositiveWholeSterling(roundingMode) =>
+      StaticTypeData(ExprType.number, Some(WholeSterling(true, roundingMode)))
     case ExplicitExprType.Number(fractionalDigits, roundingMode) =>
       StaticTypeData(
         ExprType.number,

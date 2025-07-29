@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode.Up
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -948,6 +949,25 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         Map.empty[Expr, ExpressionResult],
         RepeatedComponentsDetails.empty,
         "convert param to Sterling"
+      ),
+      (
+        TypeInfo(
+          Typed(Sum(FormCtx(FormComponentId("addToListQuestion"))), ExplicitExprType.PositiveWholeSterling(Up)),
+          StaticTypeData(ExprType.Number, None)
+        ),
+        recData,
+        evaluationContext,
+        NumberResult(3),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListQuestion")) -> NumberResult(1.1),
+          FormCtx(FormComponentId("2_addToListQuestion")) -> NumberResult(1.2)
+        ),
+        RepeatedComponentsDetails(
+          Map[FormComponentId, FormComponentId](
+            FormComponentId("addToListQuestion") -> FormComponentId("atlParent")
+          )
+        ),
+        "Sum and to positive whole sterling with round up"
       ),
       (
         TypeInfo(

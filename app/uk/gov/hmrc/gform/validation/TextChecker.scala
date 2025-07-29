@@ -603,7 +603,7 @@ object TextChecker {
       case c: ShortText                   => shortTextCheck(c)
       case c: TextWithRestrictions        => textWithRestrictionsCheck(c)
       case c: Sterling                    => sterlingCheck(c)
-      case c @ WholeSterling(true)        => positiveWholeSterlingCheck(c)
+      case c @ WholeSterling(true, _)     => positiveWholeSterlingCheck(c)
       case c: WholeSterling               => wholeSterlingCheck(c)
       case c: ReferenceNumber             => referenceNumberCheck(c)
       case UkBankAccountNumber            => ukBankAccountNumberCheck()

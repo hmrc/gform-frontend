@@ -23,6 +23,12 @@ object BigDecimalUtil {
   def toBigDecimalSafe(str: String): Option[BigDecimal] =
     Try(BigDecimal(str.replace(",", ""))).toOption
 
+  def toBigDecimalPositiveSafe(str: String): Option[BigDecimal] =
+    toBigDecimalSafe(str)
+      .map { bd =>
+        if (bd < 0) bd.abs else bd
+      }
+
   def toBigDecimalDefault(str: String): BigDecimal =
     toBigDecimalSafe(str).getOrElse(0)
 

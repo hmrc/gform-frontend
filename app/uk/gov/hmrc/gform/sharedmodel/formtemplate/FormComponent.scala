@@ -96,7 +96,7 @@ case class FormComponent(
 
   private val exprType: ExprType = this match {
     case IsText(Text(Sterling(_, _), _, _, _, _, _, _))             => ExprType.number
-    case IsText(Text(WholeSterling(_), _, _, _, _, _, _))           => ExprType.number
+    case IsText(Text(WholeSterling(_, _), _, _, _, _, _, _))        => ExprType.number
     case IsText(Text(Number(_, _, _, _), _, _, _, _, _, _))         => ExprType.number
     case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => ExprType.number
     case IsText(Text(YearFormat, _, _, _, _, _, _))                 => ExprType.number
@@ -110,7 +110,7 @@ case class FormComponent(
 
   private val textConstraint: Option[TextConstraint] = this match {
     case IsText(Text(tc @ Sterling(_, _), _, _, _, _, _, _))             => Some(tc)
-    case IsText(Text(tc @ WholeSterling(_), _, _, _, _, _, _))           => Some(tc)
+    case IsText(Text(tc @ WholeSterling(_, _), _, _, _, _, _, _))        => Some(tc)
     case IsText(Text(tc @ Number(_, _, _, _), _, _, _, _, _, _))         => Some(tc)
     case IsText(Text(tc @ PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => Some(tc)
     case IsText(Text(UkSortCodeFormat, _, _, _, _, _, _))                => Some(UkSortCodeFormat)
@@ -123,8 +123,8 @@ case class FormComponent(
       case IsText(Text(TelephoneNumber, _, _, _, _, _, _))            => "telephoneNumber"
       case IsText(Text(Sterling(_, true), _, _, _, _, _, _))          => "positiveSterling"
       case IsText(Text(Sterling(_, _), _, _, _, _, _, _))             => "sterling"
-      case IsText(Text(WholeSterling(true), _, _, _, _, _, _))        => "positiveWholeSterling"
-      case IsText(Text(WholeSterling(_), _, _, _, _, _, _))           => "wholeSterling"
+      case IsText(Text(WholeSterling(true, _), _, _, _, _, _, _))     => "positiveWholeSterling"
+      case IsText(Text(WholeSterling(_, _), _, _, _, _, _, _))        => "wholeSterling"
       case IsText(Text(PositiveNumber(_, 0, _, _), _, _, _, _, _, _)) => "positiveWholeNumber"
       case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => "positiveNumber"
       case IsText(Text(Number(_, _, _, _), _, _, _, _, _, _))         => "number"

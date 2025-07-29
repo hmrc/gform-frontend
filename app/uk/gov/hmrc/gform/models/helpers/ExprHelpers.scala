@@ -36,10 +36,10 @@ object HasSterling {
     expr match {
       case Text(s: Sterling, _, _, _, _, _, _)  => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
       case TextArea(s: Sterling, _, _, _, _, _) => Some(MaxDigitsAndRoundingMode(2, s.roundingMode))
-      case Text(_: WholeSterling, _, _, _, _, _, _) =>
-        Some(MaxDigitsAndRoundingMode(0, RoundingMode.defaultRoundingMode))
-      case TextArea(_: WholeSterling, _, _, _, _, _) =>
-        Some(MaxDigitsAndRoundingMode(0, RoundingMode.defaultRoundingMode))
+      case Text(s: WholeSterling, _, _, _, _, _, _) =>
+        Some(MaxDigitsAndRoundingMode(0, s.roundingMode))
+      case TextArea(s: WholeSterling, _, _, _, _, _) =>
+        Some(MaxDigitsAndRoundingMode(0, s.roundingMode))
       case _ => None
     }
 }
