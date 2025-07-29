@@ -118,12 +118,12 @@ class ExpressionResultSpec extends FunSuite {
       ("input", "staticTypeData", "expected"),
       (
         NumberResult(BigDecimal(1)),
-        StaticTypeData(ExprType.Number, Some(WholeSterling(true))),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true, RoundingMode.defaultRoundingMode))),
         NumberResult(BigDecimal(1))
       ),
       (
         NumberResult(BigDecimal(1.1)),
-        StaticTypeData(ExprType.Number, Some(WholeSterling(true))),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true, RoundingMode.defaultRoundingMode))),
         NumberResult(BigDecimal(1))
       ),
       (

@@ -135,7 +135,8 @@ class FormDataHelpersSpec extends Spec {
 
   it should "remove currency symbol in value for formComponent with type Text(WholeSterling(true/false))" in new TestFixture {
 
-    override lazy val fields = List(mkFormComponent("amountField", Text(WholeSterling(true), Value)))
+    override lazy val fields =
+      List(mkFormComponent("amountField", Text(WholeSterling(true, RoundingMode.defaultRoundingMode), Value)))
     override lazy val requestBodyParams = Map("amountField" -> Seq("£111"))
 
     val continuationFunction = (_: RequestRelatedData) =>

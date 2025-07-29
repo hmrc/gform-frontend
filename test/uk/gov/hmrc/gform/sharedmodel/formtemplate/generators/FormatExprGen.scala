@@ -51,7 +51,7 @@ trait FormatExprGen {
     PrimitiveGen.booleanGen.map(b => Sterling(RoundingMode.defaultRoundingMode, b))
 
   def wholeSterlingGen: Gen[WholeSterling] =
-    PrimitiveGen.booleanGen.map(b => WholeSterling(b))
+    PrimitiveGen.booleanGen.map(b => WholeSterling(b, RoundingMode.defaultRoundingMode))
 
   def textConstraintGen: Gen[TextConstraint] = Gen.oneOf(
     Gen.const(TextConstraint.default),
