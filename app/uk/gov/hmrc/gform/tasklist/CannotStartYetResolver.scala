@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddressLens, Coordinates, Expr, FormCtx, IncludeIf, Task }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddressLens, Coordinates, Expr, FormCtx, Task }
 
 import scala.annotation.tailrec
 
@@ -98,14 +98,9 @@ object CannotStartYetResolver {
       .toList
       .toMap
 
-    def onDemandEvalIncludeIf(includeIf: IncludeIf) = {
-      val fm = formModelOptics.formModelVisibilityOptics.formModel
-      fm.onDemandIncludeIf.forall(f => f(includeIf))
-    }
-
     val startIfEvalLookup = taskCoordinatesLookup
       .collect { case (task, coordinates) =>
-        coordinates -> task.startIf.forall(onDemandEvalIncludeIf)
+        coordinates -> task.startIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None))
       }
 
     val dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets.toList.map {

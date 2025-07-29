@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.tasklist
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, IncludeIf, Task }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Task }
 
 final class NotRequiredResolver[D <: DataOrigin](
   formModelVisibilityOptics: FormModelVisibilityOptics[D],
@@ -32,21 +32,12 @@ final class NotRequiredResolver[D <: DataOrigin](
         taskStatus match {
           case TaskStatus.CannotStartYet => TaskStatus.CannotStartYet
           case otherwise =>
-            def allEditableFormComponentsForCoordinates = {
-              val fm = formModelVisibilityOptics.formModel
-              val availableFormComponents = fm.taskList
-                .availablePages(coordinates)
-                .filter { page =>
-                  page.getIncludeIf.forall { includeIf =>
-                    NotRequiredResolver.onDemandEvalIncludeIf(formModelVisibilityOptics, includeIf)
-                  }
-                }
-                .flatMap(_.allFormComponents)
+            if (
+              notRequiredIfEvalLookup(coordinates) || formModelVisibilityOptics
+                .allEditableFormComponentsForCoordinates(coordinates)
+                .isEmpty
+            ) {
 
-              !availableFormComponents.exists(_.editable)
-            }
-
-            if (notRequiredIfEvalLookup(coordinates) || allEditableFormComponentsForCoordinates) {
               TaskStatus.NotRequired
             } else otherwise
         }
@@ -56,17 +47,13 @@ final class NotRequiredResolver[D <: DataOrigin](
 }
 
 object NotRequiredResolver {
-  def onDemandEvalIncludeIf(formModelVisibilityOptics: FormModelVisibilityOptics[_], includeIf: IncludeIf): Boolean = {
-    val fm = formModelVisibilityOptics.formModel
-    fm.onDemandIncludeIf.forall(f => f(includeIf))
-  }
   def create[D <: DataOrigin](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     taskCoordinatesLookup: Map[Task, Coordinates]
   ): NotRequiredResolver[D] = {
-
     val notRequiredIfEvalLookup: Set[Coordinates] = taskCoordinatesLookup.collect {
-      case (task, coordinates) if task.notRequiredIf.fold(false)(onDemandEvalIncludeIf(formModelVisibilityOptics, _)) =>
+      case (task, coordinates)
+          if task.notRequiredIf.fold(false)(formModelVisibilityOptics.evalIncludeIfExpr(_, None)) =>
         coordinates
     }.toSet
     new NotRequiredResolver(formModelVisibilityOptics, notRequiredIfEvalLookup)
