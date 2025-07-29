@@ -351,14 +351,13 @@ class FormModelBuilder[E, F[_]: Functor](
 
         // println("formComponentIds: " + formComponentIds)
 
-        val formComponents =
-          formComponentIds
-            .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
-            .flatMap {
-              case (Some(fc), fcId) => List(fc)
-              case (None, fcId) =>
-                formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
-            }
+        val formComponents = formComponentIds
+          .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
+          .flatMap {
+            case (Some(fc), fcId) => List(fc)
+            case (None, fcId) =>
+              formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
+          }
 
         //formComponentIds.foreach(x => println(formModel.pageLookup(x)))
 
@@ -446,10 +445,11 @@ class FormModelBuilder[E, F[_]: Functor](
           }
         }
 
+      //TODO: Implement onDemandIncludeIf properly for TaskSummary
       currentSection match {
-        case Some(SectionOrSummary.TaskSummary)                                                     => fmWithFilter
-        case Some(SectionOrSummary.Section(sectionNumber)) if sectionNumber.isAddToListTerminalPage => fmWithFilter
-        case _                                                                                      => fm
+        case Some(SectionOrSummary.TaskSummary) => fmWithFilter
+        //case Some(SectionOrSummary.Section(sectionNumber)) if sectionNumber.isAddToListTerminalPage => fmWithFilter
+        case _ => fm
       }
     }
 
