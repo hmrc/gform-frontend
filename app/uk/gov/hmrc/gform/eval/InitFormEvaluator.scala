@@ -54,8 +54,8 @@ case class InitFormEvaluator(
       case Or(l, r)                                       => evalBooleanExpr(l) || evalBooleanExpr(r)
       case Not(be)                                        => !evalBooleanExpr(be)
       case IsLogin(value)                                 => BooleanExprEval.evalIsLoginExpr(value, cache.retrievals)
-      case DateAfter(DateValueExpr(l), DateValueExpr(r))  => l.toLocalDate.isAfter(r.toLocalDate)
-      case DateBefore(DateValueExpr(l), DateValueExpr(r)) => l.toLocalDate.isBefore(r.toLocalDate)
+      case DateAfter(DateValueExpr(l), DateValueExpr(r))  => l.toLocalDate().isAfter(r.toLocalDate())
+      case DateBefore(DateValueExpr(l), DateValueExpr(r)) => l.toLocalDate().isBefore(r.toLocalDate())
       case IsTrue                                         => true
       case _                                              => false
     }

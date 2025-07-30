@@ -75,7 +75,6 @@ object Form {
     Reads
       .at[String](__ \ startDate \ "$date" \ "$numberLong")
       .map(s => Instant.ofEpochMilli(s.toLong))
-      .orElse(Reads.pure(Instant.now))
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
