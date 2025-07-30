@@ -93,9 +93,11 @@ sealed trait DateExprValue {
     this match {
       case TodayDateExprValue                   => LocalDate.now()
       case ExactDateExprValue(year, month, day) => LocalDate.of(year, month, day)
+      case FormStartDateExprValue               => throw new Exception("Cannot calculate form start date without form")
     }
 }
 case object TodayDateExprValue extends DateExprValue
+case object FormStartDateExprValue extends DateExprValue
 case class ExactDateExprValue(year: Int, month: Int, day: Int) extends DateExprValue
 
 object DateExprValue {

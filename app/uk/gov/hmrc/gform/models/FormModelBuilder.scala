@@ -31,11 +31,12 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 
+import java.time.{ Instant, LocalDate, ZoneId }
 import scala.util.matching.Regex
 
 object FormModelBuilder {
@@ -214,7 +215,8 @@ class FormModelBuilder[E, F[_]: Functor](
     formModel: FormModel[Interim],
     formPhase: Option[FormPhase],
     lang: LangADT,
-    messages: Messages
+    messages: Messages,
+    maybeFormStartDate: Option[Instant]
   ): F[RecalculationResult] = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
@@ -249,7 +251,8 @@ class FormModelBuilder[E, F[_]: Functor](
         lookupRegistry,
         formModel.lookupRegister,
         formModel.constraints,
-        taskIdTaskStatus
+        taskIdTaskStatus,
+        maybeFormStartDate.map(LocalDate.ofInstant(_, ZoneId.of("Europe/London")))
       )
 
     recalculation
@@ -328,11 +331,13 @@ class FormModelBuilder[E, F[_]: Functor](
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    maybeFormStartDate: Option[Instant]
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
-    val recalculationResultF: F[RecalculationResult] = toRecalculationResults(data, formModel, phase, lang, messages)
+    val recalculationResultF: F[RecalculationResult] =
+      toRecalculationResults(data, formModel, phase, lang, messages, maybeFormStartDate)
 
     recalculationResultF.map { recalculationResult =>
       buildFormModelVisibilityOptics(

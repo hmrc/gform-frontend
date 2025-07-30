@@ -130,9 +130,10 @@ object ExprPrettyPrint {
   }
 
   def prettyPrintDateFunction(dateProjection: DateProjection): String = dateProjection match {
-    case DateProjection.Day(dateExpr)   => prettyPrintDateExpr(dateExpr)
-    case DateProjection.Month(dateExpr) => prettyPrintDateExpr(dateExpr)
-    case DateProjection.Year(dateExpr)  => prettyPrintDateExpr(dateExpr)
+    case DateProjection.Day(dateExpr)     => prettyPrintDateExpr(dateExpr)
+    case DateProjection.Month(dateExpr)   => prettyPrintDateExpr(dateExpr)
+    case DateProjection.Year(dateExpr)    => prettyPrintDateExpr(dateExpr)
+    case DateProjection.TaxYear(dateExpr) => prettyPrintDateExpr(dateExpr)
   }
 
   def prettyPrintDateConstructExpr(dayMonthExpr: DateExpr, expr: Expr): String =
@@ -154,6 +155,7 @@ object ExprPrettyPrint {
 
   def prettyPrintDateExprValue(dateExprValue: DateExprValue): String = dateExprValue match {
     case TodayDateExprValue                                  => "today"
+    case FormStartDateExprValue                              => "form start date"
     case ExactDateExprValue(year: Int, month: Int, day: Int) => s"$day/$month/$year"
   }
 

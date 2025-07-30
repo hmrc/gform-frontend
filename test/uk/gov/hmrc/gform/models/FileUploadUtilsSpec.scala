@@ -24,6 +24,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 
+import java.time.Instant
+
 class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   "FileUploadUtils.updateMapping" should "update formComponentId <-> fileId mapping" in {
@@ -51,7 +53,8 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ),
       None,
       mapping,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      Instant.now
     )
 
     val mapping1 = FormComponentIdToFileIdMapping.empty
@@ -98,7 +101,8 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ),
       None,
       mapping,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      Instant.now
     )
 
     val mapping2 = Map("file" -> "x_file").toMapping

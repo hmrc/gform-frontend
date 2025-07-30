@@ -85,7 +85,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   def getFormModel(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) = {
     val formTemplate = mkFormTemplate(sectionsData)
     mkFormModelBuilder(formTemplate)
-      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None)
+      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None, None)
       .formModel
   }
   def getNavigation(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =

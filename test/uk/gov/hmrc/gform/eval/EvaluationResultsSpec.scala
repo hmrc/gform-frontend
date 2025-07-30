@@ -100,7 +100,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       new LookupRegistry(Map.empty),
       Map.empty,
       Map.empty,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      None
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()

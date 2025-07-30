@@ -351,7 +351,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val fmb: FormModelBuilder[Throwable, Id] = mkFormModelBuilder(formTemplate)
 
     implicit val fmdsdso: FormModelVisibilityOptics[DataOrigin.Browser] =
-      fmb.visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](variadicData, None)
+      fmb.visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](variadicData, None, None)
 
     val fm: FormModel[DataExpanded] =
       fmb.expand[DataExpanded, SectionSelectorType.Normal](variadicData)

@@ -309,6 +309,12 @@ sealed trait DateProjection extends Product with Serializable {
       case DateProjection.Day(_)   => localDate.getDayOfMonth()
       case DateProjection.Month(_) => localDate.getMonthValue()
       case DateProjection.Year(_)  => localDate.getYear()
+      case DateProjection.TaxYear(_) =>
+        localDate.getMonthValue match {
+          case m if m == 4 => if (localDate.getDayOfMonth < 6) localDate.getYear else localDate.getYear + 1
+          case m if m < 4  => localDate.getYear
+          case m if m > 4  => localDate.getYear + 1
+        }
     }
 }
 
@@ -317,6 +323,7 @@ object DateProjection {
   case class Day(dateExpr: DateExpr) extends DateProjection
   case class Month(dateExpr: DateExpr) extends DateProjection
   case class Year(dateExpr: DateExpr) extends DateProjection
+  case class TaxYear(dateExpr: DateExpr) extends DateProjection
 
   implicit val format: OFormat[DateProjection] = derived.oformat()
 }

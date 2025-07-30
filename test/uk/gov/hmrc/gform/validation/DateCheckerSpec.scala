@@ -116,7 +116,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
 
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
-    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
     val cacheData = new CacheData(
       EnvelopeId(""),

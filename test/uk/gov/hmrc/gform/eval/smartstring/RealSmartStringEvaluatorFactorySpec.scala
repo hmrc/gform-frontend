@@ -508,7 +508,8 @@ class RealSmartStringEvaluatorFactorySpec
           new LookupRegistry(Map()),
           Map.empty,
           Map.empty,
-          TaskIdTaskStatusMapping.empty
+          TaskIdTaskStatusMapping.empty,
+          None
         )
       )
     )

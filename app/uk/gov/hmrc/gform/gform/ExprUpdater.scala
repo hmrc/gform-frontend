@@ -83,9 +83,10 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {
-    case DateProjection.Day(dateExpr)   => DateProjection.Day(expandDateExpr(dateExpr))
-    case DateProjection.Month(dateExpr) => DateProjection.Month(expandDateExpr(dateExpr))
-    case DateProjection.Year(dateExpr)  => DateProjection.Year(expandDateExpr(dateExpr))
+    case DateProjection.Day(dateExpr)     => DateProjection.Day(expandDateExpr(dateExpr))
+    case DateProjection.Month(dateExpr)   => DateProjection.Month(expandDateExpr(dateExpr))
+    case DateProjection.Year(dateExpr)    => DateProjection.Year(expandDateExpr(dateExpr))
+    case DateProjection.TaxYear(dateExpr) => DateProjection.TaxYear(expandDateExpr(dateExpr))
   }
 
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {

@@ -119,7 +119,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       )
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       res.formModel shouldBe expected
     }
@@ -164,7 +164,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expected) =>
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -208,7 +208,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expected) =>
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -288,7 +288,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val fmb = mkFormModelFromSections(sections)
       val data = variadicFormData[SourceOrigin.OutOfDate]()
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -331,7 +331,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val data = variadicFormData[SourceOrigin.OutOfDate]("a" -> "123")
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       res.evaluationResults.exprMap shouldBe expected
       res.recData.variadicFormData shouldBe expectedVariadicData
@@ -452,7 +452,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -556,7 +556,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -641,7 +641,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -717,7 +717,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expected) =>
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -917,7 +917,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expectedData, expectedPages) =>
       val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
 
       val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 

@@ -140,7 +140,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     val fmb: FormModelBuilder[Throwable, Id] = mkFormModelFromSections(sections)
 
     val visibilityOpticsMongo: FormModelVisibilityOptics[DataOrigin.Mongo] =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](existingData, None)
+      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](existingData, None, None)
     val formModelOpticsMongo =
       fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOpticsMongo, None)
     val visibilityFormModelVisibility: FormModel[Visibility] = formModelOpticsMongo.formModelVisibilityOptics.formModel

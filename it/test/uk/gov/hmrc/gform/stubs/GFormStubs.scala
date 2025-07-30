@@ -26,6 +26,8 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import org.typelevel.ci._
 
+import java.time.Instant
+
 trait GFormStubs extends FormTemplateSample {
 
   def gformFormTemplateStub(formTemplate: FormTemplate) =
@@ -74,7 +76,8 @@ trait GFormStubs extends FormTemplateSample {
                 ThirdPartyData.empty,
                 None,
                 FormComponentIdToFileIdMapping.empty,
-                TaskIdTaskStatusMapping.empty
+                TaskIdTaskStatusMapping.empty,
+                Instant.now
               )
             )
           )

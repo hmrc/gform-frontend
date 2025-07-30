@@ -130,10 +130,10 @@ object FormComponentIdSubstituter {
     new Substituter[FormComponentIdSubstitutions, DateProjection] {
       override def substitute(substitutions: FormComponentIdSubstitutions, expr: DateProjection): DateProjection =
         expr match {
-          case DateProjection.Day(dateExpr)   => DateProjection.Day(dateExpr(substitutions))
-          case DateProjection.Month(dateExpr) => DateProjection.Month(dateExpr(substitutions))
-          case DateProjection.Year(dateExpr)  => DateProjection.Year(dateExpr(substitutions))
-
+          case DateProjection.Day(dateExpr)     => DateProjection.Day(dateExpr(substitutions))
+          case DateProjection.Month(dateExpr)   => DateProjection.Month(dateExpr(substitutions))
+          case DateProjection.Year(dateExpr)    => DateProjection.Year(dateExpr(substitutions))
+          case DateProjection.TaxYear(dateExpr) => DateProjection.TaxYear(dateExpr(substitutions))
         }
 
     }

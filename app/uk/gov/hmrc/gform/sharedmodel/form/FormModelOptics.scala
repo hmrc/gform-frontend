@@ -34,6 +34,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, Var
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.Instant
+
 case class FormModelOptics[D <: DataOrigin](
   formModelRenderPageOptics: FormModelRenderPageOptics[D],
   formModelVisibilityOptics: FormModelVisibilityOptics[D]
@@ -86,7 +88,8 @@ object FormModelOptics {
         cache.lookupRegistry,
         Map.empty,
         Map.empty,
-        TaskIdTaskStatusMapping.empty
+        TaskIdTaskStatusMapping.empty,
+        None
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -105,7 +108,8 @@ object FormModelOptics {
     recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
-    taskIdTaskStatusMapping: TaskIdTaskStatusMapping
+    taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
+    maybeFormStartDate: Option[Instant]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -122,7 +126,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase)
+      formModelBuilder.visibilityModel(data, phase, maybeFormStartDate)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -146,6 +150,7 @@ object FormModelOptics {
       recalculation,
       phase,
       cache.form.componentIdToFileId,
-      cache.form.taskIdTaskStatus
+      cache.form.taskIdTaskStatus,
+      Some(cache.form.startDate)
     )
 }
