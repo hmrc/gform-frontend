@@ -435,8 +435,8 @@ case class EvaluationResults(
     tpe match {
       case ExplicitExprType.Sterling(roundingMode) =>
         er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, roundingMode))
-      case ExplicitExprType.PositiveWholeSterling(roundingMode) =>
-        er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal.abs, 0, roundingMode))
+      case ExplicitExprType.WholeSterling(roundingMode) =>
+        er.withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 0, roundingMode))
       case _ => er
     }
 
@@ -725,8 +725,8 @@ case class EvaluationResults(
         (expr, tpe) match {
           case (Constant(value), ExplicitExprType.Sterling(_)) =>
             nonEmptyStringResult(StringResult(TextFormatter.formatSterling(value)))
-          case (Constant(value), ExplicitExprType.PositiveWholeSterling(rm)) =>
-            nonEmptyStringResult(StringResult(TextFormatter.formatPositiveWholeSterling(value, rm)))
+          case (Constant(value), ExplicitExprType.WholeSterling(rm)) =>
+            nonEmptyStringResult(StringResult(TextFormatter.formatWholeSterling(value, rm)))
           case (Constant(value), ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
             nonEmptyStringResult(
               StringResult(TextFormatter.formatNumberWithPrecise(value, fractionalDigits, roundingMode))
@@ -1074,8 +1074,8 @@ case class EvaluationResults(
           expr match {
             case Typed(_, ExplicitExprType.Sterling(_)) =>
               TextFormatter.formatSterling(stringResult)
-            case Typed(_, ExplicitExprType.PositiveWholeSterling(rm)) =>
-              TextFormatter.formatPositiveWholeSterling(stringResult, rm)
+            case Typed(_, ExplicitExprType.WholeSterling(rm)) =>
+              TextFormatter.formatWholeSterling(stringResult, rm)
             case Typed(_, ExplicitExprType.Number(fractionalDigits, roundingMode)) =>
               TextFormatter.formatNumberWithPrecise(stringResult, fractionalDigits, roundingMode)
             case _ => stringResult

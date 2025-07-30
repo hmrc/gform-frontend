@@ -952,7 +952,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          Typed(Sum(FormCtx(FormComponentId("addToListQuestion"))), ExplicitExprType.PositiveWholeSterling(Up)),
+          Typed(Sum(FormCtx(FormComponentId("addToListQuestion"))), ExplicitExprType.WholeSterling(Up)),
           StaticTypeData(ExprType.Number, None)
         ),
         recData,

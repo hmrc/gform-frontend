@@ -39,8 +39,8 @@ object StaticTypeData {
     case ExplicitExprType.Text => StaticTypeData(ExprType.string, None)
     case ExplicitExprType.Sterling(roundingMode) =>
       StaticTypeData(ExprType.number, Some(Sterling(roundingMode, false)))
-    case ExplicitExprType.PositiveWholeSterling(roundingMode) =>
-      StaticTypeData(ExprType.number, Some(WholeSterling(true, roundingMode)))
+    case ExplicitExprType.WholeSterling(roundingMode) =>
+      StaticTypeData(ExprType.number, Some(WholeSterling(false, roundingMode)))
     case ExplicitExprType.Number(fractionalDigits, roundingMode) =>
       StaticTypeData(
         ExprType.number,

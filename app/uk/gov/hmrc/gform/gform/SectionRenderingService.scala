@@ -2200,11 +2200,11 @@ class SectionRenderingService(
     def isNumeric(v: TableValue): Boolean = {
       val interpolationsAreNumeric =
         v.value.interpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)) match {
-          case List(Typed(_, ExplicitExprType.Sterling(_)))              => true
-          case List(Typed(_, ExplicitExprType.PositiveWholeSterling(_))) => true
-          case List(Typed(_, ExplicitExprType.Number(_, _)))             => true
-          case exprs if exprs.forall(isNumericFormComponentRef)          => true // !! interpolations contain both en and cy data
-          case _                                                         => false
+          case List(Typed(_, ExplicitExprType.Sterling(_)))      => true
+          case List(Typed(_, ExplicitExprType.WholeSterling(_))) => true
+          case List(Typed(_, ExplicitExprType.Number(_, _)))     => true
+          case exprs if exprs.forall(isNumericFormComponentRef)  => true // !! interpolations contain both en and cy data
+          case _                                                 => false
         }
       interpolationsAreNumeric && v.value
         .valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))

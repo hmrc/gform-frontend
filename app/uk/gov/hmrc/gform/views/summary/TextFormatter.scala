@@ -145,12 +145,12 @@ object TextFormatter {
   def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
     toBigDecimalSafe(currentValue).fold(currentValue)(format.format)
 
-  def formatPositiveWholeSterling(
+  def formatWholeSterling(
     currentValue: String,
     rm: RoundingMode,
     format: NumberFormat = currencyFormat
   ): String =
-    toBigDecimalPositiveSafe(currentValue)
+    toBigDecimalSafe(currentValue)
       .map { bd =>
         format.setMaximumFractionDigits(0)
         formatSterling(formatWithPrecise(bd, 0, rm), format)

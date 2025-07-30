@@ -335,7 +335,7 @@ object ExplicitExprType {
   case class Sterling(
     roundingMode: RoundingMode
   ) extends ExplicitExprType
-  case class PositiveWholeSterling(
+  case class WholeSterling(
     roundingMode: RoundingMode
   ) extends ExplicitExprType
   case class Number(
