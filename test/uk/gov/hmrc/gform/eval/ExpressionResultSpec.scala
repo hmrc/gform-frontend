@@ -24,6 +24,7 @@ import play.api.test.Helpers
 
 import java.time.LocalDate
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, Hidden, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, FormComponentId, FormCtx, TodayDateExprValue, WholeSterling }
 
 class ExpressionResultSpec extends FunSuite {
@@ -117,13 +118,18 @@ class ExpressionResultSpec extends FunSuite {
       ("input", "staticTypeData", "expected"),
       (
         NumberResult(BigDecimal(1)),
-        StaticTypeData(ExprType.Number, Some(WholeSterling(true))),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true, RoundingMode.defaultRoundingMode))),
         NumberResult(BigDecimal(1))
       ),
       (
         NumberResult(BigDecimal(1.1)),
-        StaticTypeData(ExprType.Number, Some(WholeSterling(true))),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true, RoundingMode.defaultRoundingMode))),
         NumberResult(BigDecimal(1))
+      ),
+      (
+        NumberResult(BigDecimal(1.1)),
+        StaticTypeData(ExprType.Number, Some(WholeSterling(true, RoundingMode.Up))),
+        NumberResult(BigDecimal(2))
       )
     )
 

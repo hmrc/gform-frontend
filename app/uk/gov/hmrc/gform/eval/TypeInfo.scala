@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, Number, PositiveNumber
 case class TypeInfo(expr: Expr, staticTypeData: StaticTypeData) {
   def defaultValue: String = staticTypeData.textConstraint.fold("") {
     case Sterling(_, _)             => "0"
-    case WholeSterling(_)           => "0"
+    case WholeSterling(_, _)        => "0"
     case Number(_, _, _, _)         => "0"
     case PositiveNumber(_, _, _, _) => "0"
     case _                          => ""

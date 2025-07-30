@@ -263,7 +263,7 @@ object CompatibilityRules {
       case StaticTypeData(ExprType.Number, Some(textConstraint)) =>
         textConstraint match {
           case Sterling(_, _)             => true
-          case WholeSterling(_)           => true
+          case WholeSterling(_, _)        => true
           case Number(_, x, _, _)         => x <= 2
           case PositiveNumber(_, x, _, _) => x <= 2
           case _                          => false

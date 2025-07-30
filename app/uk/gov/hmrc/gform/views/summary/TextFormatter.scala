@@ -145,6 +145,18 @@ object TextFormatter {
   def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
     toBigDecimalSafe(currentValue).fold(currentValue)(format.format)
 
+  def formatWholeSterling(
+    currentValue: String,
+    rm: RoundingMode,
+    format: NumberFormat = currencyFormat
+  ): String =
+    toBigDecimalSafe(currentValue)
+      .map { bd =>
+        format.setMaximumFractionDigits(0)
+        formatSterling(formatWithPrecise(bd, 0, rm), format)
+      }
+      .getOrElse(currentValue)
+
   private def formatUkSortCode(currentValue: String): String = currentValue.grouped(2).mkString("-")
 
   def formatText[D <: DataOrigin](

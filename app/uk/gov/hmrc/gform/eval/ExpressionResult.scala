@@ -26,7 +26,7 @@ import scala.util.Try
 import scala.util.matching.Regex
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, RoundingMode, Sterling, TextConstraint, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, TextConstraint, WholeSterling }
 
 import java.time.{ LocalDate, Period }
 import java.time.format.TextStyle
@@ -374,7 +374,7 @@ sealed trait ExpressionResult extends Product with Serializable {
   private def applyTextConstraint(textConstraint: TextConstraint): ExpressionResult = textConstraint match {
     // format: off
     case Sterling(rm, _)                 => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 2, rm))
-    case WholeSterling(_)                => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 0, RoundingMode.defaultRoundingMode))
+    case WholeSterling(_, rm)            => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, 0, rm))
     case Number(_, maxFD, rm, _)         => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFD, rm))
     case PositiveNumber(_, maxFD, rm, _) => withNumberResult(bigDecimal => NumberSetScale.setScale(bigDecimal, maxFD, rm))
     case _                               => this

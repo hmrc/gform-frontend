@@ -255,7 +255,7 @@ class TextCheckerSpec
   }
 
   "validateText" should "validate when FormComponent constraint is WholeSterling(true)" in {
-    val constraint = WholeSterling(true)
+    val constraint = WholeSterling(true, RoundingMode.defaultRoundingMode)
     val fc = textComponent.copy(`type` = Text(constraint, Value))
     val table = TableDrivenPropertyChecks.Table(
       ("input", "expected"),
