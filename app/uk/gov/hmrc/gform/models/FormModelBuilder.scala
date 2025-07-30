@@ -38,7 +38,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 
 import scala.collection.mutable
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{ Duration, DurationInt }
 import scala.concurrent.{ Await, Future }
 import scala.util.matching.Regex
 
@@ -388,7 +388,7 @@ class FormModelBuilder[E, F[_]: Functor](
         case recalc: Future[RecalculationResult] =>
           Await.result(
             recalc,
-            Duration.Inf
+            20.seconds
           )
         case recalc: cats.Id[RecalculationResult] => recalc.asInstanceOf[RecalculationResult]
         case recalc =>
