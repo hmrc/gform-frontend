@@ -11,6 +11,8 @@ lazy val IntegrationTest = config("it") extend Test
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "2.13.16"
 
+lazy val luceneSettings: Seq[Setting[_]] = LuceneIndexCreator.indexSettings
+
 lazy val microservice = (project in file("."))
   .enablePlugins(
     play.sbt.PlayScala,
@@ -18,6 +20,7 @@ lazy val microservice = (project in file("."))
     SbtWeb,
     BuildInfoPlugin
   )
+  .settings(luceneSettings: _*)
   .settings(
     SassKeys.cssStyle := Maxified,
     SassKeys.generateSourceMaps := true,

@@ -24,13 +24,13 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.{ LookupQuery, SectionSelectorType }
+import uk.gov.hmrc.gform.search.Search
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.lookup.LookupOptions._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.jdk.CollectionConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 
 class LookupController(
@@ -87,13 +87,9 @@ class LookupController(
           case (Some(AjaxLookup(_, _, ShowAll.Disabled)), LookupQuery.Empty, _) =>
             List.empty
 
-          case (Some(AjaxLookup(options, autocomplete, _)), LookupQuery.Value(query), Some(sc)) =>
-            val labels: List[LookupLabel] =
-              autocomplete
-                .get(l)
-                .fold(List.empty[LookupLabel])(
-                  _.search(query.toLowerCase).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
-                )
+          case (Some(AjaxLookup(options, searcher, _)), LookupQuery.Value(query), Some(sc)) =>
+            val labels: List[LookupLabel] = Search.search(searcher, query.toLowerCase)
+
             options.m
               .get(l)
               .map(r => LookupOptions(filterBySelectionCriteria(sc, r.options)))
@@ -103,13 +99,9 @@ class LookupController(
               .filter(labels.contains)
               .map(_.label)
 
-          case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query), None) =>
-            val labels: List[LookupLabel] =
-              autocomplete
-                .get(l)
-                .fold(List.empty[LookupLabel])(
-                  _.search(query.toLowerCase).asScala.toList.sortBy(r => (r.priority, r.value)).map(_.toLookupLabel)
-                )
+          case (Some(AjaxLookup(options, searcher, showAll)), LookupQuery.Value(query), None) =>
+            val labels: List[LookupLabel] = Search.search(searcher, query.toLowerCase)
+
             showAll match {
               case ShowAll.Enabled =>
                 options.process(_.sortLookupByPriorityAndLabel(priority).filter(labels.contains)).map(_.label)

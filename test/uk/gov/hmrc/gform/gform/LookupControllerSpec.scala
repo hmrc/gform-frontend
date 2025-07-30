@@ -26,8 +26,7 @@ import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.json.{ Json, Reads }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
 import play.api.test.{ FakeRequest, Helpers }
-import uk.gov.hmrc.gform.LookupLoader.mkAutocomplete
-import uk.gov.hmrc.gform.PlayStubSupport
+import uk.gov.hmrc.gform.{ LookupLoader, PlayStubSupport }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -106,7 +105,11 @@ class LookupControllerSpec
 
     whenReady(future) { result =>
       val responseBody = responseBodyAs[List[String]](result)
-      responseBody shouldBe List("United States")
+      responseBody shouldBe List(
+        "United States Minor outlying islands",
+        "United States",
+        "Virgin Islands, United States"
+      )
     }
   }
 
@@ -167,13 +170,13 @@ class LookupControllerSpec
         FormComponentId("port"),
         Register.Port,
         None,
-        LookupQuery.Value("Port")
+        LookupQuery.Value("john")
       )
       .apply(request)
 
     whenReady(future) { result =>
       val responseBody = responseBodyAs[List[String]](result)
-      responseBody shouldBe List("New York Airport", "Leland Seaport")
+      responseBody shouldBe List("John F. Kennedy Apt/New York Airport - JFK")
     }
   }
 
@@ -200,30 +203,35 @@ class LookupControllerSpec
         FormComponentId("port"),
         Register.Port,
         None,
-        LookupQuery.Value("Port")
+        LookupQuery.Value("dove")
       )
       .apply(request)
 
     whenReady(future) { result =>
       val responseBody = responseBodyAs[List[String]](result)
-      responseBody shouldBe List("Dover Seaport", "London Heathrow")
+      responseBody shouldBe List("Dover Seaport - DOV")
     }
   }
 
   it should "lookup options for given query, sorted by priority and label" in new TestFixture {
+    override lazy val showAll: ShowAll = ShowAll.Enabled
     val future = lookupController
       .lookupWithSelectionCriteria(
         FormTemplateId("someTemplateId"),
         FormComponentId("port"),
         Register.Port,
         None,
-        LookupQuery.Value("Port")
+        LookupQuery.Value("air")
       )
       .apply(request)
 
     whenReady(future) { result =>
       val responseBody = responseBodyAs[List[String]](result)
-      responseBody shouldBe List("Dover Seaport", "London Heathrow", "New York Airport", "Leland Seaport")
+
+      responseBody shouldBe List(
+        "London Heathrow Airport - LHR",
+        "John F. Kennedy Apt/New York Airport - JFK"
+      )
     }
   }
 
@@ -258,7 +266,6 @@ class LookupControllerSpec
             LookupLabel("United Kingdom") -> CountryLookupInfo(
               LookupId("GB"),
               0,
-              LookupKeywords(Some("England Great Britain")),
               LookupPriority(1),
               LookupPriority(1),
               LookupRegion("1"),
@@ -268,7 +275,6 @@ class LookupControllerSpec
             LookupLabel("United States") -> CountryLookupInfo(
               LookupId("US"),
               1,
-              LookupKeywords(Some("USA")),
               LookupPriority(1),
               LookupPriority(1),
               LookupRegion("2"),
@@ -284,40 +290,36 @@ class LookupControllerSpec
       Map(
         LangADT.En -> LookupOptions(
           Map(
-            LookupLabel("London Heathrow") -> PortLookupInfo(
+            LookupLabel("London Heathrow Airport - LHR") -> PortLookupInfo(
               LookupId("1"),
               0,
-              LookupKeywords(Some("London Heathrow Port")),
               LookupPriority(3),
               LookupRegion("1"),
               LookupPortType("AIR"),
               LookupCountryCode("GB"),
               LookupPortCode("LHR")
             ),
-            LookupLabel("Dover Seaport") -> PortLookupInfo(
+            LookupLabel("Dover Seaport - DOV") -> PortLookupInfo(
               LookupId("2"),
               1,
-              LookupKeywords(Some("Dover Seaport Port")),
               LookupPriority(3),
               LookupRegion("1"),
               LookupPortType("SEA"),
               LookupCountryCode("GB"),
               LookupPortCode("DOV")
             ),
-            LookupLabel("New York Airport") -> PortLookupInfo(
+            LookupLabel("John F. Kennedy Apt/New York Airport - JFK") -> PortLookupInfo(
               LookupId("3"),
               2,
-              LookupKeywords(Some("New York Airport Port")),
               LookupPriority(2),
               LookupRegion("2"),
               LookupPortType("AIR"),
               LookupCountryCode("US"),
               LookupPortCode("NYC")
             ),
-            LookupLabel("Leland Seaport") -> PortLookupInfo(
+            LookupLabel("Leland Seaport - LLC") -> PortLookupInfo(
               LookupId("4"),
               3,
-              LookupKeywords(Some("Leland Seaport Port")),
               LookupPriority(1),
               LookupRegion("2"),
               LookupPortType("SEA"),
@@ -329,7 +331,6 @@ class LookupControllerSpec
       )
     )
 
-    lazy val lookupOptions: LocalisedLookupOptions = LocalisedLookupOptions(Map.empty)
     lazy val showAll: ShowAll = ShowAll.Disabled
     lazy val sections: List[Section] =
       mkSection(
@@ -363,16 +364,17 @@ class LookupControllerSpec
           f(request)(LangADT.En)(authCacheWithForm)(null)(formModelOptics)
         }
     )
+    val lookupLoader = new LookupLoader("target/scala-2.13/resource_managed/main/conf/index")
     lazy val lookupRegistry = new LookupRegistry(
       Map(
         Register.Country -> AjaxLookup(
           countryLookupOptions,
-          mkAutocomplete(countryLookupOptions),
+          lookupLoader.mkIndexSearcher("country"),
           showAll
         ),
         Register.Port -> AjaxLookup(
           portLookupOptions,
-          mkAutocomplete(portLookupOptions),
+          lookupLoader.mkIndexSearcher("port"),
           showAll
         )
       )

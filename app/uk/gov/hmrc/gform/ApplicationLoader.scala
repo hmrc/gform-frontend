@@ -26,6 +26,7 @@ import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfigFactory, AhcWSCompon
 import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
 import uk.gov.hmrc.crypto.ApplicationCrypto
+import uk.gov.hmrc.gform.LookupLoader
 import uk.gov.hmrc.gform.addresslookup.AddressLookupModule
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
@@ -122,7 +123,7 @@ class ApplicationModule(context: Context)
 
   private val authModule = new AuthModule(configModule, wSHttpModule)
 
-  private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
+  private val lookupRegistry = new LookupRegistry(new LookupLoader(configModule.appConfig.indexPath).registerLookup)
 
   private val hmrcSessionCookieBaker: SessionCookieBaker = {
     val httpConfiguration: HttpConfiguration =
