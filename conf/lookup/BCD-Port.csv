@@ -174,7 +174,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 3133,AN,3,BUB,,Bullen Bay Seaport - BUB,Bullen Bay Seaport - BUB,,4,NULL,1,
 3134,AN,3,BUS,,Bushiribana Seaport - BUS,Bushiribana Seaport - BUS,,4,NULL,1,
 3136,AN,2,CUR,,Curacao International Airport - CUR,Curacao International Airport - CUR,,4,NULL,1,
-3137,AN,3,RIN,,"Dorp Rincon,Dorp Rincon","Bonaire Seaport - RIN""",,4,NULL,,
+3137,AN,3,RIN,,"Dorp Rincon, Bonaire Seaport - RIN","Dorp Rincon, Bonaire Seaport - RIN",,4,NULL,,
 3138,AN,3,EMM,,Emmastad Seaport - EMM,Emmastad Seaport - EMM,,4,NULL,1,
 3140,AN,2,GUS,,Gustaf (Saint Bartelemy Airport) - GUS,Gustaf (Saint Bartelemy Airport) - GUS,,4,NULL,1,
 3142,AN,3,MAR,,Marigot Seaport - MAR,Marigot Seaport - MAR,,4,NULL,1,
@@ -1627,7 +1627,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 6445,BR,3,QHF,,Sao Sebastiao do Cai Seaport - QHF,Sao Sebastiao do Cai Seaport - QHF,,4,NULL,1,
 6449,BR,2,THE,,Senador Petrônio Portela Airport - THE,Senador Petrônio Portela Airport - THE,,4,NULL,1,
 6450,BR,2,OLC,,Senadora Eunice Micheles Airport - OLC,Senadora Eunice Micheles Airport - OLC,,4,NULL,1,
-6452,BR,3,SPB,,"Sepetiba,Sepetiba","Bahia de Seaport - SPB""",,4,NULL,,
+6452,BR,3,SPB,,"Sepetiba, Bahia de Seaport - SPB","Sepetiba, Bahia de Seaport - SPB",,4,NULL,,
 6460,BR,2,SOD,,Bertram Luiz Leupolz Airport - SOD,Bertram Luiz Leupolz Airport - SOD,,4,NULL,1,
 6464,BR,3,SUA,,Suape Seaport - SUA,Suape Seaport - SUA,,4,NULL,1,
 6467,BR,2,TBT,,Tabatinga International Airport - TBT,Tabatinga International Airport - TBT,,4,NULL,1,
@@ -1661,7 +1661,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 6565,BS,2,LGI,,Deadman''s Cay Airport - LGI,Deadman''s Cay Airport - LGI,,4,NULL,1,
 6567,BS,2,DCT,,Duncan Town Airport - DCT,Duncan Town Airport - DCT,,4,NULL,1,
 6570,BS,2,GGT,,Exuma International Airport - GGT,Exuma International Airport - GGT,,4,NULL,1,
-6572,BS,3,FPO,,"Freeport,Freeport","Grand Bahama Seaport - FPO""",,4,NULL,,
+6572,BS,3,FPO,,"Freeport, Grand Bahama Seaport - FPO","Freeport, Grand Bahama Seaport - FPO",,4,NULL,,
 6574,BS,2,GHB,,Governor''s Harbour Airport - GHB,Governor''s Harbour Airport - GHB,,4,NULL,1,
 6578,BS,2,GHC,,Great Harbour Cay Airport - GHC,Great Harbour Cay Airport - GHC,,4,NULL,1,
 6582,BS,2,IGA,,Inagua Airport - IGA,Inagua Airport - IGA,,4,NULL,1,
@@ -2228,7 +2228,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 8129,CA,2,YWP,,Webequie Airport - YWP,Webequie Airport - YWP,,4,NULL,1,
 8132,CA,3,WEL,,Welland Seaport - WEL,Welland Seaport - WEL,,4,NULL,1,
 8135,CA,2,YNC,,Wemindji Airport - YNC,Wemindji Airport - YNC,,4,NULL,1,
-8143,CA,2,YLE,,"Wha Ti,Wha Ti","Lac La Martre Airport - YLE""",,4,NULL,,
+8143,CA,2,YLE,,"Wha Ti, Lac La Martre Airport - YLE","Wha Ti, Lac La Martre Airport - YLE",,4,NULL,,
 8144,CA,2,YXN,,Whale Cove Airport - YXN,Whale Cove Airport - YXN,,4,NULL,1,
 8148,CA,2,YWS,,Whistler Airport - YWS,Whistler Airport - YWS,,4,NULL,1,
 8151,CA,2,YWR,,White River Airport - YWR,White River Airport - YWR,,4,NULL,1,
@@ -3046,7 +3046,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 9950,DE,3,ABH,,Abbehausen Seaport - ABH,Abbehausen Seaport - ABH,,3,NULL,1,1
 9951,DE,3,ABF,,Abbenfleth Seaport - ABF,Abbenfleth Seaport - ABF,,3,NULL,1,1
 9956,DE,3,AWR,,Achterwehr Ringkanal Seaport - AWR,Achterwehr Ringkanal Seaport - AWR,,3,NULL,1,1
-9970,DE,3,ALF,,"Alfeld,Alfeld","Leine Seaport - ALF""",,3,NULL,,1
+9970,DE,3,ALF,,"Alfeld, Leine Seaport - ALF","Alfeld, Leine Seaport - ALF",,3,NULL,,1
 9979,DE,3,ALT,,Altena Seaport - ALT,Altena Seaport - ALT,,3,NULL,1,1
 9981,DE,2,AOC,,Altenburg-Nobitz Airport - AOC,Altenburg-Nobitz Airport - AOC,,3,NULL,1,1
 9990,DE,3,AMB,,Amberg Seaport - AMB,Amberg Seaport - AMB,,3,NULL,1,1
@@ -3084,7 +3084,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10115,DE,2,BYU,,Bayreuth Airport - BYU,Bayreuth Airport - BYU,,3,NULL,1,1
 10122,DE,3,BZS,,Beddingen Seaport - BZS,Beddingen Seaport - BZS,,3,NULL,1,1
 10123,DE,3,BEI,,Beidenfleth Seaport - BEI,Beidenfleth Seaport - BEI,,3,NULL,1,1
-10127,DE,3,BDF,,"Bendorf,Bendorf","Rhein Seaport - BDF""",,3,NULL,,1
+10127,DE,3,BDF,,"Bendorf, Rhein Seaport - BDF","Bendorf, Rhein Seaport - BDF",,3,NULL,,1
 10128,DE,3,BEN,,Bensersiel Seaport - BEN,Bensersiel Seaport - BEN,,3,NULL,1,1
 10137,DE,3,BGL,,Bergisch-Gladbach Seaport - BGL,Bergisch-Gladbach Seaport - BGL,,3,NULL,1,1
 10139,DE,2,BNT,,Bergneustadt Airport - BNT,Bergneustadt Airport - BNT,,3,NULL,1,1
@@ -3126,9 +3126,9 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10265,DE,3,BUL,,Buhl Seaport - BUL,Buhl Seaport - BUL,,3,NULL,1,1
 10270,DE,3,BEU,,Bullenhausen Seaport - BEU,Bullenhausen Seaport - BEU,,3,NULL,1,1
 10271,DE,2,URD,,Burg Feuerstein Airport - URD,Burg Feuerstein Airport - URD,,3,NULL,1,1
-10272,DE,3,BRG,,"Burg,Burg","Dithmarschen Seaport - BRG""",,3,NULL,,1
-10273,DE,3,BUR,,"Burg,Burg","Magdeburg - BUR""",,3,NULL,,1
-10277,DE,3,BSK,,"Burgstaaken,Burgstaaken","Fehmarn Seaport - BSK""",,3,NULL,,1
+10272,DE,3,BRG,,"Burg, Dithmarschen Seaport - BRG","Burg, Dithmarschen Seaport - BRG",,3,NULL,,1
+10273,DE,3,BUR,,"Burg, Magdeburg - BUR","Burg, Magdeburg - BUR",,3,NULL,,1
+10277,DE,3,BSK,,"Burgstaaken, Fehmarn Seaport - BSK","Burgstaaken, Fehmarn Seaport - BSK",,3,NULL,,1
 10287,DE,3,BUM,,Busum Seaport - BUM,Busum Seaport - BUM,,3,NULL,1,1
 10288,DE,3,BUT,,Butjadgen Seaport - BUT,Butjadgen Seaport - BUT,,3,NULL,1,1
 10291,DE,3,BUZ,,Butzfleth Seaport - BUZ,Butzfleth Seaport - BUZ,,3,NULL,1,1
@@ -3181,7 +3181,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10446,DE,2,ELZ,,Elz Airport - ELZ,Elz Airport - ELZ,,3,NULL,1,1
 10449,DE,3,EME,,Port of Emden Seaport - EME,Port of Emden Seaport - EME,,3,NULL,1,1
 10452,DE,3,ESU,,Emmelsum - ESU,Emmelsum - ESU,,3,NULL,1,1
-10471,DE,2,ERB,,"Erbach,Erbach","Odenwald Airport - ERB""",,3,NULL,,1
+10471,DE,2,ERB,,"Erbach, Odenwald Airport - ERB","Erbach, Odenwald Airport - ERB",,3,NULL,,1
 10481,DE,2,ERL,,Erlangen Airport - ERL,Erlangen Airport - ERL,,3,NULL,1,1
 10490,DE,2,ESE,,Eschenlohe Airfield - ESE,Eschenlohe Airfield - ESE,,3,NULL,1,1
 10491,DE,3,ESN,,Eschershausen - ESN,Eschershausen - ESN,,3,NULL,1,1
@@ -3197,7 +3197,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10520,DE,2,FLF,,Flensburg Airport - FLF,Flensburg Airport - FLF,,3,NULL,1,1
 10523,DE,2,MUC,Munich,Flughafen München-Riem Airport - MUC,Flughafen München-Riem Airport - MUC,,3,NULL,1,1
 10531,DE,2,FRA,,Frankfurt am Main International Airport - FRA,Frankfurt am Main International Airport - FRA,10,3,NULL,1,1
-10533,DE,3,FFO,,"Frankfurt,Frankfurt","Oder Seaport - FFO""",,3,NULL,,1
+10533,DE,3,FFO,,"Frankfurt, Oder Seaport - FFO","Frankfurt, Oder Seaport - FFO",,3,NULL,,1
 10534,DE,2,QEF,,Frankfurt-Egelsbach Airport - QEF,Frankfurt-Egelsbach Airport - QEF,,3,NULL,1,1
 10544,DE,3,FRE,,Fresenburg Seaport - FRE,Fresenburg Seaport - FRE,,3,NULL,1,1
 10550,DE,3,FDH,,Friedrichshafen Seaport - FDH,Friedrichshafen Seaport - FDH,,3,NULL,1,1
@@ -3238,7 +3238,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10724,DE,3,HAU,,Hanau Seaport - HAU,Hanau Seaport - HAU,,3,NULL,1,1
 10725,DE,2,ZNF,,Hanau Army Air Field - ZNF,Hanau Army Air Field - ZNF,,3,NULL,1,1
 10727,DE,2,HAJ,Langenhagen,Hannover Airport - HAJ,Hannover Airport - HAJ,,3,NULL,1,1
-10733,DE,3,HRN,,"Haren,Haren","Ems Seaport - HRN""",,3,NULL,,1
+10733,DE,3,HRN,,"Haren, Ems Seaport - HRN","Haren, Ems Seaport - HRN",,3,NULL,,1
 10742,DE,2,HAS,,Hassfurt Airport - HAS,Hassfurt Airport - HAS,,3,NULL,1,1
 10755,DE,2,HDE,,Heide Airport - HDE,Heide Airport - HDE,,3,NULL,1,1
 10756,DE,2,HEI,,Heide-Büsum Airport - HEI,Heide-Büsum Airport - HEI,,3,NULL,1,1
@@ -3265,7 +3265,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10855,DE,3,HOB,,Horb Seaport - HOB,Horb Seaport - HOB,,3,NULL,1,1
 10856,DE,2,HOQ,,Hof Airport - HOQ,Hof Airport - HOQ,,3,NULL,1,1
 10858,DE,3,HRB,,Horneburg Seaport - HRB,Horneburg Seaport - HRB,,3,NULL,1,1
-10859,DE,3,HRM,,"Hornum,Hornum","Sylt Seaport - HRM""",,3,NULL,,1
+10859,DE,3,HRM,,"Hornum, Sylt Seaport - HRM","Hornum, Sylt Seaport - HRM",,3,NULL,,1
 10861,DE,3,HOS,,Horumersiel Seaport - HOS,Horumersiel Seaport - HOS,,3,NULL,1,1
 10863,DE,3,HOX,,Hoxter Seaport - HOX,Hoxter Seaport - HOX,,3,NULL,1,1
 10874,DE,3,HUS,,Husum Seaport - HUS,Husum Seaport - HUS,,3,NULL,1,1
@@ -3294,7 +3294,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 10955,DE,2,KEL,,Kiel Airport - KEL,Kiel Airport - KEL,,3,NULL,1,1
 10958,DE,3,KIE,,Kietz  Seaport - KIE,Kietz  Seaport - KIE,,3,NULL,1,1
 10959,DE,3,KBR,,Kinderborn Seaport - KBR,Kinderborn Seaport - KBR,,3,NULL,1,1
-10964,DE,2,KCN,,"Kirchen,Kirchen","Sieg Airport - KCN""",,3,NULL,,1
+10964,DE,2,KCN,,"Kirchen, Sieg Airport - KCN","Kirchen, Sieg Airport - KCN",,3,NULL,,1
 10975,DE,3,KIT,,Kitzingen Seaport - KIT,Kitzingen Seaport - KIT,,3,NULL,1,1
 10979,DE,3,KLE,,Kleve - KLE,Kleve - KLE,,3,NULL,1,1
 10984,DE,3,KOB,,Koblenz am Rhein Port - KOB,Koblenz am Rhein Port - KOB,,3,NULL,1,1
@@ -3313,7 +3313,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 11090,DE,2,LEJ,,Leipzig/Halle Airport - LEJ,Leipzig/Halle Airport - LEJ,,3,NULL,1,1
 11095,DE,3,LEW,,Lemwerder Seaport - LEW,Lemwerder Seaport - LEW,,3,NULL,1,1
 11096,DE,2,XLW,,Lemwerder Airport - XLW,Lemwerder Airport - XLW,,3,NULL,1,1
-11127,DE,3,LIS,,"List,List","Sylt Seaport - LIS""",,3,NULL,,1
+11127,DE,3,LIS,,"List, Sylt Seaport - LIS","List, Sylt Seaport - LIS",,3,NULL,,1
 11159,DE,2,MGL,,Mönchengladbach Airport - MGL,Mönchengladbach Airport - MGL,,3,NULL,1,1
 11160,DE,2,FMO,,Münster Osnabrück Airport - FMO,Münster Osnabrück Airport - FMO,,3,NULL,1,1
 11162,DE,2,CSO,,Magdeburg Airport - CSO,Magdeburg Airport - CSO,,3,NULL,1,1
@@ -3332,10 +3332,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 11336,DE,2,FNB,,Neubrandenburg Airport - FNB,Neubrandenburg Airport - FNB,,3,NULL,1,1
 11346,DE,3,NSC,,Neuenschleuse Seaport - NSC,Neuenschleuse Seaport - NSC,,3,NULL,1,1
 11350,DE,3,NHS,,Neuharlingersiel Seaport - NHS,Neuharlingersiel Seaport - NHS,,3,NULL,1,1
-11356,DE,3,NEL,,"Neuland,Neuland","Elbe Seaport - NEL""",,3,NULL,,1
+11356,DE,3,NEL,,"Neuland, Elbe Seaport - NEL","Neuland, Elbe Seaport - NEL",,3,NULL,,1
 11357,DE,2,EUM,,Neumünster Airport - EUM,Neumünster Airport - EUM,,3,NULL,1,1
 11366,DE,3,NSS,,Neuss Seapprt - NSS,Neuss Seapprt - NSS,,3,NULL,1,1
-11374,DE,3,NHO,,"Neustadt,Neustadt","Holstein Seaport - NHO""",,3,NULL,,1
+11374,DE,3,NHO,,"Neustadt, Holstein Seaport - NHO","Neustadt, Holstein Seaport - NHO",,3,NULL,,1
 11379,DE,3,NED,,Neuwied Seaport - NED,Neuwied Seaport - NED,,3,NULL,1,1
 11397,DE,3,NIE,,Nienburg Seaport - NIE,Nienburg Seaport - NIE,,3,NULL,1,1
 11400,DE,3,NOE,,Norddeich Seaport - NOE,Norddeich Seaport - NOE,,3,NULL,1,1
@@ -3350,12 +3350,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 11456,DE,2,OEN,,Oerlingshausen Airfield - OEN,Oerlingshausen Airfield - OEN,,3,NULL,1,1
 11457,DE,3,OFF,,Offenbach Seaport - OFF,Offenbach Seaport - OFF,,3,NULL,1,1
 11458,DE,3,OFG,,Offenburg Seaport - OFG,Offenburg Seaport - OFG,,3,NULL,1,1
-11468,DE,3,OLO,,"Oldenburg,Oldenburg","Oldenburg Seaport - OLO""",,3,NULL,,1
+11468,DE,3,OLO,,"Oldenburg, Oldenburg Seaport - OLO","Oldenburg, Oldenburg Seaport - OLO",,3,NULL,,1
 11469,DE,3,OLB,,Oldenbuttel Seaport - OLB,Oldenbuttel Seaport - OLB,,3,NULL,1,1
 11472,DE,3,OLP,,Olpenitz Seaport - OLP,Olpenitz Seaport - OLP,,3,NULL,1,1
 11474,DE,3,OPP,,Oppenheim Seaport - OPP,Oppenheim Seaport - OPP,,3,NULL,1,1
 11476,DE,3,ORS,,Orsoy Seaport - ORS,Orsoy Seaport - ORS,,3,NULL,1,1
-11479,DE,3,ORT,,"Orth,Orth","Fehmarn Seaport - ORT""",,3,NULL,,1
+11479,DE,3,ORT,,"Orth, Fehmarn Seaport - ORT","Orth, Fehmarn Seaport - ORT",,3,NULL,,1
 11483,DE,3,OSN,,Osnabruck Seaport - OSN,Osnabruck Seaport - OSN,,3,NULL,1,1
 11489,DE,3,OSR,,Ostermoor Seaport - OSR,Ostermoor Seaport - OSR,,3,NULL,1,1
 11494,DE,3,OTT,,Otterndorf Seaport - OTT,Otterndorf Seaport - OTT,,3,NULL,1,1
@@ -3369,7 +3369,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 11520,DE,3,PEN,,Pente Seaport - PEN,Pente Seaport - PEN,,3,NULL,1,1
 11522,DE,3,PER,,Perleberg Seaport - PER,Perleberg Seaport - PER,,3,NULL,1,1
 11524,DE,3,PTD,,Petersdorf Seaport - PTD,Petersdorf Seaport - PTD,,3,NULL,1,1
-11525,DE,3,PSW,,"Petershagen,Petershagen","Weser Seaport - PSW""",,3,NULL,,1
+11525,DE,3,PSW,,"Petershagen, Weser Seaport - PSW","Petershagen, Weser Seaport - PSW",,3,NULL,,1
 11537,DE,3,PIN,,Pinneberg Seaport - PIN,Pinneberg Seaport - PIN,,3,NULL,1,1
 11539,DE,3,PRA,,Pirna Seaport - PRA,Pirna Seaport - PRA,,3,NULL,1,1
 11554,DE,2,POW,,Porta Westfalica Airport - POW,Porta Westfalica Airport - POW,,3,NULL,1,1
@@ -3405,7 +3405,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 11778,DE,2,SWB,,Schwabach Airport - SWB,Schwabach Airport - SWB,,3,NULL,1,1
 11794,DE,3,SDT,,Schwedt Seaport - SDT,Schwedt Seaport - SDT,,3,NULL,1,1
 11796,DE,3,SCW,,Schweinfurt Seaport - SCW,Schweinfurt Seaport - SCW,,3,NULL,1,1
-11811,DE,3,SEH,,"Sehestedt,Sehestedt","Eider Seaport - SEH""",,3,NULL,,1
+11811,DE,3,SEH,,"Sehestedt, Eider Seaport - SEH","Sehestedt, Eider Seaport - SEH",,3,NULL,,1
 11812,DE,3,SNE,,Sehnde Seaport - SNE,Sehnde Seaport - SNE,,3,NULL,1,1
 11862,DE,3,SPE,,Speyer Seaport - SPE,Speyer Seaport - SPE,,3,NULL,1,1
 11863,DE,3,SPI,,Spieckeroog I. Seaport - SPI,Spieckeroog I. Seaport - SPI,,3,NULL,1,1
@@ -3568,7 +3568,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 12516,DK,3,NVD,,Naestved Seaport - NVD,Naestved Seaport - NVD,,3,NULL,1,1
 12518,DK,3,NAK,,Nakskov Seaport - NAK,Nakskov Seaport - NAK,,3,NULL,1,1
 12519,DK,3,NEX,,Nekso Seaport - NEX,Nekso Seaport - NEX,,3,NULL,1,1
-12523,DK,3,NDB,,"Nordby Havn,Nordby Havn","Fano Seaport - NDB""",,3,NULL,,1
+12523,DK,3,NDB,,"Nordby Havn, Fano Seaport - NDB","Nordby Havn, Fano Seaport - NDB",,3,NULL,,1
 12525,DK,3,VSV,,Norjyllandsvarkets havn Seaport - VSV,Norjyllandsvarkets havn Seaport - VSV,,3,NULL,1,1
 12531,DK,3,NBG,,Nyborg Seaport - NBG,Nyborg Seaport - NBG,,3,NULL,1,1
 12533,DK,3,NYF,,Nykobing Falster Seaport - NYF,Nykobing Falster Seaport - NYF,,3,NULL,1,1
@@ -3576,7 +3576,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 12536,DK,3,NTD,,Nysted Seaport - NTD,Nysted Seaport - NTD,,3,NULL,1,1
 12537,DK,3,ODE,,Odense Seaport - ODE,Odense Seaport - ODE,,3,NULL,1,1
 12541,DK,3,OMO,,Omo Seaport - OMO,Omo Seaport - OMO,,3,NULL,1,1
-12543,DK,3,ORE,,"Orehoved,Orehoved","Falster Seaport - ORE""",,3,NULL,,1
+12543,DK,3,ORE,,"Orehoved, Falster Seaport - ORE","Orehoved, Falster Seaport - ORE",,3,NULL,,1
 12545,DK,3,ORO,,Oro Seaport - ORO,Oro Seaport - ORO,,3,NULL,1,1
 12553,DK,3,RAN,,Randers Seaport - RAN,Randers Seaport - RAN,,3,NULL,1,1
 12559,DK,3,ROF,,Rodby (Fagehavn) Seaport - ROF,Rodby (Fagehavn) Seaport - ROF,,3,NULL,1,1
@@ -3593,7 +3593,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 12580,DK,3,SKB,,Skaerbaek Seaport - SKB,Skaerbaek Seaport - SKB,,3,NULL,1,1
 12581,DK,3,SKA,,Skagen Seaport - SKA,Skagen Seaport - SKA,,3,NULL,1,1
 12583,DK,3,SSK,,Skaelskor - SSK,Skaelskor - SSK,,3,NULL,1,1
-12585,DK,3,SDO,,"Skaro,Skaro","Drejo Seaport - SDO""",,3,NULL,,1
+12585,DK,3,SDO,,"Skaro, Drejo Seaport - SDO","Skaro, Drejo Seaport - SDO",,3,NULL,,1
 12588,DK,3,SKV,,Skive Seaport - SKV,Skive Seaport - SKV,,3,NULL,1,1
 12589,DK,2,SQW,,Skive Airport - SQW,Skive Airport - SQW,,3,NULL,1,1
 12599,DK,3,SNE,,Snekkersten Seaport - SNE,Snekkersten Seaport - SNE,,3,NULL,1,1
@@ -3620,7 +3620,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 12655,DK,3,TYB,,Thyboron Seaport - TYB,Thyboron Seaport - TYB,,3,NULL,1,1
 12662,DK,3,VNG,,Vang Havn Seaport - VNG,Vang Havn Seaport - VNG,,3,NULL,1,1
 12668,DK,3,VEN,,Veno Havn Seaport - VEN,Veno Havn Seaport - VEN,,3,NULL,1,1
-12669,DK,3,VES,,"Vestero Havn,Vestero Havn","Laso Seaport - VES""",,3,NULL,,1
+12669,DK,3,VES,,"Vestero Havn, Laso Seaport - VES","Vestero Havn, Laso Seaport - VES",,3,NULL,,1
 12679,DK,2,SKS,,Vojens Airport - SKS,Vojens Airport - SKS,,3,NULL,1,1
 12681,DK,3,VOR,,Vordingborg Seaport - VOR,Vordingborg Seaport - VOR,,3,NULL,1,1
 12682,DM,3,ADM,,Anse De Mai Seaport - ADM,Anse De Mai Seaport - ADM,,4,NULL,1,
@@ -3870,7 +3870,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 13483,ES,3,LCR,,Los Cristianos Seaport - LCR,Los Cristianos Seaport - LCR,,3,NULL,1,1
 13488,ES,2,AGP,,Málaga Airport - AGP,Málaga Airport - AGP,,3,NULL,1,1
 13491,ES,2,HEV,,Mafé - Gibraleón Airport - HEV,Mafé - Gibraleón Airport - HEV,,3,NULL,1,1
-13511,ES,3,MPG,,"Marin,Marin","Pontevedra Seaport - MPG""",,3,NULL,,1
+13511,ES,3,MPG,,"Marin, Pontevedra Seaport - MPG","Marin, Pontevedra Seaport - MPG",,3,NULL,,1
 13522,ES,2,MLN,,Melilla Airport - MLN,Melilla Airport - MLN,,3,NULL,1,1
 13525,ES,2,MAH,,Menorca Airport - MAH,Menorca Airport - MAH,,3,NULL,1,1
 13531,ES,3,MIX,,Miranda De Ebro Seaport - MIX,Miranda De Ebro Seaport - MIX,,3,NULL,1,1
@@ -3887,7 +3887,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 13616,ES,2,PMI,,Palma De Mallorca Airport - PMI,Palma De Mallorca Airport - PMI,,3,NULL,1,1
 13623,ES,2,PNA,,Pamplona Airport - PNA,Pamplona Airport - PNA,,3,NULL,1,1
 13629,ES,3,PAS,,Pasajes Seaport - PAS,Pasajes Seaport - PAS,,3,NULL,1,1
-13630,ES,3,PBB,,"Pasito Blanco,Pasito Blanco","Canary Is Seaport - PBB""",,3,NULL,,1
+13630,ES,3,PBB,,"Pasito Blanco, Canary Is Seaport - PBB","Pasito Blanco, Canary Is Seaport - PBB",,3,NULL,,1
 13645,ES,2,LEU,,La Seu d'Urgel Airport - LEU,La Seu d'Urgel Airport - LEU,,3,NULL,1,1
 13647,ES,3,QLY,,Playa Blanca Seaport - QLY,Playa Blanca Seaport - QLY,,3,NULL,1,1
 13650,ES,3,PEV,,Pontevedra Seaport - PEV,Pontevedra Seaport - PEV,,3,NULL,1,1
@@ -4848,7 +4848,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 17724,ID,2,SBG,,Maimun Saleh Airport - SBG,Maimun Saleh Airport - SBG,,4,NULL,1,
 17732,ID,2,MJU,,Tampa Padang Airport - MJU,Tampa Padang Airport - MJU,,4,NULL,1,
 17733,ID,3,MDC,,Port of Manado Seaport - MDC,Port of Manado Seaport - MDC,,4,NULL,1,
-17735,ID,2,MAL,,"Mangole,Mangole","Falabisahaya Airport - MAL""",,4,NULL,,
+17735,ID,2,MAL,,"Mangole, Falabisahaya Airport - MAL","Mangole, Falabisahaya Airport - MAL",,4,NULL,,
 17737,ID,2,MJY,,Mangunjaya Airport - MJY,Mangunjaya Airport - MJY,,4,NULL,1,
 17739,ID,3,MKW,,Port of Manokwari Seaport - MKW,Port of Manokwari Seaport - MKW,,4,NULL,1,
 17741,ID,2,TQQ,,Maranggo Airport - TQQ,Maranggo Airport - TQQ,,4,NULL,1,
@@ -5039,7 +5039,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18331,IN,2,BLR,,Bangalore-Kempegowda International Airport - BLR,Bangalore-Kempegowda International Airport - BLR,,4,NULL,1,
 18332,IN,3,BKT,,Bankot Seaport - BKT,Bankot Seaport - BKT,,4,NULL,1,
 18333,IN,2,BEK,,Bareilly Airport - BEK,Bareilly Airport - BEK,,4,NULL,1,
-18338,IN,2,RMD,,"Basanth Nagar Airport,Basanth Nagar Airport","Ramagundam - RMD""",,4,NULL,,
+18338,IN,2,RMD,,"Basanth Nagar Airport, Ramagundam - RMD","Basanth Nagar Airport, Ramagundam - RMD",,4,NULL,,
 18339,IN,3,BSN,,Bassain Seaport - BSN,Bassain Seaport - BSN,,4,NULL,1,
 18340,IN,3,BED,,Bedi Seaport - BED,Bedi Seaport - BED,,4,NULL,1,
 18341,IN,2,BPM,,Begumpet Airport - BPM,Begumpet Airport - BPM,,4,NULL,1,
@@ -5079,7 +5079,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18396,IN,2,LKO,,Chaudhary Charan Singh International Airport - LKO,Chaudhary Charan Singh International Airport - LKO,,4,NULL,1,
 18397,IN,2,MAA,,Chennai (Ex Madras) Airport - MAA,Chennai (Ex Madras) Airport - MAA,,4,NULL,1,
 18400,IN,2,BOM,,Chhatrapati Shivaji International Airport - BOM,Chhatrapati Shivaji International Airport - BOM,10,4,NULL,1,
-18402,IN,2,REW,,"Churhata Airport,Churhata Airport","Rewa - REW""",,4,NULL,,
+18402,IN,2,REW,,"Churhata Airport, Rewa - REW","Churhata Airport, Rewa - REW",,4,NULL,,
 18403,IN,3,COK,,Cochin Seaport - COK,Cochin Seaport - COK,,4,NULL,1,
 18405,IN,2,CJB,,Coimbatore Airport - CJB,Coimbatore Airport - CJB,,4,NULL,1,
 18407,IN,3,COL,,Colochel Seaport - COL,Colochel Seaport - COL,,4,NULL,1,
@@ -5090,7 +5090,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18413,IN,2,CDP,,Cuddapah Airport - CDP,Cuddapah Airport - CDP,,4,NULL,1,
 18415,IN,3,CUM,,Mandvi Kutch Seaport - CUM,Mandvi Kutch Seaport - CUM,,4,NULL,1,
 18416,IN,3,DHP,,Dabhol Port Seaport - DHP,Dabhol Port Seaport - DHP,,4,NULL,1,
-18418,IN,2,GOI,,"Dabolim Airport,Dabolim Airport","Goa - GOI""",,4,NULL,,
+18418,IN,2,GOI,,"Dabolim Airport, Goa - GOI","Dabolim Airport, Goa - GOI",,4,NULL,,
 18419,IN,3,DHU,,Dahanu Seaport - DHU,Dahanu Seaport - DHU,,4,NULL,1,
 18420,IN,3,DAH,,Dahej Seaport - DAH,Dahej Seaport - DAH,,4,NULL,1,
 18423,IN,2,NMB,,Daman Airport - NMB,Daman Airport - NMB,,4,NULL,1,
@@ -5106,7 +5106,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18446,IN,2,DIB,,Dibrugarh Airport - DIB,Dibrugarh Airport - DIB,,4,NULL,1,
 18448,IN,3,DIG,,Dighi (Pune) Seaport - DIG,Dighi (Pune) Seaport - DIG,,4,NULL,1,
 18449,IN,2,DMU,,Dimapur Airport - DMU,Dimapur Airport - DMU,,4,NULL,1,
-18454,IN,2,NAG,,"Dr. Babasaheb Ambedkar International Airport,Dr. Babasaheb Ambedkar International Airport","Nagpur - NAG""",,4,NULL,,
+18454,IN,2,NAG,,"Dr. Babasaheb Ambedkar International Airport, Nagpur - NAG","Dr. Babasaheb Ambedkar International Airport, Nagpur - NAG",,4,NULL,,
 18455,IN,3,DWA,,Dwarka Seaport - DWA,Dwarka Seaport - DWA,,4,NULL,1,
 18456,IN,3,DRK,,Dwarka (Rupen) Seaport - DRK,Dwarka (Rupen) Seaport - DRK,,4,NULL,1,
 18457,IN,3,ESH,,Elphinstone Harbour Seaport - ESH,Elphinstone Harbour Seaport - ESH,,4,NULL,1,
@@ -5128,7 +5128,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18496,IN,2,HBX,,Hubli Airport - HBX,Hubli Airport - HBX,,4,NULL,1,
 18498,IN,2,HYD,,Hyderabad Airport - HYD,Hyderabad Airport - HYD,,4,NULL,1,
 18499,IN,2,IMF,,Imphal Airport - IMF,Imphal Airport - IMF,,4,NULL,1,
-18501,IN,2,DEL,,"Indira Gandhi International Airport,Indira Gandhi International Airport","Delhi - DEL""",10,4,NULL,,
+18501,IN,2,DEL,,"Indira Gandhi International Airport, Delhi - DEL","Indira Gandhi International Airport, Delhi - DEL",10,4,NULL,,
 18503,IN,2,JLR,,Jabalpur Airport - JLR,Jabalpur Airport - JLR,,4,NULL,1,
 18505,IN,3,JBD,,Jafrabad Seaport - JBD,Jafrabad Seaport - JBD,,4,NULL,1,
 18506,IN,2,JGB,,Jagdalpur Airport - JGB,Jagdalpur Airport - JGB,,4,NULL,1,
@@ -5139,7 +5139,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18515,IN,3,JAK,,Jakhau Seaport - JAK,Jakhau Seaport - JAK,,4,NULL,1,
 18519,IN,2,IXJ,,Jammu Airport - IXJ,Jammu Airport - IXJ,,4,NULL,1,
 18521,IN,2,JGA,,Jamnagar Airport - JGA,Jamnagar Airport - JGA,,4,NULL,1,
-18523,IN,2,IXW,,"Sonari Airport,Sonari Airport","Jamshedpur - IXW""",,4,NULL,,
+18523,IN,2,IXW,,"Sonari Airport, Jamshedpur - IXW","Sonari Airport, Jamshedpur - IXW",,4,NULL,,
 18526,IN,3,NSA,,Jawaharlal Nehru (Nhava Sheva) Seaport - NSA,Jawaharlal Nehru (Nhava Sheva) Seaport - NSA,,4,NULL,1,
 18528,IN,2,PYB,,Jeypore Airport - PYB,Jeypore Airport - PYB,,4,NULL,1,
 18531,IN,2,JDH,,Jodhpur Airport - JDH,Jodhpur Airport - JDH,,4,NULL,1,
@@ -5180,15 +5180,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18593,IN,3,KSP,,Kulasekarapanam Seaport - KSP,Kulasekarapanam Seaport - KSP,,4,NULL,1,
 18594,IN,2,KUU,,Kullu Manali Airport - KUU,Kullu Manali Airport - KUU,,4,NULL,1,
 18596,IN,3,KMB,,Kumbharu Seaport - KMB,Kumbharu Seaport - KMB,,4,NULL,1,
-18599,IN,2,VNS,,"Lal Bahadur Shastri Airport,Lal Bahadur Shastri Airport","Varanasi - VNS""",,4,NULL,,
+18599,IN,2,VNS,,"Lal Bahadur Shastri Airport, Varanasi - VNS","Lal Bahadur Shastri Airport, Varanasi - VNS",,4,NULL,,
 18602,IN,3,LPR,,Leapuram Seaport - LPR,Leapuram Seaport - LPR,,4,NULL,1,
-18603,IN,2,IXL,,"Kuskoh Bakula Rimpochee Airport,Kuskoh Bakula Rimpochee Airport","Leh - IXL""",,4,NULL,,
+18603,IN,2,IXL,,"Kuskoh Bakula Rimpochee Airport, Leh - IXL","Kuskoh Bakula Rimpochee Airport, Leh - IXL",,4,NULL,,
 18606,IN,2,IXI,,Lilabari Airport - IXI,Lilabari Airport - IXI,,4,NULL,1,
-18607,IN,2,PAT,,"Lok Nayak Jayaprakash Airport,Lok Nayak Jayaprakash Airport","Patna - PAT""",,4,NULL,,
+18607,IN,2,PAT,,"Lok Nayak Jayaprakash Airport, Patna - PAT","Lok Nayak Jayaprakash Airport, Patna - PAT",,4,NULL,,
 18610,IN,2,LUH,,Ludhiana Airport - LUH,Ludhiana Airport - LUH,,4,NULL,1,
 18612,IN,2,IXM,,Madurai Airport - IXM,Madurai Airport - IXM,,4,NULL,1,
 18614,IN,3,MDA,,Magdalla Seaport - MDA,Magdalla Seaport - MDA,,4,NULL,1,
-18615,IN,2,UDR,,"Maharana Pratap Airport,Maharana Pratap Airport","Udalpur - UDR""",,4,NULL,,
+18615,IN,2,UDR,,"Maharana Pratap Airport, Udalpur - UDR","Maharana Pratap Airport, Udalpur - UDR",,4,NULL,,
 18616,IN,3,MAH,,Mahe Seaport - MAH,Mahe Seaport - MAH,,4,NULL,1,
 18620,IN,3,MHA,,Mahuva Seaport - MHA,Mahuva Seaport - MHA,,4,NULL,1,
 18622,IN,2,LDA,,Malda Airport - LDA,Malda Airport - LDA,,4,NULL,1,
@@ -5213,15 +5213,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18650,IN,3,MDK,,Mul Dwarka Seaport - MDK,Mul Dwarka Seaport - MDK,,4,NULL,1,
 18654,IN,3,MUN,,Mundra Seaport - MUN,Mundra Seaport - MUN,,4,NULL,1,
 18655,IN,3,MUR,,Murad Seaport - MUR,Murad Seaport - MUR,,4,NULL,1,
-18656,IN,2,LTU,,"Murod Kond Airport,Murod Kond Airport","Latur - LTU""",,4,NULL,,
+18656,IN,2,LTU,,"Murod Kond Airport, Latur - LTU","Murod Kond Airport, Latur - LTU",,4,NULL,,
 18657,IN,2,MZA,,Muzaffarnagar Airport - MZA,Muzaffarnagar Airport - MZA,,4,NULL,1,
 18658,IN,2,MZU,,Muzaffarpur Airport - MZU,Muzaffarpur Airport - MZU,,4,NULL,1,
 18660,IN,2,MYQ,,Mysore Airport - MYQ,Mysore Airport - MYQ,,4,NULL,1,
 18662,IN,3,NPT,,Nagapattinam Seaport - NPT,Nagapattinam Seaport - NPT,,4,NULL,1,
 18668,IN,3,NAN,,Nancowrie Seaport - NAN,Nancowrie Seaport - NAN,,4,NULL,1,
-18669,IN,2,NDC,,"Shri Guru Gobind Singh Ji Airport,Shri Guru Gobind Singh Ji Airport","Nanded  - NDC""",,4,NULL,,
+18669,IN,2,NDC,,"Shri Guru Gobind Singh Ji Airport, Nanded  - NDC","Shri Guru Gobind Singh Ji Airport, Nanded  - NDC",,4,NULL,,
 18671,IN,3,NDG,,Nandgaon Seaport - NDG,Nandgaon Seaport - NDG,,4,NULL,1,
-18672,IN,2,ISK,,"Ozar Airport,Ozar Airport","Nashik - ISK""",,4,NULL,,
+18672,IN,2,ISK,,"Ozar Airport, Nashik - ISK","Ozar Airport, Nashik - ISK",,4,NULL,,
 18673,IN,3,NVB,,Navabunder Seaport - NVB,Navabunder Seaport - NVB,,4,NULL,1,
 18674,IN,3,RJP,,Navabunder-Rajpara Seaport - RJP,Navabunder-Rajpara Seaport - RJP,,4,NULL,1,
 18675,IN,3,SIM,,Navabunder-Sima Seaport - SIM,Navabunder-Sima Seaport - SIM,,4,NULL,1,
@@ -5239,7 +5239,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18698,IN,3,PSH,,Palshet Seaport - PSH,Palshet Seaport - PSH,,4,NULL,1,
 18699,IN,3,PMB,,Pamban Seaport - PMB,Pamban Seaport - PMB,,4,NULL,1,
 18700,IN,3,PAN,,Panaji Port Seaport - PAN,Panaji Port Seaport - PAN,,4,NULL,1,
-18701,IN,3,PNM,,"Panambur,Panambur","Va Mangalore Seaport - PNM""",,4,NULL,,
+18701,IN,3,PNM,,"Panambur, Va Mangalore Seaport - PNM","Panambur, Va Mangalore Seaport - PNM",,4,NULL,,
 18704,IN,3,PNJ,,Panjim Seaport - PNJ,Panjim Seaport - PNJ,,4,NULL,1,
 18705,IN,2,PGH,,Pantnagar Airport - PGH,Pantnagar Airport - PGH,,4,NULL,1,
 18708,IN,3,PRT,,Paradip Garh Seaport - PRT,Paradip Garh Seaport - PRT,,4,NULL,1,
@@ -5257,7 +5257,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18731,IN,2,PNQ,,Pune Airport - PNQ,Pune Airport - PNQ,,4,NULL,1,
 18733,IN,3,PRG,,Purangad Seaport - PRG,Purangad Seaport - PRG,,4,NULL,1,
 18734,IN,3,PUR,,Puri Seaport - PUR,Puri Seaport - PUR,,4,NULL,1,
-18735,IN,2,PUT,,"Sri Sathya Sai Airport,Sri Sathya Sai Airport","Puttaparthi  - PUT""",,4,NULL,,
+18735,IN,2,PUT,,"Sri Sathya Sai Airport, Puttaparthi  - PUT","Sri Sathya Sai Airport, Puttaparthi  - PUT",,4,NULL,,
 18736,IN,3,QUI,,Quilon Seaport - QUI,Quilon Seaport - QUI,,4,NULL,1,
 18739,IN,3,RRI,,Raili Seaport - RRI,Raili Seaport - RRI,,4,NULL,1,
 18740,IN,2,RPR,,Raipur Airport - RPR,Raipur Airport - RPR,,4,NULL,1,
@@ -5278,7 +5278,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 18774,IN,2,SXV,,Salem Airport - SXV,Salem Airport - SXV,,4,NULL,1,
 18777,IN,2,TNI,,Satna Airport  - TNI,Satna Airport  - TNI,,4,NULL,1,
 18778,IN,3,STP,,Satpati Seaport - STP,Satpati Seaport - STP,,4,NULL,1,
-18780,IN,2,SXR,,"Sheikh ul Alam Airport,Sheikh ul Alam Airport","Srinagar - SXR""",,4,NULL,,
+18780,IN,2,SXR,,"Sheikh ul Alam Airport, Srinagar - SXR","Sheikh ul Alam Airport, Srinagar - SXR",,4,NULL,,
 18782,IN,2,SHL,,Shillong Airport - SHL,Shillong Airport - SHL,,4,NULL,1,
 18784,IN,2,SLV,,Shimla Airport - SLV,Shimla Airport - SLV,,4,NULL,1,
 18785,IN,3,SHI,,Shirola Seaport - SHI,Shirola Seaport - SHI,,4,NULL,1,
@@ -5476,11 +5476,11 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 19123,IS,2,GUU,,Grundarfjörður Airport - GUU,Grundarfjörður Airport - GUU,,4,NULL,1,1
 19124,IS,3,GRF,,Grundarfjordur Seaport - GRF,Grundarfjordur Seaport - GRF,,4,NULL,1,1
 19125,IS,3,GRT,,Grundartangi Seaport - GRT,Grundartangi Seaport - GRT,,4,NULL,1,1
-19126,IS,3,GUF,,"Gufunes,Gufunes","Reykjavik Seaport - GUF""",,4,NULL,,1
+19126,IS,3,GUF,,"Gufunes, Reykjavik Seaport - GUF","Gufunes, Reykjavik Seaport - GUF",,4,NULL,,1
 19127,IS,2,HVK,,Hólmavík Airport - HVK,Hólmavík Airport - HVK,,4,NULL,1,1
 19128,IS,3,HAF,,Hafnarfjordur Seaport - HAF,Hafnarfjordur Seaport - HAF,,4,NULL,1,1
 19130,IS,3,HJA,,Hjalteyri Seaport - HJA,Hjalteyri Seaport - HJA,,4,NULL,1,1
-19131,IS,2,HFN,,"Hofn,Hofn","Hornafjordur Airport - HFN""",,4,NULL,,1
+19131,IS,2,HFN,,"Hofn, Hornafjordur Airport - HFN","Hofn, Hornafjordur Airport - HFN",,4,NULL,,1
 19132,IS,3,HOF,,Hofsos Seaport - HOF,Hofsos Seaport - HOF,,4,NULL,1,1
 19136,IS,3,HRI,,Hrisey Seaport - HRI,Hrisey Seaport - HRI,,4,NULL,1,1
 19137,IS,3,HUS,,Husavik - hofn Seaport - HUS,Husavik - hofn Seaport - HUS,,4,NULL,1,1
@@ -5527,10 +5527,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 19185,IS,2,SYK,,Stykkishólmur Airport - SYK,Stykkishólmur Airport - SYK,,4,NULL,1,1
 19186,IS,3,STY,,Stykkisholmur - hofn Seaport - STY,Stykkisholmur - hofn Seaport - STY,,4,NULL,1,1
 19187,IS,3,SUV,,Sudavik Seaport - SUV,Sudavik Seaport - SUV,,4,NULL,1,1
-19188,IS,3,SUD,,"Sudureyri,Sudureyri","Sugandafjord Seaport - SUD""",,4,NULL,,1
+19188,IS,3,SUD,,"Sudureyri, Sugandafjord Seaport - SUD","Sudureyri, Sugandafjord Seaport - SUD",,4,NULL,,1
 19189,IS,3,SVA,,Svalbardseyri Seaport - SVA,Svalbardseyri Seaport - SVA,,4,NULL,1,1
 19190,IS,2,TLK,,Tálknafjörður Airport - TLK,Tálknafjörður Airport - TLK,,4,NULL,1,1
-19191,IS,3,TAL,,"Talknafjordur,Talknafjordur","Sveinseyri Seaport - TAL""",,4,NULL,,1
+19191,IS,3,TAL,,"Talknafjordur, Sveinseyri Seaport - TAL","Talknafjordur, Sveinseyri Seaport - TAL",,4,NULL,,1
 19193,IS,3,THH,,Thorlakshofn Seaport - THH,Thorlakshofn Seaport - THH,,4,NULL,1,1
 19194,IS,2,THO,,Thorshofn Airport - THO,Thorshofn Airport - THO,,4,NULL,1,1
 19196,IS,3,VES,,Vestmannaeyjar - hofn Seaport - VES,Vestmannaeyjar - hofn Seaport - VES,,4,NULL,1,1
@@ -5834,7 +5834,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 19508,IT,3,CII,,Chieti - CII,Chieti - CII,,3,NULL,1,1
 19509,IT,3,CHI,,Chioggia Seaport - CHI,Chioggia Seaport - CHI,,3,NULL,1,1
 19510,IT,3,CVS,,Chiopris Viscone - CVS,Chiopris Viscone - CVS,,3,NULL,1,1
-19512,IT,2,CIA,Rome,"Ciampino Airport,Ciampino Airport","Roma - CIA""",,3,NULL,,1
+19512,IT,2,CIA,Rome,"Ciampino Airport, Roma - CIA","Ciampino Airport, Roma - CIA",,3,NULL,,1
 19514,IT,3,CIM,,Cimadolmo - CIM,Cimadolmo - CIM,,3,NULL,1,1
 19515,IT,3,CIB,,Cinisello Balsamo - CIB,Cinisello Balsamo - CIB,,3,NULL,1,1
 19516,IT,3,CIR,,Cirie - CIR,Cirie - CIR,,3,NULL,1,1
@@ -6111,7 +6111,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 19803,IT,3,MAL,,Malgesso - MAL,Malgesso - MAL,,3,NULL,1,1
 19804,IT,3,MAT,,Malnate - MAT,Malnate - MAT,,3,NULL,1,1
 19805,IT,3,MLO,,Malo - MLO,Malo - MLO,,3,NULL,1,1
-19806,IT,2,MXP,,"Malpensa Airport,Malpensa Airport","Milano - MXP""",,3,NULL,,1
+19806,IT,2,MXP,,"Malpensa Airport, Milano - MXP","Malpensa Airport, Milano - MXP",,3,NULL,,1
 19808,IT,3,MNC,,Mandrio di Correggio - MNC,Mandrio di Correggio - MNC,,3,NULL,1,1
 19809,IT,3,MRB,,Manerbio - MRB,Manerbio - MRB,,3,NULL,1,1
 19810,IT,3,MFR,,Manfredonia Seaport - MFR,Manfredonia Seaport - MFR,,3,NULL,1,1
@@ -6158,7 +6158,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 19856,IT,3,MIA,,Mira - MIA,Mira - MIA,,3,NULL,1,1
 19857,IT,3,MID,,Mirandola - MID,Mirandola - MID,,3,NULL,1,1
 19858,IT,3,MIR,,Mirano - MIR,Mirano - MIR,,3,NULL,1,1
-19859,IT,3,MBC,,"Misterbianco,Misterbianco","Catania - MBC""",,3,NULL,,1
+19859,IT,3,MBC,,"Misterbianco, Catania - MBC","Misterbianco, Catania - MBC",,3,NULL,,1
 19860,IT,3,MOD,,Modena Seaport - MOD,Modena Seaport - MOD,,3,NULL,1,1
 19861,IT,3,MDG,,Modigliana - MDG,Modigliana - MDG,,3,NULL,1,1
 19862,IT,3,MUO,,Modugno - MUO,Modugno - MUO,,3,NULL,1,1
@@ -6334,7 +6334,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20046,IT,3,PTA,,Pontinia - PTA,Pontinia - PTA,,3,NULL,1,1
 20047,IT,3,PNU,,Pontruolo Nuovo - PNU,Pontruolo Nuovo - PNU,,3,NULL,1,1
 20048,IT,3,PNZ,,Ponza - PNZ,Ponza - PNZ,,3,NULL,1,1
-20049,IT,3,PZO,,"Ponzano,Ponzano","La Specia - PZO""",,3,NULL,,1
+20049,IT,3,PZO,,"Ponzano,La Specia - PZO","Ponzano,La Specia - PZO",,3,NULL,,1
 20050,IT,3,PZE,,Ponzone - PZE,Ponzone - PZE,,3,NULL,1,1
 20051,IT,3,POC,,Porcari - POC,Porcari - POC,,3,NULL,1,1
 20052,IT,3,PRD,,Pordenone - PRD,Pordenone - PRD,,3,NULL,1,1
@@ -6409,7 +6409,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20138,IT,3,RGG,,Rodi Garganico - RGG,Rodi Garganico - RGG,,3,NULL,1,1
 20139,IT,3,REN,,Rogeno - REN,Rogeno - REN,,3,NULL,1,1
 20140,IT,3,RGN,,Rogno - RGN,Rogno - RGN,,3,NULL,1,1
-20141,IT,3,ROG,,"Rogoredo,Rogoredo","Milan - ROG""",,3,NULL,,1
+20141,IT,3,ROG,,"Rogoredo, Milan - ROG","Rogoredo, Milan - ROG",,3,NULL,,1
 20144,IT,3,RDS,,Romans D''isonzo - RDS,Romans D''isonzo - RDS,,3,NULL,1,1
 20145,IT,3,RDZ,,Romas D''isanzo - RDZ,Romas D''isanzo - RDZ,,3,NULL,1,1
 20149,IT,3,RDA,,Roseto Degli Abruzzi - RDA,Roseto Degli Abruzzi - RDA,,3,NULL,1,1
@@ -6500,7 +6500,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20524,JO,2,MPQ,,Maan Airport - MPQ,Maan Airport - MPQ,,4,NULL,1,
 20528,JP,3,ABA,,Abashiri Seaport - ABA,Abashiri Seaport - ABA,,4,NULL,1,
 20529,JP,3,ABS,,Abohshita Seaport - ABS,Abohshita Seaport - ABS,,4,NULL,1,
-20530,JP,3,ABO,,"Aboshi,Aboshi","Himeji Seaport - ABO""",,4,NULL,,
+20530,JP,3,ABO,,"Aboshi, Himeji Seaport - ABO","Aboshi, Himeji Seaport - ABO",,4,NULL,,
 20531,JP,3,ABU,,Aburatsu Seaport - ABU,Aburatsu Seaport - ABU,,4,NULL,1,
 20532,JP,3,ABT,,Abuto Seaport - ABT,Abuto Seaport - ABT,,4,NULL,1,
 20533,JP,3,ADE,,Ade Seaport - ADE,Ade Seaport - ADE,,4,NULL,1,
@@ -6511,27 +6511,27 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20538,JP,3,AGJ,,Aguni Seaport - AGJ,Aguni Seaport - AGJ,,4,NULL,1,
 20540,JP,3,AKZ,,Aika Seaport - AKZ,Aika Seaport - AKZ,,4,NULL,1,
 20541,JP,3,AKI,,Aikakita Seaport - AKI,Aikakita Seaport - AKI,,4,NULL,1,
-20542,JP,3,AIW,,"Aikawa,Aikawa","Nagasaki Seaport - AIW""",,4,NULL,,
-20543,JP,3,AIK,,"Aikawa,Aikawa","Niigata Seaport - AIK""",,4,NULL,,
-20544,JP,3,AIN,,"Ainoura,Ainoura","Sasebo Seaport - AIN""",,4,NULL,,
-20545,JP,3,AIA,,"Ainouraaoki,Ainouraaoki","Naru Seaport - AIA""",,4,NULL,,
+20542,JP,3,AIW,,"Aikawa, Nagasaki Seaport - AIW","Aikawa, Nagasaki Seaport - AIW",,4,NULL,,
+20543,JP,3,AIK,,"Aikawa, Niigata Seaport - AIK","Aikawa, Niigata Seaport - AIK",,4,NULL,,
+20544,JP,3,AIN,,"Ainoura, Sasebo Seaport - AIN","Ainoura, Sasebo Seaport - AIN",,4,NULL,,
+20545,JP,3,AIA,,"Ainouraaoki, Naru Seaport - AIA","Ainouraaoki, Naru Seaport - AIA",,4,NULL,,
 20546,JP,3,AII,,Aio Seaport - AII,Aio Seaport - AII,,4,NULL,1,
 20547,JP,3,AIO,,Aioi Seaport - AIO,Aioi Seaport - AIO,,4,NULL,1,
 20548,JP,3,AIM,,Aishima Seaport - AIM,Aishima Seaport - AIM,,4,NULL,1,
-20549,JP,3,AIZ,,"Aizu,Aizu","Kumamoto Seaport - AIZ""",,4,NULL,,
+20549,JP,3,AIZ,,"Aizu, Kumamoto Seaport - AIZ","Aizu, Kumamoto Seaport - AIZ",,4,NULL,,
 20550,JP,3,AJX,,Aja Seaport - AJX,Aja Seaport - AJX,,4,NULL,1,
 20551,JP,3,AJI,,Aji Seaport - AJI,Aji Seaport - AJI,,4,NULL,1,
 20552,JP,3,AJK,,Ajigasawa Seaport - AJK,Ajigasawa Seaport - AJK,,4,NULL,1,
 20553,JP,3,AJN,,Ajino Seaport - AJN,Ajino Seaport - AJN,,4,NULL,1,
-20554,JP,3,AZR,,"Ajiro,Ajiro","Okayama Seaport - AZR""",,4,NULL,,
-20555,JP,3,AJR,,"Ajiro,Ajiro","Shizuoka Seaport  - AJR""",,4,NULL,,
-20556,JP,3,AZJ,,"Ajiro,Ajiro","Tottori Seaport - AZJ""",,4,NULL,,
+20554,JP,3,AZR,,"Ajiro, Okayama Seaport - AZR","Ajiro, Okayama Seaport - AZR",,4,NULL,,
+20555,JP,3,AJR,,"Ajiro, Shizuoka Seaport  - AJR","Ajiro, Shizuoka Seaport  - AJR",,4,NULL,,
+20556,JP,3,AZJ,,"Ajiro, Tottori Seaport - AZJ","Ajiro, Tottori Seaport - AZJ",,4,NULL,,
 20557,JP,3,ACH,,Ajisu Seaport - ACH,Ajisu Seaport - ACH,,4,NULL,1,
 20558,JP,3,AKD,,Akadomari Seaport - AKD,Akadomari Seaport - AKD,,4,NULL,1,
 20559,JP,3,AKG,,Akakina Seaport - AKG,Akakina Seaport - AKG,,4,NULL,1,
 20560,JP,3,AKM,,Akamizu Seaport - AKM,Akamizu Seaport - AKM,,4,NULL,1,
-20561,JP,3,AKK,,"Akasaki,Akasaki","Kumamoto Seaport - AKK""",,4,NULL,,
-20562,JP,3,ASK,,"Akasaki,Akasaki","Tottori Seaport - ASK""",,4,NULL,,
+20561,JP,3,AKK,,"Akasaki, Kumamoto Seaport - AKK","Akasaki, Kumamoto Seaport - AKK",,4,NULL,,
+20562,JP,3,ASK,,"Akasaki, Tottori Seaport - ASK","Akasaki, Tottori Seaport - ASK",,4,NULL,,
 20563,JP,3,AKA,,Akashi Seaport - AKA,Akashi Seaport - AKA,,4,NULL,1,
 20564,JP,3,AKH,,Akehama Seaport - AKH,Akehama Seaport - AKH,,4,NULL,1,
 20565,JP,3,AXT,,Akita Seaport - AXT,Akita Seaport - AXT,,4,NULL,1,
@@ -6540,7 +6540,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20569,JP,3,AKO,,Akoh Seaport - AKO,Akoh Seaport - AKO,,4,NULL,1,
 20570,JP,3,AKB,,Akohbaru Seaport - AKB,Akohbaru Seaport - AKB,,4,NULL,1,
 20571,JP,3,AKN,,Akune Seaport - AKN,Akune Seaport - AKN,,4,NULL,1,
-20573,JP,3,AMM,,"Ama,Ama","Hyogo Seaport - AMM""",,4,NULL,,
+20573,JP,3,AMM,,"Ama, Hyogo Seaport - AMM","Ama, Hyogo Seaport - AMM",,4,NULL,,
 20574,JP,3,AMA,,Amagasaki Seaport - AMA,Amagasaki Seaport - AMA,,4,NULL,1,
 20575,JP,3,AMX,,AmagasakiNishinomiyaAshiya Seaport - AMX,AmagasakiNishinomiyaAshiya Seaport - AMX,,4,NULL,1,
 20576,JP,3,AMJ,,Amaji Seaport - AMJ,Amaji Seaport - AMJ,,4,NULL,1,
@@ -6574,7 +6574,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20608,JP,3,ASB,,Ashibe Seaport - ASB,Ashibe Seaport - ASB,,4,NULL,1,
 20609,JP,3,ASH,,Ashinoura Seaport - ASH,Ashinoura Seaport - ASH,,4,NULL,1,
 20610,JP,3,AST,,Ashitoku Seaport - AST,Ashitoku Seaport - AST,,4,NULL,1,
-20611,JP,3,ASZ,,"Ashiya,Ashiya","Fukuoka Seaport - ASZ""",,4,NULL,,
+20611,JP,3,ASZ,,"Ashiya, Fukuoka Seaport - ASZ","Ashiya, Fukuoka Seaport - ASZ",,4,NULL,,
 20612,JP,3,ASR,,Ashizuri Seaport - ASR,Ashizuri Seaport - ASR,,4,NULL,1,
 20613,JP,3,AMI,,Atami Seaport - AMI,Atami Seaport - AMI,,4,NULL,1,
 20614,JP,3,ATT,,Atatajima Seaport - ATT,Atatajima Seaport - ATT,,4,NULL,1,
@@ -6590,8 +6590,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20625,JP,3,AYU,,Ayukawa Seaport - AYU,Ayukawa Seaport - AYU,,4,NULL,1,
 20626,JP,3,AKW,,Azako Seaport - AKW,Azako Seaport - AKW,,4,NULL,1,
 20627,JP,3,AZU,,Azu Seaport - AZU,Azu Seaport - AZU,,4,NULL,1,
-20628,JP,3,BPU,,"Beppu,Beppu","Oita Seaport - BPU""",,4,Null,,
-20629,JP,3,BEP,,"Beppu,Beppu","Shimane Seaport - BEP""",,4,NULL,,
+20628,JP,3,BPU,,"Beppu, Oita Seaport - BPU","Beppu, Oita Seaport - BPU",,4,Null,,
+20629,JP,3,BEP,,"Beppu, Shimane Seaport - BEP","Beppu, Shimane Seaport - BEP",,4,NULL,,
 20630,JP,3,BFS,,Beppushinko Seaport - BFS,Beppushinko Seaport - BFS,,4,NULL,1,
 20631,JP,3,BDM,,Bohdomari Seaport - BDM,Bohdomari Seaport - BDM,,4,NULL,1,
 20633,JP,3,BYO,,Byobu Seaport - BYO,Byobu Seaport - BYO,,4,NULL,1,
@@ -6604,8 +6604,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20640,JP,3,CNS,,Chinase Seaport - CNS,Chinase Seaport - CNS,,4,NULL,1,
 20641,JP,3,CIO,,Chio Seaport - CIO,Chio Seaport - CIO,,4,NULL,1,
 20642,JP,3,CTA,,Chita Seaport - CTA,Chita Seaport - CTA,,4,NULL,1,
-20643,JP,2,CTS,,"Chitose Airport,Chitose Airport","Sapporo Airport - CTS""",,4,NULL,,
-20644,JP,3,CHT,,"Chitose,Chitose","Hiroshima Seaport - CHT""",,4,NULL,,
+20643,JP,2,CTS,,"Chitose Airport, Sapporo Airport - CTS","Chitose Airport, Sapporo Airport - CTS",,4,NULL,,
+20644,JP,3,CHT,,"Chitose, Hiroshima Seaport - CHT","Chitose, Hiroshima Seaport - CHT",,4,NULL,,
 20645,JP,3,CYZ,,Chiyozaki Seaport - CYZ,Chiyozaki Seaport - CYZ,,4,NULL,1,
 20646,JP,3,CHF,,Chofu Seaport - CHF,Chofu Seaport - CHF,,4,NULL,1,
 20647,JP,3,CHO,,Choshi Seaport - CHO,Choshi Seaport - CHO,,4,NULL,1,
@@ -6626,12 +6626,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20662,JP,3,ENA,,Ena Seaport - ENA,Ena Seaport - ENA,,4,NULL,1,
 20663,JP,3,ENH,,Enohama Seaport - ENH,Enohama Seaport - ENH,,4,NULL,1,
 20664,JP,3,EKZ,,Enokizu Seaport - EKZ,Enokizu Seaport - EKZ,,4,NULL,1,
-20665,JP,3,ENR,,"Enoura,Enoura","Kagawa Seaport - ENR""",,4,NULL,,
-20666,JP,3,ENO,,"Enoura,Enoura","Shizuoka Seaport - ENO""",,4,NULL,,
+20665,JP,3,ENR,,"Enoura, Kagawa Seaport - ENR","Enoura, Kagawa Seaport - ENR",,4,NULL,,
+20666,JP,3,ENO,,"Enoura, Shizuoka Seaport - ENO","Enoura, Shizuoka Seaport - ENO",,4,NULL,,
 20667,JP,3,EMM,,Erimo Seaport - EMM,Erimo Seaport - EMM,,4,NULL,1,
 20668,JP,3,ESK,,Esaki Seaport - ESK,Esaki Seaport - ESK,,4,NULL,1,
-20669,JP,3,ESI,,"Esashi,Esashi","Hiyama Seaport - ESI""",,4,NULL,,
-20670,JP,3,ESS,,"Esashi,Esashi","Soya Seaport - ESS""",,4,NULL,,
+20669,JP,3,ESI,,"Esashi, Hiyama Seaport - ESI","Esashi, Hiyama Seaport - ESI",,4,NULL,,
+20670,JP,3,ESS,,"Esashi, Soya Seaport - ESS","Esashi, Soya Seaport - ESS",,4,NULL,,
 20671,JP,3,ESM,,Eshima Seaport - ESM,Eshima Seaport - ESM,,4,NULL,1,
 20672,JP,3,ETA,,Etajima Seaport - ETA,Etajima Seaport - ETA,,4,NULL,1,
 20673,JP,3,ETM,,Etomo Seaport - ETM,Etomo Seaport - ETM,,4,NULL,1,
@@ -6639,13 +6639,13 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20675,JP,3,FCM,,Fuchinomoto Seaport - FCM,Fuchinomoto Seaport - FCM,,4,NULL,1,
 20676,JP,3,FGS,,Fugusaki Seaport - FGS,Fugusaki Seaport - FGS,,4,NULL,1,
 20678,JP,3,FJN,,Fujino Seaport - FJN,Fujino Seaport - FJN,,4,NULL,1,
-20679,JP,3,FKH,,"Fukae,Fukae","Hiroshima Seaport  - FKH""",,4,NULL,,
-20680,JP,3,FAE,,"Fukae,Fukae","Nagasaki Seaport - FAE""",,4,NULL,,
+20679,JP,3,FKH,,"Fukae, Hiroshima Seaport  - FKH","Fukae, Hiroshima Seaport  - FKH",,4,NULL,,
+20680,JP,3,FAE,,"Fukae, Nagasaki Seaport - FAE","Fukae, Nagasaki Seaport - FAE",,4,NULL,,
 20681,JP,3,FKI,,Fukai Seaport - FKI,Fukai Seaport - FKI,,4,NULL,1,
 20682,JP,3,FUM,,Fukami Seaport - FUM,Fukami Seaport - FUM,,4,NULL,1,
 20683,JP,3,FRI,,Fukari Seaport - FRI,Fukari Seaport - FRI,,4,NULL,1,
-20684,JP,3,FKK,,"Fukaura,Fukaura","Aomori Seaport - FKK""",,4,NULL,,
-20685,JP,3,FKR,,"Fukaura,Fukaura","Ehime Seaport - FKR""",,4,NULL,,
+20684,JP,3,FKK,,"Fukaura, Aomori Seaport - FKK","Fukaura, Aomori Seaport - FKK",,4,NULL,,
+20685,JP,3,FKR,,"Fukaura, Ehime Seaport - FKR","Fukaura, Ehime Seaport - FKR",,4,NULL,,
 20686,JP,3,FUW,,Fukawa Seaport - FUW,Fukawa Seaport - FUW,,4,NULL,1,
 20688,JP,3,FUE,,Fuke Seaport - FUE,Fuke Seaport - FUE,,4,NULL,1,
 20689,JP,3,FKD,,Fukuda Seaport - FKD,Fukuda Seaport - FKD,,4,NULL,1,
@@ -6653,18 +6653,18 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20691,JP,2,FUJ,,Fukue Airport - FUJ,Fukue Airport - FUJ,,4,NULL,1,
 20693,JP,3,FKJ,,Fukui Seaport - FKJ,Fukui Seaport - FKJ,,4,NULL,1,
 20695,JP,2,FUK,,Fukuoka Airport - FUK,Fukuoka Airport - FUK,,4,NULL,1,
-20697,JP,3,FRA,,"Fukura,Fukura","Hyogo Seaport - FRA""",,4,NULL,,
-20698,JP,3,FUU,,"Fukura,Fukura","Kagoshima Seaport  - FUU""",,4,NULL,,
+20697,JP,3,FRA,,"Fukura, Hyogo Seaport - FRA","Fukura, Hyogo Seaport - FRA",,4,NULL,,
+20698,JP,3,FUU,,"Fukura, Kagoshima Seaport  - FUU","Fukura, Kagoshima Seaport  - FUU",,4,NULL,,
 20699,JP,3,FUO,,Fukuro Seaport - FUO,Fukuro Seaport - FUO,,4,NULL,1,
 20700,JP,2,FKS,,Fukushima Airport Airport - FKS,Fukushima Airport Airport - FKS,,4,NULL,1,
-20701,JP,3,FMS,,"Fukushima,Fukushima","Miyazaki Seaport - FMS""",,4,NULL,,
-20702,JP,3,FKU,,"Fukushima,Fukushima","Hokkaido Seaport - FKU""",,4,NULL,,
-20703,JP,3,FKM,,"Fukushima,Fukushima","Nagasaki Seaport - FKM""",,4,NULL,,
-20704,JP,3,FUR,,"Fukuura,Fukuura","Ehime Seaport - FUR""",,4,NULL,,
-20705,JP,3,FRJ,,"Fukuura,Fukuura","Ishikawa Seaport - FRJ""",,4,NULL,,
-20706,JP,3,FUA,,"Fukuura,Fukuura","Kumamoto Seaport - FUA""",,4,NULL,,
-20707,JP,3,FKY,,"Fukuyama,Fukuyama","Hiroshima Seaport - FKY""",,4,NULL,,
-20708,JP,3,FYM,,"Fukuyama,Fukuyama","Kagoshima Seaport - FYM""",,4,NULL,,
+20701,JP,3,FMS,,"Fukushima, Miyazaki Seaport - FMS","Fukushima, Miyazaki Seaport - FMS",,4,NULL,,
+20702,JP,3,FKU,,"Fukushima, Hokkaido Seaport - FKU","Fukushima, Hokkaido Seaport - FKU",,4,NULL,,
+20703,JP,3,FKM,,"Fukushima, Nagasaki Seaport - FKM","Fukushima, Nagasaki Seaport - FKM",,4,NULL,,
+20704,JP,3,FUR,,"Fukuura, Ehime Seaport - FUR","Fukuura, Ehime Seaport - FUR",,4,NULL,,
+20705,JP,3,FRJ,,"Fukuura, Ishikawa Seaport - FRJ","Fukuura, Ishikawa Seaport - FRJ",,4,NULL,,
+20706,JP,3,FUA,,"Fukuura, Kumamoto Seaport - FUA","Fukuura, Kumamoto Seaport - FUA",,4,NULL,,
+20707,JP,3,FKY,,"Fukuyama, Hiroshima Seaport - FKY","Fukuyama, Hiroshima Seaport - FKY",,4,NULL,,
+20708,JP,3,FYM,,"Fukuyama, Kagoshima Seaport - FYM","Fukuyama, Kagoshima Seaport - FYM",,4,NULL,,
 20709,JP,3,FNB,,Funabashi Seaport - FNB,Funabashi Seaport - FNB,,4,NULL,1,
 20710,JP,3,FND,,Funadomari Seaport - FND,Funadomari Seaport - FND,,4,NULL,1,
 20711,JP,3,FNK,,Funagawa Seaport - FNK,Funagawa Seaport - FNK,,4,NULL,1,
@@ -6676,44 +6676,44 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20717,JP,3,FNZ,,Funazu Seaport - FNZ,Funazu Seaport - FNZ,,4,NULL,1,
 20718,JP,3,FHR,,Furubira Seaport - FHR,Furubira Seaport - FHR,,4,NULL,1,
 20719,JP,3,FRX,,Furue Ehime Seaport - FRX,Furue Ehime Seaport - FRX,,4,NULL,1,
-20720,JP,3,FRU,,"Furue,Furue","Kagoshima Seaport - FRU""",,4,NULL,,
-20721,JP,3,FRM,,"Furue,Furue","Miyazaki Seaport - FRM""",,4,NULL,,
-20722,JP,3,FRE,,"Furue,Furue","Nagasaki Seaport - FRE""",,4,NULL,,
+20720,JP,3,FRU,,"Furue, Kagoshima Seaport - FRU","Furue, Kagoshima Seaport - FRU",,4,NULL,,
+20721,JP,3,FRM,,"Furue, Miyazaki Seaport - FRM","Furue, Miyazaki Seaport - FRM",,4,NULL,,
+20722,JP,3,FRE,,"Furue, Nagasaki Seaport - FRE","Furue, Nagasaki Seaport - FRE",,4,NULL,,
 20723,JP,3,FRK,,Furuike Seaport - FRK,Furuike Seaport - FRK,,4,NULL,1,
 20725,JP,3,URU,,Furumi Seaport - URU,Furumi Seaport - URU,,4,NULL,1,
-20726,JP,3,FST,,"Furusato,Furusato","Kagoshima Seaport - FST""",,4,NULL,,
-20727,JP,3,FRS,,"Furusato,Furusato","Nagasaki Seaport - FRS""",,4,NULL,,
+20726,JP,3,FST,,"Furusato, Kagoshima Seaport - FST","Furusato, Kagoshima Seaport - FST",,4,NULL,,
+20727,JP,3,FRS,,"Furusato, Nagasaki Seaport - FRS","Furusato, Nagasaki Seaport - FRS",,4,NULL,,
 20728,JP,3,FSK,,Fushiki Seaport - FSK,Fushiki Seaport - FSK,,4,NULL,1,
 20730,JP,3,FTE,,Futae Seaport - FTE,Futae Seaport - FTE,,4,NULL,1,
 20731,JP,3,FGW,,Futagawa Seaport - FGW,Futagawa Seaport - FGW,,4,NULL,1,
 20732,JP,3,FTG,,Futago Seaport - FTG,Futago Seaport - FTG,,4,NULL,1,
 20734,JP,3,FMD,,Futamado Seaport - FMD,Futamado Seaport - FMD,,4,NULL,1,
-20735,JP,3,FMT,,"Futamata,Futamata","Kagoshima Seaport - FMT""",,4,NULL,,
-20736,JP,3,FTT,,"Futamata,Futamata","Shimane Seaport - FTT""",,4,NULL,,
-20737,JP,3,HUT,,"Futami,Futami","Niigata Seaport - HUT""",,4,NULL,,
-20738,JP,3,HTM,,"Futami,Futami","Tokyo Seaport - HTM""",,4,NULL,,
+20735,JP,3,FMT,,"Futamata, Kagoshima Seaport - FMT","Futamata, Kagoshima Seaport - FMT",,4,NULL,,
+20736,JP,3,FTT,,"Futamata, Shimane Seaport - FTT","Futamata, Shimane Seaport - FTT",,4,NULL,,
+20737,JP,3,HUT,,"Futami, Niigata Seaport - HUT","Futami, Niigata Seaport - HUT",,4,NULL,,
+20738,JP,3,HTM,,"Futami, Tokyo Seaport - HTM","Futami, Tokyo Seaport - HTM",,4,NULL,,
 20739,JP,3,FTM,,Futenma Seaport - FTM,Futenma Seaport - FTM,,4,NULL,1,
 20740,JP,3,GAM,,Gamagori Seaport - GAM,Gamagori Seaport - GAM,,4,NULL,1,
 20741,JP,3,GPT,,Gendentokai Seaport - GPT,Gendentokai Seaport - GPT,,4,NULL,1,
 20744,JP,3,GNW,,Ginowan Seaport - GNW,Ginowan Seaport - GNW,,4,NULL,1,
 20745,JP,3,GKB,,Gohnokubi Seaport - GKB,Gohnokubi Seaport - GKB,,4,NULL,1,
 20746,JP,3,GOT,,Gohtsu Seaport - GOT,Gohtsu Seaport - GOT,,4,NULL,1,
-20747,JP,3,GOI,,"Goi,Goi","Ichihara Seaport - GOI""",,4,NULL,,
+20747,JP,3,GOI,,"Goi, Ichihara Seaport - GOI","Goi, Ichihara Seaport - GOI",,4,NULL,,
 20748,JP,3,GKN,,Gokan Seaport - GKN,Gokan Seaport - GKN,,4,NULL,1,
 20749,JP,3,GKS,,Gokasho Seaport - GKS,Gokasho Seaport - GKS,,4,NULL,1,
 20750,JP,3,GON,,Gonoura Seaport - GON,Gonoura Seaport - GON,,4,NULL,1,
 20751,JP,3,GNG,,Gunge Seaport - GNG,Gunge Seaport - GNG,,4,NULL,1,
 20753,JP,3,HBO,,Haboro Seaport - HBO,Haboro Seaport - HBO,,4,NULL,1,
-20754,JP,3,HAB,,"Habu,Habu","Hiroshima Seaport - HAB""",,4,NULL,,
-20755,JP,3,HAU,,"Habu,Habu","Tokyo Seaport - HAU""",,4,NULL,,
-20756,JP,3,HBB,,"Habu,Habu","Yamaguchi Seaport - HBB""",,4,NULL,,
+20754,JP,3,HAB,,"Habu, Hiroshima Seaport - HAB","Habu, Hiroshima Seaport - HAB",,4,NULL,,
+20755,JP,3,HAU,,"Habu, Tokyo Seaport - HAU","Habu, Tokyo Seaport - HAU",,4,NULL,,
+20756,JP,3,HBB,,"Habu, Yamaguchi Seaport - HBB","Habu, Yamaguchi Seaport - HBB",,4,NULL,,
 20757,JP,3,HGO,,Hachigo Seaport - HGO,Hachigo Seaport - HGO,,4,NULL,1,
 20758,JP,2,HAC,,Hachijojima Airport - HAC,Hachijojima Airport - HAC,,4,NULL,1,
 20760,JP,3,HHE,,Hachinohe Seaport - HHE,Hachinohe Seaport - HHE,,4,NULL,1,
 20763,JP,3,HAE,,Haenohama Seaport - HAE,Haenohama Seaport - HAE,,4,NULL,1,
 20764,JP,3,HAG,,Hagi Seaport - HAG,Hagi Seaport - HAG,,4,NULL,1,
 20766,JP,3,HAI,,Haiki Seaport - HAI,Haiki Seaport - HAI,,4,NULL,1,
-20767,JP,3,HKT,,"Hakata,Hakata","Fukuoka Seaport - HKT""",,4,NULL,,
+20767,JP,3,HKT,,"Hakata, Fukuoka Seaport - HKT","Hakata, Fukuoka Seaport - HKT",,4,NULL,,
 20768,JP,3,HKS,,Hakatashima Seaport - HKS,Hakatashima Seaport - HKS,,4,NULL,1,
 20769,JP,3,HKD,,Hakodate Seaport - HKD,Hakodate Seaport - HKD,,4,NULL,1,
 20771,JP,3,HKU,,Hakoura Seaport - HKU,Hakoura Seaport - HKU,,4,NULL,1,
@@ -6737,7 +6737,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20791,JP,3,HNK,,Hanasaki Seaport - HNK,Hanasaki Seaport - HNK,,4,NULL,1,
 20792,JP,3,HDA,,Handa Seaport - HDA,Handa Seaport - HDA,,4,NULL,1,
 20793,JP,3,HNE,,Hane Seaport - HNE,Hane Seaport - HNE,,4,NULL,1,
-20794,JP,2,HND,Haneda Airport,Tokyo Airport – HND,Tokyo Airport - HND,10,4,NULL,1,
+20794,JP,2,HND,Haneda Airport,"Haneda Airport, Tokyo Airport - HND","Haneda Airport, Tokyo Airport - HND",10,4,NULL,1,
 20795,JP,3,HAN,,Hannan Seaport - HAN,Hannan Seaport - HAN,,4,NULL,1,
 20796,JP,3,HUR,,Hannoura Seaport - HUR,Hannoura Seaport - HUR,,4,NULL,1,
 20797,JP,3,HNY,,Hanyu Seaport - HNY,Hanyu Seaport - HNY,,4,NULL,1,
@@ -6761,7 +6761,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20816,JP,3,HES,,Hesaki Seaport - HES,Hesaki Seaport - HES,,4,NULL,1,
 20817,JP,3,HET,,Heta Seaport - HET,Heta Seaport - HET,,4,NULL,1,
 20818,JP,3,HED,,Hetono Seaport - HED,Hetono Seaport - HED,,4,NULL,1,
-20819,JP,3,HIA,,"Hiagari,Hiagari","Kitakiushu Seaport - HIA""",,4,NULL,,
+20819,JP,3,HIA,,"Hiagari, Kitakiushu Seaport - HIA","Hiagari, Kitakiushu Seaport - HIA",,4,NULL,,
 20820,JP,3,HIB,,Hibi Seaport - HIB,Hibi Seaport - HIB,,4,NULL,1,
 20821,JP,3,HBK,,Hibikishinko Seaport - HBK,Hibikishinko Seaport - HBK,,4,NULL,1,
 20822,JP,3,HBR,,Hiburi Seaport - HBR,Hiburi Seaport - HBR,,4,NULL,1,
@@ -6803,8 +6803,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20859,JP,3,HRH,,Hirohata Seaport - HRH,Hirohata Seaport - HRH,,4,NULL,1,
 20860,JP,3,HIR,,Hiroo Seaport - HIR,Hiroo Seaport - HIR,,4,NULL,1,
 20861,JP,3,HIJ,,Hiroshima Seaport - HIJ,Hiroshima Seaport - HIJ,,4,NULL,1,
-20864,JP,3,HTA,,"Hirota,Hirota","Iwate Seaport - HTA""",,4,NULL,,
-20865,JP,3,HJT,,"Hirota,Hirota","Kagoshima Seaport - HJT""",,4,NULL,,
+20864,JP,3,HTA,,"Hirota, Iwate Seaport - HTA","Hirota, Iwate Seaport - HTA",,4,NULL,,
+20865,JP,3,HJT,,"Hirota, Kagoshima Seaport - HJT","Hirota, Kagoshima Seaport - HJT",,4,NULL,,
 20866,JP,3,HRU,,Hiroura Seaport - HRU,Hiroura Seaport - HRU,,4,NULL,1,
 20867,JP,3,HGU,,Hirugaura Seaport - HGU,Hirugaura Seaport - HGU,,4,NULL,1,
 20868,JP,3,HSN,,Hisanohama Seaport - HSN,Hisanohama Seaport - HSN,,4,NULL,1,
@@ -6821,15 +6821,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20879,JP,3,HJO,,Hojo Seaport - HJO,Hojo Seaport - HJO,,4,NULL,1,
 20880,JP,3,HOD,,Hondo Seaport - HOD,Hondo Seaport - HOD,,4,NULL,1,
 20881,JP,3,HJA,,Honjima Seaport - HJA,Honjima Seaport - HJA,,4,NULL,1,
-20882,JP,3,HON,,"Honjo,Honjo","Akita Seaport - HON""",,4,NULL,,
-20883,JP,3,HNJ,,"Honjo,Honjo","Kyoto Seaport - HNJ""",,4,NULL,,
+20882,JP,3,HON,,"Honjo, Akita Seaport - HON","Honjo, Akita Seaport - HON",,4,NULL,,
+20883,JP,3,HNJ,,"Honjo, Kyoto Seaport - HNJ","Honjo, Kyoto Seaport - HNJ",,4,NULL,,
 20884,JP,3,HKM,,Honkushima Seaport - HKM,Honkushima Seaport - HKM,,4,NULL,1,
 20885,JP,3,HNN,,Honmoku Seaport - HNN,Honmoku Seaport - HNN,,4,NULL,1,
 20886,JP,3,HPP,,Hoppozaki Seaport - HPP,Hoppozaki Seaport - HPP,,4,NULL,1,
 20887,JP,3,HRE,,Horie Seaport - HRE,Horie Seaport - HRE,,4,NULL,1,
 20888,JP,3,HRI,,Horikappu Seaport - HRI,Horikappu Seaport - HRI,,4,NULL,1,
-20889,JP,3,HOS,,"Hoshik,Hoshik","Saga Seaport - HOS""",,4,NULL,,
-20890,JP,3,HSI,,"Hoshika,Hoshika","Nagasaki Seaport - HSI""",,4,NULL,,
+20889,JP,3,HOS,,"Hoshik, Saga Seaport - HOS","Hoshik, Saga Seaport - HOS",,4,NULL,,
+20890,JP,3,HSI,,"Hoshika, Nagasaki Seaport - HSI","Hoshika, Nagasaki Seaport - HSI",,4,NULL,,
 20891,JP,3,HSM,,Hososhima Seaport - HSM,Hososhima Seaport - HSM,,4,NULL,1,
 20892,JP,3,HOT,,Hotokegaura Seaport - HOT,Hotokegaura Seaport - HOT,,4,NULL,1,
 20893,JP,3,HKK,,Hyakkan Seaport - HKK,Hyakkan Seaport - HKK,,4,NULL,1,
@@ -6841,7 +6841,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20900,JP,3,ICH,,Ichihara Seaport - ICH,Ichihara Seaport - ICH,,4,NULL,1,
 20901,JP,3,ICK,,Ichikawa Seaport - ICK,Ichikawa Seaport - ICK,,4,NULL,1,
 20902,JP,2,IEJ,,IeJima / Okinawa Airport - IEJ,IeJima / Okinawa Airport - IEJ,,4,NULL,1,
-20904,JP,3,IES,,"Ieshima,Ieshima","Hyogo Seaport - IES""",,4,NULL,,
+20904,JP,3,IES,,"Ieshima, Hyogo Seaport - IES","Ieshima, Hyogo Seaport - IES",,4,NULL,,
 20905,JP,3,IER,,Ieura Seaport - IER,Ieura Seaport - IER,,4,NULL,1,
 20906,JP,3,IGO,,Igo Seaport - IGO,Igo Seaport - IGO,,4,NULL,1,
 20907,JP,3,IHO,,Ihota Seaport - IHO,Ihota Seaport - IHO,,4,NULL,1,
@@ -6851,8 +6851,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20911,JP,3,INT,,Iinoseto Seaport - INT,Iinoseto Seaport - INT,,4,NULL,1,
 20912,JP,3,IKR,,Ikara Seaport - IKR,Ikara Seaport - IKR,,4,NULL,1,
 20913,JP,3,IKT,,Ikata Seaport - IKT,Ikata Seaport - IKT,,4,NULL,1,
-20914,JP,3,IKA,,"Ikeda,Ikeda","Kagawa Seaport - IKA""",,4,NULL,,
-20915,JP,3,IKD,,"Ikeda,Ikeda","Wakayama Seaport - IKD""",,4,NULL,,
+20914,JP,3,IKA,,"Ikeda, Kagawa Seaport - IKA","Ikeda, Kagawa Seaport - IKA",,4,NULL,,
+20915,JP,3,IKD,,"Ikeda, Wakayama Seaport - IKD","Ikeda, Wakayama Seaport - IKD",,4,NULL,,
 20916,JP,3,IKE,,Ikeshima Seaport - IKE,Ikeshima Seaport - IKE,,4,NULL,1,
 20917,JP,2,IKI,,Iki Airport - IKI,Iki Airport - IKI,,4,NULL,1,
 20919,JP,3,IKN,,Ikina Seaport - IKN,Ikina Seaport - IKN,,4,NULL,1,
@@ -6873,8 +6873,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20934,JP,3,INE,,Ine Seaport - INE,Ine Seaport - INE,,4,NULL,1,
 20935,JP,3,INS,,Innoshima Seaport - INS,Innoshima Seaport - INS,,4,NULL,1,
 20936,JP,3,INO,,Inobe Seaport - INO,Inobe Seaport - INO,,4,NULL,1,
-20937,JP,3,IUH,,"Inokuchi,Inokuchi","Ehime Seaport - IUH""",,4,NULL,,
-20938,JP,3,INK,,"Inokushi,Inokushi","Oita Seaport - INK""",,4,NULL,,
+20937,JP,3,IUH,,"Inokuchi, Ehime Seaport - IUH","Inokuchi, Ehime Seaport - IUH",,4,NULL,,
+20938,JP,3,INK,,"Inokushi, Oita Seaport - INK","Inokushi, Oita Seaport - INK",,4,NULL,,
 20939,JP,3,IND,,Inonada Seaport - IND,Inonada Seaport - IND,,4,NULL,1,
 20940,JP,3,ING,,Inugaura Seaport - ING,Inugaura Seaport - ING,,4,NULL,1,
 20941,JP,3,INZ,,Inujima Seaport - INZ,Inujima Seaport - INZ,,4,NULL,1,
@@ -6896,12 +6896,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20961,JP,3,KYR,,Isso Seaport - KYR,Isso Seaport - KYR,,4,NULL,1,
 20962,JP,3,ISU,,Isuwan Seaport - ISU,Isuwan Seaport - ISU,,4,NULL,1,
 20963,JP,3,ITK,,Itako Seaport - ITK,Itako Seaport - ITK,,4,NULL,1,
-20964,JP,3,ITU,,"Itoh,Itoh","Shimane Seaport - ITU""",,4,NULL,,
-20965,JP,3,ITJ,,"Itoh,Itoh","Shizuoka Seaport - ITJ""",,4,NULL,,
+20964,JP,3,ITU,,"Itoh, Shimane Seaport - ITU","Itoh, Shimane Seaport - ITU",,4,NULL,,
+20965,JP,3,ITJ,,"Itoh, Shizuoka Seaport - ITJ","Itoh, Shizuoka Seaport - ITJ",,4,NULL,,
 20966,JP,3,ITO,,Itozaki Seaport - ITO,Itozaki Seaport - ITO,,4,NULL,1,
 20967,JP,3,ITS,,Itsukushima Seaport - ITS,Itsukushima Seaport - ITS,,4,NULL,1,
 20968,JP,3,IWH,,Iwafune Seaport - IWH,Iwafune Seaport - IWH,,4,NULL,1,
-20969,JP,3,IWG,,"Iwagi,Iwagi","Ehime Seaport - IWG""",,4,NULL,,
+20969,JP,3,IWG,,"Iwagi,Ehime Seaport - IWG","Iwagi,Ehime Seaport - IWG",,4,NULL,,
 20970,JP,3,IWI,,Iwaki Seaport - IWI,Iwaki Seaport - IWI,,4,NULL,1,
 20971,JP,3,IWK,,Iwakuni Seaport - IWK,Iwakuni Seaport - IWK,,4,NULL,1,
 20972,JP,3,IWA,,Iwamatsu Seaport - IWA,Iwamatsu Seaport - IWA,,4,NULL,1,
@@ -6910,15 +6910,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 20975,JP,3,IWY,,Iwaya Seaport - IWY,Iwaya Seaport - IWY,,4,NULL,1,
 20976,JP,3,IDM,,Iwayadomari Seaport - IDM,Iwayadomari Seaport - IDM,,4,NULL,1,
 20977,JP,2,IWO,,Iwojima Airport - IWO,Iwojima Airport - IWO,,4,NULL,1,
-20978,JP,3,IOU,,"Iwojima,Iwojima","Kagoshima Seaport - IOU""",,4,NULL,,
-20979,JP,3,IWT,,"Iwojima,Iwojima","Nagasaki Seaport - IWT""",,4,NULL,,
+20978,JP,3,IOU,,"Iwojima, Kagoshima Seaport - IOU","Iwojima, Kagoshima Seaport - IOU",,4,NULL,,
+20979,JP,3,IWT,,"Iwojima, Nagasaki Seaport - IWT","Iwojima, Nagasaki Seaport - IWT",,4,NULL,,
 20981,JP,3,IYA,,Iya Seaport - IYA,Iya Seaport - IYA,,4,NULL,1,
 20982,JP,3,IYO,,Iyo Seaport - IYO,Iyo Seaport - IYO,,4,NULL,1,
 20983,JP,3,IYM,,Iyomishima Seaport - IYM,Iyomishima Seaport - IYM,,4,NULL,1,
 20984,JP,3,IZH,,Izuhara Seaport - IZH,Izuhara Seaport - IZH,,4,NULL,1,
 20985,JP,3,IZU,,Izuka Seaport - IZU,Izuka Seaport - IZU,,4,NULL,1,
-20986,JP,3,IZM,,"Izumi,Izumi","Aichi Seaport - IZM""",,4,NULL,,
-20987,JP,3,IZI,,"Izumi,Izumi","Nagasaki Seaport - IZI""",,4,NULL,,
+20986,JP,3,IZM,,"Izumi, Aichi Seaport - IZM","Izumi, Aichi Seaport - IZM",,4,NULL,,
+20987,JP,3,IZI,,"Izumi, Nagasaki Seaport - IZI","Izumi, Nagasaki Seaport - IZI",,4,NULL,,
 20988,JP,3,IZS,,Izumisano Seaport - IZS,Izumisano Seaport - IZS,,4,NULL,1,
 20989,JP,3,IZO,,izumo Seaport - IZO,izumo Seaport - IZO,,4,NULL,1,
 20991,JP,3,JKW,,Jokawauchi Seaport - JKW,Jokawauchi Seaport - JKW,,4,NULL,1,
@@ -6932,7 +6932,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21000,JP,3,KDO,,Kadokura Seaport - KDO,Kadokura Seaport - KDO,,4,NULL,1,
 21001,JP,3,KBK,,Kafuka Seaport - KBK,Kafuka Seaport - KBK,,4,NULL,1,
 21002,JP,3,KAF,,Kafuri Seaport - KAF,Kafuri Seaport - KAF,,4,NULL,1,
-21003,JP,3,KJG,,"Kaga,Kaga","Shimane Seaport - KJG""",,4,NULL,,
+21003,JP,3,KJG,,"Kaga, Shimane Seaport - KJG","Kaga, Shimane Seaport - KJG",,4,NULL,,
 21004,JP,3,KGM,,Kagami Seaport - KGM,Kagami Seaport - KGM,,4,NULL,1,
 21005,JP,2,KOJ,,Kagoshima Airport - KOJ,Kagoshima Airport - KOJ,,4,NULL,1,
 21007,JP,3,KGT,,Kaigata Seaport - KGT,Kaigata Seaport - KGT,,4,NULL,1,
@@ -6942,14 +6942,14 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21012,JP,3,KJK,,Kajiki Seaport - KJK,Kajiki Seaport - KJK,,4,NULL,1,
 21013,JP,3,KER,,Kakeroma Seaport - KER,Kakeroma Seaport - KER,,4,NULL,1,
 21014,JP,3,KGA,,Kakogawa Seaport - KGA,Kakogawa Seaport - KGA,,4,NULL,1,
-21016,JP,3,KAJ,,"Kama,Kama","Shimane Seaport - KAJ""",,4,NULL,,
+21016,JP,3,KAJ,,"Kama, Shimane Seaport - KAJ","Kama, Shimane Seaport - KAJ",,4,NULL,,
 21017,JP,3,KME,,Kamae Seaport - KME,Kamae Seaport - KME,,4,NULL,1,
 21018,JP,3,KGR,,Kamagari Seaport - KGR,Kamagari Seaport - KGR,,4,NULL,1,
 21019,JP,3,KIS,,Kamaishi Seaport - KIS,Kamaishi Seaport - KIS,,4,NULL,1,
 21020,JP,3,KEE,,Kameike Seaport - KEE,Kameike Seaport - KEE,,4,NULL,1,
 21021,JP,3,KAM,,Kametoku Seaport - KAM,Kametoku Seaport - KAM,,4,NULL,1,
-21022,JP,3,KJM,,"Kameura,Kameura","Kumamoto Seaport - KJM""",,4,NULL,,
-21023,JP,3,KMR,,"Kameura,Kameura","Tokushima Seaport - KMR""",,4,NULL,,
+21022,JP,3,KJM,,"Kameura, Kumamoto Seaport - KJM","Kameura, Kumamoto Seaport - KJM",,4,NULL,,
+21023,JP,3,KMR,,"Kameura, Tokushima Seaport - KMR","Kameura, Tokushima Seaport - KMR",,4,NULL,,
 21024,JP,3,KAH,,Kamihira Seaport - KAH,Kamihira Seaport - KAH,,4,NULL,1,
 21025,JP,3,KKT,,Kamikatetsu Seaport - KKT,Kamikatetsu Seaport - KKT,,4,NULL,1,
 21026,JP,3,KMW,,Kamikawaguchi Seaport - KMW,Kamikawaguchi Seaport - KMW,,4,NULL,1,
@@ -6963,7 +6963,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21034,JP,3,KSE,,Kamoise Seaport - KSE,Kamoise Seaport - KSE,,4,NULL,1,
 21035,JP,3,KYK,,Kanayaki Seaport - KYK,Kanayaki Seaport - KYK,,4,NULL,1,
 21036,JP,3,KNZ,,Kanazawa Seaport - KNZ,Kanazawa Seaport - KNZ,,4,NULL,1,
-21037,JP,3,KND,,"Kanda,Kanda","Fukuoka Seaport - KND""",,4,NULL,,
+21037,JP,3,KND,,"Kanda, Fukuoka Seaport - KND","Kanda, Fukuoka Seaport - KND",,4,NULL,,
 21038,JP,3,KGU,,Kanegusuku Seaport - KGU,Kanegusuku Seaport - KGU,,4,NULL,1,
 21039,JP,3,KJN,,Kannonji Seaport - KJN,Kannonji Seaport - KJN,,4,NULL,1,
 21040,JP,3,KRA,,Kannoura Seaport - KRA,Kannoura Seaport - KRA,,4,NULL,1,
@@ -6974,20 +6974,20 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21046,JP,3,KKA,,Karakuma Seaport - KKA,Karakuma Seaport - KKA,,4,NULL,1,
 21047,JP,3,KTM,,Karatomari Seaport - KTM,Karatomari Seaport - KTM,,4,NULL,1,
 21048,JP,3,KAR,,Karatsu Seaport - KAR,Karatsu Seaport - KAR,,4,NULL,1,
-21049,JP,3,KRY,,"Kariya,Kariya","Saga Seaport - KRY""",,4,NULL,,
+21049,JP,3,KRY,,"Kariya, Saga Seaport - KRY","Kariya, Saga Seaport - KRY",,4,NULL,,
 21050,JP,3,KRB,,Karubi Seaport - KRB,Karubi Seaport - KRB,,4,NULL,1,
 21051,JP,3,KAN,,Karuno Seaport - KAN,Karuno Seaport - KAN,,4,NULL,1,
 21052,JP,3,KSD,,Kasado Seaport - KSD,Kasado Seaport - KSD,,4,NULL,1,
 21053,JP,3,KSA,,Kasaoka Seaport - KSA,Kasaoka Seaport - KSA,,4,NULL,1,
-21054,JP,3,KSS,,"Kasasa,Kasasa","Kagoshima Seaport - KSS""",,4,NULL,,
+21054,JP,3,KSS,,"Kasasa, Kagoshima Seaport - KSS","Kasasa, Kagoshima Seaport - KSS",,4,NULL,,
 21056,JP,3,KAC,,Kasaura Seaport - KAC,Kasaura Seaport - KAC,,4,NULL,1,
 21057,JP,3,KDJ,,Kasedo Seaport - KDJ,Kasedo Seaport - KDJ,,4,NULL,1,
 21058,JP,3,KKZ,,Kashikojima Seaport - KKZ,Kashikojima Seaport - KKZ,,4,NULL,1,
-21059,JP,3,KSM,,"Kashima,Kashima","Ibaraki Seaport - KSM""",,4,NULL,,
-21060,JP,3,KSC,,"Kashima,Kashima","Saga Seaport - KSC""",,4,NULL,,
+21059,JP,3,KSM,,"Kashima, Ibaraki Seaport - KSM","Kashima, Ibaraki Seaport - KSM",,4,NULL,,
+21060,JP,3,KSC,,"Kashima, Saga Seaport - KSC","Kashima, Saga Seaport - KSC",,4,NULL,,
 21061,JP,3,KAE,,Kashimae Seaport - KAE,Kashimae Seaport - KAE,,4,NULL,1,
 21062,JP,3,KAO,,Kashino Seaport - KAO,Kashino Seaport - KAO,,4,NULL,1,
-21063,JP,3,KSW,,"Kashiwa,Kashiwa","Ehime Seaport - KSW""",,4,NULL,,
+21063,JP,3,KSW,,"Kashiwa, Ehime Seaport - KSW","Kashiwa, Ehime Seaport - KSW",,4,NULL,,
 21064,JP,3,KWZ,,Kashiwazaki Seaport - KWZ,Kashiwazaki Seaport - KWZ,,4,NULL,1,
 21066,JP,3,KXS,,Kasumi Seaport - KXS,Kasumi Seaport - KXS,,4,NULL,1,
 21067,JP,3,KTZ,,Kata Seaport - KTZ,Kata Seaport - KTZ,,4,NULL,1,
@@ -6997,12 +6997,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21072,JP,3,KTS,,Katashima Seaport - KTS,Katashima Seaport - KTS,,4,NULL,1,
 21073,JP,3,KBA,,Katasoba Seaport - KBA,Katasoba Seaport - KBA,,4,NULL,1,
 21074,JP,3,KSU,,Katsumoto Seaport - KSU,Katsumoto Seaport - KSU,,4,NULL,1,
-21076,JP,3,KUR,,"Katsuura,Katsuura","Chiba Seaport - KUR""",,4,NULL,,
-21077,JP,3,KAT,,"Katsuura,Katsuura","Wakayama Seaport - KAT""",,4,NULL,,
-21078,JP,3,KCH,,"Kawachi,Kawachi","Kumamoto Seaport - KCH""",,4,NULL,,
-21079,JP,3,KWC,,"Kawachi,Kawachi","Nagasaki Seaport - KWC""",,4,NULL,,
-21080,JP,3,KWJ,,"Kawajiri,Kawajiri","Hiroshima Seaport - KWJ""",,4,NULL,,
-21081,JP,3,KWR,,"Kawajiri,Kawajiri","Ibaraki Seaport - KWR""",,4,NULL,,
+21076,JP,3,KUR,,"Katsuura, Chiba Seaport - KUR","Katsuura, Chiba Seaport - KUR",,4,NULL,,
+21077,JP,3,KAT,,"Katsuura, Wakayama Seaport - KAT","Katsuura, Wakayama Seaport - KAT",,4,NULL,,
+21078,JP,3,KCH,,"Kawachi, Kumamoto Seaport - KCH","Kawachi, Kumamoto Seaport - KCH",,4,NULL,,
+21079,JP,3,KWC,,"Kawachi, Nagasaki Seaport - KWC","Kawachi, Nagasaki Seaport - KWC",,4,NULL,,
+21080,JP,3,KWJ,,"Kawajiri, Hiroshima Seaport - KWJ","Kawajiri, Hiroshima Seaport - KWJ",,4,NULL,,
+21081,JP,3,KWR,,"Kawajiri, Ibaraki Seaport - KWR","Kawajiri, Ibaraki Seaport - KWR",,4,NULL,,
 21082,JP,3,KWA,,Kawanazu Seaport - KWA,Kawanazu Seaport - KWA,,4,NULL,1,
 21083,JP,3,KWN,,Kawanoe Seaport - KWN,Kawanoe Seaport - KWN,,4,NULL,1,
 21084,JP,3,KWI,,Kawanoishi Seaport - KWI,Kawanoishi Seaport - KWI,,4,NULL,1,
@@ -7048,8 +7048,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21126,JP,3,KSH,,Kishiku Seaport - KSH,Kishiku Seaport - KSH,,4,NULL,1,
 21127,JP,3,KSR,,Kishira Seaport - KSR,Kishira Seaport - KSR,,4,NULL,1,
 21128,JP,3,KDA,,Kishiwada Seaport - KDA,Kishiwada Seaport - KDA,,4,NULL,1,
-21129,JP,3,KTX,,"Kita,Kita","Kitadaito Seaport - KTX""",,4,NULL,,
-21130,JP,3,KDX,,"Kita,Kita","Minamidaito Seaport - KDX""",,4,NULL,,
+21129,JP,3,KTX,,"Kita, Kitadaito Seaport - KTX","Kita, Kitadaito Seaport - KTX",,4,NULL,,
+21130,JP,3,KDX,,"Kita, Minamidaito Seaport - KDX","Kita, Minamidaito Seaport - KDX",,4,NULL,,
 21133,JP,3,KTL,,Kitakijima Seaport - KTL,Kitakijima Seaport - KTL,,4,NULL,1,
 21134,JP,2,KKJ,,Kitakyushu Airport - KKJ,Kitakyushu Airport - KKJ,,4,NULL,1,
 21136,JP,3,MOJ,,Kitakyushu- Moji Seaport - MOJ,Kitakyushu- Moji Seaport - MOJ,,4,NULL,1,
@@ -7057,21 +7057,21 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21138,JP,3,TBT,,Tobata Kitakyushu Seaport - TBT,Tobata Kitakyushu Seaport - TBT,,4,NULL,1,
 21139,JP,3,WAM,,Wakamatsu Kitakyushu Seaport - WAM,Wakamatsu Kitakyushu Seaport - WAM,,4,NULL,1,
 21140,JP,3,YWT,,Yawata Kitakyushu Seaport - YWT,Yawata Kitakyushu Seaport - YWT,,4,NULL,1,
-21142,JP,3,KJT,,"Kitaura,Kitaura","Akita Seaport - KJT""",,4,NULL,,
-21143,JP,3,KIR,,"Kitaura,Kitaura","Ehime Seaport - KIR""",,4,NULL,,
-21144,JP,3,KTR,,"Kitaura,Kitaura","Kagawa Seaport - KTR""",,4,NULL,,
-21145,JP,3,KIT,,"Kitaura,Kitaura","Miyazaki Seaport - KIT""",,4,NULL,,
+21142,JP,3,KJT,,"Kitaura, Akita Seaport - KJT","Kitaura, Akita Seaport - KJT",,4,NULL,,
+21143,JP,3,KIR,,"Kitaura, Ehime Seaport - KIR","Kitaura, Ehime Seaport - KIR",,4,NULL,,
+21144,JP,3,KTR,,"Kitaura, Kagawa Seaport - KTR","Kitaura, Kagawa Seaport - KTR",,4,NULL,,
+21145,JP,3,KIT,,"Kitaura, Miyazaki Seaport - KIT","Kitaura, Miyazaki Seaport - KIT",,4,NULL,,
 21146,JP,3,KBT,,Kobato Seaport - KBT,Kobato Seaport - KBT,,4,NULL,1,
 21147,JP,3,UKB,,Kobe Seaport - UKB,Kobe Seaport - UKB,,4,NULL,1,
 21149,JP,3,KBS,,Kobishima Seaport - KBS,Kobishima Seaport - KBS,,4,NULL,1,
 21150,JP,3,KBI,,Kobui Seaport - KBI,Kobui Seaport - KBI,,4,NULL,1,
 21152,JP,3,KDI,,Kodai Seaport - KDI,Kodai Seaport - KDI,,4,NULL,1,
 21153,JP,3,KDK,,Kodakashima Seaport - KDK,Kodakashima Seaport - KDK,,4,NULL,1,
-21154,JP,3,KOD,,"Kodomari,Kodomari","Aomori Seaport - KOD""",,4,NULL,,
-21155,JP,3,KDM,,"Kodomari,Kodomari","Kumamoto Seaport - KDM""",,4,NULL,,
+21154,JP,3,KOD,,"Kodomari, Aomori Seaport - KOD","Kodomari, Aomori Seaport - KOD",,4,NULL,,
+21155,JP,3,KDM,,"Kodomari, Kumamoto Seaport - KDM","Kodomari, Kumamoto Seaport - KDM",,4,NULL,,
 21156,JP,3,KGC,,Koguchi Seaport - KGC,Koguchi Seaport - KGC,,4,NULL,1,
-21157,JP,3,KOG,,"Kogushi,Kogushi","Okayama Seaport - KOG""",,4,NULL,,
-21158,JP,3,KGS,,"Kogushi,Kogushi","Yamaguchi Seaport - KGS""",,4,NULL,,
+21157,JP,3,KOG,,"Kogushi, Okayama Seaport - KOG","Kogushi, Okayama Seaport - KOG",,4,NULL,,
+21158,JP,3,KGS,,"Kogushi, Yamaguchi Seaport - KGS","Kogushi, Yamaguchi Seaport - KGS",,4,NULL,,
 21159,JP,3,KOH,,Kohama Seaport - KOH,Kohama Seaport - KOH,,4,NULL,1,
 21160,JP,3,KJA,,Kohjima Seaport - KJA,Kohjima Seaport - KJA,,4,NULL,1,
 21161,JP,3,KZR,,Kohjiro Seaport - KZR,Kohjiro Seaport - KZR,,4,NULL,1,
@@ -7081,10 +7081,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21165,JP,3,KTU,,Kohtsuura Seaport - KTU,Kohtsuura Seaport - KTU,,4,NULL,1,
 21166,JP,3,KKL,,Kohzaki Seaport - KKL,Kohzaki Seaport - KKL,,4,NULL,1,
 21167,JP,3,KOU,,Kohzujima Seaport - KOU,Kohzujima Seaport - KOU,,4,NULL,1,
-21168,JP,3,KOI,,"Koike,Koike","Uwajima Seaport - KOI""",,4,NULL,,
+21168,JP,3,KOI,,"Koike, Uwajima Seaport - KOI","Koike, Uwajima Seaport - KOI",,4,NULL,,
 21169,JP,3,KKB,,Kokubo Seaport - KKB,Kokubo Seaport - KKB,,4,NULL,1,
 21172,JP,2,KMQ,,Komatsu Airport - KMQ,Komatsu Airport - KMQ,,4,NULL,1,
-21174,JP,3,KMX,,"Komatsu,Komatsu","Yamaguchi Seaport - KMX""",,4,NULL,,
+21174,JP,3,KMX,,"Komatsu, Yamaguchi Seaport - KMX","Komatsu, Yamaguchi Seaport - KMX",,4,NULL,,
 21175,JP,3,KOM,,Komatsushima Seaport - KOM,Komatsushima Seaport - KOM,,4,NULL,1,
 21176,JP,3,KKO,,Komenotsu Seaport - KKO,Komenotsu Seaport - KKO,,4,NULL,1,
 21177,JP,3,KMN,,Kominato Seaport - KMN,Kominato Seaport - KMN,,4,NULL,1,
@@ -7103,12 +7103,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21192,JP,3,KTJ,,Kotakarajima Seaport - KTJ,Kotakarajima Seaport - KTJ,,4,NULL,1,
 21193,JP,3,JKT,,Kotoura Seaport - JKT,Kotoura Seaport - JKT,,4,NULL,1,
 21194,JP,3,KTO,,Kottoi Seaport - KTO,Kottoi Seaport - KTO,,4,NULL,1,
-21195,JP,3,KOR,,"Koura,Koura","Kagawa Seaport - KOR""",,4,NULL,,
-21196,JP,3,KJU,,"Koura,Koura","Kagoshima Seaport - KJU""",,4,NULL,,
+21195,JP,3,KOR,,"Koura, Kagawa Seaport - KOR","Koura, Kagawa Seaport - KOR",,4,NULL,,
+21196,JP,3,KJU,,"Koura, Kagoshima Seaport - KJU","Koura, Kagoshima Seaport - KJU",,4,NULL,,
 21197,JP,3,KKR,,Kouri Seaport - KKR,Kouri Seaport - KKR,,4,NULL,1,
 21198,JP,3,KWX,,Kowa Seaport - KWX,Kowa Seaport - KWX,,4,NULL,1,
-21199,JP,3,KOY,,"Koyoh,Koyoh","Etajima Seaport - KOY""",,4,NULL,,
-21200,JP,3,KYO,,"Koyoh,Koyoh","Kawajiri Seaport - KYO""",,4,NULL,,
+21199,JP,3,KOY,,"Koyoh, Etajima Seaport - KOY","Koyoh, Etajima Seaport - KOY",,4,NULL,,
+21200,JP,3,KYO,,"Koyoh, Kawajiri Seaport - KYO","Koyoh, Kawajiri Seaport - KYO",,4,NULL,,
 21201,JP,3,KOB,,Koza Seaport - KOB,Koza Seaport - KOB,,4,NULL,1,
 21202,JP,3,KZJ,,Kozai Seaport - KZJ,Kozai Seaport - KZJ,,4,NULL,1,
 21203,JP,3,KZE,,Kozera Seaport - KZE,Kozera Seaport - KZE,,4,NULL,1,
@@ -7121,8 +7121,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21210,JP,3,KJD,,Kudadon Seaport - KJD,Kudadon Seaport - KJD,,4,NULL,1,
 21211,JP,3,KUD,,Kudamatsu Seaport - KUD,Kudamatsu Seaport - KUD,,4,NULL,1,
 21212,JP,3,KUG,,Kugui Seaport - KUG,Kugui Seaport - KUG,,4,NULL,1,
-21213,JP,3,KJI,,"Kuji,Kuji","Iwate Seaport - KJI""",,4,NULL,,
-21214,JP,3,KKU,,"Kuji,Kuji","Kagoshima Seaport - KKU""",,4,NULL,,
+21213,JP,3,KJI,,"Kuji, Iwate Seaport - KJI","Kuji, Iwate Seaport - KJI",,4,NULL,,
+21214,JP,3,KKU,,"Kuji, Kagoshima Seaport - KKU","Kuji, Kagoshima Seaport - KKU",,4,NULL,,
 21215,JP,3,KRR,,Kujiragaura Seaport - KRR,Kujiragaura Seaport - KRR,,4,NULL,1,
 21216,JP,3,KGB,,Kuka Seaport - KGB,Kuka Seaport - KGB,,4,NULL,1,
 21218,JP,3,KGE,,Kumage Seaport - KGE,Kumage Seaport - KGE,,4,NULL,1,
@@ -7138,8 +7138,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21229,JP,3,KHS,,Kurahashi Seaport - KHS,Kurahashi Seaport - KHS,,4,NULL,1,
 21230,JP,3,KRC,,Kuramai Seaport - KRC,Kuramai Seaport - KRC,,4,NULL,1,
 21231,JP,3,KRN,,Kuranotani Seaport - KRN,Kuranotani Seaport - KRN,,4,NULL,1,
-21232,JP,3,KRE,,"Kure,Kure","Hiroshima Seaport - KRE""",,4,NULL,,
-21233,JP,3,KUE,,"Kure,Kure","Kochi Seaport - KUE""",,4,NULL,,
+21232,JP,3,KRE,,"Kure, Hiroshima Seaport - KRE","Kure, Hiroshima Seaport - KRE",,4,NULL,,
+21233,JP,3,KUE,,"Kure, Kochi Seaport - KUE","Kure, Kochi Seaport - KUE",,4,NULL,,
 21234,JP,3,KRH,,Kurihama Seaport - KRH,Kurihama Seaport - KRH,,4,NULL,1,
 21235,JP,3,KRU,,Kurii Seaport - KRU,Kurii Seaport - KRU,,4,NULL,1,
 21236,JP,3,KHJ,,Kurimamaehama Seaport - KHJ,Kurimamaehama Seaport - KHJ,,4,NULL,1,
@@ -7149,8 +7149,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21240,JP,3,KRM,,Kurokami Seaport - KRM,Kurokami Seaport - KRM,,4,NULL,1,
 21241,JP,3,KUX,,Kuronohama Seaport - KUX,Kuronohama Seaport - KUX,,4,NULL,1,
 21242,JP,3,KSK,,Kurosaki Seaport - KSK,Kurosaki Seaport - KSK,,4,NULL,1,
-21243,JP,3,KRO,,"Kuroshima,Kuroshima","Nagasaki Seaport - KRO""",,4,NULL,,
-21244,JP,3,KRJ,,"Kuroshima,Kuroshima","Okinawa Seaport - KRJ""",,4,NULL,,
+21243,JP,3,KRO,,"Kuroshima, Nagasaki Seaport - KRO","Kuroshima, Nagasaki Seaport - KRO",,4,NULL,,
+21244,JP,3,KRJ,,"Kuroshima, Okinawa Seaport - KRJ","Kuroshima, Okinawa Seaport - KRJ",,4,NULL,,
 21247,JP,3,KKK,,Kushiku Seaport - KKK,Kushiku Seaport - KKK,,4,NULL,1,
 21248,JP,2,KUJ,,Kushimoto Airport - KUJ,Kushimoto Airport - KUJ,,4,NULL,1,
 21249,JP,3,KUH,,Kushiro Seaport - KUH,Kushiro Seaport - KUH,,4,NULL,1,
@@ -7162,8 +7162,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21256,JP,3,KUW,,Kuwanoura Seaport - KUW,Kuwanoura Seaport - KUW,,4,NULL,1,
 21257,JP,3,KYM,,Kuyama Seaport - KYM,Kuyama Seaport - KYM,,4,NULL,1,
 21258,JP,3,KUZ,,Kuzu Seaport - KUZ,Kuzu Seaport - KUZ,,4,NULL,1,
-21261,JP,3,MAD,,"Maedomari,Maedomari","Iheya Seaport - MAD""",,4,NULL,,
-21262,JP,3,MDR,,"Maedomari,Maedomari","Tarama Seaport - MDR""",,4,NULL,,
+21261,JP,3,MAD,,"Maedomari, Iheya Seaport - MAD","Maedomari, Iheya Seaport - MAD",,4,NULL,,
+21262,JP,3,MDR,,"Maedomari, Tarama Seaport - MDR","Maedomari, Tarama Seaport - MDR",,4,NULL,,
 21263,JP,3,MHM,,Maehama Seaport - MHM,Maehama Seaport - MHM,,4,NULL,1,
 21264,JP,3,MMA,,Maenohama Seaport - MMA,Maenohama Seaport - MMA,,4,NULL,1,
 21265,JP,3,MER,,Maeura Seaport - MER,Maeura Seaport - MER,,4,NULL,1,
@@ -7182,8 +7182,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21278,JP,3,MRU,,Maruo Seaport - MRU,Maruo Seaport - MRU,,4,NULL,1,
 21279,JP,3,MAS,,Masaki Seaport - MAS,Masaki Seaport - MAS,,4,NULL,1,
 21280,JP,3,MSK,,Mashike Seaport - MSK,Mashike Seaport - MSK,,4,NULL,1,
-21281,JP,3,MDJ,,"Masuda,Masuda","Kagoshima Seaport - MDJ""",,4,NULL,,
-21282,JP,3,MSD,,"Masuda,Masuda","Shimane Seaport - MSD""",,4,NULL,,
+21281,JP,3,MDJ,,"Masuda, Kagoshima Seaport - MDJ","Masuda, Kagoshima Seaport - MDJ",,4,NULL,,
+21282,JP,3,MSD,,"Masuda, Shimane Seaport - MSD","Masuda, Shimane Seaport - MSD",,4,NULL,,
 21283,JP,3,MAM,,Matama Seaport - MAM,Matama Seaport - MAM,,4,NULL,1,
 21284,JP,3,MAG,,Mategata Seaport - MAG,Mategata Seaport - MAG,,4,NULL,1,
 21285,JP,3,MTY,,Matoya Seaport - MTY,Matoya Seaport - MTY,,4,NULL,1,
@@ -7194,12 +7194,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21292,JP,3,MNG,,Matsunaga Seaport - MNG,Matsunaga Seaport - MNG,,4,NULL,1,
 21293,JP,3,MAO,,Matsuo Seaport - MAO,Matsuo Seaport - MAO,,4,NULL,1,
 21294,JP,3,MSA,,Matsusaka Seaport - MSA,Matsusaka Seaport - MSA,,4,NULL,1,
-21295,JP,3,MRA,,"Matsushima,Matsushima","Miyagi Seaport - MRA""",,4,NULL,,
-21296,JP,3,MAT,,"Matsushima,Matsushima","Nagasaki Seaport - MAT""",,4,NULL,,
-21297,JP,3,MSS,,"Matsushima,Matsushima","Okayama Seaport - MSS""",,4,NULL,,
-21298,JP,3,MAU,,"Matsuura,Matsuura","Kagoshima Seaport - MAU""",,4,NULL,,
-21299,JP,3,MTS,,"Matsuura,Matsuura","Nagasaki Seaport - MTS""",,4,NULL,,
-21300,JP,3,MTU,,"Matsuura,Matsuura","Oita Seaport - MTU""",,4,NULL,,
+21295,JP,3,MRA,,"Matsushima, Miyagi Seaport - MRA","Matsushima, Miyagi Seaport - MRA",,4,NULL,,
+21296,JP,3,MAT,,"Matsushima, Nagasaki Seaport - MAT","Matsushima, Nagasaki Seaport - MAT",,4,NULL,,
+21297,JP,3,MSS,,"Matsushima, Okayama Seaport - MSS","Matsushima, Okayama Seaport - MSS",,4,NULL,,
+21298,JP,3,MAU,,"Matsuura, Kagoshima Seaport - MAU","Matsuura, Kagoshima Seaport - MAU",,4,NULL,,
+21299,JP,3,MTS,,"Matsuura, Nagasaki Seaport - MTS","Matsuura, Nagasaki Seaport - MTS",,4,NULL,,
+21300,JP,3,MTU,,"Matsuura, Oita Seaport - MTU","Matsuura, Oita Seaport - MTU",,4,NULL,,
 21301,JP,2,MYJ,,Matsuyama Airport - MYJ,Matsuyama Airport - MYJ,,4,NULL,1,
 21303,JP,3,MTZ,,Matsuzaki Seaport - MTZ,Matsuzaki Seaport - MTZ,,4,NULL,1,
 21304,JP,3,MWR,,Mawari Seaport - MWR,Mawari Seaport - MWR,,4,NULL,1,
@@ -7215,8 +7215,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21315,JP,2,YGJ,,Yonago Airport - YGJ,Yonago Airport - YGJ,,4,NULL,1,
 21316,JP,3,MIH,,Mihonoseki Seaport - MIH,Mihonoseki Seaport - MIH,,4,NULL,1,
 21317,JP,3,MHN,,Mihowan Seaport - MHN,Mihowan Seaport - MHN,,4,NULL,1,
-21318,JP,3,MII,,"Miike,Miike","Fukuoka Seaport - MII""",,4,NULL,,
-21319,JP,3,MIJ,,"Miike,Miike","Tokyo Seaport - MIJ""",,4,NULL,,
+21318,JP,3,MII,,"Miike, Fukuoka Seaport - MII","Miike, Fukuoka Seaport - MII",,4,NULL,,
+21319,JP,3,MIJ,,"Miike, Tokyo Seaport - MIJ","Miike, Tokyo Seaport - MIJ",,4,NULL,,
 21320,JP,3,MKM,,Mikame Seaport - MKM,Mikame Seaport - MKM,,4,NULL,1,
 21321,JP,3,MKW,,Mikawa Seaport - MKW,Mikawa Seaport - MKW,,4,NULL,1,
 21322,JP,3,MKJ,,Mikisato Seaport - MKJ,Mikisato Seaport - MKJ,,4,NULL,1,
@@ -7224,43 +7224,43 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21324,JP,3,MMT,,Mimitsu Seaport - MMT,Mimitsu Seaport - MMT,,4,NULL,1,
 21325,JP,3,MIN,,Minamata Seaport - MIN,Minamata Seaport - MIN,,4,NULL,1,
 21328,JP,2,MMD,,Minami-Daito Airport - MMD,Minami-Daito Airport - MMD,,4,NULL,1,
-21330,JP,3,MNT,,"Minato,Minato","Hyogo Seaport - MNT""",,4,NULL,,
+21330,JP,3,MNT,,"Minato, Hyogo Seaport - MNT","Minato, Hyogo Seaport - MNT",,4,NULL,,
 21331,JP,3,MNE,,Mine Seaport - MNE,Mine Seaport - MNE,,4,NULL,1,
 21332,JP,3,MNY,,Minmaya Seaport - MNY,Minmaya Seaport - MNY,,4,NULL,1,
-21333,JP,3,MNJ,,"Minna,Minna","Motobu Seaport - MNJ""",,4,NULL,,
-21334,JP,3,MNN,,"Minna,Minna","Tarama Seaport - MNN""",,4,NULL,,
-21335,JP,3,MSX,,"Misaki,Misaki","Ehime Seaport - MSX""",,4,NULL,,
-21336,JP,3,MIK,,"Misaki,Misaki","Kanagawa Seaport - MIK""",,4,NULL,,
-21337,JP,3,MKI,,"Misaki,Misaki","Kochi Seaport - MKI""",,4,NULL,,
+21333,JP,3,MNJ,,"Minna, Motobu Seaport - MNJ","Minna, Motobu Seaport - MNJ",,4,NULL,,
+21334,JP,3,MNN,,"Minna, Tarama Seaport - MNN","Minna, Tarama Seaport - MNN",,4,NULL,,
+21335,JP,3,MSX,,"Misaki, Ehime Seaport - MSX","Misaki, Ehime Seaport - MSX",,4,NULL,,
+21336,JP,3,MIK,,"Misaki, Kanagawa Seaport - MIK","Misaki, Kanagawa Seaport - MIK",,4,NULL,,
+21337,JP,3,MKI,,"Misaki, Kochi Seaport - MKI","Misaki, Kochi Seaport - MKI",,4,NULL,,
 21338,JP,3,MST,,Misato Seaport - MST,Misato Seaport - MST,,4,NULL,1,
 21339,JP,2,MSJ,,Misawa Airport - MSJ,Misawa Airport - MSJ,,4,NULL,1,
-21341,JP,3,MKX,,"Mishima,Mishima","Kawanoe Seaport - MKX""",,4,NULL,,
+21341,JP,3,MKX,,"Mishima, Kawanoe Seaport - MKX","Mishima, Kawanoe Seaport - MKX",,4,NULL,,
 21343,JP,3,MSR,,Mishiro Seaport - MSR,Mishiro Seaport - MSR,,4,NULL,1,
 21344,JP,3,MSO,,Misho Seaport - MSO,Misho Seaport - MSO,,4,NULL,1,
-21345,JP,3,MIS,,"Misumi,Misumi","Kumamoto Seaport - MIS""",,4,NULL,,
-21346,JP,3,MMI,,"Misumi,Misumi","Shimane Seaport - MMI""",,4,NULL,,
+21345,JP,3,MIS,,"Misumi, Kumamoto Seaport - MIS","Misumi, Kumamoto Seaport - MIS",,4,NULL,,
+21346,JP,3,MMI,,"Misumi, Shimane Seaport - MMI","Misumi, Shimane Seaport - MMI",,4,NULL,,
 21347,JP,3,MXT,,Mita Seaport - MXT,Mita Seaport - MXT,,4,NULL,1,
 21348,JP,3,MTC,,Mitachi Seaport - MTC,Mitachi Seaport - MTC,,4,NULL,1,
 21349,JP,3,MJR,,Mitajiri Seaport - MJR,Mitajiri Seaport - MJR,,4,NULL,1,
 21350,JP,3,MNX,,Mitajiri-Nakanoseki Seaport - MNX,Mitajiri-Nakanoseki Seaport - MNX,,4,NULL,1,
-21351,JP,3,MIT,,"Mitaka,Mitaka","Hiroshima Seaport - MIT""",,4,NULL,,
+21351,JP,3,MIT,,"Mitaka, Hiroshima Seaport - MIT","Mitaka, Hiroshima Seaport - MIT",,4,NULL,,
 21353,JP,3,MTI,,Mitarai Seaport - MTI,Mitarai Seaport - MTI,,4,NULL,1,
-21354,JP,3,MQT,,"Mito,Mito","Kagawa Seaport - MQT""",,4,NULL,,
+21354,JP,3,MQT,,"Mito, Kagawa Seaport - MQT","Mito, Kagawa Seaport - MQT",,4,NULL,,
 21355,JP,3,MTH,,Mitsuhama Seaport - MTH,Mitsuhama Seaport - MTH,,4,NULL,1,
 21356,JP,3,MKS,,Mitsukoshima Seaport - MKS,Mitsukoshima Seaport - MKS,,4,NULL,1,
 21357,JP,3,MTK,,Mitsukue Seaport - MTK,Mitsukue Seaport - MTK,,4,NULL,1,
-21358,JP,3,MIR,,"Miura,Miura","Mitsushima Seaport - MIR""",,4,NULL,,
+21358,JP,3,MIR,,"Miura, Mitsushima Seaport - MIR","Miura, Mitsushima Seaport - MIR",,4,NULL,,
 21359,JP,3,MYG,,Miyagahama Seaport - MYG,Miyagahama Seaport - MYG,,4,NULL,1,
 21360,JP,2,MYE,,Miyakejima Airport - MYE,Miyakejima Airport - MYE,,4,NULL,1,
 21362,JP,2,MMY,,Miyakojima Airport  - MMY,Miyakojima Airport  - MMY,,4,NULL,1,
-21363,JP,3,MYK,,"Miyako,Miyako","Iwate Seaport - MYK""",,4,NULL,,
-21365,JP,3,MYN,,"Miyanoura,Miyanoura","Azuma Seaport - MYN""",,4,NULL,,
-21366,JP,3,MUY,,"Miyanoura,Miyanoura","Kagawa Seaport - MUY""",,4,NULL,,
-21367,JP,3,MNO,,"Miyanoura,Miyanoura","Kamiyaku Seaport - MNO""",,4,NULL,,
-21368,JP,3,MNR,,"Miyanoura,Miyanoura","Nagasaki Seaport - MNR""",,4,NULL,,
+21363,JP,3,MYK,,"Miyako, Iwate Seaport - MYK","Miyako, Iwate Seaport - MYK",,4,NULL,,
+21365,JP,3,MYN,,"Miyanoura, Azuma Seaport - MYN","Miyanoura, Azuma Seaport - MYN",,4,NULL,,
+21366,JP,3,MUY,,"Miyanoura, Kagawa Seaport - MUY","Miyanoura, Kagawa Seaport - MUY",,4,NULL,,
+21367,JP,3,MNO,,"Miyanoura, Kamiyaku Seaport - MNO","Miyanoura, Kamiyaku Seaport - MNO",,4,NULL,,
+21368,JP,3,MNR,,"Miyanoura, Nagasaki Seaport - MNR","Miyanoura, Nagasaki Seaport - MNR",,4,NULL,,
 21369,JP,3,MYU,,Miyaura Seaport - MYU,Miyaura Seaport - MYU,,4,NULL,1,
 21370,JP,2,KMI,,Miyazaki Airport - KMI,Miyazaki Airport - KMI,,4,NULL,1,
-21371,JP,3,MZK,,"Miyazaki,Miyazaki","Ehime Seaport - MZK""",,4,NULL,,
+21371,JP,3,MZK,,"Miyazaki, Ehime Seaport - MZK","Miyazaki, Ehime Seaport - MZK",,4,NULL,,
 21373,JP,3,MIY,,Miyazu Seaport - MIY,Miyazu Seaport - MIY,,4,NULL,1,
 21374,JP,3,MZS,,Mizusaki Seaport - MZS,Mizusaki Seaport - MZS,,4,NULL,1,
 21375,JP,3,MIZ,,Mizushima Seaport - MIZ,Mizushima Seaport - MIZ,,4,NULL,1,
@@ -7280,8 +7280,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21391,JP,3,MRZ,,Morozaki Seaport - MRZ,Morozaki Seaport - MRZ,,4,NULL,1,
 21392,JP,3,MBT,,Motobu Seaport - MBT,Motobu Seaport - MBT,,4,NULL,1,
 21393,JP,3,MOT,,Motomachi Seaport - MOT,Motomachi Seaport - MOT,,4,NULL,1,
-21394,JP,3,MTO,,"Motoura,Motoura","Azuma Seaport - MTO""",,4,NULL,,
-21395,JP,3,MOU,,"Motoura,Motoura","Toshima Seaport - MOU""",,4,NULL,,
+21394,JP,3,MTO,,"Motoura, Azuma Seaport - MTO","Motoura, Azuma Seaport - MTO",,4,NULL,,
+21395,JP,3,MOU,,"Motoura, Toshima Seaport - MOU","Motoura, Toshima Seaport - MOU",,4,NULL,,
 21396,JP,3,MZR,,Motozaru Seaport - MZR,Motozaru Seaport - MZR,,4,NULL,1,
 21397,JP,2,FSZ,,Mt. Fuji Shizuoka Airport - FSZ,Mt. Fuji Shizuoka Airport - FSZ,,4,NULL,1,
 21398,JP,3,MUG,,Mugi Seaport - MUG,Mugi Seaport - MUG,,4,NULL,1,
@@ -7293,9 +7293,9 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21404,JP,3,MRM,,Muromoto Seaport - MRM,Muromoto Seaport - MRM,,4,NULL,1,
 21405,JP,3,MUR,,Muroran Seaport - MUR,Muroran Seaport - MUR,,4,NULL,1,
 21406,JP,3,MRJ,,Murotomisaki Seaport - MRJ,Murotomisaki Seaport - MRJ,,4,NULL,1,
-21407,JP,3,MRS,,"Murotsu,Murotsu","Hyogo Seaport - MRS""",,4,NULL,,
-21408,JP,3,MUX,,"Murotsu,Murotsu","Kochi Seaport - MUX""",,4,NULL,,
-21409,JP,3,MRT,,"Murotsu,Murotsu","Yamaguchi Seaport - MRT""",,4,NULL,,
+21407,JP,3,MRS,,"Murotsu, Hyogo Seaport - MRS","Murotsu, Hyogo Seaport - MRS",,4,NULL,,
+21408,JP,3,MUX,,"Murotsu, Kochi Seaport - MUX","Murotsu, Kochi Seaport - MUX",,4,NULL,,
+21409,JP,3,MRT,,"Murotsu, Yamaguchi Seaport - MRT","Murotsu, Yamaguchi Seaport - MRT",,4,NULL,,
 21410,JP,3,MZM,,Murozumi Seaport - MZM,Murozumi Seaport - MZM,,4,NULL,1,
 21411,JP,3,MSH,,Musashi Seaport - MSH,Musashi Seaport - MSH,,4,NULL,1,
 21413,JP,3,MUT,,Mutsuogawara Seaport - MUT,Mutsuogawara Seaport - MUT,,4,NULL,1,
@@ -7304,37 +7304,37 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21416,JP,3,NAR,,Naarai Seaport - NAR,Naarai Seaport - NAR,,4,NULL,1,
 21417,JP,3,NAD,,Nadahama Seaport - NAD,Nadahama Seaport - NAD,,4,NULL,1,
 21418,JP,3,NDY,,Nadayama Seaport - NDY,Nadayama Seaport - NDY,,4,NULL,1,
-21419,JP,3,NEX,,"Nagae,Nagae","Ehime Seaport - NEX""",,4,NULL,,
-21420,JP,3,NGE,,"Nagae,Nagae","Shimane Seaport - NGE""",,4,NULL,,
-21421,JP,3,NGH,,"Nagahama,Nagahama","Ehime Seaport - NGH""",,4,NULL,,
-21422,JP,3,NMA,,"Nagahama,Nagahama","Kagoshima Seaport - NMA""",,4,NULL,,
-21423,JP,3,NHM,,"Nagahama,Nagahama","Shiga Seaport - NHM""",,4,NULL,,
-21424,JP,3,NAG,,"Nagahama,Nagahama","Shimane Seaport - NAG""",,4,NULL,,
+21419,JP,3,NEX,,"Nagae, Ehime Seaport - NEX","Nagae, Ehime Seaport - NEX",,4,NULL,,
+21420,JP,3,NGE,,"Nagae, Shimane Seaport - NGE","Nagae, Shimane Seaport - NGE",,4,NULL,,
+21421,JP,3,NGH,,"Nagahama, Ehime Seaport - NGH","Nagahama, Ehime Seaport - NGH",,4,NULL,,
+21422,JP,3,NMA,,"Nagahama, Kagoshima Seaport - NMA","Nagahama, Kagoshima Seaport - NMA",,4,NULL,,
+21423,JP,3,NHM,,"Nagahama, Shiga Seaport - NHM","Nagahama, Shiga Seaport - NHM",,4,NULL,,
+21424,JP,3,NAG,,"Nagahama, Shimane Seaport - NAG","Nagahama, Shimane Seaport - NAG",,4,NULL,,
 21425,JP,3,NGG,,Nagame Seaport - NGG,Nagame Seaport - NGG,,4,NULL,1,
 21427,JP,3,NAB,,Nagara Seaport - NAB,Nagara Seaport - NAB,,4,NULL,1,
 21428,JP,2,NGS,,Nagasaki Airport - NGS,Nagasaki Airport - NGS,,4,NULL,1,
 21431,JP,3,NHN,,Nagasakinohana Seaport - NHN,Nagasakinohana Seaport - NHN,,4,NULL,1,
 21432,JP,3,NSA,,Nagashima Seaport - NSA,Nagashima Seaport - NSA,,4,NULL,1,
-21433,JP,3,NGU,,"Nagasu,Nagasu","Kumamoto Seaport - NGU""",,4,NULL,,
-21434,JP,3,NSU,,"Nagasu,Nagasu","Oita Seaport - NSU""",,4,NULL,,
-21435,JP,3,NAA,,"Nagaura,Nagaura","Nagasaki Seaport - NAA""",,4,NULL,,
-21436,JP,3,NGR,,"Nagaura,Nagaura","Yokosuka Seaport - NGR""",,4,NULL,,
+21433,JP,3,NGU,,"Nagasu, Kumamoto Seaport - NGU","Nagasu, Kumamoto Seaport - NGU",,4,NULL,,
+21434,JP,3,NSU,,"Nagasu, Oita Seaport - NSU","Nagasu, Oita Seaport - NSU",,4,NULL,,
+21435,JP,3,NAA,,"Nagaura, Nagasaki Seaport - NAA","Nagaura, Nagasaki Seaport - NAA",,4,NULL,,
+21436,JP,3,NGR,,"Nagaura, Yokosuka Seaport - NGR","Nagaura, Yokosuka Seaport - NGR",,4,NULL,,
 21437,JP,3,MGY,,Nagayama Seaport - MGY,Nagayama Seaport - MGY,,4,NULL,1,
 21438,JP,3,NAY,,Nagayo Seaport - NAY,Nagayo Seaport - NAY,,4,NULL,1,
 21439,JP,3,NGM,,Nagimi Seaport - NGM,Nagimi Seaport - NGM,,4,NULL,1,
 21440,JP,3,NGD,,Nagouda Seaport - NGD,Nagouda Seaport - NGD,,4,NULL,1,
-21441,JP,3,NKM,,"Nakama,Nakama","Okinawa Seaport - NKM""",,4,NULL,,
-21445,JP,3,NAH,,"Naha,Naha","Okinawa Seaport - NAH""",,4,NULL,,
+21441,JP,3,NKM,,"Nakama, Okinawa Seaport - NKM","Nakama, Okinawa Seaport - NKM",,4,NULL,,
+21445,JP,3,NAH,,"Naha, Okinawa Seaport - NAH","Naha, Okinawa Seaport - NAH",,4,NULL,,
 21446,JP,3,NHI,,Nahari Seaport - NHI,Nahari Seaport - NHI,,4,NULL,1,
 21447,JP,3,NGN,,Naigainoura Seaport - NGN,Naigainoura Seaport - NGN,,4,NULL,1,
 21448,JP,3,NKD,,Nakada Seaport - NKD,Nakada Seaport - NKD,,4,NULL,1,
 21449,JP,3,NAK,,Nakagusuku Seaport - NAK,Nakagusuku Seaport - NAK,,4,NULL,1,
-21450,JP,3,NHA,,"Nakahama,Nakahama","Hiroshima Seaport - NHA""",,4,NULL,,
-21451,JP,3,NKJ,,"Nakahama,Nakahama","Kyoto Seaport - NKJ""",,4,NULL,,
-21452,JP,3,NKH,,"Nakahama,Nakahama","Tottori Seaport - NKH""",,4,NULL,,
+21450,JP,3,NHA,,"Nakahama, Hiroshima Seaport - NHA","Nakahama, Hiroshima Seaport - NHA",,4,NULL,,
+21451,JP,3,NKJ,,"Nakahama, Kyoto Seaport - NKJ","Nakahama, Kyoto Seaport - NKJ",,4,NULL,,
+21452,JP,3,NKH,,"Nakahama, Tottori Seaport - NKH","Nakahama, Tottori Seaport - NKH",,4,NULL,,
 21453,JP,3,NJM,,Nakajima Seaport - NJM,Nakajima Seaport - NJM,,4,NULL,1,
 21455,JP,3,NKK,,Nakakoshiki Seaport - NKK,Nakakoshiki Seaport - NKK,,4,NULL,1,
-21456,JP,3,NKL,,"Nakama,Nakama","Kagoshima Seaport - NKL""",,4,NULL,,
+21456,JP,3,NKL,,"Nakama, Kagoshima Seaport - NKL","Nakama, Kagoshima Seaport - NKL",,4,NULL,,
 21458,JP,3,NMT,,Nakaminato Seaport - NMT,Nakaminato Seaport - NMT,,4,NULL,1,
 21459,JP,3,NKX,,Nakanosaku Seaport - NKX,Nakanosaku Seaport - NKX,,4,NULL,1,
 21460,JP,3,NAN,,Nakanoseki Seaport - NAN,Nakanoseki Seaport - NAN,,4,NULL,1,
@@ -7342,8 +7342,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21462,JP,3,NKN,,Nakanoura Seaport - NKN,Nakanoura Seaport - NKN,,4,NULL,1,
 21463,JP,2,SHB,,Nakashibetsu Airport - SHB,Nakashibetsu Airport - SHB,,4,NULL,1,
 21465,JP,3,NKZ,,Nakashima Seaport - NKZ,Nakashima Seaport - NKZ,,4,NULL,1,
-21466,JP,3,NKT,,"Nakata,Nakata","Hiroshima Seaport - NKT""",,4,NULL,,
-21467,JP,3,NTX,,"Nakata,Nakata","Kumamoto Seaport - NTX""",,4,NULL,,
+21466,JP,3,NKT,,"Nakata, Hiroshima Seaport - NKT","Nakata, Hiroshima Seaport - NKT",,4,NULL,,
+21467,JP,3,NTX,,"Nakata, Kumamoto Seaport - NTX","Nakata, Kumamoto Seaport - NTX",,4,NULL,,
 21468,JP,3,NAT,,Nakatsu Seaport - NAT,Nakatsu Seaport - NAT,,4,NULL,1,
 21469,JP,3,NKY,,Nakayama Seaport - NKY,Nakayama Seaport - NKY,,4,NULL,1,
 21470,JP,3,NKR,,Nakiri Seaport - NKR,Nakiri Seaport - NKR,,4,NULL,1,
@@ -7351,18 +7351,18 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21472,JP,3,NIT,,Namikata Seaport - NIT,Namikata Seaport - NIT,,4,NULL,1,
 21474,JP,3,NNT,,Nanatsugama Seaport - NNT,Nanatsugama Seaport - NNT,,4,NULL,1,
 21475,JP,3,NTY,,Nanatsuyama Seaport - NTY,Nanatsuyama Seaport - NTY,,4,NULL,1,
-21476,JP,2,SHM,,"Shirahama,Shirahama","Wakayama Airport - SHM""",,4,NULL,,
+21476,JP,2,SHM,,"Shirahama, Wakayama Airport - SHM","Shirahama, Wakayama Airport - SHM",,4,NULL,,
 21477,JP,3,NKO,,Nanko Seaport - NKO,Nanko Seaport - NKO,,4,NULL,1,
 21478,JP,3,NYO,,Nanyo Seaport - NYO,Nanyo Seaport - NYO,,4,NULL,1,
 21479,JP,3,NAO,,Naoetsu Seaport - NAO,Naoetsu Seaport - NAO,,4,NULL,1,
 21480,JP,3,NAS,,Naoshima Seaport - NAS,Naoshima Seaport - NAS,,4,NULL,1,
 21481,JP,3,NRO,,Narao Seaport - NRO,Narao Seaport - NRO,,4,NULL,1,
-21482,JP,2,NRT,,"Narita Airport,Narita Airport","Tokyo - NRT""",10,4,NULL,,
+21482,JP,2,NRT,,"Narita Airport, Tokyo - NRT","Narita Airport, Tokyo - NRT",10,4,NULL,,
 21484,JP,3,NRS,,Narushima Seaport - NRS,Narushima Seaport - NRS,,4,NULL,1,
 21485,JP,3,NRU,,Naruto Seaport - NRU,Naruto Seaport - NRU,,4,NULL,1,
 21486,JP,3,NSX,,Nasa Seaport - NSX,Nasa Seaport - NSX,,4,NULL,1,
 21487,JP,3,NAZ,,Naze Seaport - NAZ,Naze Seaport - NAZ,,4,NULL,1,
-21488,JP,3,NGI,,"Neghishi,Neghishi","Yokohama Seaport - NGI""",,4,NULL,,
+21488,JP,3,NGI,,"Neghishi, Yokohama Seaport - NGI","Neghishi, Yokohama Seaport - NGI",,4,NULL,,
 21489,JP,3,NEJ,,Nejime Seaport - NEJ,Nejime Seaport - NEJ,,4,NULL,1,
 21490,JP,3,NEM,,Nemuro Seaport - NEM,Nemuro Seaport - NEM,,4,NULL,1,
 21491,JP,3,NNK,,Nenokuchi Seaport - NNK,Nenokuchi Seaport - NNK,,4,NULL,1,
@@ -7379,8 +7379,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21505,JP,3,NIJ,,Niijima Seaport - NIJ,Niijima Seaport - NIJ,,4,NULL,1,
 21506,JP,3,NIM,,Nima Seaport - NIM,Nima Seaport - NIM,,4,NULL,1,
 21507,JP,3,NIO,,Nio Seaport - NIO,Nio Seaport - NIO,,4,NULL,1,
-21508,JP,3,NID,,"Nishi,Nishi","Kitadaito Seaport - NID""",,4,NULL,,
-21509,JP,3,NDI,,"Nishi,Nishi","Minamidaito Seaport - NDI""",,4,NULL,,
+21508,JP,3,NID,,"Nishi, Kitadaito Seaport - NID","Nishi, Kitadaito Seaport - NID",,4,NULL,,
+21509,JP,3,NDI,,"Nishi, Minamidaito Seaport - NDI","Nishi, Minamidaito Seaport - NDI",,4,NULL,,
 21510,JP,3,NSB,,Nishibe Seaport - NSB,Nishibe Seaport - NSB,,4,NULL,1,
 21511,JP,3,NSI,,Nishiesan Seaport - NSI,Nishiesan Seaport - NSI,,4,NULL,1,
 21512,JP,3,NHR,,Nishihara Seaport - NHR,Nishihara Seaport - NHR,,4,NULL,1,
@@ -7396,7 +7396,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21522,JP,3,NIA,,Nita Seaport - NIA,Nita Seaport - NIA,,4,NULL,1,
 21523,JP,3,NOB,,Nobeoka Seaport - NOB,Nobeoka Seaport - NOB,,4,NULL,1,
 21524,JP,3,NBS,,Nobeokashinko Seaport - NBS,Nobeokashinko Seaport - NBS,,4,NULL,1,
-21525,JP,3,NBU,,"Nobu,Nobu","Mitsushima Seaport - NBU""",,4,NULL,,
+21525,JP,3,NBU,,"Nobu, Mitsushima Seaport - NBU","Nobu, Mitsushima Seaport - NBU",,4,NULL,,
 21526,JP,3,NOU,,Noh Seaport - NOU,Noh Seaport - NOU,,4,NULL,1,
 21527,JP,3,NOH,,Nohara Seaport - NOH,Nohara Seaport - NOH,,4,NULL,1,
 21528,JP,3,NHJ,,Noheji Seaport - NHJ,Noheji Seaport - NHJ,,4,NULL,1,
@@ -7414,11 +7414,11 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21541,JP,3,NYK,,Nyukou Seaport - NYK,Nyukou Seaport - NYK,,4,NULL,1,
 21542,JP,3,NYZ,,Nyuzu Seaport - NYZ,Nyuzu Seaport - NYZ,,4,NULL,1,
 21543,JP,3,OAR,,Oarai Seaport - OAR,Oarai Seaport - OAR,,4,NULL,1,
-21544,JP,3,OBM,,"Obama,Obama","Fukui Seaport - OBM""",,4,NULL,,
-21545,JP,3,OBA,,"Obama,Obama","Mie Seaport - OBA""",,4,NULL,,
-21546,JP,3,OBB,,"Obama,Obama","Nagasaki Seaport - OBB""",,4,NULL,,
+21544,JP,3,OBM,,"Obama, Fukui Seaport - OBM","Obama, Fukui Seaport - OBM",,4,NULL,,
+21545,JP,3,OBA,,"Obama, Mie Seaport - OBA","Obama, Mie Seaport - OBA",,4,NULL,,
+21546,JP,3,OBB,,"Obama, Nagasaki Seaport - OBB","Obama, Nagasaki Seaport - OBB",,4,NULL,,
 21547,JP,3,OOB,,Obatake Seaport - OOB,Obatake Seaport - OOB,,4,NULL,1,
-21548,JP,3,OBE,,"Obe,Obe","Ehime Seaport - OBE""",,4,NULL,,
+21548,JP,3,OBE,,"Obe, Ehime Seaport - OBE","Obe, Ehime Seaport - OBE",,4,NULL,,
 21549,JP,2,OBO,,Obihiro Airport - OBO,Obihiro Airport - OBO,,4,NULL,1,
 21550,JP,3,OOC,,Ochiyo Seaport - OOC,Ochiyo Seaport - OOC,,4,NULL,1,
 21551,JP,3,ODA,,Odahigashi Seaport - ODA,Odahigashi Seaport - ODA,,4,NULL,1,
@@ -7428,21 +7428,21 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21555,JP,3,ODM,,Odomari Seaport - ODM,Odomari Seaport - ODM,,4,NULL,1,
 21557,JP,3,OGA,,Ogasawara Seaport - OGA,Ogasawara Seaport - OGA,,4,NULL,1,
 21558,JP,3,OAT,,Ogatsu Seaport - OAT,Ogatsu Seaport - OAT,,4,NULL,1,
-21559,JP,3,OII,,"Ogi,Ogi","Ishikawa Seaport - OII""",,4,NULL,,
-21560,JP,3,OGK,,"Ogi,Ogi","Kagawa Seaport - OGK""",,4,NULL,,
-21561,JP,3,OGI,,"Ogi,Ogi","Niigata Seaport - OGI""",,4,NULL,,
+21559,JP,3,OII,,"Ogi, Ishikawa Seaport - OII","Ogi, Ishikawa Seaport - OII",,4,NULL,,
+21560,JP,3,OGK,,"Ogi, Kagawa Seaport - OGK","Ogi, Kagawa Seaport - OGK",,4,NULL,,
+21561,JP,3,OGI,,"Ogi, Niigata Seaport - OGI","Ogi, Niigata Seaport - OGI",,4,NULL,,
 21562,JP,3,OGF,,Ogifushi Seaport - OGF,Ogifushi Seaport - OGF,,4,NULL,1,
 21563,JP,3,OGH,,Oginohama Seaport - OGH,Oginohama Seaport - OGH,,4,NULL,1,
 21564,JP,3,OGM,,Ogomori Seaport - OGM,Ogomori Seaport - OGM,,4,NULL,1,
-21565,JP,3,OHM,,"Ohama,Ohama","Ehime Seaport - OHM""",,4,NULL,,
-21566,JP,3,OHA,,"Ohama,Ohama","Kagawa Seaport - OHA""",,4,NULL,,
-21567,JP,3,KHM,,"Ohama,Ohama","Kagoshima Seaport - KHM""",,4,NULL,,
-21568,JP,3,OOH,,"Ohama,Ohama","Okayama Seaport - OOH""",,4,NULL,,
-21569,JP,3,OMX,,"Ohama,Ohama","Tottori Seaport - OMX""",,4,NULL,,
+21565,JP,3,OHM,,"Ohama, Ehime Seaport - OHM","Ohama, Ehime Seaport - OHM",,4,NULL,,
+21566,JP,3,OHA,,"Ohama, Kagawa Seaport - OHA","Ohama, Kagawa Seaport - OHA",,4,NULL,,
+21567,JP,3,KHM,,"Ohama, Kagoshima Seaport - KHM","Ohama, Kagoshima Seaport - KHM",,4,NULL,,
+21568,JP,3,OOH,,"Ohama, Okayama Seaport - OOH","Ohama, Okayama Seaport - OOH",,4,NULL,,
+21569,JP,3,OMX,,"Ohama, Tottori Seaport - OMX","Ohama, Tottori Seaport - OMX",,4,NULL,,
 21570,JP,3,OHT,,Ohata Seaport - OHT,Ohata Seaport - OHT,,4,NULL,1,
-21571,JP,3,OBX,,"Ohbe,Ohbe","Kagawa Seaport - OBX""",,4,NULL,,
+21571,JP,3,OBX,,"Ohbe, Kagawa Seaport - OBX","Ohbe, Kagawa Seaport - OBX",,4,NULL,,
 21572,JP,3,OBS,,Ohbishima Seaport - OBS,Ohbishima Seaport - OBS,,4,NULL,1,
-21573,JP,3,OKR,,"Ohbukura,Ohbukura","Uwajima Seaport - OKR""",,4,NULL,,
+21573,JP,3,OKR,,"Ohbukura, Uwajima Seaport - OKR","Ohbukura, Uwajima Seaport - OKR",,4,NULL,,
 21574,JP,3,ODN,,Ohdana Seaport - ODN,Ohdana Seaport - ODN,,4,NULL,1,
 21575,JP,3,OFR,,Ohfukaura Seaport - OFR,Ohfukaura Seaport - OFR,,4,NULL,1,
 21576,JP,3,OFK,,Ohfunakoshi Seaport - OFK,Ohfunakoshi Seaport - OFK,,4,NULL,1,
@@ -7456,19 +7456,19 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21584,JP,3,OIG,,Ohigawa Seaport - OIG,Ohigawa Seaport - OIG,,4,NULL,1,
 21585,JP,3,OKH,,Ohkawara Seaport - OKH,Ohkawara Seaport - OKH,,4,NULL,1,
 21586,JP,3,ONE,,Ohnejime Seaport - ONE,Ohnejime Seaport - ONE,,4,NULL,1,
-21587,JP,3,ONS,,"Ohnishi,Ohnishi","Ohsaki Seaport - ONS""",,4,NULL,,
+21587,JP,3,ONS,,"Ohnishi, Ohsaki Seaport - ONS","Ohnishi, Ohsaki Seaport - ONS",,4,NULL,,
 21588,JP,3,OON,,Ohnoh Seaport - OON,Ohnoh Seaport - OON,,4,NULL,1,
 21589,JP,3,ORA,,Ohra Seaport - ORA,Ohra Seaport - ORA,,4,NULL,1,
 21590,JP,3,OUS,,Ohse Seaport - OUS,Ohse Seaport - OUS,,4,NULL,1,
-21591,JP,3,OSI,,"Ohshima,Ohshima","Ehime Seaport - OSI""",,4,NULL,,
-21592,JP,3,OSS,,"Ohshima,Ohshima","Fukuoka Seaport - OSS""",,4,NULL,,
-21593,JP,3,HGS,,"Ohshima,Ohshima","Hagi Seaport - HGS""",,4,NULL,,
-21594,JP,3,OOM,,"Ohshima,Ohshima","Kagawa Seaport - OOM""",,4,NULL,,
-21595,JP,3,OSO,,"Ohshima,Ohshima","Miyazaki Seaport - OSO""",,4,NULL,,
-21596,JP,3,OSM,,"Ohshima,Ohshima","Nagasaki Seaport - OSM""",,4,NULL,,
-21597,JP,3,OIM,,"Ohshima Seaport,Ohshima Seaport","Tokyo - OIM""",,4,NULL,,
-21598,JP,3,OSH,,"Ohshima,Ohshima","Wakayama Seaport - OSH""",,4,NULL,,
-21599,JP,3,OYM,,"Ohyama,Ohyama","Mitsushima Seaport - OYM""",,4,NULL,,
+21591,JP,3,OSI,,"Ohshima, Ehime Seaport - OSI","Ohshima, Ehime Seaport - OSI",,4,NULL,,
+21592,JP,3,OSS,,"Ohshima, Fukuoka Seaport - OSS","Ohshima, Fukuoka Seaport - OSS",,4,NULL,,
+21593,JP,3,HGS,,"Ohshima, Hagi Seaport - HGS","Ohshima, Hagi Seaport - HGS",,4,NULL,,
+21594,JP,3,OOM,,"Ohshima, Kagawa Seaport - OOM","Ohshima, Kagawa Seaport - OOM",,4,NULL,,
+21595,JP,3,OSO,,"Ohshima, Miyazaki Seaport - OSO","Ohshima, Miyazaki Seaport - OSO",,4,NULL,,
+21596,JP,3,OSM,,"Ohshima, Nagasaki Seaport - OSM","Ohshima, Nagasaki Seaport - OSM",,4,NULL,,
+21597,JP,3,OIM,,"Ohshima Seaport, Tokyo - OIM","Ohshima Seaport, Tokyo - OIM",,4,NULL,,
+21598,JP,3,OSH,,"Ohshima, Wakayama Seaport - OSH","Ohshima, Wakayama Seaport - OSH",,4,NULL,,
+21599,JP,3,OYM,,"Ohyama, Mitsushima Seaport - OYM","Ohyama, Mitsushima Seaport - OYM",,4,NULL,,
 21600,JP,3,OZJ,,Ohzuku Seaport - OZJ,Ohzuku Seaport - OZJ,,4,NULL,1,
 21601,JP,3,OIS,,Oiso Seaport - OIS,Oiso Seaport - OIS,,4,NULL,1,
 21602,JP,3,OIT,,Oita Seaport - OIT,Oita Seaport - OIT,,4,NULL,1,
@@ -7478,23 +7478,23 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21607,JP,2,OKD,,Okadama Airport  - OKD,Okadama Airport  - OKD,,4,NULL,1,
 21609,JP,3,OKM,,Okamoto Seaport - OKM,Okamoto Seaport - OKM,,4,NULL,1,
 21610,JP,3,OMR,,Okamura Seaport - OMR,Okamura Seaport - OMR,,4,NULL,1,
-21611,JP,3,OOW,,"Okawa,Okawa","Nagasaki Seaport - OOW""",,4,NULL,,
-21612,JP,3,OKW,,"Okawa,Okawa","Wakayama Seaport - OKW""",,4,NULL,,
+21611,JP,3,OOW,,"Okawa, Nagasaki Seaport - OOW","Okawa, Nagasaki Seaport - OOW",,4,NULL,,
+21612,JP,3,OKW,,"Okawa, Wakayama Seaport - OKW","Okawa, Wakayama Seaport - OKW",,4,NULL,,
 21613,JP,2,OKJ,,Okayama Airport - OKJ,Okayama Airport - OKJ,,4,NULL,1,
 21615,JP,2,OKI,,Oki Airport - OKI,Oki Airport - OKI,,4,NULL,1,
 21617,JP,2,OKE,,Okinoerabu Airport - OKE,Okinoerabu Airport - OKE,,4,NULL,1,
 21618,JP,3,OKN,,Okinajima Seaport - OKN,Okinajima Seaport - OKN,,4,NULL,1,
 21619,JP,2,OKA,,Okinawa Airport - OKA,Okinawa Airport - OKA,,4,NULL,1,
 21621,JP,3,OKK,,Okinokojima Seaport - OKK,Okinokojima Seaport - OKK,,4,NULL,1,
-21622,JP,3,OKC,,"Okitsu,Okitsu","Chiba Seaport - OKC""",,4,NULL,,
-21623,JP,3,OKT,,"Okitsu,Okitsu","Shizuoka Seaport - OKT""",,4,NULL,,
-21624,JP,3,OIU,,"Okiura,Okiura","Hiroshima Seaport - OIU""",,4,NULL,,
-21625,JP,3,OKX,,"Okiura,Okiura","Yamaguchi Seaport - OKX""",,4,NULL,,
+21622,JP,3,OKC,,"Okitsu, Chiba Seaport - OKC","Okitsu, Chiba Seaport - OKC",,4,NULL,,
+21623,JP,3,OKT,,"Okitsu, Shizuoka Seaport - OKT","Okitsu, Shizuoka Seaport - OKT",,4,NULL,,
+21624,JP,3,OIU,,"Okiura, Hiroshima Seaport - OIU","Okiura, Hiroshima Seaport - OIU",,4,NULL,,
+21625,JP,3,OKX,,"Okiura, Yamaguchi Seaport - OKX","Okiura, Yamaguchi Seaport - OKX",,4,NULL,,
 21626,JP,3,OKS,,Okiuranishi Seaport - OKS,Okiuranishi Seaport - OKS,,4,NULL,1,
 21627,JP,3,OKG,,Okogi Seaport - OKG,Okogi Seaport - OKG,,4,NULL,1,
 21628,JP,3,OKU,,Oku Seaport - OKU,Oku Seaport - OKU,,4,NULL,1,
-21629,JP,3,OOJ,,"Okubo,Okubo","Kagoshima Seaport - OOJ""",,4,NULL,,
-21630,JP,3,OKB,,"Okubo,Okubo","Tokyo Seaport - OKB""",,4,NULL,,
+21629,JP,3,OOJ,,"Okubo, Kagoshima Seaport - OOJ","Okubo, Kagoshima Seaport - OOJ",,4,NULL,,
+21630,JP,3,OKB,,"Okubo, Tokyo Seaport - OKB","Okubo, Tokyo Seaport - OKB",,4,NULL,,
 21631,JP,3,OCH,,Okunouchi Seaport - OCH,Okunouchi Seaport - OCH,,4,NULL,1,
 21632,JP,2,OIR,,Okushiri Airport - OIR,Okushiri Airport - OIR,,4,NULL,1,
 21634,JP,3,OAX,,Oma Seaport - OAX,Oma Seaport - OAX,,4,NULL,1,
@@ -7526,15 +7526,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21662,JP,3,ORG,,Origami Seaport - ORG,Origami Seaport - ORG,,4,NULL,1,
 21663,JP,3,ORN,,Orino Seaport - ORN,Orino Seaport - ORN,,4,NULL,1,
 21665,JP,2,ITM,,Osaka International Airport - ITM,Osaka International Airport - ITM,,4,NULL,1,
-21666,JP,3,OUK,,"Osaka,Osaka","Tottori Seaport - OUK""",,4,NULL,,
-21667,JP,3,OSX,,"Osaki,Osaki","Kagoshima Seaport - OSX""",,4,NULL,,
-21668,JP,3,OSN,,"Osaki,Osaki","Mitsushima Seaport - OSN""",,4,NULL,,
-21669,JP,3,OSK,,"Osaki,Osaki","Miyagi Seaport - OSK""",,4,NULL,,
+21666,JP,3,OUK,,"Osaka, Tottori Seaport - OUK","Osaka, Tottori Seaport - OUK",,4,NULL,,
+21667,JP,3,OSX,,"Osaki, Kagoshima Seaport - OSX","Osaki, Kagoshima Seaport - OSX",,4,NULL,,
+21668,JP,3,OSN,,"Osaki, Mitsushima Seaport - OSN","Osaki, Mitsushima Seaport - OSN",,4,NULL,,
+21669,JP,3,OSK,,"Osaki, Miyagi Seaport - OSK","Osaki, Miyagi Seaport - OSK",,4,NULL,,
 21670,JP,3,OJO,,Osako Seaport - OJO,Osako Seaport - OJO,,4,NULL,1,
 21671,JP,3,OTO,,Osato Seaport - OTO,Osato Seaport - OTO,,4,NULL,1,
 21672,JP,3,OST,,Osetoyanagi Seaport - OST,Osetoyanagi Seaport - OST,,4,NULL,1,
 21673,JP,3,OSD,,Oshidomari Seaport - OSD,Oshidomari Seaport - OSD,,4,NULL,1,
-21675,JP,3,OSL,,"Oshima,Oshima","Yamaguchi Seaport - OSL""",,4,NULL,,
+21675,JP,3,OSL,,"Oshima, Yamaguchi Seaport - OSL","Oshima, Yamaguchi Seaport - OSL",,4,NULL,,
 21676,JP,3,OSE,,Osoe Seaport - OSE,Osoe Seaport - OSE,,4,NULL,1,
 21677,JP,3,OSU,,Osuki Seaport - OSU,Osuki Seaport - OSU,,4,NULL,1,
 21678,JP,3,OTK,,Otake Seaport - OTK,Otake Seaport - OTK,,4,NULL,1,
@@ -7542,15 +7542,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21680,JP,3,OTR,,Otaru Seaport - OTR,Otaru Seaport - OTR,,4,NULL,1,
 21681,JP,3,OTW,,Otawa Seaport - OTW,Otawa Seaport - OTW,,4,NULL,1,
 21682,JP,3,OTM,,Otomi Seaport - OTM,Otomi Seaport - OTM,,4,NULL,1,
-21683,JP,3,OSJ,,"Otsu,Otsu","Ibaraki Seaport - OSJ""",,4,NULL,,
-21684,JP,3,OTU,,"Otsu,Otsu","Shiga Seaport - OTU""",,4,NULL,,
+21683,JP,3,OSJ,,"Otsu, Ibaraki Seaport - OSJ","Otsu, Ibaraki Seaport - OSJ",,4,NULL,,
+21684,JP,3,OTU,,"Otsu, Shiga Seaport - OTU","Otsu, Shiga Seaport - OTU",,4,NULL,,
 21685,JP,3,OTJ,,Otsuchi Seaport - OTJ,Otsuchi Seaport - OTJ,,4,NULL,1,
-21686,JP,3,OUA,,"Oura,Oura","Ariake Seaport - OUA""",,4,NULL,,
-21687,JP,3,OUR,,"Oura,Oura","Kamitsushima Seaport - OUR""",,4,NULL,,
-21688,JP,3,OOR,,"Oura,Oura","Kasaoka Seaport - OOR""",,4,NULL,,
-21689,JP,3,ORX,,"Oura,Oura","Marugame Seaport - ORX""",,4,NULL,,
-21690,JP,3,OOA,,"Oura,Oura","Saga Seaport - OOA""",,4,NULL,,
-21691,JP,3,ORR,,"Oura,Oura","Uchinoura Seaport - ORR""",,4,NULL,,
+21686,JP,3,OUA,,"Oura, Ariake Seaport - OUA","Oura, Ariake Seaport - OUA",,4,NULL,,
+21687,JP,3,OUR,,"Oura, Kamitsushima Seaport - OUR","Oura, Kamitsushima Seaport - OUR",,4,NULL,,
+21688,JP,3,OOR,,"Oura, Kasaoka Seaport - OOR","Oura, Kasaoka Seaport - OOR",,4,NULL,,
+21689,JP,3,ORX,,"Oura, Marugame Seaport - ORX","Oura, Marugame Seaport - ORX",,4,NULL,,
+21690,JP,3,OOA,,"Oura, Saga Seaport - OOA","Oura, Saga Seaport - OOA",,4,NULL,,
+21691,JP,3,ORR,,"Oura, Uchinoura Seaport - ORR","Oura, Uchinoura Seaport - ORR",,4,NULL,,
 21692,JP,3,OWA,,Owase Seaport - OWA,Owase Seaport - OWA,,4,NULL,1,
 21693,JP,3,OYB,,Oyabu Seaport - OYB,Oyabu Seaport - OYB,,4,NULL,1,
 21695,JP,3,OZX,,Ozaki Seaport - OZX,Ozaki Seaport - OZX,,4,NULL,1,
@@ -7570,18 +7570,18 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21711,JP,2,SDO,,Sado Airport - SDO,Sado Airport - SDO,,4,NULL,1,
 21712,JP,3,SDS,,Sendaishinko Seaport - SDS,Sendaishinko Seaport - SDS,,4,NULL,1,
 21713,JP,2,HSG,,Kyushu Saga International Airport - HSG,Kyushu Saga International Airport - HSG,,4,NULL,1,
-21714,JP,3,SGA,,"Saga,Saga","Kochi Seaport - SGA""",,4,NULL,,
-21715,JP,3,QSG,,"Saga,Saga","Saga Seaport - QSG""",,4,NULL,,
+21714,JP,3,SGA,,"Saga, Kochi Seaport - SGA","Saga, Kochi Seaport - SGA",,4,NULL,,
+21715,JP,3,QSG,,"Saga, Saga Seaport - QSG","Saga, Saga Seaport - QSG",,4,NULL,,
 21717,JP,3,SAG,,Saganoseki Seaport - SAG,Saganoseki Seaport - SAG,,4,NULL,1,
 21718,JP,3,SGR,,Sagara Seaport - SGR,Sagara Seaport - SGR,,4,NULL,1,
 21719,JP,3,SAW,,Sagawa Seaport - SAW,Sagawa Seaport - SAW,,4,NULL,1,
 21720,JP,3,SGJ,,Sagi Seaport - SGJ,Sagi Seaport - SGJ,,4,NULL,1,
-21721,JP,3,SJA,,"Sai,Sai","Aomori Seaport - SJA""",,4,NULL,,
-21722,JP,3,SAC,,"Sai,Sai","Shimane Seaport - SAC""",,4,NULL,,
+21721,JP,3,SJA,,"Sai, Aomori Seaport - SJA","Sai, Aomori Seaport - SJA",,4,NULL,,
+21722,JP,3,SAC,,"Sai, Shimane Seaport - SAC","Sai, Shimane Seaport - SAC",,4,NULL,,
 21723,JP,3,SDZ,,Saidaiji Seaport - SDZ,Saidaiji Seaport - SDZ,,4,NULL,1,
 21724,JP,3,SAD,,Saidoh Seaport - SAD,Saidoh Seaport - SAD,,4,NULL,1,
-21725,JP,3,SGU,,"Saigo,Saigo","Nagasaki Seaport - SGU""",,4,NULL,,
-21726,JP,3,SAI,,"Saigo,Saigo","Shimane Seaport - SAI""",,4,NULL,,
+21725,JP,3,SGU,,"Saigo, Nagasaki Seaport - SGU","Saigo, Nagasaki Seaport - SGU",,4,NULL,,
+21726,JP,3,SAI,,"Saigo, Shimane Seaport - SAI","Saigo, Shimane Seaport - SAI",,4,NULL,,
 21727,JP,3,SAJ,,Saijo Seaport - SAJ,Saijo Seaport - SAJ,,4,NULL,1,
 21728,JP,3,SAE,,Saiki Seaport - SAE,Saiki Seaport - SAE,,4,NULL,1,
 21729,JP,3,STZ,,Saitozaki Seaport - STZ,Saitozaki Seaport - STZ,,4,NULL,1,
@@ -7617,7 +7617,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21759,JP,3,STE,,Satoura Seaport - STE,Satoura Seaport - STE,,4,NULL,1,
 21760,JP,3,STW,,Satsukawawan Seaport - STW,Satsukawawan Seaport - STW,,4,NULL,1,
 21763,JP,3,SAZ,,Saza Seaport - SAZ,Saza Seaport - SAZ,,4,NULL,1,
-21764,JP,3,SEQ,,"Se,Se","Izuhara Seaport - SEQ""",,4,NULL,,
+21764,JP,3,SEQ,,"Se, Izuhara Seaport - SEQ","Se, Izuhara Seaport - SEQ",,4,NULL,,
 21765,JP,3,SGW,,Segawa Seaport - SGW,Segawa Seaport - SGW,,4,NULL,1,
 21766,JP,3,SEG,,Seigaura Seaport - SEG,Seigaura Seaport - SEG,,4,NULL,1,
 21767,JP,3,SEK,,Sekinehama Seaport - SEK,Sekinehama Seaport - SEK,,4,NULL,1,
@@ -7627,8 +7627,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21773,JP,3,SZK,,Senzaki Seaport - SZK,Senzaki Seaport - SZK,,4,NULL,1,
 21774,JP,3,SES,,Sesoko Seaport - SES,Sesoko Seaport - SES,,4,NULL,1,
 21776,JP,3,STN,,Setana Seaport - STN,Setana Seaport - STN,,4,NULL,1,
-21777,JP,3,SXT,,"Seto,Seto","Kagawa Seaport - SXT""",,4,NULL,,
-21778,JP,3,STT,,"Seto,Seto","Kagoshima Seaport - STT""",,4,NULL,,
+21777,JP,3,SXT,,"Seto, Kagawa Seaport - SXT","Seto, Kagawa Seaport - SXT",,4,NULL,,
+21778,JP,3,STT,,"Seto, Kagoshima Seaport - STT","Seto, Kagoshima Seaport - STT",,4,NULL,,
 21779,JP,3,STD,,Setoda Seaport - STD,Setoda Seaport - STD,,4,NULL,1,
 21780,JP,3,SEZ,,Sezaki Seaport - SEZ,Sezaki Seaport - SEZ,,4,NULL,1,
 21781,JP,3,SHR,,Shari Seaport - SHR,Shari Seaport - SHR,,4,NULL,1,
@@ -7653,10 +7653,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21800,JP,3,SNU,,Shimanoura Seaport - SNU,Shimanoura Seaport - SNU,,4,NULL,1,
 21801,JP,3,SHZ,,Shimazuya Seaport - SHZ,Shimazuya Seaport - SHZ,,4,NULL,1,
 21802,JP,3,SMZ,,Shimizu Seaport - SMZ,Shimizu Seaport - SMZ,,4,NULL,1,
-21803,JP,3,SMO,,"Shimoda,Shimoda","Kochi Seaport - SMO""",,4,NULL,,
-21804,JP,3,SIA,,"Shimoda,Shimoda","Kumamoto Seaport - SIA""",,4,NULL,,
-21805,JP,3,SMD,,"Shimoda,Shimoda","Shizuoka Seaport - SMD""",,4,NULL,,
-21806,JP,3,SMR,,"Shimodomari,Shimodomari","Mikame Seaport - SMR""",,4,NULL,,
+21803,JP,3,SMO,,"Shimoda, Kochi Seaport - SMO","Shimoda, Kochi Seaport - SMO",,4,NULL,,
+21804,JP,3,SIA,,"Shimoda, Kumamoto Seaport - SIA","Shimoda, Kumamoto Seaport - SIA",,4,NULL,,
+21805,JP,3,SMD,,"Shimoda, Shizuoka Seaport - SMD","Shimoda, Shizuoka Seaport - SMD",,4,NULL,,
+21806,JP,3,SMR,,"Shimodomari, Mikame Seaport - SMR","Shimodomari, Mikame Seaport - SMR",,4,NULL,,
 21807,JP,3,SMH,,Shimohisage Seaport - SMH,Shimohisage Seaport - SMH,,4,NULL,1,
 21808,JP,2,SHI,,Shimojishima Airport - SHI,Shimojishima Airport - SHI,,4,NULL,1,
 21810,JP,3,SWA,,Shimokawaguchi Seaport - SWA,Shimokawaguchi Seaport - SWA,,4,NULL,1,
@@ -7668,8 +7668,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21816,JP,3,SHG,,Shinagawa Seaport - SHG,Shinagawa Seaport - SHG,,4,NULL,1,
 21817,JP,3,SHN,,Shingu Seaport - SHN,Shingu Seaport - SHN,,4,NULL,1,
 21818,JP,3,SZI,,Shinjima Seaport - SZI,Shinjima Seaport - SZI,,4,NULL,1,
-21819,JP,3,SKW,,"Shinkawa,Shinkawa","Aichi Seaport - SKW""",,4,NULL,,
-21820,JP,3,SNK,,"Shinkawa,Shinkawa","Kagoshima Seaport - SNK""",,4,NULL,,
+21819,JP,3,SKW,,"Shinkawa, Aichi Seaport - SKW","Shinkawa, Aichi Seaport - SKW",,4,NULL,,
+21820,JP,3,SNK,,"Shinkawa, Kagoshima Seaport - SNK","Shinkawa, Kagoshima Seaport - SNK",,4,NULL,,
 21821,JP,3,SHK,,Shinkiba Seaport - SHK,Shinkiba Seaport - SHK,,4,NULL,1,
 21822,JP,3,SNJ,,Shinojima Seaport - SNJ,Shinojima Seaport - SNJ,,4,NULL,1,
 21823,JP,3,SNW,,Shinokawa Seaport - SNW,Shinokawa Seaport - SNW,,4,NULL,1,
@@ -7677,14 +7677,14 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21825,JP,3,SGM,,Sendaishhiogama Seaport - SGM,Sendaishhiogama Seaport - SGM,,4,NULL,1,
 21826,JP,3,SGT,,Shiogatani Seaport - SGT,Shiogatani Seaport - SGT,,4,NULL,1,
 21827,JP,3,SOH,,Shiohama Seaport - SOH,Shiohama Seaport - SOH,,4,NULL,1,
-21828,JP,3,SIO,,"Shioya,Shioya","Ishikawa Seaport - SIO""",,4,NULL,,
-21829,JP,3,SYA,,"Shioya,Shioya","Okinawa Seaport - SYA""",,4,NULL,,
+21828,JP,3,SIO,,"Shioya, Ishikawa Seaport - SIO","Shioya, Ishikawa Seaport - SIO",,4,NULL,,
+21829,JP,3,SYA,,"Shioya, Okinawa Seaport - SYA","Shioya, Okinawa Seaport - SYA",,4,NULL,,
 21830,JP,3,SYG,,Shioyagamoto Seaport - SYG,Shioyagamoto Seaport - SYG,,4,NULL,1,
-21831,JP,3,SRX,,"Shirahama,Shirahama","Chiba Seaport - SRX""",,4,NULL,,
-21832,JP,3,SRH,,"Shirahama,Shirahama","Kagawa Seaport - SRH""",,4,NULL,,
-21833,JP,3,SHH,,"Shirahama,Shirahama","Kagoshima Seaport - SHH""",,4,NULL,,
-21834,JP,3,SIR,,"Shirahama,Shirahama","Nagasaki Seaport - SIR""",,4,NULL,,
-21835,JP,3,SIH,,"Shirahama,Shirahama","Okinawa Seaport - SIH""",,4,NULL,,
+21831,JP,3,SRX,,"Shirahama, Chiba Seaport - SRX","Shirahama, Chiba Seaport - SRX",,4,NULL,,
+21832,JP,3,SRH,,"Shirahama, Kagawa Seaport - SRH","Shirahama, Kagawa Seaport - SRH",,4,NULL,,
+21833,JP,3,SHH,,"Shirahama, Kagoshima Seaport - SHH","Shirahama, Kagoshima Seaport - SHH",,4,NULL,,
+21834,JP,3,SIR,,"Shirahama, Nagasaki Seaport - SIR","Shirahama, Nagasaki Seaport - SIR",,4,NULL,,
+21835,JP,3,SIH,,"Shirahama, Okinawa Seaport - SIH","Shirahama, Okinawa Seaport - SIH",,4,NULL,,
 21837,JP,3,SRT,,Shirakata Seaport - SRT,Shirakata Seaport - SRT,,4,NULL,1,
 21838,JP,3,SRA,,Shiraki Seaport - SRA,Shiraki Seaport - SRA,,4,NULL,1,
 21839,JP,3,SKU,,Shiraku Seaport - SKU,Shiraku Seaport - SKU,,4,NULL,1,
@@ -7697,8 +7697,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21846,JP,3,STR,,Shirotori Seaport - STR,Shirotori Seaport - STR,,4,NULL,1,
 21847,JP,3,SSJ,,Shisakajima Seaport - SSJ,Shisakajima Seaport - SSJ,,4,NULL,1,
 21848,JP,3,SSH,,Shishiboe Seaport - SSH,Shishiboe Seaport - SSH,,4,NULL,1,
-21849,JP,3,SJI,,"Shishijima,Shishijima","Kagawa Seaport - SJI""",,4,NULL,,
-21850,JP,3,SJM,,"Shishijima,Shishijima","Kagoshima Seaport - SJM""",,4,NULL,,
+21849,JP,3,SJI,,"Shishijima, Kagawa Seaport - SJI","Shishijima, Kagawa Seaport - SJI",,4,NULL,,
+21850,JP,3,SJM,,"Shishijima, Kagoshima Seaport - SJM","Shishijima, Kagoshima Seaport - SJM",,4,NULL,,
 21851,JP,3,SIS,,Shishikui Seaport - SIS,Shishikui Seaport - SIS,,4,NULL,1,
 21852,JP,3,SSM,,Shishimi Seaport - SSM,Shishimi Seaport - SSM,,4,NULL,1,
 21853,JP,3,STB,,Shitaba Seaport - STB,Shitaba Seaport - STB,,4,NULL,1,
@@ -7713,13 +7713,13 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21863,JP,3,SHU,,Shushi Seaport - SHU,Shushi Seaport - SHU,,4,NULL,1,
 21864,JP,3,SDU,,Sodegaura Seaport - SDU,Sodegaura Seaport - SDU,,4,NULL,1,
 21865,JP,3,SOG,,Sogo Seaport - SOG,Sogo Seaport - SOG,,4,NULL,1,
-21866,JP,3,SNI,,"Sonai,Sonai","Taketomi Seaport - SNI""",,4,NULL,,
-21867,JP,3,SNA,,"Sonai,Sonai","Yonaguni Seaport - SNA""",,4,NULL,,
+21866,JP,3,SNI,,"Sonai, Taketomi Seaport - SNI","Sonai, Taketomi Seaport - SNI",,4,NULL,,
+21867,JP,3,SNA,,"Sonai, Yonaguni Seaport - SNA","Sonai, Yonaguni Seaport - SNA",,4,NULL,,
 21868,JP,3,SNE,,Sone Seaport - SNE,Sone Seaport - SNE,,4,NULL,1,
 21869,JP,3,SGX,,Sonogi Seaport - SGX,Sonogi Seaport - SGX,,4,NULL,1,
 21870,JP,3,SOR,,Sonoura Seaport - SOR,Sonoura Seaport - SOR,,4,NULL,1,
 21871,JP,3,SYM,,Sonoyama Seaport - SYM,Sonoyama Seaport - SYM,,4,NULL,1,
-21872,JP,3,SOT,,"Sotodomari,Sotodomari","Nishiumi Seaport - SOT""",,4,NULL,,
+21872,JP,3,SOT,,"Sotodomari, Nishiumi Seaport - SOT","Sotodomari, Nishiumi Seaport - SOT",,4,NULL,,
 21873,JP,3,SMA,,Souma Seaport - SMA,Souma Seaport - SMA,,4,NULL,1,
 21874,JP,3,SOY,,Soya Seaport - SOY,Soya Seaport - SOY,,4,NULL,1,
 21875,JP,3,SOZ,,Sozu Seaport - SOZ,Sozu Seaport - SOZ,,4,NULL,1,
@@ -7731,8 +7731,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21881,JP,3,SMI,,Sumie Seaport - SMI,Sumie Seaport - SMI,,4,NULL,1,
 21882,JP,3,SUM,,Suminoe Seaport - SUM,Suminoe Seaport - SUM,,4,NULL,1,
 21883,JP,3,SMY,,Sumiyoshi Seaport - SMY,Sumiyoshi Seaport - SMY,,4,NULL,1,
-21884,JP,3,SUH,,"Sumoto,Sumoto","Hyogo Seaport - SUH""",,4,NULL,,
-21885,JP,3,SUT,,"Sumoto,Sumoto","Kumamoto Seaport - SUT""",,4,NULL,,
+21884,JP,3,SUH,,"Sumoto, Hyogo Seaport - SUH","Sumoto, Hyogo Seaport - SUH",,4,NULL,,
+21885,JP,3,SUT,,"Sumoto, Kumamoto Seaport - SUT","Sumoto, Kumamoto Seaport - SUT",,4,NULL,,
 21886,JP,3,SXM,,Sunami Seaport - SXM,Sunami Seaport - SXM,,4,NULL,1,
 21887,JP,3,SUE,,Sunoe Seaport - SUE,Sunoe Seaport - SUE,,4,NULL,1,
 21888,JP,3,SUS,,Susa Seaport - SUS,Susa Seaport - SUS,,4,NULL,1,
@@ -7760,11 +7760,11 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21910,JP,3,TIA,,Taisha Seaport - TIA,Taisha Seaport - TIA,,4,NULL,1,
 21911,JP,3,TZA,,Taiza Seaport - TZA,Taiza Seaport - TZA,,4,NULL,1,
 21912,JP,2,TJH,,Tajima Airport - TJH,Tajima Airport - TJH,,4,NULL,1,
-21913,JP,3,TAJ,,"Tajiri,Tajiri","Shimane Seaport - TAJ""",,4,NULL,,
-21914,JP,3,TJR,,"Tajiri,Tajiri","Tottori Seaport - TJR""",,4,NULL,,
+21913,JP,3,TAJ,,"Tajiri, Shimane Seaport - TAJ","Tajiri, Shimane Seaport - TAJ",,4,NULL,,
+21914,JP,3,TJR,,"Tajiri, Tottori Seaport - TJR","Tajiri, Tottori Seaport - TJR",,4,NULL,,
 21915,JP,3,TKD,,Takada Seaport - TKD,Takada Seaport - TKD,,4,NULL,1,
-21916,JP,3,TKH,,"Takahama,Takahama","Amakusa Seaport - TKH""",,4,NULL,,
-21917,JP,3,TAH,,"Takahama,Takahama","Ehime Seaport - TAH""",,4,NULL,,
+21916,JP,3,TKH,,"Takahama, Amakusa Seaport - TKH","Takahama, Amakusa Seaport - TKH",,4,NULL,,
+21917,JP,3,TAH,,"Takahama, Ehime Seaport - TAH","Takahama, Ehime Seaport - TAH",,4,NULL,,
 21918,JP,3,TAK,,Takamatsu Seaport - TAK,Takamatsu Seaport - TAK,,4,NULL,1,
 21920,JP,3,TMJ,,Takami Seaport - TMJ,Takami Seaport - TMJ,,4,NULL,1,
 21921,JP,3,TAA,,Takamijima Seaport - TAA,Takamijima Seaport - TAA,,4,NULL,1,
@@ -7773,10 +7773,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21924,JP,3,TKK,,Takaoka Seaport - TKK,Takaoka Seaport - TKK,,4,NULL,1,
 21925,JP,3,TJI,,Takarajima Seaport - TJI,Takarajima Seaport - TJI,,4,NULL,1,
 21926,JP,3,TSG,,Takasago Seaport - TSG,Takasago Seaport - TSG,,4,NULL,1,
-21927,JP,3,TJK,,"Takashima,Takashima","Masuda Seaport - TJK""",,4,NULL,,
-21928,JP,3,TSM,,"Takashima,Takashima","Nishisonogi Seaport - TSM""",,4,NULL,,
-21929,JP,3,TXK,,"Takasu,Takasu","Fukui Seaport - TXK""",,4,NULL,,
-21930,JP,3,TKG,,"Takasu,Takasu","Kagoshima Seaport - TKG""",,4,NULL,,
+21927,JP,3,TJK,,"Takashima, Masuda Seaport - TJK","Takashima, Masuda Seaport - TJK",,4,NULL,,
+21928,JP,3,TSM,,"Takashima, Nishisonogi Seaport - TSM","Takashima, Nishisonogi Seaport - TSM",,4,NULL,,
+21929,JP,3,TXK,,"Takasu, Fukui Seaport - TXK","Takasu, Fukui Seaport - TXK",,4,NULL,,
+21930,JP,3,TKG,,"Takasu, Kagoshima Seaport - TKG","Takasu, Kagoshima Seaport - TKG",,4,NULL,,
 21931,JP,3,TEE,,Take Seaport - TEE,Take Seaport - TEE,,4,NULL,1,
 21932,JP,3,TDJ,,Takedatsu Seaport - TDJ,Takedatsu Seaport - TDJ,,4,NULL,1,
 21933,JP,3,THR,,Takehara Seaport - THR,Takehara Seaport - THR,,4,NULL,1,
@@ -7792,23 +7792,23 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21943,JP,3,TKU,,Takuno Seaport - TKU,Takuno Seaport - TKU,,4,NULL,1,
 21944,JP,3,TAM,,Tamano Seaport - TAM,Tamano Seaport - TAM,,4,NULL,1,
 21945,JP,3,TMN,,Tamanoura Seaport - TMN,Tamanoura Seaport - TMN,,4,NULL,1,
-21946,JP,3,TMS,,"Tamatsu,Tamatsu","Ehime Seaport - TMS""",,4,NULL,,
-21947,JP,3,TMT,,"Tamatsu,Tamatsu","Okayama Seaport - TMT""",,4,NULL,,
+21946,JP,3,TMS,,"Tamatsu, Ehime Seaport - TMS","Tamatsu, Ehime Seaport - TMS",,4,NULL,,
+21947,JP,3,TMT,,"Tamatsu, Okayama Seaport - TMT","Tamatsu, Okayama Seaport - TMT",,4,NULL,,
 21949,JP,3,TAE,,Tanabe Seaport - TAE,Tanabe Seaport - TAE,,4,NULL,1,
 21950,JP,3,TAN,,Tanagawa Seaport - TAN,Tanagawa Seaport - TAN,,4,NULL,1,
 21951,JP,3,TNK,,Tanasoko Seaport - TNK,Tanasoko Seaport - TNK,,4,NULL,1,
 21953,JP,3,TAW,,Tannowa Seaport - TAW,Tannowa Seaport - TAW,,4,NULL,1,
 21954,JP,3,THM,,Tanohama Seaport - THM,Tanohama Seaport - THM,,4,NULL,1,
-21955,JP,3,TUR,,"Tanoura,Tanoura","Ehime Seaport - TUR""",,4,NULL,,
-21956,JP,3,TNU,,"Tanoura,Tanoura","Kitakyushu Seaport - TNU""",,4,NULL,,
-21957,JP,3,TNR,,"Tanoura,Tanoura","Kumamoto Seaport - TNR""",,4,NULL,,
+21955,JP,3,TUR,,"Tanoura, Ehime Seaport - TUR","Tanoura, Ehime Seaport - TUR",,4,NULL,,
+21956,JP,3,TNU,,"Tanoura, Kitakyushu Seaport - TNU","Tanoura, Kitakyushu Seaport - TNU",,4,NULL,,
+21957,JP,3,TNR,,"Tanoura, Kumamoto Seaport - TNR","Tanoura, Kumamoto Seaport - TNR",,4,NULL,,
 21958,JP,3,TNW,,Tanowaki Seaport - TNW,Tanowaki Seaport - TNW,,4,NULL,1,
 21959,JP,2,TRA,,Taramajima Airport - TRA,Taramajima Airport - TRA,,4,NULL,1,
 21961,JP,3,TRH,,Tarugahama Seaport - TRH,Tarugahama Seaport - TRH,,4,NULL,1,
 21963,JP,3,TMZ,,Tarumizu Seaport - TMZ,Tarumizu Seaport - TMZ,,4,NULL,1,
 21964,JP,3,TSS,,Tasumi Seaport - TSS,Tasumi Seaport - TSS,,4,NULL,1,
-21965,JP,3,TET,,"Tateishi,Tateishi","Ehime Seaport - TET""",,4,NULL,,
-21966,JP,3,TTS,,"Tateishi,Tateishi","Kagawa Seaport - TTS""",,4,NULL,,
+21965,JP,3,TET,,"Tateishi, Ehime Seaport - TET","Tateishi, Ehime Seaport - TET",,4,NULL,,
+21966,JP,3,TTS,,"Tateishi, Kagawa Seaport - TTS","Tateishi, Kagawa Seaport - TTS",,4,NULL,,
 21967,JP,3,TTY,,Tateyama Seaport - TTY,Tateyama Seaport - TTY,,4,NULL,1,
 21968,JP,3,TAT,,Tatsugo Seaport - TAT,Tatsugo Seaport - TAT,,4,NULL,1,
 21970,JP,3,TYU,,Tayui Seaport - TYU,Tayui Seaport - TYU,,4,NULL,1,
@@ -7816,8 +7816,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 21972,JP,3,TIS,,Teishi Seaport - TIS,Teishi Seaport - TIS,,4,NULL,1,
 21973,JP,3,TEK,,Tekutsuku Seaport - TEK,Tekutsuku Seaport - TEK,,4,NULL,1,
 21974,JP,3,TRD,,Teradomari Seaport - TRD,Teradomari Seaport - TRD,,4,NULL,1,
-21975,JP,3,TZU,,"Terazu,Terazu","Matsue Seaport - TZU""",,4,NULL,,
-21976,JP,3,TRZ,,"Terazu,Terazu","Yatsuka Seaport - TRZ""",,4,NULL,,
+21975,JP,3,TZU,,"Terazu, Matsue Seaport - TZU","Terazu, Matsue Seaport - TZU",,4,NULL,,
+21976,JP,3,TRZ,,"Terazu, Yatsuka Seaport - TRZ","Terazu, Yatsuka Seaport - TRZ",,4,NULL,,
 21977,JP,3,TSI,,Teshima Seaport - TSI,Teshima Seaport - TSI,,4,NULL,1,
 21978,JP,3,TSO,,Teshio Seaport - TSO,Teshio Seaport - TSO,,4,NULL,1,
 21979,JP,3,TEU,,Teuchi Seaport - TEU,Teuchi Seaport - TEU,,4,NULL,1,
@@ -7846,13 +7846,13 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22006,JP,3,TKY,,Tokuyama Seaport - TKY,Tokuyama Seaport - TKY,,4,NULL,1,
 22010,JP,3,TMK,,Tomakomai Seaport - TMK,Tomakomai Seaport - TMK,,4,NULL,1,
 22011,JP,3,TJJ,,Tomamae Seaport - TJJ,Tomamae Seaport - TJJ,,4,NULL,1,
-22012,JP,3,TMR,,"Tomari,Tomari","Okinawa Seaport - TMR""",,4,NULL,,
-22013,JP,3,TMA,,"Tomari,Tomari","Shiribeshi Seaport - TMA""",,4,NULL,,
+22012,JP,3,TMR,,"Tomari, Okinawa Seaport - TMR","Tomari, Okinawa Seaport - TMR",,4,NULL,,
+22013,JP,3,TMA,,"Tomari, Shiribeshi Seaport - TMA","Tomari, Shiribeshi Seaport - TMA",,4,NULL,,
 22014,JP,3,TRR,,Tomariura Seaport - TRR,Tomariura Seaport - TRR,,4,NULL,1,
 22015,JP,3,TME,,Tomie Seaport - TME,Tomie Seaport - TME,,4,NULL,1,
 22016,JP,3,TMM,,Tomiku Seaport - TMM,Tomiku Seaport - TMM,,4,NULL,1,
-22017,JP,3,TMO,,"Tomioka,Tomioka","Kumamoto Seaport - TMO""",,4,NULL,,
-22018,JP,3,TOM,,"Tomioka,Tomioka","Tokushima Seaport - TOM""",,4,NULL,,
+22017,JP,3,TMO,,"Tomioka, Kumamoto Seaport - TMO","Tomioka, Kumamoto Seaport - TMO",,4,NULL,,
+22018,JP,3,TOM,,"Tomioka, Tokushima Seaport - TOM","Tomioka, Tokushima Seaport - TOM",,4,NULL,,
 22019,JP,3,TMU,,Tomitsu Seaport - TMU,Tomitsu Seaport - TMU,,4,NULL,1,
 22020,JP,3,TND,,Tonda Seaport - TND,Tonda Seaport - TND,,4,NULL,1,
 22021,JP,3,TNO,,Tonosho Seaport - TNO,Tonosho Seaport - TNO,,4,NULL,1,
@@ -7860,15 +7860,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22023,JP,3,TON,,Tonoura Seaport - TON,Tonoura Seaport - TON,,4,NULL,1,
 22026,JP,3,TRO,,Tororo Seaport - TRO,Tororo Seaport - TRO,,4,NULL,1,
 22027,JP,3,TSZ,,Tosashimizu Seaport - TSZ,Tosashimizu Seaport - TSZ,,4,NULL,1,
-22028,JP,3,TJO,,"Toshima,Toshima","Hyogo Seaport - TJO""",,4,NULL,,
-22029,JP,3,TOX,,"Toshima,Toshima","Tokyo Seaport - TOX""",,4,NULL,,
+22028,JP,3,TJO,,"Toshima, Hyogo Seaport - TJO","Toshima, Hyogo Seaport - TJO",,4,NULL,,
+22029,JP,3,TOX,,"Toshima, Tokyo Seaport - TOX","Toshima, Tokyo Seaport - TOX",,4,NULL,,
 22030,JP,3,TOT,,Totoro Seaport - TOT,Totoro Seaport - TOT,,4,NULL,1,
 22031,JP,3,TTJ,,Tottori Seaport - TTJ,Tottori Seaport - TTJ,,4,NULL,1,
 22033,JP,3,TOU,,Touyo Seaport - TOU,Touyo Seaport - TOU,,4,NULL,1,
 22034,JP,3,TOY,,Toyama Seaport - TOY,Toyama Seaport - TOY,,4,NULL,1,
 22036,JP,3,TOS,,Toyamashinko Seaport - TOS,Toyamashinko Seaport - TOS,,4,NULL,1,
-22037,JP,3,TYJ,,"Toyohama,Toyohama","Aichi Seaport - TYJ""",,4,NULL,,
-22038,JP,3,TYH,,"Toyohama,Toyohama","Kagawa Seaport - TYH""",,4,NULL,,
+22037,JP,3,TYJ,,"Toyohama, Aichi Seaport - TYJ","Toyohama, Aichi Seaport - TYJ",,4,NULL,,
+22038,JP,3,TYH,,"Toyohama, Kagawa Seaport - TYH","Toyohama, Kagawa Seaport - TYH",,4,NULL,,
 22039,JP,3,THS,,Toyohashi Seaport - THS,Toyohashi Seaport - THS,,4,NULL,1,
 22041,JP,3,TUS,,Toyoshige Seaport - TUS,Toyoshige Seaport - TUS,,4,NULL,1,
 22042,JP,3,TYR,,Toyoura Seaport - TYR,Toyoura Seaport - TYR,,4,NULL,1,
@@ -7884,7 +7884,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22053,JP,3,TNI,,Tsuneishi Seaport - TNI,Tsuneishi Seaport - TNI,,4,NULL,1,
 22054,JP,3,TNS,,Tsunoshima Seaport - TNS,Tsunoshima Seaport - TNS,,4,NULL,1,
 22055,JP,3,TRG,,Tsuruga Seaport - TRG,Tsuruga Seaport - TRG,,4,NULL,1,
-22057,JP,3,TRU,,"Tsurumi,Tsurumi","Okayama Seaport - TRU""",,4,NULL,,
+22057,JP,3,TRU,,"Tsurumi, Okayama Seaport - TRU","Tsurumi, Okayama Seaport - TRU",,4,NULL,,
 22058,JP,3,TSK,,Tsurusaki Seaport - TSK,Tsurusaki Seaport - TSK,,4,NULL,1,
 22059,JP,3,TRC,,Tsuruuchi Seaport - TRC,Tsuruuchi Seaport - TRC,,4,NULL,1,
 22060,JP,3,TSH,,Tsushi Seaport - TSH,Tsushi Seaport - TSH,,4,NULL,1,
@@ -7899,8 +7899,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22070,JP,3,UUR,,Uchinoura Seaport - UUR,Uchinoura Seaport - UUR,,4,NULL,1,
 22071,JP,3,UNU,,Uchinourahetsuka Seaport - UNU,Uchinourahetsuka Seaport - UNU,,4,NULL,1,
 22072,JP,3,UCH,,Uchiumi Seaport - UCH,Uchiumi Seaport - UCH,,4,NULL,1,
-22073,JP,3,UCU,,"Uchiura,Uchiura","Fukui Seaport - UCU""",,4,NULL,,
-22074,JP,3,UCR,,"Uchiura,Uchiura","Ishikawa Seaport - UCR""",,4,NULL,,
+22073,JP,3,UCU,,"Uchiura, Fukui Seaport - UCU","Uchiura, Fukui Seaport - UCU",,4,NULL,,
+22074,JP,3,UCR,,"Uchiura, Ishikawa Seaport - UCR","Uchiura, Ishikawa Seaport - UCR",,4,NULL,,
 22075,JP,3,UDD,,Udo Seaport - UDD,Udo Seaport - UDD,,4,NULL,1,
 22076,JP,3,UDO,,Udono Seaport - UDO,Udono Seaport - UDO,,4,NULL,1,
 22077,JP,3,UEC,,Uechi Seaport - UEC,Uechi Seaport - UEC,,4,NULL,1,
@@ -7917,8 +7917,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22088,JP,3,UNS,,Unoshima Seaport - UNS,Unoshima Seaport - UNS,,4,NULL,1,
 22089,JP,3,UNT,,Unten Seaport - UNT,Unten Seaport - UNT,,4,NULL,1,
 22090,JP,3,UOM,,Uomi Seaport - UOM,Uomi Seaport - UOM,,4,NULL,1,
-22091,JP,3,UOU,,"Uozu,Uozu","Shimane Seaport - UOU""",,4,NULL,,
-22092,JP,3,UOZ,,"Uozu,Uozu","Toyama Seaport - UOZ""",,4,NULL,,
+22091,JP,3,UOU,,"Uozu, Shimane Seaport - UOU","Uozu, Shimane Seaport - UOU",,4,NULL,,
+22092,JP,3,UOZ,,"Uozu, Toyama Seaport - UOZ","Uozu, Toyama Seaport - UOZ",,4,NULL,,
 22093,JP,3,URA,,Ura Seaport - URA,Ura Seaport - URA,,4,NULL,1,
 22094,JP,3,URG,,Uraga Seaport - URG,Uraga Seaport - URG,,4,NULL,1,
 22095,JP,3,URM,,Uragami Seaport - URM,Uragami Seaport - URM,,4,NULL,1,
@@ -7928,7 +7928,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22099,JP,3,UNM,,Uranomae Seaport - UNM,Uranomae Seaport - UNM,,4,NULL,1,
 22100,JP,3,URR,,Urashiro Seaport - URR,Urashiro Seaport - URR,,4,NULL,1,
 22101,JP,3,URS,,Urasoko Seaport - URS,Urasoko Seaport - URS,,4,NULL,1,
-22102,JP,3,USA,,"Usa,Usa","Tosa Seaport - USA""",,4,NULL,,
+22102,JP,3,USA,,"Usa, Tosa Seaport - USA","Usa, Tosa Seaport - USA",,4,NULL,,
 22103,JP,3,UBK,,Ushibuka Seaport - UBK,Ushibuka Seaport - UBK,,4,NULL,1,
 22104,JP,3,USG,,Ushigakubijima Seaport - USG,Ushigakubijima Seaport - USG,,4,NULL,1,
 22105,JP,3,USH,,Ushimado Seaport - USH,Ushimado Seaport - USH,,4,NULL,1,
@@ -7940,15 +7940,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22111,JP,3,USN,,Usuno Seaport - USN,Usuno Seaport - USN,,4,NULL,1,
 22112,JP,3,USU,,Usunoura Seaport - USU,Usunoura Seaport - USU,,4,NULL,1,
 22113,JP,3,UTZ,,Utazu Seaport - UTZ,Utazu Seaport - UTZ,,4,NULL,1,
-22114,JP,3,UTM,,"Utsumi,Utsumi","Aichi Seaport - UTM""",,4,NULL,,
-22115,JP,3,UTS,,"Utsumi,Utsumi","Hiroshima Seaport - UTS""",,4,NULL,,
+22114,JP,3,UTM,,"Utsumi, Aichi Seaport - UTM","Utsumi, Aichi Seaport - UTM",,4,NULL,,
+22115,JP,3,UTS,,"Utsumi, Hiroshima Seaport - UTS","Utsumi, Hiroshima Seaport - UTS",,4,NULL,,
 22118,JP,3,UWA,,Uwajima Seaport - UWA,Uwajima Seaport - UWA,,4,NULL,1,
 22119,JP,3,UZK,,Uzuki Seaport - UZK,Uzuki Seaport - UZK,,4,NULL,1,
 22120,JP,3,WDA,,Wada Seaport - WDA,Wada Seaport - WDA,,4,NULL,1,
 22121,JP,3,WAD,,Wadomari Seaport - WAD,Wadomari Seaport - WAD,,4,NULL,1,
 22122,JP,3,WAI,,Waita Seaport - WAI,Waita Seaport - WAI,,4,NULL,1,
 22123,JP,3,WJM,,Wajima Seaport - WJM,Wajima Seaport - WJM,,4,NULL,1,
-22125,JP,3,WTU,,"Wakamatsu,Wakamatsu","Nagasaki Seaport - WTU""",,4,NULL,,
+22125,JP,3,WTU,,"Wakamatsu, Nagasaki Seaport - WTU","Wakamatsu, Nagasaki Seaport - WTU",,4,NULL,,
 22126,JP,3,WKT,,Wakatsu Seaport - WKT,Wakatsu Seaport - WKT,,4,NULL,1,
 22127,JP,3,WAK,,Wakayama Seaport - WAK,Wakayama Seaport - WAK,,4,NULL,1,
 22128,JP,3,WKI,,Wakimisaki Seaport - WKI,Wakimisaki Seaport - WKI,,4,NULL,1,
@@ -7963,15 +7963,15 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22138,JP,3,WSB,,Washibeyanoura Seaport - WSB,Washibeyanoura Seaport - WSB,,4,NULL,1,
 22139,JP,3,WAT,,Watanoha Seaport - WAT,Watanoha Seaport - WAT,,4,NULL,1,
 22140,JP,3,YNE,,Yaene Seaport - YNE,Yaene Seaport - YNE,,4,NULL,1,
-22141,JP,3,YAG,,"Yagi,Yagi","Hyogo Seaport - YAG""",,4,NULL,,
-22142,JP,3,YGI,,"Yagi,Yagi","Iwate Seaport - YGI""",,4,NULL,,
+22141,JP,3,YAG,,"Yagi, Hyogo Seaport - YAG","Yagi, Hyogo Seaport - YAG",,4,NULL,,
+22142,JP,3,YGI,,"Yagi, Iwate Seaport - YGI","Yagi, Iwate Seaport - YGI",,4,NULL,,
 22143,JP,3,YGR,,Yagishiri Seaport - YGR,Yagishiri Seaport - YGR,,4,NULL,1,
 22144,JP,3,YZU,,Yaizu Seaport - YZU,Yaizu Seaport - YZU,,4,NULL,1,
 22145,JP,2,KUM,,Yakushima Airport - KUM,Yakushima Airport - KUM,,4,NULL,1,
 22147,JP,3,YKU,,Yakuzu Seaport - YKU,Yakuzu Seaport - YKU,,4,NULL,1,
 22148,JP,3,YQD,,Yamada Seaport - YQD,Yamada Seaport - YQD,,4,NULL,1,
-22149,JP,3,YAD,,"Yamada,Yamada","Iwate Seaport - YAD""",,4,NULL,,
-22150,JP,3,YMD,,"Yamada,Yamada","Okayama Seaport - YMD""",,4,NULL,,
+22149,JP,3,YAD,,"Yamada, Iwate Seaport - YAD","Yamada, Iwate Seaport - YAD",,4,NULL,,
+22150,JP,3,YMD,,"Yamada, Okayama Seaport - YMD","Yamada, Okayama Seaport - YMD",,4,NULL,,
 22151,JP,2,GAJ,,Yamagata Airport - GAJ,Yamagata Airport - GAJ,,4,NULL,1,
 22153,JP,3,YAM,,Yamagawa Seaport - YAM,Yamagawa Seaport - YAM,,4,NULL,1,
 22154,JP,3,YMG,,Yamaguchi Seaport - YMG,Yamaguchi Seaport - YMG,,4,NULL,1,
@@ -7992,23 +7992,23 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22171,JP,3,YOC,,Yoichigaura Seaport - YOC,Yoichigaura Seaport - YOC,,4,NULL,1,
 22172,JP,3,YKK,,Yokkaichi Seaport - YKK,Yokkaichi Seaport - YKK,,4,NULL,1,
 22173,JP,3,YOK,,Yokohama Seaport - YOK,Yokohama Seaport - YOK,,4,NULL,1,
-22174,JP,3,YKS,,"Yokoshima,Yokoshima","Kurahashi Seaport - YKS""",,4,NULL,,
+22174,JP,3,YKS,,"Yokoshima, Kurahashi Seaport - YKS","Yokoshima, Kurahashi Seaport - YKS",,4,NULL,,
 22175,JP,3,YOS,,Yokosuka Seaport - YOS,Yokosuka Seaport - YOS,,4,NULL,1,
-22178,JP,3,YKT,,"Yokota,Yokota","Hiroshima Seaport - YKT""",,4,NULL,,
+22178,JP,3,YKT,,"Yokota, Hiroshima Seaport - YKT","Yokota, Hiroshima Seaport - YKT",,4,NULL,,
 22180,JP,2,OGN,,Yonagunijima Airport - OGN,Yonagunijima Airport - OGN,,4,NULL,1,
 22182,JP,3,YOG,,Yonegura Seaport - YOG,Yonegura Seaport - YOG,,4,NULL,1,
 22183,JP,3,YNZ,,Yonouzu Seaport - YNZ,Yonouzu Seaport - YNZ,,4,NULL,1,
 22184,JP,3,YOR,,Yoro Seaport - YOR,Yoro Seaport - YOR,,4,NULL,1,
 22185,JP,2,RNJ,,Yoronjima Airport - RNJ,Yoronjima Airport - RNJ,,4,NULL,1,
 22187,JP,3,YSS,,Yoshiase Seaport - YSS,Yoshiase Seaport - YSS,,4,NULL,1,
-22188,JP,3,YDA,,"Yoshida,Yoshida","Aichi Seaport - YDA""",,4,NULL,,
-22189,JP,3,YSD,,"Yoshida,Yoshida","Ehime Seaport - YSD""",,4,NULL,,
+22188,JP,3,YDA,,"Yoshida, Aichi Seaport - YDA","Yoshida, Aichi Seaport - YDA",,4,NULL,,
+22189,JP,3,YSD,,"Yoshida, Ehime Seaport - YSD","Yoshida, Ehime Seaport - YSD",,4,NULL,,
 22190,JP,3,YSM,,Yoshima Seaport - YSM,Yoshima Seaport - YSM,,4,NULL,1,
 22191,JP,3,YHI,,Yoshimi Seaport - YHI,Yoshimi Seaport - YHI,,4,NULL,1,
 22192,JP,3,YSN,,Yoshinozaki Seaport - YSN,Yoshinozaki Seaport - YSN,,4,NULL,1,
 22193,JP,3,YSU,,Yoshiura Seaport - YSU,Yoshiura Seaport - YSU,,4,NULL,1,
-22194,JP,3,YSR,,"Yoshiura,Yoshiura","Misumi Seaport - YSR""",,4,NULL,,
-22195,JP,3,YHA,,"Yoshiura,Yoshiura","Yunotsu Seaport - YHA""",,4,NULL,,
+22194,JP,3,YSR,,"Yoshiura, Misumi Seaport - YSR","Yoshiura, Misumi Seaport - YSR",,4,NULL,,
+22195,JP,3,YHA,,"Yoshiura, Yunotsu Seaport - YHA","Yoshiura, Yunotsu Seaport - YHA",,4,NULL,,
 22196,JP,3,YSZ,,Yoshizu Seaport - YSZ,Yoshizu Seaport - YSZ,,4,NULL,1,
 22197,JP,3,YOT,,Yotsukura Seaport - YOT,Yotsukura Seaport - YOT,,4,NULL,1,
 22198,JP,3,YOU,,Youra Seaport - YOU,Youra Seaport - YOU,,4,NULL,1,
@@ -8021,10 +8021,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22205,JP,3,YMU,,Yumugi Seaport - YMU,Yumugi Seaport - YMU,,4,NULL,1,
 22206,JP,3,YNM,,Yunomochiki Seaport - YNM,Yunomochiki Seaport - YNM,,4,NULL,1,
 22207,JP,3,YNT,,Yunotsu Seaport - YNT,Yunotsu Seaport - YNT,,4,NULL,1,
-22208,JP,3,YRA,,"Yura,Yura","Hyogo Seaport - YRA""",,4,NULL,,
-22209,JP,3,YUR,,"Yura,Yura","Wakayama Seaport - YUR""",,4,NULL,,
-22210,JP,3,YUJ,,"Yura,Yura","Yamagata Seaport - YUJ""",,4,NULL,,
-22211,JP,3,YUA,,"Yura,Yura","Yamaguchi Seaport - YUA""",,4,NULL,,
+22208,JP,3,YRA,,"Yura, Hyogo Seaport - YRA","Yura, Hyogo Seaport - YRA",,4,NULL,,
+22209,JP,3,YUR,,"Yura, Wakayama Seaport - YUR","Yura, Wakayama Seaport - YUR",,4,NULL,,
+22210,JP,3,YUJ,,"Yura, Yamagata Seaport - YUJ","Yura, Yamagata Seaport - YUJ",,4,NULL,,
+22211,JP,3,YUA,,"Yura, Yamaguchi Seaport - YUA","Yura, Yamaguchi Seaport - YUA",,4,NULL,,
 22212,JP,3,YRG,,Yurigahama Seaport - YRG,Yurigahama Seaport - YRG,,4,NULL,1,
 22213,JP,3,YUS,,Yusu Seaport - YUS,Yusu Seaport - YUS,,4,NULL,1,
 22214,JP,3,YTI,,Yutai Seaport - YTI,Yutai Seaport - YTI,,4,NULL,1,
@@ -8121,7 +8121,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 22384,KM,3,MMO,,Mamoutsou Seaport - MMO,Mamoutsou Seaport - MMO,,4,NULL,1,
 22385,KM,2,NWA,,Mohéli Bandar Es Eslam Airport - NWA,Mohéli Bandar Es Eslam Airport - NWA,,4,NULL,1,
 22389,KM,3,MUT,,Mutsamudu Seaport - MUT,Mutsamudu Seaport - MUT,,4,NULL,1,
-22392,KN,3,BAS,,"Basseterre,Basseterre","St Kitts - Seaport - BAS""",,4,NULL,,
+22392,KN,3,BAS,,"Basseterre, St Kitts - Seaport - BAS","Basseterre, St Kitts - Seaport - BAS",,4,NULL,,
 22393,KN,3,NEV,,Port of Charlestown - Seaport - NEV,Port of Charlestown - Seaport - NEV,,4,NULL,1,
 22395,KN,2,SKB,,Robert L. Bradshaw International Airport - SKB,Robert L. Bradshaw International Airport - SKB,,4,NULL,1,
 22399,KP,3,CHO,,Chongjin Seaport - CHO,Chongjin Seaport - CHO,,4,NULL,1,
@@ -8716,13 +8716,13 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 23830,MY,2,KUD,,Kudat Airport - KUD,Kudat Airport - KUD,,4,NULL,1,
 23833,MY,3,KUN,,Kunak Seaport - KUN,Kunak Seaport - KUN,,4,NULL,1,
 23834,MY,2,LBU,,Labuan Airport - LBU,Labuan Airport - LBU,,4,NULL,1,
-23835,MY,3,LBH,,"Labuan,Labuan","Sabah Seaport - LBH""",,4,NULL,,
+23835,MY,3,LBH,,"Labuan, Sabah Seaport - LBH","Labuan, Sabah Seaport - LBH",,4,NULL,,
 23837,MY,2,LDU,,Lahad Datu Airport - LDU,Lahad Datu Airport - LDU,,4,NULL,1,
 23839,MY,2,LGK,,Langkawi International Airport - LGK,Langkawi International Airport - LGK,,4,NULL,1,
 23841,MY,2,LWY,,Lawas Airport - LWY,Lawas Airport - LWY,,4,NULL,1,
 23843,MY,2,LAC,,Layang-Layang Airport - LAC,Layang-Layang Airport - LAC,,4,NULL,1,
 23844,MY,2,LMN,,Limbang Airport - LMN,Limbang Airport - LMN,,4,NULL,1,
-23846,MY,3,LGG,,"Lingga,Lingga","Sarawak Seaport - LGG""",,4,NULL,,
+23846,MY,3,LGG,,"Lingga, Sarawak Seaport - LGG","Lingga, Sarawak Seaport - LGG",,4,NULL,,
 23847,MY,2,LKH,,Long Akah Airport - LKH,Long Akah Airport - LKH,,4,NULL,1,
 23848,MY,2,LBP,,Long Banga Airport - LBP,Long Banga Airport - LBP,,4,NULL,1,
 23849,MY,2,LLM,,Long Lama Airport - LLM,Long Lama Airport - LLM,,4,NULL,1,
@@ -9093,7 +9093,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 25027,NL,3,ZUT,,Zutphen Seaport - ZUT,Zutphen Seaport - ZUT,,3,NULL,1,1
 25033,NL,3,ZWS,,Zwartsluis Seaport - ZWS,Zwartsluis Seaport - ZWS,,3,NULL,1,1
 25036,NO,2,OLA,,Ørland Airport - OLA,Ørland Airport - OLA,,4,NULL,1,1
-25037,NO,2,HOV,,"Ørsta-Volda Airport,Ørsta-Volda Airport","Hovden - HOV""",,4,NULL,,1
+25037,NO,2,HOV,,"Ørsta-Volda Airport, Hovden - HOV","Ørsta-Volda Airport, Hovden - HOV",,4,NULL,,1
 25038,NO,2,AES,,Ålesund Airport - AES,Ålesund Airport - AES,,4,NULL,1,1
 25043,NO,2,AGD,,Agdenes - Airfield - AGD,Agdenes - Airfield - AGD,,4,NULL,1,1
 25045,NO,3,AGO,,Agotnes - Seaport - AGO,Agotnes - Seaport - AGO,,4,NULL,1,1
@@ -9111,7 +9111,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 25102,NO,2,BOO,,Bodø Airport - BOO,Bodø Airport - BOO,,4,NULL,1,1
 25110,NO,2,BNN,,Brønnøysund Airport - BNN,Brønnøysund Airport - BNN,,4,NULL,1,1
 25124,NO,3,DRM,,Drammen - Seaport - DRM,Drammen - Seaport - DRM,,4,NULL,1,1
-25138,NO,2,EVE,,"Harstad/Narvik,Harstad/Narvik","Evenes  Airport - EVE""",,4,NULL,,1
+25138,NO,2,EVE,,"Harstad/Narvik, Evenes  Airport - EVE","Harstad/Narvik, Evenes  Airport - EVE",,4,NULL,,1
 25139,NO,2,EVJ,,Evje Airfield - EVJ,Evje Airfield - EVJ,,4,NULL,1,1
 25141,NO,2,FDE,,Førde Airport - FDE,Førde Airport - FDE,,4,NULL,1,1
 25144,NO,3,FAN,,Farsund - Seaport - FAN,Farsund - Seaport - FAN,,4,NULL,1,1
@@ -9129,10 +9129,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 25241,NO,3,HOL,,Holmestrand - Seaport - HOL,Holmestrand - Seaport - HOL,,4,NULL,1,1
 25244,NO,2,HVG,,Valan Airport - HVG,Valan Airport - HVG,,4,NULL,1,1
 25249,NO,3,HYR,,Hoyanger - Seaport - HYR,Hoyanger - Seaport - HYR,,4,NULL,1,1
-25262,NO,2,JAR,,"Jarlsberg Airport,Jarlsberg Airport","Tonsberg - JAR""",,4,NULL,,1
+25262,NO,2,JAR,,"Jarlsberg Airport, Tonsberg - JAR","Jarlsberg Airport, Tonsberg - JAR",,4,NULL,,1
 25282,NO,3,KKN,,Kirkenes - Seaport - KKN,Kirkenes - Seaport - KKN,,4,NULL,1,1
 25284,NO,2,KLR,,Kjeller Airport - KLR,Kjeller Airport - KLR,,4,NULL,1,1
-25291,NO,2,KSV,,"Gjolstad Airfield,Gjolstad Airfield","Kongsvinger - KSV""",,4,NULL,,1
+25291,NO,2,KSV,,"Gjolstad Airfield, Kongsvinger - KSV","Gjolstad Airfield, Kongsvinger - KSV",,4,NULL,,1
 25296,NO,3,KRS,,Kristiansand - Seaport - KRS,Kristiansand - Seaport - KRS,,4,NULL,1,1
 25298,NO,2,KSU,,Kristiansund Airport - KSU,Kristiansund Airport - KSU,,4,NULL,1,1
 25313,NO,3,LAR,,Larvik - Seaport - LAR,Larvik - Seaport - LAR,,4,NULL,1,1
@@ -9151,22 +9151,22 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 25368,NO,3,MOL,,Molde - Seaport - MOL,Molde - Seaport - MOL,,4,NULL,1,1
 25371,NO,2,MJF,,Mosjoen Airport - MJF,Mosjoen Airport - MJF,,4,NULL,1,1
 25374,NO,3,MSS,,Moss - Seaport - MSS,Moss - Seaport - MSS,,4,NULL,1,1
-25375,NO,2,RYG,,"Moss Airport,Moss Airport","Rygge - RYG""",,4,NULL,,1
+25375,NO,2,RYG,,"Moss Airport, Rygge - RYG","Moss Airport, Rygge - RYG",,4,NULL,,1
 25382,NO,3,OSY,,Namsos - Seaport - OSY,Namsos - Seaport - OSY,,4,NULL,1,1
 25387,NO,3,NVK,,Port of Narvik - Seaport - NVK,Port of Narvik - Seaport - NVK,,4,NULL,1,1
 25413,NO,3,ORK,,Orkanger - Seaport - ORK,Orkanger - Seaport - ORK,,4,NULL,1,1
 25423,NO,3,OSL,,Port of Oslo - Seaport - OSL,Port of Oslo - Seaport - OSL,,4,NULL,1,1
-25425,NO,2,OSL,,Oslo Gardermoen Airport - OSL,Oslo Gardermoen Airport - OSL,,4,NULL,1,1
+25425,NO,2,OSL,,"Oslo, Fornebu Airport - FBU","Oslo, Fornebu Airport - FBU",,4,NULL,1,1
 25433,NO,2,RRS,,Røros Airport - RRS,Røros Airport - RRS,,4,NULL,1,1
-25434,NO,2,RVK,,"Rørvik Airport,Rørvik Airport","Ryum - RVK""",,4,NULL,,1
+25434,NO,2,RVK,,"Rørvik Airport, Ryum - RVK","Rørvik Airport, Ryum - RVK",,4,NULL,,1
 25435,NO,2,RET,,Røst Airport - RET,Røst Airport - RET,,4,NULL,1,1
 25454,NO,3,RIS,,Risor - Seaport - RIS,Risor - Seaport - RIS,,4,NULL,1,1
 25466,NO,2,SOJ,,Sørkjosen Airport - SOJ,Sørkjosen Airport - SOJ,,4,NULL,1,1
 25468,NO,2,SAL,,Salangen Airfield - SAL,Salangen Airfield - SAL,,4,NULL,1,1
-25470,NO,2,SDL,,"Rognan,Rognan","Saltdal  Airport - SDL""",,4,NULL,,1
-25472,NO,2,SDN,,"Sandane,Sandane","Anda Airport - SDN""",,4,NULL,,1
+25470,NO,2,SDL,,"Rognan, Saltdal  Airport - SDL","Rognan, Saltdal  Airport - SDL",,4,NULL,,1
+25472,NO,2,SDN,,"Sandane, Anda Airport - SDN","Sandane, Anda Airport - SDN",,4,NULL,,1
 25476,NO,3,SAD,,Sandefjord - Seaport - SAD,Sandefjord - Seaport - SAD,,4,NULL,1,1
-25477,NO,2,TRF,,"Sandefjord Airport,Sandefjord Airport","Torp - TRF""",,4,NULL,,1
+25477,NO,2,TRF,,"Sandefjord Airport, Torp - TRF","Sandefjord Airport, Torp - TRF",,4,NULL,,1
 25478,NO,3,SAS,,Sandnes - Seaport - SAS,Sandnes - Seaport - SAS,,4,NULL,1,1
 25479,NO,2,SSJ,,Sandnessjøen Airport (Stokka) - SSJ,Sandnessjøen Airport (Stokka) - SSJ,,4,NULL,1,1
 25484,NO,3,SAU,,Sauda - Seaport - SAU,Sauda - Seaport - SAU,,4,NULL,1,1
@@ -9184,7 +9184,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 25593,NO,3,TRD,,Trondheim - Seaport - TRD,Trondheim - Seaport - TRD,,4,NULL,1,1
 25607,NO,2,ULV,,Os Vaksinen Ulven Airport - ULV,Os Vaksinen Ulven Airport - ULV,,4,NULL,1,1
 25613,NO,2,VDS,,Vadsø Airport - VDS,Vadsø Airport - VDS,,4,NULL,1,1
-25625,NO,2,VAW,,"Vardø Airport,Vardø Airport","Svartnes - VAW""",,4,NULL,,1
+25625,NO,2,VAW,,"Vardø Airport, Svartnes - VAW","Vardø Airport, Svartnes - VAW",,4,NULL,,1
 25626,NO,3,VAO,,Vardo - Seaport - VAO,Vardo - Seaport - VAO,,4,NULL,1,1
 25632,NO,3,VER,,Verdal - Seaport - VER,Verdal - Seaport - VER,,4,NULL,1,1
 25646,NP,2,ANP,,Annapurna Airport - ANP,Annapurna Airport - ANP,,4,NULL,1,
@@ -9812,38 +9812,38 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27029,PG,2,YEQ,,Yenkis Airport - YEQ,Yenkis Airport - YEQ,,4,NULL,1,
 27031,PG,2,YVD,,Yeva Airport - YVD,Yeva Airport - YVD,,4,NULL,1,
 27036,PG,2,ZEN,,Zenag Airport - ZEN,Zenag Airport - ZEN,,4,NULL,1,
-27038,PH,3,ABU,,"Abulug,Abulug","Aparri - Seaport - ABU""",,4,NULL,,
+27038,PH,3,ABU,,"Abulug, Aparri - Seaport - ABU","Abulug, Aparri - Seaport - ABU",,4,NULL,,
 27041,PH,2,AAV,,Alah Valley Airport - AAV,Alah Valley Airport - AAV,,4,NULL,1,
-27045,PH,3,AMU,,"Amunitan,Amunitan","Aparri - Seaport - AMU""",,4,NULL,,
+27045,PH,3,AMU,,"Amunitan, Aparri - Seaport - AMU","Amunitan, Aparri - Seaport - AMU",,4,NULL,,
 27048,PH,3,APR,,Port of Aparri - Seaport - APR,Port of Aparri - Seaport - APR,,4,NULL,1,
 27049,PH,3,ARA,,Port of Bislig - Seaport - ARA,Port of Bislig - Seaport - ARA,,4,NULL,1,
-27050,PH,3,ATI,,"Atimonan,Atimonan","Siain - Seaport - ATI""",,4,NULL,,
+27050,PH,3,ATI,,"Atimonan, Siain - Seaport - ATI","Atimonan, Siain - Seaport - ATI",,4,NULL,,
 27051,PH,2,CBO,,Awang Airport - CBO,Awang Airport - CBO,,4,NULL,1,
-27053,PH,3,BCD,,"Bacolod,Bacolod","Negros - Seaport - BCD""",,4,NULL,,
+27053,PH,3,BCD,,"Bacolod, Negros - Seaport - BCD","Bacolod, Negros - Seaport - BCD",,4,NULL,,
 27058,PH,2,BNQ,,Baganga airport - BNQ,Baganga airport - BNQ,,4,NULL,1,
 27061,PH,2,BAG,,Loakan Airport - BAG,Loakan Airport - BAG,,4,NULL,1,
-27067,PH,3,BQA,,"Baler,Baler","Siain - Seaport - BQA""",,4,NULL,,
+27067,PH,3,BQA,,"Baler, Siain - Seaport - BQA","Baler, Siain - Seaport - BQA",,4,NULL,,
 27069,PH,3,BLT,,Port of Puerto Princesa - Seaport - BLT,Port of Puerto Princesa - Seaport - BLT,,4,NULL,1,
-27071,PH,3,BLU,,"Balumo,Balumo","Zamboanga - Seaport - BLU""",,4,NULL,,
+27071,PH,3,BLU,,"Balumo, Zamboanga - Seaport - BLU","Balumo, Zamboanga - Seaport - BLU",,4,NULL,,
 27073,PH,2,BXU,,Bancasi Airport - BXU,Bancasi Airport - BXU,,4,NULL,1,
-27074,PH,3,BTY,,"Bantayon,Bantayon","San Jose - Seaport - BTY""",,4,NULL,,
+27074,PH,3,BTY,,"Bantayon, San Jose - Seaport - BTY","Bantayon, San Jose - Seaport - BTY",,4,NULL,,
 27077,PH,2,BSO,,Basco Airport - BSO,Basco Airport - BSO,,4,NULL,1,
 27083,PH,3,BTG,,Port of Luzon - Seaport - BTG,Port of Luzon - Seaport - BTG,,4,NULL,1,
 27087,PH,3,BYP,,Bayang Point - Seaport - BYP,Bayang Point - Seaport - BYP,,4,NULL,1,
-27089,PH,3,BYB,,"Baybay,Baybay","Tacloban - Seaport - BYB""",,4,NULL,,
+27089,PH,3,BYB,,"Baybay, Tacloban - Seaport - BYB","Baybay, Tacloban - Seaport - BYB",,4,NULL,,
 27090,PH,2,BPH,,Bislig Airport - BPH,Bislig Airport - BPH,,4,NULL,1,
-27093,PH,3,BOA,,"Port of Balanacan,Port of Balanacan","Marinduque - Seaport - BOA""",,4,NULL,,
-27095,PH,3,BLP,,"Bolos Point,Bolos Point","Aparri - Seaport - BLP""",,4,NULL,,
+27093,PH,3,BOA,,"Port of Balanacan, Marinduque - Seaport - BOA","Port of Balanacan, Marinduque - Seaport - BOA",,4,NULL,,
+27095,PH,3,BLP,,"Bolos Point, Aparri - Seaport - BLP","Bolos Point, Aparri - Seaport - BLP",,4,NULL,,
 27096,PH,2,BGV,,Borongan Airport - BGV,Borongan Airport - BGV,,4,NULL,1,
-27098,PH,3,BRP,,"Brooks Point,Brooks Point","Siain - Seaport - BRP""",,4,NULL,,
+27098,PH,3,BRP,,"Brooks Point, Siain - Seaport - BRP","Brooks Point, Siain - Seaport - BRP",,4,NULL,,
 27104,PH,2,USU,,Francisco B. Reyes Airport - USU,Francisco B. Reyes Airport - USU,,4,NULL,1,
 27108,PH,2,CGY,,Lumbia Airport - CGY,Lumbia Airport - CGY,,4,NULL,1,
 27110,PH,2,CDY,,Cagayan De Sulu (Mapun) Airport - CDY,Cagayan De Sulu (Mapun) Airport - CDY,,4,NULL,1,
-27112,PH,3,CAJ,,"Cajidiocan,Cajidiocan","Siain - Seaport - CAJ""",,4,NULL,,
+27112,PH,3,CAJ,,"Cajidiocan, Siain - Seaport - CAJ","Cajidiocan, Siain - Seaport - CAJ",,4,NULL,,
 27113,PH,3,CAA,,Port of Calaca - Seaport - CAA,Port of Calaca - Seaport - CAA,,4,NULL,1,
 27118,PH,2,CYP,,Calbayog Airport - CYP,Calbayog Airport - CYP,,4,NULL,1,
-27121,PH,3,CDB,,"Caldera Bay,Caldera Bay","Zamboanga -Seaport - CDB""",,4,NULL,,
-27123,PH,3,CGP,,"Calug Point,Calug Point","Zamboanga - Seaport - CGP""",,4,NULL,,
+27121,PH,3,CDB,,"Caldera Bay, Zamboanga -Seaport - CDB","Caldera Bay, Zamboanga -Seaport - CDB",,4,NULL,,
+27123,PH,3,CGP,,"Calug Point, Zamboanga - Seaport - CGP","Calug Point, Zamboanga - Seaport - CGP",,4,NULL,,
 27126,PH,3,CAM,,Port of Jose Panganiban - Seaport - CAM,Port of Jose Panganiban - Seaport - CAM,,4,NULL,1,
 27127,PH,2,CGM,,Camiguin Airport - CGM,Camiguin Airport - CGM,,4,NULL,1,
 27134,PH,2,CGG,,Casiguran Airport - CGG,Casiguran Airport - CGG,,4,NULL,1,
@@ -9857,34 +9857,34 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27149,PH,2,CRK,,Clark International Airport - CRK,Clark International Airport - CRK,,4,NULL,1,
 27151,PH,3,XCN,,Port of Coron - Seaport - XCN,Port of Coron - Seaport - XCN,,4,NULL,1,
 27153,PH,2,CUJ,,Culion Airstrip - CUJ,Culion Airstrip - CUJ,,4,NULL,1,
-27156,PH,3,CUR,,"Curuan,Curuan","Zamboanga - Seaport - CUR""",,4,NULL,,
+27156,PH,3,CUR,,"Curuan, Zamboanga - Seaport - CUR","Curuan, Zamboanga - Seaport - CUR",,4,NULL,,
 27157,PH,2,CYU,,Cuyo Airport - CYU,Cuyo Airport - CYU,,4,NULL,1,
 27160,PH,2,DTE,,Bagasbas (Daet) Airport - DTE,Bagasbas (Daet) Airport - DTE,,4,NULL,1,
 27163,PH,2,TAC,,Daniel Z. Romualdez Airport - TAC,Daniel Z. Romualdez Airport - TAC,,4,NULL,1,
-27165,PH,3,DVO,,"Davao,Davao","Mindanao - Seaport - DVO""",,4,NULL,,
-27168,PH,3,DIC,,"Diculum,Diculum","Zamboanga - Seaport - DIC""",,4,NULL,,
-27175,PH,3,DGL,,"Dingalan,Dingalan","Siain - Seaport - DGL""",,4,NULL,,
+27165,PH,3,DVO,,"Davao, Mindanao - Seaport - DVO","Davao, Mindanao - Seaport - DVO",,4,NULL,,
+27168,PH,3,DIC,,"Diculum, Zamboanga - Seaport - DIC","Diculum, Zamboanga - Seaport - DIC",,4,NULL,,
+27175,PH,3,DGL,,"Dingalan, Siain - Seaport - DGL","Dingalan, Siain - Seaport - DGL",,4,NULL,,
 27177,PH,2,DPL,,Dipolog Airport - DPL,Dipolog Airport - DPL,,4,NULL,1,
-27179,PH,2,DIR,,"Iboban Airstrip,Iboban Airstrip","Dingalan - Airport - DIR""",,4,NULL,,
+27179,PH,2,DIR,,"Iboban Airstrip, Dingalan - Airport - DIR","Iboban Airstrip, Dingalan - Airport - DIR",,4,NULL,,
 27182,PH,2,DGT,,Sibulan (Dumaguete) Airport - DGT,Sibulan (Dumaguete) Airport - DGT,,4,NULL,1,
 27183,PH,2,ENI,,El Nido Airport - ENI,El Nido Airport - ENI,,4,NULL,1,
 27185,PH,2,EUQ,,Evelio Javier Airport - EUQ,Evelio Javier Airport - EUQ,,4,NULL,1,
 27191,PH,2,GES,,General Santos International Airport - GES,General Santos International Airport - GES,,4,NULL,1,
 27199,PH,3,HYB,,Hagnava Bay - Seaport - HYB,Hagnava Bay - Seaport - HYB,,4,NULL,1,
 27200,PH,3,HIJ,,Hijo Wharf - Seaport - HIJ,Hijo Wharf - Seaport - HIJ,,4,NULL,1,
-27206,PH,3,HOO,,"Hook Bay,Hook Bay","Siain - Seaport - HOO""",,4,NULL,,
+27206,PH,3,HOO,,"Hook Bay, Siain - Seaport - HOO","Hook Bay, Siain - Seaport - HOO",,4,NULL,,
 27207,PH,2,IGN,,Iligan Airport - IGN,Iligan Airport - IGN,,4,NULL,1,
 27209,PH,2,ILO,,Iloilo International Airport - ILO,Iloilo International Airport - ILO,,4,NULL,1,
 27212,PH,2,IPE,,Ipil Airport - IPE,Ipil Airport - IPE,,4,NULL,1,
 27214,PH,3,ISL,,Isabel RoRo Port - Seaport - ISL,Isabel RoRo Port - Seaport - ISL,,4,NULL,1,
-27215,PH,3,ISB,,"Isabela de Basilan,Isabela de Basilan","Basilan - Seaport - ISB""",,4,NULL,,
+27215,PH,3,ISB,,"Isabela de Basilan, Basilan - Seaport - ISB","Isabela de Basilan, Basilan - Seaport - ISB",,4,NULL,,
 27216,PH,3,JAG,,Jagna - Seaport - JAG,Jagna - Seaport - JAG,,4,NULL,1,
 27219,PH,2,JOL,,Jolo Airport - JOL,Jolo Airport - JOL,,4,NULL,1,
-27222,PH,3,KAS,,"Kabasalan,Kabasalan","Zamboanga - Seaport - KAS""",,4,NULL,,
+27222,PH,3,KAS,,"Kabasalan, Zamboanga - Seaport - KAS","Kabasalan, Zamboanga - Seaport - KAS",,4,NULL,,
 27223,PH,2,KLO,,Kalibo International Airport - KLO,Kalibo International Airport - KLO,,4,NULL,1,
 27225,PH,3,KAR,,Port of Iligan - Seaport - KAR,Port of Iligan - Seaport - KAR,,4,NULL,1,
-27233,PH,3,KUM,,"Kumalarang,Kumalarang","Zamboanga - Seaport - KUM""",,4,NULL,,
-27236,PH,3,LAB,,"Labason,Labason","Zamboanga - Seaport - LAB""",,4,NULL,,
+27233,PH,3,KUM,,"Kumalarang, Zamboanga - Seaport - KUM","Kumalarang, Zamboanga - Seaport - KUM",,4,NULL,,
+27236,PH,3,LAB,,"Labason, Zamboanga - Seaport - LAB","Labason, Zamboanga - Seaport - LAB",,4,NULL,,
 27237,PH,2,OZC,,Labo / Ozamix City Airport - OZC,Labo / Ozamix City Airport - OZC,,4,NULL,1,
 27243,PH,2,LAO,,Laoag International Airport - LAO,Laoag International Airport - LAO,,4,NULL,1,
 27247,PH,3,LBK,,Port of Parang - Seaport - LBK,Port of Parang - Seaport - LBK,,4,NULL,1,
@@ -9896,7 +9896,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27277,PH,3,MGB,,Port of Catbalogan - Seaport - MGB,Port of Catbalogan - Seaport - MGB,,4,NULL,1,
 27281,PH,2,MLP,,Malabang Airport - MLP,Malabang Airport - MLP,,4,NULL,1,
 27283,PH,3,MLL,,Malalag - Seaport - MLL,Malalag - Seaport - MLL,,4,NULL,1,
-27284,PH,3,MSB,,"Malasugat Bay,Malasugat Bay","Zamboanga - Seaport - MSB""",,4,NULL,,
+27284,PH,3,MSB,,"Malasugat Bay, Zamboanga - Seaport - MSB","Malasugat Bay, Zamboanga - Seaport - MSB",,4,NULL,,
 27285,PH,3,MLB,,Port of Maluso (Port Holland) - Seaport - MLB,Port of Maluso (Port Holland) - Seaport - MLB,,4,NULL,1,
 27287,PH,2,MBO,,Mamburao Airport - MBO,Mamburao Airport - MBO,,4,NULL,1,
 27292,PH,2,MNL,Pasay Para aque,Ninoy Aquino International Airport - MNL,Ninoy Aquino International Airport - MNL,10,4,NULL,1,
@@ -9906,22 +9906,22 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27297,PH,2,MRQ,,Marinduque Airport - MRQ,Marinduque Airport - MRQ,,4,NULL,1,
 27302,PH,2,MBT,,Moises R. Espinosa (Masbate) Airport - MBT,Moises R. Espinosa (Masbate) Airport - MBT,,4,NULL,1,
 27307,PH,3,MTA,,Matina Aplaya - Seaport - MTA,Matina Aplaya - Seaport - MTA,,4,NULL,1,
-27316,PH,3,MOR,,"Port of Morong,Port of Morong","Mariveles - Seaport - MOR""",,4,NULL,,
+27316,PH,3,MOR,,"Port of Morong, Mariveles - Seaport - MOR","Port of Morong, Mariveles - Seaport - MOR",,4,NULL,,
 27320,PH,2,WNP,,Naga City Airport - WNP,Naga City Airport - WNP,,4,NULL,1,
 27329,PH,3,NTO,,Nato Port - Seaport - NTO,Nato Port - Seaport - NTO,,4,NULL,1,
 27332,PH,3,OLO,,Olongapo Port - Seaport - OLO,Olongapo Port - Seaport - OLO,,4,NULL,1,
 27336,PH,2,OMC,,Ormoc Airport - OMC,Ormoc Airport - OMC,,4,NULL,1,
-27337,PH,3,ORC,,"Ormoc,Ormoc","Tacloban - Seaport - ORC""",,4,NULL,,
+27337,PH,3,ORC,,"Ormoc, Tacloban - Seaport - ORC","Ormoc, Tacloban - Seaport - ORC",,4,NULL,,
 27341,PH,2,PAG,,Pagadian Airport - PAG,Pagadian Airport - PAG,,4,NULL,1,
-27343,PH,3,PLB,,"Palamit Bay,Palamit Bay","San Jose - Seaport - PLB""",,4,NULL,,
-27344,PH,3,PLP,,"Palapag,Palapag","San Jose - Seaport - PLP""",,4,NULL,,
+27343,PH,3,PLB,,"Palamit Bay, San Jose - Seaport - PLB","Palamit Bay, San Jose - Seaport - PLB",,4,NULL,,
+27344,PH,3,PLP,,"Palapag, San Jose - Seaport - PLP","Palapag, San Jose - Seaport - PLP",,4,NULL,,
 27346,PH,3,PPN,,Port of Palompon - Seaport - PPN,Port of Palompon - Seaport - PPN,,4,NULL,1,
-27347,PH,3,PMT,,"Pamintayan,Pamintayan","Zamboanga - Seaport - PMT""",,4,NULL,,
+27347,PH,3,PMT,,"Pamintayan, Zamboanga - Seaport - PMT","Pamintayan, Zamboanga - Seaport - PMT",,4,NULL,,
 27348,PH,3,PAM,,Port of Pampanga - Seaport - PAM,Port of Pampanga - Seaport - PAM,,4,NULL,1,
-27350,PH,3,PNB,,"Panabutan,Panabutan","Zamboanga - Seaport - PNB""",,4,NULL,,
+27350,PH,3,PNB,,"Panabutan, Zamboanga - Seaport - PNB","Panabutan, Zamboanga - Seaport - PNB",,4,NULL,,
 27351,PH,3,PCN,,Panacan - Seaport - PCN,Panacan - Seaport - PCN,,4,NULL,1,
 27353,PH,3,JOL,,Jolo Port - Seaport - JOL,Jolo Port - Seaport - JOL,,4,NULL,1,
-27358,PH,3,PPP,,"Paselang Pagudpud,Paselang Pagudpud","S Fernando - Seaport - PPP""",,4,NULL,,
+27358,PH,3,PPP,,"Paselang Pagudpud, S Fernando - Seaport - PPP","Paselang Pagudpud, S Fernando - Seaport - PPP",,4,NULL,,
 27363,PH,3,PLC,,Port of Polloc (Cotabato) - Seaport - PLC,Port of Polloc (Cotabato) - Seaport - PLC,,4,NULL,1,
 27365,PH,3,PBA,,Port Barton - Seaport - PBA,Port Barton - Seaport - PBA,,4,NULL,1,
 27367,PH,2,PPS,,Puerto Princesa International Airport - PPS,Puerto Princesa International Airport - PPS,,4,NULL,1,
@@ -9932,38 +9932,38 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27393,PH,2,SJI,,San Jose Airport - SJI,San Jose Airport - SJI,,4,NULL,1,
 27397,PH,2,TWT/SGS,,Sanga Sanga (Tawi-Tawi) Airport - TWT/SGS,Sanga Sanga (Tawi-Tawi) Airport - TWT/SGS,,4,NULL,1,
 27399,PH,3,SNG,,Port of Cebu - Seaport - SNG,Port of Cebu - Seaport - SNG,,4,NULL,1,
-27405,PH,3,SMA,,"Santa Maria,Santa Maria","Zamboanga - Seaport - SMA""",,4,NULL,,
+27405,PH,3,SMA,,"Santa Maria, Zamboanga - Seaport - SMA","Santa Maria, Zamboanga - Seaport - SMA",,4,NULL,,
 27407,PH,3,SAS,,Sasa Wharf - Seaport - SAS,Sasa Wharf - Seaport - SAS,,4,NULL,1,
 27410,PH,2,IAO,,Siargao Domestic Airport - IAO,Siargao Domestic Airport - IAO,,4,NULL,1,
-27414,PH,3,SIY,,"Siay,Siay","Zamboanga - Seaport - SIY""",,4,NULL,,
+27414,PH,3,SIY,,"Siay, Zamboanga - Seaport - SIY","Siay, Zamboanga - Seaport - SIY",,4,NULL,,
 27416,PH,2,ICO,,Sicogon Airport - ICO,Sicogon Airport - ICO,,4,NULL,1,
 27420,PH,2,XSO,,Siocon Domestic Airport - XSO,Siocon Domestic Airport - XSO,,4,NULL,1,
-27422,PH,3,SGD,,"Sogod,Sogod","Tacloban - Seaport - SGD""",,4,NULL,,
+27422,PH,3,SGD,,"Sogod, Tacloban - Seaport - SGD","Sogod, Tacloban - Seaport - SGD",,4,NULL,,
 27424,PH,3,SUA,,Sual Port - Seaport - SUA,Sual Port - Seaport - SUA,,4,NULL,1,
 27425,PH,2,SFS,,Subic Bay International Airport - SFS,Subic Bay International Airport - SFS,,4,NULL,1,
 27428,PH,2,SUG,,CAAP Surigao Airport - SUG,CAAP Surigao Airport - SUG,,4,NULL,1,
 27432,PH,2,TBH,,Tugdan (Tablas/Romblon) Airport - TBH,Tugdan (Tablas/Romblon) Airport - TBH,,4,NULL,1,
 27435,PH,2,TAG,,Tagbilaran Airport - TAG,Tagbilaran Airport - TAG,,4,NULL,1,
 27437,PH,2,TGB,,Tagbita Airport - TGB,Tagbita Airport - TGB,,4,NULL,1,
-27438,PH,3,TKW,,"Tagkawayan,Tagkawayan","Siain - Seaport - TKW""",,4,NULL,,
+27438,PH,3,TKW,,"Tagkawayan, Siain - Seaport - TKW","Tagkawayan, Siain - Seaport - TKW",,4,NULL,,
 27439,PH,3,CGY,,Port of Cagayan De Oro - Seaport - CGY,Port of Cagayan De Oro - Seaport - CGY,,4,NULL,1,
 27440,PH,3,TGD,,Port of San Fernando - Seaport - TGD,Port of San Fernando - Seaport - TGD,,4,NULL,1,
 27441,PH,3,TGL,,Taguilon Port - Seaport - TGL,Taguilon Port - Seaport - TGL,,4,NULL,1,
-27442,PH,3,TGT,,"Taguite Bay,Taguite Bay","Zamboanga - Seaport - TGT""",,4,NULL,,
+27442,PH,3,TGT,,"Taguite Bay, Zamboanga - Seaport - TGT","Taguite Bay, Zamboanga - Seaport - TGT",,4,NULL,,
 27444,PH,3,TGN,,Tambongon - Seaport - TGN,Tambongon - Seaport - TGN,,4,NULL,1,
-27445,PH,3,TNU,,"Port of Tanauan,Port of Tanauan","Tacloban - Seaport - TNU""",,4,NULL,,
+27445,PH,3,TNU,,"Port of Tanauan, Tacloban - Seaport - TNU","Port of Tanauan, Tacloban - Seaport - TNU",,4,NULL,,
 27446,PH,2,TDG,,Tandag Airport - TDG,Tandag Airport - TDG,,4,NULL,1,
 27448,PH,3,TDC,,Port of Tandoc - Seaport - TDC,Port of Tandoc - Seaport - TDC,,4,NULL,1,
 27449,PH,2,TWT/SGS,,Tawi-Tawi / Sanga-Sanga Airport - TWT/SGS,Tawi-Tawi / Sanga-Sanga Airport - TWT/SGS,,4,NULL,1,
-27451,PH,3,TIB,,"AJMR Port Complex,AJMR Port Complex","Tibungco - Seaport - TIB""",,4,NULL,,
+27451,PH,3,TIB,,"AJMR Port Complex, Tibungco - Seaport - TIB","AJMR Port Complex, Tibungco - Seaport - TIB",,4,NULL,,
 27452,PH,3,DGT,,Port of Dumaguete - Seaport - DGT,Port of Dumaguete - Seaport - DGT,,4,NULL,1,
 27453,PH,3,TLD,,Toledo City Port - Seaport - TLD,Toledo City Port - Seaport - TLD,,4,NULL,1,
 27459,PH,2,TUG,,Tuguegarao Airport - TUG,Tuguegarao Airport - TUG,,4,NULL,1,
-27462,PH,3,TGW,,"Tungawan Bay,Tungawan Bay","Zamboanga - Seaport - TGW""",,4,NULL,,
+27462,PH,3,TGW,,"Tungawan Bay, Zamboanga - Seaport - TGW","Tungawan Bay, Zamboanga - Seaport - TGW",,4,NULL,,
 27466,PH,3,VNV,,Port of Villanueva - Seaport - VNV,Port of Villanueva - Seaport - VNV,,4,NULL,1,
 27467,PH,2,VRC,,Virac Airport - VRC,Virac Airport - VRC,,4,NULL,1,
-27470,PH,3,VTO,,"Vito,Vito","Iloilo - Seaport - VTO""",,4,NULL,,
-27471,PH,3,DTE,,"Port of General Santos,Port of General Santos","Dadiangas - Seaport - DTE""",,4,NULL,,
+27470,PH,3,VTO,,"Vito, Iloilo - Seaport - VTO","Vito, Iloilo - Seaport - VTO",,4,NULL,,
+27471,PH,3,DTE,,"Port of General Santos, Dadiangas - Seaport - DTE","Port of General Santos, Dadiangas - Seaport - DTE",,4,NULL,,
 27472,PH,3,WAW,,Wawa Seaport - WAW,Wawa Seaport - WAW,,4,NULL,1,
 27473,PH,2,ZAM,,Zamboanga International Airport - ZAM,Zamboanga International Airport - ZAM,,4,NULL,1,
 27475,PK,2,AAW,,Abbottabad Airport - AAW,Abbottabad Airport - AAW,,4,NULL,1,
@@ -9999,8 +9999,8 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27540,PK,2,MWD,,Mianwali Airport - MWD,Mianwali Airport - MWD,,4,NULL,1,
 27543,PK,2,MPD,,Mirpur Khas (Sindhri Airport) - MPD,Mirpur Khas (Sindhri Airport) - MPD,,4,NULL,1,
 27545,PK,2,MJD,,Moenjodaro Airport - MJD,Moenjodaro Airport - MJD,,4,NULL,1,
-27546,PK,3,MGP,,"Mogulpura Seaport,Mogulpura Seaport","Lahore - MGP""",,4,NULL,,
-27548,PK,3,BQM,,"Port Muhammad Bin Qasim,Port Muhammad Bin Qasim","Karachi - Seaport - BQM""",,4,NULL,,
+27546,PK,3,MGP,,"Mogulpura Seaport, Lahore - MGP","Mogulpura Seaport, Lahore - MGP",,4,NULL,,
+27548,PK,3,BQM,,"Port Muhammad Bin Qasim, Karachi - Seaport - BQM","Port Muhammad Bin Qasim, Karachi - Seaport - BQM",,4,NULL,,
 27549,PK,2,MUX,,Multan International Airport - MUX,Multan International Airport - MUX,,4,NULL,1,
 27552,PK,2,MFG,,Muzaffarabad Airport - MFG,Muzaffarabad Airport - MFG,,4,NULL,1,
 27554,PK,3,MZJ,,Muzaffargarh Seaport - MZJ,Muzaffargarh Seaport - MZJ,,4,NULL,1,
@@ -10170,7 +10170,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27824,PR,3,ANA,,Anasco - ANA,Anasco - ANA,,4,NULL,1,
 27825,PR,2,ARE,,Antonio Nery Juarbe Pol Airport - ARE,Antonio Nery Juarbe Pol Airport - ARE,,4,NULL,1,
 27826,PR,2,VQS,,Antonio Rivera Rodriguez Airport - VQS,Antonio Rivera Rodriguez Airport - VQS,,4,NULL,1,
-27828,PR,3,ARR,,"Arroyo,Arroyo","Guayama - ARR""",,4,NULL,,
+27828,PR,3,ARR,,"Arroyo, Guayama - ARR","Arroyo, Guayama - ARR",,4,NULL,,
 27829,PR,3,BAR,,Barceloneta - BAR,Barceloneta - BAR,,4,NULL,1,
 27832,PR,2,CPX,,Benjamin Rivera Noriega Airport - CPX,Benjamin Rivera Noriega Airport - CPX,,4,NULL,1,
 27833,PR,3,CAG,,Caguas - CAG,Caguas - CAG,,4,NULL,1,
@@ -10184,7 +10184,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27842,PR,3,COA,,Coamo - COA,Coamo - COA,,4,NULL,1,
 27843,PR,3,COM,,Comerco - COM,Comerco - COM,,4,NULL,1,
 27844,PR,3,COE,,Comerio - COE,Comerio - COE,,4,NULL,1,
-27846,PR,3,CUP,,"Cupey,Cupey","San Juan - CUP""",,4,NULL,,
+27846,PR,3,CUP,,"Cupey, San Juan - CUP","Cupey, San Juan - CUP",,4,NULL,,
 27847,PR,2,FAJ,,Diego Jimenez Torres Airport - FAJ,Diego Jimenez Torres Airport - FAJ,,4,NULL,1,
 27848,PR,3,DDP,,Dorado - DDP,Dorado - DDP,,4,NULL,1,
 27850,PR,2,MAZ,,Eugenio Maria De Hostos Airport - MAZ,Eugenio Maria De Hostos Airport - MAZ,,4,NULL,1,
@@ -10282,7 +10282,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 27972,PT,2,FLW,,Flores Airport - FLW,Flores Airport - FLW,,3,NULL,1,1
 27974,PT,2,OPO,,Porto Airpot - OPO,Porto Airpot - OPO,,3,NULL,1,1
 27975,PT,3,FXO,,Freixierio - FXO,Freixierio - FXO,,3,NULL,1,1
-27976,PT,3,FNC,,"Funchal,Funchal","Madeira - FNC""",,3,NULL,,1
+27976,PT,3,FNC,,"Funchal, Madeira - FNC","Funchal, Madeira - FNC",,3,NULL,,1
 27977,PT,3,GON,,Gondomar - GON,Gondomar - GON,,3,NULL,1,1
 27978,PT,2,GRW,,Graciosa Airport - GRW,Graciosa Airport - GRW,,3,NULL,1,1
 27980,PT,3,GRI,,Grijo - GRI,Grijo - GRI,,3,NULL,1,1
@@ -10428,12 +10428,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28227,RO,3,SUL,,Sulina (Port et Zone Franche) Seaport - SUL,Sulina (Port et Zone Franche) Seaport - SUL,,3,NULL,1,1
 28229,RO,2,TSR,,Timisoara Traian Vuia Airport - TSR,Timisoara Traian Vuia Airport - TSR,,3,NULL,1,1
 28231,RO,3,TSN,,Timisoara Nord - TSN,Timisoara Nord - TSN,,3,NULL,1,1
-28232,RO,2,TGM,,"""Transilvania"" Targu Mures Airport - TGM","""Transilvania"" Targu Mures Airport - TGM",,3,NULL,1,1
+28232,RO,2,TGM,,"Transilvania Targu Mures Airport - TGM","Transilvania Targu Mures Airport - TGM",,3,NULL,1,1
 28236,RO,3,TUM,,Turnu Magurele - TUM,Turnu Magurele - TUM,,3,NULL,1,1
 28243,RS,3,BEG,,Belgrade Port - BEG,Belgrade Port - BEG,,4,NULL,1,
 28246,RS,2,KOV,,Morava Airport - KOV,Morava Airport - KOV,,4,NULL,1,
 28251,RU,3,ACS,,Achinsk - ACS,Achinsk - ACS,,4,NULL,1,
-28253,RU,3,AER,,"Adler,Adler","Sochi - AER""",,4,NULL,,
+28253,RU,3,AER,,"Adler, Sochi - AER","Adler, Sochi - AER",,4,NULL,,
 28256,RU,3,ADH,,Aldan - ADH,Aldan - ADH,,4,NULL,1,
 28260,RU,3,AMV,,Amderma Seaport - AMV,Amderma Seaport - AMV,,4,NULL,1,
 28262,RU,2,DYR,,Ugolny Airport - DYR,Ugolny Airport - DYR,,4,NULL,1,
@@ -10454,7 +10454,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28284,RU,2,EYK,,Beloyarskiy Airport - EYK,Beloyarskiy Airport - EYK,,4,NULL,1,
 28285,RU,3,BEL,,Belushye - BEL,Belushye - BEL,,4,NULL,1,
 28286,RU,2,EZV,,Berezovo Airport - EZV,Berezovo Airport - EZV,,4,NULL,1,
-28287,RU,3,BER,,"Beringovskiy,Beringovskiy","Port - BER""",,4,NULL,,
+28287,RU,3,BER,,"Beringovskiy, Port - BER","Beringovskiy, Port - BER",,4,NULL,,
 28290,RU,3,BQS,,Blagoveschensk - BQS,Blagoveschensk - BQS,,4,NULL,1,
 28292,RU,2,TOF,,Bogashevo Airport - TOF,Bogashevo Airport - TOF,,4,NULL,1,
 28293,RU,2,BQG,,Bogorodskoye Airport - BQG,Bogorodskoye Airport - BQG,,4,NULL,1,
@@ -10477,7 +10477,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28320,RU,3,DKA,,De-Kastri - DKA,De-Kastri - DKA,,4,NULL,1,
 28321,RU,2,DPT,,Deputatskiy Airport - DPT,Deputatskiy Airport - DPT,,4,NULL,1,
 28322,RU,3,DKS,,Dikson - DKS,Dikson - DKS,,4,NULL,1,
-28324,RU,2,DME,Domededovo,"Domededovo Airport,Domededovo Airport","Moscow - DME""",,4,NULL,,
+28324,RU,2,DME,Domededovo,"Domedovo Airport, Moscow - DME","Domedovo Airport, Moscow - DME",,4,NULL,,
 28326,RU,2,TBW,,Donskoye Airport - TBW,Donskoye Airport - TBW,,4,NULL,1,
 28327,RU,3,DUD,,Dudinka - DUD,Dudinka - DUD,,4,NULL,1,
 28329,RU,3,EGV,,Egvekinot - EGV,Egvekinot - EGV,,4,NULL,1,
@@ -10533,7 +10533,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28416,RU,3,LNR,,Linakhamari - LNR,Linakhamari - LNR,,4,NULL,1,
 28417,RU,3,LPK,,Lipetsk (Lipeck) - LPK,Lipetsk (Lipeck) - LPK,,4,NULL,1,
 28421,RU,3,GDX,,Magadan - GDX,Magadan - GDX,,4,NULL,1,
-28422,RU,3,MAG,,"Magadansky,Magadansky","Port - MAG""",,4,NULL,,
+28422,RU,3,MAG,,"Magadansky, Port - MAG","Magadansky, Port - MAG",,4,NULL,,
 28424,RU,3,GDG,,Magdagachi - GDG,Magdagachi - GDG,,4,NULL,1,
 28426,RU,3,MQF,,Magnitogorsk - MQF,Magnitogorsk - MQF,,4,NULL,1,
 28428,RU,3,MGO,,Mago - MGO,Mago - MGO,,4,NULL,1,
@@ -10546,7 +10546,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28444,RU,2,SVO,,Moscow-Sheremetyevo Airport - SVO,Moscow-Sheremetyevo Airport - SVO,10,4,NULL,1,
 28445,RU,2,VKO,,Moscow-Vnukovo Airport - VKO,Moscow-Vnukovo Airport - VKO,,4,NULL,1,
 28446,RU,3,MVO,,Moskalvo - MVO,Moskalvo - MVO,,4,NULL,1,
-28447,RU,3,MMK,,"Murmansk,Murmansk","Port - MMK""",,4,NULL,,
+28447,RU,3,MMK,,"Murmansk, Port - MMK","Murmansk, Port - MMK",,4,NULL,,
 28449,RU,2,YMK,,Mys Kamenny Airport - YMK,Mys Kamenny Airport - YMK,,4,NULL,1,
 28450,RU,3,NAC,,Naberzhniye Chelny - NAC,Naberzhniye Chelny - NAC,,4,NULL,1,
 28451,RU,3,NYM,,Nadym - NYM,Nadym - NYM,,4,NULL,1,
@@ -10570,13 +10570,13 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28483,RU,2,NYA,,Nyagan Airport - NYA,Nyagan Airport - NYA,,4,NULL,1,
 28485,RU,3,OHO,,Okhotsk - OHO,Okhotsk - OHO,,4,NULL,1,
 28487,RU,3,OKT,,Oktiabrskij - OKT,Oktiabrskij - OKT,,4,NULL,1,
-28489,RU,3,OLO,,"Oleniy,Oleniy","O. - OLO""",,4,NULL,,
-28490,RU,3,OLG,,"Olenya,Olenya","Guba - OLG""",,4,NULL,,
+28489,RU,3,OLO,,"Oleniy, O. - OLO","Oleniy, O. - OLO",,4,NULL,,
+28490,RU,3,OLG,,"Olenya, Guba - OLG","Olenya, Guba - OLG",,4,NULL,,
 28491,RU,3,OMS,,Omsk - OMS,Omsk - OMS,,4,NULL,1,
 28493,RU,3,ONG,,Onega - ONG,Onega - ONG,,4,NULL,1,
 28494,RU,3,REN,,Orenburg - REN,Orenburg - REN,,4,NULL,1,
 28497,RU,3,OSW,,Orsk - OSW,Orsk - OSW,,4,NULL,1,
-28500,RU,3,OZK,,"Ozerko,Ozerko","Bukhta - OZK""",,4,NULL,,
+28500,RU,3,OZK,,"Ozerko, Bukhta - OZK","Ozerko, Bukhta - OZK",,4,NULL,,
 28502,RU,3,PCE,,Pechenga - PCE,Pechenga - PCE,,4,NULL,1,
 28503,RU,3,PEX,,Pechora - PEX,Pechora - PEX,,4,NULL,1,
 28505,RU,3,PEZ,,Penza - PEZ,Penza - PEZ,,4,NULL,1,
@@ -10617,7 +10617,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28562,RU,2,CSH,,Solovki Airport - CSH,Solovki Airport - CSH,,4,NULL,1,
 28564,RU,3,SOG,,Sovetskaya Gavan - SOG,Sovetskaya Gavan - SOG,,4,NULL,1,
 28565,RU,2,OVS,,Sovetskiy Airport - OVS,Sovetskiy Airport - OVS,,4,NULL,1,
-28566,RU,3,SPA,,"Spafaryeva,Spafaryeva","O - SPA""",,4,NULL,,
+28566,RU,3,SPA,,"Spafaryeva, O - SPA","Spafaryeva, O - SPA",,4,NULL,,
 28568,RU,2,SEK,,Srednekolymsk Airport - SEK,Srednekolymsk Airport - SEK,,4,NULL,1,
 28571,RU,3,STW,,Stavropol - STW,Stavropol - STW,,4,NULL,1,
 28573,RU,2,SWT,,Strezhevoy Airport - SWT,Strezhevoy Airport - SWT,,4,NULL,1,
@@ -10663,14 +10663,14 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28653,RU,3,VGD,,Vologda - VGD,Vologda - VGD,,4,NULL,1,
 28655,RU,3,VKT,,Vorkuta - VKT,Vorkuta - VKT,,4,NULL,1,
 28657,RU,3,VOZ,,Voronezh - VOZ,Voronezh - VOZ,,4,NULL,1,
-28659,RU,3,VYP,,"Vostochniy,Vostochniy","Port - VYP""",,4,NULL,,
-28660,RU,3,VZB,,"Vozrozhdeniya,Vozrozhdeniya","Bukhta - VZB""",,4,NULL,,
+28659,RU,3,VYP,,"Vostochniy, Port - VYP","Vostochniy, Port - VYP",,4,NULL,,
+28660,RU,3,VZB,,"Vozrozhdeniya, Bukhta - VZB","Vozrozhdeniya, Bukhta - VZB",,4,NULL,,
 28662,RU,3,VYG,,Vyborg - VYG,Vyborg - VYG,,4,NULL,1,
 28663,RU,3,YAB,,Yagelnaya Bukhta - YAB,Yagelnaya Bukhta - YAB,,4,NULL,1,
 28665,RU,3,YKS,,Yakutsk - YKS,Yakutsk - YKS,,4,NULL,1,
 28672,RU,3,YEY,,Yeysk - YEY,Yeysk - YEY,,4,NULL,1,
 28675,RU,3,UUS,,Yuzhno-Sakhalinsk - UUS,Yuzhno-Sakhalinsk - UUS,,4,NULL,1,
-28678,RU,3,ZAO,,"Zavyalova,Zavyalova","O - ZAO""",,4,NULL,,
+28678,RU,3,ZAO,,"Zavyalova, O - ZAO","Zavyalova, O - ZAO",,4,NULL,,
 28679,RU,3,ZEM,,Zeleniy Mys - ZEM,Zeleniy Mys - ZEM,,4,NULL,1,
 28684,RW,3,BTQ,,Butare - BTQ,Butare - BTQ,,4,NULL,1,
 28686,RW,3,GYI,,Gisenyi - GYI,Gisenyi - GYI,,4,NULL,1,
@@ -10806,7 +10806,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 28966,SE,3,ARJ,,Port of Arjang Port - ARJ,Port of Arjang Port - ARJ,,3,NULL,1,1
 28968,SE,3,ASU,,Arkosund Port - ASU,Arkosund Port - ASU,,3,NULL,1,1
 28973,SE,3,OER,,Örnsköldsvik Seaport - OER,Örnsköldsvik Seaport - OER,,3,NULL,1,1
-28975,SE,3,ARS,,"Port of Arsta,Port of Arsta","Stockholm Port - ARS""",,3,NULL,,1
+28975,SE,3,ARS,,"Port of Arsta, Stockholm Port - ARS","Port of Arsta, Stockholm Port - ARS",,3,NULL,,1
 28979,SE,3,ARV,,Port of Arvika Port - ARV,Port of Arvika Port - ARV,,3,NULL,1,1
 28983,SE,3,ASD,,Askersund Port - ASD,Askersund Port - ASD,,3,NULL,1,1
 28991,SE,3,BAC,,Backviken Port - BAC,Backviken Port - BAC,,3,NULL,1,1
@@ -10847,7 +10847,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 29092,SE,3,FIG,,Figeholm Port - FIG,Figeholm Port - FIG,,3,NULL,1,1
 29095,SE,3,FIS,,Port of Goteborg Fiskeback Port - FIS,Port of Goteborg Fiskeback Port - FIS,,3,NULL,1,1
 29097,SE,3,FJA,,Fjallbacka Port - FJA,Fjallbacka Port - FJA,,3,NULL,1,1
-29099,SE,3,FLM,,"Flemingsberg,Flemingsberg","Stockholm Port - FLM""",,3,NULL,,1
+29099,SE,3,FLM,,"Flemingsberg, Stockholm Port - FLM","Flemingsberg, Stockholm Port - FLM",,3,NULL,,1
 29107,SE,3,FOR,,Forsmark Port - FOR,Forsmark Port - FOR,,3,NULL,1,1
 29108,SE,3,FVK,,Forsvik Port - FVK,Forsvik Port - FVK,,3,NULL,1,1
 29113,SE,2,GEV,,Gällivare Airport - GEV,Gällivare Airport - GEV,,3,NULL,1,1
@@ -10863,7 +10863,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 29148,SE,3,GRU,,Port of Gruvon Seaport - GRU,Port of Gruvon Seaport - GRU,,3,NULL,1,1
 29154,SE,3,GUB,,Gustavsberg Port - GUB,Gustavsberg Port - GUB,,3,NULL,1,1
 29156,SE,2,XWP,,Hässleholm Bokeberg Airport - XWP,Hässleholm Bokeberg Airport - XWP,,3,NULL,1,1
-29159,SE,3,HGR,,"Ports of Stockholm Hagersten,Ports of Stockholm Hagersten","Stockholm Seaport - HGR""",,3,NULL,,1
+29159,SE,3,HGR,,"Ports of Stockholm Hagersten, Stockholm Seaport - HGR","Ports of Stockholm Hagersten, Stockholm Seaport - HGR",,3,NULL,,1
 29165,SE,3,HLS,,Hallekis Port - HLS,Hallekis Port - HLS,,3,NULL,1,1
 29169,SE,3,HAK,,Hallstavik Seaport - HAK,Hallstavik Seaport - HAK,,3,NULL,1,1
 29170,SE,3,HAD,,Halmstad Seaport - HAD,Halmstad Seaport - HAD,,3,NULL,1,1
@@ -10964,7 +10964,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 29474,SE,3,SIK,,Sikea Port - SIK,Sikea Port - SIK,,3,NULL,1,1
 29476,SE,3,SIM,,Simrishamn Seaport - SIM,Simrishamn Seaport - SIM,,3,NULL,1,1
 29478,SE,2,KVB,,Skövde Airport - KVB,Skövde Airport - KVB,,3,NULL,1,1
-29486,SE,3,SKH,,"Skarholmen,Skarholmen","Stockholm - SKH""",,3,NULL,,1
+29486,SE,3,SKH,,"Skarholmen, Stockholm - SKH","Skarholmen, Stockholm - SKH",,3,NULL,,1
 29488,SE,3,SFT,,Skelleftea Seaport - SFT,Skelleftea Seaport - SFT,,3,NULL,1,1
 29490,SE,3,SKE,,Skelleftehamn Seaport - SKE,Skelleftehamn Seaport - SKE,,3,NULL,1,1
 29495,SE,3,SKO,,Skoghall Seaport - SKO,Skoghall Seaport - SKO,,3,NULL,1,1
@@ -10982,7 +10982,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 29515,SE,3,SOR,,Soraker Port - SOR,Soraker Port - SOR,,3,NULL,1,1
 29522,SE,3,STE,,Stenungsund Seaport - STE,Stenungsund Seaport - STE,,3,NULL,1,1
 29526,SE,2,VST,,Stockholm Västerås Airport - VST,Stockholm Västerås Airport - VST,,3,NULL,1,1
-29527,SE,3,VAY,,"Stockholm,Stockholm","Vallingby Seaport - VAY""",,3,NULL,,1
+29527,SE,3,VAY,,"Stockholm, Vallingby Seaport - VAY","Stockholm, Vallingby Seaport - VAY",,3,NULL,,1
 29537,SE,3,STK,,Stockvik Port - STK,Stockvik Port - STK,,3,NULL,1,1
 29538,SE,3,STV,,Stora Vika Port - STV,Stora Vika Port - STV,,3,NULL,1,1
 29541,SE,3,SUS,,Storugns Seaport - SUS,Storugns Seaport - SUS,,3,NULL,1,1
@@ -11048,7 +11048,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 29760,SK,2,MRT,,Martin Airport - MRT,Martin Airport - MRT,,3,NULL,1,1
 29769,SK,2,NRA,,Nitra Airport - NRA,Nitra Airport - NRA,,3,NULL,1,1
 29777,SK,2,PZY,,Pieštany Airport - PZY,Pieštany Airport - PZY,,3,NULL,1,1
-29782,SK,2,TAT,,"Poprad,Poprad","Tatry Airport - TAT""",,3,NULL,,1
+29782,SK,2,TAT,,"Poprad, Tatry Airport - TAT","Poprad, Tatry Airport - TAT",,3,NULL,,1
 29795,SK,2,SLD,,Sliac Airport - SLD,Sliac Airport - SLD,,3,NULL,1,1
 29814,SK,2,ILZ,,Zilina - ILZ,Zilina - ILZ,,3,NULL,1,1
 29817,SL,2,KBS,,Bo Airport - KBS,Bo Airport - KBS,,4,NULL,1,
@@ -11207,7 +11207,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 30252,TN,3,LSK,,La Skhirra Seaport - LSK,La Skhirra Seaport - LSK,,4,NULL,1,
 30255,TN,3,MBA,,Menzel Bourguiba Seaport - MBA,Menzel Bourguiba Seaport - MBA,,4,NULL,1,
 30258,TN,2,MIR,,Monastir - Habib Bourguiba International Airport - MIR,Monastir - Habib Bourguiba International Airport - MIR,,4,NULL,1,
-30261,TN,3,RDS,,"Rades,Rades","Tunis Seaport - RDS""",,4,NULL,,
+30261,TN,3,RDS,,"Rades, Tunis Seaport - RDS","Rades, Tunis Seaport - RDS",,4,NULL,,
 30262,TN,2,SFA,,Sfax - Thyna International Airport - SFA,Sfax - Thyna International Airport - SFA,,4,NULL,1,
 30265,TN,3,SUS,,Sousse Seaport - SUS,Sousse Seaport - SUS,,4,NULL,1,
 30266,TN,2,TBJ,,Tabarka–Ain Draham International Airport - TBJ,Tabarka–Ain Draham International Airport - TBJ,,4,NULL,1,
@@ -12073,7 +12073,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 35545,US,2,CFD,,Coulter Field Airport - CFD,Coulter Field Airport - CFD,,4,NULL,1,
 35547,US,2,CIL,,Council Airport - CIL,Council Airport - CIL,,4,NULL,1,
 35549,US,2,CBF,,Council Bluffs Municipal Airport - CBF,Council Bluffs Municipal Airport - CBF,,4,NULL,1,
-35565,US,2,PRX,,"Paris,Paris","TX Airport - PRX""",,4,NULL,,
+35565,US,2,PRX,,"Paris, TX Airport - PRX","Paris, TX Airport - PRX",,4,NULL,,
 35566,US,3,CGA,,Craig Seaplane Base - CGA,Craig Seaplane Base - CGA,,4,NULL,1,
 35569,US,2,CIG,,Craig Moffat Airport - CIG,Craig Moffat Airport - CIG,,4,NULL,1,
 35576,US,2,CCG,,Crane County Airport - CCG,Crane County Airport - CCG,,4,NULL,1,
@@ -12778,7 +12778,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 38790,US,3,MMH,,Mammoth Lakes - MMH,Mammoth Lakes - MMH,,4,NULL,1,
 38793,US,3,MNZ,,Manassas aka Harry P Davies Field  - MNZ,Manassas aka Harry P Davies Field  - MNZ,,4,NULL,1,
 38808,US,3,MHK,,Manhattan - MHK,Manhattan - MHK,,4,NULL,1,
-38811,US,3,MNH,,"Manhattan,Manhattan","New York - MNH""",,4,NULL,,
+38811,US,3,MNH,,"Manhattan, New York - MNH","Manhattan, New York - MNH",,4,NULL,,
 38814,US,2,MBL,,Manistee Airport - MBL,Manistee Airport - MBL,,4,NULL,1,
 38816,US,2,ISQ,,Manistique Airport - ISQ,Manistique Airport - ISQ,,4,NULL,1,
 38817,US,3,MTW,,Manitowoc - MTW,Manitowoc - MTW,,4,NULL,1,
@@ -12805,7 +12805,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 38913,US,3,MIW,,Marshalltown - MIW,Marshalltown - MIW,,4,NULL,1,
 38916,US,2,MFI,,Marshfield Municipal Airport - MFI,Marshfield Municipal Airport - MFI,,4,NULL,1,
 38921,US,3,MVY,,Martha''s Vineyard - MVY,Martha''s Vineyard - MVY,,4,NULL,1,
-38925,US,3,MTN,,"Martin Mariet,Martin Mariet","Baltimore - MTN""",,4,NULL,,
+38925,US,3,MTN,,"Martin Mariet, Baltimore - MTN","Martin Mariet, Baltimore - MTN",,4,NULL,,
 38946,US,2,MCW,,Mason City Airport - MCW,Mason City Airport - MCW,,4,NULL,1,
 38950,US,3,MSS,,Massena - MSS,Massena - MSS,,4,NULL,1,
 38954,US,3,MGI,,Matagorda Island - MGI,Matagorda Island - MGI,,4,NULL,1,
@@ -12863,7 +12863,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 39255,US,2,MEV,,Minden-Tahoe Airport - MEV,Minden-Tahoe Airport - MEV,,4,NULL,1,
 39261,US,2,MWL,,Mineral Wells Airport - MWL,Mineral Wells Airport - MWL,,4,NULL,1,
 39266,US,2,MES,,Minneapolis Airport - MES,Minneapolis Airport - MES,,4,NULL,1,
-39267,US,2,MSP,,"Minneapolis,Minneapolis","St Paul Airport - MSP""",,4,NULL,,
+39267,US,2,MSP,,"Minneapolis, St Paul Airport - MSP","Minneapolis, St Paul Airport - MSP",,4,NULL,,
 39272,US,3,MOT,,Minot - MOT,Minot - MOT,,4,NULL,1,
 39275,US,3,MNT,,Minto - MNT,Minto - MNT,,4,NULL,1,
 39282,US,2,LVM,,Livingston Airport - LVM,Livingston Airport - LVM,,4,NULL,1,
@@ -13684,11 +13684,11 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 43471,VE,3,ARA,,Araya Seaport - ARA,Araya Seaport - ARA,,4,NULL,1,
 43472,VE,2,LPJ,,Armando Schwarck Airport - LPJ,Armando Schwarck Airport - LPJ,,4,NULL,1,
 43473,VE,2,VLN,,Arturo Michelena International Airport - VLN,Arturo Michelena International Airport - VLN,,4,NULL,1,
-43474,VE,3,BAV,,"Bachaquero,Bachaquero","Maracaibo L Seaport - BAV""",,4,NULL,,
-43475,VE,3,BJV,,"Bajo Grande,Bajo Grande","Maracaibo L Seaport - BJV""",,4,NULL,,
+43474,VE,3,BAV,,"Bachaquero, Maracaibo L Seaport - BAV","Bachaquero, Maracaibo L Seaport - BAV",,4,NULL,,
+43475,VE,3,BJV,,"Bajo Grande, Maracaibo L Seaport - BJV","Bajo Grande, Maracaibo L Seaport - BJV",,4,NULL,,
 43478,VE,2,BNS,,Barinas Airport - BNS,Barinas Airport - BNS,,4,NULL,1,
 43480,VE,2,BRM,,Barquisimeto Jacinto Lara International Airport - BRM,Barquisimeto Jacinto Lara International Airport - BRM,,4,NULL,1,
-43481,VE,3,CBS,,"Cabimas,Cabimas","Maracaibo L Seaport - CBS""",,4,NULL,,
+43481,VE,3,CBS,,"Cabimas, Maracaibo L Seaport - CBS","Cabimas, Maracaibo L Seaport - CBS",,4,NULL,,
 43482,VE,2,PYH,,Cacique Aramare Airport - PYH,Cacique Aramare Airport - PYH,,4,NULL,1,
 43483,VE,2,CXA,,Caicara de Orinoco Airport - CXA,Caicara de Orinoco Airport - CXA,,4,NULL,1,
 43486,VE,2,CLZ,,Calabozo Airport - CLZ,Calabozo Airport - CLZ,,4,NULL,1,
@@ -13706,7 +13706,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 43506,VE,2,VLV,,Valera Carvajal Airport - VLV,Valera Carvajal Airport - VLV,,4,NULL,1,
 43509,VE,3,EGU,,El Guamache Seaport - EGU,El Guamache Seaport - EGU,,4,NULL,1,
 43510,VE,3,ELP,,El Palito Seaport - ELP,El Palito Seaport - ELP,,4,NULL,1,
-43511,VE,3,ETV,,"Port of El Tablazo,Port of El Tablazo","Maracaibo L  - ETV""",,4,NULL,,
+43511,VE,3,ETV,,"Port of El Tablazo, Maracaibo L  - ETV","Port of El Tablazo, Maracaibo L  - ETV",,4,NULL,,
 43512,VE,2,ELX,,El Tigre Airport - ELX,El Tigre Airport - ELX,,4,NULL,1,
 43513,VE,2,VIG,,Juan Pablo Pérez Alfonzo Airport - VIG,Juan Pablo Pérez Alfonzo Airport - VIG,,4,NULL,1,
 43515,VE,2,EOZ,,Elorza Airport - EOZ,Elorza Airport - EOZ,,4,NULL,1,
@@ -13723,12 +13723,12 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 43533,VE,3,JMV,,Port of Jose Maria Vargas - JMV,Port of Jose Maria Vargas - JMV,,4,NULL,1,
 43534,VE,2,LSP,,Josefa Camejo International Airport - LSP,Josefa Camejo International Airport - LSP,,4,NULL,1,
 43539,VE,2,KAV,,Kavanayen Airport - KAV,Kavanayen Airport - KAV,,4,NULL,1,
-43540,VE,3,LCV,,"Port of La Ceiba,Port of La Ceiba","Maracaibo L - LCV""",,4,NULL,,
+43540,VE,3,LCV,,"Port of La Ceiba, Maracaibo L - LCV","Port of La Ceiba, Maracaibo L - LCV",,4,NULL,,
 43541,VE,2,MAR,,La Chinita International Airport - MAR,La Chinita International Airport - MAR,,4,NULL,1,
 43542,VE,3,LEC,,Port of La Estacada - LEC,Port of La Estacada - LEC,,4,NULL,1,
 43544,VE,2,LFR,,La Fria Airport - LFR,La Fria Airport - LFR,,4,NULL,1,
 43546,VE,2,LAG,,La Guaira Airport - LAG,La Guaira Airport - LAG,,4,NULL,1,
-43547,VE,3,LSV,,"La Salina,La Salina","Maracaibo L Seaport - LSV""",,4,NULL,,
+43547,VE,3,LSV,,"La Salina, Maracaibo L Seaport - LSV","La Salina, Maracaibo L Seaport - LSV",,4,NULL,,
 43548,VE,2,isl,,La Tortuga Punta Delgada Airport - isl,La Tortuga Punta Delgada Airport - isl,,4,NULL,1,
 43551,VE,2,LGY,,Lagunillas Airport - LGY,Lagunillas Airport - LGY,,4,NULL,1,
 43555,VE,2,LRV,,Los Roques Airport - LRV,Los Roques Airport - LRV,,4,NULL,1,
@@ -13755,7 +13755,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 43596,VE,3,PFI,,Port of Punto Fijo - PFI,Port of Punto Fijo - PFI,,4,NULL,1,
 43599,VE,2,SVZ,,San Antonio Del Tachira Airport - SVZ,San Antonio Del Tachira Airport - SVZ,,4,NULL,1,
 43605,VE,2,SFD,,Las Flecheras Airport - SFD,Las Flecheras Airport - SFD,,4,NULL,1,
-43606,VE,3,SLV,,"San Lorenzo,San Lorenzo","Maracaibo L Seaport - SLV""",,4,NULL,,
+43606,VE,3,SLV,,"San Lorenzo, Maracaibo L Seaport - SLV","San Lorenzo, Maracaibo L Seaport - SLV",,4,NULL,,
 43608,VE,2,SVV,,San Salvador de Paul Airport - SVV,San Salvador de Paul Airport - SVV,,4,NULL,1,
 43609,VE,2,SOM,,San Tomé Airport - SOM,San Tomé Airport - SOM,,4,NULL,1,
 43611,VE,2,SBB,,Santa Bárbara de Barinas Airport - SBB,Santa Bárbara de Barinas Airport - SBB,,4,NULL,1,
@@ -13769,14 +13769,14 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 43632,VE,2,WOK,,Wonken Airport - WOK,Wonken Airport - WOK,,4,NULL,1,
 43633,VG,2,NGD,,Auguste George Airport - NGD,Auguste George Airport - NGD,,4,NULL,1,
 43634,VG,2,EIS,,Terrance B. Lettsome International Airport - EIS,Terrance B. Lettsome International Airport - EIS,,4,NULL,1,
-43637,VG,3,RAD,,"Roadtown,Roadtown","Tortola - RAD""",,4,NULL,,
+43637,VG,3,RAD,,"Roadtown, Tortola - RAD","Roadtown, Tortola - RAD",,4,NULL,,
 43639,VG,3,TOV,,Tortola Port - TOV,Tortola Port - TOV,,4,NULL,1,
 43641,VG,2,VIJ,,Virgin Gorda Airport - VIJ,Virgin Gorda Airport - VIJ,,4,NULL,1,
 43642,VI,2,SPB,,Charlotte Amalie Harbor Seaplane Base - SPB,Charlotte Amalie Harbor Seaplane Base - SPB,,4,NULL,1,
 43644,VI,2,SSB,,Christiansted Harbor Seaplane Base - SSB,Christiansted Harbor Seaplane Base - SSB,,4,NULL,1,
 43646,VI,2,SJF,,Cruz Bay Seaplane Base - SJF,Cruz Bay Seaplane Base - SJF,,4,NULL,1,
 43648,VI,2,STT,,Cyril E. King Airport - STT,Cyril E. King Airport - STT,,4,NULL,1,
-43649,VI,3,FRD,,"Frederiksted,Frederiksted","St. Croix Port - FRD""",,4,NULL,,
+43649,VI,3,FRD,,"Frederiksted, St. Croix Port - FRD","Frederiksted, St. Croix Port - FRD",,4,NULL,,
 43650,VI,2,STX,,Henry E Rohlsen Airport - STX,Henry E Rohlsen Airport - STX,,4,NULL,1,
 43651,VI,3,HOC,,Hovic Seaport - HOC,Hovic Seaport - HOC,,4,NULL,1,
 43652,VI,3,LIB,,Port of Limetree Bay - LIB,Port of Limetree Bay - LIB,,4,NULL,1,
@@ -14549,7 +14549,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46536,IS,3,BOL,,Bolungavik Seaport - BOL,Bolungavik Seaport - BOL,,4,NULL,1,1
 46537,IS,3,DJU,,Djúpivogur Seaport - DJU,Djúpivogur Seaport - DJU,,4,NULL,1,1
 46538,IS,3,FAS,,Fáskrúðsfjörður Seaport - FAS,Fáskrúðsfjörður Seaport - FAS,,4,NULL,1,1
-46539,IS,3,HFN,,"Hofn,Hofn","Hornafjordur Seaport - HFN""",,4,NULL,,1
+46539,IS,3,HFN,,"Hofn,Hofn","Hornafjordur Seaport - HFN",,4,NULL,,1
 46540,IS,3,RAU,,Raufarhofn Seaport - RAU,Raufarhofn Seaport - RAU,,4,NULL,1,1
 46541,IS,3,RIF,,Rif-Hellisandur Seaport - RIF,Rif-Hellisandur Seaport - RIF,,4,NULL,1,1
 46542,IS,3,TEY,,Þingeyri Seaport - TEY,Þingeyri Seaport - TEY,,4,NULL,1,1
@@ -14581,7 +14581,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46568,JP,2,AOJ,,Aomori Airport - AOJ,Aomori Airport - AOJ,,4,NULL,1,
 46569,JP,2,ASJ,,Amamioshima Airport - ASJ,Amamioshima Airport - ASJ,,4,Null,1,
 46570,JP,2,AXT,,Akita Airport - AXT,Akita Airport - AXT,,4,null,1,
-46571,JP,2,BPU,,"Beppu,Beppu","Oita Airport - BPU""",,4,NULL,,
+46571,JP,2,BPU,,"Beppu,Beppu","Oita Airport - BPU",,4,NULL,,
 46572,JP,3,FUJ,,Fukue Seaport - FUJ,Fukue Seaport - FUJ,,4,NULL,0,
 46573,JP,2,HHE,,Hachinohe Airport - HHE,Hachinohe Airport - HHE,,4,NULL,1,
 46574,JP,2,HIJ,,Hiroshima Airport - HIJ,Hiroshima Airport - HIJ,,4,NULL,1,
@@ -14605,10 +14605,10 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46592,JP,3,MMY,,Miyakojima Seaport  - MMY,Miyakojima Seaport  - MMY,,4,NULL,1,
 46593,JP,3,MNM,,Minami Seaport - MNM,Minami Seaport - MNM,,4,NULL,1,
 46594,JP,3,MYJ,,Matsuyama Seaport - MYJ,Matsuyama Seaport - MYJ,,4,NULL,1,
-46595,JP,2,NAH,,"Naha,Naha","Okinawa Airport - NAH""",,4,NULL,,
-46596,JP,3,NGO,,"Nagoya,Nagoya","Aichi Seaport - NGO""",,4,NULL,,
+46595,JP,2,NAH,,"Naha,Naha","Okinawa Airport - NAH",,4,NULL,,
+46596,JP,3,NGO,,"Nagoya,Nagoya","Aichi Seaport - NGO",,4,NULL,,
 46597,JP,3,NGS,,Nagasaki Seaport - NGS,Nagasaki Seaport - NGS,,4,NULL,1,
-46598,JP,2,OIM,,"Ohshima Airport,Ohshima Airport","Tokyo - OIM""",,4,NULL,,
+46598,JP,2,OIM,,"Ohshima Airport,Ohshima Airport","Tokyo - OIM",,4,NULL,,
 46599,JP,2,OIT,,Oita Airport - OIT,Oita Airport - OIT,,4,NULL,1,
 46600,JP,3,OKI,,Oki Seaport - OKI,Oki Seaport - OKI,,4,NULL,1,
 46601,JP,3,OKJ,,Okayama Seaport - OKJ,Okayama Seaport - OKJ,,4,NULL,1,
@@ -14616,7 +14616,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46603,JP,3,ONJ,,Oniike Seaport - ONJ,Oniike Seaport - ONJ,,4,NULL,1,
 46604,JP,2,OSA,,Osaka Airport - OSA,Osaka Airport - OSA,,4,NULL,0,
 46605,JP,2,OTR,,Otaru Airport - OTR,Otaru Airport - OTR,,4,NULL,1,
-46606,JP,2,QSG,,"Saga,Saga","Saga Airport - QSG""",,4,NULL,,
+46606,JP,2,QSG,,"Saga,Saga","Saga Airport - QSG",,4,NULL,,
 46607,JP,3,SDJ,,Sendai Seaport - SDJ,Sendai Seaport - SDJ,,4,NULL,1,
 46608,JP,3,SYO,,Shoura Seaport - SYO,Shoura Seaport - SYO,,4,NULL,1,
 46609,JP,2,TAK,,Takamatsu Airport - TAK,Takamatsu Airport - TAK,,4,NULL,1,
@@ -14751,21 +14751,21 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46738,MX,2,PXM,,Puerto Escondido International Airport - PXM,Puerto Escondido International Airport - PXM,,4,NULL,0,
 46739,MX,2,SCX,,Salina Cruz Naval Air Station (Airport) - SCX,Salina Cruz Naval Air Station (Airport) - SCX,,4,NULL,0,
 46740,MY,3,JHB,,Johor Bahru Seaport - JHB,Johor Bahru Seaport - JHB,,4,NULL,0,
-46741,MY,3,LDU,,"Lahad Datu,Lahad Datu","Sabah Seaport - LDU""",,4,NULL,,
-46742,MY,3,LMN,,"Limbang,Limbang","Sarawak Seaport - LMN""",,4,NULL,,
+46741,MY,3,LDU,,"Lahad Datu,Lahad Datu","Sabah Seaport - LDU",,4,NULL,,
+46742,MY,3,LMN,,"Limbang,Limbang","Sarawak Seaport - LMN",,4,NULL,,
 46743,MY,3,LUM,,Lumut Seaport - LUM,Lumut Seaport - LUM,,4,NULL,0,
 46744,MY,3,MEU,,Meru Seaport - MEU,Meru Seaport - MEU,,4,NULL,0,
-46745,MY,3,MYY,,"Miri,Miri","Sarawak Seaport - MYY""",,4,NULL,,
+46745,MY,3,MYY,,"Miri,Miri","Sarawak Seaport - MYY",,4,NULL,,
 46746,MY,3,NTL,,Penang Seaport - NTL,Penang Seaport - NTL,,4,NULL,0,
-46747,MY,3,SDK,,"Sandakan,Sandakan","Sabah Seaport - SDK""",,4,NULL,,
-46748,MY,3,SMM,,"Semporna,Semporna","Sabah Seaport - SMM""",,4,NULL,,
-46749,MY,3,SBW,,"Sibu,Sibu","Sarawak Seaport - SBW""",,4,NULL,,
-46750,MY,3,SPT,,"Sipitang,Sipitang","Sabah Seaport - SPT""",,4,NULL,,
+46747,MY,3,SDK,,"Sandakan,Sandakan","Sabah Seaport - SDK",,4,NULL,,
+46748,MY,3,SMM,,"Semporna,Semporna","Sabah Seaport - SMM",,4,NULL,,
+46749,MY,3,SBW,,"Sibu,Sibu","Sarawak Seaport - SBW",,4,NULL,,
+46750,MY,3,SPT,,"Sipitang,Sipitang","Sabah Seaport - SPT",,4,NULL,,
 46751,MY,3,SGG,,Sungai Udang Seaport - SGG,Sungai Udang Seaport - SGG,,4,NULL,0,
 46752,MY,3,TPP,,Tanjung Pelepas Seaport - TPP,Tanjung Pelepas Seaport - TPP,,4,NULL,0,
 46753,MY,2,PEN,,Penang International Airport - PEN,Penang International Airport - PEN,,4,NULL,0,
 46754,MY,3,BKI,,Kota Kinabalu Seaport - BKI,Kota Kinabalu Seaport - BKI,,4,NULL,0,
-46755,MY,3,BTU,,"Bintulu,Bintulu","Sarawak Seaport - BTU""",,4,NULL,,
+46755,MY,3,BTU,,"Bintulu,Bintulu","Sarawak Seaport - BTU",,4,NULL,,
 46756,MY,3,KCH,,Kuching Seaport - KCH,Kuching Seaport - KCH,,4,NULL,0,
 46757,MY,2,KUA,,Sultan Haji Ahmad Shah Airport - KUA,Sultan Haji Ahmad Shah Airport - KUA,,4,NULL,0,
 46758,MY,3,KUD,,Kudat Seaport - KUD,Kudat Seaport - KUD,,4,NULL,0,
@@ -14892,7 +14892,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46879,UA,3,ODS,,Odessa Seaport - ODS,Odessa Seaport - ODS,,4,NULL,1,
 46880,UA,3,PLV,,Poltava Seaport - PLV,Poltava Seaport - PLV,,4,NULL,1,
 46881,UK,2,BRS,,Bristol Airport - BRS,Bristol Airport - BRS,,1,NULL,1,
-46882,UK,3,MLP,,"Millport,Millport","Great Cumbrae Seaport - MLP""",,1,NULL,,
+46882,UK,3,MLP,,"Millport,Millport","Great Cumbrae Seaport - MLP",,1,NULL,,
 46883,UK,3,MTP,,Mablethorpe Seaport - MTP,Mablethorpe Seaport - MTP,,1,NULL,1,
 46884,UK,3,MUA,,Muasdale Seaport - MUA,Muasdale Seaport - MUA,,1,NULL,1,
 46885,UK,3,MVC,,Moreton Valence Seaport - MVC,Moreton Valence Seaport - MVC,,1,NULL,1,
@@ -14972,7 +14972,7 @@ PortId,CountryCode,PortType,PortCode,KeyWords,Name,Name-cy,Priority,Region,Locat
 46961,US,3,MIA,,Miami International Seaport - MIA,Miami International Seaport - MIA,,4,NULL,0,
 46962,US,3,MKG,,Muskegon Seaport - MKG,Muskegon Seaport - MKG,,4,NULL,0,
 46963,US,3,MNZ,,Mobile Seaport - MNZ,Mobile Seaport - MNZ,,4,NULL,0,
-46964,US,2,MSY,,"New Orleans,New Orleans","Louis Armstrong New Orleans International Airport - MSY""",,4,NULL,,
+46964,US,2,MSY,,"New Orleans,New Orleans","Louis Armstrong New Orleans International Airport - MSY",,4,NULL,,
 46965,US,3,PSM,,Portsmouth International at Pease Seaport - PSM,Portsmouth International at Pease Seaport - PSM,,4,NULL,1,
 46966,US,3,PVC,,Provincetown Seaport - PVC,Provincetown Seaport - PVC,,4,NULL,1,
 46967,US,3,PVD,,Providence Seaport - PVD,Providence Seaport - PVD,,4,NULL,1,
