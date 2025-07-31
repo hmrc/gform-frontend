@@ -89,12 +89,11 @@ object OffsetYMD {
 }
 
 sealed trait DateExprValue {
-  def toLocalDate(maybeFormStartDate: Option[LocalDate] = None) =
+  def toLocalDate(maybeFormStartDate: Option[LocalDate]): LocalDate =
     this match {
       case TodayDateExprValue                   => LocalDate.now()
       case ExactDateExprValue(year, month, day) => LocalDate.of(year, month, day)
-      case FormStartDateExprValue =>
-        maybeFormStartDate.getOrElse(throw new Exception("Cannot calculate form start date without form"))
+      case FormStartDateExprValue               => maybeFormStartDate.getOrElse(LocalDate.now())
     }
 }
 case object TodayDateExprValue extends DateExprValue
