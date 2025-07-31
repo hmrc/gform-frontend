@@ -803,7 +803,7 @@ class AddressLookupController(
 
     val formModelVisibilityOpticsF: Future[FormModelVisibilityOptics[DataOrigin.Mongo]] =
       formModelBuilder
-        .visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Some(cache.form.startDate))
+        .visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, cache.form.startDate)
 
     formModelVisibilityOpticsF
       .map { formModelVisibilityOptics =>

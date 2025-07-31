@@ -51,7 +51,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
-import java.time.LocalDate
+import java.time.{ Instant, LocalDate }
 import java.time.format.DateTimeFormatter
 import scala.collection.mutable.LinkedHashSet
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -116,7 +116,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
 
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
-    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
+    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
 
     val cacheData = new CacheData(
       EnvelopeId(""),

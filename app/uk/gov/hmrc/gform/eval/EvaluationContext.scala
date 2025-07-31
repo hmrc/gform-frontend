@@ -59,5 +59,5 @@ final case class EvaluationContext(
   lookupRegister: Map[BaseComponentId, Register],
   constraints: Map[BaseComponentId, TextConstraint],
   taskIdTaskStatus: TaskIdTaskStatusMapping,
-  formStartDate: Option[LocalDate]
+  formStartDate: LocalDate
 )

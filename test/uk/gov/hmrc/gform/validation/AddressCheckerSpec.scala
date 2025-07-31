@@ -57,6 +57,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
+import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -125,7 +126,7 @@ class AddressCheckerSpec
 
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
-    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, None)
+    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
 
     val cacheData = new CacheData(
       EnvelopeId(""),

@@ -46,6 +46,8 @@ import scala.concurrent.Future
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
 
+import java.time.LocalDate
+
 class RealSmartStringEvaluatorFactorySpec
     extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
     with Matchers {
@@ -509,7 +511,7 @@ class RealSmartStringEvaluatorFactorySpec
           Map.empty,
           Map.empty,
           TaskIdTaskStatusMapping.empty,
-          None
+          LocalDate.now()
         )
       )
     )

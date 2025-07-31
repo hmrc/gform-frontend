@@ -53,6 +53,7 @@ import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -153,7 +154,7 @@ class SummaryRenderingServiceSpec
           Map.empty,
           Map.empty,
           TaskIdTaskStatusMapping.empty,
-          None
+          LocalDate.now()
         )
       )
     )

@@ -50,6 +50,7 @@ import uk.gov.hmrc.gform.upscan.UpscanInitiate
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
@@ -136,7 +137,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           Map.empty,
           Map.empty,
           TaskIdTaskStatusMapping.empty,
-          None
+          LocalDate.now()
         )
       )
     )

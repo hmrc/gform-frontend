@@ -16,25 +16,21 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.{ Functor, MonadError }
 import cats.syntax.functor._
+import cats.{ Functor, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.DataRetrieveAll
+import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelBuilder, SectionSelector, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FileComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, SubmissionRef, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileSizeLimit, FormPhase }
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.Instant
+import java.time.{ Instant, LocalDate }
 
 case class FormModelOptics[D <: DataOrigin](
   formModelRenderPageOptics: FormModelRenderPageOptics[D],
@@ -89,7 +85,7 @@ object FormModelOptics {
         Map.empty,
         Map.empty,
         TaskIdTaskStatusMapping.empty,
-        None
+        LocalDate.now()
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -109,7 +105,7 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    maybeFormStartDate: Option[Instant]
+    formStartDate: Instant
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -126,7 +122,7 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, maybeFormStartDate)
+      formModelBuilder.visibilityModel(data, phase, formStartDate)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
       formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
     }
@@ -151,6 +147,6 @@ object FormModelOptics {
       phase,
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
-      Some(cache.form.startDate)
+      cache.form.startDate
     )
 }

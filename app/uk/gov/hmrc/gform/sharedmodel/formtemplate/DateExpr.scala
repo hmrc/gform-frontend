@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationContext, EvaluationResults }
 import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
+import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationContext, EvaluationResults }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, SourceOrigin }
+
+import java.time.LocalDate
 
 sealed trait DateExpr {
   def leafExprs: List[Expr] = this match {
@@ -89,11 +90,11 @@ object OffsetYMD {
 }
 
 sealed trait DateExprValue {
-  def toLocalDate(maybeFormStartDate: Option[LocalDate]): LocalDate =
+  def toLocalDate(formStartDate: LocalDate): LocalDate =
     this match {
       case TodayDateExprValue                   => LocalDate.now()
       case ExactDateExprValue(year, month, day) => LocalDate.of(year, month, day)
-      case FormStartDateExprValue               => maybeFormStartDate.getOrElse(LocalDate.now())
+      case FormStartDateExprValue               => formStartDate
     }
 }
 case object TodayDateExprValue extends DateExprValue

@@ -80,7 +80,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Map.empty,
       Map.empty,
       TaskIdTaskStatusMapping.empty,
-      None
+      LocalDate.now()
     )
 
   "recalculation" should "recalculate single dependency" in {

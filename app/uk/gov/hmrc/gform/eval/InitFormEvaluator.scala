@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
+import java.time.LocalDate
 import scala.concurrent.{ ExecutionContext, Future }
 
 // This is used to evaluate if expressions from exitPages before user's form data are retrieved,
@@ -45,6 +46,8 @@ case class InitFormEvaluator(
   ): Boolean =
     evalBooleanExpr(includeIf.booleanExpr)
 
+  lazy val now: LocalDate = LocalDate.now()
+
   private def evalBooleanExpr(be: BooleanExpr)(implicit
     messages: Messages
   ): Boolean =
@@ -54,8 +57,8 @@ case class InitFormEvaluator(
       case Or(l, r)                                       => evalBooleanExpr(l) || evalBooleanExpr(r)
       case Not(be)                                        => !evalBooleanExpr(be)
       case IsLogin(value)                                 => BooleanExprEval.evalIsLoginExpr(value, cache.retrievals)
-      case DateAfter(DateValueExpr(l), DateValueExpr(r))  => l.toLocalDate(None).isAfter(r.toLocalDate(None))
-      case DateBefore(DateValueExpr(l), DateValueExpr(r)) => l.toLocalDate(None).isBefore(r.toLocalDate(None))
+      case DateAfter(DateValueExpr(l), DateValueExpr(r))  => l.toLocalDate(now).isAfter(r.toLocalDate(now))
+      case DateBefore(DateValueExpr(l), DateValueExpr(r)) => l.toLocalDate(now).isBefore(r.toLocalDate(now))
       case IsTrue                                         => true
       case _                                              => false
     }

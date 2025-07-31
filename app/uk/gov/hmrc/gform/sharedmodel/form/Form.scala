@@ -24,6 +24,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits
 
 import java.time.Instant
 
@@ -53,6 +54,8 @@ object Form {
   private val taskIdTaskStatus = "taskIdTaskStatus"
   private val startDate = "startDate"
 
+  implicit val mongoInstantFormat: Format[Instant] = Implicits.jatInstantFormat
+
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ thirdPartyData).read[ThirdPartyData]
   private val componentIdToFileIdReads: Reads[FormComponentIdToFileIdMapping] =
@@ -71,10 +74,7 @@ object Form {
           .orElse(JsonUtils.constReads(Option.empty[FormTemplateVersion]))
       )
 
-  val mongoInstantReadsWithFallback: Reads[Instant] =
-    Reads
-      .at[String](__ \ startDate \ "$date" \ "$numberLong")
-      .map(s => Instant.ofEpochMilli(s.toLong))
+  private val startDateReads: Reads[Instant] = (__ \ startDate).read[Instant]
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
@@ -89,13 +89,8 @@ object Form {
       EnvelopeExpiryDate.optionFormat and
       componentIdToFileIdReads and
       taskIdTaskStatusMappingReads and
-      mongoInstantReadsWithFallback
+      startDateReads
   )(Form.apply _)
-
-  def mongoInstantStartDateWrites(o: Instant): JsObject =
-    Writes
-      .at[String](__ \ startDate \ "$date" \ "$numberLong")
-      .writes(o.toEpochMilli.toString)
 
   private val writes: OWrites[Form] = OWrites[Form](form =>
     FormId.format.writes(form._id) ++
@@ -110,11 +105,10 @@ object Form {
       EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
       Json.obj(componentIdToFileId -> FormComponentIdToFileIdMapping.format.writes(form.componentIdToFileId)) ++
       Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus)) ++
-      mongoInstantStartDateWrites(form.startDate)
+      Json.obj(startDate -> form.startDate)
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
-
 }
 
 sealed trait FormStatus

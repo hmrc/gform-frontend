@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import java.time.{ Instant, LocalDateTime, LocalTime }
+import java.time.{ Instant, LocalDate, LocalDateTime, LocalTime }
 import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
@@ -91,7 +91,7 @@ trait ExampleEvaluationContext {
       Map.empty,
       Map.empty,
       TaskIdTaskStatusMapping.empty,
-      None
+      LocalDate.now()
     )
 }
 

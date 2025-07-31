@@ -216,7 +216,7 @@ class FormModelBuilder[E, F[_]: Functor](
     formPhase: Option[FormPhase],
     lang: LangADT,
     messages: Messages,
-    maybeFormStartDate: Option[Instant]
+    formStartDate: Instant
   ): F[RecalculationResult] = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
@@ -252,7 +252,7 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.lookupRegister,
         formModel.constraints,
         taskIdTaskStatus,
-        maybeFormStartDate.map(LocalDate.ofInstant(_, ZoneId.of("Europe/London")))
+        LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London"))
       )
 
     recalculation
@@ -332,12 +332,12 @@ class FormModelBuilder[E, F[_]: Functor](
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase],
-    maybeFormStartDate: Option[Instant]
+    formStartDate: Instant
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
     val recalculationResultF: F[RecalculationResult] =
-      toRecalculationResults(data, formModel, phase, lang, messages, maybeFormStartDate)
+      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate)
 
     recalculationResultF.map { recalculationResult =>
       buildFormModelVisibilityOptics(
