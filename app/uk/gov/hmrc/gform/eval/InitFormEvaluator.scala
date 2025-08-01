@@ -46,7 +46,7 @@ case class InitFormEvaluator(
   ): Boolean =
     evalBooleanExpr(includeIf.booleanExpr)
 
-  lazy val now: LocalDate = LocalDate.now()
+  val now: LocalDate = LocalDate.now()
 
   private def evalBooleanExpr(be: BooleanExpr)(implicit
     messages: Messages
