@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, IsHmrcTaxPeriod }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, IsHmrcTaxPeriod, SectionNumber, SectionOrSummary }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
@@ -78,7 +78,8 @@ class ProcessDataService[F[_]: Monad](
     cache: AuthCacheWithForm,
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
-    obligationsAction: ObligationsAction
+    obligationsAction: ObligationsAction,
+    sectionNumber: Option[SectionOrSummary] = None
   )(implicit
     lang: LangADT,
     messages: Messages,
@@ -89,9 +90,14 @@ class ProcessDataService[F[_]: Monad](
     val cachedObligations: Obligations = cache.form.thirdPartyData.obligations
 
     for {
-
-      browserFormModelOptics <- FormModelOptics
-                                  .mkFormModelOptics[DataOrigin.Browser, F, U](dataRaw, cache, recalculation)
+      browserFormModelOptics <-
+        FormModelOptics
+          .mkFormModelOptics[DataOrigin.Browser, F, U](
+            dataRaw,
+            cache,
+            recalculation,
+            currentSection = sectionNumber
+          )
 
       obligations <- taxPeriodStateChecker.callDesIfNeeded(
                        getAllTaxPeriods,

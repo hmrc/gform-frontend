@@ -67,15 +67,23 @@ trait Navigation {
 // TODO: Origin should not be in controllers, but Navigator probably should!
 case class Origin(formModel: FormModel[Visibility]) extends Navigation
 
+//TODO: Consider using abstraction to contain all of onDemandIncludeIf stuff
 case class Navigator(
   sectionNumber: SectionNumber,
   formModel: FormModel[Visibility]
 ) extends Navigation {
 
-  val previousSectionNumber: Option[SectionNumber] =
-    filteredSectionNumbers(sectionNumber).findLast(_ < sectionNumber)
+  lazy val previousSectionNumber: Option[SectionNumber] =
+    filteredSectionNumbers(sectionNumber).findLast { section =>
+      def sectionIsVisible = formModel.onDemandIncludeIf.forall(f =>
+        formModel.pageModelLookup(section).getIncludeIf.forall { includeIf =>
+          f(includeIf)
+        }
+      )
+      section < sectionNumber && sectionIsVisible
+    }
 
-  val nextSectionNumber: SectionNumber = {
+  lazy val nextSectionNumber: SectionNumber = {
     val sn = sectionNumber.increment(formModel)
     if (addToListSectionNumbers.contains(sectionNumber)) {
       sn

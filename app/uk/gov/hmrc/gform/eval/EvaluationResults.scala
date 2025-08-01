@@ -60,6 +60,7 @@ case class EvaluationResults(
     modelComponentId: ModelComponentId,
     evaluationContext: EvaluationContext
   ): Boolean = {
+
     val isModelFormComponentIdPure = modelComponentId.indexedComponentId.isPure
     val isReferenceIndexed = evaluationContext.indexedComponentIds.contains(modelComponentId.baseComponentId)
     isModelFormComponentIdPure && isReferenceIndexed
@@ -535,6 +536,7 @@ case class EvaluationResults(
             .overseasAddressLookup(formComponentId.baseComponentId) || evaluationContext
             .addressLookup(formComponentId.baseComponentId) =>
         whenVisible(formComponentId) {
+          // println("whenVisible fcid: " + formComponentId)
           val modelComponentId = formComponentId.modelComponentId
           if (isPureAndRefereceIndexed(modelComponentId, evaluationContext)) {
             val addresses = recData.variadicFormData.distinctIndexedComponentIds(formComponentId.modelComponentId).map {

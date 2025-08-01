@@ -52,6 +52,7 @@ import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 import java.time.format.DateTimeFormatter
+import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
@@ -304,6 +305,7 @@ object SummaryRenderingService {
         maybeCoordinates,
         summarySection.keyDisplayWidth
       )
+
     summary(
       ExtraInfoSummary(
         formTemplate,
@@ -552,6 +554,11 @@ object SummaryRenderingService {
             }
         }
       }
+//
+//      htmls.foreach { x =>
+//        println(x)
+//        println()
+//      }
 
       val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedSummaryDescription)
 
@@ -626,11 +633,46 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
-      maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
-        taskListBrackets.bracketsFor(coordinates).toBracketsList
+    def brackets: List[Bracket[Visibility]] = formModel.brackets
+      .fold(_.brackets.toList)(taskListBrackets =>
+        maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
+          taskListBrackets.bracketsFor(coordinates).toBracketsList
+        )
       )
-    )
+      .filter(
+        onDemandIncludeIfFilterForBrackets
+      )
+      .flatMap {
+        cutBrackets
+      }
+
+    def cutBrackets(bracket: Bracket[Visibility]) =
+      bracket match {
+        case Bracket.RepeatingPage(singletons, source) =>
+          def eval(index: Int) =
+            formModel.onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
+          val newList = singletons.zipWithIndex.collect {
+            case (singleton, index) if eval(index) => singleton
+          }
+          if (newList.isEmpty) {
+            None
+          } else {
+            Some(Bracket.RepeatingPage[Visibility](NonEmptyList(newList.head, newList.tail), source))
+          }
+        case bracket => Some(bracket)
+      }
+
+    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
+    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
+      bracket match {
+        case bracket =>
+          bracket.toPageModel
+            .map { case pm =>
+              pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
+            }
+            .find(_ == true)
+            .getOrElse(false)
+      }
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
       val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))

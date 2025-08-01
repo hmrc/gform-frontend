@@ -215,7 +215,8 @@ class FormProcessor(
                               .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
                                 updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                                 cache,
-                                recalculation
+                                recalculation,
+                                currentSection = None
                               )
       redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds, dataRetrieveIds)
       _        <- objectStoreService.deleteFiles(cache.form.envelopeId, filesToDelete)
@@ -471,7 +472,8 @@ class FormProcessor(
                                 cacheUpd,
                                 formModelOptics,
                                 gformConnector.getAllTaxPeriods,
-                                NoSpecificAction
+                                NoSpecificAction,
+                                Some(SectionOrSummary.Section(sectionNumber))
                               )
           res <-
             fastForwardService

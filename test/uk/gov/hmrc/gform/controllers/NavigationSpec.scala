@@ -84,8 +84,16 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   implicit val messages: Messages = play.api.test.Helpers.stubMessages(play.api.test.Helpers.stubMessagesApi(Map.empty))
   def getFormModel(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) = {
     val formTemplate = mkFormTemplate(sectionsData)
+    val fmb = mkFormModelBuilder(formTemplate)
+    val fm = fmb.dependencyGraphValidation[SectionSelectorType.Normal]
+    val selectSectionIndex = if (sectionsData.size > 2) sectionsData.size - 2 else sectionsData.size - 1
+    val currentSection = fm.availableSectionNumbers(selectSectionIndex)
     mkFormModelBuilder(formTemplate)
-      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None)
+      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](
+        formData,
+        None,
+        Some(SectionOrSummary.Section(currentSection))
+      )
       .formModel
   }
   def getNavigation(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =
@@ -159,6 +167,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
       Classic.NormalPage(TemplateSectionIndex(2)),
       Classic.NormalPage(TemplateSectionIndex(4))
     )
+
     result3 shouldBe List(
       Classic.NormalPage(TemplateSectionIndex(0)),
       Classic.NormalPage(TemplateSectionIndex(1)),

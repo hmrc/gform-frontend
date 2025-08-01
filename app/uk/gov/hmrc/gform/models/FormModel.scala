@@ -32,8 +32,14 @@ case class FormModel[A <: PageMode](
   revealingChoiceInfo: RevealingChoiceInfo,
   sumInfo: SumInfo,
   standaloneSumInfo: StandaloneSumInfo, // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
-  dataRetrieve: Option[NonEmptyList[DataRetrieve]]
+  dataRetrieve: Option[NonEmptyList[DataRetrieve]],
+  onDemandIncludeIfBulk: Option[List[List[IncludeIf]] => List[List[Boolean]]] = None
 ) {
+
+  def onDemandIncludeIf: Option[IncludeIf => Boolean] = onDemandIncludeIfBulk.map { includeIfBulkF => includeIf =>
+    includeIfBulkF(List(List(includeIf))).head.headOption
+      .getOrElse(throw new RuntimeException("Were not able to retrieve option"))
+  }
 
   val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.toPageModelWithNumber
 
@@ -190,6 +196,22 @@ case class FormModel[A <: PageMode](
     case fc @ HasConstraint(constraint) =>
       fc.id.baseComponentId -> constraint
   }.toMap
+
+  def mapWithOnDemand[B <: PageMode](
+    e: Singleton[A] => Singleton[B]
+  )(
+    f: CheckYourAnswers[A] => CheckYourAnswers[B]
+  )(
+    g: Repeater[A] => Repeater[B]
+  )(onDemand: Option[List[List[IncludeIf]] => List[List[Boolean]]]): FormModel[B] = FormModel(
+    brackets.map(e)(f)(g),
+    staticTypeInfo,
+    revealingChoiceInfo,
+    sumInfo,
+    standaloneSumInfo,
+    dataRetrieve,
+    onDemand
+  )
 
   def map[B <: PageMode](
     e: Singleton[A] => Singleton[B]
@@ -372,6 +394,14 @@ case class FormModel[A <: PageMode](
 
   val addToListSectionNumbers = addToListBrackets.flatMap(_.toPageModelWithNumber.toList).map(_._2)
   val addToListRepeaterSectionNumbers = addToListBrackets.flatMap(_.iterations.toList).map(_.repeater.sectionNumber)
+
+  lazy val baseFcLookup: mutable.Map[BaseComponentId, List[FormComponentId]] = allFormComponentIds
+    .map(fcId => fcId.baseComponentId -> fcId)
+    .foldLeft(mutable.Map.empty[BaseComponentId, List[FormComponentId]]) { case (acc, (baseId, fcId)) =>
+      acc.addOne(
+        baseId -> (acc.getOrElse(baseId, List()) :+ fcId)
+      )
+    }
 }
 
 object FormModel {
@@ -434,7 +464,7 @@ object FormModel {
   }
 }
 
-private object HasIncludeIf {
+object HasIncludeIf {
   def unapply(pageModel: PageModel[_ <: PageMode]): Option[IncludeIf] =
     pageModel.fold(_.page.includeIf)(_ => None)(_.includeIf)
 }

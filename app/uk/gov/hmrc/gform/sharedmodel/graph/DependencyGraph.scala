@@ -21,27 +21,171 @@ import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.eval._
+import uk.gov.hmrc.gform.models
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageMode }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, DataExpanded, FormModel, HasIncludeIf, Interim, PageMode, PageModel, Repeater }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 
 import scala.collection.mutable
+import scala.util.Try
 
 object DependencyGraph {
 
+  private def getFromComponentsAndExpressionsFromCurrentSection(
+    currentSection: Option[SectionOrSummary],
+    formModel: FormModel[Interim],
+    formTemplate: FormTemplate
+  ) = {
+
+//    println("available sections: " + formModel.availableSectionNumbers)
+//    println("currentSection: " + currentSection)
+
+    val currentPageBracket = currentSection.collect {
+      case SectionOrSummary.Section(Classic.RepeatedPage(sectionIndex, pageNumber)) =>
+        formModel.bracket(Classic.RepeatedPage(sectionIndex, 0))
+      case SectionOrSummary.Section(currentSection) => formModel.bracket(currentSection)
+    }
+
+    val allCurrentPageExpressions = currentPageBracket.toList.flatMap { bracket =>
+      AllPageModelExpressionsGetter
+        .allExprs(formModel.asInstanceOf[FormModel[DataExpanded]])(
+          bracket
+        )
+        .flatMap { expr =>
+          expr.leafs
+        }
+    }
+
+    val allCurrentPageComponents = currentPageBracket.toList.flatMap { bracket =>
+      val expressionIds = allCurrentPageExpressions.collect { case FormCtx(fcId) => fcId }
+      expressionIds ++ bracket.toPageModel.toList.flatMap(_.allFormComponentIds)
+    }
+
+    //    println("base fc keys: " + baseFcLookup.keys)
+
+    val atlComponents = formModel.addToListIds.map(_.formComponentId)
+    //    println("atl components: " + atlComponents)
+
+    val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+
+    //println("currentSection: " + currentSection)
+
+    //TODO: Figure out how to reduce formModel.allFormComponents. This has an impact on expr labels in summaries
+    def summaryFormComponents: List[FormComponentId] = currentSection match {
+      case Some(SectionOrSummary.Section(_)) | None => List()
+
+      case Some(SectionOrSummary.MaybeTaskCoordinates(maybeCoordinates)) =>
+        maybeCoordinates
+          .map { coordinates =>
+            TaskListUtils.withTask(
+              formTemplate,
+              coordinates.taskSectionNumber,
+              coordinates.taskNumber
+            )(task => task.summarySection) match {
+              case Some(taskSummary) => taskSummary.fields.toList.flatMap(_.toList)
+              case None              => formTemplate.summarySection.fields.toList.flatMap(_.toList)
+            }
+          }
+          .getOrElse {
+            formModel.allFormComponents
+          }
+          .flatMap { fc =>
+            AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds() :+ fc.id)
+          }
+
+      case _ =>
+        formModel.allFormComponents.flatMap { fc =>
+          AllFormComponentExpressions.unapply(fc).toList.flatten.flatMap(_.expr.allFormComponentIds() :+ fc.id)
+        }
+    }
+
+    val formComponents = (allCurrentPageComponents ++ atlComponents ++ standaloneSumsFcIds ++ summaryFormComponents)
+      .map(fcId => formModel.fcLookup.get(fcId) -> fcId)
+      .flatMap {
+        case (Some(fc), fcId) => List(fc)
+        case (None, fcId)     => formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.map(formModel.fcLookup)
+      }
+
+    formComponents -> allCurrentPageExpressions
+  }
+
   def toGraph(
     formModel: FormModel[Interim],
-    formTemplateExprs: Set[ExprMetadata]
-  ): Graph[GraphNode, DiEdge[GraphNode]] =
-    graphFrom(formModel, formTemplateExprs)
-
-  private def graphFrom[T <: PageMode](
-    formModel: FormModel[T],
-    formTemplateExprs: Set[ExprMetadata]
+    formTemplateExprs: Set[ExprMetadata],
+    currentSection: Option[SectionOrSummary],
+    formTemplate: FormTemplate
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 
+    val (formComponents, exprs) =
+      getFromComponentsAndExpressionsFromCurrentSection(currentSection, formModel, formTemplate)
+    graphFrom(formModel, formTemplateExprs, formComponents, exprs)
+  }
+
+  def graphFrom[T <: PageMode](
+    formModel: FormModel[T],
+    formTemplateExprs: Set[ExprMetadata],
+    formComponents: List[FormComponent],
+    expressionsToEvaluate: List[Expr]
+  ): Graph[GraphNode, DiEdge[GraphNode]] = {
+//    formModel.brackets.map { singleton =>
+//      println(singleton.title)
+//      println(singleton)
+//      singleton
+//    }(p)(p)
+
+    //println(currentPage)
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
+
+    //formComponents.map(_.id).map(println)
+
+    //println(currentPage.isDefined)
+
+    val pages = formComponents.map(_.id).map(formModel.pageLookup)
+
+//    println("all mini summary fm: " + formModel.allMiniSummaryListIncludeIfs.map(_._2.id))
+
+//    val formComponents = formModel.allFormComponents
+
+//    val (formComponents, pages) = currentPage
+//      .map { currentPage =>
+//        val pages = mutable.Set[PageModel[_]]()
+//        val formComponents = mutable.Set[FormComponent]()
+//        def addSetOfFormComponents(node: pageGraph.NodeT): Unit = {
+//          formComponents.addAll(node.allFormComponents)
+//          pages.add(node)
+//          println(node.diSuccessors.size)
+//          node.diSuccessors.foreach {
+//            addSetOfFormComponents
+//          }
+//        }
+//        if (pageGraph.isEmpty) {
+//          pages.add(currentPage)
+//          formComponents.addAll(currentPage.allFormComponents)
+//        } else {
+//          //TODO remove try
+//          Try(pageGraph.get(currentPage)).foreach {
+//            addSetOfFormComponents
+//          }
+//        }
+//        formComponents -> pages
+//      }
+//      .getOrElse(Set.empty -> Set.empty)
+
+    //println(currentPage.map(_.title))
+//    println("form components size: " + formComponents.map(_.id))
+//    println("form model form components size: " + formModel.allFormComponents.map(_.id))
+//    println("Pages size: " + pages.size)
+//    println("formmodel pages size: " + formModel.pages.size)
+
+//    val formComponentsList = formComponents.toList
+
+    val pagesAllValidIfs = pages.flatMap { page =>
+      page.allValidIfs
+    }
 
     def edges(fc: FormComponent): Set[DiEdge[GraphNode]] =
       fc match {
@@ -50,7 +194,9 @@ object DependencyGraph {
             case SelfReferenceProjection(
                   IsSelfReferring.No(AuthCtx(_) | UserCtx(_) | FormTemplateCtx(_))
                 ) =>
-              (fc.id :: Nil).map(fcId => GraphNode.Simple(fc.id) ~> GraphNode.Simple(fcId))
+              Set(
+                GraphNode.Simple(fc.id) ~> GraphNode.Simple(fc.id)
+              )
             case SelfReferenceProjection(IsSelfReferring.No(expr)) =>
               toDiEdge(fc, expr, _ => false)
             case SelfReferenceProjection(IsSelfReferring.Yes(expr, selfReference)) =>
@@ -59,9 +205,8 @@ object DependencyGraph {
           }
         case isSum.IsSum(values) =>
           values.flatMap { value =>
-            GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id) ::
-              GraphNode.Simple(value) ~> GraphNode.Expr(FormCtx(fc.id)) :: Nil
-          }
+            GraphNode.Simple(value) ~> GraphNode.Expr(FormCtx(fc.id)) :: Nil
+          } + GraphNode.Expr(FormCtx(fc.id)) ~> GraphNode.Simple(fc.id)
         case isStandaloneSum.IsSum(fcId) =>
           Set(GraphNode.Expr(FormCtx(fcId)) ~> GraphNode.Simple(fcId))
         case _ => Set.empty
@@ -79,7 +224,7 @@ object DependencyGraph {
 
     def toDiEdge(fc: FormComponent, expr: Expr, cycleBreaker: FormComponentId => Boolean): Set[DiEdge[GraphNode]] =
       expr
-        .leafs(formModel)
+        .leafs(formComponents)
         .flatMap { e =>
           val fcNodes = toFormComponentId(e).map(fcId => GraphNode.Expr(e) ~> GraphNode.Simple(fcId))
           if (cycleBreaker(fc.id) && eqBaseComponentId(e, fc)) fcNodes
@@ -88,8 +233,9 @@ object DependencyGraph {
         .toSet
 
     def getAllEdges = {
+      //println("all form component size:" + formModel.allFormComponents.size)
       val allEdges: mutable.Set[DiEdge[GraphNode]] = mutable.Set
-        .from(formModel.allFormComponents)
+        .from(formComponents)
         .flatMap(edges)
 
       def boolenExprDeps(
@@ -99,7 +245,7 @@ object DependencyGraph {
       ): Unit = {
 
         val allExprGNs: Set[GraphNode.Expr] =
-          booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply).toSet
+          booleanExpr.allExpressions.flatMap(_.leafs(formComponents)).map(GraphNode.Expr.apply).toSet
 
         val dependingFCIds = dependingFCs.map(_.id)
 
@@ -115,7 +261,7 @@ object DependencyGraph {
         )
       }
 
-      def addValidIfs() = formModel.allValidIfs.foreach { case (validIfs, fc) =>
+      def addValidIfs() = pagesAllValidIfs.foreach { case (validIfs, fc) =>
         validIfs.foreach(validIf =>
           boolenExprDeps(
             validIf.booleanExpr,
@@ -125,19 +271,27 @@ object DependencyGraph {
         )
       }
 
-      def addComponentIncludeIfs() = formModel.allComponentIncludeIfs.foreach { case (includeIf, fc) =>
+      def addComponentIncludeIfs() = pages.flatMap(_.allComponentIncludeIfs).foreach { case (includeIf, fc) =>
         boolenExprDeps(includeIf.booleanExpr, Set(fc), None)
       }
 
-      def addIncludeIfs() = formModel.allIncludeIfsWithDependingFormComponents.foreach {
-        case (includeIf, dependingFCs) =>
-          boolenExprDeps(includeIf.booleanExpr, dependingFCs.toSet, None)
+      val allChoiceIncludeIfs = pages.flatMap(_.allChoiceIncludeIfs)
+
+      val allMiniSummaryListIncludeIfs = pages.flatMap(_.allMiniSummaryListIncludeIfs)
+
+      val allIncludeIfsWithDependingFormComponents = pages.collect { case pm @ HasIncludeIf(includeIf) =>
+        (includeIf, pm.fold(_.page.allFields)(_ => Nil)(_.addAnotherQuestion :: Nil))
+      } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
+
+      def addIncludeIfs() = allIncludeIfsWithDependingFormComponents.foreach { case (includeIf, dependingFCs) =>
+        boolenExprDeps(includeIf.booleanExpr, dependingFCs.toSet, None)
       }
 
       def addSections() = {
-        val templateAndPageExprs: Set[Expr] = (formTemplateExprs ++ formModel.exprsMetadata.toSet).map(_.expr)
+        val templateAndPageExprs: Set[Expr] = formTemplateExprs.map(_.expr) ++ expressionsToEvaluate
 
-        val allExprGNs: Set[GraphNode.Expr] = templateAndPageExprs.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply)
+        val allExprGNs: Set[GraphNode.Expr] =
+          templateAndPageExprs.flatMap(_.leafs(formComponents.toList)).map(GraphNode.Expr.apply)
 
         allExprGNs.foreach(exprGN =>
           toFormComponentId(exprGN.expr).foreach(fcId => allEdges.addOne(exprGN ~> GraphNode.Simple(fcId)))
@@ -148,14 +302,21 @@ object DependencyGraph {
         }
       }
 
+//      println("all edges: " + allEdges.size)
       addValidIfs()
+//      println("all edges after add valid ifs: " + allEdges.size)
       addComponentIncludeIfs()
+//      println("all edges after add component include ifs: " + allEdges.size)
       addIncludeIfs()
+//      println("all edges after add include ifs: " + allEdges.size)
       addSections()
+//      println("all edges after add secions: " + allEdges.size)
       allEdges
     }
 
     val allEdges = getAllEdges
+
+//    println("allEdges: " + allEdges)
 
     val allFcIds: mutable.Set[ModelComponentId] = allEdges.flatMap { diEdge =>
       Seq(diEdge.source, diEdge.target).collectFirst {
@@ -219,6 +380,7 @@ object DependencyGraph {
         }
 
     addRepeatedStructureEdges(allEdges)
+//    println("all edges: " + allEdges.size)
     Graph.from(allEdges)
   }
 
