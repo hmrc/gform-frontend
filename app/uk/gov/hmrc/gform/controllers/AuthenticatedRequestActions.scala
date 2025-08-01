@@ -23,13 +23,14 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import com.softwaremill.quicklens._
+import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Credentials
+import uk.gov.hmrc.auth.core.retrieve.{ Credentials, ItmpAddress, ItmpName }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.{ InsufficientEnrolments, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
@@ -584,6 +585,10 @@ class AuthenticatedRequestActions(
         val updatedItmpAddress = itmpAddress.map(_.copy(countryName = updatedCountry))
         ItmpRetrievals(itmpName, itmpDateOfBirth, updatedItmpAddress).pure[Future]
       }
+      .recover { _ => // Auth session does not exist when autheticated by email
+        ItmpRetrievals(Option.empty[ItmpName], Option.empty[LocalDate], Option.empty[ItmpAddress])
+      }
+
   }
 
   def isInUK(country: String): Boolean = ukParts(country.toUpperCase)
