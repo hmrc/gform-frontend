@@ -145,6 +145,15 @@ private class Executor(
                 List(prefix, Some(intermediateValue), suffix).flatten.mkString(" ")
               }
               .getOrElse(stringRepresentation(typeInfo))
+          case DisplayAsEntered(fcId) =>
+            formModelVisibilityOptics.formModel.fcLookup
+              .get(fcId)
+              .collect { case IsTextArea(textArea) =>
+                TextFormatter
+                  .componentTextReadonly(stringRepresentation(typeInfo), textArea.constraint)(l)
+                  .replaceAll("\n", "<br>")
+              }
+              .getOrElse(stringRepresentation(typeInfo))
           case _ => stringRepresentation(typeInfo)
         }
     }

@@ -99,6 +99,7 @@ object ExprPrettyPrint {
     case CountSelectedChoices(_)       => "ChoicesSelectedSum"
     case TaskStatus(_)                 => "TaskStatus"
     case LookupOps(_, lookupFnc)       => lookupFnc.toString
+    case DisplayAsEntered(_)           => "DisplayAsEntered"
   }
 
   def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {

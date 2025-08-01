@@ -78,6 +78,7 @@ object FormComponentIdSubstituter {
         case CountSelectedChoices(fcId)   => CountSelectedChoices(substitutions.updateFormComponentId(fcId))
         case e: TaskStatus                => e
         case LookupOps(e, lookupFnc)      => LookupOps(substitute(substitutions, e), lookupFnc)
+        case DisplayAsEntered(fcId)       => DisplayAsEntered(substitutions.updateFormComponentId(fcId))
       }
     }
 

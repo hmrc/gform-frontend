@@ -426,6 +426,7 @@ case class EvaluationResults(
       case CountSelectedChoices(formComponentId) => countSelectedChoices(formComponentId)
       case TaskStatus(_)                         => unsupportedOperation("Number")(expr)
       case LookupOps(_, _)                       => unsupportedOperation("Number")(expr)
+      case DisplayAsEntered(_)                   => unsupportedOperation("Number")(expr)
     }
 
     loop(typeInfo.expr)
@@ -801,7 +802,8 @@ case class EvaluationResults(
       case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
       case TaskStatus(taskId) =>
         StringResult(evaluationContext.taskIdTaskStatus.mapping.get(taskId).map(_.asString).getOrElse(""))
-      case _ => unsupportedOperation("String")(expr)
+      case DisplayAsEntered(fcId) => loop(FormCtx(fcId))
+      case _                      => unsupportedOperation("String")(expr)
     }
 
     loop(typeInfo.expr)

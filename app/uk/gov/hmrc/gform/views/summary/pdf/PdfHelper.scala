@@ -33,7 +33,13 @@ object PdfHelper {
       case None            => Array(value)
     }
 
-    XmlFormat.fill(lines.toList.map(l => XmlFormat.raw(StringEscapeUtils.escapeXml11(insertZeroWidthSpace(l)))))
+    XmlFormat.fill(
+      lines.toList.flatMap { line =>
+        List(
+          XmlFormat.raw(s"<fo:block>${StringEscapeUtils.escapeXml11(insertZeroWidthSpace(line))}</fo:block>")
+        )
+      }
+    )
   }
 
   def sanitiseHtml(input: String): String =
