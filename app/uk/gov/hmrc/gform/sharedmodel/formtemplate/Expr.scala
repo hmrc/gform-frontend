@@ -88,6 +88,7 @@ sealed trait Expr extends Product with Serializable {
       case CountSelectedChoices(_)                 => expr :: Nil
       case TaskStatus(_)                           => expr :: Nil
       case LookupOps(_, _)                         => expr :: Nil
+      case DisplayAsEntered(_)                     => expr :: Nil
 
     }
     loop(this).headOption
@@ -151,6 +152,7 @@ sealed trait Expr extends Product with Serializable {
     case CountSelectedChoices(formComponentId)    => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                            => this :: Nil
     case LookupOps(expr, _)                       => expr.leafs(formModel)
+    case DisplayAsEntered(formComponentId)        => FormCtx(formComponentId) :: Nil
   }
 
   def sums: List[Sum] = this match {
@@ -200,6 +202,7 @@ sealed trait Expr extends Product with Serializable {
     case CountSelectedChoices(_)                  => Nil
     case TaskStatus(_)                            => Nil
     case LookupOps(_, _)                          => Nil
+    case DisplayAsEntered(_)                      => Nil
   }
 
   def leafs(): List[Expr] = this match {
@@ -250,6 +253,7 @@ sealed trait Expr extends Product with Serializable {
     case CountSelectedChoices(formComponentId)     => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                             => this :: Nil
     case LookupOps(expr, _)                        => expr.leafs()
+    case DisplayAsEntered(formComponentId)         => FormCtx(formComponentId) :: Nil
   }
 
   def allFormComponentIds(): List[FormComponentId] =
@@ -300,6 +304,7 @@ final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
 final case class ChoicesAvailable(formComponentId: FormComponentId) extends Expr
 final case class CountSelectedChoices(formComponentId: FormComponentId) extends Expr
 final case class TaskStatus(taskId: TaskId) extends Expr
+final case class DisplayAsEntered(formComponentId: FormComponentId) extends Expr
 
 sealed trait DateProjection extends Product with Serializable {
   def dateExpr: DateExpr

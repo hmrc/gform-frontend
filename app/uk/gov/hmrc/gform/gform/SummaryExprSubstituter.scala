@@ -109,6 +109,7 @@ object SummarySubstituter {
       case e: CountSelectedChoices      => e
       case e: TaskStatus                => e
       case LookupOps(e, lookupFnc)      => LookupOps(substitute(substitutions, e), lookupFnc)
+      case e: DisplayAsEntered          => e
     }
   }
 
