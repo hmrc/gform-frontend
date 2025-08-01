@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponent
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 
+import java.time.Instant
 import scala.concurrent.Future
 
 class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormDataSupport {
@@ -140,7 +141,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     val fmb: FormModelBuilder[Throwable, Id] = mkFormModelFromSections(sections)
 
     val visibilityOpticsMongo: FormModelVisibilityOptics[DataOrigin.Mongo] =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](existingData, None)
+      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](existingData, None, Instant.now)
     val formModelOpticsMongo =
       fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOpticsMongo, None)
     val visibilityFormModelVisibility: FormModel[Visibility] = formModelOpticsMongo.formModelVisibilityOptics.formModel

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import java.time.{ LocalDateTime, LocalTime }
+import java.time.{ Instant, LocalDate, LocalDateTime, LocalTime }
 import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
@@ -45,9 +45,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
-
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
+
+import java.time.temporal.ChronoUnit
 
 object ExampleData extends ExampleData
 
@@ -89,7 +90,8 @@ trait ExampleEvaluationContext {
       new LookupRegistry(Map()),
       Map.empty,
       Map.empty,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      LocalDate.now()
     )
 }
 
@@ -1008,6 +1010,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   val envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
 
+  val formStartInstant: Instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
+
   def buildForm: Form = buildForm(formData)
 
   def buildForm(formData: FormData): Form = Form(
@@ -1022,7 +1026,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     ThirdPartyData.empty,
     envelopeExpiryDate,
     FormComponentIdToFileIdMapping.empty,
-    TaskIdTaskStatusMapping.empty
+    TaskIdTaskStatusMapping.empty,
+    formStartInstant
   )
 }
 

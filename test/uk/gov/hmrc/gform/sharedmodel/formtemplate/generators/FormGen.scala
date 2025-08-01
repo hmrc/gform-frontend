@@ -21,6 +21,8 @@ import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.generators.{ EnvelopeExpiryDateGen, ThirdPartyDataGen }
 
+import java.time.Instant
+
 trait FormGen {
   def formIdGen: Gen[FormId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormId(_))
   def envelopeIdGen: Gen[EnvelopeId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(EnvelopeId(_))
@@ -57,7 +59,8 @@ trait FormGen {
       thirdPartyData,
       expiryDate,
       FormComponentIdToFileIdMapping.empty,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      Instant.now
     )
 }
 

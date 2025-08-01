@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, EORI, FormComponentId, FormTemplateId, Horizontal, NINO, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SaUTR, SectionNumber, Sterling, Text, UkEORI, UkVrn, Value, WholeSterling }
 
+import java.time.Instant
 import scala.concurrent.Future
 
 class FormDataHelpersSpec extends Spec {
@@ -80,7 +81,8 @@ class FormDataHelpersSpec extends Spec {
       ),
       None,
       FormComponentIdToFileIdMapping.empty,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      Instant.now
     )
 
     val updatedForm =

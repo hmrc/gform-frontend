@@ -34,6 +34,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import FormTemplateBuilder._
 
+import java.time.Instant
+
 class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
   implicit def simpleSyntax(s: String): FormComponentId = FormComponentId(s)
@@ -351,7 +353,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val fmb: FormModelBuilder[Throwable, Id] = mkFormModelBuilder(formTemplate)
 
     implicit val fmdsdso: FormModelVisibilityOptics[DataOrigin.Browser] =
-      fmb.visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](variadicData, None)
+      fmb.visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](variadicData, None, Instant.now)
 
     val fm: FormModel[DataExpanded] =
       fmb.expand[DataExpanded, SectionSelectorType.Normal](variadicData)

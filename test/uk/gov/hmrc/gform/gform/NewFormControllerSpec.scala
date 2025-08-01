@@ -56,7 +56,7 @@ import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.LocalDateTime
+import java.time.{ LocalDate, LocalDateTime }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class NewFormControllerSpec
@@ -567,7 +567,8 @@ class NewFormControllerSpec
             new LookupRegistry(Map()),
             Map.empty,
             Map.empty,
-            TaskIdTaskStatusMapping.empty
+            TaskIdTaskStatusMapping.empty,
+            LocalDate.now()
           )
         )
       )

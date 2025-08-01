@@ -22,11 +22,12 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.DataRetrieveAll
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
-import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.{ TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
+
+import java.time.LocalDate
 
 // Various information needed for Expr evaluation
 final case class EvaluationContext(
@@ -57,5 +58,6 @@ final case class EvaluationContext(
   lookupRegistry: LookupRegistry,
   lookupRegister: Map[BaseComponentId, Register],
   constraints: Map[BaseComponentId, TextConstraint],
-  taskIdTaskStatus: TaskIdTaskStatusMapping
+  taskIdTaskStatus: TaskIdTaskStatusMapping,
+  formStartDate: LocalDate
 )

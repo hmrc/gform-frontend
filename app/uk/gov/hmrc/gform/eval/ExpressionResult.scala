@@ -174,7 +174,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     case t: OptionResult =>
       er.ifOptionResult(_.toSet.diff(t.value.toSet).isEmpty) ||
         er.ifStringResult(sr => t.value.length === 1 && t.value.headOption.fold(false)(or => sr === or))
-    case t: DateResult      => false
+    case t: DateResult      => er.ifDateResult(d => d.isEqual(t.value))
     case t: TaxPeriodResult => false
     case t: PeriodResult    => er.ifPeriodResult(t.value.toTotalMonths == _.toTotalMonths)
     case t: AddressResult   => false

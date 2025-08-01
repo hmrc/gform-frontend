@@ -24,6 +24,9 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits
+
+import java.time.Instant
 
 case class Form(
   _id: FormId,
@@ -39,7 +42,8 @@ case class Form(
   thirdPartyData: ThirdPartyData,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
   componentIdToFileId: FormComponentIdToFileIdMapping,
-  taskIdTaskStatus: TaskIdTaskStatusMapping
+  taskIdTaskStatus: TaskIdTaskStatusMapping,
+  startDate: Instant
 )
 
 object Form {
@@ -48,6 +52,9 @@ object Form {
   private val componentIdToFileId = "componentIdToFileId"
   private val formTemplateVersion = "version"
   private val taskIdTaskStatus = "taskIdTaskStatus"
+  private val startDate = "startDate"
+
+  implicit val mongoInstantFormat: Format[Instant] = Implicits.jatInstantFormat
 
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ thirdPartyData).read[ThirdPartyData]
@@ -67,6 +74,8 @@ object Form {
           .orElse(JsonUtils.constReads(Option.empty[FormTemplateVersion]))
       )
 
+  private val startDateReads: Reads[Instant] = (__ \ startDate).read[Instant]
+
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
       EnvelopeId.format and
@@ -79,7 +88,8 @@ object Form {
       thirdPartyDataWithFallback and
       EnvelopeExpiryDate.optionFormat and
       componentIdToFileIdReads and
-      taskIdTaskStatusMappingReads
+      taskIdTaskStatusMappingReads and
+      startDateReads
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](form =>
@@ -94,11 +104,11 @@ object Form {
       Json.obj(thirdPartyData -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
       EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
       Json.obj(componentIdToFileId -> FormComponentIdToFileIdMapping.format.writes(form.componentIdToFileId)) ++
-      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus))
+      Json.obj(taskIdTaskStatus -> TaskIdTaskStatusMapping.format.writes(form.taskIdTaskStatus)) ++
+      Json.obj(startDate -> form.startDate)
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
-
 }
 
 sealed trait FormStatus

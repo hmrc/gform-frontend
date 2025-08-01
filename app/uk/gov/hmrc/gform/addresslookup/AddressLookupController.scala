@@ -802,7 +802,8 @@ class AddressLookupController(
     val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]
 
     val formModelVisibilityOpticsF: Future[FormModelVisibilityOptics[DataOrigin.Mongo]] =
-      formModelBuilder.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None)
+      formModelBuilder
+        .visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, cache.form.startDate)
 
     formModelVisibilityOpticsF
       .map { formModelVisibilityOptics =>

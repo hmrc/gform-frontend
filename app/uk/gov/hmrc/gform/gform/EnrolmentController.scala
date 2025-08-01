@@ -61,6 +61,8 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.auth.core.Assistant
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait SubmitEnrolmentError
@@ -434,7 +436,8 @@ class EnrolmentController(
                   recalculation,
                   None,
                   FormComponentIdToFileIdMapping.empty,
-                  TaskIdTaskStatusMapping.empty
+                  TaskIdTaskStatusMapping.empty,
+                  Instant.now.truncatedTo(ChronoUnit.MILLIS)
                 )
               def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
                 val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics

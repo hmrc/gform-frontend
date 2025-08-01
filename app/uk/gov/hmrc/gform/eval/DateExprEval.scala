@@ -38,7 +38,7 @@ object DateExprEval {
     evaluationResults: EvaluationResults
   )(dateExpr: DateExpr): Option[DateResult] =
     dateExpr match {
-      case DateValueExpr(value) => Some(DateResult(value.toLocalDate))
+      case DateValueExpr(value) => Some(DateResult(value.toLocalDate(evaluationContext.formStartDate)))
       case DateFormCtxVar(formCtx) =>
         fromFormCtx(formModel, recData, evaluationResults, booleanExprResolver, evaluationContext, formCtx)
       case DateExprWithOffset(dExpr, offset) =>
@@ -99,7 +99,7 @@ object DateExprEval {
     dateExpr: DateExpr
   ): ExpressionResult =
     dateExpr match {
-      case DateValueExpr(value) => DateResult(value.toLocalDate)
+      case DateValueExpr(value) => DateResult(value.toLocalDate(evaluationContext.formStartDate))
       case DateFormCtxVar(formCtx @ FormCtx(formComponentId)) =>
         evaluationResults.get(formCtx) match {
           case Some(Empty) | None =>

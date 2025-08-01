@@ -35,6 +35,8 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
+import java.time.Instant
+
 trait FormModelSupport extends GraphSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -78,7 +80,8 @@ trait FormModelSupport extends GraphSpec {
     thirdPartyData = thirdPartyData,
     envelopeExpiryDate = None,
     componentIdToFileId = FormComponentIdToFileIdMapping.empty,
-    taskIdTaskStatus = TaskIdTaskStatusMapping.empty
+    taskIdTaskStatus = TaskIdTaskStatusMapping.empty,
+    startDate = Instant.now
   )
 
   def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
