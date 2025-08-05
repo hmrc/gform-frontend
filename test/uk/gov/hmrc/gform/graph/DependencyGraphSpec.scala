@@ -693,16 +693,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
 
     val res = layers(sections)
 
-//    //TODO verify that correct
-//    res shouldBe List(
-//      (0, Set(Simple("e"), Simple("f"), Simple("g"))),
-//      (1, Set(Expr(FormCtx("d")))),
-//      (2, Set(Simple("d"))),
-//      (3, Set(Expr(Constant("0")), Expr(FormCtx("c")))),
-//      (4, Set(Simple("c"))),
-//      (5, Set(Expr(FormCtx("a")), Expr(FormCtx("b")))),
-//      (6, Set(Simple("a"), Simple("b")))
-//    )
     res shouldBe List(
       (0, Set(Simple("g"))),
       (1, Set(Expr(FormCtx("b")), Expr(FormCtx("a")))),

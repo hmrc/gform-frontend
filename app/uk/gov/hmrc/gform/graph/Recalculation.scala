@@ -98,181 +98,9 @@ class Recalculation[F[_]: Monad, E](
 
     implicit val fm: FormModel[Interim] = formModel
 
-//    val page = evaluationContext.currentPage.flatMap {
-//      _.fold[Option[Singleton[_]]](Some(_))(_ => None)(_ => None)
-//    }
-
-    //    def dotRoot = DotRootGraph(
-    //      true,
-    //      Some(scalax.collection.io.dot.Id("ExampleGraph"))
-    //    )
-
-//    def toIndexToInts(index: SectionNumber): (Int, Int, Int) =
-//      index
-//        .fold[Option[(Int, Int, Int)]] {
-//          case Classic.NormalPage(sectionIndex)               => Some((0, sectionIndex.index, 0))
-//          case Classic.RepeatedPage(sectionIndex, pageNumber) => Some((0, sectionIndex.index, pageNumber))
-//          case page: Classic.AddToListPage =>
-//            Some((0, 0, 0))
-//        } { taskList =>
-//          Some(
-//            taskList.coordinates.taskSectionNumber.value,
-//            taskList.coordinates.taskNumber.value,
-//            taskList.templateSectionIndex.index
-//          )
-//        }
-//        .getOrElse(0, 0, 0)
-
-//    formModel.addToListBrackets
-//      .flatMap(_.toPageModelWithNumber.toList)
-
-//    val list = formModel.brackets.toPageModelWithNumber.toList.map(x => x._1 -> toIndexToInts(x._2))
-
-//    val orderedList = list.sortWith { case ((page, (a, b, c)), (page2, (a2, b2, c2))) =>
-//      a < a2 && b < b2 && c < c2
-//    }
-
-    //val pageToIndex: Map[PageModel[_], (Int, Int, Int)] = list.toMap
-    //val indexToPage = pageToIndex.map(x => x._2 -> x._1)
-
-    //println(orderedList.map(_._2))
-
-//    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] = {
-//      var prevPageOrigin: PageModel[Interim] = orderedList.head._1
-//      Graph.from(orderedList.zipWithIndex.tail.flatMap { case ((page, sectionNumber), index) =>
-//        val pageInternal = page.fold[Option[Page[Interim]]](x => Some(x.page))(_ => None)(_ => None)
-//        val containsExpr = pageInternal.exists(AllFormTemplateExpressions.fromPage(_).nonEmpty)
-//        if (containsExpr) {
-//          val pageOrigin = prevPageOrigin
-//          prevPageOrigin = page
-//          Some(pageOrigin ~> page)
-//        } else {
-//          None
-//        }
-//      })
-//    }
-
-//    val pageGraph: Graph[PageModel[_], DiEdge[PageModel[_]]] =
-//      Graph.from(orderedList.zipWithIndex.tail.map { case ((page, sectionNumber), index) =>
-//        val pageOrigin = orderedList(index - 1)._1
-//        pageOrigin ~> page
-//      })
-
-//    println("total form expressions: " + formTemplateExprs.size)
-//
-//    println("total form expression comp size: " + formTemplateExprs.flatMap(_.expr.allFormComponentIds()).size)
-
-//    val formComponents = page
-//      .map { page =>
-//        val set = mutable.Set[FormComponent]()
-//        def addSetOfFormComponents(node: PageModel[_], set: mutable.Set[FormComponent]): Unit = {
-//          val pageInternal = page.fold[Option[Page[_]]](x => Some(x.page))(_ => None)(_ => None)
-//          pageInternal.foreach { page =>
-//            val exprs = AllFormTemplateExpressions
-//              .fromPage(page)
-//            val formIds = exprs.flatMap(expr => expr.expr.allFormComponentIds())
-//            val formComponents = formIds.map(formModel.fcLookup)
-//            set.addAll(formComponents)
-//            val pages = formIds.map(formModel.pageLookup)
-//            println("pages size: " + pages.size)
-//            pages.foreach {
-//              case page if page != node =>
-//                addSetOfFormComponents(page, set)
-//            }
-//          }
-//          //          set.addAll(AllFormTemplateExpressions.fromPage(pageInternal))
-//          //          node.outgoing.foreach { edge =>
-//          //            addSetOfFormComponents(edge.targets.head, set)
-//          //          }
-//        }
-//
-//        addSetOfFormComponents(page, set)
-//        set
-//      }
-//      .getOrElse(mutable.Set())
-
-//    println("pageGraph edge size: " + pageGraph.edges.size)
-//
-//    val formComponents = page
-//      .map { page =>
-//        val set = mutable.Set[FormComponent]()
-//        def addSetOfFormComponents(node: pageGraph.NodeT, set: mutable.Set[FormComponent]): Unit = {
-//          // val pageInternal = page.fold[Option[Page[_]]](x => Some(x.page))(_ => None)(_ => None)
-////          pageInternal.foreach { page =>
-////            set.addAll(
-////              AllFormTemplateExpressions
-////                .fromPage(page)
-////                .flatMap(_.expr.allFormComponentIds().map(fcId => formModel.fcLookup(fcId)))
-////                .map { fc =>
-////                  formModel.pageLookup
-////                }
-////            )
-////          }
-//          set.addAll(node.allFormComponents)
-//          node.outgoing.foreach { edge =>
-//            addSetOfFormComponents(edge.targets.head, set)
-//          }
-//        }
-//        if (pageGraph.isEmpty) {
-//          set.addAll(page.allFormComponents)
-//        } else {
-//          addSetOfFormComponents(pageGraph.get(page), set)
-//        }
-//        set
-//      }
-//      .getOrElse(mutable.Set())
-
-//    println("formComponents size: " + formComponents.size)
-
-    //    val graph: Graph[GraphNode, DiEdge[GraphNode]] = page
-//      .map { page =>
-//        DependencyGraph.toGraph(formModel, formTemplateExprs, page)
-//      }
-//      .getOrElse(Graph.empty)
-
-    //import scalax.collection.io.dot._
-//    var exprPar = 0
-//    def edgeTransformer(innerEdge: Graph[GraphNode, DiEdge[GraphNode]]#EdgeT): Option[(DotGraph, DotEdgeStmt)] = {
-//      val edge = innerEdge.outer
-//      def toId(g: GraphNode) =
-//        g match {
-//          case GraphNode.Simple(formComponentId) => NodeId(formComponentId.value)
-//          case GraphNode.Expr(expr) =>
-//            exprPar = exprPar + 1
-//            NodeId(expr.toString)
-//        }
-//      Some(
-//        dotRoot ->
-//          DotEdgeStmt(
-//            NodeId(edge.source.toString),
-//            NodeId(edge.target.toString)
-//          )
-//      )
-//    }
-//
-//    def edgeTransformerPageModel(
-//      innerEdge: Graph[String, DiEdge[String]]#EdgeT
-//    ): Option[(DotGraph, DotEdgeStmt)] = {
-//      val edge = innerEdge.outer
-//      Some(
-//        dotRoot ->
-//          DotEdgeStmt(
-//            NodeId(edge.source),
-//            NodeId(edge.target)
-//          )
-//      )
-//    }
-
-//    val dot = graph.toDot(dotRoot, edgeTransformer)
-//    Files.write(Paths.get("graph.dot"), dot.getBytes)
-//    val dotFormComponent = pageGraph.toDot(dotRoot, edgeTransformerPageModel)
-//    Files.write(Paths.get("graph-page.dot"), dotFormComponent.getBytes)
-
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.outer, graph))
-
-    //println("ordered graph size: " + orderedGraph.right.get.flatMap(_._2).size)
 
     val exprMap = mutable.Map.newBuilder.addAll(exprMapStart).result()
     val formDataMap = mutable.Map.newBuilder.addAll(formDataMapStart).result()
@@ -296,12 +124,6 @@ class Recalculation[F[_]: Monad, E](
         graphTopologicalOrder <- orderedGraph
       } yield {
         val recalc = graphTopologicalOrder.toList.reverse.foldLeft(().pure[F]) { case (state, (_, graphLayer)) =>
-//          println("graph layer fcids: " + graphLayer.flatMap {
-//            case GraphNode.Simple(formComponentId) => List(formComponentId)
-//            case GraphNode.Expr(expr)              => expr.allFormComponentIds()
-//          })
-          //println(graphLayer)
-          //println(graphLayer.length)
           recalculateGraphLayer(
             graphLayer,
             state.map(_ => startEvResults),
@@ -399,7 +221,6 @@ class Recalculation[F[_]: Monad, E](
                 .reduceOption(_ && _)
                 .getOrElse(true)
               !isHidden
-
             case _ => false
           }
 
@@ -496,7 +317,7 @@ class Recalculation[F[_]: Monad, E](
 
     }
 
-  def evalBooleanExprPure(
+  private def evalBooleanExprPure(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -552,7 +373,7 @@ class Recalculation[F[_]: Monad, E](
     loop(booleanExpr)
   }
 
-  def evalBooleanExpr(
+  private def evalBooleanExpr(
     booleanExpr: BooleanExpr,
     evaluationResults: EvaluationResults,
     recData: RecData[SourceOrigin.OutOfDate],
@@ -582,8 +403,7 @@ class Recalculation[F[_]: Monad, E](
     }
 
     def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
-      case Equals(field1, field2) =>
-        rr.compareF(field1, field2, _ identical _)
+      case Equals(field1, field2)              => rr.compareF(field1, field2, _ identical _)
       case GreaterThan(field1, field2)         => rr.compareF(field1, field2, _ > _)
       case DateAfter(field1, field2)           => rr.compareDateF(field1, field2, _ after _)
       case GreaterThanOrEquals(field1, field2) => rr.compareF(field1, field2, _ >= _)
@@ -714,7 +534,7 @@ class Recalculation[F[_]: Monad, E](
     booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]]
   )(implicit formModel: FormModel[Interim]): F[Boolean] = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
-    val res = evalBooleanExpr(
+    evalBooleanExpr(
       evaluationResults,
       recData,
       retrievals,
@@ -728,8 +548,6 @@ class Recalculation[F[_]: Monad, E](
         .flatMap(_.getIncludeIf)
         .map(_.booleanExpr)
     }
-    //res.map(res => println(s"isHiddenByIncludeIf $fcId: " + res))
-    res
   }
 
   private def isHiddenByComponentIncludeIf(

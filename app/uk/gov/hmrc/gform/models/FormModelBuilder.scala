@@ -101,7 +101,6 @@ object FormModelBuilder {
       val s = recalculationResult.evaluationResults
         .evalExprCurrent(typeInfo2, recData, booleanExprResolver, recalculationResult.evaluationContext)
         .applyTypeInfo(typeInfo2)
-
       f(r, s)
     }
 
@@ -327,29 +326,21 @@ class FormModelBuilder[E, F[_]: Functor](
     val recalcCache: mutable.Map[List[IncludeIf], F[RecalculationResult]] = mutable.Map()
 
     val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
-    //println("atl components: " + atlComponents.size)
 
     val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
-
-    //println("standaloneSumsFcIds: " + standaloneSumsFcIds.size)
 
     val allFormComponentExpressions = AllFormTemplateExpressions(formTemplate)
 
     val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
 
     def onDemandPageIncludeIf(includeIf: List[List[IncludeIf]]) = {
-//      println(includeIf)
 
       def getRecalculation(includeIf: List[IncludeIf]) = {
         val exprs = includeIf.flatMap { includeIf =>
           allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
         }
 
-        //    println("base fc keys: " + baseFcLookup.keys)
-
         val formComponentIds = exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds
-
-        // println("formComponentIds: " + formComponentIds)
 
         val formComponents = formComponentIds
           .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
@@ -358,8 +349,6 @@ class FormModelBuilder[E, F[_]: Functor](
             case (None, fcId) =>
               formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
           }
-
-        //formComponentIds.foreach(x => println(formModel.pageLookup(x)))
 
         val er = formModelVisibilityOptics.evaluationResults
         recalculation
@@ -400,8 +389,6 @@ class FormModelBuilder[E, F[_]: Functor](
           err.printStackTrace()
           throw err
       }
-
-      //println(newEr.booleanExprCache)
 
       includeIf.map { includeIfOpt =>
         includeIfOpt.map { includeIf =>

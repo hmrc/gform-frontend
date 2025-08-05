@@ -55,6 +55,7 @@ import java.time.format.DateTimeFormatter
 import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
+//TODO: Do we need to make changes for recalc even?
 class SummaryRenderingService(
   renderer: SectionRenderingService,
   i18nSupport: I18nSupport,
@@ -305,7 +306,6 @@ object SummaryRenderingService {
         maybeCoordinates,
         summarySection.keyDisplayWidth
       )
-
     summary(
       ExtraInfoSummary(
         formTemplate,
@@ -564,11 +564,6 @@ object SummaryRenderingService {
             }
         }
       }
-//
-//      htmls.foreach { x =>
-//        println(x)
-//        println()
-//      }
 
       val addToListItemSummaries: NonEmptyList[SmartString] = repeaters.map(_.repeater.expandedSummaryDescription)
 
@@ -643,8 +638,7 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets
-      .fold(_.brackets.toList)(taskListBrackets =>
+    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
         maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
           taskListBrackets.bracketsFor(coordinates).toBracketsList
         )

@@ -299,8 +299,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     )
 
     val res: List[(Int, Set[GraphNode])] = layers(sections, variadicData)
-
-    println(res, expected)
+    
     assertEquals(res, expected)
   }
 
