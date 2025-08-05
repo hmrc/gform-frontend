@@ -38,7 +38,49 @@ case class FormModel[A <: PageMode](
 
   def onDemandIncludeIf: Option[IncludeIf => Boolean] = onDemandIncludeIfBulk.map { includeIfBulkF => includeIf =>
     includeIfBulkF(List(List(includeIf))).head.headOption
-      .getOrElse(throw new RuntimeException("Were not able to retrieve option"))
+      .getOrElse(throw new RuntimeException("Was not able to retrieve option"))
+  }
+
+  def getVisibleBrackets(taskListCoordinates: Option[Coordinates]): List[Bracket[A]] = {
+
+    def hideInvisibleRepeatsBrackets(bracket: Bracket[A]) = {
+      bracket match {
+        case Bracket.RepeatingPage(singletons, source) =>
+          def eval(index: Int) =
+            onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
+          val newList = singletons.zipWithIndex.collect {
+            case (singleton, index) if eval(index) => singleton
+          }
+          if (newList.isEmpty) {
+            None
+          } else {
+            Some(Bracket.RepeatingPage[A](NonEmptyList(newList.head, newList.tail), source))
+          }
+        case bracket => Some(bracket)
+      }
+    }
+
+    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
+    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[_]) =
+      bracket.toPageModel
+        .map { case pm =>
+          pm.getIncludeIf.forall(includeIf => onDemandIncludeIf.forall(f => f(includeIf)))
+        }
+        .find(_ == true)
+        .getOrElse(false)
+
+    brackets
+      .fold(_.brackets.toList)(taskListBrackets =>
+        taskListCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
+          taskListBrackets.bracketsFor(coordinates).toBracketsList
+        )
+      )
+      .filter(
+        onDemandIncludeIfFilterForBrackets
+      )
+      .flatMap {
+        hideInvisibleRepeatsBrackets
+      }
   }
 
   val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.toPageModelWithNumber

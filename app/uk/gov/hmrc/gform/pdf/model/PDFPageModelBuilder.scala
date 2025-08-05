@@ -47,44 +47,7 @@ object PDFPageModelBuilder {
 
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
-    def brackets: List[Bracket[Visibility]] =
-      formModel.brackets
-        .fold(_.brackets)(_.allBrackets)
-        .toList
-        .filter(
-          onDemandIncludeIfFilterForBrackets
-        )
-        .flatMap {
-          cutBrackets
-        }
-
-    def cutBrackets(bracket: Bracket[Visibility]) =
-      bracket match {
-        case Bracket.RepeatingPage(singletons, source) =>
-          def eval(index: Int) =
-            formModel.onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
-          val newList = singletons.zipWithIndex.collect {
-            case (singleton, index) if eval(index) => singleton
-          }
-          if (newList.isEmpty) {
-            None
-          } else {
-            Some(Bracket.RepeatingPage[Visibility](NonEmptyList(newList.head, newList.tail), source))
-          }
-        case bracket => Some(bracket)
-      }
-
-    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
-    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
-      bracket match {
-        case bracket =>
-          bracket.toPageModel
-            .map { case pm =>
-              pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
-            }
-            .find(_ == true)
-            .getOrElse(false)
-      }
+    def brackets: List[Bracket[Visibility]] = formModel.getVisibleBrackets(None)
 
     val bracketsSorted: List[Bracket[Visibility]] = bracketOrdering.fold(brackets)(brackets.sorted(_))
 

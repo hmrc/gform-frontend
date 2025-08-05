@@ -638,46 +638,7 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets
-      .fold(_.brackets.toList)(taskListBrackets =>
-        maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
-          taskListBrackets.bracketsFor(coordinates).toBracketsList
-        )
-      )
-      .filter(
-        onDemandIncludeIfFilterForBrackets
-      )
-      .flatMap {
-        cutBrackets
-      }
-
-    def cutBrackets(bracket: Bracket[Visibility]) =
-      bracket match {
-        case Bracket.RepeatingPage(singletons, source) =>
-          def eval(index: Int) =
-            formModel.onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
-          val newList = singletons.zipWithIndex.collect {
-            case (singleton, index) if eval(index) => singleton
-          }
-          if (newList.isEmpty) {
-            None
-          } else {
-            Some(Bracket.RepeatingPage[Visibility](NonEmptyList(newList.head, newList.tail), source))
-          }
-        case bracket => Some(bracket)
-      }
-
-    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
-    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[Visibility]) =
-      bracket match {
-        case bracket =>
-          bracket.toPageModel
-            .map { case pm =>
-              pm.getIncludeIf.forall(includeIf => formModel.onDemandIncludeIf.forall(f => f(includeIf)))
-            }
-            .find(_ == true)
-            .getOrElse(false)
-      }
+    def brackets: List[Bracket[Visibility]] = formModel.getVisibleBrackets(maybeCoordinates)
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
       val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
