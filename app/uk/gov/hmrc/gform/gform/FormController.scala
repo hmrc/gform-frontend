@@ -627,7 +627,6 @@ class FormController(
           val sectionNumber = addToListIteration.firstSectionNumber
           (sectionNumber, fastForward)
         }
-
         def checkYourAnswersNavigation(
           cya: CheckYourAnswersWithNumber[Visibility]
         ): (SectionNumber, List[FastForward]) =

@@ -452,15 +452,11 @@ class AuthenticatedRequestActions(
               formModelOpticsUpd.formModelVisibilityOptics
             )
         result <- f(cache)(smartStringEvaluator)(formModelOptics)
-      } yield
-      //println("auth section: " + browserSectionNumber)
-      result
+      } yield result
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
 
-    gformConnector
-      .maybeForm(formIdData, formTemplate)
-      .flatMap(_.fold(formNotFound(formIdData))(form => whenFormExists(form, browserSectionNumber)))
+    gformConnector.maybeForm(formIdData, formTemplate).flatMap(_.fold(formNotFound(formIdData))(form => whenFormExists(form, browserSectionNumber)))
   }
 
   private def handleAuthResults(

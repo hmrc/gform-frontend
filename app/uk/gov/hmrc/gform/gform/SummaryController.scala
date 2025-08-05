@@ -139,7 +139,6 @@ class SummaryController(
           case FastForward.CYA(SectionOrSummary.FormSummary) => true
           case _                                             => false
         }
-
         if (reachedFormSummary || formSummaryFF) {
           for {
             isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
