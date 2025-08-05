@@ -638,7 +638,8 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
+    def brackets: List[Bracket[Visibility]] = formModel.brackets
+      .fold(_.brackets.toList)(taskListBrackets =>
         maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
           taskListBrackets.bracketsFor(coordinates).toBracketsList
         )
