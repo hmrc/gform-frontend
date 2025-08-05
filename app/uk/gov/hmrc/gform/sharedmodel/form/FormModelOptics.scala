@@ -20,17 +20,17 @@ import cats.syntax.functor._
 import cats.{ Functor, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.controllers.{AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData}
-import uk.gov.hmrc.gform.eval.{EvaluationContext, FileIdsWithMapping}
+import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
+import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.ids.{BaseComponentId, ModelComponentId}
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase, SectionOrSummary }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{Instant, LocalDate}
+import java.time.{ Instant, LocalDate }
 
 case class FormModelOptics[D <: DataOrigin](
   formModelRenderPageOptics: FormModelRenderPageOptics[D],
