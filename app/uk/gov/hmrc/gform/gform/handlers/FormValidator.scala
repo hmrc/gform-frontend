@@ -89,7 +89,7 @@ class FormValidator(implicit ec: ExecutionContext) {
 
   private def sectionIsVisible(sectionNumber: SectionNumber, visibilityFormModel: FormModel[Visibility]) = {
     def evalIncludeIf(pageIncludeIf: List[IncludeIf]) = pageIncludeIf.forall { includeIf =>
-      visibilityFormModel.onDemandIncludeIf.forall(f => f(includeIf))
+      visibilityFormModel.onDemandIncludeIf(includeIf)
     }
 
     evalIncludeIf(getSectionIncludeIfs(sectionNumber, visibilityFormModel).toList)
@@ -144,8 +144,10 @@ class FormValidator(implicit ec: ExecutionContext) {
   ): Future[Option[SectionNumber]] = {
 
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
+
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
     val availableSectionNumbers =
-      getAvailableSectionNumbers(maybeSectionNumber, formModelOptics.formModelVisibilityOptics.formModel)
+      getAvailableSectionNumbers(maybeSectionNumber, formModel)
     def isValidSectionNumberF(sn: SectionNumber): Future[Boolean] =
       validatePageModelBySectionNumber(
         formModelOptics,
@@ -155,25 +157,12 @@ class FormValidator(implicit ec: ExecutionContext) {
         validatePageModel
       ).map(fhr => toFormValidationOutcome(fhr, EnteredVariadicFormData.empty).isValid)
 
-    val sectionIsVisible = formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIfBulk
-      .map { f =>
-        f(
-          availableSectionNumbers.map(section =>
-            getSectionIncludeIfs(section, formModelOptics.formModelVisibilityOptics.formModel).toList
-          )
-        )
-      }
-      .getOrElse(List())
-      .map {
-        _.forall(_ == true)
-      }
+    val visibleSectionNumbers = formModel
+      .onDemandIncludeIfBulk(availableSectionNumbers) { sectionNumber =>
+        getSectionIncludeIfs(sectionNumber, formModel).toList
+      } { case (sectionNumber, bools) if bools.forall(_ == true) => sectionNumber }
+      .getOrElse(availableSectionNumbers)
 
-    val visibleSectionNumbers = availableSectionNumbers
-      .zip(
-        sectionIsVisible
-      )
-      .filter(_._2 == true)
-      .map(_._1)
 
     visibleSectionNumbers
       .foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
@@ -190,9 +179,11 @@ class FormValidator(implicit ec: ExecutionContext) {
             if (
               hasBeenVisited &&
               postcodeLookupHasAddress &&
-              isValid &&
-              !formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf.exists { includeIfF =>
-                def booleanExprResolver = BooleanExprResolver(expr => includeIfF(IncludeIf(expr)))
+              isValid && {
+                def booleanExprResolver = BooleanExprResolver { expr =>
+                  formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf(IncludeIf(expr))
+                }
+
                 page.isTerminationPage(
                   booleanExprResolver
                 )

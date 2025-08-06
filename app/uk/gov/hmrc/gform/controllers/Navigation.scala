@@ -75,11 +75,8 @@ case class Navigator(
 
   lazy val previousSectionNumber: Option[SectionNumber] =
     filteredSectionNumbers(sectionNumber).findLast { section =>
-      def sectionIsVisible = formModel.onDemandIncludeIf.forall(f =>
-        formModel.pageModelLookup(section).getIncludeIf.forall { includeIf =>
-          f(includeIf)
-        }
-      )
+      def sectionIsVisible = formModel.pageModelLookup(section).getIncludeIf.forall(formModel.onDemandIncludeIf)
+
       section < sectionNumber && sectionIsVisible
     }
 

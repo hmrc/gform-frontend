@@ -227,7 +227,7 @@ class FormController(
                       .filter { pageModel =>
                         formModel
                           .onDemandIncludeIfFilterForFormComponents(pageModel.allFormComponents)
-                          .isDefinedAt(0)
+                          .nonEmpty
                       }
                       .getOrElse(throw new RuntimeException("can't filter"))
 
