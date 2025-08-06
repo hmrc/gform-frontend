@@ -43,7 +43,7 @@ case class FormModel[A <: PageMode](
 
   def getVisibleBrackets(taskListCoordinates: Option[Coordinates]): List[Bracket[A]] = {
 
-    def hideInvisibleRepeatsBrackets(bracket: Bracket[A]) = {
+    def hideInvisibleRepeatsBrackets(bracket: Bracket[A]) =
       bracket match {
         case Bracket.RepeatingPage(singletons, source) =>
           def eval(index: Int) =
@@ -58,7 +58,6 @@ case class FormModel[A <: PageMode](
           }
         case bracket => Some(bracket)
       }
-    }
 
     //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[_]) =
@@ -81,6 +80,49 @@ case class FormModel[A <: PageMode](
       .flatMap {
         hideInvisibleRepeatsBrackets
       }
+  }
+
+  def onDemandIncludeIfFilterForFormComponents(
+    formComponents: List[FormComponent]
+  ): List[FormComponent] = {
+
+    val fieldsInRepeatingPageMap: Map[Bracket.RepeatingPage[A], Int] = this.repeatingPageBrackets.map { bracket =>
+      bracket -> bracket.source.page.allFields.size
+    }.toMap
+
+    val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[A], Int] = mutable.Map()
+
+    val includeIfs = formComponents.flatMap { formComponent =>
+      val page = this.pageLookup(formComponent.id)
+      def includeComponent = formComponent.includeIf.toList
+
+      def includeRepeats = {
+        val repeatsExpr = this.fcIdRepeatsExprLookup.get(formComponent.id).toList
+
+        repeatsExpr.map { repeatsExpr =>
+          val bracket = this.repeatingPageBrackets
+            .find(_.singletons.find(_.singleton == page).isDefined)
+            .getOrElse(throw new RuntimeException("bracket not found from singleton"))
+
+          val formComponentRepeated = formComponentsRepeated.getOrElseUpdate(bracket, 0)
+          val repeatIndex = formComponentRepeated / fieldsInRepeatingPageMap(bracket)
+          val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
+          formComponentsRepeated(bracket) = formComponentRepeated + 1
+          res
+        }
+
+      }
+
+      List(page.getIncludeIf.toList, includeComponent, includeRepeats)
+    }
+
+    this.onDemandIncludeIfBulk
+      .map { f =>
+        formComponents.zip(f(includeIfs).grouped(3)).collect {
+          case (fc, includes) if includes.forall(includeOpt => includeOpt.headOption.getOrElse(true)) => fc
+        }
+      }
+      .getOrElse(formComponents)
   }
 
   val pagesWithIndex: NonEmptyList[(PageModel[A], SectionNumber)] = brackets.toPageModelWithNumber
