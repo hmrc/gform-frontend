@@ -220,63 +220,15 @@ class FormController(
 
               iteration.checkYourAnswers match {
                 case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
-                  val fieldsInRepeatingPageMap = formModel.repeatingPageBrackets.map { bracket =>
-                    bracket -> bracket.source.page.allFields.size
-                  }.toMap
-                  val formComponentsRepeated = mutable.Map[Bracket.RepeatingPage[_], Int]()
-                  def onDemandIncludeIfFilter(pageModel: PageModel[_]): Boolean = {
-                    val onDemandIf = formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf
-                    pageModel.allFormComponents
-                      .map { formComponent =>
-                        val formComponentIncludeIf = formComponent.includeIf.forall { includeIf =>
-                          onDemandIf.forall { f =>
-                            f(includeIf)
-                          }
-                        }
-                        def pageIncludeIf = formModel
-                          .pageLookup(formComponent.id)
-                          .getIncludeIf
-                          .forall { includeIf =>
-                            onDemandIf.forall { f =>
-                              f(includeIf)
-                            }
-                          }
-
-                        def includeRepeats = {
-                          val repeatsExpr = formModel.fcIdRepeatsExprLookup.get(formComponent.id)
-
-                          val includeIf = repeatsExpr.map { repeatsExpr =>
-                            val page = formModel.pageLookup(formComponent.id)
-                            val bracket = formModel.repeatingPageBrackets
-                              .find(_.singletons.find(_.singleton == page).isDefined)
-                              .getOrElse(throw new RuntimeException("bracket not found from singleton"))
-
-                            val formComponentRepeated = formComponentsRepeated.getOrElseUpdate(bracket, 0)
-                            val repeatIndex = formComponentRepeated / fieldsInRepeatingPageMap(bracket)
-                            val res = IncludeIf(GreaterThan(repeatsExpr, Constant(repeatIndex.toString)))
-                            formComponentsRepeated(bracket) = formComponentRepeated + 1
-                            res
-                          }
-
-                          includeIf.forall { includeIf =>
-                            formModel.onDemandIncludeIf.forall { f =>
-                              f(includeIf)
-                            }
-                          }
-
-                        }
-
-                        formComponentIncludeIf && pageIncludeIf && includeRepeats
-                      }
-                      .find(_ == true)
-                      .getOrElse(false)
-                  }
-
                   val visibleIteration: Bracket.AddToListIteration[Visibility] =
                     formModelOptics.formModelVisibilityOptics.formModel
                       .bracket(sectionNumber)
                       .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
-                      .filter(onDemandIncludeIfFilter)
+                      .filter { pageModel =>
+                        formModel
+                          .onDemandIncludeIfFilterForFormComponents(pageModel.allFormComponents)
+                          .isDefinedAt(0)
+                      }
                       .getOrElse(throw new RuntimeException("can't filter"))
 
                   validateSections(
