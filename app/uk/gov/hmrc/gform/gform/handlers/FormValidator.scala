@@ -163,7 +163,6 @@ class FormValidator(implicit ec: ExecutionContext) {
       } { case (sectionNumber, bools) if bools.forall(_ == true) => sectionNumber }
       .getOrElse(availableSectionNumbers)
 
-
     visibleSectionNumbers
       .foldLeft(Future.successful(None: Option[SectionNumber])) { case (accF, currentSn) =>
         for {
@@ -183,8 +182,7 @@ class FormValidator(implicit ec: ExecutionContext) {
                 def booleanExprResolver = BooleanExprResolver { expr =>
                   formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf(IncludeIf(expr))
                 }
-
-                page.isTerminationPage(
+                !page.isTerminationPage(
                   booleanExprResolver
                 )
               }
