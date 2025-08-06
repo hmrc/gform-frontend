@@ -52,44 +52,26 @@ case class FormModel[A <: PageMode](
     }.forall(_.head)
 
   def getVisibleBrackets(taskListCoordinates: Option[Coordinates]): List[Bracket[A]] = {
-
-    def hideInvisibleRepeatsBrackets(bracket: Bracket[A]) =
-      bracket match {
-        case Bracket.RepeatingPage(singletons, source) =>
-          def eval(index: Int) =
-            onDemandIncludeIf(IncludeIf(GreaterThan(source.repeats, Constant(index.toString))))
-          val newList = singletons.zipWithIndex.collect {
-            case (singleton, index) if eval(index) => singleton
-          }
-          if (newList.isEmpty) {
-            None
-          } else {
-            Some(Bracket.RepeatingPage[A](NonEmptyList(newList.head, newList.tail), source))
-          }
-        case bracket => Some(bracket)
-      }
-
-    //if bracket passes onDemandIncludeIf or doesn't have includeIf include it in
-    def onDemandIncludeIfFilterForBrackets(bracket: Bracket[_]) =
-      bracket.toPageModel
-        .map { case pm =>
-          pm.getIncludeIf.forall(includeIf => onDemandIncludeIf(includeIf))
-        }
-        .find(_ == true)
-        .getOrElse(false)
-
-    brackets
+    val l = brackets
       .fold(_.brackets.toList)(taskListBrackets =>
         taskListCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
           taskListBrackets.bracketsFor(coordinates).toBracketsList
         )
       )
-      .filter(
-        onDemandIncludeIfFilterForBrackets
-      )
-      .flatMap {
-        hideInvisibleRepeatsBrackets
+
+    onDemandIncludeIfBulk(l) { bracket =>
+      val includeIf = bracket.toPageModel.toList.flatMap(_.getIncludeIf)
+      val repeaterIncludeIF = bracket match {
+        case Bracket.RepeatingPage(singletons, source) =>
+          singletons.zipWithIndex.map { case (singleton, index) =>
+            IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))
+          }.toList
+        case _ => List()
       }
+      includeIf ++ repeaterIncludeIF
+    } {
+      case (bracket, bools) if bools.contains(true) => bracket
+    }.getOrElse(l)
   }
 
   def onDemandIncludeIfFilterForFormComponents(
