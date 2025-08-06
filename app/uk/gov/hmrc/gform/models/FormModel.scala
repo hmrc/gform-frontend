@@ -33,13 +33,23 @@ case class FormModel[A <: PageMode](
   sumInfo: SumInfo,
   standaloneSumInfo: StandaloneSumInfo, // This represents ${abc.sum} expressions which are not in "value" property of FormComponent
   dataRetrieve: Option[NonEmptyList[DataRetrieve]],
-  onDemandIncludeIfBulk: Option[List[List[IncludeIf]] => List[List[Boolean]]] = None
+  private val _onDemandIncludeIfBulk: Option[List[List[IncludeIf]] => List[List[Boolean]]] = None
 ) {
 
-  def onDemandIncludeIf: Option[IncludeIf => Boolean] = onDemandIncludeIfBulk.map { includeIfBulkF => includeIf =>
-    includeIfBulkF(List(List(includeIf))).head.headOption
-      .getOrElse(throw new RuntimeException("Was not able to retrieve option"))
+  def onDemandIncludeIfBulk[T, E](
+    list: List[T]
+  )(toIncludeIf: T => List[IncludeIf])(result: PartialFunction[(T, List[Boolean]), E]): Option[List[E]] = {
+    val includeIfList = list.map(toIncludeIf)
+    this._onDemandIncludeIfBulk.map { includeIfF =>
+      list.zip(includeIfF(includeIfList)).collect { case x if result.isDefinedAt(x) => result(x) }
+    }
   }
+
+  def onDemandIncludeIf: IncludeIf => Boolean = (includeIf: IncludeIf) =>
+    onDemandIncludeIfBulk(List(includeIf))(x => List(x)) {
+      case (includeIf, List(bool)) => bool
+      case _                       => throw new RuntimeException("multiple boolean responses")
+    }.forall(_.head)
 
   def getVisibleBrackets(taskListCoordinates: Option[Coordinates]): List[Bracket[A]] = {
 
@@ -47,7 +57,7 @@ case class FormModel[A <: PageMode](
       bracket match {
         case Bracket.RepeatingPage(singletons, source) =>
           def eval(index: Int) =
-            onDemandIncludeIf.forall(f => f(IncludeIf(GreaterThan(source.repeats, Constant(index.toString)))))
+            onDemandIncludeIf(IncludeIf(GreaterThan(source.repeats, Constant(index.toString))))
           val newList = singletons.zipWithIndex.collect {
             case (singleton, index) if eval(index) => singleton
           }
@@ -63,7 +73,7 @@ case class FormModel[A <: PageMode](
     def onDemandIncludeIfFilterForBrackets(bracket: Bracket[_]) =
       bracket.toPageModel
         .map { case pm =>
-          pm.getIncludeIf.forall(includeIf => onDemandIncludeIf.forall(f => f(includeIf)))
+          pm.getIncludeIf.forall(includeIf => onDemandIncludeIf(includeIf))
         }
         .find(_ == true)
         .getOrElse(false)
@@ -92,7 +102,7 @@ case class FormModel[A <: PageMode](
 
     val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[A], Int] = mutable.Map()
 
-    val includeIfs = formComponents.flatMap { formComponent =>
+    val includeIfs = { formComponent: FormComponent =>
       val page = this.pageLookup(formComponent.id)
       def includeComponent = formComponent.includeIf.toList
 
@@ -113,14 +123,12 @@ case class FormModel[A <: PageMode](
 
       }
 
-      List(page.getIncludeIf.toList, includeComponent, includeRepeats)
+      page.getIncludeIf.toList ++ includeComponent ++ includeRepeats
     }
 
-    this.onDemandIncludeIfBulk
-      .map { f =>
-        formComponents.zip(f(includeIfs).grouped(3)).collect {
-          case (fc, includes) if includes.forall(includeOpt => includeOpt.headOption.getOrElse(true)) => fc
-        }
+    this
+      .onDemandIncludeIfBulk(formComponents)(includeIfs) {
+        case (fc, includes) if includes.forall(_ == true) => fc
       }
       .getOrElse(formComponents)
   }
