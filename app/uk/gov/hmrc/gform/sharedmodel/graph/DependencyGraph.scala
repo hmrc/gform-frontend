@@ -31,7 +31,7 @@ import scala.collection.mutable
 
 object DependencyGraph {
 
-  private def getFromComponentsAndExpressionsFromCurrentSection(
+  private def getFormComponentsAndExpressionsFromCurrentSection(
     currentSection: Option[SectionOrSummary],
     formModel: FormModel[Interim],
     formTemplate: FormTemplate
@@ -109,7 +109,7 @@ object DependencyGraph {
   ): Graph[GraphNode, DiEdge[GraphNode]] = {
 
     val (formComponents, exprs) =
-      getFromComponentsAndExpressionsFromCurrentSection(currentSection, formModel, formTemplate)
+      getFormComponentsAndExpressionsFromCurrentSection(currentSection, formModel, formTemplate)
     graphFrom(formModel, formTemplateExprs, formComponents, exprs)
   }
 
