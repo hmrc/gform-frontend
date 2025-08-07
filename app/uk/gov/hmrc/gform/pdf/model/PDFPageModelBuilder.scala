@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
+import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -24,7 +25,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Section, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, GreaterThan, IncludeIf, Section, SectionNumber }
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 
@@ -44,8 +45,10 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    def brackets: List[Bracket[Visibility]] =
-      formModelOptics.formModelVisibilityOptics.formModel.brackets.fold(_.brackets)(_.allBrackets).toList
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+
+    def brackets: List[Bracket[Visibility]] = formModel.getVisibleBrackets(None)
+
     val bracketsSorted: List[Bracket[Visibility]] = bracketOrdering.fold(brackets)(brackets.sorted(_))
 
     bracketsSorted.flatMap {

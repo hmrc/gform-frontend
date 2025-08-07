@@ -270,7 +270,8 @@ class GformBackEndService(
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
       cache,
       recalculation,
-      Some(FormPhase(InstructionPDF))
+      Some(FormPhase(InstructionPDF)),
+      currentSection = None
     )
 
     formModelOpticsUpdatedFuture.flatMap { formModelOpticsUpdated =>
