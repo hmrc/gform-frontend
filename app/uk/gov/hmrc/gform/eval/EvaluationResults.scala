@@ -522,6 +522,14 @@ case class EvaluationResults(
       nonEmptyStringResult(StringResult(striped))
     }
 
+    def handleAddr(dataRetrieveCtx: DataRetrieveCtx) = {
+      val exprResult = DataRetrieveEval.getDataRetrieveAddressAttribute(
+        evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
+        dataRetrieveCtx
+      )
+      nonEmptyExpressionResult(exprResult)
+    }
+
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)
       case Multiply(field1: Expr, field2: Expr)    => unsupportedOperation("String")(expr)
@@ -685,27 +693,10 @@ case class EvaluationResults(
             }
             .getOrElse(ExpressionResult.empty)
         }
-      case LangCtx => StringResult(evaluationContext.lang.langADTToString)
-      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) =>
-        val exprResult = DataRetrieveEval.getDataRetrieveAddressAttribute(
-          evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
-          drCtx
-        )
-        nonEmptyExpressionResult(exprResult)
-      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("primaryAddress")) =>
-        val exprResult = DataRetrieveEval.getDataRetrieveAddressAttribute(
-          evaluationContext.thirdPartyData.dataRetrieve.getOrElse(Map.empty),
-          drCtx
-        )
-        nonEmptyExpressionResult(exprResult)
-      case d @ DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress")) =>
-        evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
-          DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
-            case Some(h :: Nil) => AddressResult(List(h))
-            case Some(xs)       => AddressResult(xs)
-            case None           => Empty
-          }
-        }
+      case LangCtx                                                                       => StringResult(evaluationContext.lang.langADTToString)
+      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) => handleAddr(drCtx)
+      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("primaryAddress"))          => handleAddr(drCtx)
+      case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress"))           => handleAddr(drCtx)
       case d @ DataRetrieveCtx(_, _) =>
         val exprResult =
           evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>

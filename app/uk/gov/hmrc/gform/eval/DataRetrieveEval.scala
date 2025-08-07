@@ -82,20 +82,29 @@ object DataRetrieveEval {
 
   def getDataRetrieveAddressMap(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
-    dataRetrieveId: DataRetrieveId
+    dataRetrieveId: DataRetrieveId,
+    isUkAddress: Boolean
   ): Map[String, String] = {
     def getAttr(attr: String) =
       getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(dataRetrieveId, DataRetrieve.Attribute(attr)))
         .flatMap(_.headOption)
 
-    val addressMap = Map(
-      "address_line_1" -> getAttr("address_line_1"),
-      "address_line_2" -> getAttr("address_line_2"),
-      "postal_code"    -> getAttr("postal_code"),
-      "locality"       -> getAttr("locality"),
-      "region"         -> getAttr("region"),
-      "country"        -> getAttr("country").map(country => if (isInUK(country)) "" else country)
+    val atomList =
+      if (isUkAddress)
+        List("street1", "street2", "street3", "street4", "postcode", "country")
+      else
+        List("line1", "line2", "line3", "city", "postcode", "country")
+
+    val valuesList = List(
+      getAttr("address_line_1"),
+      getAttr("address_line_2"),
+      getAttr("locality"),
+      getAttr("region"),
+      getAttr("postal_code"),
+      getAttr("country").map(country => if (isInUK(country)) "" else country)
     )
+
+    val addressMap = atomList.zip(valuesList).toMap
 
     addressMap.collect {
       case (key, Some(value)) if !value.isBlank => key -> value
