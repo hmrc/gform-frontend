@@ -91,17 +91,19 @@ object DataRetrieveEval {
 
     val atomList =
       if (isUkAddress)
-        List("street1", "street2", "street3", "street4", "postcode", "country")
+        List("street1", "street2", "street3", "street4", "postcode", "uk", "country")
       else
-        List("line1", "line2", "line3", "city", "postcode", "country")
+        List("line1", "line2", "line3", "city", "postcode", "uk", "country")
 
+    val maybeCountry = getAttr("country")
     val valuesList = List(
       getAttr("address_line_1"),
       getAttr("address_line_2"),
       getAttr("locality"),
       getAttr("region"),
       getAttr("postal_code"),
-      getAttr("country").map(country => if (isInUK(country)) "" else country)
+      if (isUkAddress) Some(maybeCountry.filter(_.trim.nonEmpty).fold(true)(_ => false).toString) else None,
+      maybeCountry.map(country => if (isInUK(country)) "" else country)
     )
 
     val addressMap = atomList.zip(valuesList).toMap
