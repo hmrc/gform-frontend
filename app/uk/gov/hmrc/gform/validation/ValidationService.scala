@@ -221,13 +221,6 @@ class ValidationService(
 
     val formModel = formModelVisibilityOptics.formModel
 
-    val fieldsInRepeatingPageMap: Map[Bracket.RepeatingPage[Visibility], Int] = formModel.repeatingPageBrackets.map {
-      bracket =>
-        bracket -> bracket.source.page.allFields.size
-    }.toMap
-    val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[Visibility], Int] =
-      mutable.Map[Bracket.RepeatingPage[Visibility], Int]()
-
     formModel
       .onDemandIncludeIfFilterForFormComponents(
         formModel.allFormComponents.filterNot(_.onlyShowOnSummary)

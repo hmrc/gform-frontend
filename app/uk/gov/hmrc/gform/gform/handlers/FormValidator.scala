@@ -258,9 +258,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     )
 
     val nextFrom = maybeSectionNumber.toList.flatMap { currentSectionNumber =>
-      val sectionsAfterCurrent =
         availableSectionNumbers.filter(_ > currentSectionNumber)
-      sectionsAfterCurrent
     } collectFirst {
       case sectionNumber if sectionIsVisible(sectionNumber, visibilityFormModel) =>
         sectionNumber

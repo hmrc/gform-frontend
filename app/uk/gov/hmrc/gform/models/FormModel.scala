@@ -45,7 +45,7 @@ case class FormModel[A <: PageMode](
     }
   }
 
-  def onDemandIncludeIf: IncludeIf => Boolean = (includeIf: IncludeIf) =>
+  def onDemandIncludeIf(includeIf: IncludeIf): Boolean =
     onDemandIncludeIfBulk(List(includeIf))(x => List(x)) {
       case (includeIf, List(bool)) => bool
       case _                       => throw new RuntimeException("multiple boolean responses")
@@ -84,7 +84,7 @@ case class FormModel[A <: PageMode](
 
     val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[A], Int] = mutable.Map()
 
-    val includeIfs = { formComponent: FormComponent =>
+    def includeIfs(formComponent: FormComponent) = {
       val page = this.pageLookup(formComponent.id)
       def includeComponent = formComponent.includeIf.toList
 
