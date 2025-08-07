@@ -394,7 +394,7 @@ sealed trait ExpressionResult extends Product with Serializable {
     )(_.value.toString)(_.list.map(_.stringRepresentation(typeInfo, messages)).filterNot(_ === "").mkString(", "))
 
   def addressRepresentation(typeInfo: TypeInfo): List[String] =
-    fold[List[String]](_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(
+    fold[List[String]](_ => Nil)(_ => Nil)(_ => Nil)(_ => Nil)(s => List(s.value))(_ => Nil)(_ => Nil)(_ => Nil)(
       _.address
     )(_ => Nil)(listResult => listResult.list.map(_.addressRepresentation(typeInfo).mkString(", ")))
 
