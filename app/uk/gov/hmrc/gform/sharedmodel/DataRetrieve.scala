@@ -148,9 +148,9 @@ case class DataRetrieve(
               }
             }
             .mkString(" ")
+            .trim()
           List(x.attribute -> res)
         case ConstructAttribute.Combine(fetches) => fetches.map { case (attr, fetch) => attr -> fromFetch(fetch) }
-
       }
     }
 

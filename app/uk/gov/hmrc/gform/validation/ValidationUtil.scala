@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import scala.collection.mutable.LinkedHashSet
 import uk.gov.hmrc.gform.eval.DataRetrieveEval
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 
 object ValidationUtil {
 
@@ -119,6 +120,22 @@ object ValidationUtil {
       ComponentField(formComponent, dataMap)
     }
 
+    def handleDataRetrieveAddress(
+      formComponent: FormComponent,
+      dataRetrieveId: DataRetrieveId,
+      isUkAddress: Boolean
+    ) = {
+      val atomMap =
+        formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve.fold(
+          Map.empty[String, String]
+        )(dr => DataRetrieveEval.getDataRetrieveAddressMap(dr, dataRetrieveId, isUkAddress))
+
+      val syntheticOptics = formModelVisibilityOptics
+        .modify(_.recData.variadicFormData)
+        .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
+      multiFieldValidationResult(formComponent, syntheticOptics)
+    }
+
     def matchComponentType(formComponent: FormComponent): FormFieldValidationResult = formComponent match {
       case IsAddress(Address(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
         val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
@@ -138,26 +155,11 @@ object ValidationUtil {
           .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
         multiFieldValidationResult(formComponent, syntheticOptics)
 
-      case IsAddress(Address(_, _, _, Some(DataRetrieveCtx(dataRetrieveId, Attribute("registeredOfficeAddress"))))) =>
-        val addressMap =
-          formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve.fold(
-            Map.empty[String, String]
-          )(dr => DataRetrieveEval.getDataRetrieveAddressMap(dr, dataRetrieveId))
+      case IsAddress(Address(_, _, _, Some(DataRetrieveCtx(drId, Attribute("registeredOfficeAddress"))))) =>
+        handleDataRetrieveAddress(formComponent, drId, isUkAddress = true)
 
-        val atomMap: Map[String, String] = Map(
-          "street1"  -> addressMap.get("address_line_1").getOrElse(""),
-          "street2"  -> addressMap.get("address_line_2").getOrElse(""),
-          "street3"  -> addressMap.get("locality").getOrElse(""),
-          "street4"  -> addressMap.get("region").getOrElse(""),
-          "postcode" -> addressMap.get("postal_code").getOrElse(""),
-          "uk"       -> addressMap.get("country").filter(_.trim.nonEmpty).fold(true)(_ => false).toString,
-          "country"  -> addressMap.get("country").getOrElse("")
-        )
-
-        val syntheticOptics = formModelVisibilityOptics
-          .modify(_.recData.variadicFormData)
-          .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
-        multiFieldValidationResult(formComponent, syntheticOptics)
+      case IsAddress(Address(_, _, _, Some(DataRetrieveCtx(drId, Attribute("agencyAddress"))))) =>
+        handleDataRetrieveAddress(formComponent, drId, isUkAddress = true)
 
       case IsAddress(Address(_, _, _, Some(FormCtx(fcId)))) =>
         def mapper: IndexedComponentId => IndexedComponentId = {
@@ -168,6 +170,9 @@ object ValidationUtil {
           .modify(_.recData.variadicFormData)
           .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
         multiFieldValidationResult(formComponent, syntheticOptics)
+
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(DataRetrieveCtx(drId, Attribute("agencyAddress"))), _, _)) =>
+        handleDataRetrieveAddress(formComponent, drId, isUkAddress = false)
 
       case IsOverseasAddress(OverseasAddress(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)), _, _)) =>
         val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
