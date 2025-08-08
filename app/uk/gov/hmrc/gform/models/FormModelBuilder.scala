@@ -168,7 +168,8 @@ object FormModelBuilder {
 
   private def toCurrentData(
     modelComponentId: ModelComponentId,
-    expressionResult: ExpressionResult
+    expressionResult: ExpressionResult,
+    typeInfo: TypeInfo
   )(implicit messages: Messages): VariadicFormData[SourceOrigin.Current] =
     expressionResult match {
       case ExpressionResult.Empty      => VariadicFormData.one[SourceOrigin.Current](modelComponentId, "")
@@ -185,11 +186,11 @@ object FormModelBuilder {
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
       case p @ ExpressionResult.PeriodResult(_) =>
         VariadicFormData.one[SourceOrigin.Current](modelComponentId, p.asString)
-      case ExpressionResult.AddressResult(_) =>
-        VariadicFormData.empty[SourceOrigin.Current]
+      case a @ ExpressionResult.AddressResult(_) =>
+        VariadicFormData.one[SourceOrigin.Current](modelComponentId, a.stringRepresentation(typeInfo, messages))
       case ExpressionResult.ListResult(list) =>
         list.foldLeft(VariadicFormData.empty[SourceOrigin.Current]) { case (acc, result) =>
-          acc ++ toCurrentData(modelComponentId, result)
+          acc ++ toCurrentData(modelComponentId, result, typeInfo)
         }
     }
 
@@ -390,7 +391,7 @@ class FormModelBuilder[E, F[_]: Functor](
             .evalExpr(typeInfo, RecData(data), booleanExprResolver, recalculationResult.evaluationContext)
             .applyTypeInfo(typeInfo)
 
-        FormModelBuilder.toCurrentData(fcId.modelComponentId, expressionResult)
+        FormModelBuilder.toCurrentData(fcId.modelComponentId, expressionResult, typeInfo)
       }
 
     val currentData = data ++ visibleVariadicData
