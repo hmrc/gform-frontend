@@ -501,7 +501,14 @@ object SummaryRenderingService {
 
     def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
       val ignoreCard =
-        bracket.iterations.toList.flatMap(_.singletons.filter(_.singleton.page.shortName.isDefined)).nonEmpty
+        bracket.iterations.toList
+          .flatMap(
+            _.singletons.filter(s =>
+              s.singleton.page.shortName.isDefined && s.singleton.page.presentationHint
+                .fold(true)(_ != InvisiblePageTitle)
+            )
+          )
+          .nonEmpty
 
       val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
 
