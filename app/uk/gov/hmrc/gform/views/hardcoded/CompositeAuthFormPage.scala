@@ -27,7 +27,6 @@ import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintA
 class CompositeAuthFormPage(
   val formTemplate: FormTemplate,
   form: Form[String],
-  ggId: Option[String],
   se: SuppressErrors
 )(implicit messages: Messages)
     extends CommonPageProperties(formTemplate) {
@@ -76,30 +75,12 @@ class CompositeAuthFormPage(
 
     val items = configNames flatMap {
       case configName @ AuthConfig.hmrcSimpleModule =>
-        ggId match {
-          case Some(id) =>
-            List(
-              RadioItem(
-                value = Some(id),
-                content = Text(messages("compositeAuth.ggContinueContent"))
-              ),
-              RadioItem(
-                value = Some(configName),
-                content = Text(messages("compositeAuth.ggDifferentContent")),
-                hint = Some(
-                  Hint(content = Text(messages("compositeAuth.ggDifferentConditional")))
-                )
-              )
-            )
-
-          case None =>
-            List(
-              RadioItem(
-                value = Some(configName),
-                content = Text(messages("compositeAuth.ggContent"))
-              )
-            )
-        }
+        List(
+          RadioItem(
+            value = Some(configName),
+            content = Text(messages("compositeAuth.ggContent"))
+          )
+        )
 
       case configName @ AuthConfig.email =>
         List(

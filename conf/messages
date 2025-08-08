@@ -29,13 +29,9 @@ emailAuth.error.invalidCode=Enter the code from the latest email we sent you
 emailAuth.emailConfirmation=Email address confirmed
 emailAuth.email=Email
 
-compositeAuth.title=How do you want to sign in?
-compositeAuth.ggContent=Sign in with your Government Gateway user ID
-compositeAuth.ggContinueContent=Continue with this Government Gateway user ID
-compositeAuth.ggDifferentContent=Sign in with a different Government Gateway user ID
+compositeAuth.title=Sign in to use this service
+compositeAuth.ggContent=Sign in to an account to complete this form
 compositeAuth.emailContent=Sign in with your email address
-compositeAuth.ggDifferentConditional=This will sign you out of any service currently using your Government Gateway user ID.
-compositeAuth.alreadySigned=You are already signed in to Government Gateway.
 compositeAuthSelection.error.required=Select how you want to sign in
 
 linkText.saveAndComeBackLater=Save and come back later
