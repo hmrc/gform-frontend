@@ -55,9 +55,6 @@
 
     @page_heading(messages("compositeAuth.title"), None)
 
-    @maybeGGId.map { id =>
-        <p class="govuk-body govuk-!-margin-bottom-2">@messages("compositeAuth.alreadySigned")</p>
-    }
     @compositeAuthFormPage.render
 
     @govukButton(Button(content = Text(button), value = Some(button)))
