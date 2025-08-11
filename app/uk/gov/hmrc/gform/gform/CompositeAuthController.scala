@@ -67,18 +67,32 @@ class CompositeAuthController(
         choice
           .bindFromRequest()
           .fold(
-            errorForm => new CompositeAuthFormPage(formTemplate, errorForm, ggId, se),
-            _ => new CompositeAuthFormPage(formTemplate, choice, ggId, se)
+            errorForm => new CompositeAuthFormPage(formTemplate, errorForm, se),
+            _ => new CompositeAuthFormPage(formTemplate, choice, se)
           )
 
-      Ok(
-        html.auth.auth_selection(
-          frontendAppConfig,
-          compositeAuthFormPage,
-          ggId,
-          continue
-        )
-      ).pure[Future]
+      ggId match {
+        case Some(id) =>
+          val compositeAuthDetails: CompositeAuthDetails =
+            jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+
+          Redirect(continue)
+            .addingToSession(
+              COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+                compositeAuthDetails.add(formTemplate, id)
+              )
+            )
+            .pure[Future]
+        case None =>
+          Ok(
+            html.auth.auth_selection(
+              frontendAppConfig,
+              compositeAuthFormPage,
+              ggId,
+              continue
+            )
+          ).pure[Future]
+      }
     }
 
   def selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String) =
