@@ -70,7 +70,8 @@ case class FormModel[A <: PageMode](
       }
       includeIf ++ repeaterIncludeIF
     } {
-      case (bracket, bools) if bools.contains(true) => bracket
+      case (bracket, bools) if bools.forall(_ == true) => bracket
+      case (bracket, List())                           => bracket
     }.getOrElse(l)
   }
 
