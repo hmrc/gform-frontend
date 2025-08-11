@@ -70,8 +70,13 @@ case class FormModel[A <: PageMode](
       }
       includeIf ++ repeaterIncludeIF
     } {
-      case (bracket, List())       => bracket
-      case (bracket, true :: tail) => bracket
+      case (bracket, List())     => bracket
+      case (bracket, List(true)) => bracket
+      case (Bracket.RepeatingPage(singletons, source), true :: repeatsBools) if repeatsBools.contains(true) =>
+        val newList = singletons.toList.zip(repeatsBools).collect { case (singleton, true) => singleton }
+        newList match {
+          case head :: tail => Bracket.RepeatingPage(NonEmptyList(head, tail), source)
+        }
     }.getOrElse(l)
   }
 
