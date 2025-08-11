@@ -21,7 +21,7 @@ import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -32,13 +32,15 @@ import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ ProcessDataService, SectionSelectorType }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, TaskIdTaskStatusMapping, UserData, Validated }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, SectionOrSummary }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.tag.Tag
 import uk.gov.hmrc.govukfrontend.views.viewmodels.tasklist.{ TaskListItem, TaskListItemStatus }
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.duration.Duration
 
 class TaskListRenderingService(
   frontendAppConfig: FrontendAppConfig,
@@ -61,11 +63,11 @@ class TaskListRenderingService(
   ): Future[Html] = {
     val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate)
     for {
-      statusesLookup <-
+      statusesLookupOld <-
         TaskListUtils
           .evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService, taskCoordinatesMap)
       taskIdTaskStatusMapping = if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics)) {
-                                  TaskListUtils.evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookup)
+                                  TaskListUtils.evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookupOld)
                                 } else TaskIdTaskStatusMapping.empty
       _ <-
         gformConnector.updateUserData(
@@ -87,8 +89,18 @@ class TaskListRenderingService(
                          cacheUpd,
                          formModelOptics,
                          gformConnector.getAllTaxPeriods,
-                         NoSpecificAction
+                         NoSpecificAction,
+                         Some(SectionOrSummary.TaskSummary)
                        )
+      statusesLookup <-
+        TaskListUtils
+          .evalStatusLookup(
+            cache.toCacheData,
+            envelope,
+            processData.formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
+            validationService,
+            taskCoordinatesMap
+          )
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
       val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.collect {
         case (task, coordinates)
