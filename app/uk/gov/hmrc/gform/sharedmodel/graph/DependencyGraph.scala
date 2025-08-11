@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.graph
 
+import cats.data.NonEmptyList
 import cats.implicits._
 import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
@@ -40,7 +41,33 @@ object DependencyGraph {
     val currentPageBracket = currentSection.collect {
       case SectionOrSummary.Section(Classic.RepeatedPage(sectionIndex, pageNumber)) =>
         formModel.bracket(Classic.RepeatedPage(sectionIndex, 0))
-      case SectionOrSummary.Section(currentSection) => formModel.bracket(currentSection)
+      case SectionOrSummary.Section(section) =>
+        formModel
+          .bracket(section) match {
+          case Bracket.NonRepeatingPage(singleton, source) =>
+            Bracket.NonRepeatingPage(singleton, source)
+          case Bracket.RepeatingPage(singletons, source) =>
+            Bracket.RepeatingPage(
+              NonEmptyList(
+                singletons
+                  .find(_.sectionNumber == section)
+                  .getOrElse(throw new RuntimeException("Could not find sectionNumber in bracket")),
+                List()
+              ),
+              source
+            )
+          case Bracket.AddToList(iterations, source) =>
+            Bracket.AddToList(
+              NonEmptyList(
+                iterations
+                  .find(_.hasSectionNumber(section))
+                  .getOrElse(throw new RuntimeException("Could not find sectionNumber in bracket")),
+                List()
+              ),
+              source
+            )
+
+        }
     }
 
     val allCurrentPageExpressions = currentPageBracket.toList.flatMap { bracket =>
