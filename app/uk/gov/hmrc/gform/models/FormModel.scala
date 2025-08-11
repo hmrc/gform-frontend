@@ -40,7 +40,7 @@ case class FormModel[A <: PageMode](
     list: List[T]
   )(toIncludeIf: T => List[IncludeIf])(result: PartialFunction[(T, List[Boolean]), E]): Option[List[E]] = {
     val includeIfList = list.map(toIncludeIf)
-    this._onDemandIncludeIfBulk.map { includeIfF =>
+    _onDemandIncludeIfBulk.map { includeIfF =>
       list.zip(includeIfF(includeIfList)).collect { case x if result.isDefinedAt(x) => result(x) }
     }
   }
@@ -78,21 +78,21 @@ case class FormModel[A <: PageMode](
     formComponents: List[FormComponent]
   ): List[FormComponent] = {
 
-    val fieldsInRepeatingPageMap: Map[Bracket.RepeatingPage[A], Int] = this.repeatingPageBrackets.map { bracket =>
+    val fieldsInRepeatingPageMap: Map[Bracket.RepeatingPage[A], Int] = repeatingPageBrackets.map { bracket =>
       bracket -> bracket.source.page.allFields.size
     }.toMap
 
     val formComponentsRepeated: mutable.Map[Bracket.RepeatingPage[A], Int] = mutable.Map()
 
     def includeIfs(formComponent: FormComponent) = {
-      val page = this.pageLookup(formComponent.id)
+      val page = pageLookup(formComponent.id)
       def includeComponent = formComponent.includeIf.toList
 
       def includeRepeats = {
-        val repeatsExpr = this.fcIdRepeatsExprLookup.get(formComponent.id).toList
+        val repeatsExpr = fcIdRepeatsExprLookup.get(formComponent.id).toList
 
         repeatsExpr.map { repeatsExpr =>
-          val bracket = this.repeatingPageBrackets
+          val bracket = repeatingPageBrackets
             .find(_.singletons.find(_.singleton == page).isDefined)
             .getOrElse(throw new RuntimeException("bracket not found from singleton"))
 

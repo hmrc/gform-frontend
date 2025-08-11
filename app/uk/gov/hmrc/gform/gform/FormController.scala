@@ -158,6 +158,7 @@ class FormController(
               .flatMap(f)
 
           val formModel = formModelOptics.formModelRenderPageOptics.formModel
+          val formModelVisibility = formModelOptics.formModelVisibilityOptics.formModel
           val bracket = formModel.bracket(sectionNumber)
 
           bracket match {
@@ -221,11 +222,11 @@ class FormController(
               iteration.checkYourAnswers match {
                 case Some(checkYourAnswers) if checkYourAnswers.sectionNumber == sectionNumber =>
                   val visibleIteration: Bracket.AddToListIteration[Visibility] =
-                    formModelOptics.formModelVisibilityOptics.formModel
+                    formModelVisibility
                       .bracket(sectionNumber)
                       .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
                       .filter { pageModel =>
-                        formModel
+                        formModelVisibility
                           .onDemandIncludeIfFilterForFormComponents(pageModel.allFormComponents)
                           .nonEmpty
                       }
