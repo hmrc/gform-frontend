@@ -70,7 +70,7 @@ case class FormModel[A <: PageMode](
       val repeaterIncludeIF = bracket match {
         case Bracket.RepeatingPage(singletons, source) =>
           singletons.zipWithIndex.map { case (singleton, index) =>
-            IncludeIf(LessThanOrEquals(Constant(index.toString), source.repeats))
+            IncludeIf(LessThan(Constant(index.toString), source.repeats))
           }.toList
         case _ => List()
       }
