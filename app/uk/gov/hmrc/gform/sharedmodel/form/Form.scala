@@ -28,7 +28,7 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits
 
 import java.time.Instant
 
-case class Form(
+final case class Form(
   _id: FormId,
   envelopeId: EnvelopeId,
   userId: UserId,

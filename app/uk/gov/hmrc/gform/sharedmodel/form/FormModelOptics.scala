@@ -46,6 +46,14 @@ case class FormModelOptics[D <: DataOrigin](
       .setTo(formModelRenderPageOptics.recData.cleared(modelComponentIds))
       .modify(_.formModelVisibilityOptics.recData.variadicFormData)
       .setTo(formModelVisibilityOptics.recData.cleared(modelComponentIds))
+
+  val dataLookup: Map[BaseComponentId, List[VariadicValue]] =
+    formModelVisibilityOptics.data.all
+      .groupBy { case (modelComponentId, _) =>
+        modelComponentId.baseComponentId
+      }
+      .map { case (k, v) => k -> v.map(_._2) }
+
 }
 
 object FormModelOptics {

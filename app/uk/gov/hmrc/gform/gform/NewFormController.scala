@@ -238,6 +238,30 @@ class NewFormController(
     )
   )
 
+  private def removeConfirmations(
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(implicit m: Messages): AuthCacheWithForm = {
+
+    val (confirmations, currentConfirmations) = ConfirmationService
+      .processConfirmation(
+        formModelOptics,
+        cache.form
+      )
+
+    val confirmationToReset = confirmations
+      .map(_.question.id.modelComponentId)
+      .toSet
+
+    val updateFormField = cache.form.formData.fields.filter(formField => !confirmationToReset(formField.id))
+
+    cache
+      .modify(_.form.formData.fields)
+      .using(_ => updateFormField)
+      .modify(_.form.thirdPartyData.confirmations)
+      .using(_ => Some(currentConfirmations))
+  }
+
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => sse => formModelOptics =>
@@ -253,8 +277,10 @@ class NewFormController(
             },
             {
               case "continue" =>
+                val cacheUpd = removeConfirmations(cache, formModelOptics)
+
                 for {
-                  updatedCache <- maybeUpdateItmpCache(request, cache, formModelOptics)
+                  updatedCache <- maybeUpdateItmpCache(request, cacheUpd, formModelOptics)
                   res <-
                     cache.formTemplate.formKind.fold(_ =>
                       fastForwardService

@@ -436,6 +436,7 @@ class FormProcessor(
           .updateDataRetrieve(dataRetrieveResult)
           .removeDataRetrieves(dataRetrievesToRemove)
           .updatePostcodeLookup(updatePostcodeLookup)
+          .updateConfirmations(processData.confirmations)
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {

@@ -17,13 +17,11 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.mvc.Result
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Confirmation
 
 sealed trait ConfirmationPage
 
 object ConfirmationPage {
-  final case class Confirmee(confirmedBySectionNumber: SectionNumber, confirmation: Confirmation)
-      extends ConfirmationPage
   final case class Confirmator(confirmation: Confirmation) extends ConfirmationPage
   case object Not extends ConfirmationPage
 
@@ -34,7 +32,7 @@ sealed trait ConfirmationAction
 
 object ConfirmationAction {
   case class NotConfirmed(redirect: Result) extends ConfirmationAction
-  case class UpdateConfirmation(f: ProcessData => ProcessData, isConfirmationPage: Boolean) extends ConfirmationAction
+  case class UpdateConfirmation(f: ProcessData => ProcessData) extends ConfirmationAction
 
-  val noop: ConfirmationAction = ConfirmationAction.UpdateConfirmation(identity, false)
+  val noop: ConfirmationAction = ConfirmationAction.UpdateConfirmation(identity)
 }

@@ -49,6 +49,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None,
         None,
         None,
+        None,
         None
       ),
       None,
@@ -92,6 +93,7 @@ class FileUploadUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         QueryParams.empty,
         None,
         BooleanExprCache.empty,
+        None,
         None,
         None,
         None,

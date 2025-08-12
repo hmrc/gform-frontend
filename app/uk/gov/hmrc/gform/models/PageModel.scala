@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.eval.BooleanExprResolver
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId, MultiValueId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllChoiceIncludeIfs, AllMiniSummaryListIncludeIfs, AllValidIfs, AtlDescription, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsMultiFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
@@ -83,11 +83,8 @@ sealed trait PageModel[A <: PageMode] extends Product with Serializable {
 
   def maybeConfirmation: Option[Confirmation] = fold(_.page.confirmation)(_ => None)(_ => None)
 
-  def confirmationPage(confirmationLookup: Map[ModelPageId, ConfirmationPage.Confirmee]): ConfirmationPage =
-    maybeConfirmation match {
-      case None               => id.flatMap(id => confirmationLookup.get(id.modelPageId)).getOrElse(ConfirmationPage.Not)
-      case Some(confirmation) => ConfirmationPage.fromConfirmation(confirmation)
-    }
+  def confirmationPage: ConfirmationPage =
+    maybeConfirmation.map(ConfirmationPage.fromConfirmation).getOrElse(ConfirmationPage.Not)
 
   def upscanInitiateRequests(defaultMaximumFileSize: Int): List[(FormComponentId, Int)] =
     fold(_.page.allFieldsNested.collect {
