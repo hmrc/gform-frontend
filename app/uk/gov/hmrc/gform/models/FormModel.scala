@@ -59,8 +59,14 @@ case class FormModel[A <: PageMode](
         )
       )
 
-    onDemandIncludeIfBulk(l) { bracket =>
-      val includeIf = bracket.toPageModel.toList.flatMap(_.getIncludeIf)
+    val includeIfList = onDemandIncludeIfBulk(l) { bracket =>
+      bracket.toPageModel.toList.flatMap(_.getIncludeIf)
+    } {
+      case (bracket, List())     => bracket
+      case (bracket, List(true)) => bracket
+    }.getOrElse(l)
+
+    onDemandIncludeIfBulk(includeIfList) { bracket =>
       val repeaterIncludeIF = bracket match {
         case Bracket.RepeatingPage(singletons, source) =>
           singletons.zipWithIndex.map { case (singleton, index) =>
@@ -68,16 +74,16 @@ case class FormModel[A <: PageMode](
           }.toList
         case _ => List()
       }
-      includeIf ++ repeaterIncludeIF
+      repeaterIncludeIF
     } {
-      case (bracket, List())     => bracket
-      case (bracket, List(true)) => bracket
-      case (Bracket.RepeatingPage(singletons, source), true :: repeatsBools) if repeatsBools.contains(true) =>
-        val newList = singletons.toList.zip(repeatsBools).collect { case (singleton, true) => singleton }
-        newList match {
-          case head :: tail => Bracket.RepeatingPage(NonEmptyList(head, tail), source)
-        }
-    }.getOrElse(l)
+      case (Bracket.RepeatingPage(singletons, source), repeatsBools)
+          if repeatsBools.contains(false) && !repeatsBools.forall(_ == false) =>
+        val (head :: tail) = singletons.toList.zip(repeatsBools).collect { case (singleton, true) => singleton }
+        Bracket.RepeatingPage(NonEmptyList(head, tail), source)
+      case (bracket, repeatsBools) if repeatsBools.isEmpty || !repeatsBools.forall(_ == false) => bracket
+
+    }.getOrElse(includeIfList)
+
   }
 
   def onDemandIncludeIfFilterForFormComponents(
