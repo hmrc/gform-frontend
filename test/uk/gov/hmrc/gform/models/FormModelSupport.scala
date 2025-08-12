@@ -137,7 +137,7 @@ trait FormModelSupport extends GraphSpec {
     val booleanExprCache: BooleanExprCache = BooleanExprCache.empty
     val obligations: Obligations = NotChecked
 
-    ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache)
+    ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache, None)
   }
 
   def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =

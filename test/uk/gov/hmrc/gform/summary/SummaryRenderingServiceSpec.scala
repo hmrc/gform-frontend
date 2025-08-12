@@ -388,7 +388,7 @@ class SummaryRenderingServiceSpec
                   nonRepeatingPageSection(
                     title = "Some page title",
                     fields = List(page1Field),
-                    confirmation = Some(Confirmation(page3Field, None))
+                    confirmation = Some(Confirmation(page3Field, None, None, None))
                   )
                 )
               )

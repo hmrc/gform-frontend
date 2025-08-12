@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import munit.FunSuite
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.models.email.EmailFieldId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieve, DataRetrieveId, DataRetrieveResult, NotChecked, RetrieveDataType }
 
 class ThirdPartyDataSuite extends FunSuite {
@@ -36,7 +37,8 @@ class ThirdPartyDataSuite extends FunSuite {
       selectedAddresses = None,
       enteredAddresses = None,
       confirmedAddresses = None,
-      itmpRetrievals = None
+      itmpRetrievals = None,
+      confirmations = None
     )
 
     val expected =
@@ -107,7 +109,13 @@ class ThirdPartyDataSuite extends FunSuite {
       selectedAddresses = None,
       enteredAddresses = None,
       confirmedAddresses = None,
-      itmpRetrievals = None
+      itmpRetrievals = None,
+      confirmations = Some(
+        Map(
+          FormComponentId("fcId1") -> List("1", "2"),
+          FormComponentId("fcId2") -> List("3", "4")
+        )
+      )
     )
     val expected =
       """|{
@@ -136,6 +144,16 @@ class ThirdPartyDataSuite extends FunSuite {
          |        "nino": "CC111111C"
          |      }
          |    }
+         |  },
+         |  "confirmations": {
+         |    "fcId1": [
+         |      "1",
+         |      "2"
+         |    ],
+         |    "fcId2": [
+         |      "3",
+         |      "4"
+         |    ]
          |  }
          |}""".stripMargin
 
@@ -171,7 +189,8 @@ class ThirdPartyDataSuite extends FunSuite {
       selectedAddresses = None,
       enteredAddresses = None,
       confirmedAddresses = None,
-      itmpRetrievals = None
+      itmpRetrievals = None,
+      confirmations = None
     )
 
     thirdPartyData = thirdPartyData.removeDataRetrieveData(

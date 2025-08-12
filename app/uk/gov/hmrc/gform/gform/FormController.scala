@@ -659,10 +659,11 @@ class FormController(
               cache.formTemplateId,
               maybeAccessCode,
               formModelOptics,
-              fastForward
+              fastForward,
+              cache.form
             ) match {
               case ConfirmationAction.NotConfirmed(redirect) => redirect.pure[Future]
-              case ConfirmationAction.UpdateConfirmation(processDataUpdater, isConfirmationPage) =>
+              case ConfirmationAction.UpdateConfirmation(processDataUpdater) =>
                 val processDataUpd = processDataUpdater(processData)
                 formProcessor.validateAndUpdateData(
                   cache,

@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, IsHmrcTaxPeriod }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, FormComponentId, IsHmrcTaxPeriod }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
@@ -36,7 +36,8 @@ case class ProcessData(
   formModelOptics: FormModelOptics[DataOrigin.Browser],
   visitsIndex: VisitIndex,
   obligations: Obligations,
-  booleanExprCache: BooleanExprCache
+  booleanExprCache: BooleanExprCache,
+  confirmations: Option[Map[FormComponentId, List[String]]]
 ) {
   val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
 
@@ -109,7 +110,8 @@ class ProcessDataService[F[_]: Monad](
         dataUpd,
         cache.form.visitsIndex,
         obligations,
-        browserFormModelOptics.formModelVisibilityOptics.booleanExprCache
+        browserFormModelOptics.formModelVisibilityOptics.booleanExprCache,
+        cache.form.thirdPartyData.confirmations.map(_.map { case (k, v) => k -> v })
       )
     }
   }
