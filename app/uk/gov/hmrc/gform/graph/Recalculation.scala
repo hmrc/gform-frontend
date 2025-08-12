@@ -19,19 +19,25 @@ package uk.gov.hmrc.gform.graph
 import cats.syntax.all._
 import cats.{ Monad, MonadError }
 import play.api.i18n.Messages
-import scalax.collection.edges.DiEdge
+import scalax.collection.edges.{ DiEdge, DiEdgeImplicits }
 import scalax.collection.immutable.Graph
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
+
+import scala.util.Try
+//import scalax.collection.io.dot.DotRootGraph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
+import uk.gov.hmrc.gform.models.{ Basic, FormModel, Interim, PageModel, Singleton }
+import uk.gov.hmrc.gform.sharedmodel.LangADT.{ Cy, En }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SourceOrigin, VariadicFormData, VariadicValue }
 
+import java.nio.file.{ Files, Paths }
 import scala.collection.{ immutable, mutable }
 
 sealed trait GraphException {
@@ -62,19 +68,42 @@ class Recalculation[F[_]: Monad, E](
     evaluationContext: EvaluationContext,
     messages: Messages
   )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions.apply(formTemplate)
+    val graph: Graph[GraphNode, DiEdge[GraphNode]] =
+      DependencyGraph.toGraph(formModel, formTemplateExprs, evaluationContext.currentSection, formTemplate)
+    recalculateFromGraph(
+      formModel,
+      formTemplate,
+      retrievals,
+      evaluationContext,
+      messages,
+      graph,
+      Map.empty,
+      data.data,
+      thirdPartyData.booleanExprCache.mapping
+    )
+  }
+
+  def recalculateFromGraph(
+    formModel: FormModel[Interim],
+    formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
+    evaluationContext: EvaluationContext,
+    messages: Messages,
+    graph: Graph[GraphNode, DiEdge[GraphNode]],
+    exprMapStart: collection.Map[Expr, ExpressionResult],
+    formDataMapStart: collection.Map[ModelComponentId, VariadicValue],
+    booleanExprCacheStart: Map[DataSource, Map[String, Boolean]]
+  )(implicit me: MonadError[F, E]): F[RecalculationResult] = {
 
     implicit val fm: FormModel[Interim] = formModel
-
-    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
-
-    val graph: Graph[GraphNode, DiEdge[GraphNode]] = DependencyGraph.toGraph(formModel, formTemplateExprs)
 
     val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.outer, graph))
 
-    val exprMap = mutable.Map[Expr, ExpressionResult]()
-    val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
+    val exprMap = mutable.Map.newBuilder.addAll(exprMapStart).result()
+    val formDataMap = mutable.Map.newBuilder.addAll(formDataMapStart).result()
 
     val startEvResults = EvaluationResults(
       exprMap,
@@ -82,7 +111,7 @@ class Recalculation[F[_]: Monad, E](
       formTemplate.formKind.repeatedComponentsDetails
     )
     val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
-      thirdPartyData.booleanExprCache.mapping
+      booleanExprCacheStart
         .foldLeft(
           mutable.Map.newBuilder[DataSource, mutable.Map[String, Boolean]]
         ) { case (builder, (key, value)) =>
@@ -231,7 +260,8 @@ class Recalculation[F[_]: Monad, E](
               isHiddenByRepeatsExpr(fcId, evResult, recData, booleanExprResolver, evaluationContext)
           } yield
             if (isHiddenIncludeIf || isHiddenRevealingChoice || isHiddenComponentIncludeIf || isHiddenRepeatsExpr) {
-              exprMap.addOne((FormCtx(fcId), ExpressionResult.Hidden))
+              exprMap.remove(FormCtx(fcId))
+              exprMap.addOne(FormCtx(fcId), ExpressionResult.Hidden)
               evResult
             } else {
               evResult

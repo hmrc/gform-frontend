@@ -55,7 +55,8 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
 
 class SummaryRenderingServiceSpec
     extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
@@ -159,13 +160,15 @@ class SummaryRenderingServiceSpec
       )
     )
 
-    val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
-      )
-      .futureValue
+    val formModelOptics: FormModelOptics[DataOrigin.Mongo] = Await.result(
+      FormModelOptics
+        .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+          cache.variadicFormData[SectionSelectorType.WithDeclaration],
+          cache,
+          mockRecalculation
+        ),
+      Duration.Inf
+    )
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
 
@@ -483,17 +486,26 @@ class SummaryRenderingServiceSpec
               )
             }
             import testFixture._
-            summaryRenderingService
-              .getSummaryHTML(
-                maybeAccessCode,
-                cache,
-                SummaryPagePurpose.ForDms,
-                formModelOptics,
-                Option.empty[Coordinates],
-                Option.empty[SummarySection],
-                None
+            Await
+              .result(
+                summaryRenderingService
+                  .getSummaryHTML(
+                    maybeAccessCode,
+                    cache,
+                    SummaryPagePurpose.ForDms,
+                    formModelOptics.copy(formModelVisibilityOptics =
+                      formModelOptics.formModelVisibilityOptics.copy(
+                        formModel = formModelOptics.formModelVisibilityOptics.formModel.copy(
+                          _onDemandIncludeIfBulk = None
+                        )
+                      )
+                    ),
+                    Option.empty[Coordinates],
+                    Option.empty[SummarySection],
+                    None
+                  ),
+                Duration.Inf
               )
-              .futureValue
               .summaryElements shouldBe expectedSummaryElements
           }
         }

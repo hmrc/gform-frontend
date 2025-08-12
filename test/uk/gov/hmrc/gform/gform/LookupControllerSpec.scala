@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, Model
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModelSupport, LookupQuery, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, FormComponentId, FormCtx, FormTemplateId, Lookup, Register, Section, SelectionCriteria, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, FormComponentId, FormCtx, FormTemplateId, Lookup, Register, Section, SectionNumber, SectionOrSummary, SelectionCriteria, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ SelectionCriteriaExpr, SelectionCriteriaReference, SelectionCriteriaSimpleValue }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
@@ -350,13 +350,18 @@ class LookupControllerSpec
 
     val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()
     mockAuth
-      .authAndRetrieveForm[SectionSelectorType.Normal](*[FormTemplateId], *[Option[AccessCode]], *[OperationWithForm])(
+      .authAndRetrieveForm[SectionSelectorType.Normal](
+        *[FormTemplateId],
+        *[Option[AccessCode]],
+        *[OperationWithForm],
+        *[Option[SectionOrSummary]]
+      )(
         *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
           DataOrigin.Mongo
         ] => Future[Result]]
       ) answers (
       (
-        _: FormTemplateId, _: Option[AccessCode], _: OperationWithForm, f: Request[
+        _: FormTemplateId, _: Option[AccessCode], _: OperationWithForm, _: Option[SectionOrSummary], f: Request[
           AnyContent
         ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
       ) =>

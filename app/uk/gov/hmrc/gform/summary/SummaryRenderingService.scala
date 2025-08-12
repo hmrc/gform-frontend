@@ -52,8 +52,10 @@ import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
 import java.time.format.DateTimeFormatter
+import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
+//TODO: Do we need to make changes for recalc even?
 class SummaryRenderingService(
   renderer: SectionRenderingService,
   i18nSupport: I18nSupport,
@@ -636,11 +638,7 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
-      maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
-        taskListBrackets.bracketsFor(coordinates).toBracketsList
-      )
-    )
+    def brackets: List[Bracket[Visibility]] = formModel.getVisibleBrackets(maybeCoordinates)
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
       val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))

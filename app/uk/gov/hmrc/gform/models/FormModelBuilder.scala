@@ -27,16 +27,20 @@ import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageUpdater }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{ Instant, LocalDate, ZoneId }
+import scala.collection.mutable
+import scala.concurrent.duration.{ Duration, DurationInt }
+import scala.concurrent.{ Await, Future }
 import scala.util.matching.Regex
 
 object FormModelBuilder {
@@ -217,7 +221,8 @@ class FormModelBuilder[E, F[_]: Functor](
     formPhase: Option[FormPhase],
     lang: LangADT,
     messages: Messages,
-    formStartDate: Instant
+    formStartDate: Instant,
+    currentSection: Option[SectionOrSummary]
   ): F[RecalculationResult] = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
@@ -253,11 +258,20 @@ class FormModelBuilder[E, F[_]: Functor](
         formModel.lookupRegister,
         formModel.constraints,
         taskIdTaskStatus,
-        LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London"))
+        LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London")),
+        currentSection
       )
 
     recalculation
-      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext, messages)
+      .recalculateFormDataNew(
+        data,
+        formModel,
+        formTemplate,
+        retrievals,
+        thirdPartyData,
+        evaluationContext,
+        messages
+      )
   }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
@@ -265,15 +279,24 @@ class FormModelBuilder[E, F[_]: Functor](
 
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    phase: Option[FormPhase]
-  )(implicit messages: Messages): FormModelOptics[D] = {
+    phase: Option[FormPhase],
+    formModelInterim: Option[FormModel[Interim]] = None,
+    currentSection: Option[SectionOrSummary] = None
+  )(implicit messages: Messages, lang: LangADT): FormModelOptics[D] = {
 
     implicit val fmvo = formModelVisibilityOptics
 
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
     val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] = getVisibilityModel(formModel, formModelVisibilityOptics, phase)
+    val formModelVisibility: FormModel[Visibility] =
+      getVisibilityModel(
+        formModel,
+        formModelVisibilityOptics,
+        phase,
+        formModelInterim.getOrElse(formModel).asInstanceOf[FormModel[Interim]],
+        currentSection
+      )
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
@@ -292,53 +315,156 @@ class FormModelBuilder[E, F[_]: Functor](
   private def getVisibilityModel[D <: DataOrigin](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    phase: Option[FormPhase]
-  ): FormModel[Visibility] = {
+    phase: Option[FormPhase],
+    formModelInterim: FormModel[Interim],
+    currentSection: Option[SectionOrSummary]
+  )(implicit messages: Messages, lang: LangADT): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
 
-    FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
-      .stripHiddenFormComponents(formModel)
-      .filter { pageModel =>
-        pageModel.getIncludeIf.fold(true) { includeIf =>
-          FormModelBuilder.evalIncludeIf(
-            includeIf,
-            formModelVisibilityOptics.recalculationResult,
-            formModelVisibilityOptics.recData,
-            formModelVisibilityOptics.formModel,
-            phase
+    val allExprsCache: mutable.Map[IncludeIf, List[Expr]] = mutable.Map()
+
+    val recalcCache: mutable.Map[List[IncludeIf], F[RecalculationResult]] = mutable.Map()
+
+    val atlComponents = formModelInterim.addToListIds.map(_.formComponentId)
+
+    val standaloneSumsFcIds = formModel.standaloneSumInfo.sums.flatMap(_.allFormComponentIds())
+
+    val allFormComponentExpressions = AllFormTemplateExpressions(formTemplate)
+
+    val evalIncludeIfCache = mutable.Map[IncludeIf, Boolean]()
+
+    def onDemandPageIncludeIf(includeIf: List[List[IncludeIf]]) = {
+
+      def getRecalculation(includeIf: List[IncludeIf]) = {
+        val exprs = includeIf.flatMap { includeIf =>
+          allExprsCache.getOrElseUpdate(includeIf, includeIf.booleanExpr.allExpressions)
+        }
+
+        val formComponentIds = exprs.flatMap(_.allFormComponentIds()) ++ atlComponents ++ standaloneSumsFcIds
+
+        val formComponents = formComponentIds
+          .map(fcId => formModelInterim.fcLookup.get(fcId) -> fcId)
+          .flatMap {
+            case (Some(fc), fcId) => List(fc)
+            case (None, fcId) =>
+              formModel.baseFcLookup.get(fcId.baseComponentId).toList.flatten.flatMap(formModel.fcLookup.get)
+          }
+
+        val er = formModelVisibilityOptics.evaluationResults
+        recalculation
+          .recalculateFromGraph(
+            formModel = formModelInterim,
+            formTemplate = formTemplate,
+            retrievals = retrievals,
+            evaluationContext = formModelVisibilityOptics.recalculationResult.evaluationContext,
+            messages = messages,
+            graph = DependencyGraph.graphFrom(
+              formModel,
+              allFormComponentExpressions,
+              formComponents,
+              exprs
+            ),
+            exprMapStart = er.exprMap,
+            formDataMapStart = er.recData.variadicFormData.data,
+            booleanExprCacheStart = formModelVisibilityOptics.booleanExprCache.mapping
           )
-        } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
-          !FormModelBuilder.evalIncludeIf(
+      }
+      val includeIfFlat = includeIf.flatten
+
+      def recalc = recalcCache.getOrElseUpdate(
+        includeIfFlat,
+        getRecalculation(includeIfFlat)
+      )
+
+      //TODO: Remove await. For testing only
+      def newEr = recalc match {
+        case recalc: Future[RecalculationResult] =>
+          Await.result(
+            recalc,
+            20.seconds
+          )
+        case recalc: cats.Id[RecalculationResult] => recalc.asInstanceOf[RecalculationResult]
+        case recalc =>
+          val err = new RuntimeException("Unknown functor type. " + recalc)
+          err.printStackTrace()
+          throw err
+      }
+
+      includeIf.map { includeIfOpt =>
+        includeIfOpt.map { includeIf =>
+          evalIncludeIfCache.getOrElseUpdate(
             includeIf,
-            formModelVisibilityOptics.recalculationResult,
-            formModelVisibilityOptics.recData,
-            formModelVisibilityOptics.formModel,
-            phase
+            FormModelBuilder.evalIncludeIf(
+              includeIf,
+              newEr,
+              formModelVisibilityOptics.recData,
+              formModel,
+              phase
+            )
           )
         }
       }
-      .map[Visibility] { singleton: Singleton[DataExpanded] =>
-        val updatedFields = singleton.page.fields.flatMap {
-          case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
-          case otherwise                  => otherwise :: Nil
+    }
+
+    val fmFiltered: FormModel[DataExpanded] = {
+      val fm = FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
+        .stripHiddenFormComponents(formModel)
+
+      def fmWithFilter: FormModel[DataExpanded] =
+        fm.filter { pageModel =>
+          pageModel.getIncludeIf.fold(true) { includeIf =>
+            FormModelBuilder.evalIncludeIf(
+              includeIf,
+              formModelVisibilityOptics.recalculationResult,
+              formModelVisibilityOptics.recData,
+              formModelVisibilityOptics.formModel,
+              phase
+            )
+          } &&
+          pageModel.getNotRequiredIf.fold(true) { includeIf =>
+            !FormModelBuilder.evalIncludeIf(
+              includeIf,
+              formModelVisibilityOptics.recalculationResult,
+              formModelVisibilityOptics.recData,
+              formModelVisibilityOptics.formModel,
+              phase
+            )
+          }
         }
-        singleton.copy(page = singleton.page.copy(fields = updatedFields))
-      } { checkYourAnswers: CheckYourAnswers[DataExpanded] =>
-        checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
-      } { repeater: Repeater[DataExpanded] =>
-        repeater.asInstanceOf[Repeater[Visibility]]
+
+      //TODO: Implement onDemandIncludeIf properly for TaskSummary
+      currentSection match {
+        case Some(SectionOrSummary.TaskSummary) => fmWithFilter
+        //case Some(SectionOrSummary.Section(sectionNumber)) if sectionNumber.isAddToListTerminalPage => fmWithFilter
+        case _ => fm
       }
+    }
+
+    fmFiltered.mapWithOnDemand[Visibility] { singleton: Singleton[DataExpanded] =>
+      val updatedFields = singleton.page.fields.flatMap {
+        case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
+        case otherwise                  => otherwise :: Nil
+      }
+      singleton.copy(page = singleton.page.copy(fields = updatedFields))
+    } { checkYourAnswers: CheckYourAnswers[DataExpanded] =>
+      checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
+    } { repeater: Repeater[DataExpanded] =>
+      repeater.asInstanceOf[Repeater[Visibility]]
+    } {
+      Some(onDemandPageIncludeIf)
+    }
   }
 
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase],
-    formStartDate: Instant
+    formStartDate: Instant,
+    currentSection: Option[SectionOrSummary] = None
   )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
     val formModel: FormModel[Interim] = expand(data)
 
     val recalculationResultF: F[RecalculationResult] =
-      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate)
+      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate, currentSection)
 
     recalculationResultF.map { recalculationResult =>
       buildFormModelVisibilityOptics(

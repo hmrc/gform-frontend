@@ -27,8 +27,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.PageModel
-import uk.gov.hmrc.gform.models.Visibility
+import uk.gov.hmrc.gform.models.{ Bracket, FormModel, PageModel, Visibility }
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
@@ -44,9 +43,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import ComponentChecker.CheckInterpreter
 import GformError.linkedHashSetMonoid
+
+import scala.collection.mutable
 
 class ValidationService(
   booleanExprEval: BooleanExprEval[Future],
@@ -129,14 +129,25 @@ class ValidationService(
   ): Future[ValidationResult] = {
 
     val formModel = formModelVisibilityOptics.formModel
-    val allFields = maybeCoordinates.fold(formModelVisibilityOptics.allFormComponents)(
-      formModelVisibilityOptics.allFormComponentsForCoordinates
+
+    def allFields = formModel.onDemandIncludeIfFilterForFormComponents(
+      maybeCoordinates
+        .fold(formModelVisibilityOptics.allFormComponents)(
+          formModelVisibilityOptics.allFormComponentsForCoordinates
+        )
     )
 
     val emailCodeMatcher = GetEmailCodeFieldMatcher(formModel)
 
+    val pages = formModel
+      .onDemandIncludeIfBulk(formModel.pages)(page => page.getIncludeIf.toList) {
+        case (page, List(true)) => page
+        case (page, List())     => page
+      }
+      .getOrElse(formModel.pages)
+
     for {
-      v <- formModel.pages
+      v <- pages
              .traverse(pageModel =>
                validatePageModel(
                  pageModel,
@@ -199,9 +210,14 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[ValidationResult] =
-    formModelVisibilityOptics.formModel.allFormComponents
-      .filterNot(_.onlyShowOnSummary)
+  ): Future[ValidationResult] = {
+
+    val formModel = formModelVisibilityOptics.formModel
+
+    formModel
+      .onDemandIncludeIfFilterForFormComponents(
+        formModel.allFormComponents.filterNot(_.onlyShowOnSummary)
+      )
       .traverse(fv =>
         validateFormComponent(
           fv,
@@ -218,6 +234,7 @@ class ValidationService(
         val allFields = formModelVisibilityOptics.allFormComponents
         ValidationUtil.evaluateValidationResult(allFields, validatedType, formModelVisibilityOptics, envelope)
       }
+  }
 
   private def validateFormComponent[D <: DataOrigin](
     formComponent: FormComponent,

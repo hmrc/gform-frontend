@@ -85,64 +85,68 @@ class SummaryController(
     fastForward: Option[FastForward] = None
   ): Action[AnyContent] =
     auth
-      .authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
-        implicit request => implicit l => cache => implicit sse => formModelOptics =>
-          val maybeTaskSummarySection = maybeCoordinates.flatMap { coordinates =>
-            TaskListUtils.withTask(
-              cache.formTemplate,
-              coordinates.taskSectionNumber,
-              coordinates.taskNumber
-            )(task => task.summarySection)
-          }
+      .authAndRetrieveForm[SectionSelectorType.Normal](
+        formTemplateId,
+        maybeAccessCode,
+        OperationWithForm.ViewSummary,
+        Some(SectionOrSummary.MaybeTaskCoordinates(maybeCoordinates))
+      ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+        val maybeTaskSummarySection = maybeCoordinates.flatMap { coordinates =>
+          TaskListUtils.withTask(
+            cache.formTemplate,
+            coordinates.taskSectionNumber,
+            coordinates.taskNumber
+          )(task => task.summarySection)
+        }
 
-          val hasVisibleSummarySection = maybeTaskSummarySection
-            .fold(false)(
-              _.includeIf.fold(true)(includeIf =>
-                formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
-              )
+        val hasVisibleSummarySection = maybeTaskSummarySection
+          .fold(false)(
+            _.includeIf.fold(true)(includeIf =>
+              formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
             )
+          )
 
-          lazy val formSummaryPage = summaryRenderingService
-            .getSummaryHTML(
-              maybeAccessCode,
-              cache,
-              SummaryPagePurpose.ForUser,
-              formModelOptics,
-              None,
-              None,
-              Some(true)
-            )
-            .map(Ok(_))
+        lazy val formSummaryPage = summaryRenderingService
+          .getSummaryHTML(
+            maybeAccessCode,
+            cache,
+            SummaryPagePurpose.ForUser,
+            formModelOptics,
+            None,
+            None,
+            Some(true)
+          )
+          .map(Ok(_))
 
-          lazy val summaryPage = summaryRenderingService
-            .getSummaryHTML(
-              maybeAccessCode,
-              cache,
-              SummaryPagePurpose.ForUser,
-              formModelOptics,
-              maybeCoordinates,
-              maybeTaskSummarySection,
-              taskCompleted
-            )
-            .map(Ok(_))
+        lazy val summaryPage = summaryRenderingService
+          .getSummaryHTML(
+            maybeAccessCode,
+            cache,
+            SummaryPagePurpose.ForUser,
+            formModelOptics,
+            maybeCoordinates,
+            maybeTaskSummarySection,
+            taskCompleted
+          )
+          .map(Ok(_))
 
-          lazy val landingPage = Redirect(
-            uk.gov.hmrc.gform.tasklist.routes.TaskListController
-              .landingPage(formTemplateId, maybeAccessCode)
-          ).pure[Future]
+        lazy val landingPage = Redirect(
+          uk.gov.hmrc.gform.tasklist.routes.TaskListController
+            .landingPage(formTemplateId, maybeAccessCode)
+        ).pure[Future]
 
-          val formSummaryFF = fastForward.fold(false) {
-            case FastForward.CYA(SectionOrSummary.FormSummary) => true
-            case _                                             => false
-          }
-          if (reachedFormSummary || formSummaryFF) {
-            for {
-              isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
-              result  <- if (!formSummaryFF && !isValid && maybeCoordinates.isDefined) landingPage else formSummaryPage
-            } yield result
-          } else {
-            if (!formSummaryFF && maybeCoordinates.isDefined && !hasVisibleSummarySection) landingPage else summaryPage
-          }
+        val formSummaryFF = fastForward.fold(false) {
+          case FastForward.CYA(SectionOrSummary.FormSummary) => true
+          case _                                             => false
+        }
+        if (reachedFormSummary || formSummaryFF) {
+          for {
+            isValid <- isFormValid(formTemplateId, maybeAccessCode, cache, formModelOptics)
+            result  <- if (!formSummaryFF && !isValid && maybeCoordinates.isDefined) landingPage else formSummaryPage
+          } yield result
+        } else {
+          if (!formSummaryFF && maybeCoordinates.isDefined && !hasVisibleSummarySection) landingPage else summaryPage
+        }
       }
 
   def submit(
@@ -223,7 +227,7 @@ class SummaryController(
                     .landingPage(formTemplateId, maybeAccessCode)
                 ) { taskDeclaration =>
                   val isTaskDeclarationVisible = taskDeclaration.includeIf.fold(true)(includeIf =>
-                    formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                    formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf(includeIf)
                   )
 
                   if (isTaskDeclarationVisible) {
@@ -246,7 +250,7 @@ class SummaryController(
             cache.formTemplate.destinations match {
               case DestinationList(_, _, Some(declarationSection)) =>
                 val isDeclarationSectionVisible = declarationSection.includeIf.fold(true)(includeIf =>
-                  formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+                  formModelOptics.formModelVisibilityOptics.formModel.onDemandIncludeIf(includeIf)
                 )
                 if (isDeclarationSectionVisible) {
                   Redirect(
@@ -421,7 +425,8 @@ class SummaryController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,
-      OperationWithForm.DownloadSummaryPdf
+      OperationWithForm.DownloadSummaryPdf,
+      Some(SectionOrSummary.FormSummary)
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       val pdfContentF = createPDFContent(cache, formModelOptics)
 

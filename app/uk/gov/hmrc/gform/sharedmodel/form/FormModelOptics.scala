@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase, SectionOrSummary }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -85,7 +85,8 @@ object FormModelOptics {
         Map.empty,
         Map.empty,
         TaskIdTaskStatusMapping.empty,
-        LocalDate.now()
+        LocalDate.now(),
+        None
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
@@ -105,7 +106,8 @@ object FormModelOptics {
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    formStartDate: Instant
+    formStartDate: Instant,
+    currentSection: Option[SectionOrSummary]
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -121,10 +123,18 @@ object FormModelOptics {
         cache.lookupRegistry,
         taskIdTaskStatusMapping
       )
+
+    val formModel: FormModel[Interim] = formModelBuilder.expand(data)
+
     val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, formStartDate)
+      formModelBuilder.visibilityModel(data, phase, formStartDate, currentSection)
     formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
-      formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
+      formModelBuilder.renderPageModel(
+        formModelVisibilityOptics,
+        phase,
+        Some(formModel),
+        currentSection
+      )
     }
   }
 
@@ -132,7 +142,8 @@ object FormModelOptics {
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
     recalculation: Recalculation[F, Throwable],
-    phase: Option[FormPhase] = None
+    phase: Option[FormPhase] = None,
+    currentSection: Option[SectionOrSummary] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -147,6 +158,7 @@ object FormModelOptics {
       phase,
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
-      cache.form.startDate
+      cache.form.startDate,
+      currentSection
     )
 }
