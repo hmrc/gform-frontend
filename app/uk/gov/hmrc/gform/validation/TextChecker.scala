@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
@@ -262,7 +262,7 @@ object TextChecker {
         fieldValue,
         genericNumberErrorRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]
+          LocalisedString.constant("a number", "rif").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validateNumeric(fieldValue, inputText, c.maxWholeDigits, c.maxFractionalDigits, false)
@@ -273,7 +273,7 @@ object TextChecker {
         fieldValue,
         genericNumberErrorRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]
+          LocalisedString.constant("a number", "rif").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validateNumeric(fieldValue, inputText, c.maxWholeDigits, c.maxFractionalDigits, true)
@@ -323,7 +323,7 @@ object TextChecker {
         fieldValue,
         genericSterlingErrorRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List]
+          LocalisedString.constant("an amount", "swm").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validateSterling(fieldValue, inputText, c.positiveOnly, false)
@@ -337,7 +337,7 @@ object TextChecker {
         fieldValue,
         genericSterlingErrorRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "an amount", _ => "swm").value().pure[List]
+          LocalisedString.constant("an amount", "swm").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validateSterling(fieldValue, inputText, true, true)
@@ -347,7 +347,7 @@ object TextChecker {
         fieldValue,
         genericReferenceNumberErrorRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]
+          LocalisedString.constant("a number", "rif").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = referenceNumberConstraints(fieldValue, inputText, c.min, c.max)
@@ -379,7 +379,7 @@ object TextChecker {
         fieldValue,
         genericTelephoneNumberErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validatePhoneNumber(fieldValue, inputText)
@@ -390,7 +390,7 @@ object TextChecker {
         fieldValue,
         genericEmailErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "an", identity).value().pure[List]
+          LocalisedString.constant("an", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = email(fieldValue, inputText)
@@ -402,7 +402,7 @@ object TextChecker {
         fieldValue,
         genericUtrErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkUtr(fieldValue, inputText)
@@ -413,7 +413,7 @@ object TextChecker {
         fieldValue,
         genericNinoErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkNino(fieldValue, inputText)
@@ -424,7 +424,7 @@ object TextChecker {
         fieldValue,
         genericPayeErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkPayeReference(fieldValue, inputText)
@@ -435,7 +435,7 @@ object TextChecker {
         fieldValue,
         genericVrnErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkVrn(fieldValue, inputText)
@@ -454,7 +454,7 @@ object TextChecker {
         fieldValue,
         genericCrnErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkCompanyRegistrationNumber(fieldValue, inputText)
@@ -465,7 +465,7 @@ object TextChecker {
         fieldValue,
         genericEoriErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "an", identity).value().pure[List]
+          LocalisedString.constant("an", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkEORI(fieldValue, inputText)
@@ -476,7 +476,7 @@ object TextChecker {
         fieldValue,
         genericUkEoriErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "an", identity).value().pure[List]
+          LocalisedString.constant("an", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkUkEORI(fieldValue, inputText)
@@ -487,7 +487,7 @@ object TextChecker {
         fieldValue,
         genericChildBenefitNumberErrorRequired,
         fieldValue.errorShortName.map(_.transform(identity, " " + _).value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", identity).value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = checkChildBenefitNumber(fieldValue, inputText)
@@ -498,7 +498,7 @@ object TextChecker {
         fieldValue,
         genericErrorYearRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a", _ => "").value().pure[List]
+          LocalisedString.constant("a", "").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validateYear(fieldValue, inputText)
@@ -509,7 +509,7 @@ object TextChecker {
       elseProgram = {
         val placeholder =
           fieldValue.errorShortName.map(_.transform(identity, w => s" $w ").value().pure[List]) orElse (Some(
-            SmartString.blank.transform(_ => "a", _ => "").value().pure[List]
+            LocalisedString.constant("a", "").valueNoFallback.pure[List]
           ))
         validationFailure(fieldValue, genericErrorYearPattern, placeholder)
       }
@@ -520,7 +520,7 @@ object TextChecker {
         fieldValue,
         genericErrorTimeRequired,
         fieldValue.errorShortName.map(_.value().pure[List]) orElse (Some(
-          SmartString.blank.transform(_ => "a time", _ => "amser").value().pure[List]
+          LocalisedString.constant("a time", "amser").valueNoFallback.pure[List]
         ))
       ),
       nonEmptyCheck = validateTime(fieldValue, inputText)
@@ -534,7 +534,7 @@ object TextChecker {
           thenProgram = {
             val placeholder =
               fieldValue.errorShortName.map(_.transform(identity, w => s" $w").value().pure[List]) orElse (Some(
-                SmartString.blank.transform(_ => "a time", _ => "amser").value().pure[List]
+                LocalisedString.constant("a time", "amser").valueNoFallback.pure[List]
               ))
             validationFailure(fieldValue, genericErrorTimePattern, placeholder)
           }
@@ -820,7 +820,8 @@ object TextChecker {
     mustBePositive: Boolean
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] = {
     val filteredValue = TextConstraint.filterNumberValue(value)
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
@@ -889,14 +890,15 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     fieldValue.errorShortNameStart match {
       case None =>
         validationFailure(
           fieldValue,
           genericNumberErrorRequired,
-          Some(List(SmartString.blank.transform(_ => "a number", _ => "rif").value(), ""))
+          Some(List(LocalisedString.constant("a number", "rif").valueNoFallback, ""))
         )
       case Some(errorShortNameStart) =>
         validationFailure(
@@ -912,7 +914,8 @@ object TextChecker {
     maxFractional: Int
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -920,7 +923,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
+            case None                      => LocalisedString.constant("Number", "rhif").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value(),
@@ -935,7 +938,8 @@ object TextChecker {
     maxWhole: Int
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -943,7 +947,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
+            case None                      => LocalisedString.constant("Number", "rhif").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value(),
@@ -957,7 +961,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -965,7 +970,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
+            case None                      => LocalisedString.constant("Number", "rhif").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -978,7 +983,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -986,7 +992,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Number", _ => "rhif").value()
+            case None                      => LocalisedString.constant("Number", "rhif").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -1001,7 +1007,8 @@ object TextChecker {
     isWhole: Boolean
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] = {
     val filteredValue = TextConstraint.filterNumberValue(value)
     val maxWhole = ValidationValues.sterlingLength
@@ -1073,7 +1080,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     (fieldValue.errorShortName, fieldValue.errorShortNameStart) match {
       case (None, None) =>
@@ -1082,7 +1090,7 @@ object TextChecker {
           genericSterlingErrorPattern,
           Some(
             List(
-              SmartString.blank.transform(_ => "an amount", _ => "swm").value(),
+              LocalisedString.constant("an amount", "swm").valueNoFallback,
               fieldValue.errorExampleWithCommaOrBlank.value()
             )
           )
@@ -1108,7 +1116,8 @@ object TextChecker {
     maxWhole: Int
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -1116,7 +1125,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Amount", _ => "swm").value()
+            case None                      => LocalisedString.constant("Amount", "swm").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value(),
@@ -1130,7 +1139,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -1138,7 +1148,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Amount", _ => "swm").value()
+            case None                      => LocalisedString.constant("Amount", "swm").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -1151,7 +1161,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] =
     validationFailure(
       fieldValue,
@@ -1159,7 +1170,7 @@ object TextChecker {
       Some(
         List(
           fieldValue.errorShortNameStart match {
-            case None                      => SmartString.blank.transform(_ => "Amount", _ => "swm").value()
+            case None                      => LocalisedString.constant("Amount", "swm").valueNoFallback
             case Some(errorShortNameStart) => errorShortNameStart.value()
           },
           fieldValue.errorExampleWithCommaOrBlank.value()
@@ -1209,7 +1220,8 @@ object TextChecker {
     max: Int
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val filteredValue = value.replace(" ", "")
     val ValidReferenceNumber = s"[0-9]{$min,$max}".r
@@ -1221,7 +1233,7 @@ object TextChecker {
 
     val defaultError = fieldValue.errorShortName
       .map(_.value().pure[List])
-      .orElse(Some(SmartString.blank.transform(_ => "a number", _ => "rif").value().pure[List]))
+      .orElse(Some(LocalisedString.constant("a number", "rif").valueNoFallback.pure[List]))
 
     ifProgram(
       cond = isReferenceNumber,
@@ -1235,7 +1247,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) =
     ifProgram(
       cond = EmailAddress.isValid(value),
@@ -1245,7 +1258,7 @@ object TextChecker {
         genericEmailErrorPattern,
         fieldValue.errorShortName
           .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
+          (Some(LocalisedString.constant("an", "").valueNoFallback.pure[List]))
       )
     )
 
@@ -1254,7 +1267,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val Standard = "(GB|XI)?([0-9]{9})".r
     val Branch = "GB[0-9]{12}".r
@@ -1303,7 +1317,7 @@ object TextChecker {
         genericVrnErrorPattern,
         fieldValue.errorShortName
           .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+          (Some(LocalisedString.constant("a", "").valueNoFallback.pure[List]))
       )
     )
   }
@@ -1313,7 +1327,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val str = value.replace(" ", "")
     val ValidCRN = "[A-Z]{1,2}[0-9]{6,8}|[0-9]{8}".r
@@ -1331,7 +1346,7 @@ object TextChecker {
         genericCrnErrorPattern,
         fieldValue.errorShortName
           .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+          (Some(LocalisedString.constant("a", "").valueNoFallback.pure[List]))
       )
     )
   }
@@ -1341,7 +1356,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val str = value.replace(" ", "")
     val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
@@ -1359,7 +1375,7 @@ object TextChecker {
         genericEoriErrorPattern,
         fieldValue.errorShortName
           .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
+          (Some(LocalisedString.constant("an", "").valueNoFallback.pure[List]))
       )
     )
   }
@@ -1369,7 +1385,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val str = value.replace(" ", "")
     val ValidUkEORI = "^GB[0-9]{12}$".r
@@ -1393,14 +1410,15 @@ object TextChecker {
         genericUkEoriErrorPattern,
         fieldValue.errorShortName
           .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "an", identity).value().pure[List]))
+          (Some(LocalisedString.constant("an", "").valueNoFallback.pure[List]))
       )
     )
   }
 
   private def checkChildBenefitNumber(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
     val str = value.replace(" ", "")
@@ -1415,7 +1433,7 @@ object TextChecker {
       elseProgram = {
         val errorShortName = fieldValue.errorShortName
           .map(_.transform(identity, " " + _).value().pure[List])
-          .orElse(Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+          .orElse(Some(LocalisedString.constant("a", "").valueNoFallback.pure[List]))
         validationFailure(fieldValue, genericChildBenefitNumberErrorPattern, errorShortName)
       }
     )
@@ -1450,14 +1468,15 @@ object TextChecker {
 
   private def checkUtr(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val UTRFormat = "[0-9]{10}".r
     val isUtrFormat = UTRFormat.matches(value)
     val isValidUtr = CorporationTaxReferenceChecker.isValid(value)
     val errorMessage = fieldValue.errorShortName
       .map(_.transform(identity, _ + " ").value().pure[List])
-      .getOrElse(SmartString.blank.transform(_ => "a", identity).value().pure[List])
+      .getOrElse(LocalisedString.constant("a", "").valueNoFallback.pure[List])
 
     switchProgram(
       switchCase(
@@ -1475,7 +1494,8 @@ object TextChecker {
 
   private def checkNino(fieldValue: FormComponent, value: String)(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val isNinoValid = Nino.isValid(value)
 
@@ -1487,7 +1507,7 @@ object TextChecker {
         genericNinoErrorPattern,
         fieldValue.errorShortName
           .map(_.transform(identity, _ + " ").value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+          (Some(LocalisedString.constant("a", "").valueNoFallback.pure[List]))
       )
     )
   }
@@ -1497,7 +1517,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ) = {
     val ValidPaye = "^[0-9]{3}/[0-9A-Z]{1,10}$".r
     val str = value.replace(" ", "")
@@ -1511,7 +1532,7 @@ object TextChecker {
       cond = isValidPaye,
       thenProgram = successProgram(()),
       elseProgram = {
-        val defaultErrorName = Some(SmartString.blank.transform(_ => "a", identity).value().pure[List])
+        val defaultErrorName = Some(LocalisedString.constant("a", "").valueNoFallback.pure[List])
         val errorName =
           fieldValue.errorShortName.map(_.transform(identity, _ + " ").value().pure[List]) orElse defaultErrorName
         validationFailure(fieldValue, genericPayeErrorPattern, errorName)
@@ -1524,7 +1545,8 @@ object TextChecker {
     value: String
   )(implicit
     messages: Messages,
-    sse: SmartStringEvaluator
+    sse: SmartStringEvaluator,
+    l: LangADT
   ): CheckProgram[Unit] = {
     val isValidPhoneNumber = TelephoneNumber.phoneNumberValidation.matches(value)
     ifProgram(
@@ -1532,7 +1554,7 @@ object TextChecker {
       thenProgram = {
         val errorShortName = fieldValue.errorShortName
           .map(_.transform(identity, " " + _).value().pure[List]) orElse
-          (Some(SmartString.blank.transform(_ => "a", identity).value().pure[List]))
+          (Some(LocalisedString.constant("a", "").valueNoFallback.pure[List]))
 
         validationFailure(fieldValue, genericTelephoneNumberErrorPattern, errorShortName)
       },

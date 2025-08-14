@@ -524,15 +524,15 @@ class TextCheckerSpec
       ("3", ().asRight.asRight),
       (
         "1899",
-        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time yn y fformat cywir")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch amser yn y fformat cywir")))
       ),
       (
         "foo",
-        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time yn y fformat cywir")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch amser yn y fformat cywir")))
       ),
       (
         "",
-        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch amser")))
       ),
       (
         "12",
@@ -560,7 +560,7 @@ class TextCheckerSpec
       ),
       (
         "0",
-        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch a time yn y fformat cywir")))
+        Left(Map(textComponent.id.modelComponentId -> Set("Nodwch amser yn y fformat cywir")))
       )
     )
 
