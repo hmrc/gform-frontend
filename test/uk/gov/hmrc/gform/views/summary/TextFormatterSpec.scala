@@ -127,6 +127,21 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     // format: on
   )
 
+  val ukSortCodeCombinations = TableDrivenPropertyChecks.Table(
+    // format: off
+    ("input",           "expected"),
+    ("123456",          "12-34-56"),    // unformatted 6 digits
+    ("12-34-56",        "12-34-56"),    // already formatted
+    ("12 34 56",        "12-34-56"),    // spaces instead of hyphens
+    ("12-34 56",        "12-34-56"),    // mixed separators
+    ("12 34-56",        "12-34-56"),    // mixed separators reversed
+    ("  12-34-56  ",    "12-34-56"),    // with spaces
+    ("12 - 34 - 56",    "12-34-56"),    // spaced hyphens
+    ("12--34--56",      "12-34-56"),    // double hyphens
+    ("12--3-4--56",     "12-34-56")     // mixed hyphens
+    // format: on
+  )
+
   forAll(equalsCombinations) { (input, expectedSterling, expectedNumber) =>
     implicit val l: LangADT = LangADT.En
     val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
@@ -143,6 +158,22 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe List(expectedSterling)
     formatForConstraint(Number()) shouldBe List(expectedNumber)
     formatForConstraint(PositiveNumber()) shouldBe List(expectedNumber)
+  }
+
+  forAll(ukSortCodeCombinations) { (input, expected) =>
+    implicit val l: LangADT = LangADT.En
+    val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
+    val inputData = mkDataOutOfDate("dummy" -> "dummy")
+
+    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+    def formatForConstraint(constraint: TextConstraint) =
+      TextFormatter.formatText(
+        FieldOk(getComponent(constraint), input),
+        EnvelopeWithMapping.empty,
+        formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+      )
+
+    formatForConstraint(UkSortCodeFormat) shouldBe List(expected)
   }
 
   "componentTextReadonly for positiveNumber" should "return correct string for prefix and suffix for language En" in {
