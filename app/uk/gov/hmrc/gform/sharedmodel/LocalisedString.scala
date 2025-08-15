@@ -19,11 +19,13 @@ import play.api.libs.json.Format
 import play.api.libs.functional.syntax._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-case class LocalisedString(m: Map[LangADT, String]) {
+final case class LocalisedString(m: Map[LangADT, String]) {
   def value(implicit l: LangADT): String = {
     val check: String = m.getOrElse(l, "")
     if (check.isBlank) m.getOrElse(LangADT.En, "") else check
   }
+
+  def valueNoFallback(implicit l: LangADT): String = m.getOrElse(l, "")
 
   def replace(toReplace: String, replaceWith: String): LocalisedString =
     copy(m = (m.map { case (lang, message) => (lang, message.replace(toReplace, replaceWith)) }))
@@ -36,6 +38,8 @@ case class LocalisedString(m: Map[LangADT, String]) {
 
 object LocalisedString {
   val empty: LocalisedString = LocalisedString(Map.empty)
+
+  def constant(en: String, cy: String): LocalisedString = LocalisedString(Map(LangADT.En -> en, LangADT.Cy -> cy))
 
   val formatMap: Format[Map[LangADT, String]] =
     JsonUtils.formatMap(LangADT.stringToLangADT, LangADT.langADTToString)
