@@ -157,7 +157,14 @@ object TextFormatter {
       }
       .getOrElse(currentValue)
 
-  private def formatUkSortCode(currentValue: String): String = currentValue.grouped(2).mkString("-")
+  private def formatUkSortCode(currentValue: String): String = {
+    val cleanValue = currentValue.replaceAll("[\\s-]", "")
+    if (cleanValue.matches("^\\d{6}$")) {
+      cleanValue.grouped(2).mkString("-")
+    } else {
+      currentValue
+    }
+  }
 
   def formatText[D <: DataOrigin](
     validationResult: FormFieldValidationResult,
