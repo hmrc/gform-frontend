@@ -49,11 +49,6 @@ class SignOutController(
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { request => _ =>
     val formTemplateContext = request.attrs(FormTemplateKey)
     val formTemplate = formTemplateContext.formTemplate
-    val redirect = Redirect(
-      frontendConfig.getBasGatewayFrontendSignOutUrl(
-        Option(routes.SignOutController.showSignedOutPage(formTemplate._id).url)
-      )
-    )
 
     val config: Option[AuthConfig] = formTemplate.authConfig match {
       case Composite(configs) =>
@@ -70,12 +65,17 @@ class SignOutController(
         val emailAuthDetails: EmailAuthDetails =
           jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
 
+        val redirect = Redirect(routes.SignOutController.showSignedOutPage(formTemplate._id)).withNewSession
         emailAuthDetails.get(formTemplateContext).fold(redirect) { emailAuthData =>
           redirect
             .flashing("maskedEmailId" -> maskEmail(emailAuthData.email.toString))
         }
       case _ =>
-        redirect
+        Redirect(
+          frontendConfig.getBasGatewayFrontendSignOutUrl(
+            Option(routes.SignOutController.showSignedOutPage(formTemplate._id).url)
+          )
+        )
     }
   }
 
