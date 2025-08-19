@@ -98,7 +98,9 @@ class SaveAcknowledgementController(
           }
           .pure[Future]
       case _ =>
-        throw new IllegalArgumentException(s"Only forms with 'email' auth config allowed")
+        throw new IllegalArgumentException(
+          s"Only forms with 'email' auth config allowed. Received $config. FormTemplateId: $formTemplateId"
+        )
     }
   }
 
