@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.instances.future._
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DbLookupChecker, DelegatedEnrolmentChecker }
@@ -24,6 +25,7 @@ import uk.gov.hmrc.gform.eval.SeissEligibilityChecker
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCacheService
 
 class GraphModule(
   authModule: AuthModule,
@@ -42,14 +44,11 @@ class GraphModule(
 
   val dbLookupCheckStatus = new DbLookupChecker(gformBackendModule.gformConnector.dbLookup)
 
-  private val graphErrorHandler = (s: GraphException) => new IllegalArgumentException(s.reportProblem)
-
-  val recalculation: Recalculation[Future, Throwable] =
-    new Recalculation(seissEligibilityChecker, delegatedEnrolmentCheckStatus, dbLookupCheckStatus, graphErrorHandler)
-
   val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
     new RealSmartStringEvaluatorFactory(englishMessages)
 
   val booleanExprEval: BooleanExprEval[Future] = new BooleanExprEval()
 
+  val graphDataCacheService: GraphDataCacheService =
+    new GraphDataCacheService(seissEligibilityChecker, delegatedEnrolmentCheckStatus, dbLookupCheckStatus)
 }

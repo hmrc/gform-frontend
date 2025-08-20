@@ -32,13 +32,13 @@ object DependencyGraph {
   def toGraph(
     formModel: FormModel[Interim],
     formTemplateExprs: Set[ExprMetadata]
-  ): Graph[GraphNode, DiEdge[GraphNode]] =
+  ): (Graph[GraphNode, DiEdge[GraphNode]], Set[In]) =
     graphFrom(formModel, formTemplateExprs)
 
   private def graphFrom[T <: PageMode](
     formModel: FormModel[T],
     formTemplateExprs: Set[ExprMetadata]
-  ): Graph[GraphNode, DiEdge[GraphNode]] = {
+  ): (Graph[GraphNode, DiEdge[GraphNode]], Set[In]) = {
 
     val isSum = new IsOneOfSum(formModel.sumInfo)
     val isStandaloneSum = new IsOneOfStandaloneSum(formModel.standaloneSumInfo)
@@ -87,6 +87,8 @@ object DependencyGraph {
         }
         .toSet
 
+    val inExprs = mutable.Set[In]()
+
     def getAllEdges = {
       val allEdges: mutable.Set[DiEdge[GraphNode]] = mutable.Set
         .from(formModel.allFormComponents)
@@ -97,6 +99,11 @@ object DependencyGraph {
         dependingFCs: Set[FormComponent],
         cycleBreaker: Option[GraphNode.Expr => Boolean]
       ): Unit = {
+
+        booleanExpr match {
+          case in: In => inExprs.add(in)
+          case _      => ()
+        }
 
         val allExprGNs: Set[GraphNode.Expr] =
           booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply).toSet
@@ -219,7 +226,7 @@ object DependencyGraph {
         }
 
     addRepeatedStructureEdges(allEdges)
-    Graph.from(allEdges)
+    Graph.from(allEdges) -> inExprs.toSet
   }
 
   def constructDependencyGraph(

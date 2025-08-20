@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, FileSystemConnector, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
@@ -55,7 +54,6 @@ class FormProcessor(
   fileSystemConnector: FileSystemConnector,
   validationService: ValidationService,
   fastForwardService: FastForwardService,
-  recalculation: Recalculation[Future, Throwable],
   objectStoreService: ObjectStoreAlgebra[Future],
   handler: FormControllerRequestHandler,
   bankAccountReputationConnector: BankAccountReputationConnector[Future],
@@ -209,14 +207,12 @@ class FormProcessor(
         id
       }
       .toSet
-
+    val updFormModelOptics = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
+        updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+        cache
+      )
     for {
-      updFormModelOptics <- FormModelOptics
-                              .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                cache,
-                                recalculation
-                              )
       redirect <- saveAndRedirect(updFormModelOptics, componentIdToFileIdMapping, postcodeLookupIds, dataRetrieveIds)
       _        <- objectStoreService.deleteFiles(cache.form.envelopeId, filesToDelete)
     } yield redirect
@@ -470,7 +466,6 @@ class FormProcessor(
                               .getProcessData[SectionSelectorType.Normal](
                                 newDataRaw,
                                 cacheUpd,
-                                formModelOptics,
                                 gformConnector.getAllTaxPeriods,
                                 NoSpecificAction
                               )

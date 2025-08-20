@@ -57,9 +57,9 @@ class ControllersModule(
     playBuiltInsModule.langs,
     builtInComponents.defaultActionBuilder,
     errResponder,
-    graphModule.recalculation,
     graphModule.smartStringEvaluatorFactory,
-    lookupRegistry
+    lookupRegistry,
+    graphModule.graphDataCacheService
   )
 
   val messagesControllerComponents: MessagesControllerComponents = DefaultMessagesControllerComponents(

@@ -85,7 +85,6 @@ class TaskListRenderingService(
                        .getProcessData[SectionSelectorType.Normal](
                          newDataRaw,
                          cacheUpd,
-                         formModelOptics,
                          gformConnector.getAllTaxPeriods,
                          NoSpecificAction
                        )

@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import cats.{ Functor, MonadError }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
@@ -34,30 +33,28 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{ Instant, LocalDate, ZoneId }
 import scala.util.matching.Regex
 
 object FormModelBuilder {
-  def fromCache[E, F[_]: Functor](
+  def fromCache(
     cache: AuthCache,
     cacheData: CacheData,
-    recalculation: Recalculation[F, E],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     lookupRegistry: LookupRegistry,
     taskIdTaskStatus: TaskIdTaskStatusMapping
   )(implicit
-    hc: HeaderCarrier,
-    me: MonadError[F, E]
-  ): FormModelBuilder[E, F] =
+    hc: HeaderCarrier
+  ): FormModelBuilder =
     new FormModelBuilder(
       cache.retrievals,
       cache.formTemplate,
       cacheData.thirdPartyData,
       cacheData.envelopeId,
       cache.accessCode,
-      recalculation,
       componentIdToFileId,
       lookupRegistry,
       taskIdTaskStatus
@@ -196,19 +193,17 @@ object FormModelBuilder {
 
 }
 
-class FormModelBuilder[E, F[_]: Functor](
+class FormModelBuilder(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
   thirdPartyData: ThirdPartyData,
   envelopeId: EnvelopeId,
   maybeAccessCode: Option[AccessCode],
-  recalculation: Recalculation[F, E],
   componentIdToFileId: FormComponentIdToFileIdMapping,
   lookupRegistry: LookupRegistry,
   taskIdTaskStatus: TaskIdTaskStatusMapping
 )(implicit
-  hc: HeaderCarrier,
-  me: MonadError[F, E]
+  hc: HeaderCarrier
 ) {
 
   private def toRecalculationResults(
@@ -217,8 +212,9 @@ class FormModelBuilder[E, F[_]: Functor](
     formPhase: Option[FormPhase],
     lang: LangADT,
     messages: Messages,
-    formStartDate: Instant
-  ): F[RecalculationResult] = {
+    formStartDate: Instant,
+    graphDataCache: GraphDataCache
+  ): RecalculationResult = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
         modelComponentId -> data.filesOfMultiFileComponent(modelComponentId)
@@ -256,8 +252,17 @@ class FormModelBuilder[E, F[_]: Functor](
         LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London"))
       )
 
-    recalculation
-      .recalculateFormDataNew(data, formModel, formTemplate, retrievals, thirdPartyData, evaluationContext, messages)
+    Recalculation
+      .recalculateFormDataNew(
+        data,
+        formModel,
+        formTemplate,
+        retrievals,
+        thirdPartyData,
+        evaluationContext,
+        messages,
+        graphDataCache
+      )
   }
 
   def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
@@ -333,21 +338,20 @@ class FormModelBuilder[E, F[_]: Functor](
   def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase],
-    formStartDate: Instant
-  )(implicit messages: Messages, lang: LangADT): F[FormModelVisibilityOptics[D]] = {
+    formStartDate: Instant,
+    graphDataCache: GraphDataCache
+  )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics[D] = {
     val formModel: FormModel[Interim] = expand(data)
 
-    val recalculationResultF: F[RecalculationResult] =
-      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate)
+    val recalculationResult: RecalculationResult =
+      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate, graphDataCache)
 
-    recalculationResultF.map { recalculationResult =>
-      buildFormModelVisibilityOptics(
-        data,
-        formModel,
-        recalculationResult,
-        phase
-      )
-    }
+    buildFormModelVisibilityOptics(
+      data,
+      formModel,
+      recalculationResult,
+      phase
+    )
   }
 
   private def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](

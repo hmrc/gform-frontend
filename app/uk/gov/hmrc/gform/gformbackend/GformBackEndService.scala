@@ -35,7 +35,6 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFor
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, QueryParams, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateContext, FormTemplateId, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
@@ -103,8 +102,7 @@ class GformBackEndService(
   renderer: SectionRenderingService,
   pdfRenderService: PDFRenderService,
   lookupRegistry: LookupRegistry,
-  smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  recalculation: Recalculation[Future, Throwable]
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
 
@@ -265,39 +263,37 @@ class GformBackEndService(
     hc: HeaderCarrier,
     pdfFunctions: PDFCustomRender[P]
   ): Future[Option[PdfContent]] = {
-    val formModelOpticsUpdatedFuture = FormModelOptics.mkFormModelOptics[D, Future, SectionSelectorType.Normal](
+    val formModelOpticsUpdated = FormModelOptics.mkFormModelOptics[D, SectionSelectorType.Normal](
       formModelOptics.formModelVisibilityOptics.recData.variadicFormData
         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
       cache,
-      recalculation,
       Some(FormPhase(InstructionPDF))
     )
 
-    formModelOpticsUpdatedFuture.flatMap { formModelOpticsUpdated =>
-      implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
-        .apply(
-          formModelOpticsUpdated.formModelVisibilityOptics
-            .asInstanceOf[FormModelVisibilityOptics[Mongo]]
-        )
+    implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
+      .apply(
+        formModelOpticsUpdated.formModelVisibilityOptics
+          .asInstanceOf[FormModelVisibilityOptics[Mongo]]
+      )
 
-      pdfRenderService
-        .createPDFContent[D, U, P](
-          s"Instructions PDF - ${cache.formTemplate.formName.value}",
-          None,
-          cache,
-          formModelOpticsUpdated,
-          cache.formTemplate.destinations match {
-            case DestinationList(_, acknowledgementSection, _) =>
-              acknowledgementSection.instructionPdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
-            case _ => None
-          },
-          submissionDetails,
-          SummaryPagePurpose.ForDms,
-          None,
-          maybeFormName = maybeFormName
-        )
-        .map(Some(_))
-    }
+    pdfRenderService
+      .createPDFContent[D, U, P](
+        s"Instructions PDF - ${cache.formTemplate.formName.value}",
+        None,
+        cache,
+        formModelOpticsUpdated,
+        cache.formTemplate.destinations match {
+          case DestinationList(_, acknowledgementSection, _) =>
+            acknowledgementSection.instructionPdf.map(p => PDFModel.HeaderFooter(p.header, p.footer))
+          case _ => None
+        },
+        submissionDetails,
+        SummaryPagePurpose.ForDms,
+        None,
+        maybeFormName = maybeFormName
+      )
+      .map(Some(_))
+
   }
 
   def emailParameter[D <: DataOrigin](
