@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.auditing
 
 import cats.data.NonEmptyList
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
-import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
@@ -33,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo.ItmpDateOfBirth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.Yes
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, DataRetrieveCtx, Expr, FormComponent, FormComponentId, IncludeIf, IsAddress, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, DataRetrieve, RetrieveDataType, SmartString, SubmissionRef, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, DataRetrieve, DataRetrieveId, RetrieveDataType, SmartString, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
@@ -171,65 +170,93 @@ trait AuditService {
       addressesFromComponents ++ getThirdPartyDataAddresses
     }
 
-    def getMslMap(mslComponents: List[(String, MiniSummaryList)]): Map[String, AuditMslRow] = {
-      def evaluateSmartString(smartString: Option[SmartString], trim: Boolean): Option[String] =
-        smartString match {
-          case Some(ss) =>
-            val value = sse.evalEnglish(ss, markDown = false)
-            //TODO: Split by space and capitalize first letter of each item > index 0
-            if (trim) Some(value.trim.replaceAll(" ", "")) else value
-          case None => None
+    def evaluateSmartString(smartString: Option[SmartString], trim: Boolean): Option[String] =
+      smartString match {
+        case Some(ss) =>
+          val value = sse.evalEnglish(ss, markDown = false)
+          val processedValue = if (trim) {
+            value.trim.split("\\s+").map(_.capitalize).mkString("")
+          } else {
+            value
+          }
+          Some(processedValue)
+        case None => None
+      }
+
+    def getSummaryItemsMap(mslComponents: List[(String, MiniSummaryList)]): Map[String, SummaryAuditItem] = {
+
+      def processExpressionResult(expressionResult: ExpressionResult, expr: Expr): SummaryAuditItem = {
+
+        def extractItmpData[T](extractor: ItmpRetrievals => Option[T]): Option[T] =
+          thirdPartyData.itmpRetrievals.flatMap(extractor)
+
+        def extractDataRetrieveAddress(id: DataRetrieveId): List[AuditAddress] =
+          thirdPartyData.dataRetrieve
+            .flatMap(_.get(id))
+            .map(_.data)
+            .toList
+            .flatMap {
+              case RetrieveDataType.ObjectType(data) =>
+                createAuditAddressFromData(data).toList
+              case RetrieveDataType.ListType(dataList) =>
+                dataList.flatMap(createAuditAddressFromData)
+            }
+
+        def createAuditAddressFromData(data: Map[DataRetrieve.Attribute, String]): Option[AuditAddress] = {
+          val line1 = data.get(DataRetrieve.Attribute("address_line_1"))
+          val postcode = data.get(DataRetrieve.Attribute("postal_code"))
+
+          (line1, postcode) match {
+            case (Some(line1Value), Some(postcodeValue)) =>
+              Some(
+                AuditAddress(
+                  line1Value,
+                  data.get(DataRetrieve.Attribute("address_line_2")),
+                  data.get(DataRetrieve.Attribute("po_box")),
+                  data.get(DataRetrieve.Attribute("locality")),
+                  postcodeValue,
+                  data.get(DataRetrieve.Attribute("region")),
+                  data.get(DataRetrieve.Attribute("country")),
+                  None
+                )
+              )
+            case _ => None
+          }
         }
 
-      def getAuditMslRowFromExprResult(expressionResult: ExpressionResult, expr: Expr): AuditMslRow =
         expressionResult match {
-          case ExpressionResult.NumberResult(value) => AuditMslRow(Some(value.toString()), None, None)
+          case ExpressionResult.NumberResult(value) =>
+            SummaryAuditItem.fromText(value.toString())
+
           case ExpressionResult.StringResult(value) =>
             expr match {
-              case AuthCtx(authInfo) =>
-                if (authInfo == ItmpDateOfBirth) {
-                  val itmpDateOfBirth = thirdPartyData.itmpRetrievals match {
-                    case Some(retrievals) =>
-                      retrievals.itmpDateOfBirth match {
-                        case Some(localDate) =>
-                          Some(localDate)
-                        case None => None
-                      }
-                    case None => None
-                  }
-                  itmpDateOfBirth match {
-                    case Some(dateOfBirth) => AuditMslRow(None, None, Some(dateOfBirth))
-                    case None              => AuditMslRow(None, None, None)
-                  }
-                } else {
-                  AuditMslRow(Some(value), None, None)
+              case AuthCtx(authInfo) if authInfo == ItmpDateOfBirth =>
+                extractItmpData(_.itmpDateOfBirth) match {
+                  case Some(dateOfBirth) => SummaryAuditItem.fromDate(dateOfBirth)
+                  case None              => SummaryAuditItem.empty
                 }
-              case _ =>
-                AuditMslRow(Some(value), None, None)
+              case _ => SummaryAuditItem.fromText(value)
             }
+
           case ExpressionResult.DateResult(localDate) =>
-            AuditMslRow(
-              None,
-              None,
-              Some(localDate)
-            )
+            SummaryAuditItem.fromDate(localDate)
+
           case ExpressionResult.TaxPeriodResult(month, year) =>
-            AuditMslRow(Some(s"${year.toString}-${month.toString}"), None, None)
-          case p @ ExpressionResult.PeriodResult(_) => AuditMslRow(Some(p.asString), None, None)
-          case ExpressionResult.OptionResult(value) => AuditMslRow(Some(value.mkString(",")), None, None)
-          case ExpressionResult.ListResult(_)       => AuditMslRow(Some("List result"), None, None) //TODO: handle this
-          case ExpressionResult.AddressResult(addressRes) =>
+            SummaryAuditItem.fromText(s"$year-$month")
+
+          case p @ ExpressionResult.PeriodResult(_) =>
+            SummaryAuditItem.fromText(p.asString)
+
+          case ExpressionResult.OptionResult(values) =>
+            SummaryAuditItem.fromTextList(values.toList)
+
+          case ExpressionResult.ListResult(results) =>
+            val processedResults = results.map(processExpressionResult(_, expr))
+            SummaryAuditItem.combineAll(processedResults)
+          case ExpressionResult.AddressResult(_) =>
             expr match {
               case AuthCtx(_) =>
-                val itmpAddress: Option[ItmpAddress] = thirdPartyData.itmpRetrievals match {
-                  case Some(retrievals) =>
-                    retrievals.itmpAddress match {
-                      case Some(address) => Some(address)
-                      case None          => None
-                    }
-                  case None => None
-                }
-                itmpAddress match {
+                extractItmpData(_.itmpAddress) match {
                   case Some(address) =>
                     (address.line1, address.postCode) match {
                       case (Some(line1), Some(postcode)) =>
@@ -243,83 +270,58 @@ trait AuditService {
                           address.countryName,
                           None
                         )
-                        AuditMslRow(None, Some(auditAddress), None)
-                      case _ => AuditMslRow(None, None, None)
+                        SummaryAuditItem.fromAddress(auditAddress)
+                      case _ => SummaryAuditItem.empty
                     }
-                  case None =>
-                    AuditMslRow(None, None, None)
+                  case None => SummaryAuditItem.empty
                 }
-              case DataRetrieveCtx(id, _) =>
-                thirdPartyData.dataRetrieve match {
-                  case Some(dr) =>
-                    dr.get(id) match {
-                      case Some(drr) =>
-                        drr.data match {
-                          case RetrieveDataType.ObjectType(data) =>
-                            val line1 = data.get(DataRetrieve.Attribute("address_line_1"))
-                            val postcode = data.get(DataRetrieve.Attribute("postal_code"))
-                            (line1, postcode) match {
-                              case (Some(line1), Some(postcode)) =>
-                                val auditAddress = AuditAddress(
-                                  line1,
-                                  data.get(DataRetrieve.Attribute("address_line_2")),
-                                  data.get(DataRetrieve.Attribute("po_box")),
-                                  data.get(DataRetrieve.Attribute("locality")),
-                                  postcode,
-                                  data.get(DataRetrieve.Attribute("region")),
-                                  data.get(DataRetrieve.Attribute("country")),
-                                  None
-                                )
-                                AuditMslRow(None, Some(auditAddress), None)
-                              case _ => AuditMslRow(None, None, None)
-                            }
-                          case RetrieveDataType.ListType(_) => AuditMslRow(None, None, None) //TODO: Handle this
-                        }
-                      case None => AuditMslRow(None, None, None)
-                    }
-                  case None => AuditMslRow(None, None, None)
-                }
-              case _ =>
-                AuditMslRow(
-                  None,
-                  Some(AuditAddress(addressRes.head, None, None, None, "BS22FR", "Bristol", "United Kingdom", None)),
-                  None
-                )
-            }
-          case _ => AuditMslRow(None, None, None)
-        }
 
-      def getAuditMslRow(mslValue: MiniSummaryListValue): AuditMslRow =
+              case DataRetrieveCtx(id, _) =>
+                val addresses = extractDataRetrieveAddress(id)
+                SummaryAuditItem.fromAddressList(addresses)
+
+              case _ => SummaryAuditItem.empty
+            }
+
+          case _ => SummaryAuditItem.empty
+        }
+      }
+
+      def processMinSummaryListValue(mslValue: MiniSummaryListValue): SummaryAuditItem =
         mslValue match {
           case MiniSummaryListValue.AnyExpr(expr) =>
-            getAuditMslRowFromExprResult(
-              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult,
-              expr
-            )
+            val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
+            processExpressionResult(result.expressionResult, expr)
           case MiniSummaryListValue.Reference(expr) =>
-            getAuditMslRowFromExprResult(
-              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult,
-              expr
-            )
+            val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
+            processExpressionResult(result.expressionResult, expr)
         }
 
-      def shouldInclude(includeIf: Option[IncludeIf]): Boolean =
+      def shouldIncludeRow(includeIf: Option[IncludeIf]): Boolean =
         includeIf.fold(true)(formModelVisibilityOptics.evalIncludeIfExpr(_, None))
 
-      mslComponents.flatMap { msl =>
-        msl._2.rows
-          .collect {
-            //TODO: Where there is no key, we can't just use msl._1 in case of duplication. We should pass in an index somehow or use a UUID
-            case MiniSummaryRow.ValueRow(key, value, includeIf, _, _) if shouldInclude(includeIf) =>
-              val auditKey = evaluateSmartString(key, trim = true).fold(msl._1)(k => s"${msl._1}$k")
-              val auditMslRow = getAuditMslRow(value)
-              auditKey -> auditMslRow
-            case MiniSummaryRow.SmartStringRow(key, value, includeIf, _, _) if shouldInclude(includeIf) =>
-              val auditKey = evaluateSmartString(key, trim = true).fold(msl._1)(k => s"${msl._1}$k")
-              auditKey -> AuditMslRow(evaluateSmartString(Some(value), trim = false), None, None)
-          }
-          .filter(kv => kv._2 != AuditMslRow(None, None, None))
-      }.toMap
+      val summaryItems = for {
+        (componentId, miniSummaryList) <- mslComponents
+        row                            <- miniSummaryList.rows
+      } yield row match {
+        case MiniSummaryRow.ValueRow(key, value, includeIf, _, _) if shouldIncludeRow(includeIf) =>
+          val auditKey = evaluateSmartString(key, trim = true)
+            .fold(componentId)(k => s"$componentId$k")
+          val summaryItem = processMinSummaryListValue(value)
+          Some(auditKey -> summaryItem)
+
+        case MiniSummaryRow.SmartStringRow(key, value, includeIf, _, _) if shouldIncludeRow(includeIf) =>
+          val auditKey = evaluateSmartString(key, trim = true)
+            .fold(componentId)(k => s"$componentId$k")
+          val textValue = evaluateSmartString(Some(value), trim = false)
+            .map(SummaryAuditItem.fromText)
+            .getOrElse(SummaryAuditItem.empty)
+          Some(auditKey -> textValue)
+
+        case _ => None
+      }
+
+      summaryItems.flatten.filter { case (_, summaryItem) => !summaryItem.isEmpty }.toMap
     }
 
     val addressComponents: List[FormComponent] = formModelVisibilityOptics.allFormComponents.filter {
@@ -347,7 +349,7 @@ trait AuditService {
     UserValues(
       getValueMap(componentsExclAddresses),
       getAddressMap(addressComponents),
-      getMslMap(mslComponents)
+      getSummaryItemsMap(mslComponents)
     )
   }
 
@@ -494,21 +496,31 @@ trait AuditService {
       else
         Json.obj()
 
-    val summaryItemsOnlyJsObj: JsObject =
-      if (detail.mslRows.nonEmpty)
+    val summaryItemsJsObj: JsObject =
+      if (detail.summaryItems.nonEmpty)
         Json.obj(
           "SummaryItems" -> Json.obj(
-            detail.mslRows.map { case (key, auditMslRow) =>
-              val value: Json.JsValueWrapper = auditMslRow match {
-                case AuditMslRow(Some(text), None, None)    => text
-                case AuditMslRow(None, Some(address), None) => Json.toJson(address)
-                case AuditMslRow(None, None, Some(date)) =>
-                  s"${date.getYear.toString}-${date.getMonthValue.toString}-${date.getDayOfMonth.toString}"
-                case AuditMslRow(Some(text), _, _)       => text
-                case AuditMslRow(None, Some(address), _) => Json.toJson(address)
-                case _                                   => ""
-              }
-              key -> value
+            detail.summaryItems.collect {
+              case (key, summaryItem) if !summaryItem.isEmpty =>
+                val jsValue: Json.JsValueWrapper = (summaryItem.text, summaryItem.address, summaryItem.date) match {
+                  case (Some(texts), None, None) =>
+                    if (texts.size == 1) texts.head else Json.toJson(texts)
+                  case (None, Some(addresses), None) =>
+                    if (addresses.size == 1) Json.toJson(addresses.head) else Json.toJson(addresses)
+                  case (None, None, Some(dates)) =>
+                    if (dates.size == 1) {
+                      val date = dates.head
+                      s"${date.getYear}-${date.getMonthValue}-${date.getDayOfMonth}"
+                    } else {
+                      Json.toJson(dates.map(d => s"${d.getYear}-${d.getMonthValue}-${d.getDayOfMonth}"))
+                    }
+                  case (Some(texts), _, _) =>
+                    if (texts.size == 1) texts.head else Json.toJson(texts)
+                  case (None, Some(addresses), _) =>
+                    if (addresses.size == 1) Json.toJson(addresses.head) else Json.toJson(addresses)
+                  case _ => ""
+                }
+                key -> jsValue
             }.toSeq: _*
           )
         )
@@ -522,7 +534,7 @@ trait AuditService {
       "UserId"         -> form.userId.value,
       "CustomerId"     -> customerId.id,
       "UserValues"     -> userValues
-    ) ++ userAddressesJsObj ++ summaryItemsOnlyJsObj ++
+    ) ++ userAddressesJsObj ++ summaryItemsJsObj ++
       Json.obj(
         "UserInfo"      -> userInfo,
         "SubmissionRef" -> SubmissionRef(form.envelopeId).value
@@ -557,7 +569,7 @@ trait AuditService {
 case class UserValues(
   userValues: Map[String, String],
   userAddresses: Map[String, AuditAddress],
-  mslRows: Map[String, AuditMslRow]
+  summaryItems: Map[String, SummaryAuditItem]
 )
 
 object UserValues {
@@ -600,12 +612,61 @@ object AuditAddress {
     }
 }
 
-case class AuditMslRow(
-  text: Option[String],
-  address: Option[AuditAddress],
-  date: Option[LocalDate]
-)
+case class SummaryAuditItem(
+  text: Option[List[String]],
+  address: Option[List[AuditAddress]],
+  date: Option[List[LocalDate]]
+) {
+  def isEmpty: Boolean = text.isEmpty && address.isEmpty && date.isEmpty
 
-object AuditMslRow {
-  implicit val format: Format[AuditMslRow] = Json.format[AuditMslRow]
+  def combine(other: SummaryAuditItem): SummaryAuditItem = SummaryAuditItem(
+    text = (text, other.text) match {
+      case (Some(t1), Some(t2)) => Some((t1 ++ t2).distinct)
+      case (Some(t1), None)     => Some(t1)
+      case (None, Some(t2))     => Some(t2)
+      case (None, None)         => None
+    },
+    address = (address, other.address) match {
+      case (Some(a1), Some(a2)) => Some((a1 ++ a2).distinct)
+      case (Some(a1), None)     => Some(a1)
+      case (None, Some(a2))     => Some(a2)
+      case (None, None)         => None
+    },
+    date = (date, other.date) match {
+      case (Some(d1), Some(d2)) => Some((d1 ++ d2).distinct)
+      case (Some(d1), None)     => Some(d1)
+      case (None, Some(d2))     => Some(d2)
+      case (None, None)         => None
+    }
+  )
+}
+
+object SummaryAuditItem {
+  implicit val format: Format[SummaryAuditItem] = Json.format[SummaryAuditItem]
+
+  val empty: SummaryAuditItem = SummaryAuditItem(None, None, None)
+
+  def fromText(text: String): SummaryAuditItem = SummaryAuditItem(Some(List(text)), None, None)
+
+  def fromAddress(address: AuditAddress): SummaryAuditItem = SummaryAuditItem(None, Some(List(address)), None)
+
+  def fromDate(date: LocalDate): SummaryAuditItem = SummaryAuditItem(None, None, Some(List(date)))
+
+  def fromTextList(texts: List[String]): SummaryAuditItem =
+    if (texts.nonEmpty) SummaryAuditItem(Some(texts.distinct), None, None) else empty
+
+  def fromAddressList(addresses: List[AuditAddress]): SummaryAuditItem =
+    if (addresses.nonEmpty) SummaryAuditItem(None, Some(addresses.distinct), None) else empty
+
+  def fromDateList(dates: List[LocalDate]): SummaryAuditItem =
+    if (dates.nonEmpty) SummaryAuditItem(None, None, Some(dates.distinct)) else empty
+
+  def combineAll(items: List[SummaryAuditItem]): SummaryAuditItem = {
+    val nonEmptyItems = items.filter(!_.isEmpty)
+    if (nonEmptyItems.isEmpty) {
+      empty
+    } else {
+      nonEmptyItems.reduce(_.combine(_))
+    }
+  }
 }
