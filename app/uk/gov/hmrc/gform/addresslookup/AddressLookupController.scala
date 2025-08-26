@@ -18,10 +18,10 @@ package uk.gov.hmrc.gform.addresslookup
 
 import cats.data.NonEmptyList
 import cats.implicits._
+import com.softwaremill.quicklens._
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Call, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
-
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, FormModel, FormModelBuilder, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.monoidHtml
+import uk.gov.hmrc.gform.gform.ConfirmationService
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics, TaskIdTaskStatusMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
@@ -512,8 +513,22 @@ class AddressLookupController(
             sectionNumber
           )
 
+        val (confirmations, currentConfirmations) = ConfirmationService.processConfirmation(formModelOptics, cache.form)
+
+        val confirmationToReset = confirmations
+          .map(_.question.id.modelComponentId)
+          .toSet
+
+        val updateFormField = updatedForm.formData.fields.filter(formField => !confirmationToReset(formField.id))
+
+        val updatedFormConfirmations = updatedForm
+          .modify(_.formData.fields)
+          .using(_ => updateFormField)
+          .modify(_.thirdPartyData.confirmations)
+          .using(_ => Some(currentConfirmations))
+
         addressLookupService
-          .flagAddressAsConfirmed(updatedForm, maybeAccessCode, formComponentId)
+          .flagAddressAsConfirmed(updatedFormConfirmations, maybeAccessCode, formComponentId)
           .as(Redirect(resolveRedirect))
     }
 
