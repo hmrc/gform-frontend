@@ -113,7 +113,7 @@ class SubmissionService(
     customerId: CustomerId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     envelopeFiles: List[File]
-  )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator): Unit =
+  )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator, l: LangADT): Unit =
     auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId, envelopeFiles)
 
   private def cleanseEnvelope(
