@@ -126,9 +126,6 @@ class GraphDataCacheService(
         booleanExprCache
       }
 
-      println(booleanExprCache)
-      println(finalBooleanCache)
-
       GraphDataCache(graph, inExprResolver, finalBooleanCache)
     }
   }
