@@ -94,12 +94,10 @@ class BooleanExprEval[F[_]: Monad] {
 
         l.contains(r).pure[F]
 
-      case in @ In(_, _) =>
-        val formModel = formModelVisibilityOptics.formModel
+      case in: In =>
         val recalculationResult = formModelVisibilityOptics.recalculationResult
-        val recData = formModelVisibilityOptics.recData
         BooleanExprEval
-          .evalInExpr(in, formModel, recalculationResult, formModelVisibilityOptics.booleanExprResolver, recData)
+          .evalInExpr(in, recalculationResult)
           .pure[F]
 
       case h @ HasAnswer(_, _) =>
@@ -227,20 +225,11 @@ object BooleanExprEval {
 
   def evalInExpr[T <: PageMode](
     in: In,
-    formModel: FormModel[T],
-    recalculationResult: RecalculationResult,
-    booleanExprResolver: BooleanExprResolver,
-    recData: RecData[SourceOrigin.Current]
+    recalculationResult: RecalculationResult
   ): Boolean = {
-    val typeInfo = formModel.toFirstOperandTypeInfo(in.value)
-    val expressionResult = recalculationResult.evaluationResults
-      .evalExprCurrent(typeInfo, recData, booleanExprResolver, recalculationResult.evaluationContext)
-    val maybeBoolean =
-      recalculationResult.booleanExprCache.get(
-        in.dataSource,
-        expressionResult.stringRepresentation(typeInfo, recalculationResult.evaluationContext.messages)
-      )
-    maybeBoolean.getOrElse(false)
+    println(in)
+    println(recalculationResult.inExprResolver(in))
+    recalculationResult.inExprResolver(in)
   }
 
   def evalFirstExpr[T <: PageMode](

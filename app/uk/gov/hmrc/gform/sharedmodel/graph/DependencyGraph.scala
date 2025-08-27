@@ -99,14 +99,19 @@ object DependencyGraph {
         dependingFCs: Set[FormComponent],
         cycleBreaker: Option[GraphNode.Expr => Boolean]
       ): Unit = {
-
-        booleanExpr match {
-          case in: In => inExprs.add(in)
-          case _      => ()
-        }
-
         val allExprGNs: Set[GraphNode.Expr] =
           booleanExpr.allExpressions.flatMap(_.leafs(formModel)).map(GraphNode.Expr.apply).toSet
+
+        def getInExpr(b: BooleanExpr): List[In] =
+          b match {
+            case Not(e)           => getInExpr(e)
+            case Or(left, right)  => getInExpr(left) ++ getInExpr(right)
+            case And(left, right) => getInExpr(left) ++ getInExpr(right)
+            case in: In           => List(in)
+            case _                => List()
+          }
+
+        inExprs.addAll(getInExpr(booleanExpr))
 
         val dependingFCIds = dependingFCs.map(_.id)
 

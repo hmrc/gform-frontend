@@ -142,7 +142,7 @@ object FormModelBuilder {
       case IsTrue                              => true
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, formModel, recalculationResult, booleanExprResolver, recData)
+      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, recalculationResult)
       case h @ HasAnswer(_, _) =>
         BooleanExprEval.evalHasAnswer(
           h,
@@ -258,7 +258,6 @@ class FormModelBuilder(
         formModel,
         formTemplate,
         retrievals,
-        thirdPartyData,
         evaluationContext,
         messages,
         graphDataCache

@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.models.optics
 
+import com.softwaremill.quicklens._
 import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormPhase, IncludeIf, RemoveItemIf, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveResult, SourceOrigin, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
-import com.softwaremill.quicklens._
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, SourceOrigin, VariadicValue }
 
 case class FormModelVisibilityOptics[D <: DataOrigin](
   formModel: FormModel[Visibility],
@@ -33,7 +32,6 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
 
   val evaluationResults: EvaluationResults = recalculationResult.evaluationResults
   val graphData: GraphData = recalculationResult.graphData
-  val booleanExprCache: BooleanExprCache = recalculationResult.booleanExprCache
 
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
 

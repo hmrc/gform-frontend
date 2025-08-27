@@ -22,9 +22,9 @@ import scalax.collection.immutable.Graph
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Interim, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormCtx, FormTemplate, In }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormTemplate, In }
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -47,12 +47,10 @@ class GraphDataCacheService(
     val (graph, inExprs) = DependencyGraph.toGraph(formModelInterim, AllFormTemplateExpressions(formTemplate))
 
     val inExprResolverFtr = {
-      val setOfFutures = inExprs.map { case in @ In(expr, dataSource) =>
-        println(expr)
-        val value =
-          ???
+      val setOfFutures = inExprs.flatMap { case In(formCtx: FormCtx, dataSource) =>
+        val modelComponentId = formCtx.formComponentId.baseComponentId
 
-        def makeCall(): Future[Boolean] = dataSource match {
+        def makeCall(value: String): Future[Boolean] = dataSource match {
           case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
           case DataSource.Enrolment(serviceName, identifierName) =>
             retrievals.enrolmentExists(serviceName, identifierName, value).pure[Future]
@@ -64,14 +62,20 @@ class GraphDataCacheService(
             seissEligibilityChecker(UtrEligibilityRequest(value), hc)
         }
 
-        makeCall().map(in -> _)
+        variadicFormData.forBaseComponentId(modelComponentId).map { case (modelComponentId, variadicFormValue) =>
+          val value = variadicFormValue.fold(one => one.value)(many =>
+            throw new RuntimeException(s"Didn't expect many data points in data $many")
+          )
+          val newIn = In(new FormCtx(modelComponentId.toFormComponentId), dataSource)
+          makeCall(value).map(newIn -> _)
+        }
       }
 
       Future
         .sequence(setOfFutures)
         .map(_.toMap)
         .map { map => (in: In) =>
-          map.getOrElse(in, throw new RuntimeException("In expression cannot be evaluated, request is missing"))
+          map.getOrElse(in, false)
         }
     }
 

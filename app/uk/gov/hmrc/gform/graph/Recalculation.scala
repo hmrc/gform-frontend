@@ -24,11 +24,10 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
-import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache, GraphNode }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
-import scala.collection.{ immutable, mutable }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
+import scala.collection.mutable
 
 sealed trait GraphException {
   def reportProblem: String = this match {
@@ -49,7 +48,6 @@ object Recalculation {
     formModel: FormModel[Interim],
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    thirdPartyData: ThirdPartyData,
     evaluationContext: EvaluationContext,
     messages: Messages,
     graphDataCache: GraphDataCache
@@ -69,14 +67,6 @@ object Recalculation {
       SourceOrigin.changeSource(RecData.fromData(VariadicFormData(formDataMap))),
       formTemplate.formKind.repeatedComponentsDetails
     )
-    val booleanExprCacheMap: mutable.Map[DataSource, mutable.Map[String, Boolean]] =
-      thirdPartyData.booleanExprCache.mapping
-        .foldLeft(
-          mutable.Map.newBuilder[DataSource, mutable.Map[String, Boolean]]
-        ) { case (builder, (key, value)) =>
-          builder.addOne(key -> mutable.Map.newBuilder.addAll(value).result())
-        }
-        .result()
 
     val res: Either[GraphException, Iterable[(Int, List[GraphNode])]] =
       for {
@@ -98,22 +88,14 @@ object Recalculation {
         graphTopologicalOrder
       }
 
-    def immutableBooleanExprCacheMap = booleanExprCacheMap
-      .foldLeft(
-        immutable.Map.newBuilder[DataSource, immutable.Map[String, Boolean]]
-      ) { case (builder, (key, value)) =>
-        builder.addOne(key -> value.toMap)
-      }
-      .result()
-
     res match {
       case Left(graphException) => throw new IllegalArgumentException(graphException.reportProblem)
       case Right(graphTopologicalOrder) =>
         RecalculationResult(
           startEvResults,
           GraphData(graphTopologicalOrder, graphDataCache.graph),
-          BooleanExprCache(immutableBooleanExprCacheMap),
-          evaluationContext
+          evaluationContext,
+          graphDataCache.inExprResolver
         )
     }
   }
@@ -292,8 +274,18 @@ object Recalculation {
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case DuplicateExists(fieldList)          => BooleanExprEval.evalDuplicateExpr(fieldList, recData)
       case expr: In                            => inExprResolver(expr)
-      case First(FormCtx(formComponentId))     => BooleanExprEval.evalFirstExpr(formComponentId)
-      case IsLogin(value)                      => BooleanExprEval.evalIsLoginExpr(value, retrievals)
+      case h @ HasAnswer(_, _) =>
+        BooleanExprEval
+          .evalHasAnswer(
+            h,
+            formModel,
+            evaluationResults,
+            evaluationContext,
+            booleanExprResolver,
+            SourceOrigin.changeSource(recData)
+          )
+      case First(FormCtx(formComponentId)) => BooleanExprEval.evalFirstExpr(formComponentId)
+      case IsLogin(value)                  => BooleanExprEval.evalIsLoginExpr(value, retrievals)
     }
 
     loop(booleanExpr)
