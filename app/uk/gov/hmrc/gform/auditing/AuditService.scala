@@ -533,10 +533,9 @@ trait AuditService {
                     if (addresses.size == 1) Json.toJson(addresses.head) else Json.toJson(addresses)
                   case (None, None, Some(dates)) =>
                     if (dates.size == 1) {
-                      val date = dates.head
-                      s"${date.getYear}-${date.getMonthValue}-${date.getDayOfMonth}"
+                      dates.head.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
                     } else {
-                      Json.toJson(dates.map(d => s"${d.getYear}-${d.getMonthValue}-${d.getDayOfMonth}"))
+                      Json.toJson(dates.map(_.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)))
                     }
                   case (Some(texts), _, _) =>
                     if (texts.size == 1) texts.head else Json.toJson(texts)

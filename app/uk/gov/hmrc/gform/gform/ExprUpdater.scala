@@ -94,6 +94,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case DateFormCtxVar(formCtx)             => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dateExr, offset) => DateExprWithOffset(expandDateExpr(dateExr), offset)
     case DateConstructExpr(dm, year)         => DateConstructExpr(expandDateExpr(dm), expandExpr(year))
+    case DataRetrieveDateCtx(id, attribute)  => DataRetrieveDateCtx(id.withIndex(index), attribute)
     case otherwise                           => otherwise
   }
 
