@@ -227,8 +227,6 @@ object BooleanExprEval {
     in: In,
     recalculationResult: RecalculationResult
   ): Boolean = {
-    println(in)
-    println(recalculationResult.inExprResolver(in))
     recalculationResult.inExprResolver(in)
   }
 
