@@ -443,37 +443,39 @@ class AuthenticatedRequestActions(
 
         val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
           VariadicFormData.buildFromMongoData(fmb.dependencyGraphValidation, form.formData.toData)
-        graphDataService.get(retrievals, variadicFormData, formTemplate, fmb).flatMap { graphData =>
-          val cache = AuthCacheWithForm(
-            retrievals,
-            formUpd,
-            formTemplateContext,
-            role,
-            maybeAccessCode,
-            lookupRegistry,
-            graphData
-          )
+        graphDataService
+          .get(retrievals, variadicFormData, formTemplate, fmb, cacheData.thirdPartyData.booleanExprCache)
+          .flatMap { graphData =>
+            val cache = AuthCacheWithForm(
+              retrievals,
+              formUpd,
+              formTemplateContext,
+              role,
+              maybeAccessCode,
+              lookupRegistry,
+              graphData
+            )
 
-          val formModelOptics =
-            FormModelOptics
-              .mkFormModelOptics[DataOrigin.Mongo, U](
-                cache.variadicFormData,
-                cache
-              )
+            val formModelOptics =
+              FormModelOptics
+                .mkFormModelOptics[DataOrigin.Mongo, U](
+                  cache.variadicFormData,
+                  cache
+                )
 
-          val formModelOpticsUpd =
-            formModelOptics
-              .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
-              .setTo(formUpd.formTemplateId)
+            val formModelOpticsUpd =
+              formModelOptics
+                .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
+                .setTo(formUpd.formTemplateId)
 
-          val smartStringEvaluator =
-            smartStringEvaluatorFactory
-              .apply(
-                formModelOpticsUpd.formModelVisibilityOptics
-              )
+            val smartStringEvaluator =
+              smartStringEvaluatorFactory
+                .apply(
+                  formModelOpticsUpd.formModelVisibilityOptics
+                )
 
-          f(cache)(smartStringEvaluator)(formModelOptics)
-        }
+            f(cache)(smartStringEvaluator)(formModelOptics)
+          }
       }).flatten
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
@@ -692,7 +694,7 @@ case class AuthCacheWithoutForm(
     ThirdPartyData.empty,
     formTemplate
   )
-  val graphDataCache = GraphDataCache(Graph.empty, in => false)
+  val graphDataCache = GraphDataCache(Graph.empty, in => false, BooleanExprCache.empty)
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
     AuthCacheWithForm(
       retrievals,

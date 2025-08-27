@@ -233,7 +233,9 @@ class FastForwardService(
                    processData.visitsIndex,
                    cache.form.thirdPartyData
                      .modify(_.obligations)
-                     .setTo(processData.obligations),
+                     .setTo(processData.obligations)
+                     .modify(_.booleanExprCache)
+                     .setTo(processData.booleanExprCache),
                    cache.form.componentIdToFileId,
                    cache.form.taskIdTaskStatus
                  )

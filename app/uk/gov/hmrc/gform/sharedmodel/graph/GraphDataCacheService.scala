@@ -24,12 +24,22 @@ import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormCtx, FormTemplate, In }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.collection.mutable
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class GraphDataCache(graph: Graph[GraphNode, DiEdge[GraphNode]], inExprResolver: In => Boolean)
+case class GraphDataCache(
+  graph: Graph[GraphNode, DiEdge[GraphNode]],
+  inExprResolver: In => Boolean,
+  booleanExprCache: BooleanExprCache
+)
+
+object GraphDataCache {
+  def empty: GraphDataCache =
+    GraphDataCache(Graph.empty, _ => false, BooleanExprCache.empty)
+}
 
 class GraphDataCacheService(
   seissEligibilityChecker: SeissEligibilityChecker,
@@ -40,16 +50,17 @@ class GraphDataCacheService(
     retrievals: MaterialisedRetrievals,
     variadicFormData: VariadicFormData[SourceOrigin.OutOfDate],
     formTemplate: FormTemplate,
-    fmb: FormModelBuilder
+    fmb: FormModelBuilder,
+    booleanExprCache: BooleanExprCache
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[GraphDataCache] = {
 
     val formModelInterim: FormModel[Interim] = fmb.expand(variadicFormData)
     val (graph, inExprs) = DependencyGraph.toGraph(formModelInterim, AllFormTemplateExpressions(formTemplate))
+    val changedCacheValues = mutable.Map[(DataSource, String), Boolean]()
 
     val inExprResolverFtr = {
       val setOfFutures = inExprs.flatMap { case In(formCtx: FormCtx, dataSource) =>
         val modelComponentId = formCtx.formComponentId.baseComponentId
-
         def makeCall(value: String): Future[Boolean] = dataSource match {
           case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
           case DataSource.Enrolment(serviceName, identifierName) =>
@@ -66,8 +77,17 @@ class GraphDataCacheService(
           val value = variadicFormValue.fold(one => one.value)(many =>
             throw new RuntimeException(s"Didn't expect many data points in data $many")
           )
+
+          val result = booleanExprCache.get(dataSource, value).map(Future.successful).getOrElse {
+
+            makeCall(value).map { result =>
+              changedCacheValues.addOne(dataSource -> value, result)
+              result
+            }
+          }
+
           val newIn = In(new FormCtx(modelComponentId.toFormComponentId), dataSource)
-          makeCall(value).map(newIn -> _)
+          result.map(newIn -> _)
         }
       }
 
@@ -79,8 +99,38 @@ class GraphDataCacheService(
         }
     }
 
-    inExprResolverFtr.map {
-      GraphDataCache(graph, _)
+    inExprResolverFtr.map { inExprResolver =>
+      val finalBooleanCache = if (changedCacheValues.nonEmpty) {
+        val newBooleanExprCache = booleanExprCache.mapping
+          .foldLeft(mutable.Map.newBuilder[DataSource, mutable.Map[String, Boolean]]) { case (builder, (key, value)) =>
+            builder.addOne(
+              (key, mutable.Map.newBuilder.addAll(value).result())
+            )
+          }
+          .result()
+
+        changedCacheValues.foreach { case ((dataSource, name), value) =>
+          val subMap = newBooleanExprCache.getOrElseUpdate(dataSource, mutable.Map())
+          subMap.addOne(name, value)
+        }
+
+        BooleanExprCache(
+          newBooleanExprCache
+            .foldLeft(Map.newBuilder[DataSource, Map[String, Boolean]]) { case (acc, (key, value)) =>
+              acc.addOne(key, Map.newBuilder.addAll(value).result())
+            }
+            .result()
+        )
+
+      } else {
+        booleanExprCache
+      }
+
+      println(booleanExprCache)
+      println(finalBooleanCache)
+
+      GraphDataCache(graph, inExprResolver, finalBooleanCache)
     }
   }
 }
+

@@ -17,16 +17,16 @@
 package uk.gov.hmrc.gform.graph
 
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.In
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 
 final case class RecalculationResult(
   evaluationResults: EvaluationResults,
   graphData: GraphData,
   evaluationContext: EvaluationContext,
-  inExprResolver: In => Boolean
+  graphDataCache: GraphDataCache
 )
 
 object RecalculationResult {
   def empty(evaluationContext: EvaluationContext) =
-    RecalculationResult(EvaluationResults.empty, GraphData.empty, evaluationContext, _ => false)
+    RecalculationResult(EvaluationResults.empty, GraphData.empty, evaluationContext, GraphDataCache.empty)
 }

@@ -95,7 +95,7 @@ object Recalculation {
           startEvResults,
           GraphData(graphTopologicalOrder, graphDataCache.graph),
           evaluationContext,
-          graphDataCache.inExprResolver
+          graphDataCache
         )
     }
   }

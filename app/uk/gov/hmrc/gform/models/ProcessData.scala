@@ -33,6 +33,7 @@ case class ProcessData(
   formModelOptics: FormModelOptics[DataOrigin.Browser],
   visitsIndex: VisitIndex,
   obligations: Obligations,
+  booleanExprCache: BooleanExprCache,
   confirmations: Option[Map[FormComponentId, List[String]]]
 ) {
   val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
@@ -100,6 +101,7 @@ class ProcessDataService[F[_]: Monad](
           dataUpd,
           cache.form.visitsIndex,
           obligations,
+          browserFormModelOptics.formModelVisibilityOptics.recalculationResult.graphDataCache.booleanExprCache,
           cache.form.thirdPartyData.confirmations.map(_.map { case (k, v) => k -> v })
         )
       }

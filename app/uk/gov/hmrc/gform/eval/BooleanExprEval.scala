@@ -226,9 +226,8 @@ object BooleanExprEval {
   def evalInExpr[T <: PageMode](
     in: In,
     recalculationResult: RecalculationResult
-  ): Boolean = {
-    recalculationResult.inExprResolver(in)
-  }
+  ): Boolean =
+    recalculationResult.graphDataCache.inExprResolver(in)
 
   def evalFirstExpr[T <: PageMode](
     formComponentId: FormComponentId
