@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import munit.FunSuite
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.models.email.EmailFieldId
+import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.Mongo
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieve, DataRetrieveId, DataRetrieveResult, NotChecked, RetrieveDataType }
 
@@ -209,6 +211,41 @@ class ThirdPartyDataSuite extends FunSuite {
     //ATL 2
     assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("1_bankDetails2")).id, DataRetrieveId("1_bankDetails2"))
     assertEquals(thirdPartyData.dataRetrieve.get(DataRetrieveId("2_bankDetails2")).id, DataRetrieveId("2_bankDetails2"))
+  }
+
+  test("ThirdPartyData json serialise and de-serialise to same value") {
+    val booleanExprCache = BooleanExprCache(
+      Map.from(
+        Seq(
+          Mongo(CollectionName("name")) -> Map.from(Seq("value" -> true))
+        )
+      )
+    )
+
+    val oldThirdPartyData = ThirdPartyData(
+      NotChecked,
+      Map.empty,
+      QueryParams.empty,
+      None,
+      booleanExprCache,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None
+    )
+
+    val newThirdPartyData = Json
+      .parse(
+        Json.stringify(
+          Json.toJson(oldThirdPartyData)
+        )
+      )
+      .as[ThirdPartyData]
+
+    assertEquals(oldThirdPartyData, newThirdPartyData)
   }
 
   def getDrResultWithIndex(idx: Option[Int] = None, id: String): DataRetrieveResult = {
