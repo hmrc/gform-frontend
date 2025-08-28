@@ -59,7 +59,7 @@ class GraphDataCacheService(
     val changedCacheValues = mutable.Map[(DataSource, String), Boolean]()
 
     val inExprResolverFtr = {
-      val setOfFutures = inExprs.flatMap { case In(formCtx: FormCtx, dataSource) =>
+      val setOfFutures = inExprs.collect { case In(formCtx: FormCtx, dataSource) =>
         val modelComponentId = formCtx.formComponentId.baseComponentId
         def makeCall(value: String): Future[Boolean] = dataSource match {
           case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
@@ -81,7 +81,7 @@ class GraphDataCacheService(
           val result = booleanExprCache.get(dataSource, value).map(Future.successful).getOrElse {
 
             makeCall(value).map { result =>
-              changedCacheValues.addOne(dataSource -> value, result)
+              changedCacheValues.addOne((dataSource -> value, result))
               result
             }
           }
@@ -89,7 +89,7 @@ class GraphDataCacheService(
           val newIn = In(new FormCtx(modelComponentId.toFormComponentId), dataSource)
           result.map(newIn -> _)
         }
-      }
+      }.flatten
 
       Future
         .sequence(setOfFutures)
@@ -111,13 +111,13 @@ class GraphDataCacheService(
 
         changedCacheValues.foreach { case ((dataSource, name), value) =>
           val subMap = newBooleanExprCache.getOrElseUpdate(dataSource, mutable.Map())
-          subMap.addOne(name, value)
+          subMap.addOne((name, value))
         }
 
         BooleanExprCache(
           newBooleanExprCache
             .foldLeft(Map.newBuilder[DataSource, Map[String, Boolean]]) { case (acc, (key, value)) =>
-              acc.addOne(key, Map.newBuilder.addAll(value).result())
+              acc.addOne((key, Map.newBuilder.addAll(value).result()))
             }
             .result()
         )
@@ -126,8 +126,9 @@ class GraphDataCacheService(
         booleanExprCache
       }
 
+      println(finalBooleanCache)
+
       GraphDataCache(graph, inExprResolver, finalBooleanCache)
     }
   }
 }
-

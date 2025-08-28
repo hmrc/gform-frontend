@@ -241,8 +241,6 @@ object Recalculation {
     inExprResolver: In => Boolean
   )(implicit formModel: FormModel[Interim]): Boolean = {
 
-    //TODO: Instead of using this resolver, evalBooleanExpr should be a tail recursion optimized function.
-    //TODO: This would optimize memory usage for deep expression chains.
     val booleanExprResolver = BooleanExprResolver { booleanExpr =>
       evalBooleanExpr(booleanExpr, evaluationResults, recData, retrievals, evaluationContext, inExprResolver)
     }
