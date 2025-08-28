@@ -34,7 +34,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumbe
 
 object ConfirmationService {
 
-  // Detect an invalid confirmations on sign-in into the form (at that point there are no browser data)
+  // Detect an invalid confirmations based on expression only
+  // For example on sign-in into the form (at that point there are no browser data)
   def processConfirmation(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     form: Form
@@ -208,8 +209,13 @@ class ConfirmationService(
             val maybeRedirect = confirmation.redirects.toList
               .flatMap(_.toList)
               .find(r => processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None))
-            maybeRedirect.fold(
-              ConfirmationAction.noop
+            maybeRedirect.fold[ConfirmationAction](
+              // This is needed to store confirmed expressions when confirmation is very first page in the journey
+              ConfirmationAction
+                .UpdateConfirmation(processData =>
+                  processData
+                    .copy(confirmations = Some(currentConfirmations))
+                )
             ) { redirect =>
               // Page is not confirmed
               val modelPageId: ModelPageId = redirect.pageId.modelPageId
