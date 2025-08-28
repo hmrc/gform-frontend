@@ -24,36 +24,24 @@ import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import play.api.Configuration
-import play.api.Environment
 import play.api.http.HttpConfiguration
 import play.api.i18n._
+import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.models.FormModelSupport
-import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.models.VariadicFormDataSupport
-import uk.gov.hmrc.gform.models.ids.IndexedComponentId
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.SmartString
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.OverseasAddress
+import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ Atom, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, OverseasAddress }
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.Instant
@@ -132,7 +120,8 @@ class OverseasAddressCheckerSpec
 
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
-    val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+    val fmvo =
+      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, GraphDataCache.empty)
 
     val cacheData = new CacheData(
       EnvelopeId(""),

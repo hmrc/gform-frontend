@@ -17,25 +17,25 @@
 package uk.gov.hmrc.gform
 
 import cats.Monad
-import cats.syntax.applicative._
-
 import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.Future
+
 trait GraphSpec {
 
-  def dbLookupStatusTrue[F[_]: Monad](id: String, collectionName: CollectionName, hc: HeaderCarrier): F[Boolean] =
-    true.pure[F]
+  def dbLookupStatusTrue(id: String, collectionName: CollectionName, hc: HeaderCarrier): Future[Boolean] =
+    Future.successful(true)
 
-  def delegatedEnrolmentCheckStatusTrue[F[_]: Monad](
+  def delegatedEnrolmentCheckStatusTrue(
     governmentGatewayId: GovernmentGatewayId,
     delegatedEnrolment: DelegatedEnrolment,
     identifierValue: IdentifierValue,
     hc: HeaderCarrier
-  ): F[Boolean] = true.pure[F]
+  ): Future[Boolean] = Future.successful(true)
 
   def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F]()
 

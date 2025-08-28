@@ -16,37 +16,30 @@
 
 package uk.gov.hmrc.gform.eval.smartstring
 
-import cats.MonadError
 import cats.data.NonEmptyList
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
-import org.scalatest.wordspec.AnyWordSpecLike
-import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Span }
+import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers._
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.graph.{ GraphData, RecData, Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.models.DataRetrieveAll
+import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExpressionResult }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ FormModel, Interim, SectionSelector, SectionSelectorType }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FileSizeLimit, FormComponent, FormComponentId, FormCtx, FormPhase, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, IsFalse, Number, NumberedList, OptionData, PositiveNumber, Radio, RepeatedComponentsDetails, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical }
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
-
-import java.time.LocalDate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, IsFalse, Number, NumberedList, OptionData, PositiveNumber, Radio, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical }
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 class RealSmartStringEvaluatorFactorySpec
     extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
@@ -452,77 +445,49 @@ class RealSmartStringEvaluatorFactorySpec
 
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
-    lazy val cache: AuthCacheWithForm =
+    lazy val cache: AuthCacheWithForm = {
+      val cacheData: CacheData = new CacheData(
+        form.envelopeId,
+        form.thirdPartyData,
+        formTemplate
+      )
+
+      val fmb = new FormModelBuilder(
+        retrievals,
+        formTemplate,
+        cacheData.thirdPartyData,
+        cacheData.envelopeId,
+        maybeAccessCode,
+        form.componentIdToFileId,
+        new LookupRegistry(Map()),
+        form.taskIdTaskStatus
+      )
+
+      val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
+        VariadicFormData.buildFromMongoData(fmb.dependencyGraphValidation, form.formData.toData)
+
+      val fm: FormModel[Interim] = fmb.expand(variadicFormData)
+
+      val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
       AuthCacheWithForm(
         retrievals,
         form,
         FormTemplateContext.basicContext(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
-        new LookupRegistry(Map())
+        new LookupRegistry(Map()),
+        GraphDataCache(graph, _ => false, form.thirdPartyData.booleanExprCache)
       )
+    }
     lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
     lazy val exprMap: Map[Expr, ExpressionResult] = Map.empty
-    val mockRecalculation = mock[Recalculation[Future, Throwable]]
-    mockRecalculation.recalculateFormDataNew(
-      *[VariadicFormData[SourceOrigin.OutOfDate]],
-      *[FormModel[Interim]],
-      *[FormTemplate],
-      *[MaterialisedRetrievals],
-      *[ThirdPartyData],
-      *[EvaluationContext],
-      *[Messages]
-    )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult(
-        EvaluationResults(
-          exprMap,
-          SourceOrigin.changeSource(RecData.fromData(cache.variadicFormData)),
-          RepeatedComponentsDetails.empty
-        ),
-        GraphData.empty,
-        BooleanExprCache.empty,
-        EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          maybeAccessCode,
-          retrievals,
-          ThirdPartyData.empty,
-          authConfig,
-          headerCarrier,
-          Option.empty[FormPhase],
-          FileIdsWithMapping.empty,
-          Map.empty,
-          Map.empty,
-          Set.empty,
-          Set.empty,
-          Set.empty,
-          Map.empty,
-          LangADT.En,
-          messages,
-          FormModel.modelComponentsToIndexedComponentMap(indexedComponentIds),
-          Set.empty,
-          FileSizeLimit(1),
-          DataRetrieveAll.empty,
-          Set.empty[ModelComponentId],
-          Map.empty,
-          Set.empty,
-          new LookupRegistry(Map()),
-          Map.empty,
-          Map.empty,
-          TaskIdTaskStatusMapping.empty,
-          LocalDate.now()
-        )
-      )
-    )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
+        cache
       )
-      .futureValue
 
     lazy val factory = new RealSmartStringEvaluatorFactory(messages)
 

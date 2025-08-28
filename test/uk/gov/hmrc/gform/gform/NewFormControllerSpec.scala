@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
 import cats.implicits.catsSyntaxApplicativeId
-import cats.{ Id, MonadError }
 import org.apache.pekko.actor.ActorSystem
 import org.mockito.MockitoSugar.when
 import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
@@ -39,24 +38,19 @@ import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
-import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
-import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileSizeLimit, FormComponentId, FormPhase, FormTemplate, FormTemplateId, FormTemplateVersion, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate, FormTemplateId, FormTemplateVersion, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
-import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{ LocalDate, LocalDateTime }
+import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
 
 class NewFormControllerSpec
@@ -428,13 +422,11 @@ class NewFormControllerSpec
     lazy val authCacheWithForm: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     lazy val authCacheWithoutForm: AuthCacheWithoutForm = authCacheWithForm.toAuthCacheWithoutForm
     lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] = VariadicFormData.empty[SourceOrigin.OutOfDate]
-    lazy val mockRecalculation: Recalculation[Future, Throwable] = mock[Recalculation[Future, Throwable]]
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       FormModelOptics
-        .mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.Normal](
+        .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
           variadicFormData,
-          authCacheWithForm,
-          recalculation
+          authCacheWithForm
         )
 
     lazy val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()
@@ -463,7 +455,6 @@ class NewFormControllerSpec
         mockGformConnector,
         mockFastForwardService,
         mockAuditService,
-        mockRecalculation,
         messagesControllerComponents,
         mockGformBackend,
         mockNinoInsightsConnector,
@@ -528,50 +519,6 @@ class NewFormControllerSpec
             f(request)(LangADT.En)(authCacheWithoutForm)
           }
       }
-
-      mockRecalculation.recalculateFormDataNew(
-        *[VariadicFormData[SourceOrigin.OutOfDate]],
-        *[FormModel[Interim]],
-        *[FormTemplate],
-        *[MaterialisedRetrievals],
-        *[ThirdPartyData],
-        *[EvaluationContext],
-        *[Messages]
-      )(*[MonadError[Future, Throwable]]) returns Future.successful(
-        RecalculationResult.empty(
-          EvaluationContext(
-            authCacheWithForm.formTemplateId,
-            submissionRef,
-            maybeAccessCode,
-            retrievals,
-            ThirdPartyData.empty,
-            authConfig,
-            hc,
-            Option.empty[FormPhase],
-            FileIdsWithMapping.empty,
-            Map.empty,
-            Map.empty,
-            Set.empty,
-            Set.empty,
-            Set.empty,
-            Map.empty,
-            LangADT.En,
-            messages,
-            Map.empty,
-            Set.empty,
-            FileSizeLimit(1),
-            DataRetrieveAll.empty,
-            Set.empty[ModelComponentId],
-            Map.empty,
-            Set.empty,
-            new LookupRegistry(Map()),
-            Map.empty,
-            Map.empty,
-            TaskIdTaskStatusMapping.empty,
-            LocalDate.now()
-          )
-        )
-      )
 
       when(mockObjectStoreService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]))
         .thenReturn(Future.successful(Envelope.empty))

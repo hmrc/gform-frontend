@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormCtx, FormTemplate, FormTemplateContext, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.SessionId
 
 class MiniSummaryListHelperSpec extends FunSuite with FormModelSupport {
@@ -57,7 +58,8 @@ class MiniSummaryListHelperSpec extends FunSuite with FormModelSupport {
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      new LookupRegistry(Map())
+      new LookupRegistry(Map()),
+      GraphDataCache.empty
     )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
