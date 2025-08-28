@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.eval.ExpressionResult
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
@@ -171,16 +171,17 @@ trait AuditService {
     }
 
     def evaluateSmartString(smartString: Option[SmartString], trim: Boolean): Option[String] =
-      smartString match {
-        case Some(ss) =>
-          val value = sse.evalEnglish(ss, markDown = false)
-          val processedValue = if (trim) {
-            value.trim.split("\\s+").map(_.capitalize).mkString("")
-          } else {
-            value
-          }
-          Some(processedValue)
-        case None => None
+      smartString.map { ss =>
+        val value = ss.englishValue()
+        if (trim) {
+          value.trim
+            .split("\\s+")
+            .filter(!_.isEmpty)
+            .map(_.capitalize)
+            .mkString("")
+        } else {
+          value
+        }
       }
 
     def getSummaryItemsMap(
