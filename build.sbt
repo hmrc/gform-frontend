@@ -2,7 +2,6 @@ import Dependencies.appDependencies
 import play.sbt.routes.RoutesKeys.routesImport
 import uk.gov.hmrc.DefaultBuildSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import org.irundaia.sbt.sass.*
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -22,8 +21,6 @@ lazy val microservice = (project in file("."))
   )
   .settings(luceneSettings: _*)
   .settings(
-    SassKeys.cssStyle := Maxified,
-    SassKeys.generateSourceMaps := true,
     organization := "uk.gov.hmrc",
     name := "gform-frontend",
     PlayKeys.playDefaultPort := 9195,

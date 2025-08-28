@@ -34,13 +34,13 @@ object Dependencies {
     "org.apache.lucene"           % "lucene-core"                % luceneVersion,
     "org.jsoup"                   % "jsoup"                      % "1.19.1",
     "org.webjars.npm"             % "govuk-frontend"             % "5.9.0",
-    "com.openhtmltopdf"           % "openhtmltopdf-pdfbox"       % "1.0.10",
+    "io.github.openhtmltopdf"     % "openhtmltopdf-pdfbox"       % "1.1.30",
     "org.apache.commons"          % "commons-text"               % "1.13.0",
     "com.dripower"               %% "play-circe"                 % "3014.1",
     "io.circe"                   %% "circe-core"                 % circeVersion,
     "io.circe"                   %% "circe-generic"              % circeVersion,
     "io.circe"                   %% "circe-parser"               % circeVersion,
-    "org.apache.xmlgraphics"      % "fop"                        % "2.9",
+    "org.apache.xmlgraphics"      % "fop"                        % "2.11",
     // Taken from: https://github.com/orgs/playframework/discussions/11222
     "com.fasterxml.jackson.core"       % "jackson-core"                   % jacksonVersion,
     "com.fasterxml.jackson.core"       % "jackson-annotations"            % jacksonVersion,
@@ -54,7 +54,7 @@ object Dependencies {
 
   val munitVersion = "1.1.0"
 
-  val test = Seq(
+  val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapVersion    % Test,
     "org.scalatestplus"      %% "scalacheck-1-14"         % "3.2.2.0"           % Test,
     "com.ironcorelabs"       %% "cats-scalatest"          % "3.1.1"             % Test,
