@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import org.apache.pekko.actor.ActorSystem
-import cats.Id
 import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -26,7 +25,6 @@ import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.json.{ Json, Reads }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
 import play.api.test.{ FakeRequest, Helpers }
-import uk.gov.hmrc.gform.{ LookupLoader, PlayStubSupport }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -36,10 +34,10 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, Model
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModelSupport, LookupQuery, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, FormComponentId, FormCtx, FormTemplateId, Lookup, Register, Section, SelectionCriteria, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ SelectionCriteriaExpr, SelectionCriteriaReference, SelectionCriteriaSimpleValue }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ CsvColumnName, FormComponentId, FormCtx, FormTemplateId, Lookup, Register, Section, SelectionCriteria, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.{ LookupLoader, PlayStubSupport }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -342,10 +340,9 @@ class LookupControllerSpec
     lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] = VariadicFormData.empty[SourceOrigin.OutOfDate]
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       FormModelOptics
-        .mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.Normal](
+        .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
           variadicFormData,
-          authCacheWithForm,
-          recalculation
+          authCacheWithForm
         )
 
     val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()

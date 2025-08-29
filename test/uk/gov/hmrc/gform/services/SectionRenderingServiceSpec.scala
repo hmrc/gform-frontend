@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.services
 
-import cats.MonadError
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
@@ -24,42 +23,34 @@ import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
-import uk.gov.hmrc.gform.FormTemplateKey
 import play.api.test.FakeRequest
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, Role }
+import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
+import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanInitiate
 import uk.gov.hmrc.gform.validation.ValidationResult
 import uk.gov.hmrc.http.HeaderCarrier
-
-import java.time.LocalDate
-import scala.concurrent.Future
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
   val testService = new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty))
 
   trait TestFixture {
-
-    val mockRecalculation = mock[Recalculation[Future, Throwable]]
 
     val mssgApi: MessagesApi = play.api.test.Helpers.stubMessagesApi()
 
@@ -87,60 +78,15 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       Some(accessCode),
-      new LookupRegistry(Map())
+      new LookupRegistry(Map()),
+      GraphDataCache.empty
     )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.Normal](
+      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
+        cache
       )
-      .futureValue
-
-    mockRecalculation.recalculateFormDataNew(
-      *[VariadicFormData[SourceOrigin.OutOfDate]],
-      *[FormModel[Interim]],
-      *[FormTemplate],
-      *[MaterialisedRetrievals],
-      *[ThirdPartyData],
-      *[EvaluationContext],
-      *[Messages]
-    )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
-        EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          Some(accessCode),
-          authContext,
-          ThirdPartyData.empty,
-          authConfig,
-          hc,
-          Option.empty[FormPhase],
-          FileIdsWithMapping.empty,
-          Map.empty,
-          Map.empty,
-          Set.empty,
-          Set.empty,
-          Set.empty,
-          Map.empty,
-          LangADT.En,
-          messages,
-          Map.empty,
-          Set.empty,
-          FileSizeLimit(1),
-          DataRetrieveAll.empty,
-          Set.empty[ModelComponentId],
-          Map.empty,
-          Set.empty,
-          new LookupRegistry(Map()),
-          Map.empty,
-          Map.empty,
-          TaskIdTaskStatusMapping.empty,
-          LocalDate.now()
-        )
-      )
-    )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
@@ -314,12 +260,10 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {
 
     override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
+        cache
       )
-      .futureValue
 
     val generatedHtml = testService
       .renderDeclarationSection(
@@ -349,12 +293,10 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     )
 
     override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
+        cache
       )
-      .futureValue
 
     val generatedHtml = testService
       .renderDeclarationSection(

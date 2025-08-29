@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.Monad
 import cats.data.NonEmptyList
-import cats.syntax.applicative._
-import cats.{ Id, Monad }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.toSmartString
@@ -26,16 +25,16 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrieva
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import java.time.Instant
+import scala.concurrent.Future
 
 trait FormModelSupport extends GraphSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -44,26 +43,18 @@ trait FormModelSupport extends GraphSpec {
   val thirdPartyData: ThirdPartyData = ThirdPartyData.empty
   val envelopeId: EnvelopeId = EnvelopeId("dummy")
 
-  protected def eligibilityStatusTrue[F[_]: Monad]: SeissEligibilityChecker[F] =
-    new SeissEligibilityChecker[F]((_, _) => true.pure[F])
+  protected def eligibilityStatusTrue: SeissEligibilityChecker =
+    new SeissEligibilityChecker((_, _) => Future.successful(true))
 
-  protected def delegatedEnrolmentCheckStatus[F[_]: Monad]: DelegatedEnrolmentChecker[F] =
-    new DelegatedEnrolmentChecker(delegatedEnrolmentCheckStatusTrue[F])
+  protected def delegatedEnrolmentCheckStatus[F[_]: Monad]: DelegatedEnrolmentChecker =
+    new DelegatedEnrolmentChecker(delegatedEnrolmentCheckStatusTrue)
 
-  protected def dbLookupCheckStatus[F[_]: Monad]: DbLookupChecker[F] =
-    new DbLookupChecker(dbLookupStatusTrue[F])
-
-  val recalculation: Recalculation[Id, Throwable] =
-    new Recalculation[Id, Throwable](
-      eligibilityStatusTrue,
-      delegatedEnrolmentCheckStatus,
-      dbLookupCheckStatus,
-      (s: GraphException) => new IllegalArgumentException(s.reportProblem)
-    )
+  protected def dbLookupCheckStatus: DbLookupChecker =
+    new DbLookupChecker(dbLookupStatusTrue)
 
   val maybeAccessCode: Option[AccessCode] = None
 
-  def mkFormModelFromSections(sections: List[Section]): FormModelBuilder[Throwable, Id] = {
+  def mkFormModelFromSections(sections: List[Section]): FormModelBuilder = {
     val formTemplate: FormTemplate = mkFormTemplate(sections)
     mkFormModelBuilder(formTemplate)
   }
@@ -90,17 +81,17 @@ trait FormModelSupport extends GraphSpec {
     formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
     role = Role.Customer,
     accessCode = maybeAccessCode,
-    new LookupRegistry(Map())
+    new LookupRegistry(Map()),
+    graphData = GraphDataCache.empty
   )
 
-  def mkFormModelBuilder(formTemplate: FormTemplate): FormModelBuilder[Throwable, Id] =
+  def mkFormModelBuilder(formTemplate: FormTemplate): FormModelBuilder =
     new FormModelBuilder(
       retrievals,
       formTemplate,
       thirdPartyData,
       envelopeId,
       maybeAccessCode,
-      recalculation,
       FormComponentIdToFileIdMapping.empty,
       new LookupRegistry(Map()),
       TaskIdTaskStatusMapping.empty
@@ -112,7 +103,7 @@ trait FormModelSupport extends GraphSpec {
   )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     FormModelOptics
-      .mkFormModelOptics[DataOrigin.Browser, Id, SectionSelectorType.Normal](data, authCache, recalculation)
+      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](data, authCache)
   }
 
   def mkFormModelOpticsMongo(
@@ -120,10 +111,9 @@ trait FormModelSupport extends GraphSpec {
     data: VariadicFormData[SourceOrigin.OutOfDate]
   )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics[DataOrigin.Mongo] = {
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.WithDeclaration](
+      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
         data,
-        mkAuthCacheWithForm(formTemplate),
-        recalculation
+        mkAuthCacheWithForm(formTemplate)
       )
 
     formModelOptics.formModelVisibilityOptics

@@ -37,7 +37,6 @@ import uk.gov.hmrc.gform.eval.InitFormEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
@@ -64,7 +63,6 @@ class NewFormController(
   gformConnector: GformConnector,
   fastForwardService: FastForwardService,
   auditService: AuditService,
-  recalculation: Recalculation[Future, Throwable],
   messagesControllerComponents: MessagesControllerComponents,
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
@@ -878,13 +876,11 @@ class NewFormController(
     messages: Messages
   ): Future[Result] = {
     val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
-
+    val formModelOptics = FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, U](
+      cacheWithForm.variadicFormData[SectionSelectorType.Normal],
+      cacheWithForm
+    )
     for {
-      formModelOptics <- FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Future, U](
-                           cacheWithForm.variadicFormData[SectionSelectorType.Normal],
-                           cacheWithForm,
-                           recalculation
-                         )
       cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
       r <- cache.formTemplate.formKind.fold { classic =>
              fastForwardService.redirectFastForward(cacheUpdated, accessCode, formModelOptics, None, SuppressErrors.Yes)

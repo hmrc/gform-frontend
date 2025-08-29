@@ -18,27 +18,30 @@ package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
 import org.scalactic.source.Position
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
-import org.scalatest.prop.TableFor3
-import uk.gov.hmrc.gform.Helpers._
-import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, EvaluationResults, ExpressionResult, FileIdsWithMapping }
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModelSupport, Interim, SectionSelectorType }
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, TaskIdTaskStatusMapping, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.GraphSpec
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import org.scalatest.prop.TableFor3
 import play.api.i18n.Messages
 import play.api.test.Helpers
+import uk.gov.hmrc.gform.GraphSpec
+import uk.gov.hmrc.gform.Helpers._
+import uk.gov.hmrc.gform.auth.models.Role
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.eval.ExpressionResult._
+import uk.gov.hmrc.gform.eval._
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModelSupport, Interim, SectionSelectorType }
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
 import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.lookup.LookupRegistry
 
 class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec with FormModelSupport {
 
@@ -1128,7 +1131,20 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+    val formTemplate: FormTemplate = mkFormTemplate(sections)
+    val fm = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](inputData)
+    val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
+    val authCache: AuthCacheWithForm = AuthCacheWithForm(
+      retrievals = retrievals,
+      form = mkForm(formTemplate._id),
+      formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
+      role = Role.Customer,
+      accessCode = maybeAccessCode,
+      new LookupRegistry(Map()),
+      graphData = GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+    )
+    val formModelOptics = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](inputData, authCache)
 
     formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
     formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
@@ -1184,7 +1200,20 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     )
 
-    val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
+    val formTemplate: FormTemplate = mkFormTemplate(sections)
+    val fm = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](inputData)
+    val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
+    val authCache: AuthCacheWithForm = AuthCacheWithForm(
+      retrievals = retrievals,
+      form = mkForm(formTemplate._id),
+      formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
+      role = Role.Customer,
+      accessCode = maybeAccessCode,
+      new LookupRegistry(Map()),
+      graphData = GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+    )
+    val formModelOptics = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](inputData, authCache)
 
     formModelOptics.formModelVisibilityOptics.recData.variadicFormData shouldBe expectedOutputData
     formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults.exprMap shouldBe expectedExprMap
@@ -1211,14 +1240,15 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
     val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
-    val recalculationResult = recalculation.recalculateFormDataNew(
+    val graph = DependencyGraph.toGraph(formModel, AllFormTemplateExpressions(formTemplate))._1
+    val recalculationResult = Recalculation.recalculateFormDataNew(
       data,
       formModel,
       formTemplate,
       retrievals,
-      thirdPartyData,
       evaluationContext(formTemplate),
-      messages
+      messages,
+      GraphDataCache(graph, _ => true, BooleanExprCache(Map()))
     )
 
     recalculationResult.evaluationResults.get(FormCtx(FormComponentId("2_b"))) shouldBe Some(Hidden)
@@ -1387,7 +1417,19 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     position: Position
   ) = {
     val formTemplate: FormTemplate = mkFormTemplate(sections)
-    val formModelOptics = mkFormModelOptics(formTemplate, input)
+    val fm = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](input)
+    val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
+    val authCache: AuthCacheWithForm = AuthCacheWithForm(
+      retrievals = retrievals,
+      form = mkForm(formTemplate._id),
+      formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
+      role = Role.Customer,
+      accessCode = maybeAccessCode,
+      new LookupRegistry(Map()),
+      graphData = GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+    )
+    val formModelOptics = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](input, authCache)
     val outputRecData: RecData[SourceOrigin.Current] = formModelOptics.formModelVisibilityOptics.recData
     val output: EvaluationResults = formModelOptics.formModelVisibilityOptics.recalculationResult.evaluationResults
 

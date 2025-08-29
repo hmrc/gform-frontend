@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.summary
 
-import cats.MonadError
 import org.jsoup.Jsoup
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
@@ -31,29 +30,26 @@ import play.api.test.{ FakeRequest, Helpers }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals, Role }
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModel, Interim, SectionSelectorType }
+import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, FileSizeLimit, FormPhase, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormData, FormField, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
-import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -90,14 +86,14 @@ class SummaryRenderingServiceSpec
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      new LookupRegistry(Map())
+      new LookupRegistry(Map()),
+      GraphDataCache.empty
     )
     lazy val validationResult = ValidationResult.empty
 
     val renderer = new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty))
     val mockObjectStoreService = mock[ObjectStoreAlgebra[Future]]
     val mockValidationService = mock[ValidationService]
-    val mockRecalculation = mock[Recalculation[Future, Throwable]]
     val mockGformConnector = mock[GformConnector]
 
     mockObjectStoreService.getEnvelope(*[EnvelopeId])(*[HeaderCarrier]) returns Future.successful(
@@ -115,57 +111,13 @@ class SummaryRenderingServiceSpec
         *[LangADT],
         *[SmartStringEvaluator]
       ) returns Future.successful(validationResult)
-    mockRecalculation.recalculateFormDataNew(
-      *[VariadicFormData[SourceOrigin.OutOfDate]],
-      *[FormModel[Interim]],
-      *[FormTemplate],
-      *[MaterialisedRetrievals],
-      *[ThirdPartyData],
-      *[EvaluationContext],
-      *[Messages]
-    )(*[MonadError[Future, Throwable]]) returns Future.successful(
-      RecalculationResult.empty(
-        EvaluationContext(
-          formTemplate._id,
-          submissionRef,
-          maybeAccessCode,
-          retrievals,
-          ThirdPartyData.empty,
-          authConfig,
-          headerCarrier,
-          Option.empty[FormPhase],
-          FileIdsWithMapping.empty,
-          Map.empty,
-          Map.empty,
-          Set.empty,
-          Set.empty,
-          Set.empty,
-          Map.empty,
-          LangADT.En,
-          messages,
-          Map.empty,
-          Set.empty,
-          FileSizeLimit(1),
-          DataRetrieveAll.empty,
-          Set.empty[ModelComponentId],
-          Map.empty,
-          Set.empty,
-          new LookupRegistry(Map()),
-          Map.empty,
-          Map.empty,
-          TaskIdTaskStatusMapping.empty,
-          LocalDate.now()
-        )
-      )
-    )
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.WithDeclaration](
+      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
         cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache,
-        mockRecalculation
+        cache
       )
-      .futureValue
+
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
 

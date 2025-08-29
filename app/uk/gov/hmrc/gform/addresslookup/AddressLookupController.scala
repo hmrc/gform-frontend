@@ -20,27 +20,24 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import com.softwaremill.quicklens._
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.{ Action, AnyContent, Call, MessagesControllerComponents, Request, Result }
+import play.api.mvc._
 import play.twirl.api.Html
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
-import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
-import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, Errors, FastForwardService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, Errors, FastForwardService }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FastForward, FormModel, FormModelBuilder, SectionSelectorType, Visibility }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.gform.ConfirmationService
+import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics, TaskIdTaskStatusMapping }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormKind, FormTemplateContext, FormTemplateId, IsPostcodeLookup, Page, PostcodeLookup, Section, SectionNumber, SectionTitle4Ga, SuppressErrors }
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.addresslookup
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.br
@@ -50,13 +47,14 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 class AddressLookupController(
   auth: AuthenticatedRequestActions,
   addressLookupService: AddressLookupService[Future],
   frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
   messagesControllerComponents: MessagesControllerComponents,
-  recalculation: Recalculation[Future, Throwable],
   formControllerRequestHandler: FormControllerRequestHandler,
   validationService: ValidationService,
   fastForwardService: FastForwardService,
@@ -656,60 +654,58 @@ class AddressLookupController(
           syntheticFormComponent => syntheticCache => formModelOptics =>
             processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics, None) {
               requestRelatedData => variadicFormData => enteredVariadicFormData =>
-                val browserFormModelOpticsF = FormModelOptics
-                  .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
+                val browserFormModelOptics = FormModelOptics
+                  .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
                     variadicFormData,
-                    syntheticCache,
-                    recalculation
+                    syntheticCache
                   )
 
                 val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, syntheticCache.form)
 
                 val cacheData = syntheticCache.toCacheData
 
-                browserFormModelOpticsF.flatMap { browserFormModelOptics =>
-                  addressLookupService.saveEnteredAddress(
-                    cache.form,
-                    maybeAccessCode,
-                    formComponentId,
-                    variadicFormData.toFormData
-                  ) >>
-                    formControllerRequestHandler
-                      .handleFormValidation(
-                        browserFormModelOptics,
-                        browserFormModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.headOption
-                          .getOrElse(cache.formTemplate.sectionNumberZero),
-                        cacheData,
-                        envelopeWithMapping,
-                        validationService.validatePageModel,
-                        enteredVariadicFormData
-                      )
-                      .map { formValidationOutcome =>
-                        if (formValidationOutcome.isValid) {
-                          Redirect(
-                            routes.AddressLookupController.confirmAddressAndContinue(
+                addressLookupService.saveEnteredAddress(
+                  cache.form,
+                  maybeAccessCode,
+                  formComponentId,
+                  variadicFormData.toFormData
+                ) >>
+                  formControllerRequestHandler
+                    .handleFormValidation(
+                      browserFormModelOptics,
+                      browserFormModelOptics.formModelVisibilityOptics.formModel.availableSectionNumbers.headOption
+                        .getOrElse(cache.formTemplate.sectionNumberZero),
+                      cacheData,
+                      envelopeWithMapping,
+                      validationService.validatePageModel,
+                      enteredVariadicFormData
+                    )
+                    .map { formValidationOutcome =>
+                      if (formValidationOutcome.isValid) {
+                        Redirect(
+                          routes.AddressLookupController.confirmAddressAndContinue(
+                            formTemplateId,
+                            maybeAccessCode,
+                            formComponentId,
+                            sectionNumber,
+                            fastForward
+                          )
+                        )
+                      } else {
+                        Redirect(
+                          routes.AddressLookupController
+                            .enterAddress(
                               formTemplateId,
                               maybeAccessCode,
                               formComponentId,
                               sectionNumber,
+                              SuppressErrors.No,
                               fastForward
                             )
-                          )
-                        } else {
-                          Redirect(
-                            routes.AddressLookupController
-                              .enterAddress(
-                                formTemplateId,
-                                maybeAccessCode,
-                                formComponentId,
-                                sectionNumber,
-                                SuppressErrors.No,
-                                fastForward
-                              )
-                          )
-                        }
+                        )
                       }
-                }
+                    }
+
             }
         }
     }
@@ -802,13 +798,12 @@ class AddressLookupController(
 
     val syntheticCache = mkSyntheticCache(cache, syntheticFormComponent)
 
-    val formModelBuilder = new FormModelBuilder[Throwable, Future](
+    val formModelBuilder = new FormModelBuilder(
       syntheticCache.retrievals,
       syntheticCache.formTemplate,
       syntheticCache.form.thirdPartyData,
       syntheticCache.form.envelopeId,
       maybeAccessCode,
-      recalculation,
       FormComponentIdToFileIdMapping.empty,
       lookupRegistry,
       TaskIdTaskStatusMapping.empty
@@ -816,15 +811,17 @@ class AddressLookupController(
 
     val data = syntheticCache.variadicFormData[SectionSelectorType.Normal]
 
-    val formModelVisibilityOpticsF: Future[FormModelVisibilityOptics[DataOrigin.Mongo]] =
+    val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
       formModelBuilder
-        .visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, cache.form.startDate)
+        .visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          cache.form.startDate,
+          cache.graphData
+        )
 
-    formModelVisibilityOpticsF
-      .map { formModelVisibilityOptics =>
-        formModelBuilder
-          .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](formModelVisibilityOptics, None)
-      }
-      .flatMap(f(syntheticFormComponent)(syntheticCache))
+    val renderPageModel = formModelBuilder
+      .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](formModelVisibilityOptics, None)
+    f(syntheticFormComponent)(syntheticCache)(renderPageModel)
   }
 }

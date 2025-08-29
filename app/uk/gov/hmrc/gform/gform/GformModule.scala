@@ -85,7 +85,6 @@ class GformModule(
     sectionRenderingService,
     validationModule.validationService,
     authModule.enrolmentService,
-    graphModule.recalculation,
     authModule.taxEnrolmentsConnector,
     authModule.ggConnector,
     configModule.frontendAppConfig,
@@ -99,7 +98,7 @@ class GformModule(
   }
 
   val processDataService: ProcessDataService[Future] =
-    new ProcessDataService[Future](graphModule.recalculation, taxPeriodStateChecker)
+    new ProcessDataService[Future](taxPeriodStateChecker)
 
   val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator())
 
@@ -181,7 +180,6 @@ class GformModule(
     fileSystemConnector,
     validationModule.validationService,
     fastForwardService,
-    graphModule.recalculation,
     objectStoreModule.objectStoreService,
     formControllerRequestHandler,
     bankAccountReputationConnector,
@@ -210,7 +208,6 @@ class GformModule(
     processDataService,
     formControllerRequestHandler,
     fastForwardService,
-    graphModule.recalculation,
     addToListProcessor,
     confirmationService,
     controllersModule.messagesControllerComponents,
@@ -252,8 +249,7 @@ class GformModule(
     sectionRenderingService,
     pdfRenderService,
     lookupRegistry,
-    graphModule.smartStringEvaluatorFactory,
-    graphModule.recalculation
+    graphModule.smartStringEvaluatorFactory
   )
 
   val nonRepudiationHelpers = new NonRepudiationHelpers(auditingModule)
@@ -350,7 +346,6 @@ class GformModule(
     gformBackendModule.gformConnector,
     fastForwardService,
     auditingModule.auditService,
-    graphModule.recalculation,
     controllersModule.messagesControllerComponents,
     gformBackEndService,
     ninoInsightsConnector,
@@ -437,7 +432,6 @@ class GformModule(
       configModule.frontendAppConfig,
       playBuiltInsModule.i18nSupport,
       controllersModule.messagesControllerComponents,
-      graphModule.recalculation,
       formControllerRequestHandler,
       validationModule.validationService,
       fastForwardService,

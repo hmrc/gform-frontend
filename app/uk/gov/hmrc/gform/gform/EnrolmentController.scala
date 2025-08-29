@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.{ EitherT, Kleisli, NonEmptyList, ReaderT }
-import play.api.data.Form
 import cats.instances.future._
 import cats.instances.list._
 import cats.mtl.{ Ask, Raise }
@@ -26,40 +25,37 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.{ Applicative, Monad, Traverse }
+import play.api.data.Form
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
 import play.twirl.api.Html
+import uk.gov.hmrc.auth.core.Assistant
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, Direction }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, Direction }
 import uk.gov.hmrc.gform.eval.InitFormEvaluator
-import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gform.handlers.{ FormHandlerResult, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
-import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
-import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
+import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse, SmartString }
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.hardcoded.EnrolmentBlockedPage
+import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.TableRow
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
-import uk.gov.hmrc.auth.core.Assistant
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -82,7 +78,6 @@ class EnrolmentController(
   renderer: SectionRenderingService,
   validationService: ValidationService,
   enrolmentService: EnrolmentService,
-  recalculation: Recalculation[Future, Throwable],
   taxEnrolmentConnector: TaxEnrolmentsConnector,
   ggConnector: GovernmentGatewayConnector,
   frontendAppConfig: FrontendAppConfig,
@@ -428,16 +423,16 @@ class EnrolmentController(
 
           processResponseDataFromBody(request, formModelRenderPageOptics) {
             requestRelatedData => variadicFormData => _ =>
-              val formModelOpticsF = FormModelOptics
-                .mkFormModelOptics[DataOrigin.Mongo, Future, SectionSelectorType.EnrolmentOnly](
+              val formModelOptics = FormModelOptics
+                .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.EnrolmentOnly](
                   variadicFormData,
                   cache,
                   cache.toCacheData,
-                  recalculation,
                   None,
                   FormComponentIdToFileIdMapping.empty,
                   TaskIdTaskStatusMapping.empty,
-                  Instant.now.truncatedTo(ChronoUnit.MILLIS)
+                  Instant.now.truncatedTo(ChronoUnit.MILLIS),
+                  cache.graphDataCache
                 )
               def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
                 val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
@@ -488,7 +483,7 @@ class EnrolmentController(
               }
               action match {
                 case uk.gov.hmrc.gform.controllers.Continue =>
-                  formModelOpticsF.flatMap(handleContinueWithData)
+                  handleContinueWithData(formModelOptics)
                 case _ => Future.successful(BadRequest("Cannot determine action"))
               }
 

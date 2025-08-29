@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import cats.syntax.functor._
-import cats.{ Functor, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
 import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
+import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{ Instant, LocalDate }
@@ -105,56 +104,50 @@ object FormModelOptics {
     )
   }
 
-  def mkFormModelOptics[D <: DataOrigin, F[_]: Functor, U <: SectionSelectorType: SectionSelector](
+  def mkFormModelOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCache,
     cacheData: CacheData,
-    recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase],
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    formStartDate: Instant
+    formStartDate: Instant,
+    graphDataCache: GraphDataCache
   )(implicit
     messages: Messages,
     lang: LangADT,
-    hc: HeaderCarrier,
-    me: MonadError[F, Throwable]
-  ): F[FormModelOptics[D]] = {
+    hc: HeaderCarrier
+  ): FormModelOptics[D] = {
     val formModelBuilder =
       FormModelBuilder.fromCache(
         cache,
         cacheData,
-        recalculation,
         componentIdToFileId,
         cache.lookupRegistry,
         taskIdTaskStatusMapping
       )
-    val formModelVisibilityOpticsF: F[FormModelVisibilityOptics[D]] =
-      formModelBuilder.visibilityModel(data, phase, formStartDate)
-    formModelVisibilityOpticsF.map { formModelVisibilityOptics =>
-      formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
-    }
+    val formModelVisibilityOptics: FormModelVisibilityOptics[D] =
+      formModelBuilder.visibilityModel(data, phase, formStartDate, graphDataCache)
+    formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
   }
 
-  def mkFormModelOptics[D <: DataOrigin, F[_]: Functor, U <: SectionSelectorType: SectionSelector](
+  def mkFormModelOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
-    recalculation: Recalculation[F, Throwable],
     phase: Option[FormPhase] = None
   )(implicit
     messages: Messages,
     lang: LangADT,
-    hc: HeaderCarrier,
-    me: MonadError[F, Throwable]
-  ): F[FormModelOptics[D]] =
+    hc: HeaderCarrier
+  ): FormModelOptics[D] =
     mkFormModelOptics(
       data,
       cache,
       cache.toCacheData,
-      recalculation,
       phase,
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
-      cache.form.startDate
+      cache.form.startDate,
+      cache.graphData
     )
 }

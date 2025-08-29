@@ -16,30 +16,27 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.Id
 import cats.data.NonEmptyList
 import cats.instances.either._
 import cats.syntax.either._
+import org.scalactic.source.Position
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import org.scalactic.source.Position
 import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
-import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
+import uk.gov.hmrc.gform.sharedmodel._
 
 class StructuredFormDataBuilderSpec
     extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
@@ -1353,10 +1350,9 @@ class StructuredFormDataBuilderSpec
   ) = {
 
     val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, Id, SectionSelectorType.WithDeclaration](
+      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
         data,
-        mkAuthCacheWithForm(mkFormTemplate(sections, declarationSection)),
-        recalculation
+        mkAuthCacheWithForm(mkFormTemplate(sections, declarationSection))
       )
 
     formModelOptics.formModelVisibilityOptics

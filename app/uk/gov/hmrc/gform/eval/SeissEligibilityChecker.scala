@@ -16,16 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.Id
-import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.http.HeaderCarrier
 
-class SeissEligibilityChecker[F[_]](checkEligibility: (UtrEligibilityRequest, HeaderCarrier) => F[Boolean])
-    extends Function2[UtrEligibilityRequest, HeaderCarrier, F[Boolean]] {
-  def apply(request: UtrEligibilityRequest, hc: HeaderCarrier): F[Boolean] = checkEligibility(request, hc)
-}
+import scala.concurrent.Future
 
-object SeissEligibilityChecker {
-  val alwaysEligible: SeissEligibilityChecker[Id] = new SeissEligibilityChecker[Id]((_, _) => true.pure[Id])
+class SeissEligibilityChecker(checkEligibility: (UtrEligibilityRequest, HeaderCarrier) => Future[Boolean])
+    extends Function2[UtrEligibilityRequest, HeaderCarrier, Future[Boolean]] {
+  def apply(request: UtrEligibilityRequest, hc: HeaderCarrier): Future[Boolean] = checkEligibility(request, hc)
 }

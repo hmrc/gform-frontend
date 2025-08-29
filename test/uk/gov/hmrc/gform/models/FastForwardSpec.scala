@@ -16,17 +16,18 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.freespec.AnyFreeSpecLike
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, TemplateSectionIndex, Value }
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 
 import java.time.Instant
 
@@ -87,7 +88,12 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
         description in {
           val fmb = mkFormModelFromSections(sections)
           val variadicData = variadicFormData[SourceOrigin.OutOfDate](data: _*)
-          val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](variadicData, None, Instant.now)
+          val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+            variadicData,
+            None,
+            Instant.now,
+            GraphDataCache.empty
+          )
           StopAt(stopAt).next(fmvo.formModel, stopAt) shouldBe StopAt(expectedStopAt)
         }
       }

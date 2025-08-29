@@ -151,7 +151,6 @@ class DeclarationController(
             .getProcessData[SectionSelectorType.WithDeclaration](
               variadicFormData,
               cache,
-              formModelOptics,
               gformConnector.getAllTaxPeriods,
               NoSpecificAction
             )

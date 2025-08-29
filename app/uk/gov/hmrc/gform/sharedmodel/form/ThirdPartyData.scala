@@ -20,18 +20,18 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
+import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieveId, DataRetrieveResult, NotChecked, Obligations }
-import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 
 case class ThirdPartyData(
   obligations: Obligations,
   emailVerification: Map[EmailFieldId, EmailAndCode],
   queryParams: QueryParams,
   reviewData: Option[Map[String, String]] = None,
-  booleanExprCache: BooleanExprCache,
+  booleanExprCache: BooleanExprCache, //No longer used, need to remove from backend for full removal
   dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]],
   postcodeLookup: Option[Map[FormComponentId, AddressLookupResult]],
   selectedAddresses: Option[Map[FormComponentId, String]],

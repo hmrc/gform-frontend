@@ -17,20 +17,17 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{ Monad, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.models.gform.ObligationsAction
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, FormComponentId, IsHmrcTaxPeriod }
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.models.gform.ObligationsAction
 
 case class ProcessData(
   formModelOptics: FormModelOptics[DataOrigin.Browser],
@@ -48,7 +45,6 @@ case class ProcessData(
 }
 
 class ProcessDataService[F[_]: Monad](
-  recalculation: Recalculation[F, Throwable],
   taxPeriodStateChecker: TaxPeriodStateChecker[F, Throwable]
 ) {
 
@@ -77,7 +73,6 @@ class ProcessDataService[F[_]: Monad](
   def getProcessData[U <: SectionSelectorType: SectionSelector](
     dataRaw: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     obligationsAction: ObligationsAction
   )(implicit
@@ -89,30 +84,26 @@ class ProcessDataService[F[_]: Monad](
 
     val cachedObligations: Obligations = cache.form.thirdPartyData.obligations
 
-    for {
-
-      browserFormModelOptics <- FormModelOptics
-                                  .mkFormModelOptics[DataOrigin.Browser, F, U](dataRaw, cache, recalculation)
-
-      obligations <- taxPeriodStateChecker.callDesIfNeeded(
-                       getAllTaxPeriods,
-                       hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
-                       cachedObligations,
-                       obligationsAction
-                     )
-
-    } yield {
-
-      val dataUpd: FormModelOptics[DataOrigin.Browser] = new ObligationValidator {}
-        .validateWithDes(browserFormModelOptics, cachedObligations, obligations)
-
-      ProcessData(
-        dataUpd,
-        cache.form.visitsIndex,
-        obligations,
-        browserFormModelOptics.formModelVisibilityOptics.booleanExprCache,
-        cache.form.thirdPartyData.confirmations.map(_.map { case (k, v) => k -> v })
+    val browserFormModelOptics = FormModelOptics
+      .mkFormModelOptics[DataOrigin.Browser, U](dataRaw, cache)
+    taxPeriodStateChecker
+      .callDesIfNeeded(
+        getAllTaxPeriods,
+        hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
+        cachedObligations,
+        obligationsAction
       )
-    }
+      .map { obligations =>
+        val dataUpd: FormModelOptics[DataOrigin.Browser] = new ObligationValidator {}
+          .validateWithDes(browserFormModelOptics, cachedObligations, obligations)
+
+        ProcessData(
+          dataUpd,
+          cache.form.visitsIndex,
+          obligations,
+          browserFormModelOptics.formModelVisibilityOptics.recalculationResult.graphDataCache.booleanExprCache,
+          cache.form.thirdPartyData.confirmations.map(_.map { case (k, v) => k -> v })
+        )
+      }
   }
 }

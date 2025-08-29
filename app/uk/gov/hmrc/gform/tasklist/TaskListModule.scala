@@ -37,7 +37,7 @@ class TaskListModule(
   }
 
   val processDataService: ProcessDataService[Future] =
-    new ProcessDataService[Future](graphModule.recalculation, taxPeriodStateChecker)
+    new ProcessDataService[Future](taxPeriodStateChecker)
 
   val taskListRenderingService = new TaskListRenderingService(
     configModule.frontendAppConfig,

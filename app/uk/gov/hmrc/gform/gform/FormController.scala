@@ -27,17 +27,15 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -63,7 +61,6 @@ class FormController(
   processDataService: ProcessDataService[Future],
   handler: FormControllerRequestHandler,
   fastForwardService: FastForwardService,
-  recalculation: Recalculation[Future, Throwable],
   formProcessor: FormProcessor,
   confirmationService: ConfirmationService,
   messagesControllerComponents: MessagesControllerComponents,
@@ -528,7 +525,6 @@ class FormController(
                                      formModelOptics.formModelRenderPageOptics.recData.variadicFormData
                                        .asInstanceOf[VariadicFormData[OutOfDate]],
                                      cache,
-                                     formModelOptics,
                                      gformConnector.getAllTaxPeriods,
                                      NoSpecificAction
                                    )
@@ -601,7 +597,6 @@ class FormController(
                              formModelOptics.formModelVisibilityOptics.recData.variadicFormData
                                .asInstanceOf[VariadicFormData[OutOfDate]],
                              cache,
-                             formModelOptics,
                              gformConnector.getAllTaxPeriods,
                              NoSpecificAction
                            )
@@ -919,20 +914,17 @@ class FormController(
 
             val variadicFormData = processData.formModelOptics.pageOpticsData
             val updatedVariadicFormData = variadicFormData.addOne(incremented -> "")
-            for {
-              updFormModelOptics <- FormModelOptics
-                                      .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                        updatedVariadicFormData
-                                          .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                        cache,
-                                        recalculation
-                                      )
-              res <- handleGroup(
-                       cache,
-                       processData.copy(formModelOptics = updFormModelOptics),
-                       anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse("")
-                     )
-            } yield res
+            val updFormModelOptics = FormModelOptics
+              .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
+                updatedVariadicFormData
+                  .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                cache
+              )
+            handleGroup(
+              cache,
+              processData.copy(formModelOptics = updFormModelOptics),
+              anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse("")
+            )
 
           }
 
@@ -940,13 +932,12 @@ class FormController(
             val (updData, componentIdToFileId, filesToDelete) =
               GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache.form.componentIdToFileId)
             val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
+            val updFormModelOptics = FormModelOptics
+              .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
+                updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                cache
+              )
             for {
-              updFormModelOptics <- FormModelOptics
-                                      .mkFormModelOptics[DataOrigin.Browser, Future, SectionSelectorType.Normal](
-                                        updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                                        cache,
-                                        recalculation
-                                      )
               res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
               _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)
             } yield res
@@ -957,7 +948,6 @@ class FormController(
                              .getProcessData[SectionSelectorType.Normal](
                                variadicFormData,
                                cache,
-                               formModelOptics,
                                gformConnector.getAllTaxPeriods,
                                NoSpecificAction
                              )

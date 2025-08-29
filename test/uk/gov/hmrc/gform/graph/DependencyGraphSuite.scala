@@ -16,25 +16,20 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.Id
 import cats.data.NonEmptyList
 import munit.FunSuite
 import play.api.i18n.Messages
-
-import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
-import uk.gov.hmrc.gform.models.{ Basic, FormModelBuilder, Interim, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, FormModelSupport, SectionSelectorType }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, FormTemplate, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, RevealingChoice, RevealingChoiceElement, Section, Sum, ValidIf, Value, Vertical }
-import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
-import FormTemplateBuilder._
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache, GraphNode }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin, VariadicFormData }
 
 import java.time.Instant
+import scala.language.implicitConversions
 
 class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
@@ -350,10 +345,15 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     formTemplate: FormTemplate,
     variadicData: VariadicFormData[SourceOrigin.OutOfDate]
   ): List[(Int, Set[GraphNode])] = {
-    val fmb: FormModelBuilder[Throwable, Id] = mkFormModelBuilder(formTemplate)
+    val fmb: FormModelBuilder = mkFormModelBuilder(formTemplate)
 
     implicit val fmdsdso: FormModelVisibilityOptics[DataOrigin.Browser] =
-      fmb.visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](variadicData, None, Instant.now)
+      fmb.visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](
+        variadicData,
+        None,
+        Instant.now,
+        GraphDataCache.empty
+      )
 
     val fm: FormModel[DataExpanded] =
       fmb.expand[DataExpanded, SectionSelectorType.Normal](variadicData)
@@ -361,7 +361,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)._1
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)
