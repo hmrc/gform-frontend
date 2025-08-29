@@ -170,20 +170,6 @@ trait AuditService {
       addressesFromComponents ++ getThirdPartyDataAddresses
     }
 
-    def evaluateSmartString(smartString: Option[SmartString], trim: Boolean): Option[String] =
-      smartString.map { ss =>
-        val value = ss.englishValue()
-        if (trim) {
-          value.trim
-            .split("\\s+")
-            .filter(!_.isEmpty)
-            .map(_.capitalize)
-            .mkString("")
-        } else {
-          value
-        }
-      }
-
     def getSummaryItemsMap(
       mslComponents: List[(String, MiniSummaryList)],
       infoComponents: List[(String, InformationMessage)]
@@ -304,22 +290,27 @@ trait AuditService {
       def shouldIncludeRow(includeIf: Option[IncludeIf]): Boolean =
         includeIf.fold(true)(formModelVisibilityOptics.evalIncludeIfExpr(_, None))
 
+      def getRowKeySuffix(smartString: SmartString): String =
+        smartString
+          .englishValue()
+          .trim
+          .split("\\s+")
+          .filter(!_.isEmpty)
+          .map(_.capitalize)
+          .mkString("")
+
       val mslSummaryItems = for {
         (componentId, miniSummaryList) <- mslComponents
         row                            <- miniSummaryList.rows
       } yield row match {
         case MiniSummaryRow.ValueRow(key, value, includeIf, _, _) if shouldIncludeRow(includeIf) =>
-          val auditKey = evaluateSmartString(key, trim = true)
-            .fold(componentId)(k => s"$componentId$k")
+          val auditKey = key.fold(componentId)(k => s"$componentId${getRowKeySuffix(k)}")
           val summaryItem = processMinSummaryListValue(value)
           Some(auditKey -> summaryItem)
 
         case MiniSummaryRow.SmartStringRow(key, value, includeIf, _, _) if shouldIncludeRow(includeIf) =>
-          val auditKey = evaluateSmartString(key, trim = true)
-            .fold(componentId)(k => s"$componentId$k")
-          val textValue = evaluateSmartString(Some(value), trim = false)
-            .map(SummaryAuditItem.fromText)
-            .getOrElse(SummaryAuditItem.empty)
+          val auditKey = key.fold(componentId)(k => s"$componentId${getRowKeySuffix(k)}")
+          val textValue = SummaryAuditItem.fromText(value.value())
           Some(auditKey -> textValue)
         case _ => None
       }
@@ -337,10 +328,8 @@ trait AuditService {
             val summaryItem = processExpressionResult(result.expressionResult, summaryValue.allInterpolations.head)
             Some(componentId -> summaryItem)
           } else {
-            val textValue = evaluateSmartString(
-              Some(infoComponent.summaryValue.fold(infoComponent.infoText)(sv => sv)),
-              trim = false
-            ).map(SummaryAuditItem.fromText).getOrElse(SummaryAuditItem.empty)
+            val textValue =
+              SummaryAuditItem.fromText(infoComponent.summaryValue.fold(infoComponent.infoText.value())(_.value()))
             Some(componentId -> textValue)
           }
         case None => None
