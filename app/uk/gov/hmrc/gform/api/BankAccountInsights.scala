@@ -30,7 +30,7 @@ trait BankAccountInsightsConnector[F[_]] {
   ): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
-class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String, authorizationToken: String)(implicit
+class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit
   ex: ExecutionContext
 ) extends BankAccountInsightsConnector[Future] {
 
@@ -44,8 +44,7 @@ class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: Strin
     implicit val hc = HeaderCarrier()
 
     val header = Seq(
-      "Authorization" -> authorizationToken,
-      "Content-Type"  -> "application/json"
+      "Content-Type" -> "application/json"
     )
 
     insightsB.post(dataRetrieve, request, header)
