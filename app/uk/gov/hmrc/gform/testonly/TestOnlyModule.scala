@@ -20,9 +20,7 @@ import play.api.i18n.Messages
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.SessionCookieBaker
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
-import uk.gov.hmrc.crypto.ApplicationCrypto
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ ApplicationCrypto, SessionCookieCrypto, SessionCookieCryptoProvider }
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auth.AuthLoginStubConnector

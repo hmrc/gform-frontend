@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import org.apache.pekko.stream.Materializer
+import play.api.Configuration
 import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc.{ CookieHeaderEncoding, DefaultCookieHeaderEncoding, EssentialFilter, RequestHeader, SessionCookieBaker }
 import play.filters.cors.{ CORSConfig, CORSFilter }
@@ -27,22 +28,18 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.model.{ ExtendedDataEvent, RedactionLog, TruncationLog }
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.DefaultSessionCookieCryptoFilter
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoFilter
-import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCryptoProvider
+import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ ApplicationCrypto, DefaultSessionCookieCryptoFilter, SessionCookieCrypto, SessionCookieCryptoFilter, SessionCookieCryptoProvider }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.deviceid.DefaultDeviceIdFilter
 import uk.gov.hmrc.play.bootstrap.frontend.filters.{ DefaultFrontendAuditFilter, FrontendMdcFilter, HeadersFilter, RequestHeaderAuditing, SessionTimeoutFilterConfig }
 import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, MDCFilter }
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.crypto._
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.play.bootstrap.config.DefaultHttpAuditEvent
 import play.filters.components.CSPComponents
+import uk.gov.hmrc.crypto.{ Decrypter, Encrypter }
 import uk.gov.hmrc.gform.metrics.MetricsModule
 
 class AnonoymousSessionCookieCryptoFilter(
@@ -126,14 +123,14 @@ class FrontendFiltersModule(
   }
 
   private val hmrcSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
-    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(Configuration(configModule.typesafeConfig))
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
     new DefaultSessionCookieCryptoFilter(sessionCookieCrypto, hmrcSessionCookieBaker, new DefaultCookieHeaderEncoding())
   }
 
   private val anonoymousSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
-    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(Configuration(configModule.typesafeConfig))
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
     new AnonoymousSessionCookieCryptoFilter(sessionCookieCrypto, anonoymousSessionCookieBaker)
@@ -145,7 +142,7 @@ class FrontendFiltersModule(
   private val cspFilter = cspComponents.cspFilter()
 
   private val emailSessionCookieCryptoFilter: SessionCookieCryptoFilter = {
-    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(Configuration(configModule.typesafeConfig))
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
     new EmailSessionCookieCryptoFilter(sessionCookieCrypto, emailSessionCookieBaker)
@@ -179,7 +176,7 @@ class FrontendFiltersModule(
   private val loggingFilter = new DefaultLoggingFilter(configModule.controllerConfigs)
 
   private val sessionCookieDispatcherFilter = {
-    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+    val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(Configuration(configModule.typesafeConfig))
     val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
     new SessionCookieDispatcherFilter(
