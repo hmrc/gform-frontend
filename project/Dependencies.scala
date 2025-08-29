@@ -6,8 +6,8 @@ object Dependencies {
   val jacksonVersion = "2.18.3"
   val jacksonDatabindVersion = "2.18.3"
   val circeVersion = "0.14.12"
-  val bootstrapVersion = "9.14.0"
-  val hmrcMongoVersion = "2.6.0"
+  val bootstrapVersion = "9.19.0"
+  val hmrcMongoVersion = "2.7.0"
   val luceneVersion = "10.2.2"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test
