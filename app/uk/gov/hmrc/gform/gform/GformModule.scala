@@ -165,7 +165,7 @@ class GformModule(
     s"${configModule.serviceConfig.baseUrl("bank-account-insights")}$bankAccountInsightsBasePath"
 
   val bankAccountInsightsConnector =
-    new BankAccountInsightsAsyncConnector(wSHttpModule.httpClient, bankAccountInsightsUrl, authorizationToken)
+    new BankAccountInsightsAsyncConnector(wSHttpModule.httpClient, bankAccountInsightsUrl)
 
   val agentAccessControlConnector =
     new DelegatedAgentAuthAsyncConnector(
