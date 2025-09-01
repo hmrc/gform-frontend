@@ -60,7 +60,7 @@ class GraphDataCacheService(
 
     val inExprResolverFtr = {
       val setOfFutures = inExprs.collect { case In(formCtx: FormCtx, dataSource) =>
-        val modelComponentId = formCtx.formComponentId.baseComponentId
+        val baseComponentId = formCtx.formComponentId.baseComponentId
         def makeCall(value: String): Future[Boolean] = dataSource match {
           case DataSource.Mongo(collectionName) => dbLookupCheckStatus(value, collectionName, hc)
           case DataSource.Enrolment(serviceName, identifierName) =>
@@ -73,7 +73,7 @@ class GraphDataCacheService(
             seissEligibilityChecker(UtrEligibilityRequest(value), hc)
         }
 
-        variadicFormData.forBaseComponentId(modelComponentId).map { case (modelComponentId, variadicFormValue) =>
+        variadicFormData.forBaseComponentId(baseComponentId).map { case (modelComponentId, variadicFormValue) =>
           val value = variadicFormValue.fold(one => one.value)(many =>
             throw new RuntimeException(s"Didn't expect many data points in data $many")
           )
@@ -95,7 +95,7 @@ class GraphDataCacheService(
         .sequence(setOfFutures)
         .map(_.toMap)
         .map { map => (in: In) =>
-          map.getOrElse(in, false)
+          map.getOrElse(in, throw new RuntimeException("In expression not found in inExprResolver"))
         }
     }
 
@@ -125,8 +125,6 @@ class GraphDataCacheService(
       } else {
         booleanExprCache
       }
-
-      println(finalBooleanCache)
 
       GraphDataCache(graph, inExprResolver, finalBooleanCache)
     }
