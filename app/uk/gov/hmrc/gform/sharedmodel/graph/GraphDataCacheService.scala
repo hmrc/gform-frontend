@@ -57,6 +57,9 @@ class GraphDataCacheService(
     val formModelInterim: FormModel[Interim] = fmb.expand(variadicFormData)
     val (graph, inExprs) = DependencyGraph.toGraph(formModelInterim, AllFormTemplateExpressions(formTemplate))
     val changedCacheValues = mutable.Map[(DataSource, String), Boolean]()
+    val baseComponentIds = inExprs.collect { case In(formCtx: FormCtx, dataSource) =>
+      formCtx.formComponentId.baseComponentId
+    }
 
     val inExprResolverFtr = {
       val setOfFutures = inExprs.collect { case In(formCtx: FormCtx, dataSource) =>
@@ -91,12 +94,27 @@ class GraphDataCacheService(
         }
       }.flatten
 
+      def mapToInExprResolver(inMap: Map[In, Boolean]): In => Boolean = (in: In) =>
+        inMap.getOrElse(
+          in, {
+            def inExpressionInGraph: Boolean =
+              in match {
+                case In(formCtx: FormCtx, dataSource) =>
+                  baseComponentIds.contains(formCtx.formComponentId.baseComponentId)
+                case _ => false
+              }
+            if (inExpressionInGraph) false
+            else
+              throw new RuntimeException(
+                s"This In expression cannot be resolved, underlying base component id was not present in InExprs set: $in"
+              )
+          }
+        )
+
       Future
         .sequence(setOfFutures)
         .map(_.toMap)
-        .map { map => (in: In) =>
-          map.getOrElse(in, throw new RuntimeException("In expression not found in inExprResolver"))
-        }
+        .map(mapToInExprResolver)
     }
 
     inExprResolverFtr.map { inExprResolver =>
