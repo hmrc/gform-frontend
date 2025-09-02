@@ -880,8 +880,9 @@ class NewFormController(
       cacheWithForm.variadicFormData[SectionSelectorType.Normal],
       cacheWithForm
     )
+    val cacheWithFormUpd = removeConfirmations(cacheWithForm, formModelOptics)
     for {
-      cacheUpdated <- maybeUpdateItmpCache(request, cacheWithForm, formModelOptics)
+      cacheUpdated <- maybeUpdateItmpCache(request, cacheWithFormUpd, formModelOptics)
       r <- cache.formTemplate.formKind.fold { classic =>
              fastForwardService.redirectFastForward(cacheUpdated, accessCode, formModelOptics, None, SuppressErrors.Yes)
            } { taskList =>
