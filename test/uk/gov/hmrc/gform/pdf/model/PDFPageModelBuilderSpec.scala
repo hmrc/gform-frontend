@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.pdf.model.PDFPageModelBuilder.makeModel
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, MiniSummaryList, MiniSummaryListValue, Section, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, IsTrue, MiniSummaryList, MiniSummaryListValue, Section, Value }
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
@@ -82,7 +82,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
             None
           )
         ),
-        DisplayInSummary.Yes,
+        DisplayInSummary(IsTrue),
         None
       ),
       None

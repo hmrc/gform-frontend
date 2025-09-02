@@ -43,7 +43,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, SummarySection, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, DisplayInSummary, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, IsFalse, IsTrue, SummarySection, Value }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
@@ -304,7 +304,7 @@ class SummaryRenderingServiceSpec
               )
             ),
             (
-              Some(true),
+              Some(DisplayInSummary(IsTrue)),
               List(
                 HeaderElement("Some page title"),
                 SummaryListElement(
@@ -318,7 +318,7 @@ class SummaryRenderingServiceSpec
               )
             ),
             (
-              Some(false),
+              Some(DisplayInSummary(IsFalse)),
               List(
                 HeaderElement("Some page title"),
                 SummaryListElement(

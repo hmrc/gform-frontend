@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
-import cats.implicits.catsSyntaxEq
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -33,7 +32,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 
 object PDFPageFieldBuilder {
   def build[T <: PDFType, D <: DataOrigin](
@@ -180,7 +178,7 @@ object PDFPageFieldBuilder {
         )
 
       case IsMiniSummaryList(msl) =>
-        if (msl.displayInSummary === DisplayInSummary.Yes) {
+        if (msl.displayInSummary.displayInSummary(formModelVisibilityOptics.booleanExprResolver)) {
           msl.rows
             .collect {
               case MiniSummaryRow.ValueRow(label, value, includeIf, _, _)
@@ -257,7 +255,7 @@ object PDFPageFieldBuilder {
             validationResult(formComponent)
               .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
               .map { _ =>
-                val filteredFields = doFilter(element.revealingFields)
+                val filteredFields = doFilter(element.revealingFields, formModelVisibilityOptics.booleanExprResolver)
                 val revealingFields = formComponentOrdering
                   .fold(filteredFields)(filteredFields.sorted(_))
                   .flatMap(f =>

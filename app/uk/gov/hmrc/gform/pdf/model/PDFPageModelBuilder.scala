@@ -140,7 +140,7 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    val filteredFields = doFilter(singleton.page.fields)
+    val filteredFields = doFilter(singleton.page.fields, formModelVisibilityOptics.booleanExprResolver)
     val pageFields: List[PageField] = formComponentOrdering
       .fold(filteredFields)(filteredFields.sorted(_))
       .flatMap(fc =>

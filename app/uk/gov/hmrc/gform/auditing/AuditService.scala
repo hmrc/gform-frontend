@@ -30,7 +30,6 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.File
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo.ItmpDateOfBirth
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary.Yes
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, DataRetrieveCtx, Expr, FormComponent, FormComponentId, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, DataRetrieve, DataRetrieveId, LangADT, RetrieveDataType, SmartString, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -351,7 +350,7 @@ trait AuditService {
         .collect { case fc @ IsMiniSummaryList(msl) =>
           fc.id.value -> msl
         }
-        .filter(t => t._2.displayInSummary == Yes)
+        .filter(t => t._2.displayInSummary.displayInSummary(formModelVisibilityOptics.booleanExprResolver))
 
     val infoComponents: List[(String, InformationMessage)] =
       formModelVisibilityOptics.allFormComponents

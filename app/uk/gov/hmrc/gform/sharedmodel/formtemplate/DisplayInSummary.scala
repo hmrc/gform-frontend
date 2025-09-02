@@ -20,11 +20,11 @@ import play.api.libs.json._
 import julienrf.json.derived
 import uk.gov.hmrc.gform.eval.BooleanExprResolver
 
-final case class ContinueIf(booleanExpression: BooleanExpr) extends AnyVal {
-  def isTerminationPage(booleanExprResolver: BooleanExprResolver): Boolean =
-    !booleanExprResolver.resolve(booleanExpression)
+final case class DisplayInSummary(booleanExpression: BooleanExpr) extends AnyVal {
+  def displayInSummary(booleanExprResolver: BooleanExprResolver): Boolean =
+    booleanExprResolver.resolve(booleanExpression)
 }
 
-object ContinueIf {
-  implicit val format: OFormat[ContinueIf] = derived.oformat()
+object DisplayInSummary {
+  implicit val format: OFormat[DisplayInSummary] = derived.oformat()
 }

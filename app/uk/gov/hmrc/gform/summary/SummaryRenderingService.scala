@@ -435,7 +435,7 @@ object SummaryRenderingService {
       val fieldsIncConf: List[FormComponent] = page.fields ++ page.confirmation.map(_.question)
 
       fieldsIncConf
-        .filterNot(_.hideOnSummary)
+        .filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.booleanExprResolver))
         .flatMap(formComponent =>
           FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
             formComponent,
@@ -612,7 +612,7 @@ object SummaryRenderingService {
       val fcrd = implicitly[FormComponentRenderDetails[SummaryRender]]
       val slrTables: List[SummaryListRow] = bracket.iterations.last.repeater.repeater.fields
         .map(
-          _.filterNot(_.hideOnSummary)
+          _.filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.booleanExprResolver))
             .collect { case fc @ IsTableComp(table) =>
               val label = fcrd.label(fc)
               summaryListRow(
