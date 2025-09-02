@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.Applicative
-import cats.syntax.all._
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.{ FormModel, Interim }
@@ -26,18 +24,13 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.util.matching.Regex
 
-class RecalculationResolver[F[_]: Applicative](
+class RecalculationResolver(
   formModel: FormModel[Interim],
   evaluationResults: EvaluationResults,
   recData: RecData[SourceOrigin.OutOfDate],
   booleanExprResolver: BooleanExprResolver,
   evaluationContext: EvaluationContext
 ) {
-  def compareF(
-    expr1: Expr,
-    expr2: Expr,
-    f: (ExpressionResult, ExpressionResult) => Boolean
-  ): F[Boolean] = compare(expr1, expr2, f).pure[F]
 
   def compare(
     expr1: Expr,
@@ -58,12 +51,6 @@ class RecalculationResolver[F[_]: Applicative](
     res
   }
 
-  def compareDateF(
-    dateExprLHS: DateExpr,
-    dateExprRHS: DateExpr,
-    f: (DateResult, DateResult) => Boolean
-  ): F[Boolean] = compareDate(dateExprLHS, dateExprRHS, f).pure[F]
-
   def compareDate(
     dateExprLHS: DateExpr,
     dateExprRHS: DateExpr,
@@ -80,9 +67,6 @@ class RecalculationResolver[F[_]: Applicative](
     res
   }
 
-  def matchRegexF(expr: Expr, regex: Regex): F[Boolean] =
-    matchRegex(expr, regex).pure[F]
-
   def matchRegex(expr: Expr, regex: Regex): Boolean = {
     val typeInfo1 = formModel.toFirstOperandTypeInfo(expr)
     val exprRes1: ExpressionResult =
@@ -93,7 +77,5 @@ class RecalculationResolver[F[_]: Applicative](
     exprRes1.matchRegex(regex)
   }
 
-  def compareFormPhaseF(value: FormPhaseValue): F[Boolean] =
-    compareFormPhase(value).pure[F]
   def compareFormPhase(value: FormPhaseValue): Boolean = evaluationContext.formPhase.fold(false)(_.value == value)
 }

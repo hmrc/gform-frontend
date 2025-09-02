@@ -17,21 +17,19 @@
 package uk.gov.hmrc.gform
 package controllers
 
-import cats.Id
+import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.instances.future._
-import cats.syntax.applicative._
-import cats.syntax.eq._
 import com.softwaremill.quicklens._
-import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
+import scalax.collection.immutable.Graph
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{ Credentials, ItmpAddress, ItmpName }
 import uk.gov.hmrc.auth.core.retrieve.v2._
+import uk.gov.hmrc.auth.core.retrieve.{ Credentials, ItmpAddress, ItmpName }
 import uk.gov.hmrc.auth.core.{ InsufficientEnrolments, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
@@ -39,20 +37,20 @@ import uk.gov.hmrc.gform.commons.MarkDownUtil
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.REFERRER_CHECK_DETAILS
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphDataCache, GraphDataCacheService }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
+import java.time.LocalDate
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -88,9 +86,9 @@ class AuthenticatedRequestActions(
   langs: Langs,
   actionBuilder: ActionBuilder[Request, AnyContent],
   errResponder: ErrResponder,
-  recalculation: Recalculation[Future, Throwable],
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  graphDataService: GraphDataCacheService
 )(implicit
   ec: ExecutionContext,
   messagesApi: MessagesApi
@@ -409,7 +407,7 @@ class AuthenticatedRequestActions(
     )
 
     def whenFormExists(form: Form): Future[Result] =
-      for {
+      (for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
         formTemplateForForm <- if (form.formTemplateId === formTemplate._id)
                                  formTemplateContext.formTemplate.pure[Future]
@@ -417,34 +415,68 @@ class AuthenticatedRequestActions(
         specimenSource <- if (formTemplateForForm.isSpecimen) {
                             gformConnector.getFormTemplate(noSpecimen(formTemplateForForm._id)).map(Some(_))
                           } else None.pure[Future]
-        formUpd = if (form.status === Submitted) {
-                    form.copy(formTemplateId = formTemplate._id)
-                  } else form
-        cache = AuthCacheWithForm(
-                  retrievals,
-                  formUpd,
-                  FormTemplateContext.basicContext(formTemplateForForm, specimenSource),
-                  role,
-                  maybeAccessCode,
-                  lookupRegistry
+      } yield {
+
+        val formTemplateContext = FormTemplateContext.basicContext(formTemplateForForm, specimenSource)
+        val formTemplate = formTemplateContext.formTemplate
+
+        val formUpd = if (form.status === Submitted) {
+          form.copy(formTemplateId = formTemplate._id)
+        } else form
+
+        val cacheData: CacheData = new CacheData(
+          form.envelopeId,
+          form.thirdPartyData,
+          formTemplate
+        )
+
+        val fmb = new FormModelBuilder(
+          retrievals,
+          formTemplate,
+          cacheData.thirdPartyData,
+          cacheData.envelopeId,
+          maybeAccessCode,
+          form.componentIdToFileId,
+          lookupRegistry,
+          form.taskIdTaskStatus
+        )
+
+        val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
+          VariadicFormData.buildFromMongoData(fmb.dependencyGraphValidation, form.formData.toData)
+        graphDataService
+          .get(retrievals, variadicFormData, formTemplate, fmb, cacheData.thirdPartyData.booleanExprCache)
+          .flatMap { graphData =>
+            val cache = AuthCacheWithForm(
+              retrievals,
+              formUpd,
+              formTemplateContext,
+              role,
+              maybeAccessCode,
+              lookupRegistry,
+              graphData
+            )
+
+            val formModelOptics =
+              FormModelOptics
+                .mkFormModelOptics[DataOrigin.Mongo, U](
+                  cache.variadicFormData,
+                  cache
                 )
 
-        formModelOptics <-
-          FormModelOptics
-            .mkFormModelOptics[DataOrigin.Mongo, Future, U](cache.variadicFormData, cache, recalculation)
+            val formModelOpticsUpd =
+              formModelOptics
+                .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
+                .setTo(formUpd.formTemplateId)
 
-        formModelOpticsUpd =
-          formModelOptics
-            .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
-            .setTo(formUpd.formTemplateId)
+            val smartStringEvaluator =
+              smartStringEvaluatorFactory
+                .apply(
+                  formModelOpticsUpd.formModelVisibilityOptics
+                )
 
-        smartStringEvaluator =
-          smartStringEvaluatorFactory
-            .apply(
-              formModelOpticsUpd.formModelVisibilityOptics
-            )
-        result <- f(cache)(smartStringEvaluator)(formModelOptics)
-      } yield result
+            f(cache)(smartStringEvaluator)(formModelOptics)
+          }
+      }).flatten
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
 
@@ -610,30 +642,23 @@ case class AuthCacheWithForm(
   formTemplateContext: FormTemplateContext,
   role: Role,
   accessCode: Option[AccessCode],
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  graphData: GraphDataCache
 ) extends AuthCache {
   val formTemplate: FormTemplate = formTemplateContext.formTemplate
   val formTemplateId: FormTemplateId = formTemplate._id
   def formModel[U <: SectionSelectorType: SectionSelector](implicit
     hc: HeaderCarrier
-  ): FormModel[DependencyGraphVerification] = {
-    import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
+  ): FormModel[DependencyGraphVerification] =
     FormModelBuilder
       .fromCache(
         this,
         toCacheData,
-        new Recalculation[Id, Throwable](
-          SeissEligibilityChecker.alwaysEligible,
-          DelegatedEnrolmentChecker.alwaysDelegated,
-          DbLookupChecker.alwaysPresent,
-          (s: GraphException) => new IllegalArgumentException(s.reportProblem)
-        ),
         form.componentIdToFileId,
         lookupRegistry,
         form.taskIdTaskStatus
       )
       .dependencyGraphValidation
-  }
 
   def toCacheData: CacheData = new CacheData(
     form.envelopeId,
@@ -669,6 +694,7 @@ case class AuthCacheWithoutForm(
     ThirdPartyData.empty,
     formTemplate
   )
+  val graphDataCache = GraphDataCache(Graph.empty, in => false, BooleanExprCache.empty)
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
     AuthCacheWithForm(
       retrievals,
@@ -679,7 +705,8 @@ case class AuthCacheWithoutForm(
       FormTemplateContext.basicContext(formTemplate, None),
       role,
       accessCode,
-      lookupRegistry
+      lookupRegistry,
+      graphDataCache
     )
 }
 

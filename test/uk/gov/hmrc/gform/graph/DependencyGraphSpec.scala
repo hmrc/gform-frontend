@@ -791,7 +791,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
 
     DependencyGraph.constructDependencyGraph(
-      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)
+      DependencyGraph.toGraph(fm.asInstanceOf[FormModel[Interim]], formTemplateExprs)._1
     ) match {
 
       case Left(node) => throw new CycleDetectedException(node.outer)

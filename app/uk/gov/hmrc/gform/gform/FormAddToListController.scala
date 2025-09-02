@@ -233,7 +233,6 @@ class FormAddToListController(
                          formModelOptics.formModelRenderPageOptics.recData.variadicFormData
                            .asInstanceOf[VariadicFormData[OutOfDate]],
                          cache,
-                         formModelOptics,
                          gformConnector.getAllTaxPeriods,
                          NoSpecificAction
                        )

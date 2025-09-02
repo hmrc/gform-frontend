@@ -16,17 +16,13 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.Id
-import cats.syntax.applicative._
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.http.HeaderCarrier
 
-class DbLookupChecker[F[_]](dbLookupStatus: (String, CollectionName, HeaderCarrier) => F[Boolean])
-    extends Function3[String, CollectionName, HeaderCarrier, F[Boolean]] {
-  def apply(value: String, collectionName: CollectionName, hc: HeaderCarrier): F[Boolean] =
-    dbLookupStatus(value, collectionName, hc)
-}
+import scala.concurrent.Future
 
-object DbLookupChecker {
-  val alwaysPresent: DbLookupChecker[Id] = new DbLookupChecker[Id]((_, _, _) => true.pure[Id])
+class DbLookupChecker(dbLookupStatus: (String, CollectionName, HeaderCarrier) => Future[Boolean])
+    extends Function3[String, CollectionName, HeaderCarrier, Future[Boolean]] {
+  def apply(value: String, collectionName: CollectionName, hc: HeaderCarrier): Future[Boolean] =
+    dbLookupStatus(value, collectionName, hc)
 }

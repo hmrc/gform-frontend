@@ -17,23 +17,19 @@
 package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.FormModelSupport
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.SectionSelectorType
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.models.FormModel
-import uk.gov.hmrc.gform.models.Visibility
-import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.models.VariadicFormDataSupport
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import SectionNumber.Classic
+import uk.gov.hmrc.gform.eval.AllFormTemplateExpressions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
 
 import java.time.Instant
 class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSupport with GraphSpec {
@@ -86,8 +82,19 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   implicit val messages: Messages = play.api.test.Helpers.stubMessages(play.api.test.Helpers.stubMessagesApi(Map.empty))
   def getFormModel(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) = {
     val formTemplate = mkFormTemplate(sectionsData)
-    mkFormModelBuilder(formTemplate)
-      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](formData, None, Instant.now)
+    val fmb = mkFormModelBuilder(formTemplate)
+    val fm: FormModel[Interim] = fmb.expand[Interim, SectionSelectorType.Normal](formData)
+    fmb
+      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](
+        formData,
+        None,
+        Instant.now,
+        GraphDataCache(
+          DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1,
+          _ => false,
+          BooleanExprCache(Map())
+        )
+      )
       .formModel
   }
   def getNavigation(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =

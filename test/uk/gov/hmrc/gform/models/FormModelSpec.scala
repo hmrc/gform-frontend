@@ -22,24 +22,29 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import play.api.i18n.Messages
 import play.api.test.Helpers
-
-import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
-import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceData, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.eval.ExpressionResult._
+import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, LocalisedString, SourceOrigin, VariadicFormData }
 
 import java.time.Instant
+import scala.language.implicitConversions
 
 class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
+
+  private def getGraphDataCache(fmb: FormModelBuilder, data: VariadicFormData[SourceOrigin.OutOfDate]) = {
+    val graph = DependencyGraph.toGraph(fmb.expand[Interim, SectionSelectorType.Normal](data), Set())._1
+    GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+  }
 
   "FormModel" should "handle revealing choice" in {
 
@@ -121,7 +126,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       )
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       res.formModel shouldBe expected
     }
@@ -166,7 +176,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expected) =>
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -210,7 +225,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expected) =>
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -290,7 +310,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val fmb = mkFormModelFromSections(sections)
       val data = variadicFormData[SourceOrigin.OutOfDate]()
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -333,7 +358,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val data = variadicFormData[SourceOrigin.OutOfDate]("a" -> "123")
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.recData.variadicFormData shouldBe expectedVariadicData
@@ -454,7 +484,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -558,7 +593,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -643,7 +683,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
       val expectedFormModel: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       res.evaluationResults.exprMap shouldBe expected
       res.formModel shouldBe expectedFormModel
@@ -719,7 +764,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expected) =>
       val res: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
       res.evaluationResults.exprMap shouldBe expected
     }
   }
@@ -919,7 +969,12 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
 
     forAll(table) { case (data, expectedData, expectedPages) =>
       val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          getGraphDataCache(fmb, data)
+        )
 
       val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
