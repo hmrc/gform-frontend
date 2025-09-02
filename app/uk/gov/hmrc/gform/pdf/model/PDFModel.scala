@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.models.{ Bracket, SingletonWithNumber, Visibility }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -87,7 +88,7 @@ trait PDFCustomRender[A] {
     lise: SmartStringEvaluator
   ): Option[String]
   def getFormComponentLabel(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): Option[String]
-  def doFilter(fields: List[FormComponent]): List[FormComponent]
+  def doFilter(fields: List[FormComponent], booleanExprResolver: BooleanExprResolver): List[FormComponent]
 }
 
 object PDFCustomRender {
@@ -114,7 +115,10 @@ object PDFCustomRender {
       ): Option[String] =
         formComponent.shortName.map(_.value()).orElse(Some(formComponent.label.value()))
 
-      override def doFilter(fields: List[FormComponent]): List[FormComponent] = fields.filterNot(_.hideOnSummary)
+      override def doFilter(
+        fields: List[FormComponent],
+        booleanExprResolver: BooleanExprResolver
+      ): List[FormComponent] = fields.filterNot(_.hideOnSummary(booleanExprResolver))
     }
 
   implicit val instructionPDFCustomRenderInstance: PDFCustomRender[PDFType.Instruction] =
@@ -163,7 +167,10 @@ object PDFCustomRender {
       ): Option[String] =
         formComponent.instruction.flatMap(_.name.map(_.value()))
 
-      override def doFilter(fields: List[FormComponent]): List[FormComponent] = fields
-        .filter(f => !f.hideOnSummary && f.instruction.isDefined)
+      override def doFilter(
+        fields: List[FormComponent],
+        booleanExprResolver: BooleanExprResolver
+      ): List[FormComponent] = fields
+        .filter(f => !f.hideOnSummary(booleanExprResolver) && f.instruction.isDefined)
     }
 }

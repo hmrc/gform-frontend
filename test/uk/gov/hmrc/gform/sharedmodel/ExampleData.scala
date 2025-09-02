@@ -197,7 +197,7 @@ trait ExampleAuthConfig {
     name: String,
     expr: Expr,
     instruction: Option[Instruction],
-    displayInSummary: Option[Boolean]
+    displayInSummary: Option[DisplayInSummary]
   ): FormComponent =
     buildFormComponent(name, Text(TextConstraint.default, expr), instruction, displayInSummary)
 
@@ -220,7 +220,7 @@ trait ExampleAuthConfig {
     name: String,
     componentType: ComponentType,
     instruction: Option[Instruction],
-    displayInSummary: Option[Boolean]
+    displayInSummary: Option[DisplayInSummary]
   ): FormComponent =
     FormComponent(
       FormComponentId(name),

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.summary
 import cats.syntax.all._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -30,7 +31,6 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, ValidationResult }
@@ -376,7 +376,7 @@ object FormComponentSummaryRenderer {
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] =
-    if (miniSummaryList.displayInSummary === DisplayInSummary.Yes) {
+    if (miniSummaryList.displayInSummary.displayInSummary(formModelVisibilityOptics.booleanExprResolver)) {
       miniSummaryList.rows
         .collect {
           case MiniSummaryRow.ValueRow(label, value, includeIf, _, _)
@@ -1532,24 +1532,29 @@ object FormComponentSummaryRenderer {
         formFieldValidationResult
           .getOptionalCurrentValue(HtmlFieldId.indexed(fieldValue.id, index))
           .map { _ =>
-            val revealingFields = fcrd.prepareRenderables(element.revealingFields.filterNot(_.hideOnSummary)).flatMap {
-              summaryListRows(
-                _,
-                modelPageId,
-                formTemplateId,
-                formModelVisibilityOptics,
-                maybeAccessCode,
-                sectionNumber,
-                sectionTitle4Ga,
-                obligations,
-                validationResult,
-                envelope,
-                addressRecordLookup,
-                None,
-                Some(fastForward),
-                keyDisplayWidth
+            val revealingFields = fcrd
+              .prepareRenderables(
+                element.revealingFields.filterNot(_.hideOnSummary(formModelVisibilityOptics.booleanExprResolver)),
+                formModelVisibilityOptics.booleanExprResolver
               )
-            }
+              .flatMap {
+                summaryListRows(
+                  _,
+                  modelPageId,
+                  formTemplateId,
+                  formModelVisibilityOptics,
+                  maybeAccessCode,
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  obligations,
+                  validationResult,
+                  envelope,
+                  addressRecordLookup,
+                  None,
+                  Some(fastForward),
+                  keyDisplayWidth
+                )
+              }
 
             summaryListRow(
               label,
@@ -1690,7 +1695,9 @@ object FormComponentSummaryRenderer {
     formComponent.presentationHint match {
       case Some(hints) if hints.contains(SummariseGroupAsGrid) =>
         val formFieldValidationResults: List[FormFieldValidationResult] =
-          fcrd.prepareRenderables(group.fields).map(validationResult.apply)
+          fcrd
+            .prepareRenderables(group.fields, formModelVisibilityOptics.booleanExprResolver)
+            .map(validationResult.apply)
 
         val errorResults = formFieldValidationResults.filter(_.isNotOk)
 
@@ -1745,23 +1752,24 @@ object FormComponentSummaryRenderer {
         )
 
       case _ =>
-        val rows = fcrd.prepareRenderables(group.fields).flatMap { formComponent =>
-          summaryListRows(
-            formComponent,
-            modelPageId,
-            formTemplateId,
-            formModelVisibilityOptics,
-            maybeAccessCode,
-            sectionNumber,
-            sectionTitle4Ga,
-            obligations,
-            validationResult,
-            envelope,
-            addressRecordLookup,
-            iterationTitle,
-            Some(fastForward),
-            keyDisplayWidth
-          )
+        val rows = fcrd.prepareRenderables(group.fields, formModelVisibilityOptics.booleanExprResolver).flatMap {
+          formComponent =>
+            summaryListRows(
+              formComponent,
+              modelPageId,
+              formTemplateId,
+              formModelVisibilityOptics,
+              maybeAccessCode,
+              sectionNumber,
+              sectionTitle4Ga,
+              obligations,
+              validationResult,
+              envelope,
+              addressRecordLookup,
+              iterationTitle,
+              Some(fastForward),
+              keyDisplayWidth
+            )
         }
 
         val label = fcrd.label(formComponent)
@@ -1789,7 +1797,7 @@ trait AddToListCYARender extends RenderType
 
 sealed trait FormComponentRenderDetails[T <: RenderType] {
   def label(formComponent: FormComponent)(implicit lise: SmartStringEvaluator, messages: Messages): String
-  def prepareRenderables(fields: List[FormComponent]): List[FormComponent]
+  def prepareRenderables(fields: List[FormComponent], booleanExprResolver: BooleanExprResolver): List[FormComponent]
 }
 
 object FormComponentRenderDetails {
@@ -1801,8 +1809,11 @@ object FormComponentRenderDetails {
         formComponent: FormComponent
       )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent)
 
-      override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] =
-        fields.filter(f => !f.hideOnSummary)
+      override def prepareRenderables(
+        fields: List[FormComponent],
+        booleanExprResolver: BooleanExprResolver
+      ): List[FormComponent] =
+        fields.filter(f => !f.hideOnSummary(booleanExprResolver))
     }
 
   implicit val addToListCYARender: FormComponentRenderDetails[AddToListCYARender] =
@@ -1811,7 +1822,10 @@ object FormComponentRenderDetails {
         formComponent: FormComponent
       )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent)
 
-      override def prepareRenderables(fields: List[FormComponent]): List[FormComponent] = fields
+      override def prepareRenderables(
+        fields: List[FormComponent],
+        booleanExprResolver: BooleanExprResolver
+      ): List[FormComponent] = fields
     }
 
   private def getLabel(

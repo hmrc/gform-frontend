@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 
@@ -76,7 +77,7 @@ class FormComponentSpec extends Spec {
           Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
           "anything",
           "anything"
-        ).copy(displayInSummary = Some(false)),
+        ).copy(displayInSummary = Some(DisplayInSummary(IsFalse))),
         true
       ),
       (
@@ -90,8 +91,14 @@ class FormComponentSpec extends Spec {
       )
     )
 
+    val booleanExprResolver = BooleanExprResolver {
+      case IsTrue      => true
+      case IsFalse     => false
+      case unsupported => throw new Exception("Invalid condition: " + unsupported)
+    }
+
     org.scalatest.prop.TableDrivenPropertyChecks.forAll(table) { (formComponent, expected) =>
-      formComponent.hideOnSummary shouldBe expected
+      formComponent.hideOnSummary(booleanExprResolver) shouldBe expected
     }
   }
 

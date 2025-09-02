@@ -2113,7 +2113,9 @@ class SectionRenderingService(
         val index = iteration.repeater.repeater.index
         val baseIds: List[FormComponentId] = iteration.singletons.toList.flatMap { singletonWithNumber =>
           val page = singletonWithNumber.singleton.page
-          page.fields.filterNot(_.hideOnSummary).map(fId => FormComponentId(fId.baseComponentId.value))
+          page.fields
+            .filterNot(_.hideOnSummary(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver))
+            .map(fId => FormComponentId(fId.baseComponentId.value))
         }
         def updatedIncludeIf(mayBeIncludeIf: Option[IncludeIf]) =
           mayBeIncludeIf.map(iIf => IncludeIf(BooleanExprUpdater(iIf.booleanExpr, index, baseIds)))
@@ -4038,7 +4040,7 @@ object SectionRenderingService {
         val keyDisplayWidth = checkYourAnswers.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
 
         val rows = page.fields
-          .filterNot(_.hideOnSummary)
+          .filterNot(_.hideOnSummary(formModelVisibilityOptics.booleanExprResolver))
           .flatMap { fc =>
             FormComponentSummaryRenderer
               .summaryListRows[DataOrigin.Mongo, AddToListCYARender](

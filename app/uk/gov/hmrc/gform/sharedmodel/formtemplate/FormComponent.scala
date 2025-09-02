@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
+import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, ExprType, StaticTypeData }
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
@@ -49,7 +49,7 @@ case class FormComponent(
   errorShortNameStart: Option[SmartString] = None,
   errorExample: Option[SmartString] = None,
   extraLetterSpacing: Option[Boolean] = None,
-  displayInSummary: Option[Boolean] = None,
+  displayInSummary: Option[DisplayInSummary] = None,
   pageIdsToDisplayOnChange: Option[List[PageId]] = None
 ) {
 
@@ -153,10 +153,10 @@ case class FormComponent(
 
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
 
-  def hideOnSummary: Boolean =
+  def hideOnSummary(booleanExprResolver: BooleanExprResolver): Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) ||
       IsInformationMessage.unapply(this).fold(false)(info => info.summaryValue.isEmpty) ||
-      !displayInSummary.getOrElse(true)
+      !displayInSummary.map(_.displayInSummary(booleanExprResolver)).getOrElse(true)
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 
