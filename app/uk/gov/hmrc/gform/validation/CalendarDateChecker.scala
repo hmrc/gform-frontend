@@ -86,6 +86,8 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
         )
       )
       .andThen { case (dayStr, monthStr) =>
+        val monthPlaceholder = messages(s"date.${CalendarDate.month.value}")
+        val dayPlaceholder = messages(s"date.${CalendarDate.day.value}")
         val monthProgram = monthStr.toIntOption
           .filter(m => m >= 1 && m <= 12)
           .toProgram(
@@ -97,6 +99,28 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
               ""
             )
           )
+        val monthExistsProgram = ifProgram[Int](
+          cond = monthStr.isBlank,
+          thenProgram = validationFailureTyped[Int](
+            errorGranularity(formComponent)(CalendarDate.month),
+            formComponent,
+            "generic.error.calendarDate.missing",
+            Some(List(monthPlaceholder)),
+            ""
+          ),
+          elseProgram = monthProgram
+        )
+        val existsProgram = ifProgram[Int](
+          cond = dayStr.isBlank,
+          thenProgram = validationFailureTyped[Int](
+            errorGranularity(formComponent)(CalendarDate.day),
+            formComponent,
+            "generic.error.calendarDate.missing",
+            Some(List(dayPlaceholder)),
+            ""
+          ),
+          elseProgram = monthExistsProgram
+        )
         def dayProgram(maxLength: Int) = dayStr.toIntOption
           .filter(d => d >= 1 && d <= maxLength)
           .toProgram(
@@ -109,7 +133,7 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
             )
           )
         List(
-          monthProgram,
+          existsProgram,
           monthProgram orElse dayProgram(31),
           monthProgram.andThen(m => dayProgram(Month.of(m).maxLength()))
         ).nonShortCircuitProgram.voidProgram
@@ -127,6 +151,7 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
       ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m))
     )
     ifProgram(
+      cond = atomsWithValues.forall(_.value.getOrElse("").isBlank),
       andCond = formComponent.mandatory,
       thenProgram = atomsWithValues.map { mcv =>
         mcv.value

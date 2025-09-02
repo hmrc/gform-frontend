@@ -211,12 +211,14 @@ generic.whole.sterling.error.pence.pattern={1} must not include pence{2}
 generic.positive.sterling.error.positive.pattern={1} must be 0 or more{2}
 
 generic.error.taxPeriodDate.required=Enter {1}{2}
-generic.error.taxPeriodDate.month.real=Enter a month in the correct format
-generic.error.taxPeriodDate.year.real=Enter a year in the correct format
+generic.error.taxPeriodDate.month.real=Enter real month
+generic.error.taxPeriodDate.year.real=Enter real year
+generic.error.taxPeriodDate.missing=Date must include a {1}
 
 generic.error.calendarDate.required=Enter {1}{2}
-generic.error.calendarDate.day.real=Enter a day in the correct format
-generic.error.calendarDate.month.real=Enter a month in the correct format
+generic.error.calendarDate.day.real=Enter real day
+generic.error.calendarDate.month.real=Enter real month
+generic.error.calendarDate.missing=Date must include a {1}
 
 enrolment.error.failed=The registration details you entered cannot be found or are linked with a different Government Gateway account. You can:
 enrolment.error.regimeId=The registration number you have entered is for a different tax service
