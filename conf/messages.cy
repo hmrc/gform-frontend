@@ -169,9 +169,9 @@ generic.error.shortText.valid.char=Mae {1} yn gorfod cynnwys llythrennau, rhifau
 
 generic.error.date.required=Nodwch {1}{2}
 generic.error.date.required.any={1} rhaid i’r dyddiad gynnwys {2}
-generic.error.day.required=Nodwch ddiwrnod yn y fformat cywir
-generic.error.month.required=Nodwch fis yn y fformat cywir
-generic.error.year.required=Nodwch flwyddyn yn y fformat cywir
+generic.error.day.required=Nodwch ddiwrnod go iawn
+generic.error.month.required=Nodwch fis go iawn
+generic.error.year.required=Nodwch flwyddyn go iawn
 generic.error.date.real=Mae {1} yn gorfod bod yn ddyddiad go iawn{2}
 generic.error.date.today.before=Mae {1} yn gorfod bod yn y gorffennol
 generic.error.date.today.offset.before=Mae {1} yn gorfod bod heddiw neu yn y gorffennol
@@ -210,12 +210,14 @@ generic.whole.sterling.error.pence.pattern=Mae {1} yn gorfod beidio â chynnwys 
 generic.positive.sterling.error.positive.pattern=Mae {1} yn gorfod bod yn 0 neu fwy{2}
 
 generic.error.taxPeriodDate.required= Nodwch {1}{2}
-generic.error.taxPeriodDate.month.real=Nodwch fis yn y fformat cywir
-generic.error.taxPeriodDate.year.real=Nodwch flwyddyn yn y fformat cywir
+generic.error.taxPeriodDate.month.real=Nodwch fis go iawn
+generic.error.taxPeriodDate.year.real=Nodwch flwyddyn go iawn
+generic.error.taxPeriodDate.missing=Mae’n rhaid i’r dyddiad gynnwys {1}
 
 generic.error.calendarDate.required=Nodwch {1}{2}
-generic.error.calendarDate.day.real=Nodwch ddiwrnod yn y fformat cywir
-generic.error.calendarDate.month.real=Nodwch fis yn y fformat cywir
+generic.error.calendarDate.day.real=Nodwch ddiwrnod go iawn
+generic.error.calendarDate.month.real=Nodwch fis go iawn
+generic.error.calendarDate.missing=Mae’n rhaid i’r dyddiad gynnwys {1}
 
 enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
 enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol

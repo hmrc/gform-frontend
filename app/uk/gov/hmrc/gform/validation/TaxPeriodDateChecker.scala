@@ -32,7 +32,6 @@ import uk.gov.hmrc.gform.validation.CheckerServiceHelper._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 
 import scala.collection.mutable.LinkedHashSet
-
 import ComponentChecker._
 
 class TaxPeriodDateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
@@ -64,7 +63,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
   def validate(formComponent: FormComponent): CheckProgram[Unit] =
     validateRequired(formComponent).andThen(_ => validateMonthYear(formComponent))
 
-  def validateMonthYear(formComponent: FormComponent): CheckProgram[Unit] = {
+  private def validateMonthYear(formComponent: FormComponent): CheckProgram[Unit] = {
     val (maybeMonth, maybeYear) =
       formComponent.multiValueId.atomsModelComponentIds.map(formModelVisibilityOptics.data.one) match {
         case Some(month) :: Some(year) :: Nil => (Some(month), Some(year))
@@ -83,7 +82,31 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
         )
       )
       .andThen { case (monthStr, yearStr) =>
-        val monthProgram = ifProgram(
+        val monthPlaceholder = messages(s"date.${TaxPeriodDate.month.value}")
+        val yearPlaceholder = messages(s"date.${TaxPeriodDate.year.value}")
+        val monthExistsProgram = ifProgram[Unit](
+          cond = monthStr.isBlank,
+          thenProgram = validationFailureTyped[Unit](
+            errorGranularity(formComponent)(TaxPeriodDate.month),
+            formComponent,
+            "generic.error.taxPeriodDate.missing",
+            Some(List(monthPlaceholder)),
+            ""
+          ),
+          elseProgram = successProgram(())
+        )
+        val yearExistsProgram = ifProgram[Unit](
+          cond = yearStr.isBlank,
+          thenProgram = validationFailureTyped[Unit](
+            errorGranularity(formComponent)(TaxPeriodDate.year),
+            formComponent,
+            "generic.error.taxPeriodDate.missing",
+            Some(List(yearPlaceholder)),
+            ""
+          ),
+          elseProgram = successProgram(())
+        )
+        val monthProgram = ifProgram[Unit](
           cond = monthStr.toIntOption.exists(m => m >= 1 && m <= 12),
           thenProgram = successProgram(()),
           elseProgram = errorProgram(
@@ -94,7 +117,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
             )
           )
         )
-        val yearProgram = ifProgram(
+        val yearProgram = ifProgram[Unit](
           cond = yearStr.toIntOption.exists(y => y >= 1900 && y <= 2099),
           thenProgram = successProgram(()),
           elseProgram = errorProgram(
@@ -105,7 +128,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
             )
           )
         )
-        List(monthProgram, yearProgram).nonShortCircuitProgram
+        List(monthExistsProgram, yearExistsProgram, monthProgram, yearProgram).nonShortCircuitProgram
       }
   }
 
@@ -120,6 +143,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
     )
 
     ifProgram(
+      cond = atomsWithValues.forall(_.value.getOrElse("").isBlank),
       andCond = formComponent.mandatory,
       thenProgram = atomsWithValues.map { mcv =>
         mcv.value

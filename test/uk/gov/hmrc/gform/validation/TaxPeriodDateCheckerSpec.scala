@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,40 +18,32 @@ package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated.Invalid
 import munit.FunSuite
-import play.api.Configuration
-import play.api.Environment
 import play.api.http.HttpConfiguration
-import play.api.i18n._
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApiProvider, Messages, MessagesApi }
+import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponent
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.FormModelSupport
-import uk.gov.hmrc.gform.models.VariadicFormDataSupport
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.CalendarDate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, TaxPeriodDate }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 import scala.collection.mutable
 
-class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
-
+class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
   implicit val checkInterpreter: ComponentChecker.CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
   implicit val lang: LangADT = LangADT.En
 
-  private val dateComponent: FormComponent = mkFormComponent("date", CalendarDate)
-  private val dateDayAtom = FormComponentId("date-day").modelComponentId
+  private val dateComponent: FormComponent = mkFormComponent("date", TaxPeriodDate)
   private val dateMonthAtom = FormComponentId("date-month").modelComponentId
+  private val dateYearAtom = FormComponentId("date-year").modelComponentId
   private val formTemplate: FormTemplate = mkFormTemplate(
     ExampleData.nonRepeatingPageSection(fields = List(dateComponent))
   )
@@ -80,110 +72,119 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
   implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
 
-  test("validate should return valid when calendarDate atoms are correct") {
-
+  test("validate should return valid when taxPeriodDate atoms are correct") {
     val data = VariadicFormData[OutOfDate](
       Map(
-        dateDayAtom   -> VariadicValue.One("1"),
-        dateMonthAtom -> VariadicValue.One("1")
+        dateMonthAtom -> VariadicValue.One("1"),
+        dateYearAtom  -> VariadicValue.One("2000")
       )
     )
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val calendarDateValidation = new CalendarDateChecker[DataOrigin.Browser]()
+    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
 
     assertEquals(
-      calendarDateValidation.runCheck(checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)),
+      taxPeriodDateValidation.runCheck(
+        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+      ),
       validationSuccess
     )
   }
 
-  test("validate should return invalid when all calendarDate atoms are missing") {
+  test("validate should return invalid when all taxPeriodDate atoms are missing") {
     val data = VariadicFormData[OutOfDate](Map.empty)
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
-        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
+      taxPeriodDateValidation.runCheck(
+        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+      ),
       Invalid(
         Map(
           dateMonthAtom -> mutable.LinkedHashSet("Enter a date"),
-          dateDayAtom   -> mutable.LinkedHashSet("Enter a date")
+          dateYearAtom  -> mutable.LinkedHashSet("Enter a date")
         )
       )
     )
   }
 
-  test("validate should return invalid when calendarDate month atom missing") {
+  test("validate should return invalid when taxPeriodDate year atom is missing") {
     val data = VariadicFormData[OutOfDate](
       Map(
-        dateDayAtom   -> VariadicValue.One("1"),
-        dateMonthAtom -> VariadicValue.One("")
+        dateMonthAtom -> VariadicValue.One("1"),
+        dateYearAtom  -> VariadicValue.One("")
       )
     )
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
-        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
+      taxPeriodDateValidation.runCheck(
+        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+      ),
+      Invalid(Map(dateYearAtom -> mutable.LinkedHashSet("Date must include a year", "Enter real year")))
+    )
+  }
+
+  test("validate should return invalid when taxPeriodDate month atom is missing") {
+    val data = VariadicFormData[OutOfDate](
+      Map(
+        dateMonthAtom -> VariadicValue.One(""),
+        dateYearAtom  -> VariadicValue.One("2000")
+      )
+    )
+    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+
+    assertEquals(
+      taxPeriodDateValidation.runCheck(
+        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+      ),
       Invalid(Map(dateMonthAtom -> mutable.LinkedHashSet("Date must include a month", "Enter real month")))
     )
   }
 
-  test("validate should return invalid when calendarDate day atom missing") {
+  test("validate should return invalid when taxPeriodDate atoms have abnormal lengths") {
     val data = VariadicFormData[OutOfDate](
       Map(
-        dateDayAtom   -> VariadicValue.One(""),
-        dateMonthAtom -> VariadicValue.One("1")
+        dateMonthAtom -> VariadicValue.One("123"),
+        dateYearAtom  -> VariadicValue.One("20000")
       )
     )
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
-        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
-      Invalid(Map(dateDayAtom -> mutable.LinkedHashSet("Date must include a day", "Enter real day")))
-    )
-  }
-
-  test("validate should return invalid when calendarDate atoms have length > 2") {
-
-    val data = VariadicFormData[OutOfDate](
-      Map(
-        dateDayAtom   -> VariadicValue.One("111"),
-        dateMonthAtom -> VariadicValue.One("222")
-      )
-    )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-
-    assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
-        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
+      taxPeriodDateValidation.runCheck(
+        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+      ),
       Invalid(
         Map(
-          dateDayAtom   -> mutable.LinkedHashSet("Enter real day"),
-          dateMonthAtom -> mutable.LinkedHashSet("Enter real month")
+          dateMonthAtom -> mutable.LinkedHashSet("Enter real month"),
+          dateYearAtom  -> mutable.LinkedHashSet("Enter real year")
         )
       )
     )
   }
 
-  test("validate should return invalid when some calendarDate atoms are not integers") {
-
+  test("validate should return invalid when taxPeriodDate atoms are not integers") {
     val data = VariadicFormData[OutOfDate](
       Map(
-        dateDayAtom   -> VariadicValue.One("a"),
-        dateMonthAtom -> VariadicValue.One("b")
+        dateMonthAtom -> VariadicValue.One("a"),
+        dateYearAtom  -> VariadicValue.One("b")
       )
     )
     val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
-        .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
+      taxPeriodDateValidation.runCheck(
+        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+      ),
       Invalid(
         Map(
-          dateDayAtom   -> mutable.LinkedHashSet("Enter real day"),
-          dateMonthAtom -> mutable.LinkedHashSet("Enter real month")
+          dateMonthAtom -> mutable.LinkedHashSet("Enter real month"),
+          dateYearAtom  -> mutable.LinkedHashSet("Enter real year")
         )
       )
     )
@@ -193,35 +194,35 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     (
       VariadicFormData[OutOfDate](
         Map(
-          dateDayAtom   -> VariadicValue.One("0"),
-          dateMonthAtom -> VariadicValue.One("1")
+          dateMonthAtom -> VariadicValue.One("1"),
+          dateYearAtom  -> VariadicValue.One("0")
         )
       ),
-      dateDayAtom,
-      "Enter real day",
-      "Day outside range"
+      dateYearAtom,
+      "Enter real year",
+      "Year outside range"
     ),
     (
       VariadicFormData[OutOfDate](
         Map(
-          dateDayAtom   -> VariadicValue.One("1"),
-          dateMonthAtom -> VariadicValue.One("0")
+          dateMonthAtom -> VariadicValue.One("0"),
+          dateYearAtom  -> VariadicValue.One("2000")
         )
       ),
       dateMonthAtom,
       "Enter real month",
-      "Month outside range"
+      "Month outside bottom range"
     ),
     (
       VariadicFormData[OutOfDate](
         Map(
-          dateDayAtom   -> VariadicValue.One("30"),
-          dateMonthAtom -> VariadicValue.One("2")
+          dateMonthAtom -> VariadicValue.One("13"),
+          dateYearAtom  -> VariadicValue.One("2000")
         )
       ),
-      dateDayAtom,
-      "Enter real day",
-      "February day outside range"
+      dateMonthAtom,
+      "Enter real month",
+      "Month outside top range"
     )
   )
 
@@ -229,11 +230,13 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     test(s"${index + 1}. $description") {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new CalendarDateChecker[DataOrigin.Browser]()
+        new TaxPeriodDateChecker[DataOrigin.Browser]()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
-            atom -> mutable.LinkedHashSet(message)
+            atom -> mutable.LinkedHashSet(
+              message
+            )
           )
         )
       )
@@ -244,15 +247,15 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     (
       VariadicFormData[OutOfDate](
         Map(
-          dateDayAtom   -> VariadicValue.One("0"),
-          dateMonthAtom -> VariadicValue.One("0")
+          dateMonthAtom -> VariadicValue.One("0"),
+          dateYearAtom  -> VariadicValue.One("0")
         )
       ),
-      dateDayAtom,
       dateMonthAtom,
-      "Enter real day",
+      dateYearAtom,
       "Enter real month",
-      "Both day and month outside range"
+      "Enter real year",
+      "Both month and year outside range"
     )
   )
 
@@ -260,7 +263,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     test(s"${index + 1}. $description") {
       val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new CalendarDateChecker[DataOrigin.Browser]()
+        new TaxPeriodDateChecker[DataOrigin.Browser]()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
@@ -271,4 +274,5 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
       )
     }
   }
+
 }
