@@ -86,6 +86,7 @@ sealed trait Expr extends Product with Serializable {
       case ChoicesSelected(_)                      => expr :: Nil
       case ChoicesAvailable(_)                     => expr :: Nil
       case CountSelectedChoices(_)                 => expr :: Nil
+      case ChoicesCount(_)                         => expr :: Nil
       case TaskStatus(_)                           => expr :: Nil
       case LookupOps(_, _)                         => expr :: Nil
       case DisplayAsEntered(_)                     => expr :: Nil
@@ -150,6 +151,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesSelected(formComponentId)         => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)        => FormCtx(formComponentId) :: Nil
     case CountSelectedChoices(formComponentId)    => FormCtx(formComponentId) :: Nil
+    case ChoicesCount(formComponentId)            => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                            => this :: Nil
     case LookupOps(expr, _)                       => expr.leafs(formModel)
     case DisplayAsEntered(formComponentId)        => FormCtx(formComponentId) :: Nil
@@ -200,6 +202,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesSelected(_)                       => Nil
     case ChoicesAvailable(_)                      => Nil
     case CountSelectedChoices(_)                  => Nil
+    case ChoicesCount(_)                          => Nil
     case TaskStatus(_)                            => Nil
     case LookupOps(_, _)                          => Nil
     case DisplayAsEntered(_)                      => Nil
@@ -251,6 +254,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesSelected(formComponentId)          => FormCtx(formComponentId) :: Nil
     case ChoicesAvailable(formComponentId)         => FormCtx(formComponentId) :: Nil
     case CountSelectedChoices(formComponentId)     => FormCtx(formComponentId) :: Nil
+    case ChoicesCount(formComponentId)             => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                             => this :: Nil
     case LookupOps(expr, _)                        => expr.leafs()
     case DisplayAsEntered(formComponentId)         => FormCtx(formComponentId) :: Nil
@@ -303,6 +307,7 @@ final case class ChoicesRevealedField(formComponentId: FormComponentId) extends 
 final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
 final case class ChoicesAvailable(formComponentId: FormComponentId) extends Expr
 final case class CountSelectedChoices(formComponentId: FormComponentId) extends Expr
+final case class ChoicesCount(formComponentId: FormComponentId) extends Expr
 final case class TaskStatus(taskId: TaskId) extends Expr
 final case class DisplayAsEntered(formComponentId: FormComponentId) extends Expr
 
