@@ -354,8 +354,8 @@ class TestOnlyErrorMessageController(
     hc: HeaderCarrier
   ): Future[(FormComponent, GformError)] = {
 
-    def mkFormModelOptics(recData: VariadicFormData[SourceOrigin.OutOfDate]) =
-      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](recData, cache)
+    def mkFormModelOptics(data: VariadicFormData[SourceOrigin.OutOfDate]) =
+      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](data, cache)
 
     def validate(formModelOptics: FormModelOptics[DataOrigin.Mongo], useErrorInterpreter: Boolean) = {
 
@@ -386,9 +386,9 @@ class TestOnlyErrorMessageController(
       } { dataProvider =>
         validate(formModelOptics, useErrorInterpreter = true) |+|
           dataProvider
-            .errorValues(formComponent)
-            .map { recData =>
-              validate(mkFormModelOptics(recData), useErrorInterpreter = false)
+            .errorValues(formComponent, formModelOptics.formModelVisibilityOptics.recData.variadicFormData)
+            .map { data =>
+              validate(mkFormModelOptics(data), useErrorInterpreter = false)
             }
             .sequence
             .map(_.foldLeft(Map.empty[ModelComponentId, mutable.LinkedHashSet[String]]) { case (a, m) => a |+| m })
