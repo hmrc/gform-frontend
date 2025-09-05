@@ -19,35 +19,30 @@ package uk.gov.hmrc.gform.testonly
 import cats.data.Validated
 import cats.data.Validated.Valid
 import cats.implicits._
-import play.api.i18n.I18nSupport
 import play.api.i18n._
-import play.api.libs.json.Json
-import play.api.libs.json.OFormat
+import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsText
-import uk.gov.hmrc.gform.validation.ValidationService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsDate, IsText }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.validation.GformError.linkedHashSetMonoid
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.collection.mutable
+import scala.concurrent.{ ExecutionContext, Future }
 
 class TestOnlyErrorMessageController(
   i18nSupport: I18nSupport,
@@ -67,6 +62,7 @@ class TestOnlyErrorMessageController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => _ => cache => _ => formModelOptics =>
+        implicit val hc = HeaderCarrier()
         val messagesApi: MessagesApi = controllerComponents.messagesApi
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
@@ -101,13 +97,15 @@ class TestOnlyErrorMessageController(
             fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
               englishMessages,
               LangADT.En,
-              englishSse
+              englishSse,
+              hc
             )
           welshReports <-
             fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
               welshMessages,
               LangADT.Cy,
-              welshSse
+              welshSse,
+              hc
             )
         } yield {
           val report = EnCyReport.makeEnCy(englishReports, welshReports)
@@ -161,11 +159,22 @@ class TestOnlyErrorMessageController(
 
     def make(formComponent: FormComponent, gformError: GformError, inputBaseComponentId: Option[String])(implicit
       l: LangADT
-    ): List[FieldErrorReport] =
-      gformError
+    ): List[FieldErrorReport] = {
+      val consolidatedGformError: GformError = formComponent match {
+        case IsDate(_) =>
+          Map(
+            formComponent.modelComponentId -> gformError.foldLeft(mutable.LinkedHashSet.empty[String]) {
+              case (acc, (_, errs)) => acc ++ errs
+            }
+          )
+        case _ => gformError
+      }
+
+      consolidatedGformError
         .filter { case (id, _) => inputBaseComponentId.forall(id.baseComponentId.value == _) }
         .map { case (id, errors) => make(id.toMongoIdentifier, formComponent, errors.toList) }
         .toList
+    }
 
     def makeBlank(): FieldErrorReport =
       new FieldErrorReport(
@@ -317,26 +326,73 @@ class TestOnlyErrorMessageController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     cache: AuthCacheWithForm,
     inputBaseComponentId: Option[String]
-  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[List[FieldErrorReport]] =
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator,
+    hc: HeaderCarrier
+  ): Future[List[FieldErrorReport]] =
     formComponents
-      .map { formComponent =>
-        val formModel = formModelOptics.formModelVisibilityOptics.formModel
+      .map {
+        case fc @ IsDate(_) => validateWithDataProvider(fc, cache, formModelOptics, Some(new DateErrorProvider()))
+        case fc             => validateWithDataProvider(fc, cache, formModelOptics, None)
+      }
+      .sequence
+      .map(_.flatMap { case (formComponent, gformError) =>
+        FieldErrorReport.make(formComponent, gformError, inputBaseComponentId)
+      })
+
+  private def validateWithDataProvider(
+    formComponent: FormComponent,
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    dataProvider: Option[ErrorValueProvider]
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator,
+    hc: HeaderCarrier
+  ): Future[(FormComponent, GformError)] = {
+
+    def mkFormModelOptics(recData: VariadicFormData[SourceOrigin.OutOfDate]) =
+      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](recData, cache)
+
+    def validate(formModelOptics: FormModelOptics[DataOrigin.Mongo], useErrorInterpreter: Boolean) = {
+
+      def validator(fmo: FormModelOptics[DataOrigin.Mongo]) =
         new ComponentsValidator[DataOrigin.Mongo, Future](
-          formModelOptics.formModelVisibilityOptics,
+          fmo.formModelVisibilityOptics,
           formComponent,
           cache.toCacheData,
           EnvelopeWithMapping.empty,
           lookupRegistry,
           new BooleanExprEval(),
-          ComponentChecker.ErrorReportInterpreter,
+          if (useErrorInterpreter) ComponentChecker.ErrorReportInterpreter
+          else ComponentChecker.NonShortCircuitInterpreter,
           true
-        ).validate(GetEmailCodeFieldMatcher(formModel)).map {
-          case Valid(a)                      => (formComponent, GformError.emptyGformError)
-          case Validated.Invalid(gformError) => (formComponent, gformError)
+        )
+
+      validator(formModelOptics)
+        .validate(GetEmailCodeFieldMatcher(formModelOptics.formModelVisibilityOptics.formModel))
+        .map {
+          case Valid(_)                      => GformError.emptyGformError
+          case Validated.Invalid(gformError) => gformError
         }
+    }
+
+    dataProvider
+      .fold {
+        validate(formModelOptics, useErrorInterpreter = true) |+| validate(formModelOptics, useErrorInterpreter = false)
+      } { dataProvider =>
+        validate(formModelOptics, useErrorInterpreter = true) |+|
+          dataProvider
+            .errorValues(formComponent)
+            .map { recData =>
+              validate(mkFormModelOptics(recData), useErrorInterpreter = false)
+            }
+            .sequence
+            .map(_.foldLeft(Map.empty[ModelComponentId, mutable.LinkedHashSet[String]]) { case (a, m) => a |+| m })
       }
-      .sequence
-      .map(_.flatMap { case (formComponent, gfromError) =>
-        FieldErrorReport.make(formComponent, gfromError, inputBaseComponentId)
-      })
+      .map(formComponent -> _)
+  }
 }
