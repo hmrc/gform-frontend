@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.data.NonEmptyList
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
@@ -33,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode.Up
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ LookupLoader, Spec }
@@ -55,7 +58,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     pageIdSectionNumberMap: Map[ModelPageId, SectionNumber] = Map.empty,
     indexedComponentIds: List[ModelComponentId] = List.empty,
     retrievals: MaterialisedRetrievals = authContext,
-    thirdPartyData: ThirdPartyData = ThirdPartyData.empty
+    thirdPartyData: ThirdPartyData = ThirdPartyData.empty,
+    choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]] = Map.empty,
+    hideChoicesSelected: Set[ModelComponentId] = Set.empty[ModelComponentId]
   ) =
     EvaluationContext(
       formTemplateId,
@@ -94,14 +99,39 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       Set.empty,
       FileSizeLimit(1),
       DataRetrieveAll.empty,
-      Set.empty[ModelComponentId],
-      Map.empty,
+      hideChoicesSelected,
+      choiceLookup,
       Set.empty,
       new LookupRegistry(Map.empty),
       Map.empty,
       Map.empty,
       TaskIdTaskStatusMapping.empty,
       LocalDate.now()
+    )
+
+  private def buildChoiceLookup(
+    formComponentId: String
+  ): Map[ModelComponentId, NonEmptyList[OptionData]] =
+    Map(
+      FormComponentId(formComponentId).modelComponentId -> NonEmptyList.of(
+        buildValueBasedChoiceOption("Choice label 1", "2024", Some(IncludeIf(Equals(Constant("1"), Constant("2"))))),
+        buildValueBasedChoiceOption("Choice label 2", "2025", None),
+        buildValueBasedChoiceOption("Choice label 3", "2026", None)
+      )
+    )
+
+  private def buildValueBasedChoiceOption(
+    labelString: String,
+    valueString: String,
+    includeIf: Option[IncludeIf]
+  ): OptionData =
+    OptionData.ValueBased(
+      label = toSmartString(labelString),
+      hint = None,
+      includeIf = includeIf,
+      dynamic = None,
+      value = StringBased(valueString),
+      summaryValue = None
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
@@ -865,6 +895,55 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         RepeatedComponentsDetails.empty,
         "Ref to AddToList string field from outside ATL"
+      ),
+      (
+        TypeInfo(ChoicesCount(FormComponentId("addToListChoiceField")), StaticTypeData(ExprType.number, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
+            (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListChoiceField"), VariadicValue.Many(Seq("2025"))),
+            (toModelComponentId("2_addToListChoiceField"), VariadicValue.Many(Seq("2026")))
+          )
+        ),
+        buildEvaluationContext(
+          indexedComponentIds = List(
+            FormComponentId("1_addToListChoiceField").modelComponentId,
+            FormComponentId("2_addToListChoiceField").modelComponentId
+          ),
+          choiceLookup = buildChoiceLookup("addToListChoiceField")
+        ),
+        NumberResult(2),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListChoiceField")) -> OptionResult(Seq("2025")),
+          FormCtx(FormComponentId("2_addToListChoiceField")) -> OptionResult(Seq("2026"))
+        ),
+        RepeatedComponentsDetails.empty,
+        "ChoicesCount evaluates includeIfs and returns the correct number result"
+      ),
+      (
+        TypeInfo(ChoicesAvailable(FormComponentId("addToListChoiceField")), StaticTypeData(ExprType.number, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_addToListQuestion"), VariadicValue.One("0")),
+            (toModelComponentId("2_addToListQuestion"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListChoiceField"), VariadicValue.Many(Seq("2025")))
+          )
+        ),
+        buildEvaluationContext(
+          indexedComponentIds = List(
+            FormComponentId("1_addToListChoiceField").modelComponentId,
+            FormComponentId("2_addToListChoiceField").modelComponentId
+          ),
+          choiceLookup = buildChoiceLookup("addToListChoiceField"),
+          hideChoicesSelected = Set(FormComponentId("addToListChoiceField").modelComponentId)
+        ),
+        NumberResult(1),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListChoiceField")) -> OptionResult(Seq("2025"))
+        ),
+        RepeatedComponentsDetails.empty,
+        "ChoicesAvailable evaluates includeIfs, hideChoicesSelected, selected choices and returns the correct number result"
       )
     )
     forAll(table) {

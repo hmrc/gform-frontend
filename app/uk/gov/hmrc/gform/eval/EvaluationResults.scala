@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.data.NonEmptyList
 import cats.syntax.eq._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
@@ -247,6 +248,43 @@ case class EvaluationResults(
     NumberResult(count)
   }
 
+  private def getInitialChoicesCount(
+    formComponentId: FormComponentId,
+    evaluationContext: EvaluationContext,
+    booleanExprResolver: BooleanExprResolver
+  ): NumberResult = {
+    val modelComponentId = formComponentId.modelComponentId
+    evaluationContext.choiceLookup
+      .get(modelComponentId)
+      .map { optionDataNel =>
+        val choicesAvailable: Int = getChoicesTotalCount(optionDataNel, evaluationContext)
+        val choicesHidden: Int = getHiddenChoices(optionDataNel, booleanExprResolver)
+        NumberResult(choicesAvailable - choicesHidden)
+      }
+      .getOrElse(NumberResult(0))
+  }
+
+  private def getChoicesTotalCount(optionDataNel: NonEmptyList[OptionData], evaluationContext: EvaluationContext): Int =
+    optionDataNel.toList.map {
+      case _: OptionData.IndexBased                   => 1
+      case OptionData.ValueBased(_, _, _, None, _, _) => 1
+      case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _, _) =>
+        evaluationContext.thirdPartyData.dataRetrieve
+          .flatMap(dr => dr.get(indexOfDataRetrieveCtx.ctx.id))
+          .fold(0)(drr => drr.data.size)
+
+      case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _, _) =>
+        recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
+    }.sum
+
+  private def getHiddenChoices(optionDataNel: NonEmptyList[OptionData], booleanExprResolver: BooleanExprResolver): Int =
+    optionDataNel.toList
+      .count(od =>
+        od.includeIf.exists { incIf =>
+          !booleanExprResolver.resolve(incIf.booleanExpr)
+        }
+      )
+
   private def getChoicesAvailable(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext,
@@ -257,19 +295,8 @@ case class EvaluationResults(
     evaluationContext.choiceLookup
       .get(modelComponentId)
       .map { optionDataNel =>
-        val choicesAvailable: Int = optionDataNel.toList.map { optionData =>
-          optionData match {
-            case o: OptionData.IndexBased                   => 1
-            case OptionData.ValueBased(_, _, _, None, _, _) => 1
-            case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _, _) =>
-              evaluationContext.thirdPartyData.dataRetrieve
-                .flatMap(dr => dr.get(indexOfDataRetrieveCtx.ctx.id))
-                .fold(0)(drr => drr.data.size)
-
-            case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _, _) =>
-              recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
-          }
-        }.sum
+        val choicesAvailable: Int = getChoicesTotalCount(optionDataNel, evaluationContext)
+        val hiddenChoices: Int = getHiddenChoices(optionDataNel, booleanExprResolver)
 
         val hideSelectedChoices: Boolean = evaluationContext.hideChoicesSelected(modelComponentId)
 
@@ -310,14 +337,7 @@ case class EvaluationResults(
           }.sum
         } else 0
 
-        val choicesHidden: Int =
-          optionDataNel.toList
-            .count(od =>
-              od.includeIf.exists { incIf =>
-                !booleanExprResolver.resolve(incIf.booleanExpr)
-              }
-            )
-        NumberResult(choicesAvailable - choicesHidden - alreadySelected)
+        NumberResult(choicesAvailable - hiddenChoices - alreadySelected)
       }
       .getOrElse(NumberResult(0))
   }
@@ -423,6 +443,8 @@ case class EvaluationResults(
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
+      case ChoicesCount(formComponentId) =>
+        getInitialChoicesCount(formComponentId, evaluationContext, booleanExprResolver)
       case CountSelectedChoices(formComponentId) => countSelectedChoices(formComponentId)
       case TaskStatus(_)                         => unsupportedOperation("Number")(expr)
       case LookupOps(_, _)                       => unsupportedOperation("Number")(expr)
@@ -1116,7 +1138,7 @@ case class EvaluationResults(
       case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case ChoicesSelected(_) | ChoicesAvailable(_) | CountSelectedChoices(_) =>
+      case ChoicesSelected(_) | ChoicesAvailable(_) | CountSelectedChoices(_) | ChoicesCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
