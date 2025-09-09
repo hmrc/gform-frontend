@@ -77,6 +77,10 @@
   maybeFormTemplate.exists(_.displayAccountHeader)
 }
 
+@displayServiceNavigation = @{
+  maybeFormTemplate.exists(_.serviceNavigationComponent)
+}
+
 @serviceStartPageUrl = @{
   maybeFormTemplate.flatMap(_.serviceStartPageUrl.map(_.value))
 }
@@ -187,7 +191,7 @@
 @hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
 @hmrcUserResearchBanner = @{new CustomUserResearchBanner}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
-@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig)}
+@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig, rebrandConfig, govukLogo, displayServiceNavigation)}
 @hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout, rebrandConfig)}
