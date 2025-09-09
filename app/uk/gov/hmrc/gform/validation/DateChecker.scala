@@ -161,6 +161,24 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     )
   }
 
+  def allConditions(formComponentId: FormComponentId): List[List[((ModelComponentId, Option[String]))]] = {
+    val day = formComponentId.toAtomicFormComponentId(Date.day)
+    val month = formComponentId.toAtomicFormComponentId(Date.month)
+    val year = formComponentId.toAtomicFormComponentId(Date.year)
+    List(
+      // format: off
+        List(day -> None,      month -> None,      year -> None),
+        List(day -> Some("1"), month -> None,      year -> None),
+        List(day -> None,      month -> Some("1"), year -> None),
+        List(day -> None,      month -> None,      year -> Some("2000")),
+
+        List(day -> Some("1"), month -> Some("1"), year -> None),
+        List(day -> None,      month -> Some("1"), year -> Some("2000")),
+        List(day -> Some("1"), month -> None,      year -> Some("2000"))
+        // format: on
+    )
+  }
+
   private def checkAnyFieldsEmpty(
     fieldValue: FormComponent,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
@@ -173,20 +191,24 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
         val answer = formModelVisibilityOptics.data.one(modelComponentId).filter(_.trim.nonEmpty)
         modelComponentId -> answer
       }
-
-    if (answers.map(_._2).forall(_.isEmpty)) {
-      fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
-        requiredError(fieldValue, modelComponentId)
-      }.nonShortCircuitProgram
-    } else {
-      answers.map { case (modelComponentId, answer) =>
-        answer
-          .filterNot(_.isEmpty)
-          .fold(requiredAnyFieldError(fieldValue, modelComponentId, answers.collect { case (id, None) => id }))(_ =>
+    ifProgramRuntime[Unit, (ModelComponentId, Option[String])](
+      runtimeSource = answers,
+      reportSources = allConditions(fieldValue.id),
+      cond = data => data.map(_._2).forall(_.isEmpty),
+      thenProgram = data =>
+        data
+          .map(_._1)
+          .map { modelComponentId =>
+            requiredError(fieldValue, modelComponentId)
+          }
+          .nonShortCircuitProgram,
+      elseProgram = data =>
+        data.map { case (modelComponentId, answer) =>
+          answer.fold(requiredAnyFieldError(fieldValue, modelComponentId, data.collect { case (id, None) => id }))(_ =>
             successProgram(())
           )
-      }.nonShortCircuitProgram
-    }
+        }.nonShortCircuitProgram
+    )
   }
 
   private def checkAllFieldsEmpty(

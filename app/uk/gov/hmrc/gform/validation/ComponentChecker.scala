@@ -129,6 +129,16 @@ object ComponentChecker {
     isSwitch: Boolean = false
   ) extends CheckOp[EitherType[A]]
 
+  case class IfOpRuntime[A, I](
+    runtimeSource: I,
+    reportSources: List[I],
+    cond: I => Boolean,
+    andCond: Option[Boolean],
+    thenProgram: I => CheckProgram[A],
+    elseProgram: I => CheckProgram[A],
+    isSwitch: Boolean = false
+  ) extends CheckOp[EitherType[A]]
+
   case class AndThenOp[A, B](
     program: CheckProgram[A],
     andThenFun: A => CheckProgram[B],
@@ -158,6 +168,17 @@ object ComponentChecker {
     elseProgram: CheckProgram[A]
   ): CheckProgram[A] =
     Free.liftF[CheckOp, EitherType[A]](IfOp[A](cond, None, thenProgram, elseProgram))
+
+  def ifProgramRuntime[A, B](
+    runtimeSource: List[B],
+    reportSources: => List[List[B]],
+    cond: List[B] => Boolean,
+    thenProgram: List[B] => CheckProgram[A],
+    elseProgram: List[B] => CheckProgram[A]
+  ): CheckProgram[A] =
+    Free.liftF[CheckOp, EitherType[A]](
+      IfOpRuntime[A, List[B]](runtimeSource, reportSources, cond, None, thenProgram, elseProgram)
+    )
 
   def ifProgram[A](
     cond: Boolean = true,
@@ -203,11 +224,15 @@ object ComponentChecker {
    */
   object ShortCircuitInterpreter extends CheckInterpreter {
     def apply[A](op: CheckOp[A]) = op match {
-      case ShortCircuitOp(program)    => program.foldMap(this).leftErrors
-      case NonShortCircuitOp(program) => program.foldMap(NonShortCircuitInterpreter).leftErrors
+      case ShortCircuitOp(program) => program.foldMap(this).leftErrors
+      case NonShortCircuitOp(program) =>
+        program.foldMap(NonShortCircuitInterpreter).leftErrors
       case IfOp(cond, andCond, thenProgram, elseProgram, _) =>
         if (cond && andCond.getOrElse(true)) thenProgram.foldMap(this).leftErrors
         else elseProgram.foldMap(this).leftErrors
+      case IfOpRuntime(runtimeSource, reportSources, cond, andCond, thenProgram, elseProgram, isSwitch) =>
+        if (cond(runtimeSource) && andCond.getOrElse(true)) thenProgram(runtimeSource).foldMap(this).leftErrors
+        else elseProgram(runtimeSource).foldMap(this).leftErrors
       case ErrorOp(gformError) => gformError.asLeft[A]
       case SuccessOp(a: Any)   => a.asRight.asRight
       case AndThenOp(program, andThenFun, _) =>
@@ -248,6 +273,9 @@ object ComponentChecker {
       case IfOp(cond, andCond, thenProgram, elseProgram, _) =>
         if (cond && andCond.getOrElse(true)) thenProgram.foldMap(this).rightErrors
         else elseProgram.foldMap(this).rightErrors
+      case IfOpRuntime(runtimeSource, reportSources, cond, andCond, thenProgram, elseProgram, isSwitch) =>
+        if (cond(runtimeSource) && andCond.getOrElse(true)) thenProgram(runtimeSource).foldMap(this).rightErrors
+        else elseProgram(runtimeSource).foldMap(this).rightErrors
       case ErrorOp(gformError) => Right(gformError.asLeft[A])
       case SuccessOp(a: Any)   => a.asRight.asRight
       case AndThenOp(program, andThenFun, _) =>
@@ -293,6 +321,15 @@ object ComponentChecker {
             case Some(false) => elseProgram.foldMap(this)
           }
         ).rightErrors
+
+      case IfOpRuntime(_, reportSources, cond, andCond, thenProgram, elseProgram, isSwitch) =>
+        val allErrors: List[ValidationUtil.GformError] = reportSources.map { runtimeSource =>
+          if (cond(runtimeSource) && andCond.getOrElse(true))
+            getError(thenProgram(runtimeSource).foldMap(this).rightErrors)
+          else getError(elseProgram(runtimeSource).foldMap(this).rightErrors)
+        }
+        allErrors.tail.foldLeft(allErrors.head)(_ |+| _).asLeft[A]
+
       case ErrorOp(gformError) => gformError.asLeft.asRight
       case SuccessOp(a)        => a.asRight.asRight
       case AndThenOp(program, andThenFun, reportA) =>
