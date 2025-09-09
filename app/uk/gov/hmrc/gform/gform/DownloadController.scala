@@ -18,11 +18,6 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.Environment
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, InternalLink, LinkCtx }
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -30,7 +25,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class DownloadController(
   messagesControllerComponents: MessagesControllerComponents,
-  auth: AuthenticatedRequestActions,
   environment: Environment
 )(implicit
   ec: ExecutionContext
@@ -42,44 +36,28 @@ class DownloadController(
   )
 
   def downloadFile(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    fileName: String
+    filename: String
   ): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](
-      formTemplateId,
-      maybeAccessCode,
-      OperationWithForm.DownloadFileByInternalLink
-    ) { _ => _ => _ => _ => formModelOptics =>
-      val formModel = formModelOptics.formModelRenderPageOptics.formModel
-      val allExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
-      val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
-
-      if (!allExprs.contains(LinkCtx(InternalLink.Download(fileName)))) {
-        Future.failed(
-          new NotFoundException(
-            s"link.download.$fileName expr does not exist in $formTemplateId form"
+    messagesControllerComponents.actionBuilder.async { _ =>
+      val extension = filename.substring(filename.lastIndexOf('.') + 1)
+      val file = environment.getFile(s"conf/resources/$filename")
+      if (file.exists()) {
+        Future.successful(
+          Ok.sendFile(
+            content = file,
+            fileName = _ => Some(filename)
+          ).withHeaders(
+            CONTENT_DISPOSITION -> s"inline; filename=$filename",
+            CONTENT_TYPE -> allowedFileInfo.getOrElse(
+              extension,
+              throw new IllegalArgumentException(s"File $filename is not supported by this operation")
+            ),
+            CONTENT_LENGTH -> file.length.toString
           )
         )
       } else {
-        val file = environment.getFile(s"conf/resources/$fileName")
-        if (file.exists()) {
-          Future.successful(
-            Ok.sendFile(
-              content = file,
-              fileName = _ => Some(fileName)
-            ).withHeaders(
-              CONTENT_DISPOSITION -> s"inline; filename=$fileName",
-              CONTENT_TYPE -> allowedFileInfo.getOrElse(
-                extension,
-                throw new IllegalArgumentException(s"File $fileName is not supported by this operation")
-              ),
-              CONTENT_LENGTH -> file.length.toString
-            )
-          )
-        } else {
-          Future.failed(new NotFoundException(s"File $fileName does not exist"))
-        }
+        Future.failed(new NotFoundException(s"File $filename does not exist"))
       }
     }
+
 }
