@@ -47,7 +47,7 @@ class RoutingModule(
 
   //This must be called before `controllers.template.routes` gets read be classloader ...
 
-  val hmrcfrontendAssets = new HmrcAssets(errorHandler, assetsMetadata)
+  val hmrcfrontendAssets = new HmrcAssets(errorHandler, assetsMetadata, configModule.environment)
 
   val hmrcfrontendRoutes: hmrcfrontend.Routes = new hmrcfrontend.Routes(
     errorHandler,
