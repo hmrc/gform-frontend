@@ -171,7 +171,8 @@ trait FormTemplateSample {
     displayAccountHeader = false,
     serviceStartPageUrl = None,
     downloadPreviousSubmissionPdf = true,
-    overrides = None
+    overrides = None,
+    serviceNavigationComponent = false
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(
