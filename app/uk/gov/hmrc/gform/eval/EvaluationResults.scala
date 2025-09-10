@@ -289,7 +289,8 @@ case class EvaluationResults(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext,
     booleanExprResolver: BooleanExprResolver,
-    recData: RecData[SourceOrigin.OutOfDate]
+    recData: RecData[SourceOrigin.OutOfDate],
+    insideAtl: Boolean
   ): NumberResult = {
     val modelComponentId = formComponentId.modelComponentId
     evaluationContext.choiceLookup
@@ -301,13 +302,19 @@ case class EvaluationResults(
         val hideSelectedChoices: Boolean = evaluationContext.hideChoicesSelected(modelComponentId)
 
         val alreadySelected = if (hideSelectedChoices) {
-          val allAnswerData: Iterable[(ModelComponentId, VariadicValue)] =
-            recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId).filter { case (md, _) =>
-              (for {
-                idx1 <- md.maybeIndex
-                idx2 <- modelComponentId.maybeIndex
-              } yield idx1 =!= idx2).getOrElse(true)
+          val allAnswerData: Iterable[(ModelComponentId, VariadicValue)] = {
+            val data = recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId)
+            if (insideAtl) {
+              data.filter { case (md, _) =>
+                (for {
+                  idx1 <- md.maybeIndex
+                  idx2 <- modelComponentId.maybeIndex
+                } yield idx1 =!= idx2).getOrElse(true)
+              }
+            } else {
+              data
             }
+          }
           val allAnswers: Set[String] = allAnswerData.flatMap { case (_, vv) => vv.toSeq }.toSet
 
           optionDataNel.toList.map { optionData =>
@@ -441,8 +448,8 @@ case class EvaluationResults(
       case CountryOfItmpAddress             => unsupportedOperation("Number")(expr)
       case ChoicesRevealedField(_)          => unsupportedOperation("Number")(expr)
       case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
-      case ChoicesAvailable(formComponentId) =>
-        getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData)
+      case ChoicesAvailable(formComponentId, insideAtl) =>
+        getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData, insideAtl)
       case ChoicesCount(formComponentId) =>
         getInitialChoicesCount(formComponentId, evaluationContext, booleanExprResolver)
       case CountSelectedChoices(formComponentId) => countSelectedChoices(formComponentId)
@@ -1138,7 +1145,7 @@ case class EvaluationResults(
       case Period(_, _) | PeriodValue(_) => TypeInfo(expr, StaticTypeData(ExprType.period, None))
       case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case ChoicesSelected(_) | ChoicesAvailable(_) | CountSelectedChoices(_) | ChoicesCount(_) =>
+      case ChoicesSelected(_) | ChoicesAvailable(_, _) | CountSelectedChoices(_) | ChoicesCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case _                             => TypeInfo(expr, StaticTypeData(ExprType.string, None))
