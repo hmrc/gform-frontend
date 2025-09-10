@@ -191,7 +191,7 @@
 @hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
 @hmrcUserResearchBanner = @{new CustomUserResearchBanner}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
-@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig, rebrandConfig, govukLogo, displayServiceNavigation)}
+@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig, rebrandConfig, govukLogo, displayServiceNavigation, serviceLink)}
 @hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout, rebrandConfig)}

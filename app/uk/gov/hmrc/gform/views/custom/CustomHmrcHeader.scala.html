@@ -29,7 +29,7 @@
 * This is a customised version of the HMRC frontend header to allow usage  *
 * of GovukServiceNavigation and a custom user research banner              *
 ***************************************************************************@
-@this(hmrcBanner: HmrcBanner, hmrcUserResearchBanner: CustomUserResearchBanner, govukPhaseBanner: GovukPhaseBanner, tudorCrownConfig: TudorCrownConfig, rebrandConfig: RebrandConfig, govukLogo: GovukLogo, displayServiceNavigation: Boolean)
+@this(hmrcBanner: HmrcBanner, hmrcUserResearchBanner: CustomUserResearchBanner, govukPhaseBanner: GovukPhaseBanner, tudorCrownConfig: TudorCrownConfig, rebrandConfig: RebrandConfig, govukLogo: GovukLogo, displayServiceNavigation: Boolean, taskListServiceUrl: String)
 
 @(params: Header)(implicit messages: Messages)
 @import params._
@@ -121,7 +121,7 @@
     </div>
     </div>
     @if(displayServiceNavigation && rebrandConfig.useRebrand) {
-        @govukServiceNavigation(new ServiceNavigation(serviceName = serviceName))
+        @govukServiceNavigation(new ServiceNavigation(serviceName = serviceName, serviceUrl = if (taskListServiceUrl.isEmpty) None else Some(taskListServiceUrl)))
     }
     @phaseBanner.map { pb =>
         <div class="govuk-width-container">
