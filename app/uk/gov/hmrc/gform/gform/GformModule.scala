@@ -454,8 +454,7 @@ class GformModule(
 
   val downloadController: DownloadController =
     new DownloadController(
-      controllersModule.messagesControllerComponents,
-      configModule.environment
+      controllersModule.messagesControllerComponents
     )
 
   val imageController: ImageController =
