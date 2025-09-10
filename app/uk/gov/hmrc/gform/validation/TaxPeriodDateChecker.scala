@@ -70,66 +70,56 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
         case _                                => (None, None)
       }
 
-    (maybeMonth, maybeYear)
-      .mapN((month, year) => (month, year))
-      .toProgram(
-        errorProgram = validationFailureTyped[(String, String)](
-          formComponent.firstAtomModelComponentId,
-          formComponent,
-          "generic.error.taxPeriodDate.required",
-          None,
-          ""
+    val monthStr = maybeMonth.getOrElse("")
+    val yearStr = maybeYear.getOrElse("")
+
+    val monthPlaceholder = messages(s"date.${TaxPeriodDate.month.value}")
+    val yearPlaceholder = messages(s"date.${TaxPeriodDate.year.value}")
+    val monthExistsProgram = ifProgram[Unit](
+      cond = monthStr.isBlank,
+      thenProgram = validationFailureTyped[Unit](
+        errorGranularity(formComponent)(TaxPeriodDate.month),
+        formComponent,
+        "generic.error.taxPeriodDate.missing",
+        Some(List(monthPlaceholder)),
+        ""
+      ),
+      elseProgram = successProgram(())
+    )
+    val yearExistsProgram = ifProgram[Unit](
+      cond = yearStr.isBlank,
+      thenProgram = validationFailureTyped[Unit](
+        errorGranularity(formComponent)(TaxPeriodDate.year),
+        formComponent,
+        "generic.error.taxPeriodDate.missing",
+        Some(List(yearPlaceholder)),
+        ""
+      ),
+      elseProgram = successProgram(())
+    )
+    val monthProgram = ifProgram[Unit](
+      cond = monthStr.toIntOption.exists(m => m >= 1 && m <= 12),
+      thenProgram = successProgram(()),
+      elseProgram = errorProgram(
+        Map(
+          errorGranularity(formComponent)(TaxPeriodDate.month) -> LinkedHashSet(
+            messages("generic.error.taxPeriodDate.month.real")
+          )
         )
       )
-      .andThen { case (monthStr, yearStr) =>
-        val monthPlaceholder = messages(s"date.${TaxPeriodDate.month.value}")
-        val yearPlaceholder = messages(s"date.${TaxPeriodDate.year.value}")
-        val monthExistsProgram = ifProgram[Unit](
-          cond = monthStr.isBlank,
-          thenProgram = validationFailureTyped[Unit](
-            errorGranularity(formComponent)(TaxPeriodDate.month),
-            formComponent,
-            "generic.error.taxPeriodDate.missing",
-            Some(List(monthPlaceholder)),
-            ""
-          ),
-          elseProgram = successProgram(())
-        )
-        val yearExistsProgram = ifProgram[Unit](
-          cond = yearStr.isBlank,
-          thenProgram = validationFailureTyped[Unit](
-            errorGranularity(formComponent)(TaxPeriodDate.year),
-            formComponent,
-            "generic.error.taxPeriodDate.missing",
-            Some(List(yearPlaceholder)),
-            ""
-          ),
-          elseProgram = successProgram(())
-        )
-        val monthProgram = ifProgram[Unit](
-          cond = monthStr.toIntOption.exists(m => m >= 1 && m <= 12),
-          thenProgram = successProgram(()),
-          elseProgram = errorProgram(
-            Map(
-              errorGranularity(formComponent)(TaxPeriodDate.month) -> LinkedHashSet(
-                messages("generic.error.taxPeriodDate.month.real")
-              )
-            )
+    )
+    val yearProgram = ifProgram[Unit](
+      cond = yearStr.toIntOption.exists(y => y >= 1900 && y <= 2099),
+      thenProgram = successProgram(()),
+      elseProgram = errorProgram(
+        Map(
+          errorGranularity(formComponent)(TaxPeriodDate.year) -> LinkedHashSet(
+            messages("generic.error.taxPeriodDate.year.real")
           )
         )
-        val yearProgram = ifProgram[Unit](
-          cond = yearStr.toIntOption.exists(y => y >= 1900 && y <= 2099),
-          thenProgram = successProgram(()),
-          elseProgram = errorProgram(
-            Map(
-              errorGranularity(formComponent)(TaxPeriodDate.year) -> LinkedHashSet(
-                messages("generic.error.taxPeriodDate.year.real")
-              )
-            )
-          )
-        )
-        List(monthExistsProgram, yearExistsProgram, monthProgram, yearProgram).nonShortCircuitProgram
-      }
+      )
+    )
+    List(monthExistsProgram, yearExistsProgram, monthProgram, yearProgram).nonShortCircuitProgram
   }
 
   private def validateRequired(

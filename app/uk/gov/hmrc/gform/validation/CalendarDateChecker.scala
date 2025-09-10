@@ -74,71 +74,61 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
         case _                                 => (None, None)
       }
 
-    (maybeDay, maybeMonth)
-      .mapN((day, month) => (day, month))
-      .toProgram(errorProgram =
-        validationFailureTyped[(String, String)](
-          formComponent.firstAtomModelComponentId,
+    val dayStr = maybeDay.getOrElse("")
+    val monthStr = maybeMonth.getOrElse("")
+
+    val monthPlaceholder = messages(s"date.${CalendarDate.month.value}")
+    val dayPlaceholder = messages(s"date.${CalendarDate.day.value}")
+    val monthProgram = monthStr.toIntOption
+      .filter(m => m >= 1 && m <= 12)
+      .toProgram(
+        errorProgram = validationFailureTyped[Int](
+          errorGranularity(formComponent)(CalendarDate.month),
           formComponent,
-          "generic.error.calendarDate.required",
+          "generic.error.calendarDate.month.real",
           None,
           ""
         )
       )
-      .andThen { case (dayStr, monthStr) =>
-        val monthPlaceholder = messages(s"date.${CalendarDate.month.value}")
-        val dayPlaceholder = messages(s"date.${CalendarDate.day.value}")
-        val monthProgram = monthStr.toIntOption
-          .filter(m => m >= 1 && m <= 12)
-          .toProgram(
-            errorProgram = validationFailureTyped[Int](
-              errorGranularity(formComponent)(CalendarDate.month),
-              formComponent,
-              "generic.error.calendarDate.month.real",
-              None,
-              ""
-            )
-          )
-        val monthExistsProgram = ifProgram[Int](
-          cond = monthStr.isBlank,
-          thenProgram = validationFailureTyped[Int](
-            errorGranularity(formComponent)(CalendarDate.month),
-            formComponent,
-            "generic.error.calendarDate.missing",
-            Some(List(monthPlaceholder)),
-            ""
-          ),
-          elseProgram = monthProgram
+    val monthExistsProgram = ifProgram[Int](
+      cond = monthStr.isBlank,
+      thenProgram = validationFailureTyped[Int](
+        errorGranularity(formComponent)(CalendarDate.month),
+        formComponent,
+        "generic.error.calendarDate.missing",
+        Some(List(monthPlaceholder)),
+        ""
+      ),
+      elseProgram = monthProgram
+    )
+    val existsProgram = ifProgram[Int](
+      cond = dayStr.isBlank,
+      thenProgram = validationFailureTyped[Int](
+        errorGranularity(formComponent)(CalendarDate.day),
+        formComponent,
+        "generic.error.calendarDate.missing",
+        Some(List(dayPlaceholder)),
+        ""
+      ),
+      elseProgram = monthExistsProgram
+    )
+    def dayProgram(maxLength: Int) = dayStr.toIntOption
+      .filter(d => d >= 1 && d <= maxLength)
+      .toProgram(
+        errorProgram = validationFailureTyped[Int](
+          errorGranularity(formComponent)(CalendarDate.day),
+          formComponent,
+          "generic.error.calendarDate.day.real",
+          None,
+          ""
         )
-        val existsProgram = ifProgram[Int](
-          cond = dayStr.isBlank,
-          thenProgram = validationFailureTyped[Int](
-            errorGranularity(formComponent)(CalendarDate.day),
-            formComponent,
-            "generic.error.calendarDate.missing",
-            Some(List(dayPlaceholder)),
-            ""
-          ),
-          elseProgram = monthExistsProgram
-        )
-        def dayProgram(maxLength: Int) = dayStr.toIntOption
-          .filter(d => d >= 1 && d <= maxLength)
-          .toProgram(
-            errorProgram = validationFailureTyped[Int](
-              errorGranularity(formComponent)(CalendarDate.day),
-              formComponent,
-              "generic.error.calendarDate.day.real",
-              None,
-              ""
-            )
-          )
-        List(
-          existsProgram,
-          monthProgram orElse dayProgram(31),
-          monthProgram.andThen(m => dayProgram(Month.of(m).maxLength()))
-        ).nonShortCircuitProgram.voidProgram
+      )
+    List(
+      existsProgram,
+      monthProgram orElse dayProgram(31),
+      monthProgram.andThen(m => dayProgram(Month.of(m).maxLength()))
+    ).nonShortCircuitProgram.voidProgram
 
-      }
   }
 
   private def validateRequired(
@@ -172,7 +162,7 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
         val placeholder2 = formComponent.errorExample.flatMap(_.nonBlankValue()).map(s => s", $s").getOrElse("")
         modelComponentId -> errors(
           formComponent,
-          "generic.error.taxPeriodDate.required",
+          "generic.error.calendarDate.required",
           Some(placeholder1 :: placeholder2 :: Nil)
         )
       }

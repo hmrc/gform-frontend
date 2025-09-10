@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsDate, IsText }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsCalendarDate, IsDate, IsTaxPeriodDate, IsText }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.GformError.linkedHashSetMonoid
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
@@ -160,14 +160,17 @@ class TestOnlyErrorMessageController(
     def make(formComponent: FormComponent, gformError: GformError, inputBaseComponentId: Option[String])(implicit
       l: LangADT
     ): List[FieldErrorReport] = {
+      def aggregateForReport: GformError = Map(
+        formComponent.modelComponentId -> gformError.foldLeft(mutable.LinkedHashSet.empty[String]) {
+          case (acc, (_, errs)) => acc ++ errs
+        }
+      )
+
       val consolidatedGformError: GformError = formComponent match {
-        case IsDate(_) =>
-          Map(
-            formComponent.modelComponentId -> gformError.foldLeft(mutable.LinkedHashSet.empty[String]) {
-              case (acc, (_, errs)) => acc ++ errs
-            }
-          )
-        case _ => gformError
+        case IsDate(_)         => aggregateForReport
+        case IsCalendarDate()  => aggregateForReport
+        case IsTaxPeriodDate() => aggregateForReport
+        case _                 => gformError
       }
 
       consolidatedGformError
