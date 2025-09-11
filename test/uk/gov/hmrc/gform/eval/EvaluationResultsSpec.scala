@@ -17,28 +17,28 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.data.NonEmptyList
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor5}
+import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.eval.ExpressionResult.{AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult}
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.ShowAll.Enabled
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.ExpandUtils.toModelComponentId
-import uk.gov.hmrc.gform.models.ids.{BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId}
-import uk.gov.hmrc.gform.models.{DataRetrieveAll, FormModel}
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId }
+import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{QueryParamValue, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{NewForm, NewFormForTemplate, NewSession, PageLink}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{Day, Month, Year}
+import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode.Up
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.{LookupLoader, Spec}
+import uk.gov.hmrc.gform.{ LookupLoader, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -938,7 +938,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             FormComponentId("1_addToListChoiceField").modelComponentId,
             FormComponentId("2_addToListChoiceField").modelComponentId
           ),
-          choiceLookup = buildChoiceLookup(ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))),
+          choiceLookup = buildChoiceLookup(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
           hideChoicesSelected = Set(
             ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
             ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
@@ -968,7 +970,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             FormComponentId("1_addToListChoiceField").modelComponentId,
             FormComponentId("2_addToListChoiceField").modelComponentId
           ),
-          choiceLookup = buildChoiceLookup(ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))),
+          choiceLookup = buildChoiceLookup(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
           hideChoicesSelected = Set(
             ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
             ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
