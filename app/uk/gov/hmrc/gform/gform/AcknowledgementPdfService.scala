@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.apache.pekko.stream.scaladsl.Source
-import org.apache.pekko.util.ByteString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auditing.AuditService
@@ -60,9 +58,6 @@ class AcknowledgementPdfService(
     for {
       pdfF <- pdfGeneratorService.generateByteArrayPDF(pdfContent)
     } yield pdfF.toByteArray
-
-  def generatePDF(pdfContent: PdfContent): Future[Source[ByteString, Unit]] =
-    pdfGeneratorService.generatePDF(pdfContent)
 
   def getRenderedPdfSize(
     cache: AuthCacheWithForm,
