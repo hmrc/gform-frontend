@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.apache.pekko.util.ByteString
 import org.apache.xmlgraphics.util.MimeConstants
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
@@ -114,10 +113,10 @@ class AcknowledgementController(
       } else {
         for {
           pdfContent <- pdfContentF
-          pdfBytes   <- acknowledgementPdfService.getByteArrayPdf(pdfContent)
+          pdfSource  <- acknowledgementPdfService.generatePDF(pdfContent)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
-          body = HttpEntity.Strict(ByteString(pdfBytes), Some(MimeConstants.MIME_PDF))
+          body = HttpEntity.Streamed(pdfSource, None, Some(MimeConstants.MIME_PDF))
         )
       }
     }

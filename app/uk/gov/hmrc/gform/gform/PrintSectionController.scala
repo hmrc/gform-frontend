@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import org.apache.pekko.util.ByteString
-import org.apache.xmlgraphics.util.MimeConstants
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -25,8 +23,8 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationPrint
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationPrint
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -91,10 +89,10 @@ class PrintSectionController(
                               formModelOptics,
                               maybeCoordinates
                             )
-            pdfBytes <- pdfService.generateByteArrayPDF(htmlForPDF)
+            pdfStream <- pdfService.generatePDF(htmlForPDF)
           } yield Result(
             header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Strict(ByteString(pdfBytes.toByteArray), Some(MimeConstants.MIME_PDF))
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
           )
 
         case _ => Future.failed(new BadRequestException(s"Print section is not defined for ${cache.formTemplateId}"))
@@ -119,10 +117,10 @@ class PrintSectionController(
                               pdfNotification,
                               formModelOptics
                             )
-            pdfBytes <- pdfService.generateByteArrayPDF(htmlForPDF)
+            pdfStream <- pdfService.generatePDF(htmlForPDF)
           } yield Result(
             header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Strict(ByteString(pdfBytes.toByteArray), Some(MimeConstants.MIME_PDF))
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
           )
 
         case DestinationPrint(_, _, None) =>

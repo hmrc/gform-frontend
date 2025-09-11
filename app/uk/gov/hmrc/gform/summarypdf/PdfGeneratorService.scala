@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import org.apache.pekko.stream.scaladsl.{ Source, StreamConverters }
+import org.apache.pekko.util.ByteString
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
 import org.jsoup.Jsoup
 import org.jsoup.helper.W3CDom
@@ -26,6 +28,15 @@ import java.io.{ ByteArrayOutputStream, OutputStream }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class PdfGeneratorService(environment: Environment) {
+
+  def generatePDF(pdfContent: PdfContent)(implicit ec: ExecutionContext): Future[Source[ByteString, Unit]] = Future {
+    StreamConverters.asOutputStream().mapMaterializedValue { os =>
+      Future {
+        build(pdfContent.content, os)
+      }
+      ()
+    }
+  }
 
   def generateByteArrayPDF(pdfContent: PdfContent)(implicit ec: ExecutionContext): Future[ByteArrayOutputStream] =
     Future {

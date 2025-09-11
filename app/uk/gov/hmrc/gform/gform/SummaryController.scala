@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.eq._
 import cats.instances.future._
 import cats.syntax.applicative._
-import org.apache.pekko.util.ByteString
 import org.apache.xmlgraphics.util.MimeConstants
 import org.slf4j.LoggerFactory
 import play.api.http.HttpEntity
@@ -434,10 +433,10 @@ class SummaryController(
       } else {
         for {
           pdfContent <- pdfContentF
-          pdfBytes   <- pdfGeneratorService.generateByteArrayPDF(pdfContent)
+          pdfSource  <- pdfGeneratorService.generatePDF(pdfContent)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
-          body = HttpEntity.Strict(ByteString(pdfBytes.toByteArray), Some(MimeConstants.MIME_PDF))
+          body = HttpEntity.Streamed(pdfSource, None, Some("application/pdf"))
         )
       }
     }
