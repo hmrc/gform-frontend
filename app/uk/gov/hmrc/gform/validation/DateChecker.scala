@@ -86,7 +86,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     messages: Messages
   ): CheckProgram[Unit] =
     ifProgram(
-      cond = fieldValue.mandatory,
+      cond = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
       thenProgram = List(
         checkAnyFieldsEmpty(fieldValue, formModelVisibilityOptics),
         validateDateImpl(fieldValue, formModelVisibilityOptics, date)

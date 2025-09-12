@@ -253,7 +253,7 @@ object TextChecker {
 
     import lookupRegistry.extractors.IsRadioLookupTextConstraint
 
-    val isMandatory = fieldValue.mandatory
+    val isMandatory = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
     val inputText: String = textData(formModelVisibilityOptics, fieldValue).getOrElse("")
     val isInputTextEmpty = inputText.isEmpty
 
@@ -692,7 +692,7 @@ object TextChecker {
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
-    val isMandatory = fieldValue.mandatory
+    val isMandatory = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
     val value = textData(formModelVisibilityOptics, fieldValue)
     switchProgram(
       switchCase(
