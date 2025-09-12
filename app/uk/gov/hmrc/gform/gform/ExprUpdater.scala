@@ -67,21 +67,21 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
           Between(DateCtx(expandDateExpr(dateExpr1)), DateCtx(expandDateExpr(dateExpr2)), m)
         case _ => expr
       }
-    case IndexOf(_, _)                         => expr // This is not expanded on purpose, so it can be used correctly inside ATL
-    case IndexOfDataRetrieveCtx(_, _)          => expr
-    case NumberedList(formComponentId)         => NumberedList(expandFcId(formComponentId))
-    case BulletedList(formComponentId)         => BulletedList(expandFcId(formComponentId))
-    case StringOps(expr, stringFnc)            => StringOps(expandExpr(expr), stringFnc)
-    case Concat(exprs)                         => Concat(exprs.map(expandExpr))
-    case CountryOfItmpAddress                  => expr
-    case ChoicesRevealedField(formComponentId) => ChoicesRevealedField(expandFcId(formComponentId))
-    case ChoicesSelected(formComponentId)      => ChoicesSelected(expandFcId(formComponentId))
-    case ChoicesAvailable(formComponentId)     => ChoicesAvailable(expandFcId(formComponentId))
-    case CountSelectedChoices(formComponentId) => CountSelectedChoices(expandFcId(formComponentId))
-    case ChoicesCount(formComponentId)         => ChoicesCount(expandFcId(formComponentId))
-    case TaskStatus(_)                         => expr
-    case LookupOps(expr, lookupFnc)            => LookupOps(expandExpr(expr), lookupFnc)
-    case DisplayAsEntered(formComponentId)     => DisplayAsEntered(expandFcId(formComponentId))
+    case IndexOf(_, _)                                => expr // This is not expanded on purpose, so it can be used correctly inside ATL
+    case IndexOfDataRetrieveCtx(_, _)                 => expr
+    case NumberedList(formComponentId)                => NumberedList(expandFcId(formComponentId))
+    case BulletedList(formComponentId)                => BulletedList(expandFcId(formComponentId))
+    case StringOps(expr, stringFnc)                   => StringOps(expandExpr(expr), stringFnc)
+    case Concat(exprs)                                => Concat(exprs.map(expandExpr))
+    case CountryOfItmpAddress                         => expr
+    case ChoicesRevealedField(formComponentId)        => ChoicesRevealedField(expandFcId(formComponentId))
+    case ChoicesSelected(formComponentId)             => ChoicesSelected(expandFcId(formComponentId))
+    case ChoicesAvailable(formComponentId, insideAtl) => ChoicesAvailable(expandFcId(formComponentId), insideAtl)
+    case CountSelectedChoices(formComponentId)        => CountSelectedChoices(expandFcId(formComponentId))
+    case ChoicesCount(formComponentId)                => ChoicesCount(expandFcId(formComponentId))
+    case TaskStatus(_)                                => expr
+    case LookupOps(expr, lookupFnc)                   => LookupOps(expandExpr(expr), lookupFnc)
+    case DisplayAsEntered(formComponentId)            => DisplayAsEntered(expandFcId(formComponentId))
   }
 
   private def expandDateFunc(dateFunc: DateProjection): DateProjection = dateFunc match {

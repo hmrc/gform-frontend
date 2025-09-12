@@ -303,7 +303,7 @@ case class FormModel[A <: PageMode](
       case Between(_, _, _)              => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case Typed(_, tpe)                 => TypeInfo(expr, StaticTypeData.from(tpe))
       case DateFunction(_)               => TypeInfo(expr, StaticTypeData(ExprType.number, None))
-      case ChoicesSelected(_) | ChoicesAvailable(_) | CountSelectedChoices(_) | ChoicesCount(_) =>
+      case ChoicesSelected(_) | ChoicesAvailable(_, _) | CountSelectedChoices(_) | ChoicesCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case IndexOf(formComponentId, _)   => explicitTypedExpr(expr, formComponentId)
       case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))

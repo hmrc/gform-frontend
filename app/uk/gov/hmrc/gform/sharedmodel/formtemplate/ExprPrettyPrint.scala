@@ -95,7 +95,7 @@ object ExprPrettyPrint {
     case CountryOfItmpAddress          => "CountryOfItmpAddress"
     case ChoicesRevealedField(_)       => "ChoicesRevealedField"
     case ChoicesSelected(_)            => "ChoicesSelected"
-    case ChoicesAvailable(_)           => "ChoicesAvailable"
+    case ChoicesAvailable(_, _)        => "ChoicesAvailable"
     case CountSelectedChoices(_)       => "ChoicesSelectedSum"
     case ChoicesCount(_)               => "ChoicesCount"
     case TaskStatus(_)                 => "TaskStatus"
