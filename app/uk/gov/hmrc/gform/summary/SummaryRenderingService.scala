@@ -614,7 +614,7 @@ object SummaryRenderingService {
         .map(
           _.filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.booleanExprResolver))
             .collect { case fc @ IsTableComp(table) =>
-              val label = fcrd.label(fc)
+              val label = fcrd.label(fc, formModelOptics.formModelVisibilityOptics.booleanExprResolver)
               summaryListRow(
                 label,
                 markDownParser(table.summaryValue),

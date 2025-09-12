@@ -134,7 +134,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
 
     ifProgram(
       cond = atomsWithValues.forall(_.value.getOrElse("").isBlank),
-      andCond = formComponent.mandatory,
+      andCond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
       thenProgram = atomsWithValues.map { mcv =>
         mcv.value
           .filter(_.nonEmpty)

@@ -142,7 +142,7 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
     )
     ifProgram(
       cond = atomsWithValues.forall(_.value.getOrElse("").isBlank),
-      andCond = formComponent.mandatory,
+      andCond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
       thenProgram = atomsWithValues.map { mcv =>
         mcv.value
           .filter(_.nonEmpty)

@@ -1950,7 +1950,9 @@ class SectionRenderingService(
         val sectionTitle4Ga = sectionTitle4GaFactory(pageModel, sn)
         List(
           SummaryListRowHelper.summaryListRow(
-            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+            key
+              .map(sse(_, false))
+              .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
             Html(value),
             Some(""),
             SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
@@ -2011,7 +2013,9 @@ class SectionRenderingService(
 
         List(
           SummaryListRowHelper.summaryListRow(
-            key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+            key
+              .map(sse(_, false))
+              .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
             Html(value),
             Some(""),
             SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
@@ -2040,7 +2044,9 @@ class SectionRenderingService(
         case ValueRow(key, MiniSummaryListValue.AnyExpr(e), _, _, _) =>
           List(
             SummaryListRowHelper.summaryListRow(
-              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              key
+                .map(sse(_, false))
+                .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
               Html(
                 formattedExprStr(e) + MiniSummaryListHelper
                   .checkAndReturnSuffix(e, ei.formModelOptics.formModelVisibilityOptics.formModel)
@@ -2088,7 +2094,9 @@ class SectionRenderingService(
         case SmartStringRow(key, ss, _, _, _) =>
           List(
             SummaryListRowHelper.summaryListRow(
-              key.map(sse(_, false)).getOrElse(fcrd.label(formComponent)),
+              key
+                .map(sse(_, false))
+                .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
               Html(ss.value()),
               Some(""),
               SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
