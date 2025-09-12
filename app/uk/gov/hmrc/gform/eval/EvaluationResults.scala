@@ -663,11 +663,7 @@ case class EvaluationResults(
               computePageLink(id, evaluationContext)
             case InternalLink.Download(fileName) =>
               uk.gov.hmrc.gform.gform.routes.DownloadController
-                .downloadFile(
-                  evaluationContext.formTemplateId,
-                  evaluationContext.maybeAccessCode,
-                  fileName
-                )
+                .downloadFile(fileName)
                 .url
             case InternalLink.Image(fileName) =>
               uk.gov.hmrc.gform.gform.routes.ImageController
