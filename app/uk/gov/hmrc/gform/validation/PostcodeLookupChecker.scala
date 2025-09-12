@@ -57,7 +57,7 @@ class PostcodeLookupCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Fo
       .atomsModelComponentIdsFilterByAtom(_.atom =!= PostcodeLookup.filter)
       .map(m => ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m)))
     ifProgram(
-      andCond = formComponent.mandatory,
+      andCond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
       thenProgram = {
         val programs = atomsWithValues.map { mcv =>
           mcv.value

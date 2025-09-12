@@ -424,7 +424,7 @@ class FormModelBuilder(
       ),
       index,
       s.allIds
-    ).updatedWithId.copy(mandatory = false, derived = true, submissible = false)
+    ).updatedWithId.copy(mandatory = Mandatory.FALSE, derived = true, submissible = false)
 
     val expandedFields = c.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId))
 

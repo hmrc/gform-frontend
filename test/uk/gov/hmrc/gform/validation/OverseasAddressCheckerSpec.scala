@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, OverseasAddress }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, Mandatory, OverseasAddress }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -96,7 +96,7 @@ class OverseasAddressCheckerSpec
       None,
       None,
       None,
-      true,
+      Mandatory.TRUE,
       false,
       true,
       false,
