@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsMultiFileUpload }
-
 import ComponentChecker._
 
 class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
@@ -36,7 +35,7 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] =
-    validate(context.formComponent, context.envelope)
+    validate(context)
 
   implicit val fileValueForReport: ValueForReport[File] = new ValueForReport[File] {
     def valueForReport(): File =
@@ -51,10 +50,13 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   }
 
-  def validate(formComponent: FormComponent, envelope: EnvelopeWithMapping)(implicit
+  def validate(context: CheckerDependency[D])(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
+    val formComponent: FormComponent = context.formComponent
+    val envelope: EnvelopeWithMapping = context.envelope
+
     val isMultiFileUplaod = formComponent match {
       case IsMultiFileUpload(_) => true
       case _                    => false
@@ -67,7 +69,7 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     }
     file.foldProgram(
       onNone = ifProgram(
-        andCond = formComponent.mandatory,
+        andCond = formComponent.mandatory.eval(context.formModelVisibilityOptics.booleanExprResolver),
         thenProgram = CheckerServiceHelper.validationFailure(formComponent, "generic.error.upload", None),
         elseProgram = successProgram(())
       ),

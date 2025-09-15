@@ -974,7 +974,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       val constraints = DateConstraints(dateConstraints)
       val date = Date(constraints, Offset(0), None)
 
-      val fieldValue = mkFormComponent("accPeriodStartDate", date).copy(mandatory = false)
+      val fieldValue = mkFormComponent("accPeriodStartDate", date).copy(mandatory = Mandatory.False)
 
       val data = variadicFormData[SourceOrigin.OutOfDate](
         "accPeriodStartDate-day"   -> day,

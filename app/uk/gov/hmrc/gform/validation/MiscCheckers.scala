@@ -67,7 +67,7 @@ class TimeChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       formModelVisibilityOptics.data.one(formComponent.modelComponentId).filterNot(_.isEmpty)
     val timeErrorRequired = "time.error.required"
 
-    val isMandatory = formComponent.mandatory
+    val isMandatory = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
     ifProgram(
       cond = timeValue.isDefined && !(Range.timeSlots(time) contains timeValue.get),
       thenProgram = validationFailure(
@@ -160,7 +160,9 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       .filterNot(_.isEmpty)
 
     ifProgram(
-      cond = fieldValue.mandatory && (choiceValues.isEmpty || (availableSelections.nonEmpty && !choiceValues.forall(
+      cond = fieldValue.mandatory.eval(
+        formModelVisibilityOptics.booleanExprResolver
+      ) && (choiceValues.isEmpty || (availableSelections.nonEmpty && !choiceValues.forall(
         availableSelections
       ))),
       thenProgram = validationFailure(fieldValue, choiceErrorRequired, None),

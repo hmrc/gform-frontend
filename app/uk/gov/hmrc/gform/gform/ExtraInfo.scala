@@ -89,14 +89,22 @@ final case class ExtraInfo(
   def isFileUploadOnlyPage(validationResult: ValidationResult): Option[(FormComponent, FileUpload)] =
     renderableAsSingleFileUpload match {
       // If file is uploaded we want to fallback to standard form implementation
-      case (fc @ IsFileUpload(fu)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
+      case (fc @ IsFileUpload(fu)) :: Nil
+          if fc.mandatory.eval(formModelOptics.formModelVisibilityOptics.booleanExprResolver) && !isAlreadyUploaded(
+            fc,
+            validationResult
+          ) =>
         Some(fc -> fu)
       case _ => None
     }
 
   def getButtonName(validationResult: ValidationResult): Option[String] =
     renderableAsSingleFileUpload match {
-      case (fc @ IsFileUpload(_)) :: Nil if fc.mandatory && !isAlreadyUploaded(fc, validationResult) =>
+      case (fc @ IsFileUpload(_)) :: Nil
+          if fc.mandatory.eval(formModelOptics.formModelVisibilityOptics.booleanExprResolver) && !isAlreadyUploaded(
+            fc,
+            validationResult
+          ) =>
         Some("singleFile")
       case (fc @ IsMultiFileUpload(fu)) :: Nil if isMultiUploadMandatory(fc, fu, validationResult) =>
         Some("multiFile")
@@ -126,7 +134,7 @@ final case class ExtraInfo(
     validationResult: ValidationResult
   ): Boolean = {
     val minFilesRequired: Int =
-      if (!formComponent.mandatory) 0
+      if (!formComponent.mandatory.eval(formModelOptics.formModelVisibilityOptics.booleanExprResolver)) 0
       else
         Try(
           fileUpload.minFiles

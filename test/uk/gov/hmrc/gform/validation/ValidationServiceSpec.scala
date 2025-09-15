@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, ShortText, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, Mandatory, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -77,7 +77,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     None,
     None,
     None,
-    true,
+    Mandatory.True,
     true,
     true,
     false,
@@ -94,7 +94,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     None,
     None,
     None,
-    true,
+    Mandatory.True,
     true,
     true,
     false,

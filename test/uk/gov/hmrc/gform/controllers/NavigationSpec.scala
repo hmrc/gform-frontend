@@ -44,7 +44,7 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
     helpText = None,
     shortName = None,
     validIf = None,
-    mandatory = true,
+    mandatory = Mandatory.True,
     editable = true,
     submissible = true,
     derived = false,

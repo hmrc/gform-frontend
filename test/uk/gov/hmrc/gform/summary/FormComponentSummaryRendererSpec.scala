@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelector
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DisplayInSummary, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, InformationMessage, IsFalse, IsTrue, KeyDisplayWidth, MiniSummaryList, MiniSummaryListValue, NoFormat, SectionNumber, SectionOrSummary, SectionTitle4Ga, TemplateSectionIndex, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DisplayInSummary, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, InformationMessage, IsFalse, IsTrue, KeyDisplayWidth, Mandatory, MiniSummaryList, MiniSummaryListValue, NoFormat, SectionNumber, SectionOrSummary, SectionTitle4Ga, TemplateSectionIndex, Value }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, NotChecked, SmartString }
@@ -299,7 +299,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       None,
       None,
       None,
-      true,
+      Mandatory.True,
       false,
       false,
       false,

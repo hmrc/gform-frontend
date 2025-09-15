@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, PageId, ShortText, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Mandatory, PageId, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
@@ -112,7 +112,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
             None,
             None,
             None,
-            true,
+            Mandatory.True,
             true,
             true,
             false,

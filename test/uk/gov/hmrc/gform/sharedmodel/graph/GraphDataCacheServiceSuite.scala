@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.models.ids.IndexedComponentId.Indexed
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormComponent, FormComponentId, FormCtx, In, IncludeIf, ShortText, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormComponent, FormComponentId, FormCtx, In, IncludeIf, Mandatory, ShortText, Text, Value }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -89,7 +89,7 @@ class GraphDataCacheServiceSuite
             )
           ),
           None,
-          true,
+          Mandatory.True,
           false,
           true,
           false,
