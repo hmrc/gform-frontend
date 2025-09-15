@@ -44,7 +44,6 @@ object OperationWithForm {
   final case object ViewPrintSection extends OperationWithForm
   final case object DownloadPrintSectionPdf extends OperationWithForm
   final case object AuditSessionEnd extends OperationWithForm
-  final case object DownloadFileByInternalLink extends OperationWithForm
   final case object ViewImageByInternalLink extends OperationWithForm
   final case object EditFormAcknowledgement extends OperationWithForm
   final case object ForceReturnToCYA extends OperationWithForm

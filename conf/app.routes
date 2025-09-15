@@ -124,7 +124,7 @@ GET           /task-declaration/:formTemplateId/:maybeAccessCode                
 
 GET           /capture/sectionNumbers/:formTemplateId/:maybeAccessCode                                           uk.gov.hmrc.gform.capture.CaptureController.sectionNumbers(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 
-GET           /download-file/:formTemplateId/:maybeAccessCode                                                    uk.gov.hmrc.gform.gform.DownloadController.downloadFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileName: String)
+GET           /download                                                                                          uk.gov.hmrc.gform.gform.DownloadController.downloadFile(filename: String)
 GET           /image-file/:formTemplateId/:maybeAccessCode                                                       uk.gov.hmrc.gform.gform.ImageController.image(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileName: String)
 GET           /redirect                                                                                          uk.gov.hmrc.gform.gform.RedirectController.redirect(redirectUrl: RedirectUrl)
 

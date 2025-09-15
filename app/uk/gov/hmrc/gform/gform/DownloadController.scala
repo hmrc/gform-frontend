@@ -16,22 +16,15 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.Environment
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
-import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, InternalLink, LinkCtx }
-import uk.gov.hmrc.http.NotFoundException
+import uk.gov.hmrc.http.{ BadRequestException, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
+import java.io.File
 import scala.concurrent.{ ExecutionContext, Future }
 
 class DownloadController(
-  messagesControllerComponents: MessagesControllerComponents,
-  auth: AuthenticatedRequestActions,
-  environment: Environment
+  messagesControllerComponents: MessagesControllerComponents
 )(implicit
   ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
@@ -41,45 +34,52 @@ class DownloadController(
     ("ods", "application/vnd.oasis.opendocument.spreadsheet")
   )
 
-  def downloadFile(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    fileName: String
-  ): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](
-      formTemplateId,
-      maybeAccessCode,
-      OperationWithForm.DownloadFileByInternalLink
-    ) { _ => _ => _ => _ => formModelOptics =>
-      val formModel = formModelOptics.formModelRenderPageOptics.formModel
-      val allExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
-      val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
+  private def isValidFilename(filename: String): Boolean =
+    filename.nonEmpty &&
+      !filename.contains("..") &&
+      !filename.contains("/") &&
+      !filename.contains("\\") &&
+      filename.matches("[a-zA-Z0-9._-]+") &&
+      filename.length <= 255
 
-      if (!allExprs.contains(LinkCtx(InternalLink.Download(fileName)))) {
-        Future.failed(
-          new NotFoundException(
-            s"link.download.$fileName expr does not exist in $formTemplateId form"
-          )
-        )
+  private def isAllowedExtension(filename: String): Boolean = {
+    val extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase
+    allowedFileInfo.contains(extension)
+  }
+
+  def downloadFile(
+    filename: String
+  ): Action[AnyContent] =
+    messagesControllerComponents.actionBuilder.async { _ =>
+      if (!isValidFilename(filename)) {
+        Future.failed(new IllegalArgumentException(s"Download file: Invalid filename: $filename"))
+      } else if (!isAllowedExtension(filename)) {
+        Future.failed(new BadRequestException(s"Download file: File type not supported: $filename"))
       } else {
-        val file = environment.getFile(s"conf/resources/$fileName")
-        if (file.exists()) {
+        val extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase
+        val resourcesDir = new File("conf/resources")
+        val file = new File(resourcesDir, filename)
+
+        val canonicalFile = file.getCanonicalPath
+        val canonicalDir = resourcesDir.getCanonicalPath
+
+        if (!canonicalFile.startsWith(canonicalDir)) {
+          Future.failed(new IllegalArgumentException("Download file: Access denied"))
+        } else if (!file.exists()) {
+          Future.failed(new NotFoundException(s"Download file: File $filename does not exist"))
+        } else {
           Future.successful(
             Ok.sendFile(
               content = file,
-              fileName = _ => Some(fileName)
+              fileName = _ => Some(filename)
             ).withHeaders(
-              CONTENT_DISPOSITION -> s"inline; filename=$fileName",
-              CONTENT_TYPE -> allowedFileInfo.getOrElse(
-                extension,
-                throw new IllegalArgumentException(s"File $fileName is not supported by this operation")
-              ),
-              CONTENT_LENGTH -> file.length.toString
+              CONTENT_DISPOSITION -> s"""inline; filename="$filename"""",
+              CONTENT_TYPE        -> allowedFileInfo(extension),
+              CONTENT_LENGTH      -> file.length.toString
             )
           )
-        } else {
-          Future.failed(new NotFoundException(s"File $fileName does not exist"))
         }
       }
     }
+
 }
