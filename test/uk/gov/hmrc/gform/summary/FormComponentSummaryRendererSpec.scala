@@ -299,7 +299,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       None,
       None,
       None,
-      Mandatory.TRUE,
+      Mandatory.True,
       false,
       false,
       false,

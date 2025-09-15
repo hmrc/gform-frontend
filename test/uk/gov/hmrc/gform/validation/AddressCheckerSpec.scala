@@ -89,7 +89,7 @@ class AddressCheckerSpec
       None,
       None,
       None,
-      Mandatory.TRUE,
+      Mandatory.True,
       false,
       true,
       false,

@@ -89,7 +89,7 @@ class GraphDataCacheServiceSuite
             )
           ),
           None,
-          Mandatory.TRUE,
+          Mandatory.True,
           false,
           true,
           false,

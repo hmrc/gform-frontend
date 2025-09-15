@@ -112,7 +112,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
             None,
             None,
             None,
-            Mandatory.TRUE,
+            Mandatory.True,
             true,
             true,
             false,

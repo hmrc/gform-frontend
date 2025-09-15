@@ -1440,7 +1440,7 @@ class StructuredFormDataBuilderSpec
       None,
       None,
       None,
-      Mandatory.TRUE,
+      Mandatory.True,
       true,
       true,
       true,

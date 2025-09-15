@@ -26,8 +26,8 @@ final case class Mandatory(booleanExpr: BooleanExpr) extends AnyVal {
 }
 
 object Mandatory {
-  val TRUE: Mandatory = Mandatory(IsTrue)
-  val FALSE: Mandatory = Mandatory(IsFalse)
+  val True: Mandatory = Mandatory(IsTrue)
+  val False: Mandatory = Mandatory(IsFalse)
 
   implicit val format: OFormat[Mandatory] = derived.oformat()
 }

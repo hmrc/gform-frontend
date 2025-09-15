@@ -66,7 +66,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
     None,
     None,
     None,
-    mandatory = Mandatory.TRUE,
+    mandatory = Mandatory.True,
     editable = true,
     submissible = true,
     derived = true,
