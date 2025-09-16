@@ -290,7 +290,7 @@ case class EvaluationResults(
     evaluationContext: EvaluationContext,
     booleanExprResolver: BooleanExprResolver,
     recData: RecData[SourceOrigin.OutOfDate],
-    insideAtl: Boolean
+    insideAtl: Option[Boolean]
   ): NumberResult = {
     val modelComponentId = formComponentId.modelComponentId
     evaluationContext.choiceLookup
@@ -304,7 +304,7 @@ case class EvaluationResults(
         val alreadySelected = if (hideSelectedChoices) {
           val allAnswerData: Iterable[(ModelComponentId, VariadicValue)] = {
             val data = recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId)
-            if (insideAtl) {
+            if (insideAtl.fold(false)(b => b)) {
               data.filter { case (md, _) =>
                 (for {
                   idx1 <- md.maybeIndex

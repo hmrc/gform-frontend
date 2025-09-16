@@ -923,7 +923,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          ChoicesAvailable(FormComponentId("1_addToListChoiceField"), insideAtl = true),
+          ChoicesAvailable(FormComponentId("1_addToListChoiceField"), Some(true)),
           StaticTypeData(ExprType.number, None)
         ),
         RecData[OutOfDate](
@@ -955,7 +955,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       ),
       (
         TypeInfo(
-          ChoicesAvailable(FormComponentId("1_addToListChoiceField"), insideAtl = false),
+          ChoicesAvailable(FormComponentId("1_addToListChoiceField"), Some(false)),
           StaticTypeData(ExprType.number, None)
         ),
         RecData[OutOfDate](
