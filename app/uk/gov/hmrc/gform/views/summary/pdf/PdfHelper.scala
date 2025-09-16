@@ -25,7 +25,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object PdfHelper {
   def renderHtml(value: String): XmlFormat.Appendable = {
-    val newLineDelimiters = List("<br>", "\n\n")
+    val newLineDelimiters = List("<br>", "<br/>", "\n\n")
     val maybeDelimiter = newLineDelimiters.find(value.contains)
 
     val lines: Array[String] = maybeDelimiter match {
@@ -36,7 +36,7 @@ object PdfHelper {
     XmlFormat.fill(
       lines.toList.flatMap { line =>
         List(
-          XmlFormat.raw(s"<fo:block>${StringEscapeUtils.escapeXml11(insertZeroWidthSpace(line))}</fo:block>")
+          XmlFormat.raw(s"<fo:block>${StringEscapeUtils.escapeXml11(insertZeroWidthSpace(line.trim))}</fo:block>")
         )
       }
     )

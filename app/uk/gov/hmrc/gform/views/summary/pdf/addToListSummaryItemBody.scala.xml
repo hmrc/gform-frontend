@@ -1,16 +1,13 @@
 @import play.twirl.api.XmlFormat
 
 @(boldText: Option[String], normalText: XmlFormat.Appendable)
-<fo:inline-container font-weight="normal"
-                     font-size="11px"
-                     line-height="11pt"
-                     keep-together.within-column="always">
-    <fo:block>
-        <fo:inline>
-            @if(boldText.isDefined) {
-                <fo:inline font-weight="bold">@boldText</fo:inline>
-            }
-            <fo:inline>@normalText</fo:inline>
-        </fo:inline>
-    </fo:block>
-</fo:inline-container>
+
+<fo:block-container font-weight="normal"
+                    font-size="11px"
+                    line-height="13pt"
+                    keep-together.within-column="always">
+  @if(boldText.isDefined) {
+    <fo:block font-weight="bold">@boldText</fo:block>
+  }
+  <fo:block>@normalText</fo:block>
+</fo:block-container>

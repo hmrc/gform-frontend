@@ -17,7 +17,7 @@
 <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format"
          xmlns:fox="http://xmlgraphics.apache.org/fop/extensions"
          xml:lang="@messages.lang.locale.getLanguage"
-         font-family="sans-serif" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+         font-family="Arial" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <fo:layout-master-set>
         <!-- fo:layout-master-set defines in its children the page layout:
              the pagination and layout specifications

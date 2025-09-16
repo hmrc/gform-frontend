@@ -4,6 +4,15 @@
     <renderers>
         <renderer mime="application/pdf">
             <version>1.4</version>
+            <fonts>
+                <!-- Load the Arial font, but do not embed it.
+                     We need to use Arial so this sentence:
+                     > Příliš žluťoučký kůň úpěl ďábelské ódy
+                     renders as is and not as
+                     > P#íliš žlu#ou#ký k## úp#l #ábelské ódy
+                -->
+                <directory>conf/pdf/fonts</directory>
+            </fonts>
         </renderer>
     </renderers>
 </fop>
