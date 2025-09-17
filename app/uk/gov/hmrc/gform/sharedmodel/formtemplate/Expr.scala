@@ -84,7 +84,7 @@ sealed trait Expr extends Product with Serializable {
       case CountryOfItmpAddress                    => expr :: Nil
       case ChoicesRevealedField(_)                 => expr :: Nil
       case ChoicesSelected(_)                      => expr :: Nil
-      case ChoicesAvailable(_)                     => expr :: Nil
+      case ChoicesAvailable(_, _)                  => expr :: Nil
       case CountSelectedChoices(_)                 => expr :: Nil
       case ChoicesCount(_)                         => expr :: Nil
       case TaskStatus(_)                           => expr :: Nil
@@ -149,7 +149,7 @@ sealed trait Expr extends Product with Serializable {
     case CountryOfItmpAddress                     => this :: Nil
     case ChoicesRevealedField(formComponentId)    => FormCtx(formComponentId) :: Nil
     case ChoicesSelected(formComponentId)         => FormCtx(formComponentId) :: Nil
-    case ChoicesAvailable(formComponentId)        => FormCtx(formComponentId) :: Nil
+    case ChoicesAvailable(formComponentId, _)     => FormCtx(formComponentId) :: Nil
     case CountSelectedChoices(formComponentId)    => FormCtx(formComponentId) :: Nil
     case ChoicesCount(formComponentId)            => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                            => this :: Nil
@@ -200,7 +200,7 @@ sealed trait Expr extends Product with Serializable {
     case CountryOfItmpAddress                     => Nil
     case ChoicesRevealedField(_)                  => Nil
     case ChoicesSelected(_)                       => Nil
-    case ChoicesAvailable(_)                      => Nil
+    case ChoicesAvailable(_, _)                   => Nil
     case CountSelectedChoices(_)                  => Nil
     case ChoicesCount(_)                          => Nil
     case TaskStatus(_)                            => Nil
@@ -252,7 +252,7 @@ sealed trait Expr extends Product with Serializable {
     case CountryOfItmpAddress                      => this :: Nil
     case ChoicesRevealedField(formComponentId)     => FormCtx(formComponentId) :: Nil
     case ChoicesSelected(formComponentId)          => FormCtx(formComponentId) :: Nil
-    case ChoicesAvailable(formComponentId)         => FormCtx(formComponentId) :: Nil
+    case ChoicesAvailable(formComponentId, _)      => FormCtx(formComponentId) :: Nil
     case CountSelectedChoices(formComponentId)     => FormCtx(formComponentId) :: Nil
     case ChoicesCount(formComponentId)             => FormCtx(formComponentId) :: Nil
     case TaskStatus(_)                             => this :: Nil
@@ -305,7 +305,7 @@ final case class Concat(exprs: List[Expr]) extends Expr
 final case object CountryOfItmpAddress extends Expr
 final case class ChoicesRevealedField(formComponentId: FormComponentId) extends Expr
 final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
-final case class ChoicesAvailable(formComponentId: FormComponentId) extends Expr
+final case class ChoicesAvailable(formComponentId: FormComponentId, insideAtl: Option[Boolean]) extends Expr
 final case class CountSelectedChoices(formComponentId: FormComponentId) extends Expr
 final case class ChoicesCount(formComponentId: FormComponentId) extends Expr
 final case class TaskStatus(taskId: TaskId) extends Expr
