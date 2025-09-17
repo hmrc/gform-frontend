@@ -65,7 +65,23 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
   }
 
   def validate(formComponent: FormComponent): CheckProgram[Unit] =
-    List(validateRequired(formComponent), validateDayMonth(formComponent)).shortCircuitProgram
+    ifProgram(
+      cond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
+      thenProgram = validateRequired(formComponent).andThen(_ => validateDayMonth(formComponent)),
+      elseProgram = checkAllFieldsEmpty(formComponent) orElse validateDayMonth(formComponent)
+    )
+
+  private def checkAllFieldsEmpty(
+    formComponent: FormComponent
+  ): CheckProgram[Unit] = {
+    val answers = formComponent.multiValueId.atomsModelComponentIds
+      .map { modelComponentId =>
+        formModelVisibilityOptics.data.one(modelComponentId).filter(_.trim.nonEmpty)
+      }
+    if (answers.exists(_.nonEmpty)) {
+      requiredError(formComponent, formComponent.firstAtomModelComponentId)
+    } else successProgram(())
+  }
 
   private def validateDayMonth(formComponent: FormComponent): CheckProgram[Unit] = {
     val (maybeDay, maybeMonth) =
@@ -138,11 +154,11 @@ class CalendarDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Form
     case class ModelComponentIdValue(modelComponentId: ModelComponentId, value: Option[String])
 
     val atomsWithValues: List[ModelComponentIdValue] = formComponent.multiValueId.atomsModelComponentIds.map(m =>
-      ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m))
+      ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m).filter(_.trim.nonEmpty))
     )
+
     ifProgram(
-      cond = atomsWithValues.forall(_.value.getOrElse("").isBlank),
-      andCond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
+      cond = atomsWithValues.forall(_.value.isEmpty),
       thenProgram = atomsWithValues.map { mcv =>
         mcv.value
           .filter(_.nonEmpty)

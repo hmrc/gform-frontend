@@ -551,7 +551,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
               .validate(GetEmailCodeFieldMatcher.noop)
 
           obtainedF.map { obtained =>
-            test(s"$index. $description") {
+            test(s"${index + 1}. $description") {
               assertEquals(obtained, expected)
             }
           }
@@ -812,18 +812,15 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
-            "Enter a date",
-            "Enter real day"
+            "Enter a date"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Enter a date",
-            "Enter real month"
+            "Enter a date"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Enter a date",
-            "Enter real year"
+            "Enter a date"
           )
         )
       ),
@@ -839,18 +836,15 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
-            "Enter start date, like 01 04 2023",
-            "Enter real day"
+            "Enter start date, like 01 04 2023"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Enter start date, like 01 04 2023",
-            "Enter real month"
+            "Enter start date, like 01 04 2023"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Enter start date, like 01 04 2023",
-            "Enter real year"
+            "Enter start date, like 01 04 2023"
           )
         )
       ),
@@ -866,13 +860,51 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Date must include a month and a year",
-            "Enter real month"
+            "Date must include a month and a year"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Date must include a month and a year",
-            "Enter real year"
+            "Date must include a month and a year"
+          )
+        )
+      ),
+      "Date validations should return suitable error if some fields are empty, AC1"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("", "12", ""),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
+            "Date must include a day and a year"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
+            "Date must include a day and a year"
+          )
+        )
+      ),
+      "Date validations should return suitable error if some fields are empty, AC1"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("", "", "2020"),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
+            "Date must include a day and a month"
+          ),
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
+            "Date must include a day and a month"
           )
         )
       ),
@@ -888,17 +920,63 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Date must include a month and a year",
-            "Enter real month"
+            "Date must include a month and a year"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Date must include a month and a year",
-            "Enter real year"
+            "Date must include a month and a year"
           )
         )
       ),
       "Date validations should return suitable error if some fields are empty,  AC2"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("", "12", "2020"),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("day")) -> LinkedHashSet(
+            "Date must include a day"
+          )
+        )
+      ),
+      "Date validations should return suitable error if one field is empty, AC1"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("15", "", "2020"),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
+            "Date must include a month"
+          )
+        )
+      ),
+      "Date validations should return suitable error if one field is empty, AC1"
+    ),
+    (
+      DateConstraint(After, Today, OffsetDate(1)),
+      ("15", "12", ""),
+      None,
+      None,
+      None,
+      Invalid(
+        Map(
+          ModelComponentId
+            .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
+            "Date must include a year"
+          )
+        )
+      ),
+      "Date validations should return suitable error if one field is empty, AC1"
     )
   )
 
@@ -935,7 +1013,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         // .futureValue
 
         obtainedF.map { obtained =>
-          test(s"$index. $description") {
+          test(s"${index + 1}. $description") {
             assertEquals(obtained, expected)
           }
         }
@@ -956,11 +1034,11 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("month")) -> LinkedHashSet(
-            "Enter real month"
+            "Date must include a month and a year"
           ),
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(BaseComponentId("accPeriodStartDate")), Atom("year")) -> LinkedHashSet(
-            "Enter real year"
+            "Date must include a month and a year"
           )
         )
       ),
@@ -987,7 +1065,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
           .validate(GetEmailCodeFieldMatcher.noop)
 
       obtainedF.map { obtained =>
-        test(s"$index. $description") {
+        test(s"${index + 1}. $description") {
           assertEquals(obtained, expected)
         }
       }
