@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import play.api.Environment
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.http.{ BadRequestException, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -24,7 +25,8 @@ import java.io.File
 import scala.concurrent.{ ExecutionContext, Future }
 
 class DownloadController(
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  environment: Environment
 )(implicit
   ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
@@ -57,7 +59,7 @@ class DownloadController(
         Future.failed(new BadRequestException(s"Download file: File type not supported: $filename"))
       } else {
         val extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase
-        val resourcesDir = new File("conf/resources")
+        val resourcesDir = environment.getFile("conf/resources")
         val file = new File(resourcesDir, filename)
 
         val canonicalFile = file.getCanonicalPath

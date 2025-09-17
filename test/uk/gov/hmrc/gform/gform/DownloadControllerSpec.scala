@@ -31,7 +31,7 @@ class DownloadControllerSpec extends Spec {
     val messagesControllerComponents: MessagesControllerComponents = Helpers.stubMessagesControllerComponents()
     val environment: Environment = Environment.simple()
 
-    val downloadController = new DownloadController(messagesControllerComponents)(ec)
+    val downloadController = new DownloadController(messagesControllerComponents, environment)(ec)
     val request: Request[AnyContent] = FakeRequest("GET", "/")
   }
 
