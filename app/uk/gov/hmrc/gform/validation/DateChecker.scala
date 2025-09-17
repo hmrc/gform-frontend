@@ -87,10 +87,9 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   ): CheckProgram[Unit] =
     ifProgram(
       cond = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
-      thenProgram = List(
-        checkAnyFieldsEmpty(fieldValue, formModelVisibilityOptics),
+      thenProgram = validateRequired(fieldValue, formModelVisibilityOptics).andThen(_ =>
         validateDateImpl(fieldValue, formModelVisibilityOptics, date)
-      ).nonShortCircuitProgram,
+      ),
       elseProgram = checkAllFieldsEmpty(fieldValue, formModelVisibilityOptics) orElse validateDateImpl(
         fieldValue,
         formModelVisibilityOptics,
@@ -161,7 +160,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     )
   }
 
-  private def checkAnyFieldsEmpty(
+  private def validateRequired(
     fieldValue: FormComponent,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   )(implicit
@@ -178,15 +177,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       fieldValue.multiValueId.atomsModelComponentIds.map { modelComponentId =>
         requiredError(fieldValue, modelComponentId)
       }.nonShortCircuitProgram
-    } else {
-      answers.map { case (modelComponentId, answer) =>
-        answer
-          .filterNot(_.isEmpty)
-          .fold(requiredAnyFieldError(fieldValue, modelComponentId, answers.collect { case (id, None) => id }))(_ =>
-            successProgram(())
-          )
-      }.nonShortCircuitProgram
-    }
+    } else successProgram(())
   }
 
   private def checkAllFieldsEmpty(
@@ -219,61 +210,77 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       case DateConstraints(dateConstraintList) => Some(dateConstraintList)
     }
 
-    mayBeDateConstraintList
-      .toProgram(
-        errorProgram = validateInputDate(fieldValue, formModelVisibilityOptics).map(_.map(_ => List()))
-      )
-      .andThen(
-        andThenFun = dateConstraintList => {
-          val constraintsPrograms = dateConstraintList.map { dateConstraint =>
-            val DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offset) = dateConstraint
-            val isToday = dateConstrInfo match {
-              case _: Today.type => true
-              case _             => false
-            }
-            val maybeConcreteDate = dateConstrInfo match {
-              case d: ConcreteDate => Some(d)
-              case _               => None
-            }
-            val maybeDateField = dateConstrInfo match {
-              case d: DateField => Some(d)
-              case _            => None
-            }
-            switchProgram(
-              switchCase(
-                cond = isToday,
-                thenProgram =
-                  validateTodayWithMessages(fieldValue, formModelVisibilityOptics, beforeOrAfterOrPrecisely, offset)
-              ),
-              switchCase(
-                cond = maybeConcreteDate.nonEmpty,
-                thenProgram = maybeConcreteDate.foldProgram(
-                  onNone = successProgram(()),
-                  onSomeFun = d =>
-                    validateConcreteDateWithMessages(
-                      fieldValue,
-                      formModelVisibilityOptics,
-                      beforeOrAfterOrPrecisely,
-                      d,
-                      offset
-                    )
+    val answers = fieldValue.multiValueId.atomsModelComponentIds
+      .map { modelComponentId =>
+        val answer = formModelVisibilityOptics.data.one(modelComponentId).filter(_.trim.nonEmpty)
+        modelComponentId -> answer
+      }
+
+    val componentCheckProgram = answers.map { case (modelComponentId, answer) =>
+      answer
+        .filterNot(_.isEmpty)
+        .fold(requiredAnyFieldError(fieldValue, modelComponentId, answers.collect { case (id, None) => id }))(_ =>
+          successProgram(())
+        )
+    }.nonShortCircuitProgram
+
+    componentCheckProgram.andThen(_ =>
+      mayBeDateConstraintList
+        .toProgram(
+          errorProgram = validateInputDate(fieldValue, formModelVisibilityOptics).map(_.map(_ => List()))
+        )
+        .andThen(
+          andThenFun = dateConstraintList => {
+            val constraintsPrograms = dateConstraintList.map { dateConstraint =>
+              val DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offset) = dateConstraint
+              val isToday = dateConstrInfo match {
+                case _: Today.type => true
+                case _             => false
+              }
+              val maybeConcreteDate = dateConstrInfo match {
+                case d: ConcreteDate => Some(d)
+                case _               => None
+              }
+              val maybeDateField = dateConstrInfo match {
+                case d: DateField => Some(d)
+                case _            => None
+              }
+              switchProgram(
+                switchCase(
+                  cond = isToday,
+                  thenProgram =
+                    validateTodayWithMessages(fieldValue, formModelVisibilityOptics, beforeOrAfterOrPrecisely, offset)
+                ),
+                switchCase(
+                  cond = maybeConcreteDate.nonEmpty,
+                  thenProgram = maybeConcreteDate.foldProgram(
+                    onNone = successProgram(()),
+                    onSomeFun = d =>
+                      validateConcreteDateWithMessages(
+                        fieldValue,
+                        formModelVisibilityOptics,
+                        beforeOrAfterOrPrecisely,
+                        d,
+                        offset
+                      )
+                  )
+                ),
+                switchCase(
+                  cond = maybeDateField.nonEmpty,
+                  thenProgram = validateDateFieldWithMessages(
+                    fieldValue,
+                    formModelVisibilityOptics,
+                    beforeOrAfterOrPrecisely,
+                    maybeDateField.getOrElse(DateField(fieldValue.id)),
+                    offset
+                  )
                 )
-              ),
-              switchCase(
-                cond = maybeDateField.nonEmpty,
-                thenProgram = validateDateFieldWithMessages(
-                  fieldValue,
-                  formModelVisibilityOptics,
-                  beforeOrAfterOrPrecisely,
-                  maybeDateField.getOrElse(DateField(fieldValue.id)),
-                  offset
-                )
-              )
-            )(elseProgram = successProgram(()))
+              )(elseProgram = successProgram(()))
+            }
+            constraintsPrograms.nonShortCircuitProgram
           }
-          constraintsPrograms.nonShortCircuitProgram
-        }
-      )
+        )
+    )
   }
 
   private def validateConcreteDateWithMessages(
