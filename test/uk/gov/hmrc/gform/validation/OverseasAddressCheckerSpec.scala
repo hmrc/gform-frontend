@@ -1484,7 +1484,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "Mae’n rhaid i’r wlad fod yn 50 o gyymeriadau neu lai"
+            "Mae’n rhaid i’r wlad fod yn 50 o gymeriadau neu lai"
           )
         )
       )
@@ -1514,7 +1514,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "Mae’n rhaid i’r wlad fod yn 50 o gyymeriadau neu lai"
+            "Mae’n rhaid i’r wlad fod yn 50 o gymeriadau neu lai"
           )
         )
       )
