@@ -271,6 +271,7 @@ class ComponentsValidatorHelper(implicit messages: Messages, sse: SmartStringEva
         Map[ModelComponentId, LinkedHashSet[String]](
           atomicFcId -> ComponentsValidatorHelper
             .errors(formComponent, "field.error.required", None, errorPrefix.getOrElse(""))
+            .map(_.capitalize)
         )
       ),
       elseProgram = successProgram(())

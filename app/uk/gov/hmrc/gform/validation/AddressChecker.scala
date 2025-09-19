@@ -46,14 +46,14 @@ class AddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     val formComponent = context.formComponent
     formComponent match {
       case IsAddress(address) =>
-        val checker = new AddressCheckerHelper[D]()
-        checker.validateAddress(context.formComponent, address)(context.formModelVisibilityOptics)
+        val checker = new AddressCheckerHelper[D](address)
+        checker.validateAddress(context.formComponent)(context.formModelVisibilityOptics)
       case _ => throw new IllegalArgumentException("FormComponent is not a Address")
     }
   }
 }
 
-class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: SmartStringEvaluator) {
+class AddressCheckerHelper[D <: DataOrigin](address: Address)(implicit messages: Messages, sse: SmartStringEvaluator) {
 
   implicit val atomicValueForReport: ValueForReport[Atomic] = new ValueForReport[Atomic] {
     def valueForReport(): Atomic =
@@ -63,8 +63,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
   val cvh = new ComponentsValidatorHelper()
 
   def validateAddress(
-    fieldValue: FormComponent,
-    address: Address
+    fieldValue: FormComponent
   )(
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ): CheckProgram[Unit] = {
@@ -105,7 +104,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
 
     def validateCity(configurableMandatoryFields: Set[Atom]): CheckProgram[Unit] =
       ifProgram(
-        cond = configurableMandatoryFields(Address.street3),
+        andCond = configurableMandatoryFields(Address.street3),
         thenProgram = blankAtomicModelComponentId(Address.street3).fold(successProgram(())) { id =>
           val placeholder = fieldValue.errorShortName
             .map(_.transform(_ + " ", identity))
@@ -117,8 +116,9 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         elseProgram = successProgram(())
       )
 
+    val valUk = addressValueOf(Address.uk)
     ifProgram(
-      cond = addressValueOf(Address.uk) == "true" :: Nil,
+      andCond = valUk == "true" :: Nil || valUk == Nil || !address.international,
       thenProgram = List(
         validateRequiredAtom(
           Address.street1,
@@ -184,16 +184,25 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
         thenProgram = successProgram(())
       ),
       switchCase(
-        cond = atom.endsWith("4") && theOnlyValue.exists(_.length > ValidationValues.addressLine4),
+        cond = theOnlyValue.exists(_.length > ValidationValues.addressLine4),
+        andCond = atom.endsWith("4") && address.countyDisplayed,
         thenProgram = {
-          val vars: List[String] = ValidationValues.addressLine4.toString :: Nil
+          val placeholder = fieldValue.errorShortNameStart
+            .flatMap(_.nonBlankValue())
+            .getOrElse(SmartString.blank.transform(_ => "Address ", _ => "").value())
+          val vars: List[String] = placeholder :: ValidationValues.addressLine4.toString :: Nil
           combineErrors("address.line4.error.maxLength", vars)
         }
       ),
       switchCase(
         cond = theOnlyValue.exists(_.length > ValidationValues.addressLine),
+        andCond = !atom.endsWith("4"),
         thenProgram = {
-          val vars: List[String] = atomicFcId.atom.value.takeRight(1) :: ValidationValues.addressLine.toString :: Nil
+          val placeholder = fieldValue.errorShortNameStart
+            .flatMap(_.nonBlankValue())
+            .getOrElse(SmartString.blank.transform(_ => "Address ", _ => "").value())
+          val vars: List[String] =
+            placeholder :: atomicFcId.atom.value.takeRight(1) :: ValidationValues.addressLine.toString :: Nil
           combineErrors("address.line.error.maxLength", vars)
         }
       )
@@ -251,6 +260,7 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
       ),
       switchCase(
         cond = atom.endsWith("4") && theOnlyValue.exists(_.length > ValidationValues.addressLine4),
+        andCond = address.countyDisplayed,
         thenProgram = {
           val placeholder = fieldValue.errorShortNameStart
             .map(_.transform(_ + " county", identity))
@@ -290,16 +300,21 @@ class AddressCheckerHelper[D <: DataOrigin](implicit messages: Messages, sse: Sm
     atomicFcId: ModelComponentId.Atomic
   )(
     xs: Seq[String]
-  ): CheckProgram[Unit] =
+  ): CheckProgram[Unit] = {
+    val placeholder = fieldValue.errorShortNameStart
+      .flatMap(_.nonBlankValue())
+      .getOrElse(SmartString.blank.transform(_ => "Address ", _ => "").value())
+
     stringValidator(
       _.length > ValidationValues.countryLimit,
       errorProgram(
         mkErrors(fieldValue, atomicFcId)(
           "internationalAddress.country.error.maxLength",
-          ValidationValues.countryLimit.toString :: Nil
+          placeholder :: ValidationValues.countryLimit.toString :: Nil
         )
       )
     )(xs)
+  }
 
   private def stringValidator(
     predicate: String => Boolean,
