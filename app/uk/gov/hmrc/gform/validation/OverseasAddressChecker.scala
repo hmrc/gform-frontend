@@ -159,8 +159,9 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
       )
     }
 
+    val line2AtomicModelComponentId = context.atomicFcId(OverseasAddress.line2)
     def line2MaxLengthOp() = {
-      val atomicModelComponentId = context.atomicFcId(OverseasAddress.line2)
+      val atomicModelComponentId = line2AtomicModelComponentId
       ifProgram(
         cond = context.isAtomicValueExceedMaxLength(atomicModelComponentId, ValidationValues.addressLine),
         thenProgram = errorProgram[Unit](
@@ -303,7 +304,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
         andCond = mandatoryFields(OverseasAddress.line2),
         thenProgram = List(line2RequiredOp(), line2MaxLengthOp()).shortCircuitProgram,
         elseProgram = ifProgram(
-          cond = context.nonBlankValueOf(line3AtomicModelComponentId).isDefined,
+          cond = context.nonBlankValueOf(line2AtomicModelComponentId).isDefined,
           thenProgram = line2MaxLengthOp(),
           elseProgram = successProgram(())
         )
