@@ -441,13 +441,15 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
-      case NumberedList(_)                  => unsupportedOperation("Number")(expr)
-      case BulletedList(_)                  => unsupportedOperation("Number")(expr)
-      case StringOps(_, _)                  => unsupportedOperation("Number")(expr)
-      case Concat(_)                        => unsupportedOperation("Number")(expr)
-      case CountryOfItmpAddress             => unsupportedOperation("Number")(expr)
-      case ChoicesRevealedField(_)          => unsupportedOperation("Number")(expr)
-      case ChoicesSelected(formComponentId) => getChoicesSelected(formComponentId, evaluationContext)
+      case NumberedList(_)                   => unsupportedOperation("Number")(expr)
+      case BulletedList(_)                   => unsupportedOperation("Number")(expr)
+      case NumberedListChoicesSelected(_, _) => unsupportedOperation("Number")(expr)
+      case BulletedListChoicesSelected(_, _) => unsupportedOperation("Number")(expr)
+      case StringOps(_, _)                   => unsupportedOperation("Number")(expr)
+      case Concat(_)                         => unsupportedOperation("Number")(expr)
+      case CountryOfItmpAddress              => unsupportedOperation("Number")(expr)
+      case ChoicesRevealedField(_)           => unsupportedOperation("Number")(expr)
+      case ChoicesSelected(formComponentId)  => getChoicesSelected(formComponentId, evaluationContext)
       case ChoicesAvailable(formComponentId, insideAtl) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData, insideAtl)
       case ChoicesCount(formComponentId) =>
@@ -783,8 +785,10 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case otherwise      => otherwise // Retrieves the only item from result set
         }
-      case NumberedList(fcId) => loop(FormCtx(fcId))
-      case BulletedList(fcId) => loop(FormCtx(fcId))
+      case NumberedList(fcId)                   => loop(FormCtx(fcId))
+      case BulletedList(fcId)                   => loop(FormCtx(fcId))
+      case NumberedListChoicesSelected(fcId, _) => loop(FormCtx(fcId)) //TODO: New method to handle inside/outside
+      case BulletedListChoicesSelected(fcId, _) => loop(FormCtx(fcId)) //TODO: New method to handle inside/outside
       case StringOps(expr, stringFnc) =>
         val str = loop(expr).withStringResult("")(s =>
           stringFnc match {

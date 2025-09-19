@@ -104,9 +104,9 @@ private class Executor(
       case ExprType.ChoiceSelection =>
         typeInfo.expr match {
           case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
-            evalChoiceAsString(formComponentId, typeInfo, markDown)
+            evalChoiceAsString(formComponentId, typeInfo, markDown, None)
           case IndexOf(formComponentId, index) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
-            evalChoiceAsString(formComponentId.withIndex(index.+(1)), typeInfo, false)
+            evalChoiceAsString(formComponentId.withIndex(index.+(1)), typeInfo, false, None)
           case _ => stringRepresentation(typeInfo)
         }
       case _ =>
@@ -115,6 +115,22 @@ private class Executor(
             govukListRepresentation(getTypeInfo(FormCtx(fcId)), markDown = markDown, isBulleted = false, fcId = fcId)
           case BulletedList(fcId) =>
             govukListRepresentation(getTypeInfo(FormCtx(fcId)), markDown = markDown, isBulleted = true, fcId = fcId)
+          case NumberedListChoicesSelected(fcId, insideAtl) =>
+            govukListRepresentation(
+              getTypeInfo(FormCtx(fcId)),
+              markDown = markDown,
+              isBulleted = false,
+              fcId = fcId,
+              insideAtl = insideAtl
+            )
+          case BulletedListChoicesSelected(fcId, insideAtl) =>
+            govukListRepresentation(
+              getTypeInfo(FormCtx(fcId)),
+              markDown = markDown,
+              isBulleted = true,
+              fcId = fcId,
+              insideAtl = insideAtl
+            )
           case ChoicesRevealedField(fcId) =>
             formModelVisibilityOptics.formModel.fcLookup
               .get(fcId)
@@ -167,7 +183,8 @@ private class Executor(
     }
 
     expr match {
-      case _: NumberedList | _: BulletedList => formatted
+      case _: NumberedList | _: BulletedList | _: NumberedListChoicesSelected | _: BulletedListChoicesSelected =>
+        formatted
       case _ =>
         if (markDown) {
           typeInfo.staticTypeData.exprType match {
@@ -190,17 +207,65 @@ private class Executor(
     formatExpr(concatUpdated, markDown)
   }
 
-  private def evalChoice(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): List[String] =
+  private def evalCurrentChoiceIndex(fcId: FormComponentId): Option[Seq[String]] = {
+    val tpeInfo = TypeInfo(FormCtx(fcId), StaticTypeData(ChoiceSelection, None))
+    formModelVisibilityOptics
+      .evalAndApplyTypeInfo(tpeInfo)
+      .optionRepresentation
+  }
+
+  private def evalChoiceWithAtlContext(
+    fcId: FormComponentId,
+    choice: Choice,
+    markDown: Boolean,
+    insideAtl: Boolean
+  ): List[String] = {
+    val optionsList = getChoiceOptions(choice)
+    val orderedKeys = optionsList.keys.toSet
+    val tpeInfo = TypeInfo(FormCtx(FormComponentId(fcId.baseComponentId.value)), StaticTypeData(ChoiceSelection, None))
+    val exprResult = formModelVisibilityOptics
+      .evalAndApplyTypeInfo(tpeInfo)
+
+    val listRep = exprResult.listRepresentation(messages)
+
+    val filteredOps = if (insideAtl) {
+      val currentIndexItems = evalCurrentChoiceIndex(fcId)
+      currentIndexItems match {
+        case Some(items) =>
+          val joinedItems = items.mkString(",")
+          listRep.filterNot(_ == joinedItems)
+        case None => listRep
+      }
+    } else {
+      listRep
+    }
+
+    filteredOps.flatMap(_.split(",").collect {
+      case key if orderedKeys.contains(key) => apply(optionsList(key), markDown)
+    })
+  }
+
+  private def evalChoice(
+    fcId: FormComponentId,
+    typeInfo: TypeInfo,
+    markDown: Boolean,
+    insideAtl: Option[Boolean]
+  ): List[String] =
     formModelVisibilityOptics.formModel.fcLookup.get(fcId) match {
       case Some(IsChoice(choice)) =>
-        val optionsList = getChoiceOptions(choice)
-        val orderedKeys = optionsList.keys.toSet
-        formModelVisibilityOptics
-          .evalAndApplyTypeInfo(typeInfo)
-          .optionRepresentation
-          .map(_.collect { case key if orderedKeys.contains(key) => apply(optionsList(key), markDown) })
-          .getOrElse(Nil)
-          .toList
+        insideAtl match {
+          case Some(b) =>
+            evalChoiceWithAtlContext(fcId, choice, markDown, b)
+          case None =>
+            val optionsList = getChoiceOptions(choice)
+            val orderedKeys = optionsList.keys.toSet
+            formModelVisibilityOptics
+              .evalAndApplyTypeInfo(typeInfo)
+              .optionRepresentation
+              .map(_.collect { case key if orderedKeys.contains(key) => apply(optionsList(key), markDown) })
+              .getOrElse(Nil)
+              .toList
+        }
       case Some(IsRevealingChoice(revealingChoice)) =>
         revealingChoice.options.map(c => apply(summaryValueOrLabel(c.choice.label, c.choice.summaryValue), markDown))
       case Some(_) =>
@@ -211,13 +276,18 @@ private class Executor(
           case None =>
             formModelVisibilityOptics.formModel.fcLookup.collect {
               case (formCompId, _) if formCompId.baseComponentId === fcId.baseComponentId =>
-                evalChoiceAsString(formCompId, getTypeInfo(FormCtx(formCompId)), markDown)
+                evalChoiceAsString(formCompId, getTypeInfo(FormCtx(formCompId)), markDown, insideAtl)
             }.toList
         }
     }
 
-  private def evalChoiceAsString(fcId: FormComponentId, typeInfo: TypeInfo, markDown: Boolean): String =
-    evalChoice(fcId, typeInfo, markDown).mkString(", ")
+  private def evalChoiceAsString(
+    fcId: FormComponentId,
+    typeInfo: TypeInfo,
+    markDown: Boolean,
+    insideAtl: Option[Boolean]
+  ): String =
+    evalChoice(fcId, typeInfo, markDown, insideAtl).mkString(", ")
 
   private def summaryValueOrLabel(label: SmartString, summaryValue: Option[SmartString]): SmartString =
     summaryValue match {
@@ -250,10 +320,11 @@ private class Executor(
     typeInfo: TypeInfo,
     isBulleted: Boolean,
     markDown: Boolean,
-    fcId: FormComponentId
+    fcId: FormComponentId,
+    insideAtl: Option[Boolean] = None
   ): String = {
     val choiceList: List[String] = typeInfo.staticTypeData match {
-      case StaticTypeData(ChoiceSelection, None) => evalChoice(fcId, typeInfo, markDown)
+      case StaticTypeData(ChoiceSelection, None) => evalChoice(fcId, typeInfo, markDown, insideAtl)
       case _ =>
         formModelVisibilityOptics
           .evalAndApplyTypeInfo(typeInfo)

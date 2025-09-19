@@ -80,27 +80,29 @@ object ExprPrettyPrint {
       }
     case AddressLens(fcId, addressDetail) =>
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value
-    case DataRetrieveCtx(_, _)         => "Data retrieve"
-    case DataRetrieveCount(_)          => "Data retrieve count"
-    case LookupColumn(_, _)            => "Lookup column check"
-    case CsvCountryCountCheck(_, _, _) => "Country count"
-    case Size(_, _)                    => "Size"
-    case Typed(e, _)                   => "Typed"
-    case IndexOf(_, _)                 => "IndexOf"
-    case IndexOfDataRetrieveCtx(_, _)  => "IndexOfDataRetrieveCtx"
-    case NumberedList(_)               => "Numbered List"
-    case BulletedList(_)               => "Bulleted List"
-    case StringOps(_, stringFnc)       => stringFnc.toString
-    case Concat(_)                     => "Concat"
-    case CountryOfItmpAddress          => "CountryOfItmpAddress"
-    case ChoicesRevealedField(_)       => "ChoicesRevealedField"
-    case ChoicesSelected(_)            => "ChoicesSelected"
-    case ChoicesAvailable(_, _)        => "ChoicesAvailable"
-    case CountSelectedChoices(_)       => "ChoicesSelectedSum"
-    case ChoicesCount(_)               => "ChoicesCount"
-    case TaskStatus(_)                 => "TaskStatus"
-    case LookupOps(_, lookupFnc)       => lookupFnc.toString
-    case DisplayAsEntered(_)           => "DisplayAsEntered"
+    case DataRetrieveCtx(_, _)             => "Data retrieve"
+    case DataRetrieveCount(_)              => "Data retrieve count"
+    case LookupColumn(_, _)                => "Lookup column check"
+    case CsvCountryCountCheck(_, _, _)     => "Country count"
+    case Size(_, _)                        => "Size"
+    case Typed(e, _)                       => "Typed"
+    case IndexOf(_, _)                     => "IndexOf"
+    case IndexOfDataRetrieveCtx(_, _)      => "IndexOfDataRetrieveCtx"
+    case NumberedList(_)                   => "Numbered List"
+    case BulletedList(_)                   => "Bulleted List"
+    case NumberedListChoicesSelected(_, _) => "Numbered List Choices Selected"
+    case BulletedListChoicesSelected(_, _) => "Bulleted List Choices Selected"
+    case StringOps(_, stringFnc)           => stringFnc.toString
+    case Concat(_)                         => "Concat"
+    case CountryOfItmpAddress              => "CountryOfItmpAddress"
+    case ChoicesRevealedField(_)           => "ChoicesRevealedField"
+    case ChoicesSelected(_)                => "ChoicesSelected"
+    case ChoicesAvailable(_, _)            => "ChoicesAvailable"
+    case CountSelectedChoices(_)           => "ChoicesSelectedSum"
+    case ChoicesCount(_)                   => "ChoicesCount"
+    case TaskStatus(_)                     => "TaskStatus"
+    case LookupOps(_, lookupFnc)           => lookupFnc.toString
+    case DisplayAsEntered(_)               => "DisplayAsEntered"
   }
 
   def prettyPrintItmpNameFocus(focus: ItmpNameFocus): String = focus match {
