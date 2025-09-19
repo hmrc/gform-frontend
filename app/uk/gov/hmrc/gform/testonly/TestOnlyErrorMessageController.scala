@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsCalendarDate, IsDate, IsTaxPeriodDate, IsText }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsAddress, IsCalendarDate, IsDate, IsOverseasAddress, IsTaxPeriodDate, IsText }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.GformError.linkedHashSetMonoid
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
@@ -108,7 +108,21 @@ class TestOnlyErrorMessageController(
               hc
             )
         } yield {
-          val report = EnCyReport.makeEnCy(englishReports, welshReports)
+
+          // Sort messages alphabetically by English
+          val enReportByIdx = englishReports.zipWithIndex.map { case (enRep, idx) => idx -> enRep }.toMap
+          val sortedMsgsByIdx = welshReports.zipWithIndex.map { case (cyRep, idx) =>
+            idx -> sortEnCy(enReportByIdx(idx).messages, cyRep.messages)
+          }.toMap
+
+          val sortedEnglishReports = englishReports.zipWithIndex.map { case (rep, idx) =>
+            rep.copy(messages = sortedMsgsByIdx(idx)._1)
+          }
+          val sortedWelshReports = welshReports.zipWithIndex.map { case (rep, idx) =>
+            rep.copy(messages = sortedMsgsByIdx(idx)._2)
+          }
+
+          val report = EnCyReport.makeEnCy(sortedEnglishReports, sortedWelshReports)
           if (jsonReport)
             Ok(Json.toJson(report)).as("application/json")
           else {
@@ -119,6 +133,16 @@ class TestOnlyErrorMessageController(
 
         }
     }
+
+  /** Returns: (sortedEnglish, sortedWelsh)
+    */
+  private def sortEnCy(enUnsorted: List[String], cyUnsorted: List[String]): (List[String], List[String]) = {
+    require(enUnsorted.length == cyUnsorted.length)
+    val enMapByIdx = enUnsorted.zipWithIndex.map { case (str, idx) => idx -> str }.toMap
+    val en2cy = cyUnsorted.zipWithIndex.map { case (str, idx) => enMapByIdx(idx) -> str }.toMap
+    val sortedEn2cy = enUnsorted.sortWith(_.compareTo(_) < 0).map(s => s -> en2cy(s))
+    (sortedEn2cy.map(_._1), sortedEn2cy.map(_._2))
+  }
 
   case class FieldErrorReport(
     fieldId: String,
@@ -167,10 +191,12 @@ class TestOnlyErrorMessageController(
       )
 
       val consolidatedGformError: GformError = formComponent match {
-        case IsDate(_)         => aggregateForReport
-        case IsCalendarDate()  => aggregateForReport
-        case IsTaxPeriodDate() => aggregateForReport
-        case _                 => gformError
+        case IsDate(_)            => aggregateForReport
+        case IsCalendarDate()     => aggregateForReport
+        case IsTaxPeriodDate()    => aggregateForReport
+        case IsAddress(_)         => aggregateForReport
+        case IsOverseasAddress(_) => aggregateForReport
+        case _                    => gformError
       }
 
       consolidatedGformError
@@ -385,7 +411,7 @@ class TestOnlyErrorMessageController(
 
     dataProvider
       .fold {
-        validate(formModelOptics, useErrorInterpreter = true) |+| validate(formModelOptics, useErrorInterpreter = false)
+        validate(formModelOptics, useErrorInterpreter = true)
       } { dataProvider =>
         validate(formModelOptics, useErrorInterpreter = true) |+|
           dataProvider

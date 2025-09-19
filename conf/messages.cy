@@ -320,7 +320,7 @@ internationalAddress.line3.label=llinell 3
 internationalAddress.line4.label=llinell 4
 internationalAddress.country.label=gwlad
 # TODO Welsh translation
-internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
+internationalAddress.country.error.maxLength={1} country must be no more than {2} characters
 
 #Overseas Address
 overseasAddress.optional=(dewisol)
@@ -340,8 +340,8 @@ overseasAddress.error.maxLength=Rhaid i {1} {0} fod yn ddim mwy na {2} nod
 
 # Generic address
 address.isUK=Ai cyfeiriad yn y DU yw hwn?
-address.line4.error.maxLength=Rhaid i linell 4 {0} beidio â bod yn fwy na {1} o gymeriadau
-address.line.error.maxLength=Rhaid i linell {1} {0} beidio â bod yn fwy na {2} o gymeriadau
+address.line4.error.maxLength=Rhaid i linell 4 {0} beidio â bod yn fwy na {2} o gymeriadau
+address.line.error.maxLength=Rhaid i linell {2} {0} beidio â bod yn fwy na {3} o gymeriadau
 
 # Date
 date.day=diwrnod

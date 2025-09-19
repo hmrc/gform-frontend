@@ -297,7 +297,7 @@ internationalAddress.line2.label=line 2
 internationalAddress.line3.label=line 3
 internationalAddress.line4.label=line 4
 internationalAddress.country.label=country
-internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
+internationalAddress.country.error.maxLength={1} country must be no more than {2} characters
 
 #Overseas Address
 overseasAddress.optional=(optional)
@@ -317,8 +317,8 @@ overseasAddress.error.maxLength={0} {1} must be no more than {2} characters
 
 # Generic address
 address.isUK=Is this a UK address?
-address.line4.error.maxLength={0} line 4 must be no more than {1} characters
-address.line.error.maxLength={0} line {1} must be no more than {2} characters
+address.line4.error.maxLength={1} line 4 must be no more than {2} characters
+address.line.error.maxLength={1} line {2} must be no more than {3} characters
 
 generic.error.address.building.street.required=Enter {1}line 1
 generic.error.address.town.city.required=Enter {1}town or city
