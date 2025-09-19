@@ -92,6 +92,7 @@ class TestOnlyErrorMessageController(
                     Some(SmartString.blank.transform(_ => "<b>errorExample</b>", _ => "<b>errorExample</b>"))
                 )
             )
+            .filter(_.editable)
         for {
           englishReports <-
             fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
