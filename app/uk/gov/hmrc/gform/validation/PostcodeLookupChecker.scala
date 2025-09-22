@@ -18,17 +18,16 @@ package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.PostcodeLookup
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 
 import scala.collection.mutable.LinkedHashSet
-
 import ComponentChecker._
 
 class PostcodeLookupChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
@@ -56,21 +55,26 @@ class PostcodeLookupCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Fo
     val atomsWithValues: List[ModelComponentIdValue] = formComponent.multiValueId
       .atomsModelComponentIdsFilterByAtom(_.atom =!= PostcodeLookup.filter)
       .map(m => ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m)))
-    ifProgram(
+    ifProgram[Unit](
       andCond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
       thenProgram = {
         val programs = atomsWithValues.map { mcv =>
+          val placeholder = formComponent.errorShortName
+            .map(_.transform(_ + " ", identity))
+            .flatMap(_.nonBlankValue())
+            .getOrElse(SmartString.blank.value())
+
           mcv.value
             .filter(_.nonEmpty)
             .toProgram(
               errorProgram = errorProgram[String](
                 Map[ModelComponentId, LinkedHashSet[String]](
-                  mcv.modelComponentId -> errors(formComponent, "postcode.error.required", None)
+                  mcv.modelComponentId -> errors(formComponent, "postcode.error.required", Some(placeholder :: Nil))
                 )
               )
             )
             .andThen { postcode =>
-              ifProgram(
+              ifProgram[Unit](
                 cond = PostcodeLookupValidation.checkPostcode(postcode),
                 thenProgram = successProgram(()),
                 elseProgram = errorProgram(
