@@ -580,7 +580,7 @@ class AddressCheckerSpec
 
   "non-international" should "return invalid when enter 36 characters in town or city, AC13" in {
     val speccedAddress =
-      baseAddress.copy(international = false)
+      baseAddress.copy(international = false, countyDisplayed = true)
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
       .withErrorFields(None, None, None)
@@ -610,7 +610,7 @@ class AddressCheckerSpec
 
   "non-international" should "return invalid when enter 36 characters in town or city, AC14" in {
     val speccedAddress =
-      baseAddress.copy(international = false)
+      baseAddress.copy(international = false, countyDisplayed = true)
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
       .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
@@ -674,7 +674,7 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "l country must be entered"
+            "L country must be entered"
           )
         )
       )
@@ -746,9 +746,9 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
 
     val data = variadicFormData[SourceOrigin.OutOfDate](
-      "x@uk"      -> "true",
-      "x@street1" -> "S",
-      "x@country" -> "C"
+      "x@uk"       -> "true",
+      "x@street1"  -> "S",
+      "x@postcode" -> "C"
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -760,11 +760,11 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("street1")) -> Set(
-            "l line 1 must be entered"
+            "Enter address line 1"
           ),
           ModelComponentId
-            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "l country must be entered"
+            .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
+            "Enter postcode"
           )
         )
       )
@@ -811,7 +811,7 @@ class AddressCheckerSpec
   }
 
   "Address validation" should "fail when the field is fails validation" in {
-    val speccedAddress = baseAddress.copy(international = true)
+    val speccedAddress = baseAddress.copy(international = true, countyDisplayed = true)
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
