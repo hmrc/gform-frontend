@@ -787,8 +787,8 @@ case class EvaluationResults(
         }
       case NumberedList(fcId)                   => loop(FormCtx(fcId))
       case BulletedList(fcId)                   => loop(FormCtx(fcId))
-      case NumberedListChoicesSelected(fcId, _) => loop(FormCtx(fcId)) //TODO: New method to handle inside/outside
-      case BulletedListChoicesSelected(fcId, _) => loop(FormCtx(fcId)) //TODO: New method to handle inside/outside
+      case NumberedListChoicesSelected(fcId, _) => loop(FormCtx(fcId))
+      case BulletedListChoicesSelected(fcId, _) => loop(FormCtx(fcId))
       case StringOps(expr, stringFnc) =>
         val str = loop(expr).withStringResult("")(s =>
           stringFnc match {
