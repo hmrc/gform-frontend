@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, IsFalse, Number, NumberedList, OptionData, PositiveNumber, Radio, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, InformationMessage, IsFalse, NoFormat, Number, NumberedList, NumberedListChoicesSelected, OptionData, PositiveNumber, Radio, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical, YesNo }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
@@ -979,5 +979,149 @@ class RealSmartStringEvaluatorFactorySpec
       )
 
     result shouldBe "Choice 2, Choice 3, Choice 1"
+  }
+
+  "evaluate SmartString using Bulleted/NumberedListChoicesSelected with reference to a value based checkbox choice component inside and outside ATL" in new TestFixture {
+    lazy val choiceField: FormComponent = buildFormComponent(
+      "choiceField",
+      Choice(
+        Checkbox,
+        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3", "Choice 4")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        true
+      ),
+      None
+    )
+
+    lazy val addAnother: FormComponent = buildFormComponent(
+      "addAnother",
+      Choice(
+        YesNo,
+        toOptionData(NonEmptyList.of("Yes", "No")),
+        Vertical,
+        List.empty,
+        None,
+        None,
+        None,
+        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        None,
+        None,
+        false
+      ),
+      None
+    )
+
+    private def getInfoComponent(id: String, insideAtl: Boolean): FormComponent = buildFormComponent(
+      id,
+      InformationMessage(
+        NoFormat,
+        toSmartStringExpression(
+          "{0}",
+          NumberedListChoicesSelected(FormComponentId("1_choiceField"), Some(insideAtl))
+        )
+      ),
+      None
+    )
+
+    lazy val (modelCompId1, modelCompId2) =
+      (choiceField.modelComponentId.expandWithPrefix(1), choiceField.modelComponentId.expandWithPrefix(2))
+
+    lazy val (addAnotherId1, addAnotherId2) =
+      (addAnother.modelComponentId.expandWithPrefix(1), addAnother.modelComponentId.expandWithPrefix(2))
+
+    override lazy val indexedComponentIds: List[ModelComponentId] =
+      List(modelCompId1, modelCompId2, addAnotherId1, addAnotherId2)
+
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List(
+            FormField(modelCompId1, "Choice 1"),
+            FormField(modelCompId2, "Choice 2,Choice 3"),
+            FormField(addAnotherId1, "0"),
+            FormField(addAnotherId2, "1")
+          )
+        )
+      )
+
+    //Note: the expressions also need to be in the template itself to be added to the EvaluationResults exprMap (info components used in this case)
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      sections = List(
+        addToListSection(
+          title = "Items",
+          description = "description",
+          summaryDescription = "summary description",
+          shortName = "short name",
+          summaryName = "summary name",
+          addAnotherQuestion = addAnother,
+          instruction = None,
+          pages = List(
+            toPage(
+              "Title",
+              None,
+              List(
+                choiceField,
+                getInfoComponent("infoInsideAtl", insideAtl = true)
+              )
+            )
+          )
+        ),
+        nonRepeatingPageSection(
+          title = "page1",
+          fields = List(
+            getInfoComponent("infoOutsideAtl", insideAtl = false)
+          )
+        )
+      )
+    )
+
+    val resultInside1: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          NumberedListChoicesSelected(FormComponentId("1_choiceField"), Some(true))
+        ),
+        false
+      )
+
+    val resultInside2: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          NumberedListChoicesSelected(FormComponentId("2_choiceField"), Some(true))
+        ),
+        false
+      )
+
+    val resultOutside1: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          NumberedListChoicesSelected(FormComponentId("1_choiceField"), Some(false))
+        ),
+        false
+      )
+
+    val resultOutside2: String = smartStringEvaluator
+      .apply(
+        toSmartStringExpression(
+          "{0}",
+          NumberedListChoicesSelected(FormComponentId("choiceField"), Some(false))
+        ),
+        false
+      )
+
+    resultInside1 shouldBe """<ol class="govuk-list govuk-list--number"><li>Choice 2</li><li>Choice 3</li></ol>"""
+    resultInside2 shouldBe """<ol class="govuk-list govuk-list--number"><li>Choice 1</li></ol>"""
+    resultOutside1 shouldBe """<ol class="govuk-list govuk-list--number"><li>Choice 1</li><li>Choice 2</li><li>Choice 3</li></ol>"""
+    resultOutside2 shouldBe """<ol class="govuk-list govuk-list--number"><li>Choice 1</li><li>Choice 2</li><li>Choice 3</li></ol>"""
   }
 }
