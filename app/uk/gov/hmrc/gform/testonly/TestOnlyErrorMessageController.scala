@@ -32,8 +32,8 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsAddress, IsCalendarDate, IsDate, IsOverseasAddress, IsTaxPeriodDate, IsText }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Expr, FormComponent, FormComponentId, FormTemplateId, IsAddress, IsCalendarDate, IsDate, IsOverseasAddress, IsPostcodeLookup, IsTaxPeriodDate, IsText, Mandatory }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.GformError.linkedHashSetMonoid
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.gform.validation._
@@ -197,6 +197,7 @@ class TestOnlyErrorMessageController(
         case IsTaxPeriodDate()    => aggregateForReport
         case IsAddress(_)         => aggregateForReport
         case IsOverseasAddress(_) => aggregateForReport
+        case IsPostcodeLookup(_)  => aggregateForReport
         case _                    => gformError
       }
 
@@ -387,12 +388,16 @@ class TestOnlyErrorMessageController(
     def mkFormModelOptics(data: VariadicFormData[SourceOrigin.OutOfDate]) =
       FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](data, cache)
 
-    def validate(formModelOptics: FormModelOptics[DataOrigin.Mongo], useErrorInterpreter: Boolean) = {
+    def validate(
+      targetComponent: FormComponent,
+      formModelOptics: FormModelOptics[DataOrigin.Mongo],
+      useErrorInterpreter: Boolean
+    ) = {
 
       def validator(fmo: FormModelOptics[DataOrigin.Mongo]) =
         new ComponentsValidator[DataOrigin.Mongo, Future](
           fmo.formModelVisibilityOptics,
-          formComponent,
+          targetComponent,
           cache.toCacheData,
           EnvelopeWithMapping.empty,
           lookupRegistry,
@@ -410,19 +415,52 @@ class TestOnlyErrorMessageController(
         }
     }
 
+    val maybeSyntheticComponent: Option[FormComponent] = formComponent match {
+      case IsPostcodeLookup(_) => Some(mkSyntheticAddressComponent(formComponent.id, Some(formComponent)))
+      case _                   => None
+    }
+
     dataProvider
       .fold {
-        validate(formModelOptics, useErrorInterpreter = true)
+        validate(formComponent, formModelOptics, useErrorInterpreter = true)
       } { dataProvider =>
-        validate(formModelOptics, useErrorInterpreter = true) |+|
+        validate(formComponent, formModelOptics, useErrorInterpreter = true) |+|
           dataProvider
             .errorValues(formComponent, formModelOptics.formModelVisibilityOptics.recData.variadicFormData)
-            .map { data =>
-              validate(mkFormModelOptics(data), useErrorInterpreter = false)
-            }
+            .map(data => validate(formComponent, mkFormModelOptics(data), useErrorInterpreter = false))
             .sequence
             .map(_.foldLeft(Map.empty[ModelComponentId, mutable.LinkedHashSet[String]]) { case (a, m) => a |+| m })
       }
+      .flatMap { gformErrors =>
+        maybeSyntheticComponent
+          .map(validate(_, formModelOptics, useErrorInterpreter = true))
+          .getOrElse(GformError.emptyGformError.pure[Future])
+          .map(syntheticErrors => gformErrors |+| syntheticErrors)
+      }
       .map(formComponent -> _)
   }
+
+  private def mkSyntheticAddressComponent(
+    formComponentId: FormComponentId,
+    formComponent: Option[FormComponent]
+  ): FormComponent =
+    FormComponent(
+      id = formComponentId,
+      `type` =
+        Address(international = false, List.empty[Address.Configurable.Mandatory], countyDisplayed = false, None),
+      label = SmartString(LocalisedString(Map.empty), List.empty[Expr]),
+      isPageHeading = false,
+      helpText = None,
+      shortName = None,
+      includeIf = None,
+      validIf = None,
+      mandatory = Mandatory.True,
+      editable = true,
+      submissible = true,
+      derived = false,
+      errorMessage = None,
+      errorShortName = formComponent.flatMap(_.errorShortName),
+      errorShortNameStart = formComponent.flatMap(_.errorShortNameStart),
+      validators = formComponent.map(_.validators).getOrElse(Nil)
+    )
 }

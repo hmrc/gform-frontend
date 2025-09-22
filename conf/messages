@@ -670,7 +670,7 @@ postcodeLookup.cannot.find.address.choose.title=What do you want to do now?
 postcodeLookup.cannot.find.address.choose.try=Try a different postcode
 addressId.error.required=Select an address
 postcode.error.real=Enter a real postcode
-postcode.error.required=Enter postcode
+postcode.error.required=Enter {1}postcode
 postcodeLookup.enter.address=Enter address
 
 #Summary pdf
