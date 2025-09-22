@@ -67,10 +67,14 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
           Between(DateCtx(expandDateExpr(dateExpr1)), DateCtx(expandDateExpr(dateExpr2)), m)
         case _ => expr
       }
-    case IndexOf(_, _)                                => expr // This is not expanded on purpose, so it can be used correctly inside ATL
-    case IndexOfDataRetrieveCtx(_, _)                 => expr
-    case NumberedList(formComponentId)                => NumberedList(expandFcId(formComponentId))
-    case BulletedList(formComponentId)                => BulletedList(expandFcId(formComponentId))
+    case IndexOf(_, _)                 => expr // This is not expanded on purpose, so it can be used correctly inside ATL
+    case IndexOfDataRetrieveCtx(_, _)  => expr
+    case NumberedList(formComponentId) => NumberedList(expandFcId(formComponentId))
+    case BulletedList(formComponentId) => BulletedList(expandFcId(formComponentId))
+    case NumberedListChoicesSelected(formComponentId, insideAtl) =>
+      NumberedListChoicesSelected(expandFcId(formComponentId), insideAtl)
+    case BulletedListChoicesSelected(formComponentId, insideAtl) =>
+      BulletedListChoicesSelected(expandFcId(formComponentId), insideAtl)
     case StringOps(expr, stringFnc)                   => StringOps(expandExpr(expr), stringFnc)
     case Concat(exprs)                                => Concat(exprs.map(expandExpr))
     case CountryOfItmpAddress                         => expr

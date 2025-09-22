@@ -63,12 +63,16 @@ object FormComponentIdSubstituter {
           LookupColumn(substitutions.updateFormComponentId(fcId), column)
         case CsvCountryCountCheck(fcId, column, value) =>
           CsvCountryCountCheck(substitutions.updateFormComponentId(fcId), column, value)
-        case Size(fcId, index)                 => Size(substitutions.updateFormComponentId(fcId), index)
-        case Typed(e, tpe)                     => Typed(substitute(substitutions, e), tpe)
-        case IndexOf(fcId, index)              => IndexOf(substitutions.updateFormComponentId(fcId), index)
-        case e: IndexOfDataRetrieveCtx         => e
-        case NumberedList(fcId)                => NumberedList(substitutions.updateFormComponentId(fcId))
-        case BulletedList(fcId)                => BulletedList(substitutions.updateFormComponentId(fcId))
+        case Size(fcId, index)         => Size(substitutions.updateFormComponentId(fcId), index)
+        case Typed(e, tpe)             => Typed(substitute(substitutions, e), tpe)
+        case IndexOf(fcId, index)      => IndexOf(substitutions.updateFormComponentId(fcId), index)
+        case e: IndexOfDataRetrieveCtx => e
+        case NumberedList(fcId)        => NumberedList(substitutions.updateFormComponentId(fcId))
+        case BulletedList(fcId)        => BulletedList(substitutions.updateFormComponentId(fcId))
+        case NumberedListChoicesSelected(fcId, insideAtl) =>
+          NumberedListChoicesSelected(substitutions.updateFormComponentId(fcId), insideAtl)
+        case BulletedListChoicesSelected(fcId, insideAtl) =>
+          BulletedListChoicesSelected(substitutions.updateFormComponentId(fcId), insideAtl)
         case StringOps(field1, stringFnc)      => StringOps(substitute(substitutions, field1), stringFnc)
         case Concat(exprs)                     => Concat(exprs.map(substitute(substitutions, _)))
         case CountryOfItmpAddress              => CountryOfItmpAddress

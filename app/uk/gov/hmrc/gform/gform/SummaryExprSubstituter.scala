@@ -89,28 +89,30 @@ object SummarySubstituter {
       case PeriodExt(period, func)      => PeriodExt(substitute(substitutions, period), func)
       case Between(field1, field2, measurementType) =>
         Between(substitute(substitutions, field1), substitute(substitutions, field2), measurementType)
-      case e: AddressLens               => e
-      case e: DataRetrieveCtx           => e
-      case e: DataRetrieveCount         => e
-      case e: LookupColumn              => e
-      case e: CsvCountryCountCheck      => e
-      case e: Size                      => e
-      case Typed(e, tpe)                => Typed(substitute(substitutions, e), tpe)
-      case e: IndexOf                   => e
-      case e: IndexOfDataRetrieveCtx    => e
-      case e: NumberedList              => e
-      case e: BulletedList              => e
-      case StringOps(field1, stringFnc) => StringOps(substitute(substitutions, field1), stringFnc)
-      case Concat(exprs)                => Concat(exprs.map(substitute(substitutions, _)))
-      case CountryOfItmpAddress         => CountryOfItmpAddress
-      case e: ChoicesRevealedField      => e
-      case e: ChoicesSelected           => e
-      case e: ChoicesAvailable          => e
-      case e: CountSelectedChoices      => e
-      case e: ChoicesCount              => e
-      case e: TaskStatus                => e
-      case LookupOps(e, lookupFnc)      => LookupOps(substitute(substitutions, e), lookupFnc)
-      case e: DisplayAsEntered          => e
+      case e: AddressLens                 => e
+      case e: DataRetrieveCtx             => e
+      case e: DataRetrieveCount           => e
+      case e: LookupColumn                => e
+      case e: CsvCountryCountCheck        => e
+      case e: Size                        => e
+      case Typed(e, tpe)                  => Typed(substitute(substitutions, e), tpe)
+      case e: IndexOf                     => e
+      case e: IndexOfDataRetrieveCtx      => e
+      case e: NumberedList                => e
+      case e: BulletedList                => e
+      case e: NumberedListChoicesSelected => e
+      case e: BulletedListChoicesSelected => e
+      case StringOps(field1, stringFnc)   => StringOps(substitute(substitutions, field1), stringFnc)
+      case Concat(exprs)                  => Concat(exprs.map(substitute(substitutions, _)))
+      case CountryOfItmpAddress           => CountryOfItmpAddress
+      case e: ChoicesRevealedField        => e
+      case e: ChoicesSelected             => e
+      case e: ChoicesAvailable            => e
+      case e: CountSelectedChoices        => e
+      case e: ChoicesCount                => e
+      case e: TaskStatus                  => e
+      case LookupOps(e, lookupFnc)        => LookupOps(substitute(substitutions, e), lookupFnc)
+      case e: DisplayAsEntered            => e
     }
   }
 
