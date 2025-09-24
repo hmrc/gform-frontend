@@ -49,7 +49,7 @@ import ComponentChecker.CheckInterpreter
 import GformError.linkedHashSetMonoid
 
 class ValidationService(
-  booleanExprEval: BooleanExprEval[Future],
+  booleanExprEval: BooleanExprEval,
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
   checkInterpreter: CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
@@ -106,7 +106,7 @@ class ValidationService(
                envelope,
                getEmailCodeFieldMatcher,
                validateCustomValidators
-             )
+             ).pure[Future]
            )
       formTemplateId = cache.formTemplate._id
       emailsForVerification <-
@@ -169,17 +169,17 @@ class ValidationService(
       .toList
       .combineAll
 
-  def validatePageModelComponents[D <: DataOrigin](
+  private def validatePageModelComponents[D <: DataOrigin](
     pageModel: PageModel[Visibility],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
     validateValidators: Boolean
-  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
-    pageModel.allFormComponents
+  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): ValidatedType[Unit] = {
+    val res = pageModel.allFormComponents
       .filterNot(_.onlyShowOnSummary)
-      .traverse(fv =>
+      .map(fv =>
         validateFormComponent(
           fv,
           formModelVisibilityOptics,
@@ -189,7 +189,8 @@ class ValidationService(
           validateValidators
         )
       )
-      .map(res => Monoid[ValidatedType[Unit]].combineAll(res))
+    Monoid[ValidatedType[Unit]].combineAll(res)
+  }
 
   def validateAllSections[D <: DataOrigin](
     cache: CacheData,
@@ -199,10 +200,10 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[ValidationResult] =
-    formModelVisibilityOptics.formModel.allFormComponents
+  ): ValidationResult = {
+    val res = formModelVisibilityOptics.formModel.allFormComponents
       .filterNot(_.onlyShowOnSummary)
-      .traverse(fv =>
+      .map(fv =>
         validateFormComponent(
           fv,
           formModelVisibilityOptics,
@@ -212,12 +213,11 @@ class ValidationService(
           true
         )
       )
-      .map { res =>
-        val validatedType: ValidatedType[ValidatorsResult] =
-          Monoid[ValidatedType[Unit]].combineAll(res).map(_ => ValidatorsResult.empty)
-        val allFields = formModelVisibilityOptics.allFormComponents
-        ValidationUtil.evaluateValidationResult(allFields, validatedType, formModelVisibilityOptics, envelope)
-      }
+    val validatedType: ValidatedType[ValidatorsResult] =
+      Monoid[ValidatedType[Unit]].combineAll(res).map(_ => ValidatorsResult.empty)
+    val allFields = formModelVisibilityOptics.allFormComponents
+    ValidationUtil.evaluateValidationResult(allFields, validatedType, formModelVisibilityOptics, envelope)
+  }
 
   private def validateFormComponent[D <: DataOrigin](
     formComponent: FormComponent,
@@ -230,8 +230,8 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[ValidatedType[Unit]] =
-    new ComponentsValidator[D, Future](
+  ): ValidatedType[Unit] =
+    new ComponentsValidator[D](
       formModelVisibilityOptics,
       formComponent,
       cache,

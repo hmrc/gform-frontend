@@ -97,9 +97,10 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
           ) :: Nil
         ) :: Nil
 
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(mkFormTemplate(sections), data)
+    val formTemplate = mkFormTemplate(sections)
+    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
-    val processData: ProcessData = mkProcessData(formModelOptics)
+    val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
 
     val fileComponentIds = Set("1_f", "2_f", "3_f", "regularFile").map(fcId => FileComponentId.fromString(fcId))
     val originalMapping = FormComponentIdToFileIdMapping(

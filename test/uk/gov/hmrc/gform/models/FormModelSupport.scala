@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.Monad
+import cats.syntax.applicative._
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
@@ -30,11 +31,9 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 import java.time.Instant
-import scala.concurrent.Future
 
 trait FormModelSupport extends GraphSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -43,14 +42,14 @@ trait FormModelSupport extends GraphSpec {
   val thirdPartyData: ThirdPartyData = ThirdPartyData.empty
   val envelopeId: EnvelopeId = EnvelopeId("dummy")
 
-  protected def eligibilityStatusTrue: SeissEligibilityChecker =
-    new SeissEligibilityChecker((_, _) => Future.successful(true))
+  protected def eligibilityStatusTrue[F[_]: Monad]: SeissEligibilityChecker[F] =
+    new SeissEligibilityChecker[F]((_, _) => true.pure[F])
 
-  protected def delegatedEnrolmentCheckStatus[F[_]: Monad]: DelegatedEnrolmentChecker =
-    new DelegatedEnrolmentChecker(delegatedEnrolmentCheckStatusTrue)
+  protected def delegatedEnrolmentCheckStatus[F[_]: Monad]: DelegatedEnrolmentChecker[F] =
+    new DelegatedEnrolmentChecker(delegatedEnrolmentCheckStatusTrue[F])
 
-  protected def dbLookupCheckStatus: DbLookupChecker =
-    new DbLookupChecker(dbLookupStatusTrue)
+  protected def dbLookupCheckStatus[F[_]: Monad]: DbLookupChecker[F] =
+    new DbLookupChecker(dbLookupStatusTrue[F])
 
   val maybeAccessCode: Option[AccessCode] = None
 
@@ -81,8 +80,7 @@ trait FormModelSupport extends GraphSpec {
     formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
     role = Role.Customer,
     accessCode = maybeAccessCode,
-    new LookupRegistry(Map()),
-    graphData = GraphDataCache.empty
+    new LookupRegistry(Map())
   )
 
   def mkFormModelBuilder(formTemplate: FormTemplate): FormModelBuilder =
@@ -120,14 +118,15 @@ trait FormModelSupport extends GraphSpec {
   }
 
   def mkProcessData(
+    formTemplate: FormTemplate,
     formModelOptics: FormModelOptics[DataOrigin.Browser]
   ): ProcessData = {
 
     val visitsIndex: VisitIndex = VisitIndex.Classic(Set.empty[SectionNumber.Classic])
-    val booleanExprCache: BooleanExprCache = BooleanExprCache.empty
+    val cache = mkAuthCacheWithForm(formTemplate)
     val obligations: Obligations = NotChecked
 
-    ProcessData(formModelOptics, visitsIndex, obligations, booleanExprCache, None)
+    ProcessData(formModelOptics, visitsIndex, obligations, cache, None)
   }
 
   def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =

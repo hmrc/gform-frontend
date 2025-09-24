@@ -17,11 +17,12 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import cats.syntax.functor._
+import cats.syntax.all._
 import cats.{ Monad, MonadError }
 import com.softwaremill.quicklens._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.eval.RefreshBooleanExprCacheService
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
@@ -29,11 +30,11 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, FormComponentId, IsHmrcTaxPeriod }
 import uk.gov.hmrc.http.HeaderCarrier
 
-case class ProcessData(
+final case class ProcessData(
   formModelOptics: FormModelOptics[DataOrigin.Browser],
   visitsIndex: VisitIndex,
   obligations: Obligations,
-  booleanExprCache: BooleanExprCache,
+  cache: AuthCacheWithForm,
   confirmations: Option[Map[FormComponentId, List[String]]]
 ) {
   val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
@@ -45,7 +46,8 @@ case class ProcessData(
 }
 
 class ProcessDataService[F[_]: Monad](
-  taxPeriodStateChecker: TaxPeriodStateChecker[F, Throwable]
+  taxPeriodStateChecker: TaxPeriodStateChecker[F, Throwable],
+  refreshBooleanExprCacheService: RefreshBooleanExprCacheService[F]
 ) {
 
   def hmrcTaxPeriodWithId(
@@ -74,7 +76,8 @@ class ProcessDataService[F[_]: Monad](
     dataRaw: VariadicFormData[SourceOrigin.OutOfDate],
     cache: AuthCacheWithForm,
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
-    obligationsAction: ObligationsAction
+    obligationsAction: ObligationsAction,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
   )(implicit
     lang: LangADT,
     messages: Messages,
@@ -84,26 +87,43 @@ class ProcessDataService[F[_]: Monad](
 
     val cachedObligations: Obligations = cache.form.thirdPartyData.obligations
 
-    val browserFormModelOptics = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Browser, U](dataRaw, cache)
-    taxPeriodStateChecker
-      .callDesIfNeeded(
-        getAllTaxPeriods,
-        hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
-        cachedObligations,
-        obligationsAction
+    refreshBooleanExprCacheService
+      .refreshBooleanExprCache(
+        cache.retrievals,
+        dataRaw,
+        formModelOptics,
+        cache.form.thirdPartyData.booleanExprCache
       )
-      .map { obligations =>
-        val dataUpd: FormModelOptics[DataOrigin.Browser] = new ObligationValidator {}
-          .validateWithDes(browserFormModelOptics, cachedObligations, obligations)
-
-        ProcessData(
-          dataUpd,
-          cache.form.visitsIndex,
-          obligations,
-          browserFormModelOptics.formModelVisibilityOptics.recalculationResult.graphDataCache.booleanExprCache,
-          cache.form.thirdPartyData.confirmations.map(_.map { case (k, v) => k -> v })
+      .flatMap { booleanExprCache =>
+        val cacheUpd = cache.copy(form =
+          cache.form.copy(thirdPartyData = cache.form.thirdPartyData.copy(booleanExprCache = booleanExprCache))
         )
+
+        val browserFormModelOptics =
+          FormModelOptics.mkFormModelOptics[DataOrigin.Browser, U](dataRaw, cacheUpd)
+        taxPeriodStateChecker
+          .callDesIfNeeded(
+            getAllTaxPeriods,
+            hmrcTaxPeriodWithId(hmrcTaxPeriodWithEvaluatedIds(browserFormModelOptics)),
+            cachedObligations,
+            obligationsAction
+          )
+          .map { obligations =>
+            val dataUpd: FormModelOptics[DataOrigin.Browser] = new ObligationValidator {}
+              .validateWithDes(browserFormModelOptics, cachedObligations, obligations)
+
+            val cacheUpd: AuthCacheWithForm = cache
+              .modify(_.form.thirdPartyData.booleanExprCache)
+              .setTo(booleanExprCache)
+
+            ProcessData(
+              dataUpd,
+              cache.form.visitsIndex,
+              obligations,
+              cacheUpd,
+              cache.form.thirdPartyData.confirmations.map(_.map { case (k, v) => k -> v })
+            )
+          }
       }
   }
 }

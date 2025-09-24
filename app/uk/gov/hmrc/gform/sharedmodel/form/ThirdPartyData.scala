@@ -31,7 +31,7 @@ case class ThirdPartyData(
   emailVerification: Map[EmailFieldId, EmailAndCode],
   queryParams: QueryParams,
   reviewData: Option[Map[String, String]] = None,
-  booleanExprCache: BooleanExprCache, //No longer used, need to remove from backend for full removal
+  booleanExprCache: BooleanExprCache,
   dataRetrieve: Option[Map[DataRetrieveId, DataRetrieveResult]],
   postcodeLookup: Option[Map[FormComponentId, AddressLookupResult]],
   selectedAddresses: Option[Map[FormComponentId, String]],

@@ -25,6 +25,7 @@ import play.api.inject.{ Injector, SimpleInjector }
 import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfigFactory, AhcWSComponents }
 import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
+import scala.concurrent.Future
 import uk.gov.hmrc.gform.addresslookup.AddressLookupModule
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
@@ -36,6 +37,8 @@ import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.gform.cache.CacheModule
+import uk.gov.hmrc.gform.eval.EvalModule
+import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -192,11 +195,21 @@ class ApplicationModule(context: Context)
     lookupRegistry
   )
 
+  private val evalModule = new EvalModule(authModule, gformBackendModule)
+
+  val taxPeriodStateChecker = new TaxPeriodStateChecker[Future, Throwable] {
+    def error: Throwable = new Exception("Call to des to retrieve obligation-data has failed")
+  }
+
+  val processDataService: ProcessDataService[Future] =
+    new ProcessDataService[Future](taxPeriodStateChecker, evalModule.refreshBooleanExprCacheService)
+
   private val taskListModule = new TaskListModule(
     configModule,
     validationModule,
     gformBackendModule,
-    graphModule
+    graphModule,
+    processDataService
   )
 
   private val gformModule = new GformModule(
@@ -216,6 +229,7 @@ class ApplicationModule(context: Context)
     graphModule,
     lookupRegistry,
     englishMessages,
+    processDataService,
     this
   )
 

@@ -44,7 +44,6 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Constant, Coordinates, DisplayInSummary, FormTemplate, FormTemplateContext, InvisibleInSummary, InvisiblePageTitle, IsFalse, IsTrue, SummarySection, Value }
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.summary.HtmlSupport._
 import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
@@ -86,8 +85,7 @@ class SummaryRenderingServiceSpec
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      new LookupRegistry(Map()),
-      GraphDataCache.empty
+      new LookupRegistry(Map())
     )
     lazy val validationResult = ValidationResult.empty
 

@@ -343,6 +343,7 @@ case class FormModel[A <: PageMode](
   } ++ allChoiceIncludeIfs.map(i => (i._1, List(i._2))) ++ allMiniSummaryListIncludeIfs.map(i => (i._1, List(i._2)))
 
   def allValidIfs: List[(List[ValidIf], FormComponent)] = pages.flatMap(_.allValidIfs)
+
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =
     pages.flatMap(_.allComponentIncludeIfs)
 

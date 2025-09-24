@@ -16,25 +16,24 @@
 
 package uk.gov.hmrc.gform.eval
 
+import cats.Id
+import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
-
-class DelegatedEnrolmentChecker(
-  delegatedEnrolmentCheckStatus: (
-    GovernmentGatewayId,
-    DelegatedEnrolment,
-    IdentifierValue,
-    HeaderCarrier
-  ) => Future[Boolean]
-) extends Function4[GovernmentGatewayId, DelegatedEnrolment, IdentifierValue, HeaderCarrier, Future[Boolean]] {
+class DelegatedEnrolmentChecker[F[_]](
+  delegatedEnrolmentCheckStatus: (GovernmentGatewayId, DelegatedEnrolment, IdentifierValue, HeaderCarrier) => F[Boolean]
+) extends Function4[GovernmentGatewayId, DelegatedEnrolment, IdentifierValue, HeaderCarrier, F[Boolean]] {
   def apply(
     governmentGatewayId: GovernmentGatewayId,
     delegatedEnrolment: DelegatedEnrolment,
     identifierValue: IdentifierValue,
     hc: HeaderCarrier
-  ): Future[Boolean] =
+  ): F[Boolean] =
     delegatedEnrolmentCheckStatus(governmentGatewayId, delegatedEnrolment, identifierValue, hc)
+}
+
+object DelegatedEnrolmentChecker {
+  val alwaysDelegated: DelegatedEnrolmentChecker[Id] = new DelegatedEnrolmentChecker[Id]((_, _, _, _) => true.pure[Id])
 }

@@ -24,8 +24,9 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, Interim, PageModel }
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache, GraphNode }
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 import scala.collection.mutable
 
@@ -50,14 +51,19 @@ object Recalculation {
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
     messages: Messages,
-    graphDataCache: GraphDataCache
+    booleanExprCache: BooleanExprCache
   ): RecalculationResult = {
 
     implicit val fm: FormModel[Interim] = formModel
 
-    val orderedGraph: Either[GraphException, Iterable[(Int, List[GraphNode])]] = DependencyGraph
-      .constructDependencyGraph(graphDataCache.graph)
-      .leftMap(node => NoTopologicalOrder(node.outer, graphDataCache.graph))
+    val formTemplateExprs: Set[ExprMetadata] = AllFormTemplateExpressions(formTemplate)
+
+    val (graph, ins): (Graph[GraphNode, DiEdge[GraphNode]], Set[In]) =
+      DependencyGraph.toGraph(formModel, formTemplateExprs)
+
+    val orderedGraph: Either[NoTopologicalOrder, Iterable[(Int, List[GraphNode])]] = DependencyGraph
+      .constructDependencyGraph(graph)
+      .leftMap(node => NoTopologicalOrder(node.outer, graph))
 
     val exprMap = mutable.Map[Expr, ExpressionResult]()
     val formDataMap = mutable.Map.newBuilder.addAll(data.data).result()
@@ -81,7 +87,7 @@ object Recalculation {
             messages,
             exprMap,
             formDataMap,
-            graphDataCache.inExprResolver
+            booleanExprCache
           )
         }
 
@@ -93,9 +99,8 @@ object Recalculation {
       case Right(graphTopologicalOrder) =>
         RecalculationResult(
           startEvResults,
-          GraphData(graphTopologicalOrder, graphDataCache.graph),
-          evaluationContext,
-          graphDataCache
+          GraphData(graphTopologicalOrder, graph),
+          evaluationContext
         )
     }
   }
@@ -108,12 +113,12 @@ object Recalculation {
     messages: Messages,
     exprMap: mutable.Map[Expr, ExpressionResult],
     variadicFormDataMap: mutable.Map[ModelComponentId, VariadicValue],
-    inExprResolver: In => Boolean
+    booleanExprCache: BooleanExprCache
   )(implicit formModel: FormModel[Interim]): Unit = {
     val recData = SourceOrigin.changeSourceToOutOfDate(evResult.recData)
 
     val booleanExprResolver = BooleanExprResolver { booleanExpr =>
-      evalBooleanExpr(booleanExpr, evResult, recData, retrievals, evaluationContext, inExprResolver)
+      evalBooleanExpr(booleanExpr, evResult, recData, retrievals, evaluationContext, booleanExprCache)
     }
 
     def evalExpr(expr: Expr) = {
@@ -170,7 +175,7 @@ object Recalculation {
           recData,
           retrievals,
           evaluationContext,
-          inExprResolver
+          booleanExprCache
         )
 
         def hiddenComponentIncludeIf = isHiddenByComponentIncludeIf(
@@ -179,7 +184,7 @@ object Recalculation {
           recData,
           retrievals,
           evaluationContext,
-          inExprResolver
+          booleanExprCache
         )
 
         def hiddenRevealingChoice = isHiddenByRevealingChoice(fcId, recData)
@@ -227,7 +232,7 @@ object Recalculation {
       recData,
       retrievals,
       evaluationContext,
-      inExprResolver
+      booleanExprCache
     )
 
   }
@@ -238,11 +243,11 @@ object Recalculation {
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    inExprResolver: In => Boolean
+    booleanExprCache: BooleanExprCache
   )(implicit formModel: FormModel[Interim]): Boolean = {
 
     val booleanExprResolver = BooleanExprResolver { booleanExpr =>
-      evalBooleanExpr(booleanExpr, evaluationResults, recData, retrievals, evaluationContext, inExprResolver)
+      evalBooleanExpr(booleanExpr, evaluationResults, recData, retrievals, evaluationContext, booleanExprCache)
     }
 
     val rr =
@@ -271,7 +276,7 @@ object Recalculation {
       case MatchRegex(expr, regex)             => rr.matchRegex(expr, regex)
       case FormPhase(value)                    => rr.compareFormPhase(value)
       case DuplicateExists(fieldList)          => BooleanExprEval.evalDuplicateExpr(fieldList, recData)
-      case expr: In                            => inExprResolver(expr)
+      case in: In                              => RefreshBooleanExprCacheService.evalInExpr(in, booleanExprCache, recData)
       case h @ HasAnswer(_, _) =>
         BooleanExprEval
           .evalHasAnswer(
@@ -294,7 +299,7 @@ object Recalculation {
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    inExprResolver: In => Boolean
+    booleanExprCache: BooleanExprCache
   )(
     booleanExpr: Option[BooleanExpr]
   )(implicit formModel: FormModel[Interim]): Boolean =
@@ -305,7 +310,7 @@ object Recalculation {
         recData,
         retrievals,
         evaluationContext,
-        inExprResolver
+        booleanExprCache
       )
     }
 
@@ -314,7 +319,7 @@ object Recalculation {
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    inExprResolver: In => Boolean
+    booleanExprCache: BooleanExprCache
   )(implicit formModel: FormModel[Interim]): Unit = {
     val validIfs: List[ValidIf] = formModel.allValidIfs.flatMap(_._1)
 
@@ -325,7 +330,7 @@ object Recalculation {
           recData,
           retrievals,
           evaluationContext,
-          inExprResolver
+          booleanExprCache
         ) {
           Some(validIf.booleanExpr)
         }
@@ -338,7 +343,7 @@ object Recalculation {
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    inExprResolver: In => Boolean
+    booleanExprCache: BooleanExprCache
   )(implicit formModel: FormModel[Interim]): Boolean = {
     val pageLookup: Map[FormComponentId, PageModel[Interim]] = formModel.pageLookup
     evalBooleanExpr(
@@ -346,7 +351,7 @@ object Recalculation {
       recData,
       retrievals,
       evaluationContext,
-      inExprResolver
+      booleanExprCache
     ) {
       pageLookup
         .get(fcId)
@@ -361,14 +366,14 @@ object Recalculation {
     recData: RecData[SourceOrigin.OutOfDate],
     retrievals: MaterialisedRetrievals,
     evaluationContext: EvaluationContext,
-    inExprResolver: In => Boolean
+    booleanExprCache: BooleanExprCache
   )(implicit formModel: FormModel[Interim]): Boolean =
     evalBooleanExpr(
       evaluationResults,
       recData,
       retrievals,
       evaluationContext,
-      inExprResolver
+      booleanExprCache
     ) {
       formModel.fcLookup
         .get(fcId)

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.Monad
 import cats.Monoid
 import cats.implicits._
 import play.api.i18n.Messages
@@ -68,13 +67,13 @@ object GetEmailCodeFieldMatcher {
   val noop = new GetEmailCodeFieldMatcher(Map.empty)
 }
 
-class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
+class ComponentsValidator[D <: DataOrigin](
   formModelVisibilityOptics: FormModelVisibilityOptics[D],
   formComponent: FormComponent,
   cache: CacheData,
   envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
-  booleanExprEval: BooleanExprEval[F],
+  booleanExprEval: BooleanExprEval,
   interpreter: CheckInterpreter,
   validateCustomValidators: Boolean
 )(implicit
@@ -87,33 +86,34 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   private[validation] def validIf(
     validationResult: ValidatedType[Unit]
-  ): F[ValidatedType[Unit]] =
+  ): ValidatedType[Unit] =
     if (validationResult.isValid) {
-      for {
-        firstCustomer <- if (validateCustomValidators) findFirstCustomValidationError else None.pure[F]
-        res           <- produceCustomValidationErrorOrDefaultValidationResult(firstCustomer, validationResult)
-      } yield res
-    } else validationResult.pure[F]
+      val firstCustomer = if (validateCustomValidators) findFirstCustomValidationError else None
+      produceCustomValidationErrorOrDefaultValidationResult(firstCustomer, validationResult)
+    } else validationResult
 
   private def produceCustomValidationErrorOrDefaultValidationResult(
     customValidationError: Option[SmartString],
     validationResult: ValidatedType[Unit]
-  ): F[ValidatedType[Unit]] =
+  ): ValidatedType[Unit] =
     customValidationError
-      .map(produceValidationError(_).pure[F])
+      .map(produceValidationError(_))
       .getOrElse(defaultFormComponentValidIf(validationResult))
 
-  private def findFirstCustomValidationError: F[Option[SmartString]] =
-    evaluateCustomValidators(formComponent).map(_.find(listItem => !listItem._1).map(_._2))
+  private def findFirstCustomValidationError: Option[SmartString] = {
+    val customResult = evaluateCustomValidators(formComponent)
+    customResult.find(listItem => !listItem._1).map(_._2)
+  }
 
   private def evaluateCustomValidators(
     formComponent: FormComponent
-  ): F[List[(Boolean, SmartString)]] =
-    formComponent.validators.traverse { formComponentValidator =>
-      val fb: F[Boolean] = booleanExprEval.eval(formModelVisibilityOptics)(formComponentValidator.validIf.booleanExpr)
-      fb.map { b =>
-        (b, formComponentValidator.errorMessage)
-      }
+  ): List[(Boolean, SmartString)] =
+    formComponent.validators.map { formComponentValidator =>
+      val fb: Boolean = booleanExprEval.eval(formModelVisibilityOptics, cache.thirdPartyData.booleanExprCache)(
+        formComponentValidator.validIf.booleanExpr
+      )
+      (fb, formComponentValidator.errorMessage)
+
     }
 
   private def produceValidationError(
@@ -151,21 +151,20 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
 
   private def defaultFormComponentValidIf(
     validationResult: ValidatedType[Unit]
-  ): F[ValidatedType[Unit]] =
-    formComponent.validIf.fold(validationResult.pure[F]) { vi =>
-      booleanExprEval.eval(formModelVisibilityOptics)(vi.booleanExpr).map { b =>
-        if (b)
-          validationResult
-        else
-          validationFailure(formComponent, TextChecker.genericErrorRequired, None)
-      }
+  ): ValidatedType[Unit] =
+    formComponent.validIf.fold(validationResult) { vi =>
+      val b = booleanExprEval.eval(formModelVisibilityOptics, cache.thirdPartyData.booleanExprCache)(vi.booleanExpr)
+      if (b)
+        validationResult
+      else
+        validationFailure(formComponent, TextChecker.genericErrorRequired, None)
     }
 
   def validate(
     getEmailCodeFieldMatcherProvided: GetEmailCodeFieldMatcher
   )(implicit
     messages: Messages
-  ): F[ValidatedType[Unit]] = {
+  ): ValidatedType[Unit] = {
 
     val checkerDependency = new CheckerDependency[D] {
       def formModelVisibilityOptics: FormModelVisibilityOptics[D] = self.formModelVisibilityOptics
@@ -181,7 +180,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
     val overrideValidIfs = self.cache.formTemplate.overrides.fold(false)(o => o.disableValidIfs.getOrElse(false))
 
     if (overrideValidIfs)
-      validationSuccess.pure[F]
+      validationSuccess
     else {
       formComponent.`type` match {
         case date @ Date(_, _, _) =>
@@ -225,7 +224,7 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
         case _: RevealingChoice =>
           validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
-        case Group(_, _, _, _, _) => validationSuccess.pure[F]
+        case Group(_, _, _, _, _) => validationSuccess
         case FileUpload(_, _) =>
           validIf(
             new FileUploadChecker[D]().runCheck(checkerDependency)
@@ -234,14 +233,14 @@ class ComponentsValidator[D <: DataOrigin, F[_]: Monad](
           validIf(
             new FileUploadChecker[D]().runCheck(checkerDependency)
           )
-        case InformationMessage(_, _, _) => validationSuccess.pure[F]
+        case InformationMessage(_, _, _) => validationSuccess
         case HmrcTaxPeriod(_, _, _) =>
           validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
         case t @ Time(_, _) =>
           validIf(new TimeChecker[D]().runCheck(checkerDependency))
-        case MiniSummaryList(_, _, _) => validationSuccess.pure[F]
-        case _: TableComp             => validationSuccess.pure[F]
-        case _: Button                => validationSuccess.pure[F]
+        case MiniSummaryList(_, _, _) => validationSuccess
+        case _: TableComp             => validationSuccess
+        case _: Button                => validationSuccess
       }
 
     }

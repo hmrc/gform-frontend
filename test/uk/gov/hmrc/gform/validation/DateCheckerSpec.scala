@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated.{ Invalid, Valid }
-import cats.implicits._
 import munit.FunSuite
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
@@ -33,17 +32,15 @@ import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, Model
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.format.DateTimeFormatter
 import java.time.{ Instant, LocalDate }
 import scala.collection.mutable.LinkedHashSet
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ScalaFutures {
 
@@ -84,7 +81,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     formComponent: FormComponent,
     cacheData: CacheData
-  ): ComponentsValidator[DataOrigin.Mongo, Future] =
+  ): ComponentsValidator[DataOrigin.Mongo] =
     new ComponentsValidator(
       formModelVisibilityOptics,
       formComponent,
@@ -105,7 +102,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
     val fmvo =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, GraphDataCache.empty)
+      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, BooleanExprCache.empty)
 
     val cacheData = new CacheData(
       EnvelopeId(""),
@@ -526,38 +523,35 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
   )
 
   (
-    table1.zipWithIndex
-      .traverse[Future, Unit] {
-        case (
-              (dateConstraint, acceptedAfter, errorShortName, errorShortNameStart, errorExample, expected, description),
-              index
-            ) =>
-          val dateConstraints = List(dateConstraint)
-          val constraints = DateConstraints(dateConstraints)
-          val date = Date(constraints, Offset(0), None)
+    table1.zipWithIndex.foreach {
+      case (
+            (dateConstraint, acceptedAfter, errorShortName, errorShortNameStart, errorExample, expected, description),
+            index
+          ) =>
+        val dateConstraints = List(dateConstraint)
+        val constraints = DateConstraints(dateConstraints)
+        val date = Date(constraints, Offset(0), None)
 
-          val fieldValue =
-            mkFormComponent("accPeriodStartDate", date)
-              .withErrorFields(errorShortName, errorShortNameStart, errorExample)
+        val fieldValue =
+          mkFormComponent("accPeriodStartDate", date)
+            .withErrorFields(errorShortName, errorShortNameStart, errorExample)
 
-          val data = variadicFormData[SourceOrigin.OutOfDate](
-            "accPeriodStartDate-day"   -> acceptedAfter.getDayOfMonth.toString,
-            "accPeriodStartDate-month" -> acceptedAfter.getMonthValue.toString,
-            "accPeriodStartDate-year"  -> acceptedAfter.getYear.toString
-          )
+        val data = variadicFormData[SourceOrigin.OutOfDate](
+          "accPeriodStartDate-day"   -> acceptedAfter.getDayOfMonth.toString,
+          "accPeriodStartDate-month" -> acceptedAfter.getMonthValue.toString,
+          "accPeriodStartDate-year"  -> acceptedAfter.getYear.toString
+        )
 
-          val obtainedF: Future[ValidatedType[Unit]] =
-            componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
-              .validate(GetEmailCodeFieldMatcher.noop)
+        val obtained: ValidatedType[Unit] =
+          componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
+            .validate(GetEmailCodeFieldMatcher.noop)
 
-          obtainedF.map { obtained =>
-            test(s"${index + 1}. $description") {
-              assertEquals(obtained, expected)
-            }
-          }
-      }
-    )
-    .futureValue
+        test(s"${index + 1}. $description") {
+          assertEquals(obtained, expected)
+        }
+
+    }
+  )
 
   val table2: List[
     (
@@ -981,7 +975,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
   )
 
   table2.zipWithIndex
-    .traverse[Future, Unit] {
+    .foreach {
       case (
             (
               dateConstraint,
@@ -1007,18 +1001,15 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
           "accPeriodStartDate-year"  -> year
         )
 
-        val obtainedF: Future[ValidatedType[Unit]] =
+        val obtained: ValidatedType[Unit] =
           componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
             .validate(GetEmailCodeFieldMatcher.noop)
-        // .futureValue
 
-        obtainedF.map { obtained =>
-          test(s"${index + 1}. $description") {
-            assertEquals(obtained, expected)
-          }
+        test(s"${index + 1}. $description") {
+          assertEquals(obtained, expected)
         }
+
     }
-    .futureValue
 
   val table2nonMandatory: List[(DateConstraint, (String, String, String), ValidatedType[Unit], String)] = List(
     (
@@ -1047,7 +1038,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
   )
 
   table2nonMandatory.zipWithIndex
-    .traverse[Future, Unit] { case ((dateConstraint, (day, month, year), expected, description), index) =>
+    .foreach { case ((dateConstraint, (day, month, year), expected, description), index) =>
       val dateConstraints = List(dateConstraint)
       val constraints = DateConstraints(dateConstraints)
       val date = Date(constraints, Offset(0), None)
@@ -1060,17 +1051,15 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         "accPeriodStartDate-year"  -> year
       )
 
-      val obtainedF: Future[ValidatedType[Unit]] =
+      val obtained: ValidatedType[Unit] =
         componentsValidator(mkFormTemplate(mkSection(fieldValue)), fieldValue, data)
           .validate(GetEmailCodeFieldMatcher.noop)
 
-      obtainedF.map { obtained =>
-        test(s"${index + 1}. $description") {
-          assertEquals(obtained, expected)
-        }
+      test(s"${index + 1}. $description") {
+        assertEquals(obtained, expected)
       }
+
     }
-    .futureValue
 
   private def mkDateComponentWithConstraint(id: String, dependentId: String) =
     mkFormComponent(
@@ -1135,7 +1124,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
   )
 
   table3
-    .traverse[Future, Unit] { case (description, formTemplate, formComponentToValidate, expected) =>
+    .foreach { case (description, formTemplate, formComponentToValidate, expected) =>
       val data = variadicFormData[SourceOrigin.OutOfDate](
         "1_startDate-day"   -> "1",
         "1_startDate-month" -> "1",
@@ -1144,15 +1133,14 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         "1_endDate-month"   -> "1",
         "1_endDate-year"    -> "2020"
       )
-      val validationResultF: Future[ValidatedType[Unit]] =
+      val validationResult: ValidatedType[Unit] =
         componentsValidator(formTemplate, formComponentToValidate, data)
           .validate(GetEmailCodeFieldMatcher.noop)
 
-      validationResultF.map { validationResult =>
-        test(description) {
-          validationResult shouldBe expected
-        }
+      test(description) {
+        validationResult shouldBe expected
       }
+
     }
-    .futureValue
+
 }

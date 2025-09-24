@@ -33,10 +33,10 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreService
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Mandatory, PageId, ShortText, TemplateSectionIndex, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 
@@ -136,10 +136,14 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         existingData,
         None,
         Instant.now,
-        GraphDataCache.empty
+        BooleanExprCache.empty
       )
     val formModelOpticsMongo =
-      fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOpticsMongo, None)
+      fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+        visibilityOpticsMongo,
+        BooleanExprCache.empty,
+        None
+      )
     val visibilityFormModelVisibility: FormModel[Visibility] = formModelOpticsMongo.formModelVisibilityOptics.formModel
     val initialVisitsIndex = VisitIndex.Classic(
       (0 to 4).map(pageIdx => Classic.NormalPage(TemplateSectionIndex(pageIdx))).toSet
@@ -202,7 +206,11 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
       val visibilityPageModel: PageModel[Visibility] =
         visibilityFormModelVisibility(Classic.NormalPage(TemplateSectionIndex(pageIdxToValidate)))
       val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOpticsMongo, None)
+        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          visibilityOpticsMongo,
+          BooleanExprCache.empty,
+          None
+        )
 
       val actual: VisitIndex = formProcessor.checkForRevisits(
         visibilityPageModel,

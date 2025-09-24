@@ -58,8 +58,7 @@ class ControllersModule(
     builtInComponents.defaultActionBuilder,
     errResponder,
     graphModule.smartStringEvaluatorFactory,
-    lookupRegistry,
-    graphModule.graphDataCacheService
+    lookupRegistry
   )
 
   val messagesControllerComponents: MessagesControllerComponents = DefaultMessagesControllerComponents(

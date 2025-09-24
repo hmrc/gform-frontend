@@ -21,13 +21,15 @@ import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, Expressi
 import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, SourceOrigin, VariadicValue }
 
 case class FormModelVisibilityOptics[D <: DataOrigin](
   formModel: FormModel[Visibility],
   recData: RecData[SourceOrigin.Current],
-  recalculationResult: RecalculationResult
+  recalculationResult: RecalculationResult,
+  booleanExprCache: BooleanExprCache
 ) {
 
   val evaluationResults: EvaluationResults = recalculationResult.evaluationResults
@@ -72,10 +74,10 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
     )
 
   def evalIncludeIfExpr(includeIf: IncludeIf, phase: Option[FormPhase]): Boolean =
-    FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, phase)
+    FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, booleanExprCache, phase)
 
   def evalRemoveItemIf(removeItemIf: RemoveItemIf): Boolean =
-    FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel)
+    FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel, booleanExprCache)
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =

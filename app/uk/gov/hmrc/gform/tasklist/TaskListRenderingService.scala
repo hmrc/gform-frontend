@@ -86,7 +86,8 @@ class TaskListRenderingService(
                          newDataRaw,
                          cacheUpd,
                          gformConnector.getAllTaxPeriods,
-                         NoSpecificAction
+                         NoSpecificAction,
+                         formModelOptics
                        )
     } yield TaskListUtils.withTaskList(formTemplate) { taskList =>
       val visibleTaskCoordinates: List[Coordinates] = taskCoordinatesMap.collect {

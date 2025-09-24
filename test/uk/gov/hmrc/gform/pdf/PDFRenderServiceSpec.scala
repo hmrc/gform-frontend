@@ -50,7 +50,6 @@ import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 
 class PDFRenderServiceSpec
     extends AnyFlatSpec with Matchers with ArgumentMatchersSugar with IdiomaticMockito with FormModelSupport
@@ -118,8 +117,7 @@ class PDFRenderServiceSpec
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       maybeAccessCode,
-      new LookupRegistry(Map()),
-      GraphDataCache.empty
+      new LookupRegistry(Map())
     )
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, variadicFormData).asInstanceOf[FormModelOptics[DataOrigin.Mongo]]

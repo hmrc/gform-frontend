@@ -109,7 +109,7 @@ class FastForwardService(
     l: LangADT
   ): Future[Result] =
     processDataService
-      .getProcessData(cache.variadicFormData, cache, gformConnector.getAllTaxPeriods, ForceReload)
+      .getProcessData(cache.variadicFormData, cache, gformConnector.getAllTaxPeriods, ForceReload, formModelOptics)
       .flatMap { processData =>
         // This formModelVisibilityOptics comes from Mongo, not from Browser
         val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser] =
@@ -235,7 +235,7 @@ class FastForwardService(
                      .modify(_.obligations)
                      .setTo(processData.obligations)
                      .modify(_.booleanExprCache)
-                     .setTo(processData.booleanExprCache),
+                     .setTo(processData.cache.form.thirdPartyData.booleanExprCache),
                    cache.form.componentIdToFileId,
                    cache.form.taskIdTaskStatus
                  )
@@ -261,7 +261,8 @@ class FastForwardService(
                          .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
                        cache,
                        gformConnector.getAllTaxPeriods,
-                       NoSpecificAction
+                       NoSpecificAction,
+                       formModelOptics
                      )
     maybeInvalidSectionNumber <- handler.handleMaybeGetInvalidSectionNumber(
                                    processData,

@@ -20,24 +20,18 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
+import uk.gov.hmrc.gform.models.ProcessDataService
 import uk.gov.hmrc.gform.validation.ValidationModule
 
 class TaskListModule(
   configModule: ConfigModule,
   validationModule: ValidationModule,
   gformBackendModule: GformBackendModule,
-  graphModule: GraphModule
+  graphModule: GraphModule,
+  processDataService: ProcessDataService[Future]
 )(implicit
   ec: ExecutionContext
 ) {
-
-  val taxPeriodStateChecker = new TaxPeriodStateChecker[Future, Throwable] {
-    def error: Throwable = new Exception("Call to des to retrieve obligation-data has failed")
-  }
-
-  val processDataService: ProcessDataService[Future] =
-    new ProcessDataService[Future](taxPeriodStateChecker)
 
   val taskListRenderingService = new TaskListRenderingService(
     configModule.frontendAppConfig,

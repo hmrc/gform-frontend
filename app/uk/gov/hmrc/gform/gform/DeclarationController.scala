@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
+import cats.syntax.all._
 import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -74,29 +75,27 @@ class DeclarationController(
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       (cache.formTemplate.destinations, getDeclarationPage(formModelOptics)) match {
         case (DestinationList(_, _, _), Some(declarationPage)) =>
-          getDeclarationPage(formModelOptics)
           import i18nSupport._
-          for {
-            validationResult <- validationService
-                                  .validateAllSections(
-                                    cache.toCacheData,
-                                    formModelOptics.formModelVisibilityOptics,
-                                    EnvelopeWithMapping.empty
-                                  )
-          } yield {
-            val validationResultUpd = suppressErrors(validationResult)
-            Ok(
-              renderer
-                .renderDeclarationSection(
-                  maybeAccessCode,
-                  cache.formTemplate,
-                  declarationPage,
-                  cache.retrievals,
-                  validationResultUpd,
-                  formModelOptics
-                )
+
+          val validationResult = validationService
+            .validateAllSections(
+              cache.toCacheData,
+              formModelOptics.formModelVisibilityOptics,
+              EnvelopeWithMapping.empty
             )
-          }
+
+          val validationResultUpd = suppressErrors(validationResult)
+          Ok(
+            renderer
+              .renderDeclarationSection(
+                maybeAccessCode,
+                cache.formTemplate,
+                declarationPage,
+                cache.retrievals,
+                validationResultUpd,
+                formModelOptics
+              )
+          ).pure[Future]
 
         case (_, Some(_)) =>
           Future.failed(new BadRequestException(s"Declaration Section is not defined for ${cache.formTemplateId}"))
@@ -152,7 +151,8 @@ class DeclarationController(
               variadicFormData,
               cache,
               gformConnector.getAllTaxPeriods,
-              NoSpecificAction
+              NoSpecificAction,
+              formModelOptics
             )
 
           val envelopeF: Future[Envelope] = objectStoreService.getEnvelope(envelopeId)
@@ -179,20 +179,19 @@ class DeclarationController(
 
     import i18nSupport._
 
-    for {
-      valRes <- validationService
-                  .validateAllSections(
-                    cache.toCacheData,
-                    processData.formModelOptics.formModelVisibilityOptics,
-                    envelope
-                  )
-      response <-
-        if (valRes.isFormValid) {
-          processValid(cache, maybeAccessCode, envelope, processData)
-        } else {
-          processInvalid(maybeAccessCode, cache, valRes, processData)
-        }
-    } yield response
+    val valRes = validationService
+      .validateAllSections(
+        cache.toCacheData,
+        processData.formModelOptics.formModelVisibilityOptics,
+        envelope
+      )
+
+    if (valRes.isFormValid) {
+      processValid(cache, maybeAccessCode, envelope, processData)
+    } else {
+      processInvalid(maybeAccessCode, cache, valRes, processData)
+    }
+
   }
 
   private def processValid[U <: SectionSelectorType: SectionSelector](

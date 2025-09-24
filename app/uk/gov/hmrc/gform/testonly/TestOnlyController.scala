@@ -942,7 +942,7 @@ class TestOnlyController(
                     snapshotOverview.snapshotId,
                     maybeAccessCode,
                     None,
-                    snapshotOverview.templateId
+                    formTemplateId
                   )
                 )
               }
