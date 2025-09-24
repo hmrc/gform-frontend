@@ -592,7 +592,7 @@ class TextCheckerSpec
         Left(
           Map(
             textComponent.id.modelComponentId -> mutable.LinkedHashSet(
-              """No match for "England". Select a country from the list"""
+              """No match for "England" - select a country from the list"""
             )
           )
         ),
@@ -668,7 +668,7 @@ class TextCheckerSpec
     result.foldMap(ShortCircuitInterpreter) shouldBe Left(
       Map(
         textComponent.id.modelComponentId ->
-          mutable.LinkedHashSet("""No match for "Not a port". Select a value from the list.""")
+          mutable.LinkedHashSet("""No match for "Not a port" - select a value from the list.""")
       )
     )
   }
