@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated.Invalid
-import cats.instances.future._
 import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
 import org.mockito.scalatest.IdiomaticMockito
@@ -38,16 +37,14 @@ import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ Atom, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, Mandatory, OverseasAddress }
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.Instant
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class OverseasAddressCheckerSpec
     extends AnyFlatSpecLike with Matchers with EitherMatchers with ScalaFutures with GraphSpec
@@ -121,7 +118,7 @@ class OverseasAddressCheckerSpec
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
     val fmvo =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, GraphDataCache.empty)
+      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, BooleanExprCache.empty)
 
     val cacheData = new CacheData(
       EnvelopeId(""),
@@ -136,7 +133,7 @@ class OverseasAddressCheckerSpec
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     formComponent: FormComponent,
     cacheData: CacheData
-  ): ComponentsValidator[DataOrigin.Mongo, Future] =
+  ): ComponentsValidator[DataOrigin.Mongo] =
     new ComponentsValidator(
       formModelVisibilityOptics,
       formComponent,
@@ -163,7 +160,6 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
 
     result.value should be(())
   }
@@ -182,7 +178,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -211,7 +207,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -238,7 +234,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -265,7 +261,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -294,7 +290,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result.value should be(())
   }
 
@@ -314,7 +310,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result.value should be(())
   }
 
@@ -332,7 +328,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -360,7 +356,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -387,7 +383,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -415,7 +411,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -441,7 +437,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -468,7 +464,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -496,7 +492,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -526,7 +522,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -554,7 +550,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -584,7 +580,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -612,7 +608,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -642,7 +638,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -670,7 +666,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -700,7 +696,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -728,7 +724,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -758,7 +754,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -786,7 +782,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -816,7 +812,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -846,7 +842,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -874,7 +870,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -903,7 +899,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -930,7 +926,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -957,7 +953,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -986,7 +982,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result.value should be(())
   }
 
@@ -1006,7 +1002,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result.value should be(())
   }
 
@@ -1024,7 +1020,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1052,7 +1048,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1079,7 +1075,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1107,7 +1103,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1133,7 +1129,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1160,7 +1156,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1188,7 +1184,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1218,7 +1214,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1246,7 +1242,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1276,7 +1272,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1304,7 +1300,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1334,7 +1330,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1362,7 +1358,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1392,7 +1388,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1420,7 +1416,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1450,7 +1446,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1478,7 +1474,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1508,7 +1504,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(
@@ -1538,7 +1534,7 @@ class OverseasAddressCheckerSpec
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
         .validate(GetEmailCodeFieldMatcher.noop)
-        .futureValue
+
     result should be(
       Invalid(
         Map(

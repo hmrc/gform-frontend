@@ -16,17 +16,13 @@
 
 package uk.gov.hmrc.gform.eval
 
-import cats.Monad
 import cats.implicits.catsSyntaxEq
-import cats.syntax.functor._
-import cats.syntax.flatMap._
-import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
-import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.{ Atomic, Pure }
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListRef, And, BooleanExpr, Contains, DateAfter, DateBefore, DateExpr, DuplicateExists, Equals, First, FormComponentId, FormCtx, FormPhase, GreaterThan, GreaterThanOrEquals, HasAnswer, In, IsFalse, IsLogin, IsTrue, LessThan, LessThanOrEquals, LoginInfo, MatchRegex, Not, Or }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
@@ -34,24 +30,25 @@ import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 /** Evaluates Boolean expressions in context where they do not participate to overall FormModel.
   * For example Boolean expressions from validIf expressions.
   */
-class BooleanExprEval[F[_]: Monad] {
+class BooleanExprEval {
 
   def eval[D <: DataOrigin](
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    booleanExprCache: BooleanExprCache
   )(
     booleanExpr: BooleanExpr
-  ): F[Boolean] = {
-    def loop(booleanExpr: BooleanExpr): F[Boolean] = booleanExpr match {
+  ): Boolean = {
+    def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
       case Equals(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
 
-        l.identical(r).pure[F]
+        l.identical(r)
 
       case GreaterThan(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
-        (l > r).pure[F]
+        (l > r)
 
       case DateAfter(left, right) =>
         compare(left, right, _ after _, formModelVisibilityOptics)
@@ -59,12 +56,12 @@ class BooleanExprEval[F[_]: Monad] {
       case GreaterThanOrEquals(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
-        (l >= r).pure[F]
+        (l >= r)
 
       case LessThan(left, right) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
-        (l < r).pure[F]
+        (l < r)
 
       case DateBefore(left, right) =>
         compare(left, right, _ before _, formModelVisibilityOptics)
@@ -73,32 +70,21 @@ class BooleanExprEval[F[_]: Monad] {
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(left).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(right).expressionResult
 
-        (l <= r).pure[F]
+        (l <= r)
 
-      case Not(booleanExpr) => loop(booleanExpr).map(b => !b)
-      case Or(booleanExpr1, booleanExpr2) =>
-        for {
-          e1 <- loop(booleanExpr1)
-          e2 <- loop(booleanExpr2)
-        } yield e1 | e2
-      case And(booleanExpr1, booleanExpr2) =>
-        for {
-          e1 <- loop(booleanExpr1)
-          e2 <- loop(booleanExpr2)
-        } yield e1 & e2
-      case IsTrue  => true.pure[F]
-      case IsFalse => false.pure[F]
+      case Not(booleanExpr)                => !loop(booleanExpr)
+      case Or(booleanExpr1, booleanExpr2)  => loop(booleanExpr1) | loop(booleanExpr2)
+      case And(booleanExpr1, booleanExpr2) => loop(booleanExpr1) & loop(booleanExpr2)
+      case IsTrue                          => true
+      case IsFalse                         => false
       case Contains(ctx, expr) =>
         val l = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(ctx).expressionResult
         val r = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult
 
-        l.contains(r).pure[F]
+        l.contains(r)
 
       case in: In =>
-        val recalculationResult = formModelVisibilityOptics.recalculationResult
-        BooleanExprEval
-          .evalInExpr(in, recalculationResult)
-          .pure[F]
+        RefreshBooleanExprCacheService.evalInExpr(in, booleanExprCache, formModelVisibilityOptics.recData)
 
       case h @ HasAnswer(_, _) =>
         val formModel = formModelVisibilityOptics.formModel
@@ -115,30 +101,28 @@ class BooleanExprEval[F[_]: Monad] {
             formModelVisibilityOptics.booleanExprResolver,
             recData
           )
-          .pure[F]
+
       case DuplicateExists(fieldList: Seq[FormCtx]) =>
         val recData = formModelVisibilityOptics.recData
         BooleanExprEval
           .evalDuplicateExpr(fieldList, recData)
-          .pure[F]
 
       case MatchRegex(expr, regex) =>
         val expressionResult: ExpressionResult =
           formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).expressionResult
-        expressionResult.matchRegex(regex).pure[F]
+        expressionResult.matchRegex(regex)
 
       case First(FormCtx(formComponentId)) =>
         BooleanExprEval
           .evalFirstExpr(
             formComponentId
           )
-          .pure[F]
 
       case FormPhase(_) =>
-        false.pure[F]
+        false
 
       case IsLogin(_) =>
-        false.pure[F]
+        false
     }
 
     loop(booleanExpr)
@@ -162,7 +146,7 @@ class BooleanExprEval[F[_]: Monad] {
     ((l, r) match {
       case (Some(lResult), Some(rResult)) => f(lResult, rResult)
       case _                              => false
-    }).pure[F]
+    })
   }
 }
 
@@ -222,12 +206,6 @@ object BooleanExprEval {
           altExpressionResult.hasAnswer(expressionResult)
         }
     }
-
-  def evalInExpr[T <: PageMode](
-    in: In,
-    recalculationResult: RecalculationResult
-  ): Boolean =
-    recalculationResult.graphDataCache.inExprResolver(in)
 
   def evalFirstExpr[T <: PageMode](
     formComponentId: FormComponentId

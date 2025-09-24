@@ -17,19 +17,20 @@
 package uk.gov.hmrc.gform
 package controllers
 
-import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.instances.future._
+import cats.syntax.applicative._
+import cats.syntax.eq._
 import com.softwaremill.quicklens._
+import java.time.LocalDate
 import org.slf4j.LoggerFactory
 import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
-import scalax.collection.immutable.Graph
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.retrieve.{ Credentials, ItmpAddress, ItmpName }
+import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.{ InsufficientEnrolments, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
@@ -45,12 +46,10 @@ import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphDataCache, GraphDataCacheService }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
-import java.time.LocalDate
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -87,8 +86,7 @@ class AuthenticatedRequestActions(
   actionBuilder: ActionBuilder[Request, AnyContent],
   errResponder: ErrResponder,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  lookupRegistry: LookupRegistry,
-  graphDataService: GraphDataCacheService
+  lookupRegistry: LookupRegistry
 )(implicit
   ec: ExecutionContext,
   messagesApi: MessagesApi
@@ -407,7 +405,7 @@ class AuthenticatedRequestActions(
     )
 
     def whenFormExists(form: Form): Future[Result] =
-      (for {
+      for {
         _ <- MDCHelpers.addFormIdToMdc(form._id)
         formTemplateForForm <- if (form.formTemplateId === formTemplate._id)
                                  formTemplateContext.formTemplate.pure[Future]
@@ -415,68 +413,35 @@ class AuthenticatedRequestActions(
         specimenSource <- if (formTemplateForForm.isSpecimen) {
                             gformConnector.getFormTemplate(noSpecimen(formTemplateForForm._id)).map(Some(_))
                           } else None.pure[Future]
-      } yield {
+        formUpd = if (form.status === Submitted) {
+                    form.copy(formTemplateId = formTemplate._id)
+                  } else form
+        cache = AuthCacheWithForm(
+                  retrievals,
+                  formUpd,
+                  FormTemplateContext.basicContext(formTemplateForForm, specimenSource),
+                  role,
+                  maybeAccessCode,
+                  lookupRegistry
+                )
 
-        val formTemplateContext = FormTemplateContext.basicContext(formTemplateForForm, specimenSource)
-        val formTemplate = formTemplateContext.formTemplate
+        formModelOptics = FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, U](
+                            cache.variadicFormData,
+                            cache
+                          )
 
-        val formUpd = if (form.status === Submitted) {
-          form.copy(formTemplateId = formTemplate._id)
-        } else form
+        formModelOpticsUpd =
+          formModelOptics
+            .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
+            .setTo(formUpd.formTemplateId)
 
-        val cacheData: CacheData = new CacheData(
-          form.envelopeId,
-          form.thirdPartyData,
-          formTemplate
-        )
-
-        val fmb = new FormModelBuilder(
-          retrievals,
-          formTemplate,
-          cacheData.thirdPartyData,
-          cacheData.envelopeId,
-          maybeAccessCode,
-          form.componentIdToFileId,
-          lookupRegistry,
-          form.taskIdTaskStatus
-        )
-
-        val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
-          VariadicFormData.buildFromMongoData(fmb.dependencyGraphValidation, form.formData.toData)
-        graphDataService
-          .get(retrievals, variadicFormData, formTemplate, fmb, cacheData.thirdPartyData.booleanExprCache)
-          .flatMap { graphData =>
-            val cache = AuthCacheWithForm(
-              retrievals,
-              formUpd,
-              formTemplateContext,
-              role,
-              maybeAccessCode,
-              lookupRegistry,
-              graphData
+        smartStringEvaluator =
+          smartStringEvaluatorFactory
+            .apply(
+              formModelOpticsUpd.formModelVisibilityOptics
             )
-
-            val formModelOptics =
-              FormModelOptics
-                .mkFormModelOptics[DataOrigin.Mongo, U](
-                  cache.variadicFormData,
-                  cache
-                )
-
-            val formModelOpticsUpd =
-              formModelOptics
-                .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
-                .setTo(formUpd.formTemplateId)
-
-            val smartStringEvaluator =
-              smartStringEvaluatorFactory
-                .apply(
-                  formModelOpticsUpd.formModelVisibilityOptics
-                )
-
-            f(cache)(smartStringEvaluator)(formModelOptics)
-          }
-      }).flatten
+        result <- f(cache)(smartStringEvaluator)(formModelOptics)
+      } yield result
 
     val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
 
@@ -642,8 +607,7 @@ case class AuthCacheWithForm(
   formTemplateContext: FormTemplateContext,
   role: Role,
   accessCode: Option[AccessCode],
-  lookupRegistry: LookupRegistry,
-  graphData: GraphDataCache
+  lookupRegistry: LookupRegistry
 ) extends AuthCache {
   val formTemplate: FormTemplate = formTemplateContext.formTemplate
   val formTemplateId: FormTemplateId = formTemplate._id
@@ -694,7 +658,6 @@ case class AuthCacheWithoutForm(
     ThirdPartyData.empty,
     formTemplate
   )
-  val graphDataCache = GraphDataCache(Graph.empty, in => false, BooleanExprCache.empty)
   def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
     AuthCacheWithForm(
       retrievals,
@@ -705,8 +668,7 @@ case class AuthCacheWithoutForm(
       FormTemplateContext.basicContext(formTemplate, None),
       role,
       accessCode,
-      lookupRegistry,
-      graphDataCache
+      lookupRegistry
     )
 }
 

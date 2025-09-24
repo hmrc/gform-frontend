@@ -25,6 +25,12 @@ case class BooleanExprCache(mapping: Map[DataSource, Map[String, Boolean]]) exte
       look <- mapping.get(dataSource)
       res  <- look.get(value)
     } yield res
+
+  def add(dataSource: DataSource, value: String, result: Boolean): BooleanExprCache =
+    BooleanExprCache(mapping.get(dataSource) match {
+      case None           => mapping ++ Map(dataSource -> Map(value -> result))
+      case Some(existing) => mapping ++ Map(dataSource -> (existing ++ Map(value -> result)))
+    })
 }
 
 object BooleanExprCache {

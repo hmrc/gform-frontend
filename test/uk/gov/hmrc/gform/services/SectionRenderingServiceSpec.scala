@@ -39,7 +39,6 @@ import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.UpscanInitiate
@@ -78,8 +77,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       FormTemplateContext.basicContext(formTemplate, None),
       Role.Customer,
       Some(accessCode),
-      new LookupRegistry(Map()),
-      GraphDataCache.empty
+      new LookupRegistry(Map())
     )
 
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics

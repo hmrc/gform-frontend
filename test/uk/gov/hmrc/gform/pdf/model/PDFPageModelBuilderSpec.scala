@@ -38,7 +38,6 @@ import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 
 class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSupport {
 
@@ -116,8 +115,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         FormTemplateContext.basicContext(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
-        new LookupRegistry(Map()),
-        GraphDataCache.empty
+        new LookupRegistry(Map())
       )
     lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
       mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])

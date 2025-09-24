@@ -526,7 +526,8 @@ class FormController(
                                        .asInstanceOf[VariadicFormData[OutOfDate]],
                                      cache,
                                      gformConnector.getAllTaxPeriods,
-                                     NoSpecificAction
+                                     NoSpecificAction,
+                                     formModelOptics
                                    )
                   redirect <- formProcessor.processRemoveAddToList(
                                 cache,
@@ -598,7 +599,8 @@ class FormController(
                                .asInstanceOf[VariadicFormData[OutOfDate]],
                              cache,
                              gformConnector.getAllTaxPeriods,
-                             NoSpecificAction
+                             NoSpecificAction,
+                             formModelOptics
                            )
           res <- direction match {
                    case EditAddToList(idx, addToListId) => processEditAddToList(processData, idx, addToListId)
@@ -634,7 +636,7 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        val formModel = formModelOptics.formModelVisibilityOptics.formModel
+        val formModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
         val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
 
         processResponseDataFromBody(
@@ -647,7 +649,8 @@ class FormController(
 
           def processSaveAndContinue(
             processData: ProcessData
-          ): Future[Result] =
+          ): Future[Result] = {
+
             confirmationService.processConfirmation(
               sectionNumber,
               processData,
@@ -655,13 +658,14 @@ class FormController(
               maybeAccessCode,
               formModelOptics,
               fastForward,
-              cache.form
+              processData.cache.form
             ) match {
               case ConfirmationAction.NotConfirmed(redirect) => redirect.pure[Future]
               case ConfirmationAction.UpdateConfirmation(processDataUpdater) =>
                 val processDataUpd = processDataUpdater(processData)
+
                 formProcessor.validateAndUpdateData(
-                  cache,
+                  processData.cache,
                   processDataUpd,
                   sectionNumber,
                   sectionNumber,
@@ -827,6 +831,7 @@ class FormController(
                   }
                 }
             }
+          }
 
           def processSaveAndExit(processData: ProcessData): Future[Result] = {
 
@@ -834,7 +839,7 @@ class FormController(
               confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
 
             formProcessor.validateAndUpdateData(
-              cache,
+              processData.cache,
               purgeConfirmationData.f(processData),
               sectionNumber,
               sectionNumber,
@@ -918,10 +923,10 @@ class FormController(
               .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
                 updatedVariadicFormData
                   .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                cache
+                processData.cache
               )
             handleGroup(
-              cache,
+              processData.cache,
               processData.copy(formModelOptics = updFormModelOptics),
               anchor(updFormModelOptics).map("#" + _.toHtmlId).getOrElse("")
             )
@@ -930,16 +935,22 @@ class FormController(
 
           def processRemoveGroup(processData: ProcessData, modelComponentId: ModelComponentId): Future[Result] = {
             val (updData, componentIdToFileId, filesToDelete) =
-              GroupUtils.removeRecord(processData, modelComponentId, sectionNumber, cache.form.componentIdToFileId)
-            val cacheUpd = cache.copy(form = cache.form.copy(componentIdToFileId = componentIdToFileId))
+              GroupUtils.removeRecord(
+                processData,
+                modelComponentId,
+                sectionNumber,
+                processData.cache.form.componentIdToFileId
+              )
+            val cacheUpd =
+              processData.cache.copy(form = processData.cache.form.copy(componentIdToFileId = componentIdToFileId))
             val updFormModelOptics = FormModelOptics
               .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
                 updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-                cache
+                processData.cache
               )
             for {
               res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")
-              _   <- objectStoreAlgebra.deleteFiles(cache.form.envelopeId, filesToDelete)
+              _   <- objectStoreAlgebra.deleteFiles(processData.cache.form.envelopeId, filesToDelete)
             } yield res
           }
 
@@ -949,15 +960,16 @@ class FormController(
                                variadicFormData,
                                cache,
                                gformConnector.getAllTaxPeriods,
-                               NoSpecificAction
+                               NoSpecificAction,
+                               formModelOptics
                              )
             res <- save match {
                      case SaveAndContinue => processSaveAndContinue(processData)
                      case SaveAndExit =>
                        processSaveAndExit(processData).map { result =>
                          auditService.formSavedEvent(
-                           cache.form,
-                           cache.retrievals
+                           processData.cache.form,
+                           processData.cache.retrievals
                          )
                          result
                        }

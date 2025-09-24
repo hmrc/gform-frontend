@@ -347,12 +347,12 @@ class SummaryController(
   ) =
     for {
       envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
-      validationResult <- validationService
-                            .validateAllSections(
-                              cache.toCacheData,
-                              formModelOptics.formModelVisibilityOptics,
-                              EnvelopeWithMapping(envelope, cache.form)
-                            )
+      validationResult = validationService
+                           .validateAllSections(
+                             cache.toCacheData,
+                             formModelOptics.formModelVisibilityOptics,
+                             EnvelopeWithMapping(envelope, cache.form)
+                           )
       result <- if (validationResult.isFormValid) {
                   for {
                     customerId <- submissionService.submitForm[DataOrigin.Mongo, SectionSelectorType.Normal](

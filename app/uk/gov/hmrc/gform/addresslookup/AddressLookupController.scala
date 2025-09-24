@@ -817,11 +817,15 @@ class AddressLookupController(
           data,
           None,
           cache.form.startDate,
-          cache.graphData
+          cache.form.thirdPartyData.booleanExprCache
         )
 
     val renderPageModel = formModelBuilder
-      .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](formModelVisibilityOptics, None)
+      .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+        formModelVisibilityOptics,
+        cache.form.thirdPartyData.booleanExprCache,
+        None
+      )
     f(syntheticFormComponent)(syntheticCache)(renderPageModel)
   }
 }

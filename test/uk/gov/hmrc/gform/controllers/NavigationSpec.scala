@@ -22,14 +22,12 @@ import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport, Visibility }
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport, SectionSelectorType, VariadicFormDataSupport, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import SectionNumber.Classic
-import uk.gov.hmrc.gform.eval.AllFormTemplateExpressions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
 
 import java.time.Instant
 class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSupport with GraphSpec {
@@ -83,17 +81,12 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   def getFormModel(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) = {
     val formTemplate = mkFormTemplate(sectionsData)
     val fmb = mkFormModelBuilder(formTemplate)
-    val fm: FormModel[Interim] = fmb.expand[Interim, SectionSelectorType.Normal](formData)
     fmb
       .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](
         formData,
         None,
         Instant.now,
-        GraphDataCache(
-          DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1,
-          _ => false,
-          BooleanExprCache(Map())
-        )
+        BooleanExprCache.empty
       )
       .formModel
   }

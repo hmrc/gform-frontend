@@ -27,9 +27,9 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExpressionResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
@@ -38,7 +38,6 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, InformationMessage, IsFalse, NoFormat, Number, NumberedList, NumberedListChoicesSelected, OptionData, PositiveNumber, Radio, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical, YesNo }
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
 class RealSmartStringEvaluatorFactorySpec
@@ -445,40 +444,15 @@ class RealSmartStringEvaluatorFactorySpec
 
     lazy val form: Form = buildForm
     lazy val formTemplate: FormTemplate = buildFormTemplate
-    lazy val cache: AuthCacheWithForm = {
-      val cacheData: CacheData = new CacheData(
-        form.envelopeId,
-        form.thirdPartyData,
-        formTemplate
-      )
-
-      val fmb = new FormModelBuilder(
-        retrievals,
-        formTemplate,
-        cacheData.thirdPartyData,
-        cacheData.envelopeId,
-        maybeAccessCode,
-        form.componentIdToFileId,
-        new LookupRegistry(Map()),
-        form.taskIdTaskStatus
-      )
-
-      val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
-        VariadicFormData.buildFromMongoData(fmb.dependencyGraphValidation, form.formData.toData)
-
-      val fm: FormModel[Interim] = fmb.expand(variadicFormData)
-
-      val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
+    lazy val cache: AuthCacheWithForm =
       AuthCacheWithForm(
         retrievals,
         form,
         FormTemplateContext.basicContext(formTemplate, None),
         Role.Customer,
         maybeAccessCode,
-        new LookupRegistry(Map()),
-        GraphDataCache(graph, _ => false, form.thirdPartyData.booleanExprCache)
+        new LookupRegistry(Map())
       )
-    }
     lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
     lazy val exprMap: Map[Expr, ExpressionResult] = Map.empty

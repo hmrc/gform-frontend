@@ -16,39 +16,21 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.instances.future._
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.eval.{ BooleanExprEval, DbLookupChecker, DelegatedEnrolmentChecker }
-import uk.gov.hmrc.gform.eval.SeissEligibilityChecker
+import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCacheService
 
 class GraphModule(
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   englishMessages: Messages
-)(implicit
-  ec: ExecutionContext
 ) {
-
-  val seissEligibilityChecker = new SeissEligibilityChecker(
-    authModule.selfEmployedIncomeSupportEligibilityConnector.eligibilityStatus
-  )
-
-  val delegatedEnrolmentCheckStatus =
-    new DelegatedEnrolmentChecker(authModule.delegatedEnrolmentService.checkDelegatedEnrolment)
-
-  val dbLookupCheckStatus = new DbLookupChecker(gformBackendModule.gformConnector.dbLookup)
 
   val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
     new RealSmartStringEvaluatorFactory(englishMessages)
 
-  val booleanExprEval: BooleanExprEval[Future] = new BooleanExprEval()
+  val booleanExprEval: BooleanExprEval = new BooleanExprEval()
 
-  val graphDataCacheService: GraphDataCacheService =
-    new GraphDataCacheService(seissEligibilityChecker, delegatedEnrolmentCheckStatus, dbLookupCheckStatus)
 }

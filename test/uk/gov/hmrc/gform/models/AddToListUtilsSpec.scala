@@ -217,9 +217,10 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
           )
         ) :: Nil
 
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(mkFormTemplate(sections), data)
+    val formTemplate = mkFormTemplate(sections)
+    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
 
-    val processData: ProcessData = mkProcessData(formModelOptics)
+    val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
 
     val ownerAddToListId: AddToListId = AddToListId(FormComponentId("owner"))
     val fruitAddToListId: AddToListId = AddToListId(FormComponentId("fruit"))

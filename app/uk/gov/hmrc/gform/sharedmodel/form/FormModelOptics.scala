@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, 
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{ Instant, LocalDate }
@@ -99,7 +98,8 @@ object FormModelOptics {
       FormModelVisibilityOptics(
         FormModel.fromEnrolmentSection[Visibility](enrolmentSection),
         RecData.empty,
-        RecalculationResult.empty(evaluationContext)
+        RecalculationResult.empty(evaluationContext),
+        BooleanExprCache.empty
       )
     )
   }
@@ -112,7 +112,7 @@ object FormModelOptics {
     componentIdToFileId: FormComponentIdToFileIdMapping,
     taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
     formStartDate: Instant,
-    graphDataCache: GraphDataCache
+    booleanExprCache: BooleanExprCache
   )(implicit
     messages: Messages,
     lang: LangADT,
@@ -127,8 +127,8 @@ object FormModelOptics {
         taskIdTaskStatusMapping
       )
     val formModelVisibilityOptics: FormModelVisibilityOptics[D] =
-      formModelBuilder.visibilityModel(data, phase, formStartDate, graphDataCache)
-    formModelBuilder.renderPageModel(formModelVisibilityOptics, phase)
+      formModelBuilder.visibilityModel(data, phase, formStartDate, booleanExprCache)
+    formModelBuilder.renderPageModel(formModelVisibilityOptics, booleanExprCache, phase)
   }
 
   def mkFormModelOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
@@ -140,7 +140,7 @@ object FormModelOptics {
     lang: LangADT,
     hc: HeaderCarrier
   ): FormModelOptics[D] =
-    mkFormModelOptics(
+    mkFormModelOptics[D, U](
       data,
       cache,
       cache.toCacheData,
@@ -148,6 +148,6 @@ object FormModelOptics {
       cache.form.componentIdToFileId,
       cache.form.taskIdTaskStatus,
       cache.form.startDate,
-      cache.graphData
+      cache.form.thirdPartyData.booleanExprCache
     )
 }

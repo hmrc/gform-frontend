@@ -30,7 +30,6 @@ import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -109,7 +108,6 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     ExampleData.nonRepeatingPageSection(fields = List(verifyField))
   )
 
-  private val booleanExprEval: BooleanExprEval[Future] = new BooleanExprEval()
   private val gformConnector: GformConnector = mock[GformConnector]
   private val lookupRegistry: LookupRegistry = mock[LookupRegistry]
 

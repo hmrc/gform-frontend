@@ -24,8 +24,9 @@ import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, FormTemplate, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, RevealingChoice, RevealingChoiceElement, Section, Sum, ValidIf, Value, Vertical }
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache, GraphNode }
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin, VariadicFormData }
 
 import java.time.Instant
@@ -352,7 +353,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         variadicData,
         None,
         Instant.now,
-        GraphDataCache.empty
+        BooleanExprCache.empty
       )
 
     val fm: FormModel[DataExpanded] =

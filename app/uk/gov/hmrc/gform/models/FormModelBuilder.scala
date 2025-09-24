@@ -33,7 +33,6 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{ Instant, LocalDate, ZoneId }
@@ -64,22 +63,27 @@ object FormModelBuilder {
     removeItemIf: RemoveItemIf,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
-    formModel: FormModel[T]
-  ): Boolean = evalBooleanExpr[T](removeItemIf.booleanExpr, recalculationResult, recData, formModel, None)
+    formModel: FormModel[T],
+    booleanExprCache: BooleanExprCache
+  ): Boolean =
+    evalBooleanExpr[T](removeItemIf.booleanExpr, recalculationResult, recData, formModel, booleanExprCache, None)
 
   def evalIncludeIf[T <: PageMode](
     includeIf: IncludeIf,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
     formModel: FormModel[T],
+    booleanExprCache: BooleanExprCache,
     phase: Option[FormPhase]
-  ): Boolean = evalBooleanExpr[T](includeIf.booleanExpr, recalculationResult, recData, formModel, phase)
+  ): Boolean =
+    evalBooleanExpr[T](includeIf.booleanExpr, recalculationResult, recData, formModel, booleanExprCache, phase)
 
   private def evalBooleanExpr[T <: PageMode](
     booleanExpr: BooleanExpr,
     recalculationResult: RecalculationResult,
     recData: RecData[SourceOrigin.Current],
     formModel: FormModel[T],
+    booleanExprCache: BooleanExprCache,
     phase: Option[FormPhase]
   ): Boolean = {
 
@@ -142,7 +146,7 @@ object FormModelBuilder {
       case IsTrue                              => true
       case IsFalse                             => false
       case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case in @ In(_, _)                       => BooleanExprEval.evalInExpr(in, recalculationResult)
+      case in: In                              => RefreshBooleanExprCacheService.evalInExpr(in, booleanExprCache, recData)
       case h @ HasAnswer(_, _) =>
         BooleanExprEval.evalHasAnswer(
           h,
@@ -213,7 +217,7 @@ class FormModelBuilder(
     lang: LangADT,
     messages: Messages,
     formStartDate: Instant,
-    graphDataCache: GraphDataCache
+    booleanExprCache: BooleanExprCache
   ): RecalculationResult = {
     val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
       formModel.allMultiFileIds.map { modelComponentId =>
@@ -260,7 +264,7 @@ class FormModelBuilder(
         retrievals,
         evaluationContext,
         messages,
-        graphDataCache
+        booleanExprCache
       )
   }
 
@@ -269,6 +273,7 @@ class FormModelBuilder(
 
   def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    booleanExprCache: BooleanExprCache,
     phase: Option[FormPhase]
   )(implicit messages: Messages): FormModelOptics[D] = {
 
@@ -277,12 +282,14 @@ class FormModelBuilder(
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
     val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
     val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] = getVisibilityModel(formModel, formModelVisibilityOptics, phase)
+    val formModelVisibility: FormModel[Visibility] =
+      getVisibilityModel(formModel, formModelVisibilityOptics, booleanExprCache, phase)
 
     val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
       formModelVisibility,
       formModelVisibilityOptics.recData,
-      formModelVisibilityOptics.recalculationResult
+      formModelVisibilityOptics.recalculationResult,
+      booleanExprCache
     )
 
     val formModelRenderPageOptics = FormModelRenderPageOptics[D](
@@ -296,6 +303,7 @@ class FormModelBuilder(
   private def getVisibilityModel[D <: DataOrigin](
     formModel: FormModel[DataExpanded],
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    booleanExprCache: BooleanExprCache,
     phase: Option[FormPhase]
   ): FormModel[Visibility] = {
     val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
@@ -309,6 +317,7 @@ class FormModelBuilder(
             formModelVisibilityOptics.recalculationResult,
             formModelVisibilityOptics.recData,
             formModelVisibilityOptics.formModel,
+            booleanExprCache,
             phase
           )
         } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
@@ -317,6 +326,7 @@ class FormModelBuilder(
             formModelVisibilityOptics.recalculationResult,
             formModelVisibilityOptics.recData,
             formModelVisibilityOptics.formModel,
+            booleanExprCache,
             phase
           )
         }
@@ -338,17 +348,18 @@ class FormModelBuilder(
     data: VariadicFormData[SourceOrigin.OutOfDate],
     phase: Option[FormPhase],
     formStartDate: Instant,
-    graphDataCache: GraphDataCache
+    booleanExprCache: BooleanExprCache
   )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics[D] = {
     val formModel: FormModel[Interim] = expand(data)
 
     val recalculationResult: RecalculationResult =
-      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate, graphDataCache)
+      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate, booleanExprCache)
 
     buildFormModelVisibilityOptics(
       data,
       formModel,
       recalculationResult,
+      booleanExprCache,
       phase
     )
   }
@@ -357,6 +368,7 @@ class FormModelBuilder(
     data: VariadicFormData[OutOfDate],
     formModel: FormModel[Interim],
     recalculationResult: RecalculationResult,
+    booleanExprCache: BooleanExprCache,
     phase: Option[FormPhase]
   )(implicit messages: Messages): FormModelVisibilityOptics[D] = {
     val evaluationResults = recalculationResult.evaluationResults
@@ -368,6 +380,7 @@ class FormModelBuilder(
           recalculationResult,
           dataOld,
           formModel,
+          booleanExprCache,
           phase
         )
       }
@@ -383,6 +396,7 @@ class FormModelBuilder(
         recalculationResult,
         dataOld,
         visibilityFormModel,
+        booleanExprCache,
         phase
       )
     )
@@ -401,7 +415,7 @@ class FormModelBuilder(
 
     val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
 
-    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult)
+    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult, booleanExprCache)
   }
 
   def expand[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](

@@ -43,6 +43,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormModelOptics, TaskIdTaskStatusMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
@@ -432,7 +433,7 @@ class EnrolmentController(
                   FormComponentIdToFileIdMapping.empty,
                   TaskIdTaskStatusMapping.empty,
                   Instant.now.truncatedTo(ChronoUnit.MILLIS),
-                  cache.graphDataCache
+                  BooleanExprCache.empty
                 )
               def handleContinueWithData(formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
                 val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics

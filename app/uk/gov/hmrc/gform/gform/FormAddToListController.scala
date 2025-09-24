@@ -234,7 +234,8 @@ class FormAddToListController(
                            .asInstanceOf[VariadicFormData[OutOfDate]],
                          cache,
                          gformConnector.getAllTaxPeriods,
-                         NoSpecificAction
+                         NoSpecificAction,
+                         formModelOptics
                        )
       redirect <- addToListProcessor.processRemoveAddToList(
                     cache,

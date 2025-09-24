@@ -27,10 +27,9 @@ import scala.language.implicitConversions
 import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 
 import java.time.Instant
 
@@ -102,10 +101,16 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
 
     forAll(table) { case (data, expectedData, expectedPages) =>
       val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, GraphDataCache.empty)
+        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+          data,
+          None,
+          Instant.now,
+          BooleanExprCache.empty
+        )
 
       val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
+        fmb
+          .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, BooleanExprCache.empty, None)
 
       val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
 
@@ -134,9 +139,10 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
         variadicData,
         None,
         Instant.now,
-        GraphDataCache.empty
+        BooleanExprCache.empty
       )
-    val formModelOptics = fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, None)
+    val formModelOptics =
+      fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, BooleanExprCache.empty, None)
 
     formModelOptics.formModelRenderPageOptics.formModel.allFormComponentIds shouldBe List(
       FormComponentId("a"),

@@ -93,45 +93,42 @@ class TestOnlyErrorMessageController(
                 )
             )
             .filter(_.editable)
-        for {
-          englishReports <-
-            fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
-              englishMessages,
-              LangADT.En,
-              englishSse,
-              hc
-            )
-          welshReports <-
-            fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
-              welshMessages,
-              LangADT.Cy,
-              welshSse,
-              hc
-            )
-        } yield {
 
-          // Sort messages alphabetically by English
-          val enReportByIdx = englishReports.zipWithIndex.map { case (enRep, idx) => idx -> enRep }.toMap
-          val sortedMsgsByIdx = welshReports.zipWithIndex.map { case (cyRep, idx) =>
-            idx -> sortEnCy(enReportByIdx(idx).messages, cyRep.messages)
-          }.toMap
+        val englishReports =
+          fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
+            englishMessages,
+            LangADT.En,
+            englishSse,
+            hc
+          )
+        val welshReports =
+          fieldErrorReportsF(formComponents, formModelOptics, cache, inputBaseComponentId)(
+            welshMessages,
+            LangADT.Cy,
+            welshSse,
+            hc
+          )
 
-          val sortedEnglishReports = englishReports.zipWithIndex.map { case (rep, idx) =>
-            rep.copy(messages = sortedMsgsByIdx(idx)._1)
-          }
-          val sortedWelshReports = welshReports.zipWithIndex.map { case (rep, idx) =>
-            rep.copy(messages = sortedMsgsByIdx(idx)._2)
-          }
+        // Sort messages alphabetically by English
+        val enReportByIdx = englishReports.zipWithIndex.map { case (enRep, idx) => idx -> enRep }.toMap
+        val sortedMsgsByIdx = welshReports.zipWithIndex.map { case (cyRep, idx) =>
+          idx -> sortEnCy(enReportByIdx(idx).messages, cyRep.messages)
+        }.toMap
 
-          val report = EnCyReport.makeEnCy(sortedEnglishReports, sortedWelshReports)
-          if (jsonReport)
-            Ok(Json.toJson(report)).as("application/json")
-          else {
-            val table = toTableCells(report, formTemplateId)
-            val title = s"Error Report for ${formTemplateId.value}"
-            Ok(html.debug.errorReport(title, table)).as("text/html")
-          }
+        val sortedEnglishReports = englishReports.zipWithIndex.map { case (rep, idx) =>
+          rep.copy(messages = sortedMsgsByIdx(idx)._1)
+        }
+        val sortedWelshReports = welshReports.zipWithIndex.map { case (rep, idx) =>
+          rep.copy(messages = sortedMsgsByIdx(idx)._2)
+        }
 
+        val report = EnCyReport.makeEnCy(sortedEnglishReports, sortedWelshReports)
+        if (jsonReport)
+          Ok(Json.toJson(report)).as("application/json").pure[Future]
+        else {
+          val table = toTableCells(report, formTemplateId)
+          val title = s"Error Report for ${formTemplateId.value}"
+          Ok(html.debug.errorReport(title, table)).as("text/html").pure[Future]
         }
     }
 
@@ -362,16 +359,17 @@ class TestOnlyErrorMessageController(
     l: LangADT,
     sse: SmartStringEvaluator,
     hc: HeaderCarrier
-  ): Future[List[FieldErrorReport]] =
-    formComponents
+  ): List[FieldErrorReport] = {
+    val res = formComponents
       .map {
         case fc @ IsDate(_) => validateWithDataProvider(fc, cache, formModelOptics, Some(new DateErrorProvider()))
         case fc             => validateWithDataProvider(fc, cache, formModelOptics, None)
       }
-      .sequence
-      .map(_.flatMap { case (formComponent, gformError) =>
-        FieldErrorReport.make(formComponent, gformError, inputBaseComponentId)
-      })
+
+    res.flatMap { case (formComponent, gformError) =>
+      FieldErrorReport.make(formComponent, gformError, inputBaseComponentId)
+    }
+  }
 
   private def validateWithDataProvider(
     formComponent: FormComponent,
@@ -383,10 +381,13 @@ class TestOnlyErrorMessageController(
     l: LangADT,
     sse: SmartStringEvaluator,
     hc: HeaderCarrier
-  ): Future[(FormComponent, GformError)] = {
+  ): (FormComponent, GformError) = {
 
     def mkFormModelOptics(data: VariadicFormData[SourceOrigin.OutOfDate]) =
-      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](data, cache)
+      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
+        data,
+        cache
+      )
 
     def validate(
       targetComponent: FormComponent,
@@ -395,7 +396,7 @@ class TestOnlyErrorMessageController(
     ) = {
 
       def validator(fmo: FormModelOptics[DataOrigin.Mongo]) =
-        new ComponentsValidator[DataOrigin.Mongo, Future](
+        new ComponentsValidator[DataOrigin.Mongo](
           fmo.formModelVisibilityOptics,
           targetComponent,
           cache.toCacheData,
@@ -408,11 +409,10 @@ class TestOnlyErrorMessageController(
         )
 
       validator(formModelOptics)
-        .validate(GetEmailCodeFieldMatcher(formModelOptics.formModelVisibilityOptics.formModel))
-        .map {
-          case Valid(_)                      => GformError.emptyGformError
-          case Validated.Invalid(gformError) => gformError
-        }
+        .validate(GetEmailCodeFieldMatcher(formModelOptics.formModelVisibilityOptics.formModel)) match {
+        case Valid(_)                      => GformError.emptyGformError
+        case Validated.Invalid(gformError) => gformError
+      }
     }
 
     val maybeSyntheticComponent: Option[FormComponent] = formComponent match {
@@ -420,24 +420,23 @@ class TestOnlyErrorMessageController(
       case _                   => None
     }
 
-    dataProvider
+    val gformErrors = dataProvider
       .fold {
         validate(formComponent, formModelOptics, useErrorInterpreter = true)
       } { dataProvider =>
-        validate(formComponent, formModelOptics, useErrorInterpreter = true) |+|
-          dataProvider
+        validate(formComponent, formModelOptics, useErrorInterpreter = true) |+| {
+          val e = dataProvider
             .errorValues(formComponent, formModelOptics.formModelVisibilityOptics.recData.variadicFormData)
             .map(data => validate(formComponent, mkFormModelOptics(data), useErrorInterpreter = false))
-            .sequence
-            .map(_.foldLeft(Map.empty[ModelComponentId, mutable.LinkedHashSet[String]]) { case (a, m) => a |+| m })
+          e.foldLeft(Map.empty[ModelComponentId, mutable.LinkedHashSet[String]]) { case (a, m) => a |+| m }
+        }
       }
-      .flatMap { gformErrors =>
-        maybeSyntheticComponent
-          .map(validate(_, formModelOptics, useErrorInterpreter = true))
-          .getOrElse(GformError.emptyGformError.pure[Future])
-          .map(syntheticErrors => gformErrors |+| syntheticErrors)
-      }
-      .map(formComponent -> _)
+
+    val syntheticErrors = maybeSyntheticComponent
+      .map(validate(_, formModelOptics, useErrorInterpreter = true))
+      .getOrElse(GformError.emptyGformError)
+
+    formComponent -> (gformErrors |+| syntheticErrors)
   }
 
   private def mkSyntheticAddressComponent(

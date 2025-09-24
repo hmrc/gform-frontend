@@ -29,8 +29,7 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, LocalisedString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, LocalisedString, SourceOrigin }
 
 import java.time.Instant
 import scala.language.implicitConversions
@@ -40,11 +39,6 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
-
-  private def getGraphDataCache(fmb: FormModelBuilder, data: VariadicFormData[SourceOrigin.OutOfDate]) = {
-    val graph = DependencyGraph.toGraph(fmb.expand[Interim, SectionSelectorType.Normal](data), Set())._1
-    GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
-  }
 
   "FormModel" should "handle revealing choice" in {
 
@@ -130,7 +124,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       res.formModel shouldBe expected
@@ -180,7 +174,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -229,7 +223,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -314,7 +308,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -362,7 +356,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -488,7 +482,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -597,7 +591,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -687,7 +681,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       res.evaluationResults.exprMap shouldBe expected
@@ -768,7 +762,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
       res.evaluationResults.exprMap shouldBe expected
     }
@@ -973,7 +967,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           data,
           None,
           Instant.now,
-          getGraphDataCache(fmb, data)
+          BooleanExprCache.empty
         )
 
       val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)

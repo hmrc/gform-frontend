@@ -38,8 +38,6 @@ import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModelSupport, Interim, Se
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, TaskIdTaskStatusMapping, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphDataCache }
-import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 import java.time.LocalDate
 
@@ -1132,16 +1130,14 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     )
 
     val formTemplate: FormTemplate = mkFormTemplate(sections)
-    val fm = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](inputData)
-    val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
+
     val authCache: AuthCacheWithForm = AuthCacheWithForm(
       retrievals = retrievals,
       form = mkForm(formTemplate._id),
       formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
       role = Role.Customer,
       accessCode = maybeAccessCode,
-      new LookupRegistry(Map()),
-      graphData = GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+      new LookupRegistry(Map())
     )
     val formModelOptics = FormModelOptics
       .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](inputData, authCache)
@@ -1201,16 +1197,13 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     )
 
     val formTemplate: FormTemplate = mkFormTemplate(sections)
-    val fm = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](inputData)
-    val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
     val authCache: AuthCacheWithForm = AuthCacheWithForm(
       retrievals = retrievals,
       form = mkForm(formTemplate._id),
       formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
       role = Role.Customer,
       accessCode = maybeAccessCode,
-      new LookupRegistry(Map()),
-      graphData = GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+      new LookupRegistry(Map())
     )
     val formModelOptics = FormModelOptics
       .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](inputData, authCache)
@@ -1240,7 +1233,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       )
     val formModel = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](data)
     val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
-    val graph = DependencyGraph.toGraph(formModel, AllFormTemplateExpressions(formTemplate))._1
+
     val recalculationResult = Recalculation.recalculateFormDataNew(
       data,
       formModel,
@@ -1248,7 +1241,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       retrievals,
       evaluationContext(formTemplate),
       messages,
-      GraphDataCache(graph, _ => true, BooleanExprCache(Map()))
+      BooleanExprCache.empty
     )
 
     recalculationResult.evaluationResults.get(FormCtx(FormComponentId("2_b"))) shouldBe Some(Hidden)
@@ -1401,7 +1394,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     forAll(data) { (input, expectedOutput) =>
       val formModelOptics = mkFormModelOptics(formTemplate, VariadicFormData[SourceOrigin.OutOfDate](input))
 
-      val res = new BooleanExprEval().eval(formModelOptics.formModelVisibilityOptics)(beExpr)
+      val res = new BooleanExprEval().eval(formModelOptics.formModelVisibilityOptics, BooleanExprCache.empty)(beExpr)
 
       res shouldBe expectedOutput
     }
@@ -1417,16 +1410,14 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
     position: Position
   ) = {
     val formTemplate: FormTemplate = mkFormTemplate(sections)
-    val fm = mkFormModelBuilder(formTemplate).expand[Interim, SectionSelectorType.Normal](input)
-    val graph = DependencyGraph.toGraph(fm, AllFormTemplateExpressions(formTemplate))._1
+
     val authCache: AuthCacheWithForm = AuthCacheWithForm(
       retrievals = retrievals,
       form = mkForm(formTemplate._id),
       formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
       role = Role.Customer,
       accessCode = maybeAccessCode,
-      new LookupRegistry(Map()),
-      graphData = GraphDataCache(graph, _ => false, BooleanExprCache(Map()))
+      new LookupRegistry(Map())
     )
     val formModelOptics = FormModelOptics
       .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](input, authCache)

@@ -24,9 +24,9 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, TemplateSectionIndex, Value }
-import uk.gov.hmrc.gform.sharedmodel.graph.GraphDataCache
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
 
 import java.time.Instant
@@ -92,7 +92,7 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
             variadicData,
             None,
             Instant.now,
-            GraphDataCache.empty
+            BooleanExprCache.empty
           )
           StopAt(stopAt).next(fmvo.formModel, stopAt) shouldBe StopAt(expectedStopAt)
         }
