@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
+import uk.gov.hmrc.gform.sharedmodel.LangADT.En
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -97,12 +98,14 @@ class NewFormController(
             Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString).pure[Future]
         }
 
+      val availableLang = cache.formTemplate.languages.languages.headOption.getOrElse(En).langADTToString
+
       if (!cache.formTemplate.languages.languages.contains(lang)) {
         Redirect(
           routes.NewFormController.dashboard(
             formTemplateId
           )
-        ).withLang(Lang("en")).pure[Future]
+        ).withLang(Lang(availableLang)).pure[Future]
       } else {
         val result =
           cache.formTemplate.draftRetrieval

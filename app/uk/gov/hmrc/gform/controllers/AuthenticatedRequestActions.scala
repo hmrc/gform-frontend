@@ -22,9 +22,10 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import com.softwaremill.quicklens._
+
 import java.time.LocalDate
 import org.slf4j.LoggerFactory
-import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
+import play.api.i18n.{ I18nSupport, Lang, Langs, Messages, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
 import shapeless.syntax.typeable._
@@ -384,6 +385,7 @@ class AuthenticatedRequestActions(
   )(
     role: Role
   )(implicit
+    request: Request[AnyContent],
     messages: Messages,
     hc: HeaderCarrier,
     l: LangADT
@@ -443,9 +445,14 @@ class AuthenticatedRequestActions(
         result <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
 
-    val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
+    val availableLang = formTemplate.languages.languages.headOption.getOrElse(LangADT.En).langADTToString
 
-    gformConnector.maybeForm(formIdData, formTemplate).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
+    if (!formTemplate.languages.languages.contains(l)) {
+      Redirect(request.uri).withLang(Lang(availableLang)).pure[Future]
+    } else {
+      val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
+      gformConnector.maybeForm(formIdData, formTemplate).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
+    }
   }
 
   private def handleAuthResults(
