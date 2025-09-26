@@ -50,7 +50,8 @@ case class Page[A <: PageMode](
   hideSaveAndComeBackButton: Option[Boolean],
   removeItemIf: Option[RemoveItemIf],
   displayWidth: Option[LayoutDisplayWidth],
-  notRequiredIf: Option[IncludeIf]
+  notRequiredIf: Option[IncludeIf],
+  specimenNote: Option[String]
 ) {
 
   def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(

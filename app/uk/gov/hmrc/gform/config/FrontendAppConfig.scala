@@ -44,7 +44,8 @@ case class FrontendAppConfig(
   isProd: Boolean,
   configuration: Configuration,
   submittedFormExpiryDays: Int,
-  optimizelyUrl: Option[String]
+  optimizelyUrl: Option[String],
+  displaySpecimenWatermark: Boolean
 ) {
 
   def languageSwitchCall(

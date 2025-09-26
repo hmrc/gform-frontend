@@ -107,7 +107,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       optimizelyUrl = for {
         url       <- playConfiguration.getOptional[String]("optimizely.url")
         projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
-      } yield s"$url$projectId.js"
+      } yield s"$url$projectId.js",
+      displaySpecimenWatermark = typesafeConfig.getBoolean("display-specimen-watermark")
     )
   }
 }

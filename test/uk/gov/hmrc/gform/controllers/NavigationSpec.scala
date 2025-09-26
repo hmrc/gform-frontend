@@ -72,7 +72,8 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
         hideSaveAndComeBackButton = None,
         removeItemIf = None,
         displayWidth = None,
-        notRequiredIf = None
+        notRequiredIf = None,
+        specimenNote = None
       )
     )
 

@@ -25,7 +25,8 @@
   sectionNumber: SectionNumber.Classic,
   pages: List[(PageModel[DataExpanded], SectionNumber.Classic)],
   specimenLinks: SpecimenLinks,
-  maybeIncludeIf: Option[IncludeIf]
+  maybeIncludeIf: Option[IncludeIf],
+  maybeSpecimenNote: Option[String]
 )(implicit l: LangADT, sse: SmartStringEvaluator, requestHeader: RequestHeader)
 
 @navigationLink(page: PageModel[DataExpanded], sectionNumber: SectionNumber.Classic, label: String, templateId: String) = {
@@ -50,7 +51,7 @@
           @defining(
             SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sn).value,
             title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
-              <option value="@{sn.value}" data-title="@sectionTitle4Ga" @selected>@{index + 1}/@total - @titleTrimmed</option>
+              <option value="@{sn.value}" data-title="@sectionTitle4Ga" @selected>@{index + 1}/@total (@sn.value) - @titleTrimmed</option>
             }
           }
       }
@@ -60,7 +61,15 @@
       @navigationLink(pageModel, next, "Next", templateId)
     }
   </div>
-  <div class="govuk-body">@maybeIncludeIf.fold("")(includeIf => "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr))</div>
+  <div class="govuk-body">
+      @Html(
+        maybeSpecimenNote.fold(
+          maybeIncludeIf.fold(""){ includeIf =>
+            "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr)
+          }
+        )(note => note)
+      )
+  </div>
 
   <script @{CSPNonce.attr}>
     document.getElementById("specimenNavigation").addEventListener("change", function(el) {

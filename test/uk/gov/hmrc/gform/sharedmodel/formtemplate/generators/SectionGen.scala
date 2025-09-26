@@ -135,6 +135,7 @@ trait SectionGen {
       None,
       removeItemIf,
       None,
+      None,
       None
     )
 
