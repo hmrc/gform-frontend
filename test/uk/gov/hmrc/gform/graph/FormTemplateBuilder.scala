@@ -67,6 +67,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -151,6 +152,7 @@ object FormTemplateBuilder {
         None,
         Some(includeIf),
         formComponents,
+        None,
         None,
         None,
         None,
@@ -377,6 +379,7 @@ object FormTemplateBuilder {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -390,6 +393,7 @@ object FormTemplateBuilder {
       None,
       Some(includeIf),
       formComponents,
+      None,
       None,
       None,
       None,

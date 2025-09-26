@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.gform.gform.SpecimenLinks
 @import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionNumber, SectionTitle4Ga }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExprPrettyPrint, IncludeIf, FormTemplate, SectionNumber, SectionTitle4Ga }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Task
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.TaskNumber
 @import views.html.helper.CSPNonce
@@ -28,6 +28,8 @@
   pages: List[(PageModel[DataExpanded], SectionNumber.TaskList)],
   tasks: List[(Task, SectionNumber)],
   specimenLinks: SpecimenLinks,
+  maybeIncludeIf: Option[IncludeIf],
+  maybeSpecimenNote: Option[String]
 )(implicit l: LangADT, sse: SmartStringEvaluator, requestHeader: RequestHeader)
 
 @navigationLink(page: PageModel[DataExpanded], sectionNumber: SectionNumber.TaskList, label: String, templateId: String) = {
@@ -65,7 +67,7 @@
           @pages.map { case (pageModel, sn) =>
             @defining(pageModel.title.value, if(taskList === sn) "selected" else "") { case (title, selected) =>
               @defining(SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sn).value) { case sectionTitle4Ga =>
-                <option value="@{sn.value}" data-title="@sectionTitle4Ga" @selected>@title</option>
+                <option value="@{sn.value}" data-title="@sectionTitle4Ga" @selected>(@sn.value) - @title</option>
               }
             }
           }
@@ -77,6 +79,16 @@
           }
       </div>
     </div>
+  </div>
+
+  <div class="govuk-body">
+    @Html(
+      maybeSpecimenNote.fold(
+        maybeIncludeIf.fold(""){ includeIf =>
+          "Only visible if: " + ExprPrettyPrint.prettyPrintBooleanExpr(includeIf.booleanExpr)
+        }
+      )(note => note)
+    )
   </div>
 
   <script @{CSPNonce.attr}>

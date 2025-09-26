@@ -149,7 +149,8 @@ case class DeclarationSection(
       hideSaveAndComeBackButton = None,
       removeItemIf = None,
       displayWidth = None,
-      notRequiredIf = None
+      notRequiredIf = None,
+      specimenNote = None
     )
 }
 
@@ -192,7 +193,8 @@ case class AcknowledgementSection(
       hideSaveAndComeBackButton = None,
       removeItemIf = None,
       displayWidth = None,
-      notRequiredIf = None
+      notRequiredIf = None,
+      specimenNote = None
     )
 }
 
@@ -231,7 +233,8 @@ case class EnrolmentSection(
       hideSaveAndComeBackButton = None,
       removeItemIf = None,
       displayWidth = None,
-      notRequiredIf = None
+      notRequiredIf = None,
+      specimenNote = None
     )
 }
 

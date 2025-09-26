@@ -104,7 +104,8 @@ trait FormTemplateSample {
               hideSaveAndComeBackButton = None,
               removeItemIf = None,
               displayWidth = None,
-              notRequiredIf = None
+              notRequiredIf = None,
+              specimenNote = None
             )
           )
         )

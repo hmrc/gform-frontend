@@ -671,6 +671,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         None,
+        None,
         None
       )
     )
@@ -718,6 +719,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         instruction,
         presentationHint,
+        None,
         None,
         None,
         None,
@@ -796,6 +798,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     instruction,
     presentationHint,
+    None,
     None,
     None,
     None,
@@ -1095,6 +1098,7 @@ trait ExampleFrontendAppConfig {
     isProd = true,
     configuration = context.initialConfiguration,
     submittedFormExpiryDays = 7,
-    optimizelyUrl = None
+    optimizelyUrl = None,
+    displaySpecimenWatermark = false
   )
 }

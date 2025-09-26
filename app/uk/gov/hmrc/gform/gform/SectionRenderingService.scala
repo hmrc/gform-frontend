@@ -187,7 +187,8 @@ class SectionRenderingService(
                   hideSaveAndComeBackButton = None,
                   removeItemIf = None,
                   displayWidth = None,
-                  notRequiredIf = None
+                  notRequiredIf = None,
+                  specimenNote = None
                 )
 
               val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
@@ -530,7 +531,8 @@ class SectionRenderingService(
                   hideSaveAndComeBackButton = None,
                   removeItemIf = None,
                   displayWidth = None,
-                  notRequiredIf = None
+                  notRequiredIf = None,
+                  specimenNote = None
                 )
               val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
 
@@ -935,7 +937,7 @@ class SectionRenderingService(
       page.fields.headOption.map(_.id)
 
     firstPageFormComponentId.flatMap { firstPageFcId =>
-      if (firstPageFcId === formComponentId) {
+      if (firstPageFcId.baseComponentId === formComponentId.baseComponentId) {
         page.includeIf
       } else {
         Option.empty[IncludeIf]
@@ -962,6 +964,8 @@ class SectionRenderingService(
           pages.collectFirst { case (pageModel, sn) if sn === classic => pageModel }
 
         val firstFormComponentId: Option[FormComponentId] = currentPageModel.flatMap(_.allFormComponentIds.headOption)
+
+        val maybeSpecimenNote = currentPageModel.flatMap(pm => pm.fold(_.page.specimenNote)(_ => None)(_ => None))
 
         val maybeIncludeIf: Option[IncludeIf] =
           (specimenSource, firstFormComponentId) match {
@@ -994,7 +998,8 @@ class SectionRenderingService(
           classic,
           classicPages,
           specimenLinks,
-          maybeIncludeIf
+          maybeIncludeIf,
+          maybeSpecimenNote
         )
       } { taskList =>
         val coordinates: Coordinates = taskList.coordinates
@@ -1002,6 +1007,35 @@ class SectionRenderingService(
 
         val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
           formModelRenderPageOptics.formModel.pagesWithIndex
+
+        val currentPageModel: Option[PageModel[DataExpanded]] =
+          pages.collectFirst { case (pageModel, sn) if sn === taskList => pageModel }
+
+        val maybeSpecimenNote = currentPageModel.flatMap(pm => pm.fold(_.page.specimenNote)(_ => None)(_ => None))
+
+        val firstFormComponentId: Option[FormComponentId] = currentPageModel.flatMap(_.allFormComponentIds.headOption)
+
+        val maybeIncludeIf: Option[IncludeIf] =
+          (specimenSource, firstFormComponentId) match {
+            case (Some(specimenSrc), Some(formComponentId)) =>
+              specimenSrc.formKind.fold { classicKind =>
+                throw new Exception("Classic not supported")
+              } { taskListKind =>
+                val includeIfs: List[Option[IncludeIf]] = taskListKind.sections.toList.flatMap { taskSection =>
+                  taskSection.sections.toList.flatMap { section =>
+                    section.fold { nonRepeatingSection =>
+                      pageIncludeIf(nonRepeatingSection.page, formComponentId) :: Nil
+                    } { repeatedSection =>
+                      pageIncludeIf(repeatedSection.page, formComponentId) :: Nil
+                    } { addToList =>
+                      addToList.pages.toList.map(page => pageIncludeIf(page, formComponentId))
+                    }
+                  }
+                }
+                includeIfs.flatMap(_.toList).headOption
+              }
+            case _ => throw new Exception("Not a specimen")
+          }
 
         val allSectionNumbers: List[SectionNumber] =
           pages.map(_._2).filter(_.maybeCoordinates.exists(_.taskSectionNumber === coordinates.taskSectionNumber))
@@ -1034,7 +1068,9 @@ class SectionRenderingService(
           taskList,
           taskListPages,
           tasksWithFirstSectionNumber,
-          specimenLinks
+          specimenLinks,
+          maybeIncludeIf,
+          maybeSpecimenNote
         )
       }
     } else HtmlFormat.empty

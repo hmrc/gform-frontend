@@ -81,6 +81,10 @@
   maybeFormTemplate.exists(_.serviceNavigationComponent)
 }
 
+@isSpecimen = @{
+  maybeFormTemplate.exists(_.isSpecimen)
+}
+
 @serviceStartPageUrl = @{
   maybeFormTemplate.flatMap(_.serviceStartPageUrl.map(_.value))
 }
@@ -170,6 +174,14 @@
     }
 
     <meta name="format-detection" content="telephone=no" />
+
+    @if(isSpecimen && (appConfig.isProd || appConfig.displaySpecimenWatermark)){
+      <style>
+      body {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='220px' width='220px'><text transform='translate(20, 220) rotate(-45)' stroke='rgb(245,45,45,0.1)' stroke-width='1.5px' fill='rgb(245,45,45,0.03)' font-family='GDS Transport, arial, sans-serif' font-size='40' font-weight='900'>SPECIMEN</text></svg>");
+      }
+      </style>
+    }
 }
 
 

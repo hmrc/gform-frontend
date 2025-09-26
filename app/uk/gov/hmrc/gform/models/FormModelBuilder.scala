@@ -489,7 +489,8 @@ class FormModelBuilder(
         hideSaveAndComeBackButton = Some(true),
         removeItemIf = None,
         displayWidth = None,
-        notRequiredIf = None
+        notRequiredIf = None,
+        specimenNote = None
       )
     )
   }
