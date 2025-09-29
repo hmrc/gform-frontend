@@ -1,18 +1,28 @@
 <?xml version="1.0"?>
 <fop version="1.0">
-    <accessibility>true</accessibility>
-    <renderers>
-        <renderer mime="application/pdf">
-            <version>1.4</version>
-            <fonts>
-                <!-- Load the Arial font, but do not embed it.
-                     We need to use Arial so this sentence:
-                     > Příliš žluťoučký kůň úpěl ďábelské ódy
-                     renders as is and not as
-                     > P#íliš žlu#ou#ký k## úp#l #ábelské ódy
-                -->
-                <directory>conf/pdf/fonts</directory>
-            </fonts>
-        </renderer>
-    </renderers>
+  <fonts>
+    <referenced-fonts>
+      <!-- Do not embed Arial -->
+      <match font-family="Arial"/>
+    </referenced-fonts>
+  </fonts>
+  <accessibility>true</accessibility>
+  <renderers>
+    <renderer mime="application/pdf">
+      <version>1.4</version>
+      <!-- Load the Arial font. We need to use Arial so this sentence:
+           > Příliš žluťoučký kůň úpěl ďábelské ódy
+           renders as is and not as
+           > P#íliš žlu#ou#ký k## úp#l #ábelské ódy
+      -->
+      <fonts>
+        <font kerning="yes" embed-url="fonts/Arial.ttf" encoding-mode="single-byte">
+          <font-triplet name="Arial" style="normal" weight="normal"/>
+        </font>
+        <font kerning="yes" embed-url="fonts/Arial Bold.ttf" encoding-mode="single-byte">
+          <font-triplet name="Arial" style="normal" weight="bold"/>
+        </font>
+      </fonts>
+    </renderer>
+  </renderers>
 </fop>

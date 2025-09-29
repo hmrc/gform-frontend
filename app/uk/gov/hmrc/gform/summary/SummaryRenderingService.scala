@@ -883,40 +883,8 @@ object SummaryRenderingService {
 
   def renderAddToListSummaryItemBody(content: String) = {
 
-    val (boldText, remainingText) = if (content.contains("<strong>")) {
-      // the regex pattern to find text between <strong> </strong>
-      val patternStrong = "<strong>(.*?)</strong>".r
+    val converted = PdfHelper.renderAddToListSummaryHtml(content)
 
-      patternStrong.findFirstMatchIn(content) match {
-        case Some(m) =>
-          val bold = m.group(1)
-          val rest = content.substring(m.end).trim
-          (Some(bold), rest)
-        case None =>
-          (None, content)
-      }
-
-    } else if (content.contains("#")) {
-      val newLine = "\n\n"
-      val lines = content.split(newLine)
-      (lines.headOption.map(_.replace("#", "")), lines.tail.mkString(newLine))
-    } else {
-      // the regex pattern to find text between **
-      val patternBold = "\\*\\*(.*?)\\*\\*".r
-
-      patternBold.findFirstMatchIn(content) match {
-        case Some(m) =>
-          val bold = m.group(1)
-          val rest = content.substring(m.end).trim
-          (Some(bold), rest)
-        case None =>
-          (None, content)
-      }
-    }
-
-    addToListSummaryItemBody(
-      boldText,
-      PdfHelper.renderHtml(remainingText)
-    )
+    addToListSummaryItemBody(converted)
   }
 }
