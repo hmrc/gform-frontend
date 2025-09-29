@@ -15,7 +15,7 @@
                     @value._1 -
                 </fo:block>
             </fo:list-item-label>
-            <fo:list-item-body role="LBody" start-indent="0.3cm">
+            <fo:list-item-body role="LBody" start-indent="0.6cm">
                 <fo:block>
                      @{SummaryRenderingService.renderAddToListSummaryItemBody(value._2)}
                 </fo:block>

@@ -24,7 +24,7 @@ import play.twirl.api.XmlFormat
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object PdfHelper {
-  def renderHtml(value: String): XmlFormat.Appendable = {
+  def renderAddToListSummaryHtml(value: String): XmlFormat.Appendable = {
     val newLineDelimiters = List("<br>", "<br/>", "\n\n")
     val maybeDelimiter = newLineDelimiters.find(value.contains)
 
@@ -36,7 +36,7 @@ object PdfHelper {
     XmlFormat.fill(
       lines.toList.flatMap { line =>
         List(
-          XmlFormat.raw(s"<fo:block>${StringEscapeUtils.escapeXml11(insertZeroWidthSpace(line.trim))}</fo:block>")
+          XmlFormat.raw(s"<fo:block keep-together.within-column='always'>${(convertFOP(line.trim))}</fo:block>")
         )
       }
     )
@@ -102,7 +102,7 @@ object PdfHelper {
       .childNodes()
       .asScala
       .map {
-        case textNode: TextNode => textNode.text()
+        case textNode: TextNode => StringEscapeUtils.escapeXml11(insertZeroWidthSpace(textNode.text()))
         case elem: Element      => convertElement(elem)
         case _                  => ""
       }
@@ -113,7 +113,7 @@ object PdfHelper {
       .childNodes()
       .asScala
       .map {
-        case textNode: TextNode => textNode.text()
+        case textNode: TextNode => StringEscapeUtils.escapeXml11(insertZeroWidthSpace(textNode.text()))
         case elem: Element =>
           elem.tagName() match {
             case "p" => liConvertChildren(elem)
