@@ -533,7 +533,8 @@ class FormModelBuilder(
       s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
       expandAtlDescriptionTotal(s.descriptionTotal),
       s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
-      s.displayWidth
+      s.displayWidth,
+      s.removePageContent.map(expand)
     )
   }
 

@@ -39,7 +39,8 @@
   frontendAppConfig: FrontendAppConfig,
   formAction: Call,
   pageLevelError: HasErrors = NoErrors,
-  fieldErrors: Map[String, ErrorMessage] = Map.empty
+  fieldErrors: Map[String, ErrorMessage] = Map.empty,
+  maybeRemovePageContent: Option[Html] = None
 )(implicit request: Request[_], messages: Messages, l:LangADT, evaluator: SmartStringEvaluator)
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -70,18 +71,24 @@
 
     @pageLevelError.render
 
+    <h1 class="govuk-heading-l">@messages("addToList.remove.item.header")</h1>
+    <h2 class="govuk-heading-m">@messages("addToList.remove.item.detail")</h2>
+    <div class="govuk-body hmrc-add-to-a-list--wide govuk-!-margin-bottom-6">@description</div>
+
+    @maybeRemovePageContent.map { content =>
+        <div class="govuk-body govuk-!-margin-bottom-6">
+            @content
+        </div>
+    }
+
     @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
         @{new GovukRadios(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(Radios(
             fieldset = Some(Fieldset(
                 legend = Some(Legend(
                     content = Text(heading),
-                    isPageHeading = true,
-                    classes = "govuk-fieldset__legend--l"
+                    isPageHeading = false,
+                    classes = "govuk-fieldset__legend--s"
                 ))
-            )),
-            hint = Some(Hint(
-               classes = "unhintify",
-               content = HtmlContent(description)
             )),
             errorMessage = fieldErrors.get("remove"),
             name = "remove",

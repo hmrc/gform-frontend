@@ -76,7 +76,8 @@ object Section {
     pageIdToDisplayAfterRemove: Option[PageId] = None,
     notRequiredIf: Option[IncludeIf],
     declarationSection: Option[DeclarationSection] = None,
-    displayWidth: Option[LayoutDisplayWidth] = None
+    displayWidth: Option[LayoutDisplayWidth] = None,
+    removePageContent: Option[SmartString] = None
   ) extends Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
