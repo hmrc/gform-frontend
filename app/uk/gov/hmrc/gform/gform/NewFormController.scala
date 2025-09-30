@@ -754,7 +754,8 @@ class NewFormController(
   }
 
   private def processNewForm(cache: AuthCacheWithoutForm, drm: DraftRetrievalMethod)(implicit
-    hc: HeaderCarrier
+    hc: HeaderCarrier,
+    lang: LangADT
   ): Future[Result] = {
     def processNewFormData(formIdData: FormIdData, drm: DraftRetrievalMethod) =
       formIdData match {
@@ -784,7 +785,8 @@ class NewFormController(
 
   def newFormPost(formTemplateId: FormTemplateId): Action[AnyContent] = {
     def processSubmittedData(cache: AuthCacheWithoutForm, drm: DraftRetrievalMethod)(implicit
-      request: Request[AnyContent]
+      request: Request[AnyContent],
+      lang: LangADT
     ): Future[Result] = {
       val queryParams: QueryParams = QueryParams.fromRequest(request)
       AccessCodePage.decision
@@ -812,11 +814,12 @@ class NewFormController(
         )
     }
 
-    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) { implicit request => lang => cache =>
-      for {
-        (newCache, drm) <- getDraftRetrievalMethod(cache)
-        res             <- processSubmittedData(newCache, drm)
-      } yield res
+    auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
+      implicit request => implicit lang => cache =>
+        for {
+          (newCache, drm) <- getDraftRetrievalMethod(cache)
+          res             <- processSubmittedData(newCache, drm)
+        } yield res
     }
   }
 

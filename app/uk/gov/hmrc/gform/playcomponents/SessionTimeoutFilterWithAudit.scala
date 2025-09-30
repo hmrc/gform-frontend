@@ -68,7 +68,7 @@ class SessionTimeoutFilterWithAudit(
 
   private def sendTimeOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
-      _ => _ => cache => _ => formModelOptics =>
+      _ => implicit lang => cache => _ => formModelOptics =>
         implicit val hc: HeaderCarrier = HeaderCarrier()
         auditService.sendFormTimoutEvent(cache.form, cache.retrievals)
         Future.successful(Ok("success"))

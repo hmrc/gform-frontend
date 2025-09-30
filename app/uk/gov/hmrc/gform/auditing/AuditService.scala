@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.auditing
 
 import cats.data.NonEmptyList
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
@@ -28,6 +29,7 @@ import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.File
+import uk.gov.hmrc.gform.sharedmodel.LangADT.langADTToString
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo.ItmpDateOfBirth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, DataRetrieveCtx, Expr, FormComponent, FormComponentId, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
@@ -40,6 +42,8 @@ import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
 trait AuditService {
+
+  def logger: Logger = LoggerFactory.getLogger("uk.gov.hmrc.gform.auditing.AuditService")
 
   def auditConnector: AuditConnector
 
@@ -369,13 +373,13 @@ trait AuditService {
   def sendFormCreateEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent("formCreated", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendFormResumeEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent("formResumed", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendSubmissionEvent[D <: DataOrigin](
@@ -397,19 +401,19 @@ trait AuditService {
   def formSavedEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent("formSaved", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendFormTimoutEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent("formTimeout", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
 
   def sendFormSignOut[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
 
   private def sendEvent(
@@ -419,8 +423,11 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File]
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit =
-    auditConnector.sendExplicitAudit(auditType, details(form, detail, retrievals, customerId, envelopeFiles))
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
+    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles)
+    logger.debug(s"Sending '$auditType' audit event, details = $auditDetails")
+    auditConnector.sendExplicitAudit(auditType, auditDetails)
+  }
 
   def calculateSubmissionEvent[D <: DataOrigin](
     form: Form,
@@ -435,7 +442,7 @@ trait AuditService {
     detail: UserValues,
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId
-  )(implicit hc: HeaderCarrier) =
+  )(implicit hc: HeaderCarrier, lang: LangADT) =
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
@@ -448,7 +455,7 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File]
-  )(implicit hc: HeaderCarrier) = {
+  )(implicit hc: HeaderCarrier, lang: LangADT) = {
 
     val userInfo =
       retrievals match {
@@ -545,6 +552,7 @@ trait AuditService {
       "FormTemplateId" -> form.formTemplateId.value,
       "UserId"         -> form.userId.value,
       "CustomerId"     -> customerId.id,
+      "Language"       -> langADTToString(lang),
       "UserValues"     -> userValues
     ) ++ userAddressesJsObj ++ summaryItemsJsObj ++
       Json.obj(

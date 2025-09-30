@@ -82,7 +82,7 @@ class SignOutController(
   private def sendSignOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
-      _ => _ => cache => _ => formModelOptics =>
+      _ => implicit lang => cache => _ => formModelOptics =>
         auditService.sendFormSignOut(cache.form, cache.retrievals)
         Future.successful(Ok("success"))
     }
