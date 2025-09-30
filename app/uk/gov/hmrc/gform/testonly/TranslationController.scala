@@ -79,10 +79,16 @@ class TranslationController(
           translationAudit <- translationAuditF
         } yield {
 
-          val downloadFormTranslationsEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+          val downloadUntranslatedEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
             "Download translation xlsx",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief")
+              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
+          )
+
+          val downloadAllEn = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+            "Download all english xlsx",
+            uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=true")
           )
 
           val dropzoneHtml = dropzone(translationAudit)
@@ -94,7 +100,11 @@ class TranslationController(
                   id = Some("upload-translation"),
                   label = "Upload translation",
                   panel = TabPanel(
-                    content = HtmlContent(HtmlFormat.fill(List(downloadFormTranslationsEnOnly, dropzoneHtml)))
+                    content = HtmlContent(
+                      HtmlFormat.fill(
+                        List(downloadUntranslatedEnOnly, HtmlFormat.raw("<br>"), downloadAllEn, dropzoneHtml)
+                      )
+                    )
                   )
                 )
               )
@@ -194,10 +204,10 @@ class TranslationController(
             rows = tableAllRows
           )
 
-          val downloadFormTranslationsEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+          val downloadUntranslatedEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
             "Download as xlsx",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief")
+              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
           )
 
           val tableBrief = Table(
@@ -233,7 +243,7 @@ class TranslationController(
 
           val htmlTable = HtmlFormat.fill(List(downloadFormTranslations, allStats, new GovukTable()(table)))
           val htmlBriefTable =
-            HtmlFormat.fill(List(downloadFormTranslationsEnOnly, briefStats, new GovukTable()(tableBrief)))
+            HtmlFormat.fill(List(downloadUntranslatedEnOnly, briefStats, new GovukTable()(tableBrief)))
           val htmlInternalTable = HtmlFormat.fill(List(internalStats, new GovukTable()(tableInternal)))
 
           val htmlBreakdownTable = HtmlFormat.fill(List(breakdownStats, new GovukTable()(breakdownTable)))
