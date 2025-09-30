@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-val luceneVersion = "10.2.2"
+val luceneVersion = "9.11.0"
 
 libraryDependencies ++= Seq(
   "org.apache.lucene"     % "lucene-core"            % luceneVersion,

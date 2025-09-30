@@ -8,7 +8,7 @@ object Dependencies {
   val circeVersion = "0.14.12"
   val bootstrapVersion = "9.19.0"
   val hmrcMongoVersion = "2.7.0"
-  val luceneVersion = "10.2.2"
+  val luceneVersion = "9.11.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test
 
