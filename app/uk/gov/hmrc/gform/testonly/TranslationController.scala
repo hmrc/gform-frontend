@@ -80,15 +80,29 @@ class TranslationController(
         } yield {
 
           val downloadUntranslatedEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-            "Download translation xlsx",
+            "Download untranslated sentences (xlsx)",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
               .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
           )
 
           val downloadAllEn = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-            "Download all english xlsx",
+            "Download all English sentences (xlsx)",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
               .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=true")
+          )
+
+          val insetUntranslated = InsetText(content =
+            HtmlContent(
+              downloadUntranslatedEnOnly
+                .toString() + "to generate a spreadsheet of sentences from the form template with missing Welsh translations."
+            )
+          )
+
+          val insetAllEn = InsetText(content =
+            HtmlContent(
+              downloadAllEn
+                .toString() + "to generate a spreadsheet of all the English sentences in the form template – recommended when many content changes have been made and the Welsh is no longer correct."
+            )
           )
 
           val dropzoneHtml = dropzone(translationAudit)
@@ -102,7 +116,7 @@ class TranslationController(
                   panel = TabPanel(
                     content = HtmlContent(
                       HtmlFormat.fill(
-                        List(downloadUntranslatedEnOnly, HtmlFormat.raw("<br>"), downloadAllEn, dropzoneHtml)
+                        List(new GovukInsetText()(insetUntranslated), new GovukInsetText()(insetAllEn), dropzoneHtml)
                       )
                     )
                   )
