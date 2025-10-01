@@ -20,41 +20,34 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.data
 import play.api.i18n.I18nSupport
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
-import play.api.mvc.Request
+import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
 import uk.gov.hmrc.gform.FormTemplateKey
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, AtlDescription, FormTemplateId, SectionNumber, TemplateSectionIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.views.html
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ Table, TableRow }
+import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.html.components
-import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, GovukTable, Text }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, GovukSummaryList, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
-import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorSummary
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
+import uk.gov.hmrc.govukfrontend.views.viewmodels.{ content, summarylist }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class FormAddToListController(
   frontendAppConfig: FrontendAppConfig,
@@ -126,16 +119,18 @@ class FormAddToListController(
                 val description = repeater.expandedDescription match {
                   case AtlDescription.SmartStringBased(ss) => markDownParser(ss)
                   case AtlDescription.KeyValueBased(k, v) =>
-                    new GovukTable()(
-                      Table(
-                        head = None,
-                        rows = Seq(
-                          Seq(
-                            TableRow(content = HtmlContent(markDownParser(k))),
-                            TableRow(content = HtmlContent(markDownParser(v)))
+                    new GovukSummaryList()(
+                      SummaryList(rows =
+                        Seq(
+                          SummaryListRow(
+                            key = summarylist.Key(
+                              content = HtmlContent(markDownParser(k))
+                            ),
+                            value = summarylist.Value(
+                              content = HtmlContent(markDownParser(v))
+                            )
                           )
-                        ),
-                        firstCellIsHeader = true
+                        )
                       )
                     )
                 }
@@ -149,7 +144,8 @@ class FormAddToListController(
                       frontendAppConfig,
                       formAction,
                       pageError,
-                      fieldErrors
+                      fieldErrors,
+                      repeater.expandedRemovePageContent.map(markDownParser)
                     )
                 ).pure[Future]
               case None =>
