@@ -629,14 +629,10 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   def restoreForm(
     snapshotId: SnapshotId,
-    maybeAccessCode: Option[AccessCode]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SnapshotOverview] = {
-    val url = maybeAccessCode match {
-      case Some(accessCode) =>
-        s"$baseUrl/test-only/restore-form/${snapshotId.value}/${accessCode.value}"
-      case _ => s"$baseUrl/test-only/restore-form/${snapshotId.value}"
-    }
-    httpClient.get(url"$url").execute[SnapshotOverview]
+    useOriginalTemplate: Boolean
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[RestoredSnapshot] = {
+    val url = s"$baseUrl/test-only/restore-form/${snapshotId.value}/$useOriginalTemplate"
+    httpClient.get(url"$url").execute[RestoredSnapshot]
   }
 
   def getSnapshots(
@@ -683,25 +679,15 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     httpClient.get(url"$url").execute[SnapshotOverview]
   }
 
-  def updateFormData(
+  def loadSnapshotData(
     payload: UpdateFormDataRequest
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveReply] = {
-    val url = s"$baseUrl/test-only/update-form-data"
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
+    val url = s"$baseUrl/test-only/snapshot-load-data"
     httpClient
       .post(url"$url")
       .withBody(Json.toJson(payload))
       .setHeader("Content-Type" -> ContentType.`application/json`.value)
-      .execute[SaveReply]
-  }
-
-  def restoreSnapshotTemplate(
-    snapshotId: String
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    val url = s"$baseUrl/test-only/restore-snapshot-template"
-    httpClient
-      .put(url"$url")
-      .withBody(JsString(snapshotId))
-      .execute[HttpResponse]
+      .execute[Form]
   }
 
   def deleteSnapshot(
