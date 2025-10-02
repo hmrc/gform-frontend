@@ -130,6 +130,13 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       summaryValue = expandSmartString(tableComp.summaryValue)
     )
 
+  private def expandPostcodeLookup(postcodeLookup: PostcodeLookup): PostcodeLookup =
+    postcodeLookup.copy(
+      chooseAddressLabel = postcodeLookup.chooseAddressLabel.map(expandSmartString),
+      confirmAddressLabel = postcodeLookup.confirmAddressLabel.map(expandSmartString),
+      enterAddressLabel = postcodeLookup.enterAddressLabel.map(expandSmartString)
+    )
+
   private def expandTableHeaderCell(cell: TableHeadCell): TableHeadCell =
     cell.copy(label = expandSmartString(cell.label))
 
@@ -161,6 +168,7 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
         )
       case t: MiniSummaryList => expandSummaryList(t)
       case t: TableComp       => expandTableComp(t)
+      case t: PostcodeLookup  => expandPostcodeLookup(t)
       case otherwise          => otherwise
     },
     label = expandSmartString(formComponent.label),
