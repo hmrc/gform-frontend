@@ -33,6 +33,8 @@ compositeAuth.title=Sign in to use this service
 compositeAuth.ggContent=Sign in to an account to complete this form
 compositeAuth.emailContent=Sign in with your email address
 compositeAuthSelection.error.required=Select how you want to sign in
+compositeAuth.error.notAvailable=The page is no longer available.
+compositeAuth.error.notAvailable.linkText=The form can be accessed here.
 
 linkText.saveAndComeBackLater=Save and come back later
 linkText.back=Back

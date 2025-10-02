@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
-import uk.gov.hmrc.gform.FormTemplateKey
+import uk.gov.hmrc.gform.{ FormTemplateKey, views }
 import uk.gov.hmrc.gform.auth.models.CompositeAuthDetails
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
@@ -32,7 +32,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
 import uk.gov.hmrc.gform.views.html
-import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -65,7 +64,15 @@ class CompositeAuthController(
       val formTemplateContext = request.attrs(FormTemplateKey)
       val formTemplate = formTemplateContext.formTemplate
       if (!formTemplate.authConfig.isCompositeAuthConfig) {
-        throw new NotFoundException("The page is no longer available")
+        Future.successful(
+          NotFound(
+            views.html.auth.composite_auth_unavailable(
+              formTemplate,
+              formTemplateId,
+              frontendAppConfig
+            )
+          )
+        )
       } else {
         val compositeAuthFormPage =
           choice
