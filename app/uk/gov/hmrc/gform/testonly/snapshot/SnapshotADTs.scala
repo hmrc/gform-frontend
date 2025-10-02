@@ -21,10 +21,22 @@ import play.api.data.Forms._
 import play.api.data._
 import play.api.data.validation._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 import java.time.Instant
+
+final case class RestoredSnapshot(
+  formIdData: FormIdData,
+  formTemplateId: FormTemplateId,
+  accessCode: Option[AccessCode],
+  ggFormData: Option[GovernmentGatewayFormData]
+)
+
+object RestoredSnapshot {
+  implicit val format: OFormat[RestoredSnapshot] = derived.oformat()
+}
 
 case class SnapshotOverview(
   templateId: FormTemplateId,
@@ -35,7 +47,8 @@ case class SnapshotOverview(
   gformVersion: GformVersion,
   gformFrontendVersion: GformFrontendVersion,
   formData: Option[JsObject],
-  ggFormData: Option[GovernmentGatewayFormData]
+  ggFormData: Option[GovernmentGatewayFormData],
+  accessCode: Option[AccessCode]
 )
 
 object SnapshotOverview {
@@ -46,19 +59,12 @@ case class SaveRequest(
   formId: FormId,
   description: Description,
   gformFrontendVersion: GformFrontendVersion,
-  ggFormData: Option[GovernmentGatewayFormData]
+  ggFormData: Option[GovernmentGatewayFormData],
+  accessCode: Option[AccessCode]
 )
 
 object SaveRequest {
   implicit val format: OFormat[SaveRequest] = derived.oformat()
-}
-
-case class SaveReply(
-  formId: FormId
-)
-
-object SaveReply {
-  implicit val format: OFormat[SaveReply] = derived.oformat()
 }
 
 case class UpdateSnapshotRequest(
@@ -155,13 +161,5 @@ object SnapshotForms {
   )
 
   case class DeleteSnapshotUserData(snapshotId: String, backUrl: String)
-
-  case class RestoreOption(restoreType: String)
-
-  val restoreOptionUserData = Form(
-    mapping(
-      "restoreType" -> nonEmptyText
-    )(RestoreOption.apply)(RestoreOption.unapply)
-  )
 
 }

@@ -18,12 +18,11 @@ package uk.gov.hmrc.gform.testonly
 
 import play.api.i18n.Messages
 import play.api.libs.ws.ahc.AhcWSComponents
-import play.api.mvc.SessionCookieBaker
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.{ ApplicationCrypto, SessionCookieCrypto, SessionCookieCryptoProvider }
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.gform.auth.AuthLoginStubConnector
+import uk.gov.hmrc.gform.auth.AuthLoginApiConnector
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.builder.BuilderController
@@ -36,7 +35,7 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ComponentChecker
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import snapshot.AuthLoginStubService
+import snapshot.AuthLoginApiService
 
 class TestOnlyModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -50,7 +49,6 @@ class TestOnlyModule(
   gformModule: GformModule,
   wSHttpModule: WSHttpModule,
   applicationCrypto: ApplicationCrypto,
-  sessionCookieBaker: SessionCookieBaker,
   englishMessages: Messages
 )(implicit
   ec: ExecutionContext
@@ -72,17 +70,14 @@ class TestOnlyModule(
     ComponentChecker.ErrorReportInterpreter
   )
 
-  lazy val authLoginStubConnector: AuthLoginStubConnector = new AuthLoginStubConnector(
-    configModule.serviceConfig.baseUrl("auth-login-stub"),
+  val authLoginApiConnector: AuthLoginApiConnector = new AuthLoginApiConnector(
+    configModule.serviceConfig.baseUrl("auth-login-api"),
     wSHttpModule.httpClient
   )
 
-  lazy val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
-  lazy val authLoginStubService = new AuthLoginStubService(
-    authLoginStubConnector,
-    sessionCookieCrypto,
-    sessionCookieBaker
-  )
+  val authLoginApiService = new AuthLoginApiService(authLoginApiConnector)
+
+  val sessionCookieCrypto: SessionCookieCrypto = new SessionCookieCryptoProvider(applicationCrypto).get()
 
   val testOnlyController = new TestOnlyController(
     playBuiltInsModule.i18nSupport,
@@ -94,9 +89,10 @@ class TestOnlyModule(
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
     gformModule.newFormController,
-    authLoginStubService,
+    authLoginApiService,
     gformModule.summaryController,
     gformModule.acknowledgementPdfService,
+    sessionCookieCrypto,
     englishMessages
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(

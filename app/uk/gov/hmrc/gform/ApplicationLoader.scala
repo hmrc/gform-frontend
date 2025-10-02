@@ -245,7 +245,6 @@ class ApplicationModule(context: Context)
     gformModule,
     wSHttpModule,
     applicationCrypto,
-    hmrcSessionCookieBaker,
     englishMessages
   )
 

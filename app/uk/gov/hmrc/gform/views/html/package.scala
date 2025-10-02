@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.footer.FooterItem
+import uk.gov.hmrc.gform.testonly.routes.TestOnlyController
 
 package object html {
 
@@ -60,7 +61,7 @@ package object html {
     maybeFormTemplate.fold(Seq.empty[FooterItem]) { formTemplate =>
       startNewFormFooterItem(formTemplate) +: accessCode.fold(Seq(toolboxFooterItem(formTemplate))) { accessCode =>
         Seq(toolboxFooterItemWithAccessCode(formTemplate, accessCode))
-      } :+ documentationFooterItem
+      } :+ createNewSnapshot(formTemplate, accessCode) :+ documentationFooterItem
     }
 
   private def toolboxFooterItem(formTemplate: FormTemplate) =
@@ -92,5 +93,14 @@ package object html {
       href = Some("https://github.com/hmrc/gform-frontend/wiki"),
       attributes = Map("target" -> "_blank")
     )
+
+  private def createNewSnapshot(formTemplate: FormTemplate, accessCode: Option[AccessCode]) = {
+    val createSnapshotUrl = TestOnlyController.createSnapshot(formTemplate._id, accessCode).url
+    new FooterItem(
+      text = Some("Quick save"),
+      href = Some(createSnapshotUrl),
+      attributes = Map("target" -> "_blank")
+    )
+  }
 
 }

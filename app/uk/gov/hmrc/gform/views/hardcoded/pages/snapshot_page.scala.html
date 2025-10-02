@@ -16,22 +16,22 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormTemplateId}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.testonly.snapshot.{SnapshotId, Description}
+@import uk.gov.hmrc.gform.testonly.snapshot.{SnapshotId, SnapshotOverview}
 @import uk.gov.hmrc.gform.views.html.govuk_wrapper
 
 @(
+  formTemplate: FormTemplate,
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
   snapshotId: SnapshotId,
-  description: Description,
+  snapshot: SnapshotOverview,
   versions: Html,
   formData: String,
-  isDataRestore: Boolean,
   shareUrl: String,
-  shareUrlText: String,
-  restoreOptionsUrl: String,
+  devUrl: String,
+  loadDataUrl: String,
   governmentGatewayCredentials: String
 )(implicit
   request: Request[_],
@@ -39,9 +39,13 @@
   l:LangADT
 )
 
-@heading = @{"Forms snapshots"}
-
-@customContent = {
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = "Snapshot details",
+  formTemplate = formTemplate,
+  frontendAppConfig = frontendAppConfig,
+  isMainContentFullWidth = true,
+  accessCode = accessCode
+) {
   <style>
   .button-container {
     display: inline-block;
@@ -53,18 +57,67 @@
   </style>
 
   <div class="button-container">
-  <p class="govuk-body">Snapshot description:</p>
-  <div id="description-hint" class="govuk-hint">
-    <pre>@{description.value}</pre>
+  <p class="govuk-body">Snapshot description: <strong>@{snapshot.description.value}</strong></p>
+
+  <h3 class="govuk-heading-s">Stakeholders link</h3>
+
+  <div class="govuk-body">
+    <a href=@{shareUrl} class="govuk-link">@{frontendAppConfig.gformFrontendBaseUrl + shareUrl}</a>
   </div>
 
-  <div class="button-container">
-  <p class="govuk-body">Snapshot share Url:</p>
-
-  <div id="share-url-hint" class="govuk-hint">
-     <a href=@{shareUrl} class="govuk-link">@{shareUrlText}</a>
+  <div class="govuk-inset-text">
+    <ul class="govuk-list govuk-list--bullet">
+      <li>
+        It uses <a class="govuk-link" href="@{uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/formtemplates/" + snapshot.templateId.value)}">@{snapshot.templateId.value}</a> template which cannot be modified.
+      </li>
+      <li>
+        Stakeholders link is guaranteed to always take user to the same session and same template from which the snapshot was created.
+      </li>
+      <li>
+        <strong>Use this for raising issues with the development team.</strong>
+      </li>
+    </ul>
   </div>
 
+
+  <h3 class="govuk-heading-s">Development link</h3>
+
+  <div class="govuk-body">
+     <a href=@{devUrl} class="govuk-link">@{frontendAppConfig.gformFrontendBaseUrl + devUrl}</a>
+  </div>
+
+  <div class="govuk-inset-text">
+    <ul class="govuk-list govuk-list--bullet">
+      <li>
+        It uses <a class="govuk-link" href="@{uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/formtemplates/" + snapshot.originalTemplateId.value)}">@{snapshot.originalTemplateId.value}</a> template which can be modified.
+      </li>
+      <li>
+        <strong>This link is ideal for day to day form development.</strong>
+      </li>
+    <ul>
+  </div>
+
+
+  <h3 class="govuk-heading-s">Load data <i>(unsafe to bookmark)</i></h3>
+
+  <div class="govuk-body">
+     <a href=@{loadDataUrl} class="govuk-link">@{frontendAppConfig.gformFrontendBaseUrl + loadDataUrl}</a>
+  </div>
+
+
+  <div class="govuk-inset-text">
+    <ul class="govuk-list govuk-list--bullet">
+      <li>
+        Load snapshot's form data (see them below) into your current session/form.
+      </li>
+      <li>
+        Useful for transferring data from form template X to form template Y.
+      </li>
+      <li>
+        <strong>!!! This link depends on your current session !!!</strong> hence it is not save to bookmark.
+      </li>
+    </ul>
+  </div>
 
   <p class="govuk-body">gForm versions:</p>
   <div id="description-hint" class="govuk-hint">
@@ -72,11 +125,6 @@
       @versions
     </pre>
   </div>
-
-  <form action="@restoreOptionsUrl" method="get">
-    <input type="hidden" class="govuk-input" id="snapshotId" name="snapshotId" value="@{snapshotId.value}">
-    <button type="submit" class="govuk-button">Restore</button>
-  </form>
 
   <p class="govuk-body govuk-!-margin-bottom-2"></p>
   <p class="govuk-body">Form data:</p>
@@ -95,20 +143,6 @@
 
 
 
-  </div>
+
   <p class="govuk-body govuk-!-margin-bottom-2" display="block"></p>
 }
-
-@govuk_wrapper(
-  appConfig = frontendAppConfig,
-  serviceTitle = "Snapshot details",
-  headTitle = "Snapshot details",
-  content = customContent,
-  maybeFormTemplate = None,
-  backLink = None,
-  displayTimeoutDialog = false,
-  displaySignOut = false,
-  displayLanguageSwitcher = false,
-  isMainContentFullWidth = false,
-  accessCode = None
-)
