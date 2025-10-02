@@ -496,6 +496,14 @@ trait AuditService {
           )
       }
 
+    // Only include in formSubmitted event
+    val enrolments = detail match {
+      case UserValues.empty => Json.obj()
+      case _                => Json.obj("enrolments" -> retrievals.getEnrolments.map(_.toJson))
+    }
+
+    val userInfoWithEnrolments = userInfo.as[JsObject] ++ enrolments
+
     val userValues = Json.toJson(detail.userValues.filter(values => values._2.nonEmpty))
     val envelopeFilesJsObj =
       if (envelopeFiles.nonEmpty)
@@ -556,7 +564,7 @@ trait AuditService {
       "UserValues"     -> userValues
     ) ++ userAddressesJsObj ++ summaryItemsJsObj ++
       Json.obj(
-        "UserInfo"      -> userInfo,
+        "UserInfo"      -> userInfoWithEnrolments,
         "SubmissionRef" -> SubmissionRef(form.envelopeId).value
       ) ++ envelopeFilesJsObj
   }
