@@ -32,6 +32,8 @@ compositeAuth.title=Mewngofnodwch i ddefnyddio'r gwasanaeth hwn
 compositeAuth.ggContent=Mewngofnodwch i gyfrif i gwblhau'r ffurflen hon
 compositeAuth.emailContent=Mewngofnodi gyda’ch cyfeiriad e-bost
 compositeAuthSelection.error.required=Dewis sut rydych am fewngofnodi
+compositeAuth.error.notAvailable=Nid yw'r dudalen ar gael mwyach.
+compositeAuth.error.notAvailable.linkText=Mae modd cael mynediad at y ffurflen yma.
 
 linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
 linkText.back=Yn ôl

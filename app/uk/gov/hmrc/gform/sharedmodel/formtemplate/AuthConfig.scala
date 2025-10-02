@@ -92,6 +92,11 @@ sealed trait AuthConfig extends Product with Serializable {
     case _                           => false
   }
 
+  def isCompositeAuthConfig: Boolean = this match {
+    case Composite(_) => true
+    case _            => false
+  }
+
   def authConfigName = this match {
     case Anonymous                          => anonymous
     case HmrcAny                            => hmrcAny

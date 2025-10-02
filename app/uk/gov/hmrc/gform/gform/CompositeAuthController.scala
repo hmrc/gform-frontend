@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors
 import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
-import uk.gov.hmrc.gform.FormTemplateKey
+import uk.gov.hmrc.gform.{ FormTemplateKey, views }
 import uk.gov.hmrc.gform.auth.models.CompositeAuthDetails
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
@@ -63,35 +63,47 @@ class CompositeAuthController(
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplateContext = request.attrs(FormTemplateKey)
       val formTemplate = formTemplateContext.formTemplate
-      val compositeAuthFormPage =
-        choice
-          .bindFromRequest()
-          .fold(
-            errorForm => new CompositeAuthFormPage(formTemplate, errorForm, se),
-            _ => new CompositeAuthFormPage(formTemplate, choice, se)
+      if (!formTemplate.authConfig.isCompositeAuthConfig) {
+        Future.successful(
+          NotFound(
+            views.html.auth.composite_auth_unavailable(
+              formTemplate,
+              formTemplateId,
+              frontendAppConfig
+            )
           )
+        )
+      } else {
+        val compositeAuthFormPage =
+          choice
+            .bindFromRequest()
+            .fold(
+              errorForm => new CompositeAuthFormPage(formTemplate, errorForm, se),
+              _ => new CompositeAuthFormPage(formTemplate, choice, se)
+            )
 
-      ggId match {
-        case Some(id) =>
-          val compositeAuthDetails: CompositeAuthDetails =
-            jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
+        ggId match {
+          case Some(id) =>
+            val compositeAuthDetails: CompositeAuthDetails =
+              jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
-          Redirect(continue)
-            .addingToSession(
-              COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
-                compositeAuthDetails.add(formTemplate, id)
+            Redirect(continue)
+              .addingToSession(
+                COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
+                  compositeAuthDetails.add(formTemplate, id)
+                )
               )
-            )
-            .pure[Future]
-        case None =>
-          Ok(
-            html.auth.auth_selection(
-              frontendAppConfig,
-              compositeAuthFormPage,
-              ggId,
-              continue
-            )
-          ).pure[Future]
+              .pure[Future]
+          case None =>
+            Ok(
+              html.auth.auth_selection(
+                frontendAppConfig,
+                compositeAuthFormPage,
+                ggId,
+                continue
+              )
+            ).pure[Future]
+        }
       }
     }
 
