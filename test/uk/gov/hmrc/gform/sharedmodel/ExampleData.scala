@@ -44,6 +44,7 @@ import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
 import play.api.test.Helpers
+import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
@@ -56,7 +57,7 @@ trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleSection
     with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
-    with ExampleSubmission with ExampleEvaluationContext with ExampleDestination
+    with ExampleCustomerId with ExampleSubmission with ExampleEvaluationContext with ExampleDestination
 
 trait ExampleEvaluationContext {
   self: ExampleFormTemplate with ExampleAuthContext with ExampleAuthConfig with ExampleSubmissionRef =>
@@ -96,9 +97,16 @@ trait ExampleEvaluationContext {
 }
 
 trait ExampleSubmission {
-  self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData =>
+  self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData with ExampleCustomerId =>
   def submission(implicit localDateTime: LocalDateTime) =
-    Submission(SubmissionId(formIdData.toFormId, envelopeId), localDateTime, submissionRef, envelopeId, dmsMetaData)
+    Submission(
+      SubmissionId(formIdData.toFormId, envelopeId),
+      localDateTime,
+      submissionRef,
+      envelopeId,
+      dmsMetaData,
+      customerId
+    )
 }
 
 trait ExampleDmsMetaData {
@@ -108,6 +116,10 @@ trait ExampleDmsMetaData {
 
 trait ExampleSubmissionRef {
   val submissionRef = SubmissionRef("submission-ref")
+}
+
+trait ExampleCustomerId {
+  val customerId = CustomerId("some-customer-id")
 }
 
 trait ExampleInstruction {

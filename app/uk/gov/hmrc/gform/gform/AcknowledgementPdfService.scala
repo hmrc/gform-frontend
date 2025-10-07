@@ -33,10 +33,11 @@ import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
+import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.gform.summarypdf.{ FopService, PdfGeneratorService }
 import uk.gov.hmrc.gform.validation.ValidationResult
-import uk.gov.hmrc.http.NotFoundException
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -139,17 +140,7 @@ class AcknowledgementPdfService(
              nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
              Future.unit
            } else Future.unit
-      submission <- gformConnector
-                      .maybeOneOfSubmissionDetails(
-                        FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
-                        FormIdData(cache.retrievals, cache.form.formTemplateId, maybeAccessCode),
-                        cache.form.envelopeId
-                      )
-                      .map(
-                        _.getOrElse(
-                          throw new NotFoundException(s"Submission for envelope id ${cache.form.envelopeId} not found.")
-                        )
-                      )
+      submission <- getSubmission(cache, maybeAccessCode)
       pdfContent <-
         pdfRenderService
           .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
@@ -170,4 +161,18 @@ class AcknowledgementPdfService(
     } yield pdfContent
   }
 
+  def getSubmission(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(implicit
+    hc: HeaderCarrier
+  ): Future[Submission] =
+    gformConnector
+      .maybeOneOfSubmissionDetails(
+        FormIdData(cache.retrievals, cache.formTemplate._id, maybeAccessCode),
+        FormIdData(cache.retrievals, cache.form.formTemplateId, maybeAccessCode),
+        cache.form.envelopeId
+      )
+      .map(
+        _.getOrElse(
+          throw new NotFoundException(s"Submission for envelope id ${cache.form.envelopeId} not found.")
+        )
+      )
 }

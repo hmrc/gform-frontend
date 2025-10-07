@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{ Format, Json, OFormat }
+import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
 case class CustomerId(id: String) extends AnyVal {
   def isEmpty(): Boolean = id.isEmpty
@@ -25,4 +26,5 @@ case class CustomerId(id: String) extends AnyVal {
 object CustomerId {
   def empty: CustomerId = CustomerId("")
   implicit val format: Format[CustomerId] = Json.format[CustomerId]
+  val oformat: OFormat[CustomerId] = ValueClassFormat.oformat("customerId", CustomerId.apply, _.id)
 }
