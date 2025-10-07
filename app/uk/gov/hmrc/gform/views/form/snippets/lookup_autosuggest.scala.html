@@ -24,6 +24,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.lookup.LookupLabel
+@import play.api.i18n.Messages
 
 @(
   label: Label,
@@ -39,7 +40,7 @@
   selectItems: Option[List[SelectItem]],
   errorMessage: Option[ErrorMessage],
   displayWidth: DisplayWidth
-)(implicit l: LangADT)
+)(implicit l: LangADT, messages: Messages)
 
 @currentValue = @{validationResult.getCurrentValue}
 @accessCode = @{maybeAccessCode.fold("-")(_.value)}
@@ -60,24 +61,49 @@
       @hint.map{ h => @govukHint(h) }
       @errorMessage.map{ e => @govukErrorMessage(e) }
 
-      <div
-      class='lookup @{if(hasErrors) "gform-lookup-error" else ""}'
-      data-field-id="@fcId"
-      data-component-id="@{formComponentId.value}"
-      data-value="@{if(hasErrors) "" else prepopValue}"
-      data-lookup="@register.asString"
-      data-formTemplateId="@formTemplateId.value"
-      data-show-all="@showAll"
-      data-accessCode="@accessCode"
-      aria-describedby="@{if(hasErrors){errorMessage.map(_.id)}}"
-      data-language="@l.langADTToString"
-      data-displayWidth="@displayWidth">
-      </div>
-      <noscript>
-          @selectItems.map { case items =>
-            @govukSelect(Select(id = fcId, name = fcId,  items = items))
+      @if(register.asString == "choice") {
+        @* For choice TypeAhead, create a select element that accessible-autocomplete can enhance *@
+        <select
+        class='lookup govuk-select @{if(hasErrors) "gform-lookup-error" else ""}'
+        id="@fcId"
+        name="@fcId"
+        data-field-id="@fcId"
+        data-component-id="@{formComponentId.value}"
+        data-value="@{if(hasErrors) "" else prepopValue}"
+        data-lookup="@register.asString"
+        data-formTemplateId="@formTemplateId.value"
+        data-show-all="@showAll"
+        data-accessCode="@accessCode"
+        aria-describedby="@{if(hasErrors){errorMessage.map(_.id)}}"
+        data-language="@l.langADTToString"
+        data-displayWidth="@displayWidth">
+        @selectItems.map { items =>
+          @items.map { item =>
+            <option value="@{item.value.getOrElse("")}" @{if(item.selected) "selected" else ""}>@item.text</option>
           }
-      </noscript>
+        }
+        </select>
+      } else {
+        @* For other lookup types, use the div approach *@
+        <div
+        class='lookup @{if(hasErrors) "gform-lookup-error" else ""}'
+        data-field-id="@fcId"
+        data-component-id="@{formComponentId.value}"
+        data-value="@{if(hasErrors) "" else prepopValue}"
+        data-lookup="@register.asString"
+        data-formTemplateId="@formTemplateId.value"
+        data-show-all="@showAll"
+        data-accessCode="@accessCode"
+        aria-describedby="@{if(hasErrors){errorMessage.map(_.id)}}"
+        data-language="@l.langADTToString"
+        data-displayWidth="@displayWidth">
+        </div>
+        <noscript>
+            @selectItems.map { case items =>
+              @govukSelect(Select(id = fcId, name = fcId,  items = items))
+            }
+        </noscript>
+      }
     }
   }
 }

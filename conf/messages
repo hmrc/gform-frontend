@@ -719,3 +719,6 @@ uploadedFile.limitExceed.p2.li1=remove larger files
 uploadedFile.limitExceed.p2.li2=reduce their size
 uploadedFile.limitExceed.p2.li3=upload smaller files in their place
 uploadedFile.limitExceed.p3=Once you have uploaded files with a combined size of less that {0}MB, you can submit the form.
+
+#Choice type ahead
+choice.typeAhead.default=Select an item

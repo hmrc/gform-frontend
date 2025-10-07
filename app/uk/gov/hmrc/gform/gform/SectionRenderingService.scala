@@ -104,7 +104,8 @@ case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, s
 
 class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  choiceRuntimeIndexService: ChoiceRuntimeIndexService
 ) {
 
   def renderAddToListCheckYourAnswers[T <: PageMode](
@@ -2813,6 +2814,55 @@ class SectionRenderingService(
 
         new components.GovukCheckboxes(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(
           checkboxes
+        )
+
+      case TypeAhead =>
+        // Create runtime index for this choice component's options
+        val choiceOptions = visibleOptionsWithIndex.map { case (option, index) =>
+          ChoiceOption(
+            value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics),
+            label = option.label.value()
+          )
+        }.toList
+
+        choiceRuntimeIndexService.createIndexForChoiceOptions(
+          formComponent.id,
+          choiceOptions
+        )
+
+        val currentValue =
+          ei.formModelOptics.pageOpticsData
+            .many(formComponent.modelComponentId)
+            .fold(Option(""))(items => items.headOption)
+
+        // Create select items for fallback (noscript)
+        val selectItems = SelectItem(value = currentValue, text = m("choice.typeAhead.default")) ::
+          visibleOptionsWithIndex.map { case (option, index) =>
+            SelectItem(
+              value = Some(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
+              text = option.label.value(),
+              selected = currentValue.contains(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics))
+            )
+          }.toList
+
+        html.form.snippets.lookup_autosuggest(
+          label = Label(
+            content = content.Text(formComponent.label.value()),
+            isPageHeading = isPageHeading,
+            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
+          ),
+          formComponentId = formComponent.id,
+          isEditable = formComponent.editable,
+          showAll = ShowAll.Disabled, // Choice TypeAhead doesn't need showAll
+          register = Register.Choice,
+          formTemplateId = ei.formTemplateId,
+          maybeAccessCode = ei.maybeAccessCode,
+          prepop = currentValue,
+          validationResult = formFieldValidationResult,
+          hint = hintText(formComponent),
+          selectItems = Some(selectItems),
+          errorMessage = errorMessage,
+          displayWidth = DisplayWidth.DEFAULT
         )
     }
   }

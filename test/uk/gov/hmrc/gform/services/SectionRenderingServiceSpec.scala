@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
@@ -47,7 +47,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
-  val testService = new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty))
+  val choiceRuntimeIndexService: ChoiceRuntimeIndexService = new ChoiceRuntimeIndexService()
+  val testService =
+    new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty), choiceRuntimeIndexService)
 
   trait TestFixture {
 

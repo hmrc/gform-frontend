@@ -82,3 +82,10 @@ final case class FiveColumnLookupInfo(
   priority: LookupPriority,
   columns: Map[String, String]
 ) extends LookupInfo
+
+final case class ChoiceRuntimeLookupInfo(
+  id: LookupId,
+  index: Int,
+  value: String,
+  keywords: Option[String] = None
+) extends LookupInfo

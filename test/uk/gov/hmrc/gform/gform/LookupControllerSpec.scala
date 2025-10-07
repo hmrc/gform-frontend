@@ -376,7 +376,14 @@ class LookupControllerSpec
         )
       )
     )
+    val choiceRuntimeIndexService: ChoiceRuntimeIndexService = new ChoiceRuntimeIndexService()
     lazy val lookupController =
-      new LookupController(i18nSupport, mockAuth, lookupRegistry, messagesControllerComponents)
+      new LookupController(
+        i18nSupport,
+        mockAuth,
+        lookupRegistry,
+        choiceRuntimeIndexService,
+        messagesControllerComponents
+      )
   }
 }

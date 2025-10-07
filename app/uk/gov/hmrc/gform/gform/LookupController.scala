@@ -37,6 +37,7 @@ class LookupController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
   lookupRegistry: LookupRegistry,
+  choiceRuntimeIndexService: ChoiceRuntimeIndexService,
   messagesControllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -110,6 +111,25 @@ class LookupController(
 
           case _ =>
             List.empty
+        }
+
+        Ok(Json.toJson(results)).pure[Future]
+    }
+
+  def lookupChoiceTypeAhead(
+    formTemplateId: FormTemplateId,
+    formComponentId: FormComponentId,
+    maybeAccessCode: Option[AccessCode],
+    lookupQuery: LookupQuery
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
+      _ => _ => _ => _ => _ =>
+        val indexKey = s"${formComponentId.value}"
+
+        val results = lookupQuery match {
+          case LookupQuery.Empty => List.empty[ChoiceSearchResult]
+          case LookupQuery.Value(query) =>
+            choiceRuntimeIndexService.search(indexKey, query)
         }
 
         Ok(Json.toJson(results)).pure[Future]
