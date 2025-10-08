@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.lookup
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.{ Document, Field, StringField, TextField }
 import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig, Term }
-import org.apache.lucene.search.{ BooleanQuery, ConstantScoreQuery, IndexSearcher, PrefixQuery, TopDocs }
+import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery, TermQuery }
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
 import play.api.libs.json.{ Json, OFormat }
@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 import scala.util.{ Failure, Success, Try }
 
-case class ChoiceOption(value: String, label: String)
+case class ChoiceOption(value: String, label: String, keyWord: Option[String] = None)
 case class ChoiceSearchResult(value: String, label: String)
 
 object ChoiceSearchResult {
@@ -48,7 +48,20 @@ class ChoiceRuntimeIndexService {
       val doc = new Document()
       doc.add(new StringField("value", choiceOption.value, Field.Store.YES))
       doc.add(new TextField("label", choiceOption.label, Field.Store.YES))
-      doc.add(new TextField("searchTerms", choiceOption.label.toLowerCase, Field.Store.NO))
+
+      // Index label for prefix searching
+      doc.add(new TextField("searchable", choiceOption.label.toLowerCase, Field.Store.NO))
+
+      // Index exact keyword for abbreviation/synonym matching
+      choiceOption.keyWord.foreach { keyword =>
+        val normalizedKeyword = keyword.toLowerCase.trim
+        if (normalizedKeyword.nonEmpty) {
+          doc.add(new StringField("exactKeyword", normalizedKeyword, Field.Store.NO))
+          // Also add keyword to searchable terms for prefix matching
+          doc.add(new TextField("searchable", normalizedKeyword, Field.Store.NO))
+        }
+      }
+
       writer.addDocument(doc)
     } finally writer.close()
 
@@ -61,22 +74,23 @@ class ChoiceRuntimeIndexService {
     indexMap.get(formComponentId) match {
       case Some((_, searcher)) =>
         Try {
-          val splitSearchParams = query.toLowerCase.split(" ").map(_.trim)
-          val queryBuilder = new BooleanQuery.Builder()
+          val searchQuery = query.toLowerCase.trim
+          if (searchQuery.isEmpty) {
+            List.empty
+          } else {
+            // 1. Try exact keyword match first (for abbreviations like "ltd")
+            val exactKeywordQuery = new TermQuery(new Term("exactKeyword", searchQuery))
+            val exactResults = searcher.search(exactKeywordQuery, maxResults)
 
-          splitSearchParams.foreach { value =>
-            queryBuilder.add(new PrefixQuery(new Term("searchTerms", value)), Occur.MUST)
-          }
-
-          val parsedQuery = new ConstantScoreQuery(queryBuilder.build())
-          val topDocs: TopDocs = searcher.search(parsedQuery, maxResults)
-
-          topDocs.scoreDocs.toList.map { scoreDoc =>
-            val doc = searcher.storedFields().document(scoreDoc.doc)
-            ChoiceSearchResult(
-              value = doc.get("value"),
-              label = doc.get("label")
-            )
+            if (exactResults.totalHits.value > 0) {
+              exactResults.scoreDocs.toList.map { scoreDoc =>
+                val doc = searcher.storedFields().document(scoreDoc.doc)
+                ChoiceSearchResult(doc.get("value"), doc.get("label"))
+              }
+            } else {
+              // 2. Fall back to prefix search for labels and keywords
+              searchByTerms(searcher, searchQuery, maxResults)
+            }
           }
         } match {
           case Success(results) => results
@@ -84,4 +98,30 @@ class ChoiceRuntimeIndexService {
         }
       case None => List.empty
     }
+
+  private def searchByTerms(searcher: IndexSearcher, searchQuery: String, maxResults: Int): List[ChoiceSearchResult] = {
+    val terms = searchQuery.split("\\s+").filter(_.nonEmpty)
+
+    if (terms.length == 1) {
+      // Single term - use prefix query
+      val prefixQuery = new PrefixQuery(new Term("searchable", terms.head))
+      val results = searcher.search(prefixQuery, maxResults)
+      results.scoreDocs.toList.map { scoreDoc =>
+        val doc = searcher.storedFields().document(scoreDoc.doc)
+        ChoiceSearchResult(doc.get("value"), doc.get("label"))
+      }
+    } else {
+      // Multiple terms - match any term with prefix
+      val booleanQuery = new BooleanQuery.Builder()
+      terms.foreach { term =>
+        booleanQuery.add(new PrefixQuery(new Term("searchable", term)), Occur.SHOULD)
+      }
+
+      val results = searcher.search(booleanQuery.build(), maxResults)
+      results.scoreDocs.toList.map { scoreDoc =>
+        val doc = searcher.storedFields().document(scoreDoc.doc)
+        ChoiceSearchResult(doc.get("value"), doc.get("label"))
+      }
+    }
+  }
 }
