@@ -140,10 +140,10 @@ object Recalculation {
               .collect {
                 case IsChoice(c) =>
                   c.options.toList.collect {
-                    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _)
+                    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _)
                         if userResponse.contains(value) =>
                       o
-                    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _)
+                    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _)
                         if userResponse.contains(evalExpr(expr)) =>
                       o
                     case o: OptionData.IndexBased if userResponse.contains(o.toString) => o
@@ -153,8 +153,8 @@ object Recalculation {
               .getOrElse(List.empty[OptionData])
 
             val includeIfs: List[IncludeIf] = optionData.collect {
-              case OptionData.ValueBased(_, _, Some(includeIf), _, _, _) => includeIf
-              case OptionData.IndexBased(_, _, Some(includeIf), _, _)    => includeIf
+              case OptionData.ValueBased(_, _, Some(includeIf), _, _, _, _) => includeIf
+              case OptionData.IndexBased(_, _, Some(includeIf), _, _)       => includeIf
             }
 
             val isHidden = includeIfs

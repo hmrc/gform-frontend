@@ -2599,7 +2599,7 @@ class SectionRenderingService(
       }
     val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
     optionData match {
-      case OptionData.ValueBased(_, _, _, _, _, _) =>
+      case OptionData.ValueBased(_, _, _, _, _, _, _) =>
         val value = optionData.getValue(-1, formModelVisibilityOptics)
         !selectedValues(value)
       case OptionData.IndexBased(_, _, _, _, _) =>
@@ -2612,7 +2612,7 @@ class SectionRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   ): Boolean =
     optionData match {
-      case OptionData.ValueBased(_, _, includeIf, _, value, _) =>
+      case OptionData.ValueBased(_, _, includeIf, _, value, _, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
       case OptionData.IndexBased(_, _, includeIf, _, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
@@ -2819,9 +2819,14 @@ class SectionRenderingService(
       case TypeAhead =>
         // Create runtime index for this choice component's options
         val choiceOptions = visibleOptionsWithIndex.map { case (option, index) =>
+          val keyWord = option match {
+            case valueBased: OptionData.ValueBased => valueBased.keyWord
+            case _                                 => None
+          }
           ChoiceOption(
             value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics),
-            label = option.label.value()
+            label = option.label.value(),
+            keyWord = keyWord.map(_.value())
           )
         }.toList
 

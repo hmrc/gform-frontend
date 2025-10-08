@@ -131,7 +131,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       includeIf = includeIf,
       dynamic = None,
       value = StringBased(valueString),
-      summaryValue = None
+      summaryValue = None,
+      keyWord = None
     )
 
   override val evaluationContext: EvaluationContext = buildEvaluationContext()
