@@ -56,7 +56,6 @@ case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
         case (label, SicCodeLookupInfo(_, _, _, _))               => (LookupPriority(1), label)
         case (label, AgentComplaintCategoriesLookupInfo(_, _, _)) => (LookupPriority(1), label)
         case (label, FiveColumnLookupInfo(_, _, priority, _))     => (priority, label)
-        case (label, ChoiceRuntimeLookupInfo(_, _, _, _))         => (LookupPriority(1), label)
       }
       .map(_._1)
 }

@@ -2831,7 +2831,7 @@ class SectionRenderingService(
           )
         }.toList
 
-        // Generate a unique index key for this session/user
+        // Generate a unique index key for this render instance
         val indexKey = UUID.randomUUID().toString
         choiceRuntimeIndexService.createIndexForChoiceOptions(
           indexKey,
@@ -2843,8 +2843,7 @@ class SectionRenderingService(
             .many(formComponent.modelComponentId)
             .fold(Option(""))(items => items.headOption)
 
-        // Create select items for fallback (noscript)
-        val selectItems = SelectItem(value = currentValue, text = m("choice.typeAhead.default")) ::
+        val selectItems = SelectItem(value = currentValue, text = "") ::
           visibleOptionsWithIndex.map { case (option, index) =>
             SelectItem(
               value = Some(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
@@ -2861,7 +2860,7 @@ class SectionRenderingService(
           ),
           formComponentId = formComponent.id,
           isEditable = formComponent.editable,
-          showAll = ShowAll.Disabled, // Choice TypeAhead doesn't need showAll
+          showAll = ShowAll.Disabled,
           register = Register.Choice,
           formTemplateId = ei.formTemplateId,
           maybeAccessCode = ei.maybeAccessCode,
