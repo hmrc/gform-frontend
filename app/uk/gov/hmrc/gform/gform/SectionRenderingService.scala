@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.data.NonEmptyList
 
 import java.time.LocalDate
+import java.util.UUID
 import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.all._
@@ -2830,8 +2831,10 @@ class SectionRenderingService(
           )
         }.toList
 
+        // Generate a unique index key for this session/user
+        val indexKey = UUID.randomUUID().toString
         choiceRuntimeIndexService.createIndexForChoiceOptions(
-          formComponent.id,
+          indexKey,
           choiceOptions
         )
 
@@ -2867,7 +2870,8 @@ class SectionRenderingService(
           hint = hintText(formComponent),
           selectItems = Some(selectItems),
           errorMessage = errorMessage,
-          displayWidth = DisplayWidth.DEFAULT
+          displayWidth = DisplayWidth.DEFAULT,
+          indexKey = Some(indexKey)
         )
     }
   }

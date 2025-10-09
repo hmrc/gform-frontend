@@ -39,7 +39,8 @@
   hint: Option[Hint],
   selectItems: Option[List[SelectItem]],
   errorMessage: Option[ErrorMessage],
-  displayWidth: DisplayWidth
+  displayWidth: DisplayWidth,
+  indexKey: Option[String] = None
 )(implicit l: LangADT, messages: Messages)
 
 @currentValue = @{validationResult.getCurrentValue}
@@ -74,6 +75,7 @@
         data-formTemplateId="@formTemplateId.value"
         data-show-all="@showAll"
         data-accessCode="@accessCode"
+        @indexKey.map{ key => data-index-key="@key" }
         aria-describedby="@{if(hasErrors){errorMessage.map(_.id)}}"
         data-language="@l.langADTToString"
         data-displayWidth="@displayWidth">

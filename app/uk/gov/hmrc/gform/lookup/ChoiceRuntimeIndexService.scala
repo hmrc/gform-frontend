@@ -23,7 +23,6 @@ import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery, Term
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
 import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 import scala.util.{ Failure, Success, Try }
 
@@ -37,9 +36,13 @@ object ChoiceSearchResult {
 class ChoiceRuntimeIndexService {
 
   private val analyzer = new StandardAnalyzer()
-  private var indexMap: Map[String, (ByteBuffersDirectory, IndexSearcher)] = Map.empty
+  private var indexMap: Map[String, (ByteBuffersDirectory, IndexSearcher, Long)] = Map.empty
+  private val INDEX_TTL_MS = 30 * 60 * 1000 // 30 minutes TTL
+  private val MAX_RESULTS: Int = 10
 
-  def createIndexForChoiceOptions(formComponentId: FormComponentId, options: List[ChoiceOption]): Unit = {
+  def createIndexForChoiceOptions(indexKey: String, options: List[ChoiceOption]): Unit = {
+    cleanupExpiredIndexes()
+
     val directory = new ByteBuffersDirectory()
     val config = new IndexWriterConfig(analyzer)
     val writer = new IndexWriter(directory, config)
@@ -67,12 +70,13 @@ class ChoiceRuntimeIndexService {
 
     val reader = DirectoryReader.open(directory)
     val searcher = new IndexSearcher(reader)
-    indexMap = indexMap + (formComponentId.value -> (directory, searcher))
+    val timestamp = System.currentTimeMillis()
+    indexMap = indexMap + (indexKey -> (directory, searcher, timestamp))
   }
 
-  def search(formComponentId: String, query: String, maxResults: Int = 10): List[ChoiceSearchResult] =
-    indexMap.get(formComponentId) match {
-      case Some((_, searcher)) =>
+  def search(indexKey: String, query: String): List[ChoiceSearchResult] =
+    indexMap.get(indexKey) match {
+      case Some((_, searcher, _)) =>
         Try {
           val searchQuery = query.toLowerCase.trim
           if (searchQuery.isEmpty) {
@@ -80,7 +84,7 @@ class ChoiceRuntimeIndexService {
           } else {
             // 1. Try exact keyword match first (for abbreviations like "ltd")
             val exactKeywordQuery = new TermQuery(new Term("exactKeyword", searchQuery))
-            val exactResults = searcher.search(exactKeywordQuery, maxResults)
+            val exactResults = searcher.search(exactKeywordQuery, MAX_RESULTS)
 
             if (exactResults.totalHits.value > 0) {
               exactResults.scoreDocs.toList.map { scoreDoc =>
@@ -89,7 +93,7 @@ class ChoiceRuntimeIndexService {
               }
             } else {
               // 2. Fall back to prefix search for labels and keywords
-              searchByTerms(searcher, searchQuery, maxResults)
+              searchByTerms(searcher, searchQuery, MAX_RESULTS)
             }
           }
         } match {
@@ -122,6 +126,26 @@ class ChoiceRuntimeIndexService {
         val doc = searcher.storedFields().document(scoreDoc.doc)
         ChoiceSearchResult(doc.get("value"), doc.get("label"))
       }
+    }
+  }
+
+  private def cleanupExpiredIndexes(): Unit = {
+    val currentTime = System.currentTimeMillis()
+    val expiredKeys = indexMap
+      .filter { case (_, (_, _, timestamp)) =>
+        currentTime - timestamp > INDEX_TTL_MS
+      }
+      .keys
+      .toList
+
+    expiredKeys.foreach { key =>
+      indexMap.get(key).foreach { case (directory, _, _) =>
+        try directory.close()
+        catch {
+          case _: Exception =>
+        }
+      }
+      indexMap = indexMap - key
     }
   }
 }

@@ -118,14 +118,12 @@ class LookupController(
 
   def lookupChoiceTypeAhead(
     formTemplateId: FormTemplateId,
-    formComponentId: FormComponentId,
     maybeAccessCode: Option[AccessCode],
-    lookupQuery: LookupQuery
+    lookupQuery: LookupQuery,
+    indexKey: String
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        val indexKey = s"${formComponentId.value}"
-
         val results = lookupQuery match {
           case LookupQuery.Empty => List.empty[ChoiceSearchResult]
           case LookupQuery.Value(query) =>
