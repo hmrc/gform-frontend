@@ -105,17 +105,25 @@ class AcknowledgementController(
       val pdfContentF =
         acknowledgementPdfService.createPDFContent(cache, maybeAccessCode, formModelOptics, sendAuditEvent = true)
 
+      val headersF: Future[Map[String, String]] = for {
+        submission <- acknowledgementPdfService.getSubmission(cache, maybeAccessCode)
+      } yield Map(
+        "Content-Disposition" -> s"""inline; filename="${submission.pdfName}""""
+      )
+
       if (cache.formTemplate.accessiblePdf) {
         for {
+          headers    <- headersF
           pdfContent <- pdfContentF
           pdfSource  <- acknowledgementPdfService.getByteArrayFop(pdfContent)
-        } yield Ok(pdfSource).as(MimeConstants.MIME_PDF)
+        } yield Ok(pdfSource).as(MimeConstants.MIME_PDF).withHeaders(headers.toList: _*)
       } else {
         for {
+          headers    <- headersF
           pdfContent <- pdfContentF
           pdfSource  <- acknowledgementPdfService.generatePDF(pdfContent)
         } yield Result(
-          header = ResponseHeader(200, Map.empty),
+          header = ResponseHeader(200, headers),
           body = HttpEntity.Streamed(pdfSource, None, Some(MimeConstants.MIME_PDF))
         )
       }

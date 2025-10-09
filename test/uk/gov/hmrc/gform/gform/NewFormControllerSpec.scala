@@ -478,7 +478,8 @@ class NewFormControllerSpec
       submittedDate = submittedAt,
       submissionRef = submissionRef,
       envelopeId = envelopeId,
-      dmsMetaData = DmsMetaData(authCacheWithForm.formTemplateId)
+      dmsMetaData = DmsMetaData(authCacheWithForm.formTemplateId),
+      customerId = CustomerId("123456")
     )
 
     def initCommonMocks(): Unit = {

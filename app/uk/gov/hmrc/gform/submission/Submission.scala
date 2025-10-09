@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.submission
 import java.time.LocalDateTime
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{ Json, OFormat, OWrites, Reads, _ }
+import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.{ SubmissionRef, ValueClassFormat }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
@@ -52,8 +53,13 @@ case class Submission(
   submittedDate: LocalDateTime,
   submissionRef: SubmissionRef,
   envelopeId: EnvelopeId,
-  dmsMetaData: DmsMetaData
-)
+  dmsMetaData: DmsMetaData,
+  customerId: CustomerId
+) {
+  def pdfName: String =
+    if (customerId.isEmpty()) s"${submissionRef.value}.pdf"
+    else s"${submissionRef.value}-${customerId.id}.pdf"
+}
 
 object Submission {
 
@@ -62,7 +68,8 @@ object Submission {
       (JsPath \ "submittedDate").read[LocalDateTime] and
       SubmissionRef.oformat and
       EnvelopeId.format and
-      DmsMetaData.format
+      DmsMetaData.format and
+      CustomerId.oformat
   )(Submission.apply _)
 
   private val writes: OWrites[Submission] = OWrites[Submission](s =>
@@ -70,7 +77,8 @@ object Submission {
       Json.obj("submittedDate" -> Writes.DefaultLocalDateTimeWrites.writes(s.submittedDate)) ++
       SubmissionRef.oformat.writes(s.submissionRef) ++
       EnvelopeId.format.writes(s.envelopeId) ++
-      DmsMetaData.format.writes(s.dmsMetaData)
+      DmsMetaData.format.writes(s.dmsMetaData) ++
+      CustomerId.oformat.writes(s.customerId)
   )
 
   implicit val format: OFormat[Submission] = OFormat[Submission](reads, writes)

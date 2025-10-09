@@ -108,7 +108,7 @@ class UploadableDestinationSpec extends Spec {
     UploadableHmrcDmsDestination(
       id,
       dmsFormId,
-      TextExpression(customerId),
+      TextExpression(destination.customerId),
       classificationType,
       businessArea,
       convertSingleQuotesParam,

@@ -54,7 +54,7 @@ class DownloadThenNewFormPage(
   private val submittedDateTime = submission.submittedDate
   private val fileSize = (BigDecimal(size) / BigDecimal(1000)).setScale(0, BigDecimal.RoundingMode.UP)
 
-  val filename: String = s"${submission.submissionRef.value}.pdf"
+  val filename: String = submission.pdfName
 
   val downloadUrl: String =
     uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(maybeAccessCode, formTemplate._id).url
