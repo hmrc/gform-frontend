@@ -534,7 +534,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
     maybeChoiceWithDynamic.fold(default) {
       case (_, Left(valueBasedNel)) =>
         val maybeDynamicOptionData: Option[(Int, FormComponentId)] = valueBasedNel.collectFirst {
-          case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value, _))
+          case (selectedIndex, OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(pointer)), value, _, _))
               if (value match {
                 case OptionDataValue.StringBased(v) => v === answer
                 case OptionDataValue.ExprBased(expr) =>
@@ -555,6 +555,7 @@ class StructuredFormDataBuilder[D <: DataOrigin, F[_]: Monad](
                   _,
                   Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)),
                   value,
+                  _,
                   _
                 )
               ) if (value match {

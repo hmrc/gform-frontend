@@ -30,7 +30,7 @@ object OptionDataUtils {
     messages: Messages
   ): FormComponent = {
     val optionsUpdate = choice.options.flatMap {
-      case o @ OptionData.ValueBased(_, _, _, Some(d), _, _) =>
+      case o @ OptionData.ValueBased(_, _, _, Some(d), _, _, _) =>
         OptionDataUtils.expandValueBased(o, d)
       case o @ OptionData.IndexBased(_, _, _, Some(d), _) =>
         OptionDataUtils.expandIndexBased(o, d)

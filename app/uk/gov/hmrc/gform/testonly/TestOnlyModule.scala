@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.{ GformModule, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.lookup.{ ChoiceRuntimeIndexService, LookupRegistry }
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ComponentChecker
@@ -54,9 +54,12 @@ class TestOnlyModule(
   ec: ExecutionContext
 ) {
 
+  private val choiceRuntimeIndexService: ChoiceRuntimeIndexService = new ChoiceRuntimeIndexService()
+
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
     configModule.frontendAppConfig,
-    lookupRegistry
+    lookupRegistry,
+    choiceRuntimeIndexService
   )
 
   private val proxyActions = new ProxyActions(ahcWSComponents.wsClient, configModule.appConfig.`proxy-timeout`)(

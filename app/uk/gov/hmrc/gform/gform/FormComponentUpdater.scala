@@ -31,22 +31,24 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
   private def expandOptionData(optionData: OptionData): OptionData = optionData match {
     case o: OptionData.IndexBased =>
       o.copy(label = expandSmartString(o.label), includeIf = o.includeIf.map(expandIncludeIf))
-    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(_), _) =>
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(_), _, _) =>
       o.copy(
         label = expandSmartString(o.label),
         dynamic = o.dynamic.fold(o.dynamic)(d => Option(ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d))),
         hint = o.hint.fold(o.hint)(ss => Option(expandSmartString(ss))),
         includeIf = o.includeIf.map(expandIncludeIf),
-        summaryValue = o.summaryValue.fold(o.summaryValue)(ss => Option(expandSmartString(ss)))
+        summaryValue = o.summaryValue.fold(o.summaryValue)(ss => Option(expandSmartString(ss))),
+        keyWord = o.keyWord.fold(o.keyWord)(ss => Option(expandSmartString(ss)))
       )
-    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _) =>
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _) =>
       o.copy(
         label = expandSmartString(o.label),
         dynamic = o.dynamic.fold(o.dynamic)(d => Option(ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d))),
         hint = o.hint.fold(o.hint)(ss => Option(expandSmartString(ss))),
         includeIf = o.includeIf.map(expandIncludeIf),
         value = OptionDataValue.ExprBased(expandExpr(expr)),
-        summaryValue = o.summaryValue.fold(o.summaryValue)(ss => Option(expandSmartString(ss)))
+        summaryValue = o.summaryValue.fold(o.summaryValue)(ss => Option(expandSmartString(ss))),
+        keyWord = o.keyWord.fold(o.keyWord)(ss => Option(expandSmartString(ss)))
       )
   }
 
