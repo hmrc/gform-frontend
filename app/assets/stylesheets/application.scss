@@ -181,3 +181,48 @@ button.defaultsink {
       transform: rotate(360deg);
     }
   }
+
+.pdf-link {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  clear: both;
+  overflow: hidden;
+  display: flex;
+}
+
+.pdf-link__thumbnail {
+  position: relative;
+  margin-right: 25px;
+  margin-bottom: 15px;
+  padding: 5px;
+  width: auto;
+}
+
+.pdf-link__thumbnail-image {
+  position: relative;
+  max-width:99px;
+  height:140px;
+  display: block;
+  width: auto;
+  border: rgb(11 12 12 / .1);
+  outline: 5px solid rgb(11 12 12 / .1);
+  background: #fff;
+  box-shadow: 0 2px 2px rgb(11 12 12 / .4);
+  fill: #b1b4b6;
+  stroke: #b1b4b6;
+}
+
+@media (max-width: 40.0625em) {
+  .pdf-link {
+    font-size: 16px;
+    line-height: 1.25;
+  }
+  .pdf-link__thumbnail {
+    margin-right: 20px;
+  }
+  .pdf-link__thumbnail-image {
+    max-width: 66px;
+    height: 93px;
+  }
+}
