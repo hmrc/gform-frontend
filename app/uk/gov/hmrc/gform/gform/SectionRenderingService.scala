@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform
 import cats.data.NonEmptyList
 
 import java.time.LocalDate
-import java.util.UUID
 import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.all._
@@ -2818,7 +2817,6 @@ class SectionRenderingService(
         )
 
       case TypeAhead =>
-        // Create runtime index for this choice component's options
         val choiceOptions = visibleOptionsWithIndex.map { case (option, index) =>
           val keyWord = option match {
             case valueBased: OptionData.ValueBased => valueBased.keyWord
@@ -2831,8 +2829,14 @@ class SectionRenderingService(
           )
         }.toList
 
-        // Generate a unique index key for this render instance
-        val indexKey = UUID.randomUUID().toString
+        // Generate a deterministic index key based on choice options content
+        val contentHash = choiceOptions
+          .map(opt => s"${opt.value}:${opt.label}:${opt.keyWord.getOrElse("")}")
+          .mkString("|")
+          .hashCode
+          .toString
+        val indexKey = s"choice-${formComponent.id.value}-$contentHash"
+
         choiceRuntimeIndexService.createIndexForChoiceOptions(
           indexKey,
           choiceOptions

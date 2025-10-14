@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.lookup
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.{ Document, Field, StringField, TextField }
 import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig, Term }
-import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery, TermQuery }
+import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery }
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
 import play.api.libs.json.{ Json, OFormat }
@@ -41,7 +41,9 @@ class ChoiceRuntimeIndexService {
   private val MAX_RESULTS: Int = 10
 
   def createIndexForChoiceOptions(indexKey: String, options: List[ChoiceOption]): Unit = {
-    cleanupExpiredIndexes()
+    if (indexMap.contains(indexKey)) {
+      return
+    }
 
     val directory = new ByteBuffersDirectory()
     val config = new IndexWriterConfig(analyzer)
@@ -55,12 +57,10 @@ class ChoiceRuntimeIndexService {
       // Index label for prefix searching
       doc.add(new TextField("searchable", choiceOption.label.toLowerCase, Field.Store.NO))
 
-      // Index exact keyword for abbreviation/synonym matching
+      // Index keyword for searching
       choiceOption.keyWord.foreach { keyword =>
         val normalizedKeyword = keyword.toLowerCase.trim
         if (normalizedKeyword.nonEmpty) {
-          doc.add(new StringField("exactKeyword", normalizedKeyword, Field.Store.NO))
-          // Also add keyword to searchable terms for prefix matching
           doc.add(new TextField("searchable", normalizedKeyword, Field.Store.NO))
         }
       }
@@ -72,6 +72,8 @@ class ChoiceRuntimeIndexService {
     val searcher = new IndexSearcher(reader)
     val timestamp = System.currentTimeMillis()
     indexMap = indexMap + (indexKey -> (directory, searcher, timestamp))
+
+    cleanupExpiredIndexes()
   }
 
   def search(indexKey: String, query: String): List[ChoiceSearchResult] =
@@ -82,19 +84,7 @@ class ChoiceRuntimeIndexService {
           if (searchQuery.isEmpty) {
             List.empty
           } else {
-            // 1. Try exact keyword match first (for abbreviations like "ltd")
-            val exactKeywordQuery = new TermQuery(new Term("exactKeyword", searchQuery))
-            val exactResults = searcher.search(exactKeywordQuery, MAX_RESULTS)
-
-            if (exactResults.totalHits.value > 0) {
-              exactResults.scoreDocs.toList.map { scoreDoc =>
-                val doc = searcher.storedFields().document(scoreDoc.doc)
-                ChoiceSearchResult(doc.get("value"), doc.get("label"))
-              }
-            } else {
-              // 2. Fall back to prefix search for labels and keywords
-              searchByTerms(searcher, searchQuery, MAX_RESULTS)
-            }
+            searchByTerms(searcher, searchQuery, MAX_RESULTS)
           }
         } match {
           case Success(results) => results
@@ -106,26 +96,15 @@ class ChoiceRuntimeIndexService {
   private def searchByTerms(searcher: IndexSearcher, searchQuery: String, maxResults: Int): List[ChoiceSearchResult] = {
     val terms = searchQuery.split("\\s+").filter(_.nonEmpty)
 
-    if (terms.length == 1) {
-      // Single term - use prefix query
-      val prefixQuery = new PrefixQuery(new Term("searchable", terms.head))
-      val results = searcher.search(prefixQuery, maxResults)
-      results.scoreDocs.toList.map { scoreDoc =>
-        val doc = searcher.storedFields().document(scoreDoc.doc)
-        ChoiceSearchResult(doc.get("value"), doc.get("label"))
-      }
-    } else {
-      // Multiple terms - match any term with prefix
-      val booleanQuery = new BooleanQuery.Builder()
-      terms.foreach { term =>
-        booleanQuery.add(new PrefixQuery(new Term("searchable", term)), Occur.SHOULD)
-      }
+    val booleanQuery = new BooleanQuery.Builder()
+    terms.foreach { term =>
+      booleanQuery.add(new PrefixQuery(new Term("searchable", term)), Occur.MUST)
+    }
 
-      val results = searcher.search(booleanQuery.build(), maxResults)
-      results.scoreDocs.toList.map { scoreDoc =>
-        val doc = searcher.storedFields().document(scoreDoc.doc)
-        ChoiceSearchResult(doc.get("value"), doc.get("label"))
-      }
+    val results = searcher.search(booleanQuery.build(), maxResults)
+    results.scoreDocs.toList.map { scoreDoc =>
+      val doc = searcher.storedFields().document(scoreDoc.doc)
+      ChoiceSearchResult(doc.get("value"), doc.get("label"))
     }
   }
 

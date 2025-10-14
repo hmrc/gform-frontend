@@ -131,16 +131,8 @@ class ChoiceRuntimeIndexServiceSpec extends AnyFlatSpecLike with Matchers {
     service.createIndexForChoiceOptions(indexKey, sampleChoiceOptions)
 
     val results = service.search(indexKey, "public limited")
-    results should have size 2
-    results.map(_.value) should contain theSameElementsAs List("limitedcompany", "publiclimitedcompany")
-  }
-
-  it should "find results when any term matches" in {
-    service.createIndexForChoiceOptions(indexKey, sampleChoiceOptions)
-
-    val results = service.search(indexKey, "sole partnership")
-    results should have size 2
-    results.map(_.value) should contain theSameElementsAs List("soletrader", "partnership")
+    results should have size 1
+    results.map(_.value) should contain theSameElementsAs List("publiclimitedcompany")
   }
 
   "Search priority" should "prioritize exact keyword match over prefix match" in {
