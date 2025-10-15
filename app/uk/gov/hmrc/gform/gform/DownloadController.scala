@@ -33,7 +33,9 @@ class DownloadController(
 
   private val allowedFileInfo: Map[String, String] = Map(
     ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-    ("ods", "application/vnd.oasis.opendocument.spreadsheet")
+    ("ods", "application/vnd.oasis.opendocument.spreadsheet"),
+    ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+    ("odt", "application/vnd.oasis.opendocument.text")
   )
 
   private def isValidFilename(filename: String): Boolean =
