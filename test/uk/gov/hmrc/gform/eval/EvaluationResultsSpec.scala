@@ -386,7 +386,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                 DataRetrieveId("someDataRetrieveId") -> DataRetrieveResult(
                   DataRetrieveId("someDataRetrieveId"),
                   RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("isValid") -> "111")),
-                  Json.obj()
+                  Json.obj(),
+                  None,
+                  None
                 )
               )
             )
@@ -421,7 +423,9 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                       DataRetrieve.Attribute("country")        -> "country value"
                     )
                   ),
-                  Json.obj()
+                  Json.obj(),
+                  None,
+                  None
                 )
               )
             )

@@ -203,7 +203,7 @@ class FormProcessor(
       .toPageModel
       .toList
       .flatMap(_.dataRetrieves)
-      .collect { case DataRetrieve(_, id, _, _, _, _) =>
+      .collect { case DataRetrieve(_, id, _, _, _, _, _) =>
         id
       }
       .toSet
@@ -318,7 +318,9 @@ class FormProcessor(
         )(implicit
           message: Messages
         ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser])] = {
-          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(visibilityOptics)
+          val maybePreviousResult: Option[DataRetrieveResult] =
+            cache.form.thirdPartyData.dataRetrieve.flatMap(_.get(dataRetrieve.id))
+          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult)
           val maybeRetrieveResultF = DataRetrieveService.retrieveDataResult(
             dataRetrieve,
             Some(cache.form),

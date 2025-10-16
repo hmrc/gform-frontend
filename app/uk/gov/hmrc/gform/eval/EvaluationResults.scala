@@ -724,6 +724,18 @@ case class EvaluationResults(
       case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("registeredOfficeAddress")) => handleAddr(drCtx)
       case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("primaryAddress"))          => handleAddr(drCtx)
       case drCtx @ DataRetrieveCtx(_, DataRetrieve.Attribute("agencyAddress"))           => handleAddr(drCtx)
+      case d @ DataRetrieveCtx(_, DataRetrieve.failureCountAttribute) =>
+        evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+          DataRetrieveEval.getFailureCount(dr, d)
+        }
+      case d @ DataRetrieveCtx(_, DataRetrieve.failureResetTimeAttribute) =>
+        evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+          DataRetrieveEval.getFailureResetTime(dr, d)
+        }
+      case d @ DataRetrieveCtx(_, DataRetrieve.failureResetDateAttribute) =>
+        evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+          DataRetrieveEval.getFailureResetDate(dr, d)
+        }
       case d @ DataRetrieveCtx(_, _) =>
         val exprResult =
           evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
