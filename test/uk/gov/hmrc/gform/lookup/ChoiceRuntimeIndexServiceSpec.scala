@@ -191,7 +191,7 @@ class ChoiceRuntimeIndexServiceSpec extends AnyFlatSpecLike with Matchers {
     service.createIndexForChoiceOptions(testIndexKey, manyOptions)
 
     val results = service.search(testIndexKey, "test")
-    results should have size 10
+    results should have size 20
   }
 
   "Real world example" should "work with the given example data" in {

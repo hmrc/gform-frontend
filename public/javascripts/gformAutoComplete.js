@@ -166,66 +166,58 @@
   }
 
   function initElement(el) {
-    var $origin = $(el);
-    var meta = extractMeta($origin);
-    applyWidth($origin, meta.displayWidth);
-    var selectEl = ensureSelectElement($origin, meta);
-    initStateFromDom(selectEl);
-    var initialLabel = deriveInitialLabel(selectEl, meta);
-    if (!STATE.get(selectEl) || !STATE.get(selectEl).lastValid) {
-      if (meta.initialValue) {
-        setSelected(selectEl, initialLabel, meta.initialValue);
-      }
+  var $origin = $(el);
+  var meta = extractMeta($origin);
+  applyWidth($origin, meta.displayWidth);
+  var selectEl = ensureSelectElement($origin, meta);
+  initStateFromDom(selectEl);
+  var initialLabel = deriveInitialLabel(selectEl, meta);
+  if (!STATE.get(selectEl) || !STATE.get(selectEl).lastValid) {
+    if (meta.initialValue) {
+      setSelected(selectEl, initialLabel, meta.initialValue);
     }
-
-    if (!global.accessibleAutocomplete || typeof global.accessibleAutocomplete.enhanceSelectElement !== 'function') {
-      return;
-    }
-
-    var config = addWelshTranslations(buildConfig(selectEl, meta, initialLabel), meta);
-    global.accessibleAutocomplete.enhanceSelectElement(config);
-
-    requestAnimationFrame(function () {
-      var input = document.getElementById(meta.fieldId);
-      if (input) {
-        input.setAttribute('autocomplete', 'off');
-      }
-      var describedBy = selectEl.getAttribute('aria-describedby');
-      if (describedBy && input && !input.getAttribute('aria-describedby')) {
-        input.setAttribute('aria-describedby', describedBy);
-        selectEl.setAttribute('aria-describedby', '');
-      }
-    });
   }
 
-  function ensureSubmitMapping() {
-    // On submit, if user typed but didn't confirm, attempt to map input text to value
-    $(document).on('submit', 'form', function () {
-      var $form = $(this);
-      $form.find('select[data-language]').each(function (_, sel) {
-        var selectEl = sel;
-        var state = STATE.get(selectEl);
-        if (!state) return;
-        var input = document.getElementById(selectEl.id);
-        if (!input) return;
-        var typed = input.value;
+  if (!global.accessibleAutocomplete || typeof global.accessibleAutocomplete.enhanceSelectElement !== 'function') {
+    return;
+  }
+
+  var config = addWelshTranslations(buildConfig(selectEl, meta, initialLabel), meta);
+  global.accessibleAutocomplete.enhanceSelectElement(config);
+
+  requestAnimationFrame(function () {
+    var input = document.getElementById(meta.fieldId);
+    if (input) {
+      input.setAttribute('autocomplete', 'off');
+      
+      // Add blur handler for auto-selection
+      $(input).on('blur', function() {
+        var typed = input.value.trim();
         if (!typed) return;
-        // If user hasn't confirmed but typed a label that exists in latest map, select it
-        if (state.labelValueMap && state.labelValueMap.has(typed)) {
+        
+        var state = STATE.get(selectEl);
+        if (!state || !state.labelValueMap) return;
+        
+        // If user typed exactly what's in our label map, auto-select it
+        if (state.labelValueMap.has(typed)) {
           var value = state.labelValueMap.get(typed);
           setSelected(selectEl, typed, value);
-        } else if (state.lastValid) {
-          input.value = state.lastValid.label;
-          setSelected(selectEl, state.lastValid.label, state.lastValid.value);
+          console.log('Auto-selected exact match:', typed, '->', value);
         }
       });
-    });
-  }
+    }
+    
+    var describedBy = selectEl.getAttribute('aria-describedby');
+    if (describedBy && input && !input.getAttribute('aria-describedby')) {
+      input.setAttribute('aria-describedby', describedBy);
+      selectEl.setAttribute('aria-describedby', '');
+    }
+  });
+}
 
   function initAll() {
     var $els = $('.lookup');
     if (!$els.length) return;
-    ensureSubmitMapping();
     $els.each(function (_, el) { initElement(el); });
   }
 

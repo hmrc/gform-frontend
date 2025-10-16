@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.analysis.{ Analyzer, TokenStream }
+import org.apache.lucene.analysis.core.{ LowerCaseFilter, WhitespaceTokenizer }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField }
 import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig, Term }
 import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery }
@@ -33,48 +34,53 @@ object ChoiceSearchResult {
   implicit val format: OFormat[ChoiceSearchResult] = Json.format[ChoiceSearchResult]
 }
 
+class WhiteSpaceOnlyAnalyzer() extends Analyzer {
+  override def createComponents(fieldName: String): Analyzer.TokenStreamComponents = {
+    val tokenizer = new WhitespaceTokenizer() // keep -, €, $ etc.
+    val lowercased: TokenStream = new LowerCaseFilter(tokenizer)
+    new Analyzer.TokenStreamComponents(tokenizer, lowercased)
+  }
+}
+
 class ChoiceRuntimeIndexService {
 
-  private val analyzer = new StandardAnalyzer()
+  private val analyzer = new WhiteSpaceOnlyAnalyzer()
   private var indexMap: Map[String, (ByteBuffersDirectory, IndexSearcher, Long)] = Map.empty
   private val INDEX_TTL_MS = 30 * 60 * 1000 // 30 minutes TTL
-  private val MAX_RESULTS: Int = 10
 
-  def createIndexForChoiceOptions(indexKey: String, options: List[ChoiceOption]): Unit = {
-    if (indexMap.contains(indexKey)) {
-      return
-    }
+  def createIndexForChoiceOptions(indexKey: String, options: List[ChoiceOption]): Unit =
+    if (!indexMap.contains(indexKey)) {
 
-    val directory = new ByteBuffersDirectory()
-    val config = new IndexWriterConfig(analyzer)
-    val writer = new IndexWriter(directory, config)
+      val directory = new ByteBuffersDirectory()
+      val config = new IndexWriterConfig(analyzer)
+      val writer = new IndexWriter(directory, config)
 
-    try options.foreach { choiceOption =>
-      val doc = new Document()
-      doc.add(new StringField("value", choiceOption.value, Field.Store.YES))
-      doc.add(new TextField("label", choiceOption.label, Field.Store.YES))
+      try options.foreach { choiceOption =>
+        val doc = new Document()
+        doc.add(new StringField("value", choiceOption.value, Field.Store.YES))
+        doc.add(new TextField("label", choiceOption.label, Field.Store.YES))
 
-      // Index label for prefix searching
-      doc.add(new TextField("searchable", choiceOption.label.toLowerCase, Field.Store.NO))
+        // Index label for prefix searching
+        doc.add(new TextField("searchable", choiceOption.label.toLowerCase, Field.Store.NO))
 
-      // Index keyword for searching
-      choiceOption.keyWord.foreach { keyword =>
-        val normalizedKeyword = keyword.toLowerCase.trim
-        if (normalizedKeyword.nonEmpty) {
-          doc.add(new TextField("searchable", normalizedKeyword, Field.Store.NO))
+        // Index keyword for searching
+        choiceOption.keyWord.foreach { keyword =>
+          val normalizedKeyword = keyword.toLowerCase.trim
+          if (normalizedKeyword.nonEmpty) {
+            doc.add(new TextField("searchable", normalizedKeyword, Field.Store.NO))
+          }
         }
-      }
 
-      writer.addDocument(doc)
-    } finally writer.close()
+        writer.addDocument(doc)
+      } finally writer.close()
 
-    val reader = DirectoryReader.open(directory)
-    val searcher = new IndexSearcher(reader)
-    val timestamp = System.currentTimeMillis()
-    indexMap = indexMap + (indexKey -> (directory, searcher, timestamp))
+      val reader = DirectoryReader.open(directory)
+      val searcher = new IndexSearcher(reader)
+      val timestamp = System.currentTimeMillis()
+      indexMap = indexMap + (indexKey -> (directory, searcher, timestamp))
 
-    cleanupExpiredIndexes()
-  }
+      cleanupExpiredIndexes()
+    }
 
   def search(indexKey: String, query: String): List[ChoiceSearchResult] =
     indexMap.get(indexKey) match {
@@ -84,7 +90,7 @@ class ChoiceRuntimeIndexService {
           if (searchQuery.isEmpty) {
             List.empty
           } else {
-            searchByTerms(searcher, searchQuery, MAX_RESULTS)
+            searchByTerms(searcher, searchQuery)
           }
         } match {
           case Success(results) => results
@@ -93,7 +99,7 @@ class ChoiceRuntimeIndexService {
       case None => List.empty
     }
 
-  private def searchByTerms(searcher: IndexSearcher, searchQuery: String, maxResults: Int): List[ChoiceSearchResult] = {
+  private def searchByTerms(searcher: IndexSearcher, searchQuery: String): List[ChoiceSearchResult] = {
     val terms = searchQuery.split("\\s+").filter(_.nonEmpty)
 
     val booleanQuery = new BooleanQuery.Builder()
@@ -101,7 +107,7 @@ class ChoiceRuntimeIndexService {
       booleanQuery.add(new PrefixQuery(new Term("searchable", term)), Occur.MUST)
     }
 
-    val results = searcher.search(booleanQuery.build(), maxResults)
+    val results = searcher.search(booleanQuery.build(), Integer.MAX_VALUE)
     results.scoreDocs.toList.map { scoreDoc =>
       val doc = searcher.storedFields().document(scoreDoc.doc)
       ChoiceSearchResult(doc.get("value"), doc.get("label"))
