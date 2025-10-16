@@ -24,6 +24,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.Mongo
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieve, DataRetrieveId, DataRetrieveResult, NotChecked, RetrieveDataType }
 
+import java.time.LocalDateTime
+
 class ThirdPartyDataSuite extends FunSuite {
 
   test("Roundtrip of RetrieveDataType.ObjectType") {
@@ -67,10 +69,12 @@ class ThirdPartyDataSuite extends FunSuite {
          |        "sortCodeIsPresentOnEISCD": "yes",
          |        "iban": "GB21BARC20670586473611"
          |      },
+         |      "failureCount": 1,
          |      "requestParams": {
          |        "accountNumber": "86473611",
          |        "sortCode": "206705"
-         |      }
+         |      },
+         |      "failureCountResetTime": "2025-10-14T17:25:00"
          |    }
          |  }
          |}""".stripMargin
@@ -97,7 +101,9 @@ class ThirdPartyDataSuite extends FunSuite {
           )
         )
       ),
-      requestParams = Json.obj("nino" -> "CC111111C")
+      requestParams = Json.obj("nino" -> "CC111111C"),
+      None,
+      None
     )
 
     val thirdPartyData = ThirdPartyData(
@@ -266,7 +272,9 @@ class ThirdPartyDataSuite extends FunSuite {
           DataRetrieve.Attribute("iban")                                     -> "GB21BARC20670586473611"
         )
       ),
-      requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705")
+      requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705"),
+      Some(1),
+      Some(LocalDateTime.of(2025, 10, 14, 17, 25, 0))
     )
   }
 }

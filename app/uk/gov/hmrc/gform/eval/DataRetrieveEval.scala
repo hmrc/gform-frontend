@@ -18,11 +18,15 @@ package uk.gov.hmrc.gform.eval
 
 import cats.instances.list._
 import cats.syntax.traverse._
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, Empty, ListResult }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataRetrieveCtx
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, RetrieveDataType }
+import uk.gov.hmrc.gform.typeclasses.Now
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object DataRetrieveEval {
   private[eval] def getDataRetrieveAttribute(
@@ -32,7 +36,7 @@ object DataRetrieveEval {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
-        .flatMap { case DataRetrieveResult(_, data, _) =>
+        .flatMap { case DataRetrieveResult(_, data, _, _, _) =>
           data match {
             case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
             case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
@@ -68,7 +72,7 @@ object DataRetrieveEval {
 
     def getResult(id: DataRetrieveId) = dataRetrieve
       .get(id)
-      .map { case DataRetrieveResult(_, data, _) =>
+      .map { case DataRetrieveResult(_, data, _, _, _) =>
         data match {
           case RetrieveDataType.ObjectType(row) => getAddressResult(row)
           case RetrieveDataType.ListType(xs)    => ListResult(xs.map(row => getAddressResult(row)))
@@ -111,6 +115,60 @@ object DataRetrieveEval {
     addressMap.collect {
       case (key, Some(value)) if !value.isBlank => key -> value
     }
+  }
+
+  private[eval] def getFailureCount(
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveCtx: DataRetrieveCtx
+  )(implicit now: Now[LocalDateTime]): ExpressionResult = {
+    def getAttributes(id: DataRetrieveId) =
+      dataRetrieve
+        .get(id)
+        .map { dr =>
+          val reset = dr.failureCountResetTime.map(_.isBefore(now.apply()))
+          reset match {
+            case Some(false) => dr.failureCount.getOrElse(0)
+            case _           => 0
+          }
+        }
+
+    getAttributes(dataRetrieveCtx.id)
+      .orElse(
+        getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
+      )
+      .fold(ExpressionResult.empty)(NumberResult(_))
+  }
+
+  private[eval] def getFailureResetTime(
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveCtx: DataRetrieveCtx
+  ): ExpressionResult = {
+    def getAttributes(id: DataRetrieveId) =
+      dataRetrieve
+        .get(id)
+        .flatMap(_.failureCountResetTime.map(_.format(DateTimeFormatter.ofPattern("HH:mm"))))
+
+    getAttributes(dataRetrieveCtx.id)
+      .orElse(
+        getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
+      )
+      .fold(ExpressionResult.empty)(StringResult(_))
+  }
+
+  private[eval] def getFailureResetDate(
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveCtx: DataRetrieveCtx
+  ): ExpressionResult = {
+    def getAttributes(id: DataRetrieveId) =
+      dataRetrieve
+        .get(id)
+        .flatMap(_.failureCountResetTime.map(_.toLocalDate))
+
+    getAttributes(dataRetrieveCtx.id)
+      .orElse(
+        getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
+      )
+      .fold(ExpressionResult.empty)(DateResult(_))
   }
 
   private def isInUK(country: String): Boolean = ukParts(country.toUpperCase)

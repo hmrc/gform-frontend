@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.gform.bars
 
+import cats.implicits.catsSyntaxEq
 import uk.gov.hmrc.gform.gform.{ DataRetrieveConnectorBlueprint, ExceptionalResponse }
+import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType.{ ListType, ObjectType }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -35,6 +37,8 @@ trait BankAccountReputationConnector[F[_]] {
   def personalBankAccountExistence(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier
   ): F[ServiceCallResponse[DataRetrieve.Response]]
+
+  def isFailure(response: DataRetrieve.Response): Boolean
 }
 
 class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit ex: ExecutionContext)
@@ -86,4 +90,20 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
     personalBankAccountExistenceB.post(dataRetrieve, request)
+
+  override def isFailure(response: DataRetrieve.Response): Boolean =
+    response.toRetrieveDataType() match {
+      case ObjectType(data) =>
+        val accountNumWellFormattedValue = data.getOrElse(DataRetrieve.Attribute("accountNumberIsWellFormatted"), "")
+        val accountExistsValue = data.getOrElse(DataRetrieve.Attribute("accountExists"), "")
+        val nameMatchesValue = data.getOrElse(DataRetrieve.Attribute("nameMatches"), "")
+
+        val commonPredicate = accountNumWellFormattedValue =!= "no"
+        val failureCheck1 = commonPredicate && accountExistsValue === "inapplicable"
+        val failureCheck2 =
+          commonPredicate && accountExistsValue === "yes" && nameMatchesValue =!= "yes" && nameMatchesValue =!= "partial"
+
+        failureCheck1 || failureCheck2
+      case ListType(_) => throw new IllegalStateException("List type is illegal for BARs check response")
+    }
 }
