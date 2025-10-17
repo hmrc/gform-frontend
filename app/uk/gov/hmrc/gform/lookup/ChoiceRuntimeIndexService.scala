@@ -23,6 +23,7 @@ import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig
 import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery }
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Json, OFormat }
 import scala.collection.mutable
 
@@ -45,9 +46,12 @@ class WhiteSpaceOnlyAnalyzer() extends Analyzer {
 
 class ChoiceRuntimeIndexService {
 
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
   private val analyzer = new WhiteSpaceOnlyAnalyzer()
   private val indexMap: mutable.Map[String, (ByteBuffersDirectory, IndexSearcher, Long)] = mutable.Map.empty
   private val INDEX_TTL_MS = 30 * 60 * 1000 // 30 minutes TTL
+  private val INDEX_TTL_REFRESH_MS = 60 * 1000 // 1 minute
 
   def createIndexForChoiceOptions(indexKey: String, options: List[ChoiceOption]): Unit =
     if (!indexMap.contains(indexKey)) {
@@ -78,6 +82,8 @@ class ChoiceRuntimeIndexService {
       val reader = DirectoryReader.open(directory)
       val searcher = new IndexSearcher(reader)
       val timestamp = System.currentTimeMillis()
+
+      logger.info(s"Creating lookahead index $indexKey.")
       indexMap.addOne((indexKey -> (directory, searcher, timestamp)))
 
       cleanupExpiredIndexes()
@@ -85,7 +91,8 @@ class ChoiceRuntimeIndexService {
 
   def search(indexKey: String, query: String): List[ChoiceSearchResult] =
     indexMap.get(indexKey) match {
-      case Some((_, searcher, _)) =>
+      case Some((_, searcher, timestamp)) =>
+        resetTTLIfNeeded(indexKey, timestamp)
         Try {
           val searchQuery = query.toLowerCase.trim
           if (searchQuery.isEmpty) {
@@ -97,7 +104,9 @@ class ChoiceRuntimeIndexService {
           case Success(results) => results
           case Failure(_)       => List.empty
         }
-      case None => List.empty
+      case None =>
+        logger.error(s"Lookahead index $indexKey not found.")
+        List.empty
     }
 
   private def searchByTerms(searcher: IndexSearcher, searchQuery: String): List[ChoiceSearchResult] = {
@@ -112,6 +121,20 @@ class ChoiceRuntimeIndexService {
     results.scoreDocs.toList.map { scoreDoc =>
       val doc = searcher.storedFields().document(scoreDoc.doc)
       ChoiceSearchResult(doc.get("value"), doc.get("label"))
+    }
+  }
+
+  // When index is in use, reset its TTL.
+  // Limit TTL reset only once per INDEX_TTL_REFRESH_MS
+  private def resetTTLIfNeeded(indexKey: String, timestamp: Long): Unit = {
+    val currentTime = System.currentTimeMillis()
+    if (currentTime - timestamp > INDEX_TTL_REFRESH_MS) {
+      logger.info(s"Refreshing lookahead index $indexKey TTL.")
+      val _ = indexMap.updateWith(indexKey)(value =>
+        value.map { case (directory, searcher, _) =>
+          (directory, searcher, currentTime)
+        }
+      )
     }
   }
 
@@ -131,7 +154,11 @@ class ChoiceRuntimeIndexService {
           case _: Exception =>
         }
       }
+      logger.info(s"Removing lookahead index $key.")
       indexMap.remove(key)
     }
+
+    val remainingIndices: Int = indexMap.keys.size
+    logger.info(s"Remaining lookahead indices count $remainingIndices. Removed indices ${expiredKeys.size}.")
   }
 }

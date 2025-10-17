@@ -2835,7 +2835,7 @@ class SectionRenderingService(
           .mkString("|")
           .hashCode
           .toString
-        val indexKey = s"choice-${formComponent.id.value}-$contentHash"
+        val indexKey = s"choice-${ei.formTemplateId.value}-${formComponent.id.value}-$contentHash"
 
         choiceRuntimeIndexService.createIndexForChoiceOptions(
           indexKey,
