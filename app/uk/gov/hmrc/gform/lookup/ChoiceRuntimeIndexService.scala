@@ -24,6 +24,7 @@ import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery }
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
 import play.api.libs.json.{ Json, OFormat }
+import scala.collection.mutable
 
 import scala.util.{ Failure, Success, Try }
 
@@ -45,7 +46,7 @@ class WhiteSpaceOnlyAnalyzer() extends Analyzer {
 class ChoiceRuntimeIndexService {
 
   private val analyzer = new WhiteSpaceOnlyAnalyzer()
-  private var indexMap: Map[String, (ByteBuffersDirectory, IndexSearcher, Long)] = Map.empty
+  private val indexMap: mutable.Map[String, (ByteBuffersDirectory, IndexSearcher, Long)] = mutable.Map.empty
   private val INDEX_TTL_MS = 30 * 60 * 1000 // 30 minutes TTL
 
   def createIndexForChoiceOptions(indexKey: String, options: List[ChoiceOption]): Unit =
@@ -77,7 +78,7 @@ class ChoiceRuntimeIndexService {
       val reader = DirectoryReader.open(directory)
       val searcher = new IndexSearcher(reader)
       val timestamp = System.currentTimeMillis()
-      indexMap = indexMap + (indexKey -> (directory, searcher, timestamp))
+      indexMap.addOne((indexKey -> (directory, searcher, timestamp)))
 
       cleanupExpiredIndexes()
     }
@@ -130,7 +131,7 @@ class ChoiceRuntimeIndexService {
           case _: Exception =>
         }
       }
-      indexMap = indexMap - key
+      indexMap.remove(key)
     }
   }
 }
