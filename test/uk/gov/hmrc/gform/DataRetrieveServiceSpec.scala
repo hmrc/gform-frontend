@@ -68,8 +68,8 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
   it should "return Xth time failure request with reset failure count and timeout if past previous block time" in new TestFixture {
     mockFailureResponse()
 
-    val futureTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
-    val request = mkRequest(Some(2), Some(futureTime))
+    val pastTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
+    val request = mkRequest(Some(2), Some(pastTime))
 
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
@@ -87,8 +87,8 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
   it should "return Xth time success request with reset failure count and timeout if past previous block time" in new TestFixture {
     mockSuccessResponse()
 
-    val futureTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
-    val request = mkRequest(Some(2), Some(futureTime))
+    val pastTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
+    val request = mkRequest(Some(2), Some(pastTime))
 
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
