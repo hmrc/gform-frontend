@@ -98,6 +98,7 @@ class BankAccountReputationAsyncConnectorSpec
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
       None,
+      None,
       None
     )
 
@@ -130,6 +131,7 @@ class BankAccountReputationAsyncConnectorSpec
       ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
+      None,
       None,
       None
     )
@@ -164,6 +166,7 @@ class BankAccountReputationAsyncConnectorSpec
       ),
       Map(DataRetrieve.Attribute("sequenceNumber") -> DataRetrieve.AttrType.Number),
       List.empty[DataRetrieve.ParamExpr],
+      None,
       None,
       None
     )

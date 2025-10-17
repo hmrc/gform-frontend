@@ -415,9 +415,11 @@ class AuthenticatedRequestActions(
         specimenSource <- if (formTemplateForForm.isSpecimen) {
                             gformConnector.getFormTemplate(noSpecimen(formTemplateForForm._id)).map(Some(_))
                           } else None.pure[Future]
-        formUpd = if (form.status === Submitted) {
-                    form.copy(formTemplateId = formTemplate._id)
-                  } else form
+        formUpd = form.status match {
+                    case Submitted     => form.copy(formTemplateId = formTemplate._id)
+                    case DeleteBlocked => form.copy(status = form.deleteBlockedOrInProgress())
+                    case _             => form
+                  }
         cache = AuthCacheWithForm(
                   retrievals,
                   formUpd,

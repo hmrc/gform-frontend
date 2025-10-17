@@ -163,7 +163,8 @@ class SaveAcknowledgementController(
                 uk.gov.hmrc.gform.tasklist.routes.TaskListController.landingPage(formTemplateId, accessCode)
               }
           }
-          val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
+          val saveAcknowledgement =
+            new SaveAcknowledgement(formTemplate, envelopeExpiryDate, cache.form.status)
           Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, accessCode))
         }
 
@@ -254,7 +255,11 @@ class SaveAcknowledgementController(
                           ) // TODO JoVl why are Coordinates needed here?
                       }
                       val saveAcknowledgement =
-                        new SaveAcknowledgement(cache.formTemplate, cache.form.envelopeExpiryDate)
+                        new SaveAcknowledgement(
+                          cache.formTemplate,
+                          cache.form.envelopeExpiryDate,
+                          cache.form.status
+                        )
                       Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
                         .pure[Future]
                   }

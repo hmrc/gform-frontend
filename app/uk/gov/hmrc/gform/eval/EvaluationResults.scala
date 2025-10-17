@@ -728,6 +728,10 @@ case class EvaluationResults(
         evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
           DataRetrieveEval.getFailureCount(dr, d)
         }
+      case d @ DataRetrieveCtx(_, DataRetrieve.failureIsBlockedAttribute) =>
+        evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
+          DataRetrieveEval.getIsBlocked(dr, d)
+        }
       case d @ DataRetrieveCtx(_, DataRetrieve.failureResetTimeAttribute) =>
         evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
           DataRetrieveEval.getFailureResetTime(dr, d)

@@ -141,6 +141,7 @@ object DataRetrieveService {
               result.toRetrieveDataType(),
               requestParams,
               failureCount,
+              dataRetrieve.maxFailedAttempts,
               failureResetTime
             )
           )

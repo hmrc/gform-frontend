@@ -388,6 +388,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                   RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("isValid") -> "111")),
                   Json.obj(),
                   None,
+                  None,
                   None
                 )
               )
@@ -424,6 +425,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
                     )
                   ),
                   Json.obj(),
+                  None,
                   None,
                   None
                 )

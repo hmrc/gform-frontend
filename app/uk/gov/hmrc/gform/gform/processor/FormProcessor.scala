@@ -203,7 +203,7 @@ class FormProcessor(
       .toPageModel
       .toList
       .flatMap(_.dataRetrieves)
-      .collect { case DataRetrieve(_, id, _, _, _, _, _) =>
+      .collect { case DataRetrieve(_, id, _, _, _, _, _, _) =>
         id
       }
       .toSet

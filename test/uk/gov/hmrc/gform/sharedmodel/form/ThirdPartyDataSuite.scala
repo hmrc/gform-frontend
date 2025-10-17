@@ -70,6 +70,7 @@ class ThirdPartyDataSuite extends FunSuite {
          |        "iban": "GB21BARC20670586473611"
          |      },
          |      "failureCount": 1,
+         |      "failureMaxAttempts": 3,
          |      "requestParams": {
          |        "accountNumber": "86473611",
          |        "sortCode": "206705"
@@ -102,6 +103,7 @@ class ThirdPartyDataSuite extends FunSuite {
         )
       ),
       requestParams = Json.obj("nino" -> "CC111111C"),
+      None,
       None,
       None
     )
@@ -274,6 +276,7 @@ class ThirdPartyDataSuite extends FunSuite {
       ),
       requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705"),
       Some(1),
+      Some(3),
       Some(LocalDateTime.of(2025, 10, 14, 17, 25, 0))
     )
   }
