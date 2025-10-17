@@ -104,7 +104,8 @@ case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, s
 
 class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  choiceRuntimeIndexService: ChoiceRuntimeIndexService
 ) {
 
   def renderAddToListCheckYourAnswers[T <: PageMode](
@@ -2598,7 +2599,7 @@ class SectionRenderingService(
       }
     val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
     optionData match {
-      case OptionData.ValueBased(_, _, _, _, _, _) =>
+      case OptionData.ValueBased(_, _, _, _, _, _, _) =>
         val value = optionData.getValue(-1, formModelVisibilityOptics)
         !selectedValues(value)
       case OptionData.IndexBased(_, _, _, _, _) =>
@@ -2611,7 +2612,7 @@ class SectionRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo]
   ): Boolean =
     optionData match {
-      case OptionData.ValueBased(_, _, includeIf, _, value, _) =>
+      case OptionData.ValueBased(_, _, includeIf, _, value, _, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
       case OptionData.IndexBased(_, _, includeIf, _, _) =>
         includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
@@ -2813,6 +2814,67 @@ class SectionRenderingService(
 
         new components.GovukCheckboxes(govukFieldset, govukHint, govukLabel, govukFormGroup, govukHintAndErrorMessage)(
           checkboxes
+        )
+
+      case TypeAhead =>
+        val choiceOptions = visibleOptionsWithIndex.map { case (option, index) =>
+          val keyWord = option match {
+            case valueBased: OptionData.ValueBased => valueBased.keyWord
+            case _                                 => None
+          }
+          ChoiceOption(
+            value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics),
+            label = option.label.value(),
+            keyWord = keyWord.map(_.value())
+          )
+        }.toList
+
+        // Generate a deterministic index key based on choice options content
+        val contentHash = choiceOptions
+          .map(opt => s"${opt.value}:${opt.label}:${opt.keyWord.getOrElse("")}")
+          .mkString("|")
+          .hashCode
+          .toString
+        val indexKey = s"choice-${ei.formTemplateId.value}-${formComponent.id.value}-$contentHash"
+
+        choiceRuntimeIndexService.createIndexForChoiceOptions(
+          indexKey,
+          choiceOptions
+        )
+
+        val currentValue =
+          ei.formModelOptics.pageOpticsData
+            .many(formComponent.modelComponentId)
+            .fold(Option(""))(items => items.headOption)
+
+        val selectItems = SelectItem(value = currentValue, text = "") ::
+          visibleOptionsWithIndex.map { case (option, index) =>
+            SelectItem(
+              value = Some(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
+              text = option.label.value(),
+              selected = currentValue.contains(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics))
+            )
+          }.toList
+
+        html.form.snippets.lookup_autosuggest(
+          label = Label(
+            content = content.Text(formComponent.label.value()),
+            isPageHeading = isPageHeading,
+            classes = getLabelClasses(isPageHeading, formComponent.labelSize)
+          ),
+          formComponentId = formComponent.id,
+          isEditable = formComponent.editable,
+          showAll = ShowAll.Disabled,
+          register = Register.Choice,
+          formTemplateId = ei.formTemplateId,
+          maybeAccessCode = ei.maybeAccessCode,
+          prepop = currentValue,
+          validationResult = formFieldValidationResult,
+          hint = hintText(formComponent),
+          selectItems = Some(selectItems),
+          errorMessage = errorMessage,
+          displayWidth = DisplayWidth.DEFAULT,
+          indexKey = Some(indexKey)
         )
     }
   }

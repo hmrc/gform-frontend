@@ -32,6 +32,7 @@ object Dependencies {
     "com.softwaremill.quicklens" %% "quicklens"                  % "1.9.12",
     "com.nrinaudo"               %% "kantan.csv"                 % "0.8.0",
     "org.apache.lucene"           % "lucene-core"                % luceneVersion,
+    "org.apache.lucene"           % "lucene-analysis-common"     % luceneVersion,
     "org.jsoup"                   % "jsoup"                      % "1.19.1",
     "org.webjars.npm"             % "govuk-frontend"             % "5.9.0",
     "io.github.openhtmltopdf"     % "openhtmltopdf-pdfbox"       % "1.1.30",

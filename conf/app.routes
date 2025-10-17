@@ -93,6 +93,7 @@ GET           /language/:lang                                                   
 GET           /language/:formTemplateId/:maybeAccessCode/:lang                                                   uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguageDataChange(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: String)
 
 GET           /lookup/:formTemplateId/:formComponentId/:register/:maybeAccessCode                                uk.gov.hmrc.gform.gform.LookupController.lookupWithSelectionCriteria(formTemplateId: FormTemplateId, formComponentId: FormComponentId, register: Register, maybeAccessCode: Option[AccessCode], query: LookupQuery)
+GET           /lookup-choice/:formTemplateId/:maybeAccessCode                                                    uk.gov.hmrc.gform.gform.LookupController.lookupChoiceTypeAhead(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], query: LookupQuery, indexKey: String)
 
 GET           /sign-out/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.SignOutController.signOut(formTemplateId: FormTemplateId)
 GET           /signed-out/:formTemplateId                                                                        uk.gov.hmrc.gform.gform.SignOutController.showSignedOutPage(formTemplateId: FormTemplateId)

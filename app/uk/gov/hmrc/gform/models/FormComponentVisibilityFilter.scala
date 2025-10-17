@@ -41,7 +41,7 @@ class FormComponentVisibilityFilter[D <: DataOrigin, P <: PageMode](
     group.modify(_.fields).using(_.filter(isVisible))
 
   private def isVisibleOption(optionData: OptionData): Boolean = optionData match {
-    case OptionData.ValueBased(_, _, includeIf, _, _, _) =>
+    case OptionData.ValueBased(_, _, includeIf, _, _, _, _) =>
       includeIf.fold(true)(includeIf => formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase))
     case OptionData.IndexBased(_, _, includeIf, _, _) =>
       includeIf.fold(true)(includeIf => formModelVisibilityOptics.evalIncludeIfExpr(includeIf, phase))

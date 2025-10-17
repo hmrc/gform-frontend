@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
@@ -89,7 +89,9 @@ class SummaryRenderingServiceSpec
     )
     lazy val validationResult = ValidationResult.empty
 
-    val renderer = new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty))
+    val choiceRuntimeIndexService: ChoiceRuntimeIndexService = new ChoiceRuntimeIndexService()
+    val renderer =
+      new SectionRenderingService(frontendAppConfig, new LookupRegistry(Map.empty), choiceRuntimeIndexService)
     val mockObjectStoreService = mock[ObjectStoreAlgebra[Future]]
     val mockValidationService = mock[ValidationService]
     val mockGformConnector = mock[GformConnector]

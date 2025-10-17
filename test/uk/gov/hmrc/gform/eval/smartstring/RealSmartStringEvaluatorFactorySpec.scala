@@ -60,7 +60,7 @@ class RealSmartStringEvaluatorFactorySpec
     OptionData.IndexBased(toSmartString(s), None, None, None, None)
 
   private def toValueBasedOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.ValueBased] =
-    xs.map(l => OptionData.ValueBased(toSmartString(l), None, None, None, StringBased(l), None))
+    xs.map(l => OptionData.ValueBased(toSmartString(l), None, None, None, StringBased(l), None, None))
 
   "SmartStringEvaluator" should {
 

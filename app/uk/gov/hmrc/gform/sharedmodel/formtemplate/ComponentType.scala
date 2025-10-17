@@ -343,16 +343,16 @@ sealed trait OptionData extends Product with Serializable {
   def summaryValue: Option[SmartString]
 
   def value(index: Int): String = this match {
-    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _) => value
-    case _                                                                            => index.toString
+    case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _) => value
+    case _                                                                               => index.toString
   }
   def getValue[D <: DataOrigin](index: Int, formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
     m: Messages
   ): String =
     this match {
-      case o: OptionData.IndexBased                                                     => index.toString
-      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _) => value
-      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _) =>
+      case o: OptionData.IndexBased                                                        => index.toString
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _) => value
+      case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _) =>
         formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
     }
 }
@@ -374,7 +374,8 @@ object OptionData {
     includeIf: Option[IncludeIf],
     dynamic: Option[Dynamic],
     value: OptionDataValue,
-    summaryValue: Option[SmartString]
+    summaryValue: Option[SmartString],
+    keyWord: Option[SmartString]
   ) extends OptionData
 
   implicit val format: OFormat[OptionData] = derived.oformat()
@@ -442,6 +443,7 @@ sealed trait ChoiceType
 final case object Radio extends ChoiceType
 final case object Checkbox extends ChoiceType
 final case object YesNo extends ChoiceType
+final case object TypeAhead extends ChoiceType
 
 object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat()

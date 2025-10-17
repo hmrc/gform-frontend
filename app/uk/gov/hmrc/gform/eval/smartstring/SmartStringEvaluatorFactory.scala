@@ -378,9 +378,9 @@ private class Executor(
       .map {
         case (OptionData.IndexBased(label, _, _, _, summaryValue), i) =>
           i.toString -> summaryValueOrLabel(label, summaryValue)
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value), summaryValue), _) =>
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value), summaryValue, _), _) =>
           value -> summaryValueOrLabel(label, summaryValue)
-        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr), summaryValue), _) =>
+        case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr), summaryValue, _), _) =>
           formModelVisibilityOptics
             .evalAndApplyTypeInfoFirst(expr)
             .stringRepresentation(messages) -> summaryValueOrLabel(label, summaryValue)

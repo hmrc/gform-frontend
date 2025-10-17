@@ -399,6 +399,7 @@ sealed trait Register {
     case Register.SdltReliefType           => "sdltReliefType"
     case Register.LocalAuthority           => "localAuthority"
     case Register.VfrsTradeSector          => "vfrsTradeSector"
+    case Register.Choice                   => "choice"
   }
 }
 
@@ -426,6 +427,7 @@ object Register {
   case object SdltReliefType extends Register
   case object LocalAuthority extends Register
   case object VfrsTradeSector extends Register
+  case object Choice extends Register
 
   implicit val format: OFormat[Register] = derived.oformat()
 
@@ -453,6 +455,7 @@ object Register {
     case "sdltReliefType"           => Some(Register.SdltReliefType)
     case "localAuthority"           => Some(Register.LocalAuthority)
     case "vfrsTradeSector"          => Some(Register.VfrsTradeSector)
+    case "choice"                   => Some(Register.Choice)
     case _                          => None
   }
 }

@@ -266,14 +266,14 @@ case class EvaluationResults(
 
   private def getChoicesTotalCount(optionDataNel: NonEmptyList[OptionData], evaluationContext: EvaluationContext): Int =
     optionDataNel.toList.map {
-      case _: OptionData.IndexBased                   => 1
-      case OptionData.ValueBased(_, _, _, None, _, _) => 1
-      case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _, _) =>
+      case _: OptionData.IndexBased                      => 1
+      case OptionData.ValueBased(_, _, _, None, _, _, _) => 1
+      case OptionData.ValueBased(_, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _, _, _) =>
         evaluationContext.thirdPartyData.dataRetrieve
           .flatMap(dr => dr.get(indexOfDataRetrieveCtx.ctx.id))
           .fold(0)(drr => drr.data.size)
 
-      case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _, _) =>
+      case OptionData.ValueBased(_, _, _, Some(Dynamic.ATLBased(fcId)), _, _, _) =>
         recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
     }.sum
 
