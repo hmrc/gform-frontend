@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 import java.time.LocalDateTime
@@ -83,6 +84,7 @@ case class DataRetrieve(
   attrTypeMapping: Map[DataRetrieve.Attribute, DataRetrieve.AttrType],
   params: List[DataRetrieve.ParamExpr],
   `if`: Option[IncludeIf],
+  maxFailedAttempts: Option[Int],
   failureCountResetMinutes: Option[Int]
 ) {
 
@@ -264,6 +266,7 @@ object DataRetrieve {
   }
 
   val failureCountAttribute: Attribute = Attribute("failedCount")
+  val failureIsBlockedAttribute: Attribute = Attribute("isBlocked")
   val failureResetTimeAttribute: Attribute = Attribute("unblockTime")
   val failureResetDateAttribute: Attribute = Attribute("unblockDate")
 
@@ -310,8 +313,15 @@ case class DataRetrieveResult(
   data: RetrieveDataType,
   requestParams: JsValue, // Request data used to decide if new call to the API is need when input data are changing
   failureCount: Option[Int],
+  failureMaxAttempts: Option[Int],
   failureCountResetTime: Option[LocalDateTime]
-)
+) {
+  def isBlocked(implicit now: Now[LocalDateTime]) =
+    (failureMaxAttempts, failureCount, failureCountResetTime) match {
+      case (Some(max), Some(current), Some(resetTime)) => current >= max && resetTime.isAfter(now.apply())
+      case (_, _, _)                                   => false
+    }
+}
 
 object DataRetrieveResult {
 

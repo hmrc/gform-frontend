@@ -36,7 +36,7 @@ object DataRetrieveEval {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
-        .flatMap { case DataRetrieveResult(_, data, _, _, _) =>
+        .flatMap { case DataRetrieveResult(_, data, _, _, _, _) =>
           data match {
             case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
             case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
@@ -72,7 +72,7 @@ object DataRetrieveEval {
 
     def getResult(id: DataRetrieveId) = dataRetrieve
       .get(id)
-      .map { case DataRetrieveResult(_, data, _, _, _) =>
+      .map { case DataRetrieveResult(_, data, _, _, _, _) =>
         data match {
           case RetrieveDataType.ObjectType(row) => getAddressResult(row)
           case RetrieveDataType.ListType(xs)    => ListResult(xs.map(row => getAddressResult(row)))
@@ -137,6 +137,22 @@ object DataRetrieveEval {
         getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
       )
       .fold(ExpressionResult.empty)(NumberResult(_))
+  }
+
+  private[eval] def getIsBlocked(
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveCtx: DataRetrieveCtx
+  ): ExpressionResult = {
+    def getAttributes(id: DataRetrieveId) =
+      dataRetrieve
+        .get(id)
+        .map(_.isBlocked)
+
+    getAttributes(dataRetrieveCtx.id)
+      .orElse(
+        getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
+      )
+      .fold(ExpressionResult.empty)(blocked => StringResult(blocked.toString))
   }
 
   private[eval] def getFailureResetTime(

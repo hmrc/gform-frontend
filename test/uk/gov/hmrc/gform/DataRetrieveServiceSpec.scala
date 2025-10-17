@@ -186,6 +186,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
       None,
+      resetMinutes.map(_ => 3),
       resetMinutes
     )
 

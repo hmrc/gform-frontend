@@ -194,6 +194,7 @@ class DelegatedAgentAuthConnectorSpec
         )
       ),
       None,
+      None,
       None
     )
 
@@ -217,6 +218,7 @@ class DelegatedAgentAuthConnectorSpec
           FormCtx(FormComponentId("payeRef"))
         )
       ),
+      None,
       None,
       None
     )

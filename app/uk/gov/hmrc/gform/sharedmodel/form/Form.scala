@@ -44,7 +44,12 @@ final case class Form(
   componentIdToFileId: FormComponentIdToFileIdMapping,
   taskIdTaskStatus: TaskIdTaskStatusMapping,
   startDate: Instant
-)
+) {
+  def deleteBlockedOrInProgress(): FormStatus = {
+    val isFormBlocked = thirdPartyData.dataRetrieve.map(_.values.exists(_.isBlocked))
+    if (isFormBlocked.getOrElse(false)) DeleteBlocked else InProgress
+  }
+}
 
 object Form {
 
@@ -122,6 +127,7 @@ case object Returning extends FormStatus
 case object Accepted extends FormStatus
 case object Submitting extends FormStatus
 case object Submitted extends FormStatus
+case object DeleteBlocked extends FormStatus
 
 object FormStatus {
   implicit val equal: Eq[FormStatus] = Eq.fromUniversalEquals
@@ -139,7 +145,8 @@ object FormStatus {
       Accepting,
       Accepted,
       Submitting,
-      Submitted
+      Submitted,
+      DeleteBlocked
     )
 
   def unapply(s: String): Option[FormStatus] = all.find(_.toString === s)

@@ -58,6 +58,8 @@ object Permissions {
       case (NewFormLink, _, _)                                             => valid(operation, role, status)
       case (SwitchLanguage, _, _)                                          => valid(operation, role, status)
       case (_, _, Submitted)                                               => formSubmitted(operation, role, status)
+      case (DeleteForm, Agent | Customer, DeleteBlocked)                   => definitelyInvalid(operation, role, status)
+      case (DeleteForm, Agent | Customer, CustomerEditableFormStatus(_))   => valid(operation, role, status)
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => valid(operation, role, status)
       case (EditFormWith, Customer | Agent, _)                             => mostLikelyInvalid(operation, role, status)
       case (EditFormWith, Reviewer, StableReviewFormStatus(_))             => valid(operation, role, status)
@@ -191,8 +193,8 @@ object Permissions {
 
   object CustomerEditableFormStatus {
     def unapply(status: FormStatus): Option[FormStatus] = status match {
-      case InProgress | Summary | Validated | Signed => Some(status)
-      case _                                         => None
+      case InProgress | Summary | Validated | Signed | DeleteBlocked => Some(status)
+      case _                                                         => None
     }
   }
 }

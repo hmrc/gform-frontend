@@ -117,6 +117,7 @@ class CompanyInformationConnectorSpec
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
       None,
+      None,
       None
     )
 
@@ -145,6 +146,7 @@ class CompanyInformationConnectorSpec
         DataRetrieve.Attribute("activeLlpMembers")  -> DataRetrieve.AttrType.Number
       ),
       List.empty[DataRetrieve.ParamExpr],
+      None,
       None,
       None
     )
@@ -228,6 +230,7 @@ class CompanyInformationConnectorSpec
           DataRetrieve.Attribute("appointedOn")    -> DataRetrieve.AttrType.Date
         ),
         List.empty[DataRetrieve.ParamExpr],
+        None,
         None,
         None
       )

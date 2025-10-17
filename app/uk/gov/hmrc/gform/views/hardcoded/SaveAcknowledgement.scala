@@ -16,16 +16,22 @@
 
 package uk.gov.hmrc.gform.views.hardcoded
 
+import cats.implicits.catsSyntaxEq
 import play.api.i18n.Messages
+
 import java.time.format.DateTimeFormatter
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeExpiryDate
+import uk.gov.hmrc.gform.sharedmodel.form.{ DeleteBlocked, EnvelopeExpiryDate, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.views.html.localisedDateString
 import uk.gov.hmrc.govukfrontend.views.html.components._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.pWithBreak
 
-class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Option[EnvelopeExpiryDate])(implicit
+class SaveAcknowledgement(
+  val formTemplate: FormTemplate,
+  envelopeExpiryDate: Option[EnvelopeExpiryDate],
+  status: FormStatus
+)(implicit
   messages: Messages
 ) extends CommonPageProperties(formTemplate) {
 
@@ -45,4 +51,5 @@ class SaveAcknowledgement(val formTemplate: FormTemplate, envelopeExpiryDate: Op
 
   val panelHtml: Html = new GovukPanel()(panel)
 
+  val isBlocked: Boolean = status === DeleteBlocked
 }
