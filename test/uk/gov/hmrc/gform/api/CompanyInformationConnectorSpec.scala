@@ -116,6 +116,8 @@ class CompanyInformationConnectorSpec
       ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
+      None,
+      None,
       None
     )
 
@@ -144,6 +146,8 @@ class CompanyInformationConnectorSpec
         DataRetrieve.Attribute("activeLlpMembers")  -> DataRetrieve.AttrType.Number
       ),
       List.empty[DataRetrieve.ParamExpr],
+      None,
+      None,
       None
     )
 
@@ -226,12 +230,16 @@ class CompanyInformationConnectorSpec
           DataRetrieve.Attribute("appointedOn")    -> DataRetrieve.AttrType.Date
         ),
         List.empty[DataRetrieve.ParamExpr],
+        None,
+        None,
         None
       )
 
     val request = DataRetrieve.Request(
       Json.obj(),
-      List.empty[(String, String)]
+      List.empty[(String, String)],
+      None,
+      None
     ) // Request Doesn't matter since response is mocked
   }
 

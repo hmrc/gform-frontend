@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, 
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, InProgress, QueryParams, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, QueryParams, Summary, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -224,7 +224,7 @@ class FastForwardService(
                  )
 
       formStatus = maybeSn match {
-                     case SectionOrSummary.Section(_) => InProgress
+                     case SectionOrSummary.Section(_) => cache.form.deleteBlockedOrInProgress()
                      case _                           => Summary
                    }
       userData = UserData(
