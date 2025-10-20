@@ -2858,13 +2858,14 @@ class SectionRenderingService(
 
         html.form.snippets.lookup_autosuggest(
           label = Label(
+            forAttr = Some(formComponent.id.value),
             content = content.Text(formComponent.label.value()),
             isPageHeading = isPageHeading,
             classes = getLabelClasses(isPageHeading, formComponent.labelSize)
           ),
           formComponentId = formComponent.id,
           isEditable = formComponent.editable,
-          showAll = ShowAll.Disabled,
+          showAll = ShowAll.Enabled,
           register = Register.Choice,
           formTemplateId = ei.formTemplateId,
           maybeAccessCode = ei.maybeAccessCode,

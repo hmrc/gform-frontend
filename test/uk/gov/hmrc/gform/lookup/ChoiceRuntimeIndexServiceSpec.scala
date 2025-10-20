@@ -42,16 +42,32 @@ class ChoiceRuntimeIndexServiceSpec extends AnyFlatSpecLike with Matchers {
     results shouldBe List.empty
   }
 
-  it should "return empty results for empty search query" in {
+  it should "return all results for empty search query" in {
     service.createIndexForChoiceOptions(indexKey, sampleChoiceOptions)
     val results = service.search(indexKey, "")
-    results shouldBe List.empty
+    val expected = List(
+      ChoiceSearchResult("limitedcompany", "Limited Company"),
+      ChoiceSearchResult("partnership", "Partnership"),
+      ChoiceSearchResult("soletrader", "Sole Trader"),
+      ChoiceSearchResult("charity", "Charitable Organisation"),
+      ChoiceSearchResult("corporation", "Corporation"),
+      ChoiceSearchResult("publiclimitedcompany", "Public Limited Company")
+    )
+    results shouldBe expected
   }
 
-  it should "return empty results for whitespace-only search query" in {
+  it should "return all results for whitespace-only search query" in {
     service.createIndexForChoiceOptions(indexKey, sampleChoiceOptions)
     val results = service.search(indexKey, "   ")
-    results shouldBe List.empty
+    val expected = List(
+      ChoiceSearchResult("limitedcompany", "Limited Company"),
+      ChoiceSearchResult("partnership", "Partnership"),
+      ChoiceSearchResult("soletrader", "Sole Trader"),
+      ChoiceSearchResult("charity", "Charitable Organisation"),
+      ChoiceSearchResult("corporation", "Corporation"),
+      ChoiceSearchResult("publiclimitedcompany", "Public Limited Company")
+    )
+    results shouldBe expected
   }
 
   "Exact keyword search" should "find results by exact keyword match" in {

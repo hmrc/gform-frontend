@@ -124,11 +124,7 @@ class LookupController(
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       _ => _ => _ => _ => _ =>
-        val results = lookupQuery match {
-          case LookupQuery.Empty => List.empty[ChoiceSearchResult]
-          case LookupQuery.Value(query) =>
-            choiceRuntimeIndexService.search(indexKey, query)
-        }
+        val results = choiceRuntimeIndexService.search(indexKey, lookupQuery.asString)
 
         Ok(Json.toJson(results)).pure[Future]
     }

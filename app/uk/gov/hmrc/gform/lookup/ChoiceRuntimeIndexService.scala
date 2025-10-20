@@ -20,7 +20,7 @@ import org.apache.lucene.analysis.{ Analyzer, TokenStream }
 import org.apache.lucene.analysis.core.{ LowerCaseFilter, WhitespaceTokenizer }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField }
 import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig, Term }
-import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, PrefixQuery }
+import org.apache.lucene.search.{ BooleanQuery, IndexSearcher, MatchAllDocsQuery, PrefixQuery }
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
 import org.slf4j.{ Logger, LoggerFactory }
@@ -95,11 +95,7 @@ class ChoiceRuntimeIndexService {
         resetTTLIfNeeded(indexKey, timestamp)
         Try {
           val searchQuery = query.toLowerCase.trim
-          if (searchQuery.isEmpty) {
-            List.empty
-          } else {
-            searchByTerms(searcher, searchQuery)
-          }
+          searchByTerms(searcher, searchQuery)
         } match {
           case Success(results) => results
           case Failure(_)       => List.empty
@@ -110,14 +106,18 @@ class ChoiceRuntimeIndexService {
     }
 
   private def searchByTerms(searcher: IndexSearcher, searchQuery: String): List[ChoiceSearchResult] = {
-    val terms = searchQuery.split("\\s+").filter(_.nonEmpty)
+    val query = if (searchQuery.isEmpty) {
+      new MatchAllDocsQuery()
+    } else {
+      val terms = searchQuery.split("\\s+").filter(_.nonEmpty)
 
-    val booleanQuery = new BooleanQuery.Builder()
-    terms.foreach { term =>
-      booleanQuery.add(new PrefixQuery(new Term("searchable", term)), Occur.MUST)
+      val booleanQuery = new BooleanQuery.Builder()
+      terms.foreach { term =>
+        booleanQuery.add(new PrefixQuery(new Term("searchable", term)), Occur.MUST)
+      }
+      booleanQuery.build()
     }
-
-    val results = searcher.search(booleanQuery.build(), Integer.MAX_VALUE)
+    val results = searcher.search(query, Integer.MAX_VALUE)
     results.scoreDocs.toList.map { scoreDoc =>
       val doc = searcher.storedFields().document(scoreDoc.doc)
       ChoiceSearchResult(doc.get("value"), doc.get("label"))
