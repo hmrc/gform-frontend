@@ -55,7 +55,6 @@ object Permissions {
       case (ForceUpdateFormStatus, _, Submitted)                           => valid(operation, role, status)
       case (EditFormAcknowledgement, _, Submitted)                         => valid(operation, role, status)
       case (ForceReturnToCYA, _, _)                                        => valid(operation, role, status)
-      case (NewFormLink, _, _)                                             => valid(operation, role, status)
       case (SwitchLanguage, _, _)                                          => valid(operation, role, status)
       case (_, _, Submitted)                                               => formSubmitted(operation, role, status)
       case (DeleteForm, Agent | Customer, DeleteBlocked)                   => definitelyInvalid(operation, role, status)

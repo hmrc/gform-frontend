@@ -27,8 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import scala.concurrent.duration.{ Duration, MILLISECONDS }
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Future
 
 class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
 
@@ -38,13 +37,14 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), mkRequest(None, None))
 
-    val maybeRes: Option[DataRetrieveResult] = Await.result[Option[DataRetrieveResult]](resF, defaultWait)
-    val newResetTime: LocalDateTime =
-      LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
+    whenReady(resF) { maybeRes =>
+      val newResetTime: LocalDateTime =
+        LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
 
-    maybeRes.fold(assert(false)) { result =>
-      result.failureCountResetTime shouldBe Some(newResetTime)
-      result.failureCount shouldBe Some(1)
+      maybeRes.fold(assert(false)) { result =>
+        result.failureCountResetTime shouldBe Some(newResetTime)
+        result.failureCount shouldBe Some(1)
+      }
     }
   }
 
@@ -57,11 +57,11 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
 
-    val maybeRes: Option[DataRetrieveResult] = Await.result[Option[DataRetrieveResult]](resF, defaultWait)
-
-    maybeRes.fold(assert(false)) { result =>
-      result.failureCountResetTime shouldBe request.failureResetTime
-      result.failureCount shouldBe request.previousFailureCount.map(_ + 1)
+    whenReady(resF) { maybeRes =>
+      maybeRes.fold(assert(false)) { result =>
+        result.failureCountResetTime shouldBe request.failureResetTime
+        result.failureCount shouldBe request.previousFailureCount.map(_ + 1)
+      }
     }
   }
 
@@ -74,13 +74,14 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
 
-    val maybeRes: Option[DataRetrieveResult] = Await.result[Option[DataRetrieveResult]](resF, defaultWait)
-    val newResetTime: LocalDateTime =
-      LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
+    whenReady(resF) { maybeRes =>
+      val newResetTime: LocalDateTime =
+        LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
 
-    maybeRes.fold(assert(false)) { result =>
-      result.failureCountResetTime shouldBe Some(newResetTime)
-      result.failureCount shouldBe Some(1)
+      maybeRes.fold(assert(false)) { result =>
+        result.failureCountResetTime shouldBe Some(newResetTime)
+        result.failureCount shouldBe Some(1)
+      }
     }
   }
 
@@ -93,11 +94,11 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
 
-    val maybeRes: Option[DataRetrieveResult] = Await.result[Option[DataRetrieveResult]](resF, defaultWait)
-
-    maybeRes.fold(assert(false)) { result =>
-      result.failureCountResetTime shouldBe None
-      result.failureCount shouldBe Some(0)
+    whenReady(resF) { maybeRes =>
+      maybeRes.fold(assert(false)) { result =>
+        result.failureCountResetTime shouldBe None
+        result.failureCount shouldBe Some(0)
+      }
     }
   }
 
@@ -107,11 +108,11 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), mkRequest(None, None))
 
-    val maybeRes: Option[DataRetrieveResult] = Await.result[Option[DataRetrieveResult]](resF, defaultWait)
-
-    maybeRes.fold(assert(false)) { result =>
-      result.failureCountResetTime shouldBe None
-      result.failureCount shouldBe None
+    whenReady(resF) { maybeRes =>
+      maybeRes.fold(assert(false)) { result =>
+        result.failureCountResetTime shouldBe None
+        result.failureCount shouldBe None
+      }
     }
   }
 
@@ -121,17 +122,17 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val resF: Future[Option[DataRetrieveResult]] =
       callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(None), mkRequest(None, None))
 
-    val maybeRes: Option[DataRetrieveResult] = Await.result[Option[DataRetrieveResult]](resF, defaultWait)
+    whenReady(resF) { maybeRes =>
+      verify(mockBankAccountReputationConnector, times(1))
+        .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
 
-    verify(mockBankAccountReputationConnector, times(1))
-      .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
+      verify(mockBankAccountReputationConnector, times(0))
+        .isFailure(any[DataRetrieve.Response])
 
-    verify(mockBankAccountReputationConnector, times(0))
-      .isFailure(any[DataRetrieve.Response])
-
-    maybeRes.fold(assert(false)) { result =>
-      result.failureCountResetTime shouldBe None
-      result.failureCount shouldBe None
+      maybeRes.fold(assert(false)) { result =>
+        result.failureCountResetTime shouldBe None
+        result.failureCount shouldBe None
+      }
     }
   }
 
@@ -142,7 +143,6 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       mock[BankAccountReputationConnector[Future]]
 
     val resetMins: Int = 60
-    val defaultWait = Duration(1000, MILLISECONDS)
     val dummyResponse = DataRetrieve.Response.Object(
       Map(
         DataRetrieve.Attribute("accountNumberIsWellFormatted") -> "yes",
