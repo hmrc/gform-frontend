@@ -381,9 +381,14 @@ private class Executor(
         case (OptionData.ValueBased(label, _, _, _, OptionDataValue.StringBased(value), summaryValue, _), _) =>
           value -> summaryValueOrLabel(label, summaryValue)
         case (OptionData.ValueBased(label, _, _, _, OptionDataValue.ExprBased(expr), summaryValue, _), _) =>
-          formModelVisibilityOptics
-            .evalAndApplyTypeInfoFirst(expr)
-            .stringRepresentation(messages) -> summaryValueOrLabel(label, summaryValue)
+          val prefix = expr match {
+            case FormCtx(fcId) => fcId.value + "_"
+            case _             => ""
+          }
+          prefix +
+            formModelVisibilityOptics
+              .evalAndApplyTypeInfoFirst(expr)
+              .stringRepresentation(messages) -> summaryValueOrLabel(label, summaryValue)
       }
       .toList
       .toMap

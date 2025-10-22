@@ -2734,11 +2734,12 @@ class SectionRenderingService(
       case Radio | YesNo =>
         val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
           case ((option, maybeHint, maybeHelpText), index) =>
+            val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
             RadioItem(
               id = Some(formComponent.id.value + index),
-              value = Some(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
+              value = Some(value),
               content = content.Text(option.label.value()),
-              checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
+              checked = isChecked(value),
               conditionalHtml = helpTextHtml(maybeHelpText),
               attributes = dataLabelAttribute(
                 option.label,

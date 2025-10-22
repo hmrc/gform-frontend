@@ -73,12 +73,16 @@ object FormDataHelpers {
       case Some(requestData) =>
         val (variadicFormData, requestRelatedData, enteredVariadicFormData) =
           buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
+
+        val variadicFormDataWithPropagation =
+          formModelRenderPageOptics.formModel.propagator.propagate(variadicFormData, formModelRenderPageOptics.recData)
+
         val maybeSectionModelComponentIds = maybeSectionNumber.toSeq.flatMap(s =>
           unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
         )
         continuation(requestRelatedData)(
           formModelRenderPageOptics.recData.variadicFormData ++
-            variadicFormData --
+            variadicFormDataWithPropagation --
             maybeSectionModelComponentIds
         )(
           EnteredVariadicFormData(
