@@ -25,8 +25,10 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
+import java.time.LocalDateTime
 import scala.util.matching.Regex
 
 final case class Fetch(path: List[String]) extends AnyVal
@@ -81,11 +83,14 @@ case class DataRetrieve(
   attributes: Attr,
   attrTypeMapping: Map[DataRetrieve.Attribute, DataRetrieve.AttrType],
   params: List[DataRetrieve.ParamExpr],
-  `if`: Option[IncludeIf]
+  `if`: Option[IncludeIf],
+  maxFailedAttempts: Option[Int],
+  failureCountResetMinutes: Option[Int]
 ) {
 
   def prepareRequest(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+    maybePreviousResult: Option[DataRetrieveResult]
   )(implicit messages: Messages): DataRetrieve.Request = {
     val evaluatedParams = params.map { case DataRetrieve.ParamExpr(DataRetrieve.Parameter(name, _, tpe), expr) =>
       name -> tpe.asString(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr))
@@ -106,7 +111,9 @@ case class DataRetrieve(
 
     DataRetrieve.Request(
       json,
-      evaluatedParams
+      evaluatedParams,
+      maybePreviousResult.flatMap(_.failureCount),
+      maybePreviousResult.flatMap(_.failureCountResetTime)
     )
   }
 
@@ -184,7 +191,9 @@ object DataRetrieve {
 
   final case class Request(
     json: JsValue,
-    params: List[(String, String)]
+    params: List[(String, String)],
+    previousFailureCount: Option[Int],
+    failureResetTime: Option[LocalDateTime]
   ) {
 
     def paramsAsJson(): JsValue = Json.toJson(params.toMap)
@@ -256,6 +265,11 @@ object DataRetrieve {
     implicit val format: OFormat[Type] = derived.oformat()
   }
 
+  val failureCountAttribute: Attribute = Attribute("failedCount")
+  val failureIsBlockedAttribute: Attribute = Attribute("isBlocked")
+  val failureResetTimeAttribute: Attribute = Attribute("unblockTime")
+  val failureResetDateAttribute: Attribute = Attribute("unblockDate")
+
   object Attribute {
 
     val idValidation: String = "[_a-zA-Z]\\w*"
@@ -297,8 +311,17 @@ object RetrieveDataType {
 case class DataRetrieveResult(
   id: DataRetrieveId,
   data: RetrieveDataType,
-  requestParams: JsValue // Request data used to decide if new call to the API is need when input data are changing
-)
+  requestParams: JsValue, // Request data used to decide if new call to the API is need when input data are changing
+  failureCount: Option[Int],
+  failureMaxAttempts: Option[Int],
+  failureCountResetTime: Option[LocalDateTime]
+) {
+  def isBlocked(implicit now: Now[LocalDateTime]) =
+    (failureMaxAttempts, failureCount, failureCountResetTime) match {
+      case (Some(max), Some(current), Some(resetTime)) => current >= max && resetTime.isAfter(now.apply())
+      case (_, _, _)                                   => false
+    }
+}
 
 object DataRetrieveResult {
 

@@ -97,6 +97,8 @@ class BankAccountReputationAsyncConnectorSpec
       ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
+      None,
+      None,
       None
     )
 
@@ -129,6 +131,8 @@ class BankAccountReputationAsyncConnectorSpec
       ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
+      None,
+      None,
       None
     )
 
@@ -162,12 +166,16 @@ class BankAccountReputationAsyncConnectorSpec
       ),
       Map(DataRetrieve.Attribute("sequenceNumber") -> DataRetrieve.AttrType.Number),
       List.empty[DataRetrieve.ParamExpr],
+      None,
+      None,
       None
     )
 
     val request = DataRetrieve.Request(
       Json.obj(),
-      List.empty[(String, String)]
+      List.empty[(String, String)],
+      None,
+      None
     ) // Request Doesn't matter since response is mocked
 
   }
@@ -251,6 +259,70 @@ class BankAccountReputationAsyncConnectorSpec
         )
       )
     }
+  }
+
+  "isFailure" should "return false if account number not well formatted" in new TestFixture {
+    val response = DataRetrieve.Response.Object(
+      Map(
+        DataRetrieve.Attribute("accountNumberIsWellFormatted") -> "no",
+        DataRetrieve.Attribute("accountExists")                -> "indeterminate",
+        DataRetrieve.Attribute("nameMatches")                  -> "indeterminate",
+        DataRetrieve.Attribute("sortCodeSupportsDirectDebit")  -> "",
+        DataRetrieve.Attribute("sortCodeSupportsDirectCredit") -> "",
+        DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")     -> "",
+        DataRetrieve.Attribute("iban")                         -> ""
+      )
+    )
+
+    bankAccountReputationAsyncConnector.isFailure(response) shouldBe false
+  }
+
+  it should "return true if account exists is inapplicable" in new TestFixture {
+    val response = DataRetrieve.Response.Object(
+      Map(
+        DataRetrieve.Attribute("accountNumberIsWellFormatted") -> "yes",
+        DataRetrieve.Attribute("accountExists")                -> "inapplicable",
+        DataRetrieve.Attribute("nameMatches")                  -> "indeterminate",
+        DataRetrieve.Attribute("sortCodeSupportsDirectDebit")  -> "",
+        DataRetrieve.Attribute("sortCodeSupportsDirectCredit") -> "",
+        DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")     -> "",
+        DataRetrieve.Attribute("iban")                         -> ""
+      )
+    )
+
+    bankAccountReputationAsyncConnector.isFailure(response) shouldBe true
+  }
+
+  it should "return false if account exists and name matches" in new TestFixture {
+    val response = DataRetrieve.Response.Object(
+      Map(
+        DataRetrieve.Attribute("accountNumberIsWellFormatted") -> "yes",
+        DataRetrieve.Attribute("accountExists")                -> "yes",
+        DataRetrieve.Attribute("nameMatches")                  -> "yes",
+        DataRetrieve.Attribute("sortCodeSupportsDirectDebit")  -> "",
+        DataRetrieve.Attribute("sortCodeSupportsDirectCredit") -> "",
+        DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")     -> "",
+        DataRetrieve.Attribute("iban")                         -> ""
+      )
+    )
+
+    bankAccountReputationAsyncConnector.isFailure(response) shouldBe false
+  }
+
+  it should "return false if account exists and name is partial match" in new TestFixture {
+    val response = DataRetrieve.Response.Object(
+      Map(
+        DataRetrieve.Attribute("accountNumberIsWellFormatted") -> "yes",
+        DataRetrieve.Attribute("accountExists")                -> "yes",
+        DataRetrieve.Attribute("nameMatches")                  -> "partial",
+        DataRetrieve.Attribute("sortCodeSupportsDirectDebit")  -> "",
+        DataRetrieve.Attribute("sortCodeSupportsDirectCredit") -> "",
+        DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")     -> "",
+        DataRetrieve.Attribute("iban")                         -> ""
+      )
+    )
+
+    bankAccountReputationAsyncConnector.isFailure(response) shouldBe false
   }
 
   "ConstructAttribute.Concat" should "should concat fields from json response" in new TestFixture {

@@ -35,6 +35,7 @@ object OperationWithForm {
   final case object AcceptSummary extends OperationWithForm
   final case object SubmitDeclaration extends OperationWithForm
   final case object EditForm extends OperationWithForm
+  final case object DeleteForm extends OperationWithForm
   final case object UpdateFormField extends OperationWithForm
   final case object ViewDeclaration extends OperationWithForm
   final case object ViewSummary extends OperationWithForm
@@ -47,6 +48,5 @@ object OperationWithForm {
   final case object ViewImageByInternalLink extends OperationWithForm
   final case object EditFormAcknowledgement extends OperationWithForm
   final case object ForceReturnToCYA extends OperationWithForm
-  final case object NewFormLink extends OperationWithForm
   final case object SwitchLanguage extends OperationWithForm
 }

@@ -193,6 +193,8 @@ class DelegatedAgentAuthConnectorSpec
           FormCtx(FormComponentId("vrn"))
         )
       ),
+      None,
+      None,
       None
     )
 
@@ -216,22 +218,30 @@ class DelegatedAgentAuthConnectorSpec
           FormCtx(FormComponentId("payeRef"))
         )
       ),
+      None,
+      None,
       None
     )
 
     val mtdAuthRequest: DataRetrieve.Request = DataRetrieve.Request(
       Json.obj(),
-      List(("vatRegistrationNumber", "123456"))
+      List(("vatRegistrationNumber", "123456")),
+      None,
+      None
     )
 
     val validPayeRequest: DataRetrieve.Request = DataRetrieve.Request(
       Json.obj(),
-      List(("payeReference", "123/AB456"))
+      List(("payeReference", "123/AB456")),
+      None,
+      None
     )
 
     val invalidPayeRequest: DataRetrieve.Request = DataRetrieve.Request(
       Json.obj(),
-      List(("payeReference", "123456"))
+      List(("payeReference", "123456")),
+      None,
+      None
     )
 
     val authorisedResponse: ServiceResponse[Response.Object] = ServiceResponse(

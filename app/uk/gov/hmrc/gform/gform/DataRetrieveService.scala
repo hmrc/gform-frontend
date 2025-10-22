@@ -23,8 +23,11 @@ import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import scala.concurrent.{ ExecutionContext, Future }
 
 object DataRetrieveService {
@@ -65,13 +68,25 @@ object DataRetrieveService {
         case DataRetrieve.Type("delegatedAgentAuthPaye")     => delegatedAgentAuthConnector.map(_.payeAuth)
         case _                                               => Option.empty
       }
+
+    val maybeFailureTest: Option[DataRetrieve.Response => Boolean] =
+      dataRetrieve.tpe match {
+        case DataRetrieve.Type("validateBankDetails")          => bankAccountReputationConnector.map(_.isFailure)
+        case DataRetrieve.Type("businessBankAccountExistence") => bankAccountReputationConnector.map(_.isFailure)
+        case DataRetrieve.Type("personalBankAccountExistence") => bankAccountReputationConnector.map(_.isFailure)
+        case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
+          bankAccountReputationConnector.map(_.isFailure)
+        case _ => Option.empty
+      }
+
     maybeExecutor.flatTraverse { executor =>
       DataRetrieveService
         .retrieveData(
           dataRetrieve,
           request,
           maybeRequestParams,
-          executor
+          executor,
+          maybeFailureTest
         )
     }
   }
@@ -80,8 +95,35 @@ object DataRetrieveService {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request,
     maybeRequestParams: Option[JsValue],
-    executor: (DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]
+    executor: (DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]],
+    maybeFailureTest: Option[DataRetrieve.Response => Boolean]
   )(implicit ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+
+    def maybeHandleFailureLogic(
+      result: DataRetrieve.Response
+    )(implicit now: Now[LocalDateTime]): (Option[Int], Option[LocalDateTime]) = {
+
+      def runFailureLogic(
+        resetMinutes: Long,
+        fn: DataRetrieve.Response => Boolean
+      ): (Option[Int], Option[LocalDateTime]) = {
+        val nowOnce = now.apply().plusMinutes(1).truncatedTo(ChronoUnit.MINUTES)
+        val isReset = request.failureResetTime.map(_.isBefore(nowOnce))
+        val incrementedValue = Some(request.previousFailureCount.fold(1)(_ + 1))
+        (fn(result), isReset) match {
+          case (true, None)        => (incrementedValue, Some(nowOnce.plusMinutes(resetMinutes)))
+          case (true, Some(false)) => (incrementedValue, request.failureResetTime)
+          case (true, Some(true))  => (Some(1), Some(nowOnce.plusMinutes(resetMinutes)))
+          case (false, Some(true)) => (Some(0), None)
+          case (false, _)          => (request.previousFailureCount, request.failureResetTime)
+        }
+      }
+
+      (dataRetrieve.failureCountResetMinutes, maybeFailureTest) match {
+        case (Some(resetMinutes), Some(fn)) => runFailureLogic(resetMinutes.toLong, fn)
+        case (_, _)                         => (None, None)
+      }
+    }
 
     val requestParams = request.paramsAsJson()
 
@@ -91,11 +133,16 @@ object DataRetrieveService {
 
       executor(dataRetrieve, request).map {
         case ServiceResponse(result) =>
+          val (failureCount, failureResetTime) = maybeHandleFailureLogic(result)
+
           Some(
             DataRetrieveResult(
               dataRetrieve.id,
               result.toRetrieveDataType(),
-              requestParams
+              requestParams,
+              failureCount,
+              dataRetrieve.maxFailedAttempts,
+              failureResetTime
             )
           )
         // We need to fail the journey here, otherwise expressions like

@@ -44,10 +44,10 @@
    <li>
       <a href="@call" class="govuk-link">@messages("save4later.continue", saveAcknowledgement.formCat)</a>
    </li>
-   <li>
+   @if(!saveAcknowledgement.isBlocked){<li>
       <a href="@FormController.deleteOnExit(saveAcknowledgement.formTemplate._id)" class="govuk-link">
         @messages("save4later.delete")
       </a>
-   </li>
+   </li>}
 </ul>
 }

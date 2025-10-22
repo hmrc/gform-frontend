@@ -325,7 +325,7 @@ class FormController(
     }
 
   def deleteOnExit(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.DeleteForm) {
       implicit request => l => cache => sse => formModelOptics =>
         fastForwardService.deleteForm(formTemplateId, cache, QueryParams.empty)
     }

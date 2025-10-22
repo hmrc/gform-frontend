@@ -118,14 +118,14 @@ class NewFormController(
     }
 
   def dashboardClean(formTemplateId: FormTemplateId) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.EditForm) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.DeleteForm) {
       implicit request => _ => cache => _ => _ =>
         val queryParams = QueryParams.fromRequest(request)
         fastForwardService.deleteForm(formTemplateId, cache, queryParams)
     }
 
   def dashboardNewFormLink(formTemplateId: FormTemplateId) =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.NewFormLink) {
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.DeleteForm) {
       implicit request => _ => cache => _ => _ =>
         val queryParams = QueryParams.fromRequest(request)
         fastForwardService.deleteForm(formTemplateId, cache, queryParams)
@@ -442,15 +442,18 @@ class NewFormController(
     form: Form,
     queryParams: QueryParams
   )(implicit request: Request[AnyContent], lang: LangADT) =
-    draftRetrievalMethod match {
-      case NotPermitted =>
+    (form.status, draftRetrievalMethod) match {
+      case (_, NotPermitted) =>
         fastForwardService.deleteForm(
           formTemplate._id,
           cache.toAuthCacheWithForm(form, noAccessCode),
           queryParams
         )
-      case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCode(ContinueOrDeletePage.Skip) | FormAccessCode(
-            ContinueOrDeletePage.Skip
+      case (DeleteBlocked, _) | (
+            _,
+            OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCode(ContinueOrDeletePage.Skip) | FormAccessCode(
+              ContinueOrDeletePage.Skip
+            )
           ) =>
         auditService.sendFormResumeEvent(form, cache.retrievals)
         redirectContinue[SectionSelectorType.Normal](
@@ -459,7 +462,7 @@ class NewFormController(
           noAccessCode,
           request
         )
-      case _ =>
+      case (_, _) =>
         auditService.sendFormResumeEvent(form, cache.retrievals)
         val continueFormPage = new ContinueFormPage(formTemplate, choice)
         Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
