@@ -146,9 +146,13 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       case Choice(_, options, _, _, _, _, _, _, _, _, _) =>
         options.zipWithIndex.collect {
           case (OptionData.IndexBased(_, _, _, _, _), i)                                        => i.toString
-          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _), i) => value
-          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _), i) =>
-            formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _), _) => value
+          case (OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _), _) =>
+            val prefix = expr match {
+              case FormCtx(fcId) => fcId.value + "_"
+              case _             => ""
+            }
+            prefix + formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
         }.toSet
       case _ => Set.empty[String]
     }

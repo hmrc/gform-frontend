@@ -98,6 +98,8 @@ case class FormModel[A <: PageMode](
       (fcId, baseComponentIds)
     }
 
+  val propagator = Propagator(allFormComponents)
+
   def allUpperCaseIds: Set[ModelComponentId] =
     allFormComponents.collect { case fc @ IsCapitalised() =>
       fc.modelComponentId
