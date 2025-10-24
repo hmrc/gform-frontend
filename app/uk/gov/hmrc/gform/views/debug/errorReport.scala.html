@@ -15,20 +15,12 @@
  *@
 
 @import uk.gov.hmrc.gform.views.html.main_template
+@import uk.gov.hmrc.gform.testonly.EnCyReport
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 @import play.twirl.api.Html
 @import views.html.helper.CSPNonce
 
-@(title: String, report: List[List[(String, String, String, String)]])(implicit request: Request[_])
-@header = @{
-  Html(
-    """
-    <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property</th>
-    <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Property value</th>
-    <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">English error messages</th>
-    <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header app-custom-class govuk-!-text-align-centre">Welsh error messages</th>
-    """)
-}
+@(title: String, report: List[EnCyReport])(implicit request: Request[_])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -36,30 +28,92 @@
     <meta charset="UTF-8">
     <link @{CSPNonce.attr} href="/submissions/assets/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css">
     <title>@{title}</title>
+    <style>
+      .govuk-table__row th:first-child, .govuk-table__row td:first-child {
+        width: 20%
+      }
+      .govuk-table__row th, .govuk-table__row td {
+        padding-left: 7px;
+        width: 40%;
+      }
+    </style>
   </head>
   <body>
     <h1 class="govuk-heading-m">@{title}</h1>
-    <table class="govuk-table " >
-      <thead class="govuk-table__head">
-        <tr class="govuk-table__row" style="background-color: #f3f2f1">
-          @header
-        </tr>
-      </thead>
-      <tbody class="govuk-table__body">
-        @for(r <- report) {
-          @for((label, value, enMessage, cyMessage) <- r) {
+    @for(r <- report) {
+      <table class="govuk-table" >
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row" style="background-color: #1d70b8; color: #ffffff;">
+              <th scope="col" style="white-space: nowrap;" class="govuk-table__header">Field</th>
+              <th scope="col" colspan="2" style="" class="govuk-table__header">@r.fieldId</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">Sequence</th>
+              <td colspan="2" class="govuk-table__cell" >@r.sequence</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">Type</th>
+              <td colspan="2" class="govuk-table__cell" >@r.fieldType</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">Mandatory</th>
+              <td colspan="2" class="govuk-table__cell" >@r.mandatory</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">Screenshot ID</th>
+              <td colspan="2" class="govuk-table__cell" >@r.sectionId</td>
+          </tr>
+          <tr class="govuk-table__row" style="background-color: #f3f2f1">
+              <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header">&nbsp;</th>
+              <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header">English Error Messages</th>
+              <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header">Welsh Error Messages</th>
+          </tr>
+          @for((enMessage, cyMessage) <- r.messages_EnCy) {
             <tr class="govuk-table__row">
-              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">@label</th>
-              <td class="govuk-table__cell" >@Html(value)</td>
-              <td style="color: #d4351c;" class="govuk-table__cell" >@Html(enMessage)</td>
-              <td style="color: #d4351c;" class="govuk-table__cell" >@Html(cyMessage)</td>
+                <td style="color: #d4351c;" class="govuk-table__cell" >&nbsp;</td>
+                <td style="color: #d4351c;" class="govuk-table__cell" >@Html(enMessage)</td>
+                <td style="color: #d4351c;" class="govuk-table__cell" >@Html(cyMessage)</td>
             </tr>
           }
           <tr class="govuk-table__row" style="background-color: #f3f2f1">
-            @header
+              <th scope="col" style="border:1px solid #b1b4b6; white-space: nowrap;" class="govuk-table__header">Property</th>
+              <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header">Property Value - English</th>
+              <th scope="col" style="border:1px solid #b1b4b6;" class="govuk-table__header">Property Value - Welsh</th>
           </tr>
-        }
-      </tbody>
-    </table>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">label</th>
+              <td class="govuk-table__cell" >@Html(r.label_En)</td>
+              <td class="govuk-table__cell" >@Html(r.label_Cy)</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">shortName</th>
+              <td class="govuk-table__cell" >@Html(r.shortName_En)</td>
+              <td class="govuk-table__cell" >@Html(r.shortName_Cy)</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">errorShortName</th>
+              <td class="govuk-table__cell" >@Html(r.errorShortName_En)</td>
+              <td class="govuk-table__cell" >@Html(r.errorShortName_Cy)</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">errorShortNameStart</th>
+              <td class="govuk-table__cell" >@Html(r.errorShortNameStart_En)</td>
+              <td class="govuk-table__cell" >@Html(r.errorShortNameStart_Cy)</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">errorExample</th>
+              <td class="govuk-table__cell" >@Html(r.errorExample_En)</td>
+              <td class="govuk-table__cell" >@Html(r.errorExample_Cy)</td>
+          </tr>
+          <tr class="govuk-table__row">
+              <th style="white-space: nowrap; text-align: left;" scope="row" class="govuk-table__header">errorMessage</th>
+              <td class="govuk-table__cell" >@Html(r.errorMessage_En)</td>
+              <td class="govuk-table__cell" >@Html(r.errorMessage_Cy)</td>
+          </tr>
+        </tbody>
+      </table>
+    }
   </body>
 </html>
