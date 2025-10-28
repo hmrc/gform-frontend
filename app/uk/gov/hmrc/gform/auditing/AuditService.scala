@@ -416,6 +416,23 @@ trait AuditService {
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
 
+  def sendFormValidationErrorEvent[D <: DataOrigin](
+    form: Form,
+    validationErrors: Map[FormComponentId, List[String]]
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Unit = {
+    val validationErrorDetails = Json.obj(
+      "formId"     -> form.formTemplateId.value,
+      "envelopeId" -> form.envelopeId.value,
+      "validationErrors" -> Json.toJson(validationErrors.map { case (fcId, errors) =>
+        Json.obj(
+          "formComponentId" -> fcId.value,
+          "errors"          -> errors
+        )
+      })
+    )
+    auditConnector.sendExplicitAudit("formValidationError", validationErrorDetails)
+  }
+
   private def sendEvent(
     auditType: String,
     form: Form,

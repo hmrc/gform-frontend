@@ -678,7 +678,8 @@ class AddressLookupController(
                       cacheData,
                       envelopeWithMapping,
                       validationService.validatePageModel,
-                      enteredVariadicFormData
+                      enteredVariadicFormData,
+                      syntheticCache.form
                     )
                     .map { formValidationOutcome =>
                       if (formValidationOutcome.isValid) {
