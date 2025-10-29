@@ -104,16 +104,7 @@ class FormControllerRequestHandler(
         )
       )
     } else {
-      val fallbackErrors = Map(
-        FormComponentId("unknown") -> List("Form validation failed - no specific field errors found")
-      )
-      Future.successful(
-        auditService.sendFormValidationErrorEvent(
-          form,
-          fallbackErrors,
-          retrievals
-        )
-      )
+      Future.successful(())
     }
   }
 
