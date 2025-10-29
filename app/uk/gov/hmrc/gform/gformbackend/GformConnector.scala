@@ -483,6 +483,20 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
     agentDetailsB.get(dataRetrieve, request)
 
+  private val urlNiClaimValidation = s"$baseUrl/hip/ni-claim-validation/{{nino}}/{{claimReference}}"
+  private val claimValidationB =
+    new DataRetrieveConnectorBlueprint(httpClient, urlNiClaimValidation, "ni claim validation")
+
+  def getNiClaimValidation(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    claimValidationB.getEmptyIfNotFound(
+      dataRetrieve,
+      request,
+      request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
+    )
+
   /** **** Tax Period *****
     */
   def getAllTaxPeriods(
