@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.auditing
 
 import cats.data.NonEmptyList
-import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
@@ -42,8 +41,6 @@ import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
 trait AuditService {
-
-  def logger: Logger = LoggerFactory.getLogger("uk.gov.hmrc.gform.auditing.AuditService")
 
   def auditConnector: AuditConnector
 
@@ -423,11 +420,8 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File]
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
-    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles)
-    logger.debug(s"Sending '$auditType' audit event, details = $auditDetails")
-    auditConnector.sendExplicitAudit(auditType, auditDetails)
-  }
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
+    auditConnector.sendExplicitAudit(auditType, details(form, detail, retrievals, customerId, envelopeFiles))
 
   def calculateSubmissionEvent[D <: DataOrigin](
     form: Form,
