@@ -17,11 +17,13 @@
 package uk.gov.hmrc.gform.gform.handlers
 
 import uk.gov.hmrc.gform.auditing.AuditService
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -60,8 +62,9 @@ class FormControllerRequestHandler(
     envelope: EnvelopeWithMapping,
     validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
     enteredVariadicFormData: EnteredVariadicFormData,
-    form: Form
-  )(implicit hc: HeaderCarrier): Future[FormValidationOutcome] =
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit hc: HeaderCarrier, lang: LangADT): Future[FormValidationOutcome] =
     for {
       formHandlerResult <- formValidator.validatePageModelBySectionNumber(
                              formModelOptics,
@@ -74,7 +77,7 @@ class FormControllerRequestHandler(
       outcome = formValidator.toFormValidationOutcome(formHandlerResult, enteredVariadicFormData)
 
       _ <- if (!outcome.isValid) {
-             auditFormValidationErrors(formHandlerResult, form)
+             auditFormValidationErrors(formHandlerResult, form, retrievals)
            } else {
              Future.successful(())
            }
@@ -83,8 +86,9 @@ class FormControllerRequestHandler(
 
   private def auditFormValidationErrors(
     formHandlerResult: FormHandlerResult,
-    form: Form
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
+    form: Form,
+    retrievals: MaterialisedRetrievals
+  )(implicit hc: HeaderCarrier, lang: LangADT): Future[Unit] = {
     val validationErrors: Map[FormComponentId, List[String]] =
       formHandlerResult.validationResult.lookup.collect {
         case (fcId, ffvr) if ffvr.fieldErrors.nonEmpty =>
@@ -95,7 +99,8 @@ class FormControllerRequestHandler(
       Future.successful(
         auditService.sendFormValidationErrorEvent(
           form,
-          validationErrors
+          validationErrors,
+          retrievals
         )
       )
     } else {
@@ -105,7 +110,8 @@ class FormControllerRequestHandler(
       Future.successful(
         auditService.sendFormValidationErrorEvent(
           form,
-          fallbackErrors
+          fallbackErrors,
+          retrievals
         )
       )
     }
