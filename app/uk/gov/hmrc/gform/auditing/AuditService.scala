@@ -563,7 +563,7 @@ trait AuditService {
       else
         Json.obj()
 
-    val validationErrorDetails: JsObject =
+    val validationErrorsJsObj: JsObject =
       if (validationErrors.nonEmpty) {
         Json.obj(
           "ValidationErrors" -> Json.toJson(validationErrors.map { case (fcId, errors) =>
@@ -585,7 +585,7 @@ trait AuditService {
       "CustomerId"     -> customerId.id,
       "Language"       -> langADTToString(lang),
       "UserValues"     -> userValues
-    ) ++ userAddressesJsObj ++ summaryItemsJsObj ++ validationErrorDetails ++
+    ) ++ userAddressesJsObj ++ summaryItemsJsObj ++ validationErrorsJsObj ++
       Json.obj(
         "UserInfo"      -> userInfoWithEnrolments,
         "SubmissionRef" -> SubmissionRef(form.envelopeId).value
