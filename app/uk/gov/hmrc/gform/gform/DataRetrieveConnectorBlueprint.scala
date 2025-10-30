@@ -17,13 +17,14 @@
 package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
+import play.api.http.Status.{ NOT_FOUND, OK }
 import play.api.libs.json.{ JsValue, Json }
-
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
 import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 class DataRetrieveConnectorBlueprint(
   httpClient: HttpClientV2,
@@ -34,7 +35,7 @@ class DataRetrieveConnectorBlueprint(
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  def get(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+  def get(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(implicit
     ex: ExecutionContext,
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
@@ -43,6 +44,7 @@ class DataRetrieveConnectorBlueprint(
 
     httpClient
       .get(url"$url")
+      .setHeader(header: _*)
       .execute[JsValue]
       .map { response =>
         dataRetrieve
@@ -59,6 +61,50 @@ class DataRetrieveConnectorBlueprint(
               ServiceResponse(valid)
             }
           )
+      }
+      .recover { ex =>
+        logger.error(s"Unknown problem when calling $identifier", ex)
+        CannotRetrieveResponse
+      }
+  }
+
+  def getEmptyIfNotFound(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request,
+    header: Seq[(String, String)] = Seq.empty
+  )(implicit
+    ex: ExecutionContext,
+    hc: HeaderCarrier
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
+
+    val url = request.fillPlaceholders(rawUrl)
+
+    httpClient
+      .get(url"$url")
+      .setHeader(header: _*)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case OK =>
+            dataRetrieve
+              .processResponse(response.json)
+              .fold(
+                invalid => {
+                  logger.error(
+                    s"Calling $identifier returned successfully, but marshalling of data failed with: $invalid"
+                  )
+                  CannotRetrieveResponse
+                },
+                valid => {
+                  logger.info(s"Calling $identifier returned Success.")
+                  ServiceResponse(valid)
+                }
+              )
+          case NOT_FOUND => dataRetrieve.emptyValidResponse()
+          case other =>
+            logger.error(s"Unexpected status $other received when calling $identifier")
+            CannotRetrieveResponse
+        }
       }
       .recover { ex =>
         logger.error(s"Unknown problem when calling $identifier", ex)

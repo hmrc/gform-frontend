@@ -175,6 +175,7 @@ class BankAccountReputationAsyncConnectorSpec
       Json.obj(),
       List.empty[(String, String)],
       None,
+      None,
       None
     ) // Request Doesn't matter since response is mocked
 

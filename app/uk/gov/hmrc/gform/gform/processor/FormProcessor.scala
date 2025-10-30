@@ -322,7 +322,8 @@ class FormProcessor(
         ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser])] = {
           val maybePreviousResult: Option[DataRetrieveResult] =
             cache.form.thirdPartyData.dataRetrieve.flatMap(_.get(dataRetrieve.id))
-          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult)
+          val request: DataRetrieve.Request =
+            dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult, Some(cache.form.envelopeId.value))
           val maybeRetrieveResultF = DataRetrieveService.retrieveDataResult(
             dataRetrieve,
             Some(cache.form),

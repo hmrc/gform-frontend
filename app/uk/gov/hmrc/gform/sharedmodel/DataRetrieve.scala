@@ -90,7 +90,8 @@ case class DataRetrieve(
 
   def prepareRequest(
     formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
-    maybePreviousResult: Option[DataRetrieveResult]
+    maybePreviousResult: Option[DataRetrieveResult],
+    maybeCorrelationId: Option[String]
   )(implicit messages: Messages): DataRetrieve.Request = {
     val evaluatedParams = params.map { case DataRetrieve.ParamExpr(DataRetrieve.Parameter(name, _, tpe), expr) =>
       name -> tpe.asString(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr))
@@ -113,7 +114,8 @@ case class DataRetrieve(
       json,
       evaluatedParams,
       maybePreviousResult.flatMap(_.failureCount),
-      maybePreviousResult.flatMap(_.failureCountResetTime)
+      maybePreviousResult.flatMap(_.failureCountResetTime),
+      maybeCorrelationId
     )
   }
 
@@ -185,6 +187,11 @@ case class DataRetrieve(
         )
     }
 
+  def emptyValidResponse(): ServiceCallResponse[DataRetrieve.Response] =
+    attributes match {
+      case Attr.FromArray(ins)  => ServiceResponse(DataRetrieve.Response.Array(List(ins.map(_.attribute -> "").toMap)))
+      case Attr.FromObject(ins) => ServiceResponse(DataRetrieve.Response.Object(ins.map(_.attribute -> "").toMap))
+    }
 }
 
 object DataRetrieve {
@@ -193,9 +200,9 @@ object DataRetrieve {
     json: JsValue,
     params: List[(String, String)],
     previousFailureCount: Option[Int],
-    failureResetTime: Option[LocalDateTime]
+    failureResetTime: Option[LocalDateTime],
+    correlationId: Option[String]
   ) {
-
     def paramsAsJson(): JsValue = Json.toJson(params.toMap)
 
     def notReady(): Boolean = params.exists { case (_, value) => value.isEmpty }

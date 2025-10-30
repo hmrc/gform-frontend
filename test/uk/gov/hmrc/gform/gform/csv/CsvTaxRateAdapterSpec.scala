@@ -40,14 +40,16 @@ class CsvTaxRateAdapterSpec extends Spec {
   }
 
   it should "find an exact rate for" in {
-    val dataRetrieveRequest: DataRetrieve.Request = DataRetrieve.Request(Json.toJson(request), List.empty, None, None)
+    val dataRetrieveRequest: DataRetrieve.Request =
+      DataRetrieve.Request(Json.toJson(request), List.empty, None, None, None)
     val jsResponse: JsValue = Json.toJson(response)
     csvTaxRateAdapter.search(dataRetrieveRequest) shouldBe Some(jsResponse)
   }
 
   it should "not find a rate for" in {
     val request: TaxRateRequest = TaxRateRequest("APD", "NOT-EXISTS", LocalDate.parse("2023-10-25"))
-    val dataRetrieveRequest: DataRetrieve.Request = DataRetrieve.Request(Json.toJson(request), List.empty, None, None)
+    val dataRetrieveRequest: DataRetrieve.Request =
+      DataRetrieve.Request(Json.toJson(request), List.empty, None, None, None)
     csvTaxRateAdapter.search(dataRetrieveRequest) shouldBe None
   }
 
