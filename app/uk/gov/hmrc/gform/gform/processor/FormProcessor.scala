@@ -309,7 +309,9 @@ class FormProcessor(
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
                                                                       validationService.validatePageModelWithoutCustomValidators,
-                                                                      enteredVariadicFormData
+                                                                      enteredVariadicFormData,
+                                                                      cache.form,
+                                                                      cache.retrievals
                                                                     )
       (dataRetrieveResult, updatedFormVisibilityOptics) <- {
         def retrieveWithState(
@@ -391,7 +393,9 @@ class FormProcessor(
               updatedCache.toCacheData,
               envelopeWithMapping,
               validationService.validatePageModel,
-              enteredVariadicFormData
+              enteredVariadicFormData,
+              updatedCache.form,
+              updatedCache.retrievals
             )
             .flatMap { formValidationOutcome =>
               if (formValidationOutcome.isValid) {
