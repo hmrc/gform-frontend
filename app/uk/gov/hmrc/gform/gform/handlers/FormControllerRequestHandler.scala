@@ -96,13 +96,13 @@ class FormControllerRequestHandler(
       }
 
     if (validationErrors.nonEmpty) {
-      Future.successful(
+      Future {
         auditService.sendFormValidationErrorEvent(
           form,
           validationErrors,
           retrievals
         )
-      )
+      }
     } else {
       Future.successful(())
     }
