@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ JsValue, Json }
+import uk.gov.hmrc.gform.bars.SchemaValidationException
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
@@ -29,7 +30,8 @@ class DataRetrieveConnectorBlueprint(
   httpClient: HttpClientV2,
   rawUrl: String,
   identifier: String,
-  exceptionalResponses: Option[List[ExceptionalResponse]] = None
+  exceptionalResponses: Option[List[ExceptionalResponse]] = None,
+  responseValidator: Option[(JsValue, DataRetrieve) => Unit] = None
 ) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -45,6 +47,15 @@ class DataRetrieveConnectorBlueprint(
       .get(url"$url")
       .execute[JsValue]
       .map { response =>
+        responseValidator.foreach { validator =>
+          try validator(response, dataRetrieve)
+          catch {
+            case ex: SchemaValidationException =>
+              logger.error(s"Schema validation failed for $identifier: ${ex.getMessage}")
+              throw ex
+          }
+        }
+
         dataRetrieve
           .processResponse(response)
           .fold(
@@ -60,9 +71,12 @@ class DataRetrieveConnectorBlueprint(
             }
           )
       }
-      .recover { ex =>
-        logger.error(s"Unknown problem when calling $identifier", ex)
-        CannotRetrieveResponse
+      .recover {
+        case schemaEx: SchemaValidationException =>
+          CannotRetrieveResponse
+        case otherEx =>
+          logger.error(s"Unknown problem when calling $identifier", otherEx)
+          CannotRetrieveResponse
       }
   }
 
@@ -87,8 +101,19 @@ class DataRetrieveConnectorBlueprint(
 
         (maybeExceptionalResponse, status) match {
           case (Some(_), _) | (_, 200) =>
+            val responseJson = maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response))
+
+            responseValidator.foreach { validator =>
+              try validator(responseJson, dataRetrieve)
+              catch {
+                case ex: SchemaValidationException =>
+                  logger.error(s"Schema validation failed for $identifier: ${ex.getMessage}")
+                  throw ex
+              }
+            }
+
             dataRetrieve
-              .processResponse(maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response)))
+              .processResponse(responseJson)
               .fold(
                 invalid => {
                   logger.error(
@@ -106,9 +131,12 @@ class DataRetrieveConnectorBlueprint(
             CannotRetrieveResponse
         }
       }
-      .recover { ex =>
-        logger.error(s"Unknown problem when calling $identifier", ex)
-        CannotRetrieveResponse
+      .recover {
+        case schemaEx: SchemaValidationException =>
+          CannotRetrieveResponse
+        case otherEx =>
+          logger.error(s"Unknown problem when calling $identifier", otherEx)
+          CannotRetrieveResponse
       }
   }
 }

@@ -22,6 +22,8 @@ import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType.{ ListType, ObjectType }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.gform.bars.BankAccountSchemaValidation._
+import play.api.libs.json.JsValue
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -44,12 +46,22 @@ trait BankAccountReputationConnector[F[_]] {
 class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
 
-  val exceptionalResponses = Some(
+  val validateBankDetailsExceptionalResponses = Some(
     List(
       ExceptionalResponse(
         400,
         "SORT_CODE_ON_DENY_LIST",
-        """{"accountNumberIsWellFormatted":"indeterminate","accountExists":"indeterminate","nameMatches":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"indeterminate","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"","sortCodeSupportsDirectCredit":"","iban":""}"""
+        """{"accountNumberIsWellFormatted":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"inapplicable","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"no","sortCodeSupportsDirectCredit":"no","iban":""}"""
+      )
+    )
+  )
+
+  val businessAndPersonalExceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "SORT_CODE_ON_DENY_LIST",
+        """{"accountNumberIsWellFormatted":"indeterminate","accountExists":"indeterminate","nameMatches":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"inapplicable","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"no","sortCodeSupportsDirectCredit":"no","iban":""}"""
       )
     )
   )
@@ -59,22 +71,42 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
       httpClient,
       baseUrl + "/validate/bank-details",
       "validate bank details",
-      exceptionalResponses
+      validateBankDetailsExceptionalResponses,
+      Some(bankAccountSchemaValidator)
     )
   val businessBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl + "/verify/business",
       "business bank account existence",
-      exceptionalResponses
+      businessAndPersonalExceptionalResponses,
+      Some(bankAccountSchemaValidator)
     )
   val personalBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl + "/verify/personal",
       "personal bank account existence",
-      exceptionalResponses
+      businessAndPersonalExceptionalResponses,
+      Some(bankAccountSchemaValidator)
     )
+
+  private def bankAccountSchemaValidator(json: JsValue, dataRetrieve: DataRetrieve): Unit = {
+    val result = dataRetrieve.tpe match {
+      case DataRetrieve.Type("validateBankDetails")          => validateBankDetailsResponse(json)
+      case DataRetrieve.Type("businessBankAccountExistence") => validateBusinessBankAccountExistenceResponse(json)
+      case DataRetrieve.Type("personalBankAccountExistence") => validatePersonalBankAccountExistenceResponse(json)
+      case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
+        validatePersonalBankAccountExistenceResponse(json)
+      case _ => ValidationSuccess // Don't validate other DataRetrieve types
+    }
+
+    result match {
+      case ValidationSuccess => // Success, do nothing
+      case ValidationFailure(errors) =>
+        throw new SchemaValidationException(s"Schema validation failed: ${errors.mkString(", ")}")
+    }
+  }
 
   override def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier
