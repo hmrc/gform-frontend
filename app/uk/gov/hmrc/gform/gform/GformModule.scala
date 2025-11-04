@@ -97,7 +97,7 @@ class GformModule(
     englishMessages
   )
 
-  val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator())
+  val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator(), auditingModule.auditService)
 
   val fastForwardService: FastForwardService = new FastForwardService(
     objectStoreModule.objectStoreService,

@@ -374,13 +374,13 @@ trait AuditService {
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formCreated", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
+    sendEvent("formCreated", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
 
   def sendFormResumeEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formResumed", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
+    sendEvent("formResumed", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
 
   def sendSubmissionEvent[D <: DataOrigin](
     form: Form,
@@ -395,26 +395,34 @@ trait AuditService {
       getUserValues(form.thirdPartyData, formModelVisibilityOptics),
       retrievals,
       customerId,
-      envelopeFiles
+      envelopeFiles,
+      Map.empty
     )
 
   def formSavedEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formSaved", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
+    sendEvent("formSaved", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
 
   def sendFormTimoutEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formTimeout", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
+    sendEvent("formTimeout", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
 
   def sendFormSignOut[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty)
+    sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
+
+  def sendFormValidationErrorEvent[D <: DataOrigin](
+    form: Form,
+    validationErrors: Map[FormComponentId, List[String]],
+    retrievals: MaterialisedRetrievals
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
+    sendEvent("formValidationError", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, validationErrors)
 
   private def sendEvent(
     auditType: String,
@@ -422,10 +430,10 @@ trait AuditService {
     detail: UserValues,
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
-    envelopeFiles: List[File]
+    envelopeFiles: List[File],
+    validationErrors: Map[FormComponentId, List[String]]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
-    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles)
-    logger.debug(s"Sending '$auditType' audit event, details = $auditDetails")
+    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles, validationErrors)
     auditConnector.sendExplicitAudit(auditType, auditDetails)
   }
 
@@ -446,7 +454,7 @@ trait AuditService {
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
-      detail = details(form, detail, retrievals, customerId, List.empty)
+      detail = details(form, detail, retrievals, customerId, List.empty, Map.empty)
     )
 
   private def details(
@@ -454,7 +462,8 @@ trait AuditService {
     detail: UserValues,
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
-    envelopeFiles: List[File]
+    envelopeFiles: List[File],
+    validationErrors: Map[FormComponentId, List[String]]
   )(implicit hc: HeaderCarrier, lang: LangADT) = {
 
     val userInfo =
@@ -554,6 +563,20 @@ trait AuditService {
       else
         Json.obj()
 
+    val validationErrorsJsObj: JsObject =
+      if (validationErrors.nonEmpty) {
+        Json.obj(
+          "ValidationErrors" -> Json.toJson(validationErrors.map { case (fcId, errors) =>
+            Json.obj(
+              "formComponentId" -> fcId.value,
+              "errors"          -> errors
+            )
+          })
+        )
+      } else {
+        Json.obj()
+      }
+
     Json.obj(
       "FormId"         -> form._id.value,
       "EnvelopeId"     -> form.envelopeId.value,
@@ -562,7 +585,7 @@ trait AuditService {
       "CustomerId"     -> customerId.id,
       "Language"       -> langADTToString(lang),
       "UserValues"     -> userValues
-    ) ++ userAddressesJsObj ++ summaryItemsJsObj ++
+    ) ++ userAddressesJsObj ++ summaryItemsJsObj ++ validationErrorsJsObj ++
       Json.obj(
         "UserInfo"      -> userInfoWithEnrolments,
         "SubmissionRef" -> SubmissionRef(form.envelopeId).value

@@ -66,7 +66,7 @@
     return $select[0];
   }
 
-  function setSelected(selectEl, label, value) {
+  function setSelected(selectEl, label, value, isValidSelection) {
     // Clear existing options – we only keep the selected one to avoid accumulation.
     while (selectEl.options.length) selectEl.remove(0);
     var opt = document.createElement('option');
@@ -75,7 +75,10 @@
     opt.selected = true;
     selectEl.appendChild(opt);
     var state = STATE.get(selectEl) || {};
-    state.lastValid = { label: label, value: value };
+    // Only update lastValid if this is confirmed as a valid selection
+    if (isValidSelection !== false) {
+      state.lastValid = { label: label, value: value };
+    }
     STATE.set(selectEl, state);
   }
 
@@ -100,6 +103,25 @@
     }
   }
 
+  function handleUserInput(input, selectEl) {
+    var currentInput = input.value.trim();
+    var state = STATE.get(selectEl);
+    
+    if (currentInput === '') {
+      // User has cleared the field or left it empty - submit empty value for proper error handling
+      setSelected(selectEl, '', '', false);
+    } else {
+      // Check if it's a valid choice that should submit the mapped value
+      if (state && state.labelValueMap && state.labelValueMap.has(currentInput)) {
+        var mappedValue = state.labelValueMap.get(currentInput);
+        setSelected(selectEl, currentInput, mappedValue, true);
+      } else {
+        // Invalid entry - submit what the user typed for error handling
+        setSelected(selectEl, currentInput, currentInput, false);
+      }
+    }
+  }
+
   function buildConfig(selectEl, meta, initialLabel) {
     return {
       selectElement: selectEl,
@@ -114,8 +136,9 @@
         var state = STATE.get(selectEl) || {};
         var label = typeof chosenLabel !== 'undefined' ? chosenLabel : (state.lastValid && state.lastValid.label) || '';
         if (!label) return;
-        var value = (state.labelValueMap && state.labelValueMap.get(label)) || (state.lastValid && state.lastValid.value) || label;
-        setSelected(selectEl, label, value);
+        var value = (state.labelValueMap && state.labelValueMap.get(label)) || label;
+        var isValid = state.labelValueMap && state.labelValueMap.has(label);
+        setSelected(selectEl, label, value, isValid);
       }
     };
   }
@@ -174,7 +197,7 @@
   var initialLabel = deriveInitialLabel(selectEl, meta);
   if (!STATE.get(selectEl) || !STATE.get(selectEl).lastValid) {
     if (meta.initialValue) {
-      setSelected(selectEl, initialLabel, meta.initialValue);
+      setSelected(selectEl, initialLabel, meta.initialValue, true);
     }
   }
 
@@ -190,19 +213,35 @@
     if (input) {
       input.setAttribute('autocomplete', 'off');
       
-      // Add blur handler for auto-selection
+      // Add form submission handler to ensure user input is submitted
+      var form = input.closest('form');
+      if (form) {
+        $(form).on('submit', function() {
+          handleUserInput(input, selectEl);
+        });
+      }
+      
+      // Also add handler for any other form submission events (e.g., via JavaScript)
+      $(document).on('submit', function(e) {
+        if (form && (e.target === form || $.contains(form, e.target))) {
+          handleUserInput(input, selectEl);
+        }
+      });
+      
+      // Add blur (field exit) handler for scenarios
       $(input).on('blur', function() {
         var typed = input.value.trim();
-        if (!typed) return;
         
         var state = STATE.get(selectEl);
         if (!state || !state.labelValueMap) return;
         
-        // If user typed exactly what's in our label map, auto-select it
-        if (state.labelValueMap.has(typed)) {
+        if (typed === '') {
+          setSelected(selectEl, '', '', false);
+        } else if (state.labelValueMap.has(typed)) {
           var value = state.labelValueMap.get(typed);
-          setSelected(selectEl, typed, value);
-          console.log('Auto-selected exact match:', typed, '->', value);
+          setSelected(selectEl, typed, value, true);
+        } else {
+          setSelected(selectEl, typed, typed, false);
         }
       });
     }

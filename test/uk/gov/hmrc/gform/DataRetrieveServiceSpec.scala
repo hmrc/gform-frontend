@@ -194,7 +194,8 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       Json.obj(),
       List.empty[(String, String)],
       count,
-      resetTime
+      resetTime,
+      None
     )
 
     def mockFailureResponse() =

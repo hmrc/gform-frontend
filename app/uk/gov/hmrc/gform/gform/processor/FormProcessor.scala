@@ -309,7 +309,9 @@ class FormProcessor(
                                                                       cache.toCacheData,
                                                                       envelopeWithMapping,
                                                                       validationService.validatePageModelWithoutCustomValidators,
-                                                                      enteredVariadicFormData
+                                                                      enteredVariadicFormData,
+                                                                      cache.form,
+                                                                      cache.retrievals
                                                                     )
       (dataRetrieveResult, updatedFormVisibilityOptics) <- {
         def retrieveWithState(
@@ -320,7 +322,8 @@ class FormProcessor(
         ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser])] = {
           val maybePreviousResult: Option[DataRetrieveResult] =
             cache.form.thirdPartyData.dataRetrieve.flatMap(_.get(dataRetrieve.id))
-          val request: DataRetrieve.Request = dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult)
+          val request: DataRetrieve.Request =
+            dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult, Some(cache.form.envelopeId.value))
           val maybeRetrieveResultF = DataRetrieveService.retrieveDataResult(
             dataRetrieve,
             Some(cache.form),
@@ -391,7 +394,9 @@ class FormProcessor(
               updatedCache.toCacheData,
               envelopeWithMapping,
               validationService.validatePageModel,
-              enteredVariadicFormData
+              enteredVariadicFormData,
+              updatedCache.form,
+              updatedCache.retrievals
             )
             .flatMap { formValidationOutcome =>
               if (formValidationOutcome.isValid) {
