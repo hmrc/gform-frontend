@@ -227,6 +227,7 @@ class DelegatedAgentAuthConnectorSpec
       Json.obj(),
       List(("vatRegistrationNumber", "123456")),
       None,
+      None,
       None
     )
 
@@ -234,12 +235,14 @@ class DelegatedAgentAuthConnectorSpec
       Json.obj(),
       List(("payeReference", "123/AB456")),
       None,
+      None,
       None
     )
 
     val invalidPayeRequest: DataRetrieve.Request = DataRetrieve.Request(
       Json.obj(),
       List(("payeReference", "123456")),
+      None,
       None,
       None
     )
