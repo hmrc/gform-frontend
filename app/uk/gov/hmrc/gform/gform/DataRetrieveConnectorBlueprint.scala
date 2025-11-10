@@ -19,7 +19,8 @@ package uk.gov.hmrc.gform.gform
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.http.Status.{ NOT_FOUND, OK }
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.bars.SchemaValidationException
+import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
+import uk.gov.hmrc.gform.gform.DataRetrieveResponseValidator._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
@@ -31,10 +32,22 @@ class DataRetrieveConnectorBlueprint(
   rawUrl: String,
   identifier: String,
   exceptionalResponses: Option[List[ExceptionalResponse]] = None,
-  responseValidator: Option[(JsValue, DataRetrieve) => Unit] = None
+  enableResponseValidation: Boolean = false
 ) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  private def validateResponse(json: JsValue, dataRetrieve: DataRetrieve): Unit =
+    if (enableResponseValidation) {
+      val result = validateDataRetrieveResponse(json, dataRetrieve)
+      result match {
+        case ValidationSuccess => // Success, do nothing
+        case ValidationFailure(errors) =>
+          throw new DataRetrieveResponseValidationException(
+            s"Data Retrieve response validation failed: ${errors.mkString(", ")}"
+          )
+      }
+    }
 
   def get(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(implicit
     ex: ExecutionContext,
@@ -48,14 +61,7 @@ class DataRetrieveConnectorBlueprint(
       .setHeader(header: _*)
       .execute[JsValue]
       .map { response =>
-        responseValidator.foreach { validator =>
-          try validator(response, dataRetrieve)
-          catch {
-            case ex: SchemaValidationException =>
-              logger.error(s"Schema validation failed for $identifier: ${ex.getMessage}")
-              throw ex
-          }
-        }
+        validateResponse(response, dataRetrieve)
 
         dataRetrieve
           .processResponse(response)
@@ -73,7 +79,8 @@ class DataRetrieveConnectorBlueprint(
           )
       }
       .recover {
-        case schemaEx: SchemaValidationException =>
+        case drResponseEx: DataRetrieveResponseValidationException =>
+          logger.error(s"Response validation errors when calling $identifier: ${drResponseEx.getMessage}")
           CannotRetrieveResponse
         case otherEx =>
           logger.error(s"Unknown problem when calling $identifier", otherEx)
@@ -148,14 +155,7 @@ class DataRetrieveConnectorBlueprint(
           case (Some(_), _) | (_, 200) =>
             val responseJson = maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response))
 
-            responseValidator.foreach { validator =>
-              try validator(responseJson, dataRetrieve)
-              catch {
-                case ex: SchemaValidationException =>
-                  logger.error(s"Schema validation failed for $identifier: ${ex.getMessage}")
-                  throw ex
-              }
-            }
+            validateResponse(responseJson, dataRetrieve)
 
             dataRetrieve
               .processResponse(responseJson)
@@ -177,7 +177,8 @@ class DataRetrieveConnectorBlueprint(
         }
       }
       .recover {
-        case schemaEx: SchemaValidationException =>
+        case drResponseEx: DataRetrieveResponseValidationException =>
+          logger.error(s"Response validation errors when calling $identifier: ${drResponseEx.getMessage}")
           CannotRetrieveResponse
         case otherEx =>
           logger.error(s"Unknown problem when calling $identifier", otherEx)

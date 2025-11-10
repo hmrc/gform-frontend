@@ -22,8 +22,6 @@ import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType.{ ListType, ObjectType }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.gform.bars.BankAccountSchemaValidation._
-import play.api.libs.json.JsValue
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -72,7 +70,7 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
       baseUrl + "/validate/bank-details",
       "validate bank details",
       validateBankDetailsExceptionalResponses,
-      Some(bankAccountSchemaValidator)
+      enableResponseValidation = true
     )
   val businessBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
@@ -80,7 +78,7 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
       baseUrl + "/verify/business",
       "business bank account existence",
       businessAndPersonalExceptionalResponses,
-      Some(bankAccountSchemaValidator)
+      enableResponseValidation = true
     )
   val personalBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
@@ -88,25 +86,8 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
       baseUrl + "/verify/personal",
       "personal bank account existence",
       businessAndPersonalExceptionalResponses,
-      Some(bankAccountSchemaValidator)
+      enableResponseValidation = true
     )
-
-  private def bankAccountSchemaValidator(json: JsValue, dataRetrieve: DataRetrieve): Unit = {
-    val result = dataRetrieve.tpe match {
-      case DataRetrieve.Type("validateBankDetails")          => validateBankDetailsResponse(json)
-      case DataRetrieve.Type("businessBankAccountExistence") => validateBusinessBankAccountExistenceResponse(json)
-      case DataRetrieve.Type("personalBankAccountExistence") => validatePersonalBankAccountExistenceResponse(json)
-      case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
-        validatePersonalBankAccountExistenceResponse(json)
-      case _ => ValidationSuccess // Don't validate other DataRetrieve types
-    }
-
-    result match {
-      case ValidationSuccess => // Success, do nothing
-      case ValidationFailure(errors) =>
-        throw new SchemaValidationException(s"Schema validation failed: ${errors.mkString(", ")}")
-    }
-  }
 
   override def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier

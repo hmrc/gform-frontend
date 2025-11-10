@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.bars
+package uk.gov.hmrc.gform.exceptions
 
-class SchemaValidationException(message: String) extends Exception(message)
+class DataRetrieveResponseValidationException(message: String) extends Exception(message)

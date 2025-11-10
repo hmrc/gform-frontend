@@ -48,9 +48,34 @@ object ConstructAttribute {
   implicit val format: OFormat[ConstructAttribute] = derived.oformat()
 }
 
+sealed trait AllowedValueType extends Product with Serializable
+
+object AllowedValueType {
+  case object JsStringType extends AllowedValueType
+  case object JsNumberType extends AllowedValueType
+  case object JsBooleanType extends AllowedValueType
+  case object AnyValue extends AllowedValueType
+
+  implicit val format: OFormat[AllowedValueType] = derived.oformat()
+}
+
+final case class AllowedValues(value: List[String], valueType: AllowedValueType) {
+  // A field is required only if it's not AnyValue type and doesn't allow wildcards
+  // AnyValue type fields are always optional
+  def isRequired: Boolean = valueType != AllowedValueType.AnyValue && !value.contains("*")
+  def allowsAnyValue: Boolean = valueType == AllowedValueType.AnyValue || value.contains("*")
+}
+
+object AllowedValues {
+  implicit val format: OFormat[AllowedValues] = derived.oformat()
+}
+
 final case class AttributeInstruction(
   attribute: DataRetrieve.Attribute,
-  from: ConstructAttribute
+  from: ConstructAttribute,
+  allowedValues: Option[AllowedValues] = Some(
+    AllowedValues(List("*"), AllowedValueType.AnyValue)
+  )
 )
 
 object AttributeInstruction {
