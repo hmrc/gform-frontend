@@ -106,6 +106,8 @@ class DataRetrieveConnectorBlueprint(
       .map { response =>
         response.status match {
           case OK =>
+            validateResponse(response.json, dataRetrieve)
+
             dataRetrieve
               .processResponse(response.json)
               .fold(
@@ -126,9 +128,13 @@ class DataRetrieveConnectorBlueprint(
             CannotRetrieveResponse
         }
       }
-      .recover { ex =>
-        logger.error(s"Unknown problem when calling $identifier", ex)
-        CannotRetrieveResponse
+      .recover {
+        case drResponseEx: DataRetrieveResponseValidationException =>
+          logger.error(s"Response validation errors when calling $identifier: ${drResponseEx.getMessage}")
+          CannotRetrieveResponse
+        case otherEx =>
+          logger.error(s"Unknown problem when calling $identifier", otherEx)
+          CannotRetrieveResponse
       }
   }
 

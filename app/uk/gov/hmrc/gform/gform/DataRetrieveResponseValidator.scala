@@ -117,58 +117,92 @@ object DataRetrieveResponseValidator {
       }
     }
 
+  private def getValueTypeAsString(valueType: AllowedValueType): String =
+    valueType match {
+      case AllowedValueType.JsStringType  => "string"
+      case AllowedValueType.JsNumberType  => "number"
+      case AllowedValueType.JsBooleanType => "boolean"
+      case AllowedValueType.AnyValueType  => "any"
+    }
+
   private def validateFieldValue(
     jsValue: JsValue,
     fieldName: String,
     allowedValues: AllowedValues,
     endpointName: String
   ): Option[String] =
-    // If wildcard is specified, any value is allowed (unless it's required and empty)
-    if (allowedValues.allowsAnyValue) {
-      jsValue match {
-        case JsString("") if allowedValues.isRequired =>
-          logger.debug(s"Validation failed for $endpointName: required field '$fieldName' is empty")
-          Some(s"required field '$fieldName' cannot be empty")
-        case JsString(_) | JsNumber(_) | JsBoolean(_) | JsArray(_) => None
-        case _ =>
-          logger.debug(s"Validation failed for $endpointName: field '$fieldName' has invalid type")
-          Some(s"field '$fieldName' must be a string, number, boolean, or array")
-      }
-    } else {
-      (jsValue, allowedValues.valueType) match {
-        case (JsString(value), AllowedValueType.JsStringType) =>
-          if (value.isEmpty && !allowedValues.isRequired) {
-            None // Empty optional field is OK
-          } else if (!allowedValues.value.contains(value)) {
-            logger.debug(
-              s"Validation failed for $endpointName: unexpected value for '$fieldName': '$value'"
-            )
-            Some(s"unexpected value for '$fieldName': '$value'")
-          } else {
-            None
-          }
-        case (JsNumber(_), AllowedValueType.JsNumberType) =>
-          None // Valid number type
-        case (JsBoolean(_), AllowedValueType.JsBooleanType) =>
-          None // Valid boolean type
-        case (JsString(""), _) if !allowedValues.isRequired =>
-          None // Empty optional field is OK
-        case (JsArray(_), _) =>
-          // Arrays are allowed when we have specific allowed values (e.g., for ExtractAtIndex)
-          // The actual extraction happens elsewhere, so we just validate presence
+    jsValue match {
+      case JsArray(elements) =>
+        val arrayErrors = elements.zipWithIndex.flatMap { case (element, index) =>
+          validateFieldValue(element, s"$fieldName[$index]", allowedValues, endpointName)
+            .map(error => s"array element at index $index: ${error.stripPrefix(s"field '$fieldName[$index]' ")}")
+        }
+        if (arrayErrors.nonEmpty) {
+          logger.debug(s"Validation failed for $endpointName: field '$fieldName' - ${arrayErrors.mkString(", ")}")
+          Some(s"field '$fieldName' contains invalid elements: ${arrayErrors.mkString(", ")}")
+        } else {
           None
-        case _ =>
-          val expectedType = allowedValues.valueType match {
-            case AllowedValueType.JsStringType  => "string"
-            case AllowedValueType.JsNumberType  => "number"
-            case AllowedValueType.JsBooleanType => "boolean"
-            case AllowedValueType.AnyValue      => "any"
+        }
+      case _ =>
+        if (allowedValues.allowsAnyValue) {
+          (jsValue, allowedValues.valueType) match {
+            case (JsString(""), _) if allowedValues.isRequired =>
+              logger.debug(s"Validation failed for $endpointName: required field '$fieldName' is empty")
+              Some(s"required field '$fieldName' cannot be empty")
+            case (JsString(_), AllowedValueType.JsStringType)                              => None
+            case (JsNumber(_), AllowedValueType.JsNumberType)                              => None
+            case (JsBoolean(_), AllowedValueType.JsBooleanType)                            => None
+            case (JsString(_) | JsNumber(_) | JsBoolean(_), AllowedValueType.AnyValueType) => None
+            case _ =>
+              val expectedType = getValueTypeAsString(allowedValues.valueType)
+              logger.debug(
+                s"Validation failed for $endpointName: field '$fieldName' must be a $expectedType"
+              )
+              Some(s"field '$fieldName' must be a $expectedType")
           }
-          logger.debug(
-            s"Validation failed for $endpointName: field '$fieldName' must be a $expectedType"
-          )
-          Some(s"field '$fieldName' must be a $expectedType")
-      }
+        } else {
+          (jsValue, allowedValues.valueType) match {
+            case (JsString(value), AllowedValueType.JsStringType) =>
+              if (value.isEmpty && !allowedValues.isRequired) {
+                None // Empty optional field is OK
+              } else if (!allowedValues.values.contains(value)) {
+                logger.debug(
+                  s"Validation failed for $endpointName: unexpected value for '$fieldName': '$value'"
+                )
+                Some(s"unexpected value for '$fieldName': '$value'")
+              } else {
+                None
+              }
+            case (JsNumber(value), AllowedValueType.JsNumberType) =>
+              val valueAsString = value.toString()
+              if (!allowedValues.values.contains(valueAsString)) {
+                logger.debug(
+                  s"Validation failed for $endpointName: unexpected value for '$fieldName': '$valueAsString'"
+                )
+                Some(s"unexpected value for '$fieldName': '$valueAsString'")
+              } else {
+                None
+              }
+            case (JsBoolean(value), AllowedValueType.JsBooleanType) =>
+              val valueAsString = value.toString
+              if (!allowedValues.values.contains(valueAsString)) {
+                logger.debug(
+                  s"Validation failed for $endpointName: unexpected value for '$fieldName': '$valueAsString'"
+                )
+                Some(s"unexpected value for '$fieldName': '$valueAsString'")
+              } else {
+                None
+              }
+            case (JsString(""), _) if !allowedValues.isRequired =>
+              None // Empty optional field is OK
+            case _ =>
+              val expectedType = getValueTypeAsString(allowedValues.valueType)
+              logger.debug(
+                s"Validation failed for $endpointName: field '$fieldName' must be a $expectedType"
+              )
+              Some(s"field '$fieldName' must be a $expectedType")
+          }
+        }
     }
 
   def validateDataRetrieveResponse(json: JsValue, dataRetrieve: DataRetrieve): ValidationResult = {

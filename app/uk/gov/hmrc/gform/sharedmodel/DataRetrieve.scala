@@ -54,16 +54,13 @@ object AllowedValueType {
   case object JsStringType extends AllowedValueType
   case object JsNumberType extends AllowedValueType
   case object JsBooleanType extends AllowedValueType
-  case object AnyValue extends AllowedValueType
+  case object AnyValueType extends AllowedValueType
 
   implicit val format: OFormat[AllowedValueType] = derived.oformat()
 }
 
-final case class AllowedValues(value: List[String], valueType: AllowedValueType) {
-  // A field is required only if it's not AnyValue type and doesn't allow wildcards
-  // AnyValue type fields are always optional
-  def isRequired: Boolean = valueType != AllowedValueType.AnyValue && !value.contains("*")
-  def allowsAnyValue: Boolean = valueType == AllowedValueType.AnyValue || value.contains("*")
+final case class AllowedValues(values: List[String], valueType: AllowedValueType, isRequired: Boolean) {
+  def allowsAnyValue: Boolean = values.contains("*")
 }
 
 object AllowedValues {
@@ -74,7 +71,7 @@ final case class AttributeInstruction(
   attribute: DataRetrieve.Attribute,
   from: ConstructAttribute,
   allowedValues: Option[AllowedValues] = Some(
-    AllowedValues(List("*"), AllowedValueType.AnyValue)
+    AllowedValues(List("*"), AllowedValueType.AnyValueType, isRequired = false)
   )
 )
 
