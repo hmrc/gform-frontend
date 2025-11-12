@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult }
 
@@ -44,13 +44,43 @@ object DestinationEvaluator {
             val customerId =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId()).stringRepresentation.take(32)
 
-            DestinationResult(d.id, includeIfEval, Some(customerId), None, None, None, None, None, None)
+            DestinationResult(
+              d.id,
+              includeIfEval,
+              Some(customerId),
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None
+            )
           case d: DestinationWithTaxpayerId =>
             val includeIfEval = evalIncludeIf(d.includeIf)
             val taxpayerId =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.taxpayerId()).stringRepresentation.take(32)
 
-            DestinationResult(d.id, includeIfEval, None, Some(taxpayerId), None, None, None, None, None)
+            DestinationResult(
+              d.id,
+              includeIfEval,
+              None,
+              Some(taxpayerId),
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None
+            )
           case d: DestinationWithPaymentReference =>
             val includeIfEval = evalIncludeIf(d.includeIf)
             val paymentReference =
@@ -62,14 +92,87 @@ object DestinationEvaluator {
             val postalCode =
               d.postalCode.map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
 
-            DestinationResult(d.id, includeIfEval, None, None, Some(paymentReference), nino, utr, postalCode, None)
+            DestinationResult(
+              d.id,
+              includeIfEval,
+              None,
+              None,
+              Some(paymentReference),
+              nino,
+              utr,
+              postalCode,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None
+            )
           case d: DestinationWithPegaCaseId =>
             val includeIfEval = evalIncludeIf(d.includeIf)
             val caseId = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.caseId).stringRepresentation
-            DestinationResult(d.id, includeIfEval, None, None, None, None, None, None, Some(caseId))
+            DestinationResult(
+              d.id,
+              includeIfEval,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              Some(caseId),
+              None,
+              None,
+              None,
+              None,
+              None
+            )
+          case d: DestinationWithNiRefundClaimBankDetails =>
+            val includeIfEval = evalIncludeIf(d.includeIf)
+            val bankAccountName =
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.bankAccountName).stringRepresentation
+            val sortCode = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.sortCode).stringRepresentation
+            val accountNumber =
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.accountNumber).stringRepresentation
+            val rollNumber =
+              d.rollNumber.map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
+            val refundClaimReference =
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.refundClaimReference).stringRepresentation
+            val nino = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.nino).stringRepresentation
+            DestinationResult(
+              d.id,
+              includeIfEval,
+              None,
+              None,
+              None,
+              Some(nino),
+              None,
+              None,
+              None,
+              Some(bankAccountName),
+              Some(sortCode),
+              Some(accountNumber),
+              rollNumber,
+              Some(refundClaimReference)
+            )
           case others =>
             val includeIfEval = evalIncludeIf(others.includeIf)
-            DestinationResult(others.id, includeIfEval, None, None, None, None, None, None, None)
+            DestinationResult(
+              others.id,
+              includeIfEval,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None,
+              None
+            )
         }
       case _ => List.empty[DestinationResult]
     }

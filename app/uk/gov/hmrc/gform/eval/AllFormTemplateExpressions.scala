@@ -85,6 +85,15 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
         case d: Destination.DataStore              => Nil
         case d: Destination.InfoArchive            => List(d.utr, d.nino, d.postalCode, Some(d.paymentReference)).flatten
         case d: Destination.PegaApi                => d.caseId :: Nil
+        case d: Destination.NiRefundClaimApi =>
+          List(
+            Some(d.bankAccountName),
+            Some(d.sortCode),
+            Some(d.accountNumber),
+            d.rollNumber,
+            Some(d.refundClaimReference),
+            Some(d.nino)
+          ).flatten
       }
 
       def fromDestinations(destinations: NonEmptyList[Destination]): List[ExprMetadata] =
