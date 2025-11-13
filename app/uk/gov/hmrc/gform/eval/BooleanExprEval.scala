@@ -134,18 +134,19 @@ class BooleanExprEval {
     f: (DateResult, DateResult) => Boolean,
     formModelVisibilityOptics: FormModelVisibilityOptics[D]
   ) = {
-    val evalFunc: DateExpr => Option[ExpressionResult.DateResult] = DateExprEval.eval(
-      formModelVisibilityOptics.formModel,
-      formModelVisibilityOptics.recData.asInstanceOf[RecData[OutOfDate]],
-      formModelVisibilityOptics.recalculationResult.evaluationContext,
-      formModelVisibilityOptics.booleanExprResolver,
-      formModelVisibilityOptics.evaluationResults
-    )
+    val evalFunc: DateExpr => ExpressionResult = DateExprEval
+      .eval(
+        formModelVisibilityOptics.formModel,
+        formModelVisibilityOptics.recData.asInstanceOf[RecData[OutOfDate]],
+        formModelVisibilityOptics.recalculationResult.evaluationContext,
+        formModelVisibilityOptics.booleanExprResolver,
+        formModelVisibilityOptics.evaluationResults
+      )
     val l = evalFunc(left)
     val r = evalFunc(right)
     ((l, r) match {
-      case (Some(lResult), Some(rResult)) => f(lResult, rResult)
-      case _                              => false
+      case (dr1 @ DateResult(_), dr2 @ DateResult(_)) => f(dr1, dr2)
+      case _                                          => false
     })
   }
 }

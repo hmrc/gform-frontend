@@ -106,7 +106,7 @@ object FormModelBuilder {
       dateExprRHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
       f: (DateResult, DateResult) => Boolean
     ): Boolean = {
-      val evalFunc: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr => Option[DateResult] =
+      val evalFunc: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr => ExpressionResult =
         DateExprEval
           .eval(
             formModel,
@@ -118,8 +118,8 @@ object FormModelBuilder {
       val exprResultLHS = evalFunc(dateExprLHS)
       val exprResultRHS = evalFunc(dateExprRHS)
       (exprResultLHS, exprResultRHS) match {
-        case (Some(left), Some(right)) => f(left, right)
-        case _                         => false
+        case (left @ DateResult(_), right @ DateResult(_)) => f(left, right)
+        case _                                             => false
       }
     }
 

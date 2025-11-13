@@ -156,7 +156,7 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
       (
         DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
         StringResult("2020"),
-        Some(DateResult(LocalDate.of(2020, 2, 1)))
+        DateResult(LocalDate.of(2020, 2, 1))
       ),
       (
         DateConstructExpr(
@@ -164,30 +164,30 @@ class DateExprEvalSpec extends Spec with TableDrivenPropertyChecks with ExampleE
           DateFunction(Year(DateValueExpr(TodayDateExprValue)))
         ),
         ExpressionResult.empty,
-        Some(DateResult(LocalDate.of(todayYear, 2, 1)))
+        DateResult(LocalDate.of(todayYear, 2, 1))
       ),
       (
         DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
         DateResult(LocalDate.of(2016, 10, 10)),
-        Some(DateResult(LocalDate.of(2016, 2, 1)))
+        DateResult(LocalDate.of(2016, 2, 1))
       ),
       (
         DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
         NumberResult(2021),
-        Some(DateResult(LocalDate.of(2021, 2, 1)))
+        DateResult(LocalDate.of(2021, 2, 1))
       ),
       (
         DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
         OptionResult(Seq("2022")),
-        Some(DateResult(LocalDate.of(2022, 2, 1)))
+        DateResult(LocalDate.of(2022, 2, 1))
       ),
       (
         DateConstructExpr(DateValueExpr(ExactDateExprValue(1900, 2, 1)), FormCtx(formComponentId)),
         StringResult("BAD"),
-        None
+        ExpressionResult.Empty
       )
     )
-    forAll(table) { (dExpr: DateConstructExpr, exprResult: ExpressionResult, expected: Option[DateResult]) =>
+    forAll(table) { (dExpr: DateConstructExpr, exprResult: ExpressionResult, expected: ExpressionResult) =>
       val actual = evalDateConstructExpr(
         RecData[OutOfDate](VariadicFormData.empty),
         evaluationContext,

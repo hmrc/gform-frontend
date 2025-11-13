@@ -35,6 +35,8 @@ sealed trait DateExpr {
     case DateIfElse(_, field1, field2) => field1.leafExprs ++ field2.leafExprs
     case DateOrElse(field1, field2)    => field1.leafExprs ++ field2.leafExprs
     case DateConstructExpr(dm, year)   => dm.leafExprs ++ year.leafs()
+    case EarliestOf(exprs)             => exprs.flatMap(_.leafExprs)
+    case LatestOf(exprs)               => exprs.flatMap(_.leafExprs)
   }
 
   def maybeFormCtx(
@@ -65,11 +67,17 @@ sealed trait DateExpr {
       else
         field2.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
     case DateConstructExpr(_, _) => None
+    case EarliestOf(exprs) =>
+      exprs.flatMap(_.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)).headOption
+    case LatestOf(exprs) =>
+      exprs.flatMap(_.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)).headOption
   }
 
   def expand(index: Int): DateExpr = this match {
     case DateFormCtxVar(FormCtx(formComponentId))       => DateFormCtxVar(FormCtx(formComponentId.withIndex(index)))
     case DateExprWithOffset(dateExpr: DateExpr, offset) => DateExprWithOffset(dateExpr.expand(index), offset)
+    case EarliestOf(exprs)                              => EarliestOf(exprs.map(_.expand(index)))
+    case LatestOf(exprs)                                => LatestOf(exprs.map(_.expand(index)))
     case other                                          => other
   }
 }
@@ -113,6 +121,8 @@ case class DataRetrieveDateCtx(id: DataRetrieveId, attribute: DataRetrieve.Attri
 case class DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) extends DateExpr
 case class DateOrElse(field1: DateExpr, field2: DateExpr) extends DateExpr
 case class DateConstructExpr(dayMonth: DateExpr, year: Expr) extends DateExpr
+case class EarliestOf(exprs: List[DateExpr]) extends DateExpr
+case class LatestOf(exprs: List[DateExpr]) extends DateExpr
 
 object DateExpr {
   implicit val format: OFormat[DateExpr] = derived.oformat()

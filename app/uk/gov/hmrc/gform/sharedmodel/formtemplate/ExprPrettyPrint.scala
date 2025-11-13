@@ -155,6 +155,8 @@ object ExprPrettyPrint {
     case DateIfElse(ifElse: BooleanExpr, field1: DateExpr, field2: DateExpr) => "???"
     case DateOrElse(field1: DateExpr, field2: DateExpr)                      => "???"
     case DateConstructExpr(d, y)                                             => prettyPrintDateConstructExpr(d, y)
+    case EarliestOf(_)                                                       => "EarliestOf"
+    case LatestOf(_)                                                         => "LatestOf"
   }
 
   def prettyPrintDateExprValue(dateExprValue: DateExprValue): String = dateExprValue match {

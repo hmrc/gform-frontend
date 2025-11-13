@@ -129,6 +129,8 @@ object FormComponentIdSubstituter {
         case DateOrElse(field1, field2) =>
           DateOrElse(substitute(substitutions, field1), substitute(substitutions, field2))
         case DateConstructExpr(dm, year) => DateConstructExpr(dm, year(substitutions))
+        case EarliestOf(exprs)           => EarliestOf(exprs.map(substitute(substitutions, _)))
+        case LatestOf(exprs)             => LatestOf(exprs.map(substitute(substitutions, _)))
       }
 
     }

@@ -924,9 +924,7 @@ case class EvaluationResults(
       case Else(field1: Expr, field2: Expr) => loop(field1) orElse loop(field2)
       case DateCtx(dateExpr)                => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
       case DataRetrieveCtx(id, attribute) =>
-        evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
-          ExpressionResult.empty
-        )
+        evalDataRetrieveDate(id, attribute, evaluationContext)
       case _ => ExpressionResult.empty
     }
 

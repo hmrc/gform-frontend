@@ -155,9 +155,11 @@ object SummarySubstituter {
         case DateOrElse(field1, field2) =>
           DateOrElse(substitute(substitutions, field1), substitute(substitutions, field2))
         case DateConstructExpr(dm, year) => DateConstructExpr(dm, year(substitutions))
+        case EarliestOf(exprs)           => EarliestOf(exprs.map(substitute(substitutions, _)))
+        case LatestOf(exprs)             => LatestOf(exprs.map(substitute(substitutions, _)))
       }
-
     }
+
   implicit val dateProjectionSubstituter: Substituter[SummarySubstitutions, DateProjection] =
     new Substituter[SummarySubstitutions, DateProjection] {
       override def substitute(substitutions: SummarySubstitutions, expr: DateProjection): DateProjection = expr match {
@@ -166,9 +168,7 @@ object SummarySubstituter {
         case DateProjection.Year(dateExpr)    => DateProjection.Year(dateExpr(substitutions))
         case DateProjection.TaxYear(dateExpr) => DateProjection.TaxYear(dateExpr(substitutions))
       }
-
     }
-
 }
 
 case class SummarySubstitutions(
