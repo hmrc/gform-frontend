@@ -56,13 +56,13 @@ class RecalculationResolver(
     dateExprRHS: DateExpr,
     f: (DateResult, DateResult) => Boolean
   ): Boolean = {
-    val evalFunc: DateExpr => Option[DateResult] =
+    val evalFunc: DateExpr => ExpressionResult =
       DateExprEval.eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)
     val exprResultLHS = evalFunc(dateExprLHS)
     val exprResultRHS = evalFunc(dateExprRHS)
     val res = (exprResultLHS, exprResultRHS) match {
-      case (Some(left), Some(right)) => f(left, right)
-      case _                         => false
+      case (left @ DateResult(_), right @ DateResult(_)) => f(left, right)
+      case _                                             => false
     }
     res
   }
