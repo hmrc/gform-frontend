@@ -32,6 +32,8 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case DateIfElse(cond, field1, field2)                       => DateIfElse(cond, expandDateExpr(field1), expandDateExpr(field2))
     case DateOrElse(field1, field2)                             => DateOrElse(expandDateExpr(field1), expandDateExpr(field2))
     case DateConstructExpr(dm, year)                            => DateConstructExpr(dm, expandExpr(year))
+    case EarliestOf(exprs)                                      => EarliestOf(exprs.map(expandDateExpr))
+    case LatestOf(exprs)                                        => LatestOf(exprs.map(expandDateExpr))
   }
   private def expandAddLoListRef(addToListRef: AddToListRef): AddToListRef = addToListRef match {
     case AddToListRef.Basic(atlFormCtx) =>

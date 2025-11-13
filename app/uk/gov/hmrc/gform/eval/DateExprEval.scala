@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty }
+import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, ListResult, TaxPeriodResult }
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
@@ -36,15 +36,16 @@ object DateExprEval {
     evaluationContext: EvaluationContext,
     booleanExprResolver: BooleanExprResolver,
     evaluationResults: EvaluationResults
-  )(dateExpr: DateExpr): Option[DateResult] =
+  )(dateExpr: DateExpr): ExpressionResult =
     dateExpr match {
-      case DateValueExpr(value) => Some(DateResult(value.toLocalDate(evaluationContext.formStartDate)))
+      case DateValueExpr(value) => DateResult(value.toLocalDate(evaluationContext.formStartDate))
       case DateFormCtxVar(formCtx) =>
         fromFormCtx(formModel, recData, evaluationResults, booleanExprResolver, evaluationContext, formCtx)
       case DateExprWithOffset(dExpr, offset) =>
-        eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(dExpr).map(r =>
-          DateResult(addOffset(r.value, offset))
-        )
+        eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(dExpr) match {
+          case DateResult(localDate) => DateResult(addOffset(localDate, offset))
+          case otherwise             => otherwise
+        }
       case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
       case DataRetrieveDateCtx(id, attribute) => evalDataRetrieveDate(id, attribute, evaluationContext)
@@ -59,6 +60,36 @@ object DateExprEval {
         )
       case d @ DateConstructExpr(_, _) =>
         evalDateConstructExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(d)
+      case EarliestOf(exprs) =>
+        val localDates = exprs
+          .map(expr => eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(expr))
+          .flatMap {
+            case ListResult(xs) => xs
+            case other          => List(other)
+          }
+          .collect { case DateResult(localDate) =>
+            localDate
+          }
+        if (localDates.isEmpty) {
+          ExpressionResult.Empty
+        } else {
+          DateResult(localDates.min)
+        }
+      case LatestOf(exprs) =>
+        val localDates = exprs
+          .map(expr => eval(formModel, recData, evaluationContext, booleanExprResolver, evaluationResults)(expr))
+          .flatMap {
+            case ListResult(xs) => xs
+            case other          => List(other)
+          }
+          .collect { case DateResult(localDate) =>
+            localDate
+          }
+        if (localDates.isEmpty) {
+          ExpressionResult.Empty
+        } else {
+          DateResult(localDates.max)
+        }
     }
 
   def evalDateConstructExpr(
@@ -68,7 +99,7 @@ object DateExprEval {
     booleanExprResolver: BooleanExprResolver
   )(
     dExpr: DateConstructExpr
-  ): Option[DateResult] = {
+  ): ExpressionResult = {
     val yearExprTypeInfo: TypeInfo = evaluationResults.typeInfoForExpr(dExpr.year, evaluationContext)
     val yearResult = evaluationResults.evalExpr(yearExprTypeInfo, recData, booleanExprResolver, evaluationContext)
 
@@ -87,7 +118,7 @@ object DateExprEval {
       case _ => None
     }
 
-    resultOpt.map(DateResult)
+    resultOpt.map(DateResult).getOrElse(ExpressionResult.Empty)
   }
 
   def evalDateExpr(
@@ -130,13 +161,8 @@ object DateExprEval {
           d.copy(value = addOffset(d.value, offset))
         )(identity)(identity)(identity)(identity)
       case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
-        evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext).getOrElse(
-          ExpressionResult.empty
-        )
-      case DataRetrieveDateCtx(id, attribute) =>
-        evalDataRetrieveDate(id, attribute, evaluationContext).getOrElse(
-          ExpressionResult.empty
-        )
+        evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
+      case DataRetrieveDateCtx(id, attribute) => evalDataRetrieveDate(id, attribute, evaluationContext)
       case DateIfElse(cond, field1, field2) =>
         if (booleanExprResolver.resolve(cond))
           evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
@@ -148,7 +174,36 @@ object DateExprEval {
         )
       case d @ DateConstructExpr(_, _) =>
         evalDateConstructExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(d)
-          .getOrElse(ExpressionResult.empty)
+      case EarliestOf(exprs) =>
+        val localDates = exprs
+          .map(expr => evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(expr))
+          .flatMap {
+            case ListResult(xs) => xs
+            case other          => List(other)
+          }
+          .collect { case DateResult(localDate) =>
+            localDate
+          }
+        if (localDates.isEmpty) {
+          ExpressionResult.Empty
+        } else {
+          DateResult(localDates.min)
+        }
+      case LatestOf(exprs) =>
+        val localDates = exprs
+          .map(expr => evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(expr))
+          .flatMap {
+            case ListResult(xs) => xs
+            case other          => List(other)
+          }
+          .collect { case DateResult(localDate) =>
+            localDate
+          }
+        if (localDates.isEmpty) {
+          ExpressionResult.Empty
+        } else {
+          DateResult(localDates.max)
+        }
     }
 
   private def evalHmrcTaxPeriod(
@@ -156,7 +211,7 @@ object DateExprEval {
     hmrcTaxPeriodInfo: HmrcTaxPeriodInfo,
     recData: RecData[OutOfDate],
     evaluationContext: EvaluationContext
-  ): Option[DateResult] = {
+  ): ExpressionResult = {
     val period: String = recData.variadicFormData.one(formComponentId.modelComponentId).getOrElse("")
     val maybeObligationDetail: Option[ObligationDetail] =
       evaluationContext.thirdPartyData.obligations.findByFcPeriodKey(formComponentId, period)
@@ -171,6 +226,7 @@ object DateExprEval {
           }
         )
       }
+      .getOrElse(ExpressionResult.Empty)
   }
 
   def toDateResult(value: String): Option[DateResult] = Try(DateResult(LocalDate.parse(value))).toOption
@@ -179,9 +235,9 @@ object DateExprEval {
     id: DataRetrieveId,
     attribute: DataRetrieve.Attribute,
     evaluationContext: EvaluationContext
-  ): Option[DateResult] =
+  ): ExpressionResult =
     evaluationContext.thirdPartyData.dataRetrieve
-      .fold(Option.empty[DateResult]) { dataRetrieve =>
+      .flatMap { dataRetrieve =>
         DataRetrieveEval
           .getDataRetrieveAttribute(dataRetrieve, DataRetrieveCtx(id, attribute))
           .flatMap {
@@ -189,6 +245,7 @@ object DateExprEval {
             case xs       => None
           }
       }
+      .getOrElse(ExpressionResult.Empty)
 
   // for "submitMode": "summaryinfoonly" fields, since they don't exist in form data.
   private def fromValue(evaluationContext: EvaluationContext, formComponentId: FormComponentId): ExpressionResult =
@@ -203,17 +260,16 @@ object DateExprEval {
     booleanExprResolver: BooleanExprResolver,
     evaluationContext: EvaluationContext,
     formCtx: FormCtx
-  ): Option[DateResult] = {
+  ): ExpressionResult = {
     val typeInfo: TypeInfo = formModel.explicitTypedExpr(formCtx, formCtx.formComponentId)
     val expressionResult =
       evaluationResults.evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext)
-    expressionResult.fold(_ => Option.empty[DateResult])(_ => None)(_ => None)(_ => None)(_ => None)(_ => None)(
-      dateResult => Some(dateResult)
-    ) { tp =>
-      Some(
-        DateResult(LocalDate.of(tp.year, tp.month, 1).`with`(TemporalAdjusters.lastDayOfMonth()))
-      )
-    }(_ => None)(_ => None)(_ => None)
+
+    expressionResult match {
+      case TaxPeriodResult(month, year) =>
+        DateResult(LocalDate.of(year, month, 1).`with`(TemporalAdjusters.lastDayOfMonth()))
+      case otherwise => otherwise
+    }
   }
 
   private def addOffset(d: LocalDate, offset: OffsetYMD): LocalDate =
