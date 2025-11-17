@@ -509,14 +509,18 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       .execute[NonEmptyList[ServiceCallResponse[TaxResponse]]]
   }
 
-  private val urlWithPlaceholders = s"$baseUrl/des-employments/{{nino}}/{{taxYear}}"
+  private val urlWithPlaceholders = s"$baseUrl/hip/ni-employments/{{nino}}/{{taxYear}}"
   private val employmentsProfileB = new DataRetrieveConnectorBlueprint(httpClient, urlWithPlaceholders, "employments")
 
   def getEmployments(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    employmentsProfileB.get(dataRetrieve, request)
+    employmentsProfileB.getEmptyIfNotFound(
+      dataRetrieve,
+      request,
+      request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
+    )
 
   /** **** Form Bundles *****
     */

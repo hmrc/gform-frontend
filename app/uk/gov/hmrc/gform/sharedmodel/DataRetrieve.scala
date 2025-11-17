@@ -189,7 +189,7 @@ case class DataRetrieve(
 
   def emptyValidResponse(): ServiceCallResponse[DataRetrieve.Response] =
     attributes match {
-      case Attr.FromArray(ins)  => ServiceResponse(DataRetrieve.Response.Array(List(ins.map(_.attribute -> "").toMap)))
+      case Attr.FromArray(_)    => ServiceResponse(DataRetrieve.Response.Array(List.empty))
       case Attr.FromObject(ins) => ServiceResponse(DataRetrieve.Response.Object(ins.map(_.attribute -> "").toMap))
     }
 }
