@@ -157,9 +157,7 @@ object DateExprEval {
         }
       case DateExprWithOffset(dExpr, offset) =>
         val exprResult = evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(dExpr)
-        exprResult.fold[ExpressionResult](identity)(_ => exprResult)(_ => exprResult)(identity)(identity)(identity)(d =>
-          d.copy(value = addOffset(d.value, offset))
-        )(identity)(identity)(identity)(identity)
+        exprResult.withDateResult(localDate => addOffset(localDate, offset))
       case HmrcTaxPeriodCtx(FormCtx(formComponentId), hmrcTaxPeriodInfo) =>
         evalHmrcTaxPeriod(formComponentId, hmrcTaxPeriodInfo, recData, evaluationContext)
       case DataRetrieveDateCtx(id, attribute) => evalDataRetrieveDate(id, attribute, evaluationContext)

@@ -361,6 +361,15 @@ sealed trait ExpressionResult extends Product with Serializable {
       identity
     )(lr => ListResult(lr.list.map(_.withNumberResult(f))))
 
+  def withDateResult(f: LocalDate => LocalDate): ExpressionResult =
+    fold[ExpressionResult](identity)(identity)(identity)(identity)(identity)(identity)(d => DateResult(f(d.value)))(
+      identity
+    )(
+      identity
+    )(
+      identity
+    )(lr => ListResult(lr.list.map(_.withDateResult(f))))
+
   def withStringResult[B](noString: B)(f: String => B): B =
     fold[B](_ => noString)(_ => noString)(_ => noString)(_ => noString)(r => f(r.value))(_ => noString)(_ => noString)(
       _ => noString
