@@ -41,8 +41,8 @@ class DataRetrieveConnectorBlueprint(
     if (enableResponseValidation) {
       val result = validateDataRetrieveResponse(json, dataRetrieve)
       result match {
-        case ValidationSuccess => // Success, do nothing
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Success => // Success, do nothing
+        case DataRetrieveValidationResult.Failure(errors) =>
           throw new DataRetrieveResponseValidationException(
             s"Data Retrieve response validation failed: ${errors.mkString(", ")}"
           )

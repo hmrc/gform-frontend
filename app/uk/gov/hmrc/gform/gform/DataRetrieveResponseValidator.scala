@@ -17,22 +17,22 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.libs.json._
-import org.slf4j.{ Logger, LoggerFactory }
 import uk.gov.hmrc.gform.sharedmodel.{ AllowedValueType, AllowedValues, Attr, AttributeInstruction, ConstructAttribute, DataRetrieve, Fetch }
 
 object DataRetrieveResponseValidator {
 
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
+  sealed trait DataRetrieveValidationResult
 
-  sealed trait ValidationResult
-  case object ValidationSuccess extends ValidationResult
-  case class ValidationFailure(errors: List[String]) extends ValidationResult
+  object DataRetrieveValidationResult {
+    case object Success extends DataRetrieveValidationResult
+    case class Failure(errors: List[String]) extends DataRetrieveValidationResult
+  }
 
   private def validateResponse(
     json: JsValue,
     instructions: List[AttributeInstruction],
     endpointName: String
-  ): ValidationResult =
+  ): DataRetrieveValidationResult =
     json match {
       case obj: JsObject =>
         val errors = scala.collection.mutable.ListBuffer[String]()
@@ -48,9 +48,7 @@ object DataRetrieveResponseValidator {
 
         val unexpectedKeys = jsonFields.keySet -- expectedFieldNames.map(_.split("\\.").head)
         unexpectedKeys.foreach { key =>
-          val error = s"unexpected key in JSON response '$key'"
-          logger.debug(s"Validation failed for $endpointName: $error")
-          errors += error
+          errors += s"unexpected key in JSON response '$key'"
         }
 
         fieldValidationRules.foreach { case (fieldPath, allowedValuesOpt) =>
@@ -68,20 +66,17 @@ object DataRetrieveResponseValidator {
             case None =>
               allowedValuesOpt.foreach { allowedValues =>
                 if (allowedValues.isRequired) {
-                  val error = s"missing required field '$fieldPath'"
-                  logger.debug(s"Validation failed for $endpointName: $error")
-                  errors += error
+                  errors += s"missing required field '$fieldPath'"
                 }
               }
           }
         }
 
-        if (errors.isEmpty) ValidationSuccess else ValidationFailure(errors.toList)
+        if (errors.isEmpty) DataRetrieveValidationResult.Success
+        else DataRetrieveValidationResult.Failure(errors.toList)
 
       case _ =>
-        val error = "response must be a JSON object"
-        logger.debug(s"Validation failed for $endpointName: $error")
-        ValidationFailure(List(error))
+        DataRetrieveValidationResult.Failure(List("response must be a JSON object"))
     }
 
   private def extractFieldPaths(construct: ConstructAttribute): List[String] =
@@ -138,7 +133,6 @@ object DataRetrieveResponseValidator {
             .map(error => s"array element at index $index: ${error.stripPrefix(s"field '$fieldName[$index]' ")}")
         }
         if (arrayErrors.nonEmpty) {
-          logger.debug(s"Validation failed for $endpointName: field '$fieldName' - ${arrayErrors.mkString(", ")}")
           Some(s"field '$fieldName' contains invalid elements: ${arrayErrors.mkString(", ")}")
         } else {
           None
@@ -147,7 +141,6 @@ object DataRetrieveResponseValidator {
         if (allowedValues.allowsAnyValue) {
           (jsValue, allowedValues.valueType) match {
             case (JsString(""), _) if allowedValues.isRequired =>
-              logger.debug(s"Validation failed for $endpointName: required field '$fieldName' is empty")
               Some(s"required field '$fieldName' cannot be empty")
             case (JsString(_), AllowedValueType.JsStringType)                              => None
             case (JsNumber(_), AllowedValueType.JsNumberType)                              => None
@@ -155,9 +148,6 @@ object DataRetrieveResponseValidator {
             case (JsString(_) | JsNumber(_) | JsBoolean(_), AllowedValueType.AnyValueType) => None
             case _ =>
               val expectedType = getValueTypeAsString(allowedValues.valueType)
-              logger.debug(
-                s"Validation failed for $endpointName: field '$fieldName' must be a $expectedType"
-              )
               Some(s"field '$fieldName' must be a $expectedType")
           }
         } else {
@@ -166,9 +156,6 @@ object DataRetrieveResponseValidator {
               if (value.isEmpty && !allowedValues.isRequired) {
                 None // Empty optional field is OK
               } else if (!allowedValues.values.contains(value)) {
-                logger.debug(
-                  s"Validation failed for $endpointName: unexpected value for '$fieldName': '$value'"
-                )
                 Some(s"unexpected value for '$fieldName': '$value'")
               } else {
                 None
@@ -176,9 +163,6 @@ object DataRetrieveResponseValidator {
             case (JsNumber(value), AllowedValueType.JsNumberType) =>
               val valueAsString = value.toString()
               if (!allowedValues.values.contains(valueAsString)) {
-                logger.debug(
-                  s"Validation failed for $endpointName: unexpected value for '$fieldName': '$valueAsString'"
-                )
                 Some(s"unexpected value for '$fieldName': '$valueAsString'")
               } else {
                 None
@@ -186,9 +170,6 @@ object DataRetrieveResponseValidator {
             case (JsBoolean(value), AllowedValueType.JsBooleanType) =>
               val valueAsString = value.toString
               if (!allowedValues.values.contains(valueAsString)) {
-                logger.debug(
-                  s"Validation failed for $endpointName: unexpected value for '$fieldName': '$valueAsString'"
-                )
                 Some(s"unexpected value for '$fieldName': '$valueAsString'")
               } else {
                 None
@@ -197,15 +178,12 @@ object DataRetrieveResponseValidator {
               None // Empty optional field is OK
             case _ =>
               val expectedType = getValueTypeAsString(allowedValues.valueType)
-              logger.debug(
-                s"Validation failed for $endpointName: field '$fieldName' must be a $expectedType"
-              )
               Some(s"field '$fieldName' must be a $expectedType")
           }
         }
     }
 
-  def validateDataRetrieveResponse(json: JsValue, dataRetrieve: DataRetrieve): ValidationResult = {
+  def validateDataRetrieveResponse(json: JsValue, dataRetrieve: DataRetrieve): DataRetrieveValidationResult = {
     val endpointName = dataRetrieve.tpe.name
 
     dataRetrieve.attributes match {
@@ -217,16 +195,15 @@ object DataRetrieveResponseValidator {
             val errors = scala.collection.mutable.ListBuffer[String]()
             elements.zipWithIndex.foreach { case (element, index) =>
               validateResponse(element, instructions, s"$endpointName[index $index]") match {
-                case ValidationFailure(elementErrors) =>
+                case DataRetrieveValidationResult.Failure(elementErrors) =>
                   errors ++= elementErrors.map(err => s"[index $index] $err")
-                case ValidationSuccess => // Valid element
+                case DataRetrieveValidationResult.Success => // Valid element
               }
             }
-            if (errors.isEmpty) ValidationSuccess else ValidationFailure(errors.toList)
+            if (errors.isEmpty) DataRetrieveValidationResult.Success
+            else DataRetrieveValidationResult.Failure(errors.toList)
           case _ =>
-            val error = "response must be a JSON array"
-            logger.debug(s"Validation failed for $endpointName: $error")
-            ValidationFailure(List(error))
+            DataRetrieveValidationResult.Failure(List("response must be a JSON array"))
         }
     }
   }

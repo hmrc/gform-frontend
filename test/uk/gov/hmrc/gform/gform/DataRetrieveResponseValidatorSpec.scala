@@ -144,7 +144,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
   "validateBankDetailsResponse" should {
     val dataRetrieve = createDataRetrieve("validateBankDetails", validateBankDetailsInstructions)
 
-    "return ValidationSuccess for valid response" in {
+    "return DataRetrieveValidationResult.Success for valid response" in {
       val validJson = Json.parse("""
         {
           "accountNumberIsWellFormatted": "yes",
@@ -157,10 +157,10 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
         }
       """)
 
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
-    "return ValidationFailure for unexpected key" in {
+    "return DataRetrieveValidationResult.Failure for unexpected key" in {
       val invalidJson = Json.parse("""
         {
           "accountNumberIsWellFormatted": "yes",
@@ -171,13 +171,13 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       """)
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("unexpected key in JSON response 'unexpectedKey'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
-    "return ValidationFailure for unexpected value" in {
+    "return DataRetrieveValidationResult.Failure for unexpected value" in {
       val invalidJson = Json.parse("""
         {
           "accountNumberIsWellFormatted": "maybe",
@@ -187,13 +187,13 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       """)
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("unexpected value for 'accountNumberIsWellFormatted': 'maybe'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
-    "return ValidationFailure for missing required field" in {
+    "return DataRetrieveValidationResult.Failure for missing required field" in {
       val invalidJson = Json.parse("""
         {
           "nonStandardAccountDetailsRequiredForBacs": "no",
@@ -202,9 +202,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       """)
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("missing required field 'accountNumberIsWellFormatted'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -219,14 +219,14 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
         }
       """)
 
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
   }
 
   "validateBusinessBankAccountExistenceResponse" should {
     val dataRetrieve = createDataRetrieve("businessBankAccountExistence", businessBankAccountExistenceInstructions)
 
-    "return ValidationSuccess for valid response" in {
+    "return DataRetrieveValidationResult.Success for valid response" in {
       val validJson = Json.parse("""
         {
           "accountNumberIsWellFormatted": "yes",
@@ -242,14 +242,14 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
         }
       """)
 
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
   }
 
   "validatePersonalBankAccountExistenceResponse" should {
     val dataRetrieve = createDataRetrieve("personalBankAccountExistence", businessBankAccountExistenceInstructions)
 
-    "return ValidationSuccess for valid response" in {
+    "return DataRetrieveValidationResult.Success for valid response" in {
       val validJson = Json.parse("""
         {
           "accountNumberIsWellFormatted": "yes",
@@ -265,7 +265,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
         }
       """)
 
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
   }
 
@@ -281,7 +281,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"anyField": "any value here"}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "reject 'indeterminate' for nonStandardAccountDetailsRequiredForBacs" in {
@@ -296,9 +296,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       """)
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("unexpected value for 'nonStandardAccountDetailsRequiredForBacs': 'indeterminate'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -326,7 +326,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
         }
       """)
 
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "validate missing nested fields" in {
@@ -342,9 +342,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val invalidJson = Json.parse("""{"address": {}}""")
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("missing required field 'address.address_line_1'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -359,7 +359,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"firstName": "John", "lastName": "Doe"}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "handle Combine construct type" in {
@@ -378,7 +378,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"address": {"line1": "123 Main St", "city": "London"}}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "handle ExtractAtIndex construct type" in {
@@ -392,7 +392,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"sic_codes": ["1234", "5678"]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "accept any number when AllowedValues has wildcard with JsNumberType and isRequired = true" in {
@@ -406,7 +406,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"amount": 123.45}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "reject missing required field with wildcard JsNumberType" in {
@@ -421,9 +421,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
 
       val invalidJson = Json.parse("""{}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("missing required field 'amount'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -439,9 +439,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
 
       val invalidJson = Json.parse("""{"amount": "not a number"}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("field 'amount' must be a number")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -456,7 +456,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"description": "any value works here"}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "reject empty string for required wildcard JsStringType" in {
@@ -471,9 +471,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
 
       val invalidJson = Json.parse("""{"description": ""}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("required field 'description' cannot be empty")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -488,10 +488,10 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJsonTrue = Json.parse("""{"isActive": true}""")
-      validateDataRetrieveResponse(validJsonTrue, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJsonTrue, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
 
       val validJsonFalse = Json.parse("""{"isActive": false}""")
-      validateDataRetrieveResponse(validJsonFalse, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJsonFalse, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "reject string value when expecting boolean with JsBooleanType" in {
@@ -506,9 +506,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
 
       val invalidJson = Json.parse("""{"isActive": "true"}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("field 'isActive' must be a boolean")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -523,7 +523,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "validate specific number values when not using wildcard" in {
@@ -537,13 +537,13 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"status": 200}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
 
       val invalidJson = Json.parse("""{"status": 404}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("unexpected value for 'status': '404'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -558,13 +558,13 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"isEnabled": true}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
 
       val invalidJson = Json.parse("""{"isEnabled": false}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("unexpected value for 'isEnabled': 'false'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -579,7 +579,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"tags": ["alpha", "beta", "gamma"]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "validate string array with specific allowed values" in {
@@ -593,14 +593,14 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"roles": ["admin", "user"]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
 
       val invalidJson = Json.parse("""{"roles": ["admin", "superuser"]}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors.head should include("array element at index 1")
           errors.head should include("superuser")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -615,7 +615,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"scores": [100, 95.5, 87]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "validate number array with specific allowed values" in {
@@ -629,14 +629,14 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"statusCodes": [200, 201]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
 
       val invalidJson = Json.parse("""{"statusCodes": [200, 404]}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors.head should include("array element at index 1")
           errors.head should include("404")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -651,7 +651,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"flags": [true, false, true]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "validate boolean array with specific allowed values" in {
@@ -665,14 +665,14 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"settings": [true, true]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
 
       val invalidJson = Json.parse("""{"settings": [true, false]}""")
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors.head should include("array element at index 1")
           errors.head should include("false")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -689,10 +689,10 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val invalidJson = Json.parse("""{"codes": [100, "not a number", 200]}""")
       val result = validateDataRetrieveResponse(invalidJson, dataRetrieve)
       result match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors.head should include("array element at index 1")
           errors.head should include("must be a number")
-        case ValidationSuccess => fail(s"Expected validation failure but got: $result")
+        case DataRetrieveValidationResult.Success => fail(s"Expected validation failure but got: $result")
       }
     }
 
@@ -707,7 +707,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"items": []}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "validate array with AnyValueType accepts mixed primitive types" in {
@@ -721,7 +721,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val dataRetrieve = createDataRetrieve("test", instructions)
 
       val validJson = Json.parse("""{"mixedData": ["text", 123, true]}""")
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
   }
 
@@ -757,7 +757,7 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
         {"name": "Jane Smith", "role": "llp-member"}
       ]""")
 
-      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe ValidationSuccess
+      validateDataRetrieveResponse(validJson, dataRetrieve) shouldBe DataRetrieveValidationResult.Success
     }
 
     "return failure for invalid array element" in {
@@ -785,9 +785,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       ]""")
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("[index 1] unexpected value for 'role': 'invalid-role'")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
 
@@ -813,9 +813,9 @@ class DataRetrieveResponseValidatorSpec extends AnyWordSpec with Matchers {
       val invalidJson = Json.parse("""{"field": "value"}""")
 
       validateDataRetrieveResponse(invalidJson, dataRetrieve) match {
-        case ValidationFailure(errors) =>
+        case DataRetrieveValidationResult.Failure(errors) =>
           errors should contain("response must be a JSON array")
-        case ValidationSuccess => fail("Expected validation failure")
+        case DataRetrieveValidationResult.Success => fail("Expected validation failure")
       }
     }
   }
