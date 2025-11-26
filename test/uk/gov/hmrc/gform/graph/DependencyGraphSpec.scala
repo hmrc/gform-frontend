@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputForma
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 
@@ -95,7 +94,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     None,
     None,
     None,
-    LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+    toSmartString("or", "neu"),
     None,
     None,
     false

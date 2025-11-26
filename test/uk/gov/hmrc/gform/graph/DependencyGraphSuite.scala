@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Choice, Constant, Contains, FormComponent, FormComponentId, FormComponentValidator, FormCtx, FormTemplate, GreaterThan, IncludeIf, IndexOf, Number, Page, Radio, RevealingChoice, RevealingChoiceElement, Section, Sum, ValidIf, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
 
 import java.time.Instant
 import scala.language.implicitConversions
@@ -173,7 +173,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        toSmartString("or", "neu"),
         None,
         None,
         false

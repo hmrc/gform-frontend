@@ -29,13 +29,14 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, LocalisedString, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SourceOrigin }
 
 import java.time.Instant
 import scala.language.implicitConversions
 
 class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
+  private val divider = toSmartString("or", "neu")
   implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
@@ -381,7 +382,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -505,7 +506,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -614,7 +615,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false

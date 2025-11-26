@@ -45,6 +45,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
 
   type EitherEffect[A] = Either[GraphException, A]
 
+  private val divider = toSmartString("or", "neu")
   private val sterling: TextConstraint = Sterling(RoundingMode.defaultRoundingMode, true)
   private def ctx(s: String): FormCtx = FormCtx(FormComponentId(s))
   private def const(s: String): Expr = Constant(s)
@@ -380,7 +381,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -469,7 +470,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -794,7 +795,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -929,7 +930,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -1261,7 +1262,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -1303,7 +1304,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false

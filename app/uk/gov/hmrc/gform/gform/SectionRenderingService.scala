@@ -2647,7 +2647,7 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     ei: ExtraInfo,
     dividerPosition: Option[DividerPosition],
-    dividerText: LocalisedString,
+    dividerText: SmartString,
     maybeNoneChoice: Option[NoneChoice],
     hideChoicesSelected: Boolean
   )(implicit
@@ -2753,7 +2753,13 @@ class SectionRenderingService(
             case DividerPosition.Value(value)   => ls.span(_.value =!= Some(value))
             case DividerPosition.Number(intPos) => ls.splitAt(intPos)
           }
-          before ++ List(RadioItem(divider = Some(dividerText.value))) ++ after
+          val dividerTextStr = dividerText.value()
+          val divider = if (dividerTextStr.trim.isEmpty) {
+            List.empty[RadioItem]
+          } else {
+            List(RadioItem(divider = Some(dividerTextStr)))
+          }
+          before ++ divider ++ after
         }
 
         val radios = Radios(
@@ -2800,7 +2806,13 @@ class SectionRenderingService(
             case DividerPosition.Value(value)   => ls.span(_.value =!= value)
             case DividerPosition.Number(intPos) => ls.splitAt(intPos)
           }
-          before ++ List(CheckboxItem(divider = Some(dividerText.value))) ++ after
+          val dividerTextStr = dividerText.value()
+          val divider = if (dividerTextStr.trim.isEmpty) {
+            List.empty[CheckboxItem]
+          } else {
+            List(CheckboxItem(divider = Some(dividerTextStr)))
+          }
+          before ++ divider ++ after
         }
 
         val checkboxes: Checkboxes = Checkboxes(

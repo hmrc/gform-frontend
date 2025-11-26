@@ -20,9 +20,9 @@ import cats.data.NonEmptyList
 import java.time.LocalTime
 
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 trait ComponentTypeGen {
 
@@ -88,7 +88,7 @@ trait ComponentTypeGen {
       hint,
       helpText,
       None,
-      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+      toSmartString("or", "neu"),
       None,
       None,
       false

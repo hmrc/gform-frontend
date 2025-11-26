@@ -309,6 +309,8 @@ trait ExampleFieldId {
 
 trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
+  private val divider = toSmartString("or", "neu")
+
   def validIf: Option[ValidIf] = None
 
   def `fieldValue - address` = FormComponent(
@@ -529,7 +531,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       None,
       None,
       None,
-      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+      divider,
       None,
       None,
       false
@@ -628,7 +630,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
