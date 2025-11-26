@@ -249,11 +249,11 @@ class BankAccountReputationAsyncConnectorSpec
       response shouldBe ServiceResponse(
         DataRetrieve.Response.Object(
           Map(
-            DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "indeterminate",
+            DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "inapplicable",
             DataRetrieve.Attribute("sortCodeBankName")                         -> "",
             DataRetrieve.Attribute("isValid")                                  -> "indeterminate",
-            DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "",
-            DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "",
+            DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "no",
+            DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "no",
             DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "no",
             DataRetrieve.Attribute("iban")                                     -> ""
           )

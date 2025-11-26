@@ -44,12 +44,22 @@ trait BankAccountReputationConnector[F[_]] {
 class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
 
-  val exceptionalResponses = Some(
+  val validateBankDetailsExceptionalResponses = Some(
     List(
       ExceptionalResponse(
         400,
         "SORT_CODE_ON_DENY_LIST",
-        """{"accountNumberIsWellFormatted":"indeterminate","accountExists":"indeterminate","nameMatches":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"indeterminate","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"","sortCodeSupportsDirectCredit":"","iban":""}"""
+        """{"accountNumberIsWellFormatted":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"inapplicable","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"no","sortCodeSupportsDirectCredit":"no","iban":""}"""
+      )
+    )
+  )
+
+  val businessAndPersonalExceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "SORT_CODE_ON_DENY_LIST",
+        """{"accountNumberIsWellFormatted":"indeterminate","accountExists":"indeterminate","nameMatches":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"inapplicable","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"no","sortCodeSupportsDirectCredit":"no","iban":""}"""
       )
     )
   )
@@ -59,21 +69,24 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
       httpClient,
       baseUrl + "/validate/bank-details",
       "validate bank details",
-      exceptionalResponses
+      validateBankDetailsExceptionalResponses,
+      enableResponseValidation = true
     )
   val businessBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl + "/verify/business",
       "business bank account existence",
-      exceptionalResponses
+      businessAndPersonalExceptionalResponses,
+      enableResponseValidation = true
     )
   val personalBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl + "/verify/personal",
       "personal bank account existence",
-      exceptionalResponses
+      businessAndPersonalExceptionalResponses,
+      enableResponseValidation = true
     )
 
   override def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
