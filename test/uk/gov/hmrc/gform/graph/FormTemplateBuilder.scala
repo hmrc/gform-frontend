@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.Log
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
 
 object FormTemplateBuilder {
 
@@ -353,7 +353,7 @@ object FormTemplateBuilder {
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        toSmartString("or", "neu"),
         None,
         None,
         false

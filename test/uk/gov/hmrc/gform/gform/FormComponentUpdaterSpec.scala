@@ -17,13 +17,13 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.Helpers.toSmartStringExpression
+import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 
 import scala.language.implicitConversions
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 class FormComponentUpdaterSpec extends Spec {
 
@@ -116,7 +116,7 @@ class FormComponentUpdaterSpec extends Spec {
       None,
       None,
       None,
-      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+      toSmartString("or", "neu"),
       None,
       None,
       false

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.{ DependencyGraphVerification, FormModel, FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
@@ -223,7 +224,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
             None,
             None,
             None,
-            LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+            toSmartString("or", "neu"),
             None,
             None,
             false

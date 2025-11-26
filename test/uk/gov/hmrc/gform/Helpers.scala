@@ -58,4 +58,7 @@ object Helpers {
   def toSmartStringExpression(string: String, expression: Expr): SmartString =
     SmartString(toLocalisedString(string), expression :: Nil)
 
+  def toSmartString(stringEn: String, stringCy: String): SmartString =
+    SmartString(LocalisedString(Map(LangADT.En -> stringEn, LangADT.Cy -> stringCy)), Nil)
+
 }

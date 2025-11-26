@@ -20,10 +20,8 @@ import cats.data.NonEmptyList
 import munit.FunSuite
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, Mandatory }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponentId, FormCtx, Horizontal, OptionData, OptionDataValue }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, Horizontal, Mandatory, OptionData, OptionDataValue }
+import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
 
 class PropagatorSuite extends FunSuite {
   test("Change of component value is propagated to selected option value") {
@@ -92,7 +90,7 @@ class PropagatorSuite extends FunSuite {
       None,
       None,
       None,
-      LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+      toSmartString("or", "neu"),
       None,
       None,
       false

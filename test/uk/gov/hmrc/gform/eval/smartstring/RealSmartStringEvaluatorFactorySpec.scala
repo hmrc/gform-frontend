@@ -44,6 +44,8 @@ class RealSmartStringEvaluatorFactorySpec
     extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
     with Matchers {
 
+  private val divider = toSmartString("or", "neu")
+
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
@@ -165,7 +167,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -213,7 +215,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -252,7 +254,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -290,7 +292,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -328,7 +330,7 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           None,
-          LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+          divider,
           None,
           None,
           false
@@ -632,7 +634,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -675,7 +677,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -758,7 +760,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -810,7 +812,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -862,7 +864,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -914,7 +916,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -966,7 +968,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         true
@@ -984,7 +986,7 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false

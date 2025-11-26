@@ -43,6 +43,8 @@ class StructuredFormDataBuilderSpec
   private implicit val l: LangADT = LangADT.En
   private implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
+  private val divider = toSmartString("or", "neu")
+
   type EitherEffect[A] = Either[Throwable, A]
 
 // |                                      | text | hmrc tax period | file | sort code | address | date | choice | lookup | postcodeLookup |
@@ -1461,7 +1463,7 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
@@ -1479,7 +1481,7 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
-        LocalisedString(Map(LangADT.En -> "or", LangADT.Cy -> "neu")),
+        divider,
         None,
         None,
         false
