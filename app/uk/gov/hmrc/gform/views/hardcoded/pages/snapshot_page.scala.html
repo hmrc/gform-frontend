@@ -77,6 +77,9 @@
         There are no destinations on this URL so no output for DMS or DataStore will be generated on submission.
       </li>
       <li>
+        Safe to access by multiple users at the same time (every user will have it's own copy of the data).
+      </li>
+      <li>
         <strong>Use this for raising issues with the development team.</strong>
       </li>
     </ul>
@@ -93,6 +96,9 @@
     <ul class="govuk-list govuk-list--bullet">
       <li>
         It uses <a class="govuk-link" href="@{uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/formtemplates/" + snapshot.originalTemplateId.value)}">@{snapshot.originalTemplateId.value}</a> template which can be modified.
+      </li>
+      <li>
+        Not safe to access by multiple users at the same time.
       </li>
       <li>
         <strong>This link is ideal for day to day form development.</strong>
