@@ -1255,12 +1255,15 @@ class TestOnlyController(
     controllerComponents.actionBuilder.async { implicit request =>
       gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
         val overrides = formTemplate.overrides
-        def amendOverrides(overrides: Overrides, value: String, bool: Boolean) = value match {
-          case "disableUploads"     => overrides.copy(disableUploads = Some(bool))
-          case "disableValidIfs"    => overrides.copy(disableValidIfs = Some(bool))
-          case "disableIncludeIfs"  => overrides.copy(disableIncludeIfs = Some(bool))
-          case "disableContinueIfs" => overrides.copy(disableContinueIfs = Some(bool))
-          case "disableRedirects"   => overrides.copy(disableRedirects = Some(bool))
+        def amendOverrides(overrides: Overrides, value: String, bool: Boolean): Overrides = {
+          val v = if (bool) Some(true) else None
+          value match {
+            case "disableUploads"     => overrides.copy(disableUploads = v)
+            case "disableValidIfs"    => overrides.copy(disableValidIfs = v)
+            case "disableIncludeIfs"  => overrides.copy(disableIncludeIfs = v)
+            case "disableContinueIfs" => overrides.copy(disableContinueIfs = v)
+            case "disableRedirects"   => overrides.copy(disableRedirects = v)
+          }
         }
 
         gformConnector
