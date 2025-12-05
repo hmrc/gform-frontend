@@ -1278,8 +1278,9 @@ class TestOnlyController(
                 )
 
               redirect
-            case _ =>
-              InternalServerError("Could not change overrides")
+            case httpResponse =>
+              InternalServerError(s"""gform responded with status: ${httpResponse.status}
+                                     |Body: ${httpResponse.body}""".stripMargin)
           }
       }
 
