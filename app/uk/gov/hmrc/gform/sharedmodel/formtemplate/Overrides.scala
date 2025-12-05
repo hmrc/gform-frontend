@@ -29,4 +29,12 @@ case class Overrides(
 
 object Overrides {
   implicit val format: OFormat[Overrides] = derived.oformat()
+  def empty: Overrides =
+    Overrides(
+      None,
+      None,
+      None,
+      None,
+      None
+    )
 }
