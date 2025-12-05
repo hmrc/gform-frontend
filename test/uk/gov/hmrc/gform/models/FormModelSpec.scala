@@ -385,6 +385,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           divider,
           None,
           None,
+          false,
           false
         )
       )
@@ -509,6 +510,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           divider,
           None,
           None,
+          false,
           false
         )
       )
@@ -618,6 +620,7 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           divider,
           None,
           None,
+          false,
           false
         )
       )

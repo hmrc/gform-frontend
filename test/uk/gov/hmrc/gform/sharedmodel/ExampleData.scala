@@ -92,7 +92,8 @@ trait ExampleEvaluationContext {
       Map.empty,
       Map.empty,
       TaskIdTaskStatusMapping.empty,
-      LocalDate.now()
+      LocalDate.now(),
+      Set.empty[ModelComponentId]
     )
 }
 
@@ -534,6 +535,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       divider,
       None,
       None,
+      false,
       false
     ),
     toSmartString("sample label"),
@@ -633,6 +635,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
         divider,
         None,
         None,
+        false,
         false
       ),
       ls,

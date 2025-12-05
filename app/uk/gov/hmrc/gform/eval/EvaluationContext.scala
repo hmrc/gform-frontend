@@ -59,5 +59,6 @@ final case class EvaluationContext(
   lookupRegister: Map[BaseComponentId, Register],
   constraints: Map[BaseComponentId, TextConstraint],
   taskIdTaskStatus: TaskIdTaskStatusMapping,
-  formStartDate: LocalDate
+  formStartDate: LocalDate,
+  noDuplicates: Set[ModelComponentId] // ids of choices with "noDuplicates": true
 )

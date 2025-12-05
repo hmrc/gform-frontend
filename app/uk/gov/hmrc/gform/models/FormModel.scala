@@ -165,6 +165,11 @@ case class FormModel[A <: PageMode](
       fc.modelComponentId
   }.toSet
 
+  val noDuplicates: Set[ModelComponentId] = allFormComponents.collect {
+    case fc @ IsChoice(choice) if choice.noDuplicates =>
+      fc.modelComponentId
+  }.toSet
+
   val exprsMetadata: List[ExprMetadata] = brackets.toBrackets.toList.flatMap {
     case AllPageModelExpressions(exprMetadatas) => exprMetadatas
     case _                                      => Nil

@@ -82,7 +82,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
       Map.empty,
       Map.empty,
       TaskIdTaskStatusMapping.empty,
-      LocalDate.now()
+      LocalDate.now(),
+      Set.empty[ModelComponentId]
     )
 
   "recalculation" should "recalculate single dependency" in {
@@ -384,6 +385,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         divider,
         None,
         None,
+        false,
         false
       )
 
@@ -473,6 +475,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         divider,
         None,
         None,
+        false,
         false
       )
 
@@ -798,6 +801,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         divider,
         None,
         None,
+        false,
         false
       )
 
@@ -933,6 +937,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         divider,
         None,
         None,
+        false,
         false
       )
 
@@ -1265,6 +1270,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         divider,
         None,
         None,
+        false,
         false
       )
 
@@ -1307,6 +1313,7 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         divider,
         None,
         None,
+        false,
         false
       )
 

@@ -91,7 +91,8 @@ object FormModelOptics {
         Map.empty,
         Map.empty,
         TaskIdTaskStatusMapping.empty,
-        LocalDate.now()
+        LocalDate.now(),
+        Set.empty[ModelComponentId]
       )
     FormModelOptics[D](
       FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),

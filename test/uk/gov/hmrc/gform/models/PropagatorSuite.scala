@@ -93,6 +93,7 @@ class PropagatorSuite extends FunSuite {
       toSmartString("or", "neu"),
       None,
       None,
+      false,
       false
     )
 

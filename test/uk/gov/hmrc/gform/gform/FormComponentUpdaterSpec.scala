@@ -119,6 +119,7 @@ class FormComponentUpdaterSpec extends Spec {
       toSmartString("or", "neu"),
       None,
       None,
+      false,
       false
     )
 

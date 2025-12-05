@@ -143,7 +143,7 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     val choiceErrorRequired = "choice.error.required"
     val availableSelections: Set[String] = fieldValue.`type` match {
-      case Choice(_, options, _, _, _, _, _, _, _, _, _) =>
+      case Choice(_, options, _, _, _, _, _, _, _, _, _, _) =>
         options.zipWithIndex.collect {
           case (OptionData.IndexBased(_, _, _, _, _), i)                                        => i.toString
           case (OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _), _) => value

@@ -251,14 +251,23 @@ case class EvaluationResults(
   private def getInitialChoicesCount(
     formComponentId: FormComponentId,
     evaluationContext: EvaluationContext,
-    booleanExprResolver: BooleanExprResolver
+    booleanExprResolver: BooleanExprResolver,
+    recData: RecData[SourceOrigin.OutOfDate]
   ): NumberResult = {
     val modelComponentId = formComponentId.modelComponentId
     evaluationContext.choiceLookup
       .get(modelComponentId)
       .map { optionDataNel =>
+        val noDuplicates: Boolean = evaluationContext.noDuplicates(modelComponentId)
         val choicesAvailable: Int = getChoicesTotalCount(optionDataNel, evaluationContext)
-        val choicesHidden: Int = getHiddenChoices(optionDataNel, booleanExprResolver)
+        val choicesHidden: Int =
+          getHiddenAndDuplicateChoicesCount(
+            optionDataNel,
+            booleanExprResolver,
+            evaluationContext,
+            noDuplicates,
+            recData
+          )
         NumberResult(choicesAvailable - choicesHidden)
       }
       .getOrElse(NumberResult(0))
@@ -277,13 +286,67 @@ case class EvaluationResults(
         recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
     }.sum
 
-  private def getHiddenChoices(optionDataNel: NonEmptyList[OptionData], booleanExprResolver: BooleanExprResolver): Int =
-    optionDataNel.toList
-      .count(od =>
-        od.includeIf.exists { incIf =>
-          !booleanExprResolver.resolve(incIf.booleanExpr)
-        }
+  private def getHiddenAndDuplicateChoicesCount(
+    optionDataNel: NonEmptyList[OptionData],
+    booleanExprResolver: BooleanExprResolver,
+    evaluationContext: EvaluationContext,
+    noDuplicates: Boolean,
+    recData: RecData[SourceOrigin.OutOfDate]
+  ): Int = {
+    val alreadySeenLabels = scala.collection.mutable.Set.empty[String]
+
+    def getLabelTextAtIndex(label: SmartString, index: Int): String = {
+      val interpolations = label
+        .expand(index, evaluationContext.indexedComponentIds.keys.toList.map(b => FormComponentId(b.value)))
+        .allInterpolations
+      val exprResults = interpolations.map(expr =>
+        evalExprAsString(
+          expr,
+          evaluationContext,
+          booleanExprResolver,
+          recData
+        )
       )
+      var localisedLabel = label.localised(booleanExprResolver.resolve(_)).value(evaluationContext.lang)
+      exprResults.zipWithIndex.foreach { case (res, i) => localisedLabel = localisedLabel.replace(s"{$i}", res) }
+      localisedLabel
+    }
+
+    def countDynamicOptions(label: SmartString, count: Int, isHidden: Boolean): Int =
+      if (noDuplicates) {
+        (1 to count).count { i =>
+          val labelText = getLabelTextAtIndex(label, i)
+          val isDuplicateOrHidden = alreadySeenLabels.contains(labelText) || isHidden
+          if (labelText.isEmpty) {
+            true
+          } else {
+            alreadySeenLabels.add(labelText)
+            isDuplicateOrHidden
+          }
+        }
+      } else {
+        if (isHidden) 1 else 0
+      }
+
+    optionDataNel.toList.map { od =>
+      val isHidden = od.includeIf.exists(incIf => !booleanExprResolver.resolve(incIf.booleanExpr))
+
+      od match {
+        case _: OptionData.IndexBased =>
+          if (isHidden) 1 else 0
+        case OptionData.ValueBased(_, _, _, None, _, _, _) =>
+          if (isHidden) 1 else 0
+        case OptionData.ValueBased(label, _, _, Some(Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx)), _, _, _) =>
+          val count = evaluationContext.thirdPartyData.dataRetrieve
+            .flatMap(dr => dr.get(indexOfDataRetrieveCtx.ctx.id))
+            .fold(0)(drr => drr.data.size)
+          countDynamicOptions(label, count, isHidden)
+        case OptionData.ValueBased(label, _, _, Some(Dynamic.ATLBased(fcId)), _, _, _) =>
+          val count = recData.variadicFormData.forBaseComponentId(fcId.modelComponentId.baseComponentId).size
+          countDynamicOptions(label, count, isHidden)
+      }
+    }.sum
+  }
 
   private def getChoicesAvailable(
     formComponentId: FormComponentId,
@@ -297,7 +360,15 @@ case class EvaluationResults(
       .get(modelComponentId)
       .map { optionDataNel =>
         val choicesAvailable: Int = getChoicesTotalCount(optionDataNel, evaluationContext)
-        val hiddenChoices: Int = getHiddenChoices(optionDataNel, booleanExprResolver)
+        val noDuplicates: Boolean = evaluationContext.noDuplicates(modelComponentId)
+        val hiddenChoices: Int =
+          getHiddenAndDuplicateChoicesCount(
+            optionDataNel,
+            booleanExprResolver,
+            evaluationContext,
+            noDuplicates,
+            recData
+          )
 
         val hideSelectedChoices: Boolean = evaluationContext.hideChoicesSelected(modelComponentId)
 
@@ -322,6 +393,8 @@ case class EvaluationResults(
               case _: OptionData.IndexBased => 0 // 0 because we don't support index based options hiding
               case o: OptionData.ValueBased =>
                 o.value match {
+                  case OptionDataValue.StringBased(value) if o.dynamic.isDefined =>
+                    allAnswers.count(_.startsWith(value))
                   case OptionDataValue.StringBased(value) => if (allAnswers(value)) 1 else 0
                   case OptionDataValue.ExprBased(FormCtx(formComponentId)) if o.dynamic.isDefined =>
                     val values: Iterable[(ModelComponentId, VariadicValue)] =
@@ -453,7 +526,7 @@ case class EvaluationResults(
       case ChoicesAvailable(formComponentId, insideAtl) =>
         getChoicesAvailable(formComponentId, evaluationContext, booleanExprResolver, recData, insideAtl)
       case ChoicesCount(formComponentId) =>
-        getInitialChoicesCount(formComponentId, evaluationContext, booleanExprResolver)
+        getInitialChoicesCount(formComponentId, evaluationContext, booleanExprResolver, recData)
       case CountSelectedChoices(formComponentId) => countSelectedChoices(formComponentId)
       case TaskStatus(_)                         => unsupportedOperation("Number")(expr)
       case LookupOps(_, _)                       => unsupportedOperation("Number")(expr)

@@ -21,7 +21,7 @@ import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor5 }
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.graph.RecData
@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.models.{ DataRetrieveAll, FormModel }
 import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ QueryParamValue, QueryParams, TaskIdTaskStatusMapping, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Dynamic.ATLBased
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.{ NewForm, NewFormForTemplate, NewSession, PageLink }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OffsetUnit.{ Day, Month, Year }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
@@ -60,7 +61,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
     retrievals: MaterialisedRetrievals = authContext,
     thirdPartyData: ThirdPartyData = ThirdPartyData.empty,
     choiceLookup: Map[ModelComponentId, NonEmptyList[OptionData]] = Map.empty,
-    hideChoicesSelected: Set[ModelComponentId] = Set.empty[ModelComponentId]
+    hideChoicesSelected: Set[ModelComponentId] = Set.empty[ModelComponentId],
+    noDuplicates: Set[ModelComponentId] = Set.empty[ModelComponentId]
   ) =
     EvaluationContext(
       formTemplateId,
@@ -106,7 +108,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
       Map.empty,
       Map.empty,
       TaskIdTaskStatusMapping.empty,
-      LocalDate.now()
+      LocalDate.now(),
+      noDuplicates
     )
 
   private def buildChoiceLookup(
@@ -114,22 +117,53 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
   ): Map[ModelComponentId, NonEmptyList[OptionData]] =
     Map(
       modelComponentId -> NonEmptyList.of(
-        buildValueBasedChoiceOption("Choice label 1", "2024", Some(IncludeIf(Equals(Constant("1"), Constant("2"))))),
-        buildValueBasedChoiceOption("Choice label 2", "2025", None),
-        buildValueBasedChoiceOption("Choice label 3", "2026", None)
+        buildValueBasedChoiceOption(
+          toSmartString("Choice label 1"),
+          "2024",
+          Some(IncludeIf(Equals(Constant("1"), Constant("2"))))
+        ),
+        buildValueBasedChoiceOption(toSmartString("Choice label 2"), "2025", None),
+        buildValueBasedChoiceOption(toSmartString("Choice label 3"), "2026", None)
+      )
+    )
+
+  private def buildAtlDynamicChoiceLookup(
+    modelComponentId: ModelComponentId
+  ): Map[ModelComponentId, NonEmptyList[OptionData]] =
+    Map(
+      modelComponentId -> NonEmptyList.of(
+        buildValueBasedChoiceOption(
+          toSmartString("Other"),
+          "other",
+          Some(IncludeIf(Equals(Constant("1"), Constant("2"))))
+        ),
+        buildValueBasedChoiceOption(toSmartString("Another"), "another", None),
+        buildValueBasedChoiceOption(
+          toSmartStringExpression("Item: {0}", FormCtx(FormComponentId("newAddress"))),
+          "newaddress",
+          None,
+          Some(ATLBased(FormComponentId("newAddress")))
+        ),
+        buildValueBasedChoiceOption(
+          toSmartStringExpression("Item: {0}", FormCtx(FormComponentId("changeAddress"))),
+          "changeaddress",
+          None,
+          Some(ATLBased(FormComponentId("changeAddress")))
+        )
       )
     )
 
   private def buildValueBasedChoiceOption(
-    labelString: String,
+    label: SmartString,
     valueString: String,
-    includeIf: Option[IncludeIf]
+    includeIf: Option[IncludeIf],
+    dynamic: Option[Dynamic] = None
   ): OptionData =
     OptionData.ValueBased(
-      label = toSmartString(labelString),
+      label = label,
       hint = None,
       includeIf = includeIf,
-      dynamic = None,
+      dynamic = dynamic,
       value = StringBased(valueString),
       summaryValue = None,
       keyWord = None
@@ -991,6 +1025,171 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
         ),
         RepeatedComponentsDetails.empty,
         "ChoicesAvailable outside ATL evaluates includeIfs, hideChoicesSelected, selected choices and returns the correct number result"
+      )
+    )
+    forAll(table) {
+      (
+        typeInfo: TypeInfo,
+        recData: RecData[OutOfDate],
+        evaluationContext: EvaluationContext,
+        expectedResult: ExpressionResult,
+        exprMap: Map[Expr, ExpressionResult],
+        repeatedDetails: RepeatedComponentsDetails,
+        _
+      ) =>
+        EvaluationResults(exprMap, SourceOrigin.changeSource(recData), repeatedDetails)
+          .evalExpr(typeInfo, recData, booleanExprResolver, evaluationContext) shouldBe expectedResult
+    }
+  }
+
+  it should "evaluate number of choices correctly for dynamic/static options and with duplicate and other config" in {
+
+    val table = Table(
+      ("typeInfo", "recData", "evaluationContext", "expectedResult", "exprMap", "repeatedDetails", "scenario"),
+      (
+        TypeInfo(ChoicesCount(FormComponentId("1_addToListChoiceField")), StaticTypeData(ExprType.number, None)),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_newAddress-postcode"), VariadicValue.One("BS2 2FR")),
+            (toModelComponentId("1_addAddressToChange"), VariadicValue.One("0")),
+            (toModelComponentId("1_changeAddress-postcode"), VariadicValue.One("BS2 2FR")),
+            (toModelComponentId("1_addNewAddress"), VariadicValue.One("0")),
+            (toModelComponentId("2_newAddress-postcode"), VariadicValue.One("BS2 1AR")),
+            (toModelComponentId("2_addAddressToChange"), VariadicValue.One("1")),
+            (toModelComponentId("2_changeAddress-postcode"), VariadicValue.One("BS2 1AR")),
+            (toModelComponentId("2_addNewAddress"), VariadicValue.One("1"))
+          )
+        ),
+        buildEvaluationContext(
+          indexedComponentIds = List(
+            FormComponentId("1_newAddress").modelComponentId,
+            FormComponentId("1_changeAddress").modelComponentId,
+            FormComponentId("2_newAddress").modelComponentId,
+            FormComponentId("2_changeAddress").modelComponentId
+          ),
+          choiceLookup = buildAtlDynamicChoiceLookup(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
+          noDuplicates = Set(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          )
+        ),
+        NumberResult(3),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_newAddress"))    -> StringResult("Line 1, Line 2, Town, BS2 2FR"),
+          FormCtx(FormComponentId("1_changeAddress")) -> StringResult("Line 1, Line 2, Town, BS2 2FR"),
+          FormCtx(FormComponentId("2_newAddress"))    -> StringResult("Road 1, BS2 1AR"),
+          FormCtx(FormComponentId("2_changeAddress")) -> StringResult("Road 1, BS2 1AR"),
+          FormCtx(FormComponentId("newAddress"))      -> StringResult(""),
+          FormCtx(FormComponentId("changeAddress"))   -> StringResult("")
+        ),
+        RepeatedComponentsDetails.empty,
+        "ChoicesCount evaluates includeIfs, duplicates and and returns the correct number result for static and ATL based dynamic choices"
+      ),
+      (
+        TypeInfo(
+          ChoicesAvailable(FormComponentId("1_addToListChoiceField"), Some(true)),
+          StaticTypeData(ExprType.number, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_newAddress-postcode"), VariadicValue.One("BS2 2FR")),
+            (toModelComponentId("1_addAddressToChange"), VariadicValue.One("0")),
+            (toModelComponentId("1_changeAddress-postcode"), VariadicValue.One("BS2 2FR")),
+            (toModelComponentId("1_addNewAddress"), VariadicValue.One("0")),
+            (toModelComponentId("2_newAddress-postcode"), VariadicValue.One("BS2 1AR")),
+            (toModelComponentId("2_addAddressToChange"), VariadicValue.One("1")),
+            (toModelComponentId("2_changeAddress-postcode"), VariadicValue.One("BS2 1AR")),
+            (toModelComponentId("2_addNewAddress"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListChoiceField"), VariadicValue.Many(Seq("newaddress_1")))
+          )
+        ),
+        buildEvaluationContext(
+          indexedComponentIds = List(
+            FormComponentId("1_addToListChoiceField").modelComponentId,
+            FormComponentId("2_addToListChoiceField").modelComponentId,
+            FormComponentId("1_newAddress").modelComponentId,
+            FormComponentId("1_changeAddress").modelComponentId,
+            FormComponentId("2_newAddress").modelComponentId,
+            FormComponentId("2_changeAddress").modelComponentId
+          ),
+          choiceLookup = buildAtlDynamicChoiceLookup(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
+          hideChoicesSelected = Set(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
+          noDuplicates = Set(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          )
+        ),
+        NumberResult(3),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListChoiceField")) -> OptionResult(Seq("newaddress_1")),
+          FormCtx(FormComponentId("1_newAddress"))           -> StringResult("Line 1, Line 2, Town, BS2 2FR"),
+          FormCtx(FormComponentId("1_changeAddress"))        -> StringResult("Line 1, Line 2, Town, BS2 2FR"),
+          FormCtx(FormComponentId("2_newAddress"))           -> StringResult("Road 1, BS2 1AR"),
+          FormCtx(FormComponentId("2_changeAddress"))        -> StringResult("Road 1, BS2 1AR"),
+          FormCtx(FormComponentId("newAddress"))             -> StringResult(""),
+          FormCtx(FormComponentId("changeAddress"))          -> StringResult("")
+        ),
+        RepeatedComponentsDetails.empty,
+        "ChoicesAvailable inside ATL evaluates includeIfs, hideChoicesSelected, noDuplicates, selected choices and returns the correct number result when dynamic and static options are used"
+      ),
+      (
+        TypeInfo(
+          ChoicesAvailable(FormComponentId("1_addToListChoiceField"), Some(false)),
+          StaticTypeData(ExprType.number, None)
+        ),
+        RecData[OutOfDate](
+          VariadicFormData.create(
+            (toModelComponentId("1_newAddress-postcode"), VariadicValue.One("BS2 2FR")),
+            (toModelComponentId("1_addAddressToChange"), VariadicValue.One("0")),
+            (toModelComponentId("1_changeAddress-postcode"), VariadicValue.One("BS2 2FR")),
+            (toModelComponentId("1_addNewAddress"), VariadicValue.One("0")),
+            (toModelComponentId("2_newAddress-postcode"), VariadicValue.One("BS2 1AR")),
+            (toModelComponentId("2_addAddressToChange"), VariadicValue.One("1")),
+            (toModelComponentId("2_changeAddress-postcode"), VariadicValue.One("BS2 1AR")),
+            (toModelComponentId("2_addNewAddress"), VariadicValue.One("1")),
+            (toModelComponentId("1_addToListChoiceField"), VariadicValue.Many(Seq("newaddress_1")))
+          )
+        ),
+        buildEvaluationContext(
+          indexedComponentIds = List(
+            FormComponentId("1_addToListChoiceField").modelComponentId,
+            FormComponentId("2_addToListChoiceField").modelComponentId,
+            FormComponentId("1_newAddress").modelComponentId,
+            FormComponentId("1_changeAddress").modelComponentId,
+            FormComponentId("2_newAddress").modelComponentId,
+            FormComponentId("2_changeAddress").modelComponentId
+          ),
+          choiceLookup = buildAtlDynamicChoiceLookup(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
+          hideChoicesSelected = Set(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          ),
+          noDuplicates = Set(
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 0)),
+            ModelComponentId.pure(IndexedComponentId.indexed(BaseComponentId("addToListChoiceField"), 1))
+          )
+        ),
+        NumberResult(2),
+        Map[Expr, ExpressionResult](
+          FormCtx(FormComponentId("1_addToListChoiceField")) -> OptionResult(Seq("newaddress_1")),
+          FormCtx(FormComponentId("1_newAddress"))           -> StringResult("Line 1, Line 2, Town, BS2 2FR"),
+          FormCtx(FormComponentId("1_changeAddress"))        -> StringResult("Line 1, Line 2, Town, BS2 2FR"),
+          FormCtx(FormComponentId("2_newAddress"))           -> StringResult("Road 1, BS2 1AR"),
+          FormCtx(FormComponentId("2_changeAddress"))        -> StringResult("Road 1, BS2 1AR"),
+          FormCtx(FormComponentId("newAddress"))             -> StringResult(""),
+          FormCtx(FormComponentId("changeAddress"))          -> StringResult("")
+        ),
+        RepeatedComponentsDetails.empty,
+        "ChoicesAvailable outside ATL evaluates includeIfs, hideChoicesSelected, noDuplicates, selected choices and returns the correct number result when dynamic and static options are used"
       )
     )
     forAll(table) {
