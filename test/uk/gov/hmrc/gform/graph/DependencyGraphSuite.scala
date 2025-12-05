@@ -176,6 +176,7 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         toSmartString("or", "neu"),
         None,
         None,
+        false,
         false
       )
 

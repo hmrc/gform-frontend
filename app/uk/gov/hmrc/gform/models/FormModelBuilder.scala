@@ -253,7 +253,8 @@ class FormModelBuilder(
         formModel.lookupRegister,
         formModel.constraints,
         taskIdTaskStatus,
-        LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London"))
+        LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London")),
+        formModel.noDuplicates
       )
 
     Recalculation

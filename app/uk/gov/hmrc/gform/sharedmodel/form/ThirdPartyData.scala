@@ -70,12 +70,16 @@ case class ThirdPartyData(
         u.map(decrementKeyIfNeeded)
       }
 
-    this.copy(
-      postcodeLookup = decrementIfNeeded(postcodeLookup),
-      selectedAddresses = decrementIfNeeded(selectedAddresses),
-      enteredAddresses = decrementIfNeeded(enteredAddresses),
-      confirmedAddresses = decrementIfNeededSet(confirmedAddresses)
-    )
+    if (postcodeLookupIds.nonEmpty) {
+      this.copy(
+        postcodeLookup = decrementIfNeeded(postcodeLookup),
+        selectedAddresses = decrementIfNeeded(selectedAddresses),
+        enteredAddresses = decrementIfNeeded(enteredAddresses),
+        confirmedAddresses = decrementIfNeededSet(confirmedAddresses)
+      )
+    } else {
+      this.copy()
+    }
   }
 
   def removeDataRetrieveData(idx: Int, dataRetrieveIds: Set[DataRetrieveId]): ThirdPartyData = {

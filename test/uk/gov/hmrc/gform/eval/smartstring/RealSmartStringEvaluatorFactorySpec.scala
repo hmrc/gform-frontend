@@ -170,6 +170,7 @@ class RealSmartStringEvaluatorFactorySpec
           divider,
           None,
           None,
+          false,
           false
         ),
         None
@@ -218,6 +219,7 @@ class RealSmartStringEvaluatorFactorySpec
           divider,
           None,
           None,
+          false,
           false
         ),
         None
@@ -257,6 +259,7 @@ class RealSmartStringEvaluatorFactorySpec
           divider,
           None,
           None,
+          false,
           false
         ),
         None
@@ -295,6 +298,7 @@ class RealSmartStringEvaluatorFactorySpec
           divider,
           None,
           None,
+          false,
           false
         ),
         None
@@ -333,6 +337,7 @@ class RealSmartStringEvaluatorFactorySpec
           divider,
           None,
           None,
+          false,
           false
         ),
         None
@@ -637,6 +642,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None
@@ -680,6 +686,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None
@@ -763,6 +770,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None
@@ -815,6 +823,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None
@@ -867,6 +876,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None
@@ -919,6 +929,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None
@@ -971,7 +982,8 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
-        true
+        true,
+        false
       ),
       None
     )
@@ -989,6 +1001,7 @@ class RealSmartStringEvaluatorFactorySpec
         divider,
         None,
         None,
+        false,
         false
       ),
       None

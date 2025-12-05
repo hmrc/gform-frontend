@@ -220,7 +220,7 @@ class ComponentsValidator[D <: DataOrigin](
           validIf(
             new OverseasAddressChecker[D]().runCheck(checkerDependency)
           )
-        case Choice(_, _, _, _, _, _, _, _, _, _, _) =>
+        case Choice(_, _, _, _, _, _, _, _, _, _, _, _) =>
           validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
         case _: RevealingChoice =>
           validIf(new ChoiceChecker[D]().runCheck(checkerDependency))

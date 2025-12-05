@@ -73,7 +73,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case IsText(Text(Lookup(_, sc), _, _, _, _, _, _))  => fcLookupExpr(sc)
       case IsGroup(group)                                 => fromGroup(group)
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
-      case IsChoice(Choice(_, options, _, _, hints, optionHelpText, _, _, _, _, _)) =>
+      case IsChoice(Choice(_, options, _, _, hints, optionHelpText, _, _, _, _, _, _)) =>
         toPlainExprs(
           fromNel(options.map(_.label)),
           hints.fold(List.empty[Expr])(fromNel),

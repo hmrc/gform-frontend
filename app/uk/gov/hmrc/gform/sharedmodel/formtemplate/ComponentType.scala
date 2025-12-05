@@ -417,7 +417,8 @@ case class Choice(
   dividerText: SmartString,
   noneChoice: Option[NoneChoice],
   noneChoiceError: Option[LocalisedString],
-  hideChoicesSelected: Boolean
+  hideChoicesSelected: Boolean,
+  noDuplicates: Boolean
 ) extends ComponentType {
   def renderToString[D <: DataOrigin](
     formComponent: FormComponent,
