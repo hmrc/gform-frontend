@@ -72,7 +72,6 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-
 import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -272,6 +271,45 @@ class TestOnlyController(
         toggleSpecimen,
         toggleFormBuilder
       )
+
+    bulleted_list(links)
+  }
+
+  private def formOverridesTab(
+    formTemplateId: FormTemplateId,
+    accessCode: Option[AccessCode],
+    overrides: Option[Overrides]
+  ) = {
+
+    def getValue(value: String) = {
+      val o = overrides
+        .getOrElse(Overrides.empty)
+      (value match {
+        case "disableUploads"     => o.disableUploads
+        case "disableValidIfs"    => o.disableValidIfs
+        case "disableIncludeIfs"  => o.disableIncludeIfs
+        case "disableContinueIfs" => o.disableContinueIfs
+        case "disableRedirects"   => o.disableRedirects
+      }).getOrElse(false)
+    }
+
+    def link(bool: Boolean, label: String, id: String) = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      (if (bool) "Enable" else "Disable") + " " + label,
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .changeToolboxTemplateOverrides(formTemplateId, accessCode, id, !bool)
+    )
+
+    val listOfOverrides = List(
+      ("uploads", "disableUploads"),
+      ("validIfs", "disableValidIfs"),
+      ("includeIfs", "disableIncludeIfs"),
+      ("continueIfs", "disableContinueIfs"),
+      ("redirects", "disableRedirects")
+    )
+
+    val links = listOfOverrides.map { case (label, id) =>
+      link(getValue(id), label, id)
+    }
 
     bulleted_list(links)
   }
@@ -699,6 +737,19 @@ class TestOnlyController(
               label = "Form",
               panel = TabPanel(
                 content = HtmlContent(formTab(formTemplateId, accessCode, isFormBuilderEnabled, isSpecimen))
+              )
+            ),
+            TabItem(
+              id = Some("form-overrides"),
+              label = "Form overrides",
+              panel = TabPanel(
+                content = HtmlContent(
+                  formOverridesTab(
+                    cache.formTemplate._id,
+                    accessCode,
+                    cache.formTemplate.overrides
+                  )
+                )
               )
             ),
             TabItem(
@@ -1193,6 +1244,49 @@ class TestOnlyController(
         case Some(_) => redirect.discardingCookies(discardFormBuilderCookie)
       }
       Future.successful(result)
+    }
+
+  def changeToolboxTemplateOverrides(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    newOverrideParam: String,
+    newOverrideValue: Boolean
+  ): Action[AnyContent] =
+    controllerComponents.actionBuilder.async { implicit request =>
+      gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
+        val overrides = formTemplate.overrides
+        def amendOverrides(overrides: Overrides, value: String, bool: Boolean): Overrides = {
+          val v = if (bool) Some(true) else None
+          value match {
+            case "disableUploads"     => overrides.copy(disableUploads = v)
+            case "disableValidIfs"    => overrides.copy(disableValidIfs = v)
+            case "disableIncludeIfs"  => overrides.copy(disableIncludeIfs = v)
+            case "disableContinueIfs" => overrides.copy(disableContinueIfs = v)
+            case "disableRedirects"   => overrides.copy(disableRedirects = v)
+          }
+        }
+
+        gformConnector
+          .changeOverrides(
+            formTemplateId,
+            amendOverrides(overrides.getOrElse(Overrides.empty), newOverrideParam, newOverrideValue)
+          )
+          .map {
+            case resp if resp.status == OK =>
+              val redirect =
+                Redirect(
+                  uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+                    .handleToolbox(formTemplateId, maybeAccessCode)
+                    .url + "#form-overrides"
+                )
+
+              redirect
+            case httpResponse =>
+              InternalServerError(s"""gform responded with status: ${httpResponse.status}
+                                     |Body: ${httpResponse.body}""".stripMargin)
+          }
+      }
+
     }
 
   def getSnapshots(

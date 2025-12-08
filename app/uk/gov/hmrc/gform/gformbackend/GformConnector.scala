@@ -814,4 +814,15 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   }
 
+  def changeOverrides(formTemplateId: FormTemplateId, overrides: Overrides)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[HttpResponse] = {
+    val url = s"$baseUrl/builder/update-overrides/${formTemplateId.value}"
+    httpClient
+      .post(url"$url")
+      .withBody(Json.toJson(overrides))
+      .execute[HttpResponse]
+  }
+
 }
