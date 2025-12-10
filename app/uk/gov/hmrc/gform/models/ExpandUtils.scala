@@ -57,7 +57,7 @@ object ExpandUtils {
     smartString
       .updateInterpolations(
         {
-          case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, index)
+          case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, Constant(index.toString))
           case otherwise                   => otherwise
         },
         boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId])
@@ -67,7 +67,7 @@ object ExpandUtils {
   def expandGroup[S <: SourceOrigin](fc: FormComponent, group: Group, data: VariadicFormData[S]): List[FormComponent] =
     (1 to group.repeatsMax.getOrElse(1)).toList.flatMap { index =>
       val allIds = fc.id :: group.fields.map(_.id)
-      val fcUpdated = new FormComponentUpdater(fc, index, allIds).updatedWithId
+      val fcUpdated = new FormComponentUpdater(fc, index, allIds, List.empty[DataRetrieveId]).updatedWithId
       val exp = fc.modelComponentId.expandWithPrefix(index)
       val toExpand: Boolean = data.contains(exp)
       if (toExpand || index === 1) List(fcUpdated) else Nil
@@ -111,15 +111,16 @@ object ExpandUtils {
     case Dynamic.ATLBased(formComponentId) =>
       Dynamic.ATLBased(ExpandUtils.addPrefix(n, formComponentId))
     case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, _)) =>
-      Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, n))
+      Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, Constant(n.toString)))
   }
 
-  def expandOptionDataDynamicDataRetrieveCtx(n: Int, dynamic: Dynamic) = dynamic match {
-    case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, index)) =>
-      Dynamic.DataRetrieveBased(
-        IndexOfDataRetrieveCtx(ctx.copy(id = DataRetrieveId(addPrefixToString(n, ctx.id.value))), index)
-      )
-    case _ => dynamic
-  }
+  def expandOptionDataDynamicDataRetrieveCtx(n: Int, dynamic: Dynamic, dataRetrieveIds: List[DataRetrieveId]) =
+    dynamic match {
+      case Dynamic.DataRetrieveBased(IndexOfDataRetrieveCtx(ctx, index)) if dataRetrieveIds.contains(ctx.id) =>
+        Dynamic.DataRetrieveBased(
+          IndexOfDataRetrieveCtx(ctx.copy(id = DataRetrieveId(addPrefixToString(n, ctx.id.value))), index)
+        )
+      case _ => dynamic
+    }
 
 }

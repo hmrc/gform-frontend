@@ -67,8 +67,13 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
           Between(DateCtx(expandDateExpr(dateExpr1)), DateCtx(expandDateExpr(dateExpr2)), m)
         case _ => expr
       }
-    case IndexOf(_, _)                 => expr // This is not expanded on purpose, so it can be used correctly inside ATL
-    case IndexOfDataRetrieveCtx(_, _)  => expr
+    case IndexOf(_, _)                           => expr // This is not expanded on purpose, so it can be used correctly inside ATL
+    case IndexOfInChoice(value, formComponentId) => IndexOfInChoice(value, expandFcId(formComponentId))
+    case IndexOfDataRetrieveCtx(ctx, expr) =>
+      expandExpr(ctx) match {
+        case d: DataRetrieveCtx => IndexOfDataRetrieveCtx(d, expandExpr(expr))
+        case invalid            => throw new Exception(s"Expected $ctx to expand into DataRetrieveCtx, but got $invalid")
+      }
     case NumberedList(formComponentId) => NumberedList(expandFcId(formComponentId))
     case BulletedList(formComponentId) => BulletedList(expandFcId(formComponentId))
     case NumberedListChoicesSelected(formComponentId, insideAtl) =>

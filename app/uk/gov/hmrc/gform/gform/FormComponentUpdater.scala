@@ -17,11 +17,16 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.models.ExpandUtils
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import SelectionCriteriaValue._
 
-class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: List[FormComponentId]) {
+class FormComponentUpdater(
+  formComponent: FormComponent,
+  index: Int,
+  baseIds: List[FormComponentId],
+  dataRetrieveIds: List[DataRetrieveId]
+) {
 
   private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
   private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
@@ -34,7 +39,9 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(_), _, _) =>
       o.copy(
         label = expandSmartString(o.label),
-        dynamic = o.dynamic.fold(o.dynamic)(d => Some(ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d))),
+        dynamic = o.dynamic.fold(o.dynamic)(d =>
+          Some(ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d, dataRetrieveIds))
+        ),
         hint = o.hint.fold(o.hint)(ss => Some(expandSmartString(ss))),
         includeIf = o.includeIf.map(expandIncludeIf),
         summaryValue = o.summaryValue.fold(o.summaryValue)(ss => Some(expandSmartString(ss))),
@@ -43,7 +50,9 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
     case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _) =>
       o.copy(
         label = expandSmartString(o.label),
-        dynamic = o.dynamic.fold(o.dynamic)(d => Some(ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d))),
+        dynamic = o.dynamic.fold(o.dynamic)(d =>
+          Some(ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d, dataRetrieveIds))
+        ),
         hint = o.hint.fold(o.hint)(ss => Some(expandSmartString(ss))),
         includeIf = o.includeIf.map(expandIncludeIf),
         value = OptionDataValue.ExprBased(expandExpr(expr)),
@@ -57,13 +66,13 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       revealingChoiceElement.copy(
         choice = expandOptionData(revealingChoiceElement.choice),
         revealingFields = revealingChoiceElement.revealingFields.map { revealingField =>
-          new FormComponentUpdater(revealingField, index, baseIds).updatedWithId
+          new FormComponentUpdater(revealingField, index, baseIds, dataRetrieveIds).updatedWithId
         }
       )
     })
 
   private def expandGroup(group: Group): Group = group.copy(
-    fields = group.fields.map(field => new FormComponentUpdater(field, index, baseIds).updatedWithId),
+    fields = group.fields.map(field => new FormComponentUpdater(field, index, baseIds, dataRetrieveIds).updatedWithId),
     repeatLabel = group.repeatLabel.map(expandSmartString),
     repeatAddAnotherText = group.repeatAddAnotherText.map(expandSmartString)
   )

@@ -66,6 +66,7 @@ object ConcatFormatSubstituter {
         case e: Size                        => e
         case Typed(e, tpe)                  => Typed(substitute(substitutions, e), tpe)
         case e: IndexOf                     => e
+        case e: IndexOfInChoice             => e
         case e: IndexOfDataRetrieveCtx      => e
         case e: NumberedList                => e
         case e: BulletedList                => e

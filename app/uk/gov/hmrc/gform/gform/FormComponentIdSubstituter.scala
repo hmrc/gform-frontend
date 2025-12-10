@@ -63,12 +63,13 @@ object FormComponentIdSubstituter {
           LookupColumn(substitutions.updateFormComponentId(fcId), column)
         case CsvCountryCountCheck(fcId, column, value) =>
           CsvCountryCountCheck(substitutions.updateFormComponentId(fcId), column, value)
-        case Size(fcId, index)         => Size(substitutions.updateFormComponentId(fcId), index)
-        case Typed(e, tpe)             => Typed(substitute(substitutions, e), tpe)
-        case IndexOf(fcId, index)      => IndexOf(substitutions.updateFormComponentId(fcId), index)
-        case e: IndexOfDataRetrieveCtx => e
-        case NumberedList(fcId)        => NumberedList(substitutions.updateFormComponentId(fcId))
-        case BulletedList(fcId)        => BulletedList(substitutions.updateFormComponentId(fcId))
+        case Size(fcId, index)            => Size(substitutions.updateFormComponentId(fcId), index)
+        case Typed(e, tpe)                => Typed(substitute(substitutions, e), tpe)
+        case IndexOf(fcId, index)         => IndexOf(substitutions.updateFormComponentId(fcId), index)
+        case IndexOfInChoice(value, fcId) => IndexOfInChoice(value, substitutions.updateFormComponentId(fcId))
+        case e: IndexOfDataRetrieveCtx    => e
+        case NumberedList(fcId)           => NumberedList(substitutions.updateFormComponentId(fcId))
+        case BulletedList(fcId)           => BulletedList(substitutions.updateFormComponentId(fcId))
         case NumberedListChoicesSelected(fcId, insideAtl) =>
           NumberedListChoicesSelected(substitutions.updateFormComponentId(fcId), insideAtl)
         case BulletedListChoicesSelected(fcId, insideAtl) =>

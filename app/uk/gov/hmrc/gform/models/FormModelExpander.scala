@@ -21,7 +21,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 trait FormModelExpander[T <: PageMode] {
@@ -174,7 +174,7 @@ object FormModelExpander {
         caption = page.caption.map(expand),
         continueLabel = page.continueLabel.map(expand),
         fields = page.fields.map { field =>
-          new FormComponentUpdater(field, index, source.allIds).updatedWithId
+          new FormComponentUpdater(field, index, source.allIds, List.empty[DataRetrieveId]).updatedWithId
         },
         instruction = page.instruction.map(i => i.copy(name = i.name.map(expand)))
       )

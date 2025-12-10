@@ -21,7 +21,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.Basic
-import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
@@ -82,6 +82,7 @@ object Section {
     val pageId: PageId = PageId(addAnotherQuestion.id.value)
     val id: AddToListId = AddToListId(addAnotherQuestion.id)
     val allPagesIds: List[FormComponentId] = pages.toList.flatMap(_.allIds)
+    val allDataRetriveIds: List[DataRetrieveId] = pages.toList.flatMap(_.allDataRetriveIds)
     val allIds: List[FormComponentId] = {
       addAnotherQuestion.id :: allPagesIds
     }

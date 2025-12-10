@@ -17,11 +17,17 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.models.PageMode
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import cats.data.NonEmptyList
 
-class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormComponentId]) {
+class PageUpdater[A <: PageMode](
+  page: Page[A],
+  index: Int,
+  baseIds: List[FormComponentId],
+  dataRetrieveIds: List[DataRetrieveId]
+) {
 
   private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
@@ -34,7 +40,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
   private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
 
   private def expandConfirmation(confirmation: Confirmation) = confirmation.copy(
-    question = new FormComponentUpdater(confirmation.question, index, baseIds).updatedWithId,
+    question = new FormComponentUpdater(confirmation.question, index, baseIds, dataRetrieveIds).updatedWithId,
     redirects = confirmation.redirects
       .map(_.map { r =>
         r.copy(pageId = r.pageId.withIndex(index), `if` = expandIncludeIf(r.`if`))
@@ -56,7 +62,7 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
       caption = page.caption.map(expandSmartString),
       includeIf = page.includeIf.map(expandIncludeIf),
       fields = page.fields.map { field =>
-        new FormComponentUpdater(field, index, baseIds).updatedWithId
+        new FormComponentUpdater(field, index, baseIds, dataRetrieveIds).updatedWithId
       },
       continueLabel = page.continueLabel.map(expandSmartString),
       instruction = page.instruction.map(i => i.copy(name = i.name.map(expandSmartString))),
@@ -68,6 +74,11 @@ class PageUpdater[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormCo
 }
 
 object PageUpdater {
-  def apply[A <: PageMode](page: Page[A], index: Int, baseIds: List[FormComponentId]): Page[A] =
-    new PageUpdater[A](page, index, baseIds).updated
+  def apply[A <: PageMode](
+    page: Page[A],
+    index: Int,
+    baseIds: List[FormComponentId],
+    dataRetrieveIds: List[DataRetrieveId]
+  ): Page[A] =
+    new PageUpdater[A](page, index, baseIds, dataRetrieveIds).updated
 }

@@ -429,7 +429,7 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
             )
           )
         ),
-        StringResult("111"),
+        ListResult(List(StringResult("111"))),
         "Third party data retrieval for id 'someDataRetrieveId' and attribute 'attribute1'"
       ),
       (

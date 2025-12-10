@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
 import uk.gov.hmrc.gform.models.{ Basic, PageMode, SectionHeader }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
@@ -65,6 +65,8 @@ case class Page[A <: PageMode](
   val allIds: List[FormComponentId] = allFields.map(_.id) ++ allFields.flatMap(_.childrenFormComponents.map(_.id))
 
   val allFieldsNested: List[FormComponent] = allFields ++ allFields.flatMap(_.childrenFormComponents)
+
+  val allDataRetriveIds: List[DataRetrieveId] = dataRetrieve.fold(List.empty[DataRetrieveId])(_.toList.map(_.id))
 
   val staticTypeInfo: StaticTypeInfo = StaticTypeInfo {
     (allFields ++ allFields

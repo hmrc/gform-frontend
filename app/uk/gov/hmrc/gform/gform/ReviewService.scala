@@ -149,8 +149,7 @@ class ReviewService[F[_]: Monad](
     for {
       forms         <- getForms(formIds)
       formTemplates <- getFormTemplates(forms)
-      bundle        <- buildBundledFormSubmissionData(forms, formTemplates)
-    } yield bundle
+    } yield buildBundledFormSubmissionData(forms, formTemplates)
 
   private def buildBundledFormSubmissionData[D <: DataOrigin](
     forms: NonEmptyList[Form],
@@ -158,22 +157,22 @@ class ReviewService[F[_]: Monad](
   )(implicit
     l: LangADT,
     m: Messages
-  ): F[NonEmptyList[BundledFormSubmissionData]] =
-    forms.traverse { form =>
+  ): NonEmptyList[BundledFormSubmissionData] =
+    forms.map { form =>
       val formModelVisibilityOptics: FormModelVisibilityOptics[D] = null
-      StructuredFormDataBuilder[D, F](
+      val sfd = StructuredFormDataBuilder[D](
         formModelVisibilityOptics,
         formTemplates(form.formTemplateId).destinations,
         formTemplates(form.formTemplateId).expressionsOutput,
         lookupRegistry
       )
-        .map { sfd =>
-          BundledFormSubmissionData(
-            FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),
-            sfd,
-            DestinationEvaluator(formTemplates(form.formTemplateId), formModelVisibilityOptics)
-          )
-        }
+
+      BundledFormSubmissionData(
+        FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),
+        sfd,
+        DestinationEvaluator(formTemplates(form.formTemplateId), formModelVisibilityOptics)
+      )
+
     }
 
   private def getForms(formIds: NonEmptyList[FormIdData])(implicit hc: HeaderCarrier): F[NonEmptyList[Form]] =
