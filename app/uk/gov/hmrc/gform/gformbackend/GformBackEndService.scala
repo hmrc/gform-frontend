@@ -184,6 +184,13 @@ class GformBackEndService(
       case _ => None
     }
 
+    val structuredFormData = StructuredFormDataBuilder(
+      formModelOptics.formModelVisibilityOptics,
+      cache.formTemplate.destinations,
+      cache.formTemplate.expressionsOutput,
+      lookupRegistry
+    )
+
     for {
       htmlForPDF <-
         pdfRenderService.createPDFContent[D, U, PDFType.Summary](
@@ -220,12 +227,6 @@ class GformBackEndService(
             )
           case _ => Future.successful(None)
         }
-      structuredFormData <- StructuredFormDataBuilder(
-                              formModelOptics.formModelVisibilityOptics,
-                              cache.formTemplate.destinations,
-                              cache.formTemplate.expressionsOutput,
-                              lookupRegistry
-                            )
       maybeEmailAddress <- cache.formTemplate.emailExpr.traverse { expr =>
                              val email = formModelOptics.formModelVisibilityOptics
                                .evalAndApplyTypeInfoFirst(expr)

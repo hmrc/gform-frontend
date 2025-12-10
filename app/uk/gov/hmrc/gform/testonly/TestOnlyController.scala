@@ -166,33 +166,32 @@ class TestOnlyController(
     val emailParameters = EmailParametersRecalculated(Map.empty)
     val affinityGroup = AffinityGroupUtil.fromRetrievals(retrievals)
 
-    for {
-      structuredFormData <- fromFutureA(
-                              StructuredFormDataBuilder[DataOrigin.Mongo, Future](
-                                formModelVisibilityOptics,
-                                formTemplate.destinations,
-                                formTemplate.expressionsOutput,
-                                lookupRegistry
-                              )
-                            )
+    val structuredFormData =
+      StructuredFormDataBuilder[DataOrigin.Mongo](
+        formModelVisibilityOptics,
+        formTemplate.destinations,
+        formTemplate.expressionsOutput,
+        lookupRegistry
+      )
 
-      submissionData = SubmissionData(
-                         PdfContent("htmlForPDF"),
-                         None,
-                         FrontEndSubmissionVariablesBuilder(
-                           retrievals,
-                           formTemplate,
-                           formModelVisibilityOptics,
-                           customerId
-                         ),
-                         structuredFormData,
-                         emailParameters,
-                         Attachments.empty,
-                         l,
-                         None,
-                         DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-                         userSession
-                       )
+    val submissionData = SubmissionData(
+      PdfContent("htmlForPDF"),
+      None,
+      FrontEndSubmissionVariablesBuilder(
+        retrievals,
+        formTemplate,
+        formModelVisibilityOptics,
+        customerId
+      ),
+      structuredFormData,
+      emailParameters,
+      Attachments.empty,
+      l,
+      None,
+      DestinationEvaluator(formTemplate, formModelVisibilityOptics),
+      userSession
+    )
+    for {
 
       httpResponse <- recov(
                         gformConnector
@@ -873,33 +872,31 @@ class TestOnlyController(
     val emailParameters = EmailParametersRecalculated(Map.empty)
     val affinityGroup = AffinityGroupUtil.fromRetrievals(retrievals)
 
-    for {
-      structuredFormData <- fromFutureA(
-                              StructuredFormDataBuilder[DataOrigin.Mongo, Future](
-                                formModelVisibilityOptics,
-                                formTemplate.destinations,
-                                formTemplate.expressionsOutput,
-                                lookupRegistry
-                              )
-                            )
+    val structuredFormData = StructuredFormDataBuilder[DataOrigin.Mongo](
+      formModelVisibilityOptics,
+      formTemplate.destinations,
+      formTemplate.expressionsOutput,
+      lookupRegistry
+    )
 
-      submissionData = SubmissionData(
-                         PdfContent("htmlForPDF"),
-                         None,
-                         FrontEndSubmissionVariablesBuilder(
-                           retrievals,
-                           formTemplate,
-                           formModelVisibilityOptics,
-                           customerId
-                         ),
-                         structuredFormData,
-                         emailParameters,
-                         Attachments.empty,
-                         l,
-                         None,
-                         DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-                         userSession
-                       )
+    val submissionData = SubmissionData(
+      PdfContent("htmlForPDF"),
+      None,
+      FrontEndSubmissionVariablesBuilder(
+        retrievals,
+        formTemplate,
+        formModelVisibilityOptics,
+        customerId
+      ),
+      structuredFormData,
+      emailParameters,
+      Attachments.empty,
+      l,
+      None,
+      DestinationEvaluator(formTemplate, formModelVisibilityOptics),
+      userSession
+    )
+    for {
 
       httpResponse <- recov(
                         gformConnector

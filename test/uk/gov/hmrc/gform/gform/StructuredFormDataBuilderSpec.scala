@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
-import cats.instances.either._
-import cats.syntax.either._
 import org.scalactic.source.Position
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -81,7 +79,7 @@ class StructuredFormDataBuilderSpec
             field("postcode", textNode("FX1A 7GA"))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -106,7 +104,7 @@ class StructuredFormDataBuilderSpec
             field("postcode", textNode("FX0 0PG"))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -145,7 +143,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -180,7 +178,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -238,7 +236,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -292,7 +290,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -467,7 +465,7 @@ class StructuredFormDataBuilderSpec
         field("standardLookup", textNode("field_id")),
         field("lookupInGroup", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id"))),
         field("lookupInRepeatedSection", arrayNode(textNode("field_id"), textNode("field_id"), textNode("field_id")))
-      ).asRight
+      )
     )
   }
   "text" must "create the correct JSON in all possible contexts" in {
@@ -681,7 +679,7 @@ class StructuredFormDataBuilderSpec
             textNode("Repeated section text 3")
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -693,7 +691,7 @@ class StructuredFormDataBuilderSpec
         ) :: Nil,
         variadicFormData("field" -> "fieldValue")
       ),
-      objectStructure(field("field", textNode("fieldValue"))).asRight
+      objectStructure(field("field", textNode("fieldValue")))
     )
   }
 
@@ -705,7 +703,7 @@ class StructuredFormDataBuilderSpec
         ) :: Nil,
         variadicFormDataMany("field" -> List("1", "2"))
       ),
-      objectStructure(field("field", arrayNode(textNode("1"), textNode("2")))).asRight
+      objectStructure(field("field", arrayNode(textNode("1"), textNode("2"))))
     )
   }
 
@@ -727,7 +725,7 @@ class StructuredFormDataBuilderSpec
           "field",
           objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3")))
         )
-      ).asRight
+      )
     )
   }
 
@@ -752,7 +750,7 @@ class StructuredFormDataBuilderSpec
             textNode("fieldValue2")
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -779,7 +777,7 @@ class StructuredFormDataBuilderSpec
             arrayNode(textNode("1"), textNode("3"), textNode("4"))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -813,7 +811,7 @@ class StructuredFormDataBuilderSpec
             objectStructure(field("day", textNode("")), field("month", textNode("")), field("year", textNode("6")))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -836,7 +834,7 @@ class StructuredFormDataBuilderSpec
             textNode("fieldValue2")
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -859,7 +857,7 @@ class StructuredFormDataBuilderSpec
             arrayNode(textNode("1"), textNode("3"), textNode("4"))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -888,7 +886,7 @@ class StructuredFormDataBuilderSpec
             objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -935,7 +933,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -985,7 +983,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -1082,7 +1080,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -1112,7 +1110,7 @@ class StructuredFormDataBuilderSpec
       objectStructure(
         field("field", textNode("fieldValue")),
         field("decField", textNode("decFieldValue"))
-      ).asRight
+      )
     )
   }
 
@@ -1147,7 +1145,7 @@ class StructuredFormDataBuilderSpec
             field("country", textNode("7"), roboticsXmlPurposeMap("country"))
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -1218,7 +1216,7 @@ class StructuredFormDataBuilderSpec
             )
           )
         )
-      ).asRight
+      )
     )
   }
 
@@ -1234,19 +1232,21 @@ class StructuredFormDataBuilderSpec
       ),
       objectStructure(
         field("field", textNode("field_id"))
-      ).asRight
+      )
     )
   }
 
   it must "fail when label doesn't exist in lookup component" in {
-    validate(
-      createFormModelVisibilityOptics(
-        createNonRepeatingSection(
-          createLookupField("field")
-        ) :: Nil,
-        variadicFormData("field" -> "non existent label")
-      ),
-      StructuredFormDataBuilderException("Cannot find 'non existent label' in register Origin").asLeft
+    assertThrows[StructuredFormDataBuilderException](
+      validate(
+        createFormModelVisibilityOptics(
+          createNonRepeatingSection(
+            createLookupField("field")
+          ) :: Nil,
+          variadicFormData("field" -> "non existent label")
+        ),
+        StructuredFormDataBuilderException("Cannot find 'non existent label' in register Origin")
+      )
     )
   }
 
@@ -1264,8 +1264,8 @@ class StructuredFormDataBuilderSpec
     position: Position,
     l: LangADT
   ): Assertion = {
-    val objectStructure: EitherEffect[StructuredFormValue.ObjectStructure] =
-      StructuredFormDataBuilder[DataOrigin.Mongo, EitherEffect](
+    val objectStructure: StructuredFormValue.ObjectStructure =
+      StructuredFormDataBuilder[DataOrigin.Mongo](
         formModelVisibilityOptics,
         destinationList,
         None,

@@ -98,13 +98,18 @@ class FormComponentUpdaterSpec extends Spec {
   private def updateGroup(formComponent: FormComponent) = {
     val group = mkGroup(2, List(mkFormComponent("choice", Value)))
 
-    new FormComponentUpdater(formComponent, 11, group.fields.map(_.id)).updatedWithId
+    new FormComponentUpdater(formComponent, 11, group.fields.map(_.id), List.empty[DataRetrieveId]).updatedWithId
   }
 
   private def updateSection(formComponent: FormComponent) = {
     val section = mkSection(List(mkFormComponent("choice", Value)))
 
-    new FormComponentUpdater(formComponent, 11, section.page.fields.map(_.id)).updatedWithId
+    new FormComponentUpdater(
+      formComponent,
+      11,
+      section.page.fields.map(_.id),
+      List(DataRetrieveId("individualsEmploymentsAtl"))
+    ).updatedWithId
   }
 
   private def mkChoice(dataRetrieveId: String) =
@@ -142,7 +147,7 @@ class FormComponentUpdaterSpec extends Spec {
           Dynamic.DataRetrieveBased(
             IndexOfDataRetrieveCtx(
               DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("employerName")),
-              0
+              Constant("0")
             )
           )
         ),

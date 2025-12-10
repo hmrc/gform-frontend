@@ -51,9 +51,6 @@ case class EvaluationResults(
 
   import ExpressionResult._
 
-  private def unsupportedMany(str: String)(many: VariadicValue.Many): ExpressionResult =
-    ExpressionResult.invalid(s"$str - unsupported value $many")
-
   private def unsupportedOperation(str: String)(expr: Expr): ExpressionResult =
     Invalid(s"$str - unsupported computation. Cannot combine $str and $expr")
 
@@ -432,7 +429,7 @@ case class EvaluationResults(
     implicit val m = evaluationContext.messages
 
     def fromVariadicValue(variadicValue: VariadicValue): ExpressionResult =
-      variadicValue.fold(one => toNumberResult(one.value))(unsupportedMany("Number"))
+      variadicValue.fold(one => toNumberResult(one.value))(many => OptionResult(many.value))
 
     def toNumberResult(value: String): ExpressionResult =
       toBigDecimalSafe(value).fold(ExpressionResult.invalid(s"Number - cannot convert '$value' to number"))(
@@ -509,10 +506,19 @@ case class EvaluationResults(
           case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
           case _              => unsupportedOperation("Number")(expr)
         }
+      case IndexOfInChoice(OptionDataValue.StringBased(stringValue), fcId) =>
+        val expressionResult = loop(FormCtx(fcId))
+        evalIndexOfInChoice(expressionResult, stringValue, unsupportedOperation("Number")(expr))
+      case IndexOfInChoice(OptionDataValue.ExprBased(_), fcId) => unsupportedOperation("Number")(expr)
       case IndexOfDataRetrieveCtx(ctx, index) =>
-        loop(ctx) match {
-          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-          case _              => unsupportedOperation("Number")(expr)
+        val indexRes = loop(index)
+        indexRes match {
+          case NumberResult(i) =>
+            loop(ctx) match {
+              case ListResult(xs) => Try(xs(i.toInt)).getOrElse(Empty)
+              case _              => unsupportedOperation("Number")(expr)
+            }
+          case _ => unsupportedOperation("Number")(expr)
         }
       case NumberedList(_)                   => unsupportedOperation("Number")(expr)
       case BulletedList(_)                   => unsupportedOperation("Number")(expr)
@@ -817,9 +823,8 @@ case class EvaluationResults(
         val exprResult =
           evaluationContext.thirdPartyData.dataRetrieve.fold(ExpressionResult.empty) { dr =>
             DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {
-              case Some(h :: Nil) => StringResult(h)
-              case Some(xs)       => ListResult(xs.map(StringResult))
-              case None           => Empty
+              case Some(xs) => ListResult(xs.map(StringResult))
+              case None     => Empty
             }
           }
         nonEmptyExpressionResult(exprResult)
@@ -870,9 +875,20 @@ case class EvaluationResults(
           case _              => unsupportedOperation("String")(expr)
         }
       case IndexOfDataRetrieveCtx(ctx, index) =>
-        loop(ctx) match {
-          case ListResult(xs) => Try(xs(index)).getOrElse(Empty)
-          case otherwise      => otherwise // Retrieves the only item from result set
+        val indexRes = evalNumber(
+          TypeInfo(index, StaticTypeData(ExprType.number, None)),
+          recData,
+          booleanExprResolver,
+          evaluationContext
+        )
+
+        indexRes match {
+          case NumberResult(i) =>
+            loop(ctx) match {
+              case ListResult(xs) => Try(xs(i.toInt)).getOrElse(Empty)
+              case otherwise      => otherwise // Retrieves the only item from result set
+            }
+          case _ => unsupportedOperation("String")(expr)
         }
       case NumberedList(fcId)                   => loop(FormCtx(fcId))
       case BulletedList(fcId)                   => loop(FormCtx(fcId))
@@ -911,12 +927,38 @@ case class EvaluationResults(
       case ChoicesRevealedField(fcId) => loop(FormCtx(fcId))
       case TaskStatus(taskId) =>
         StringResult(evaluationContext.taskIdTaskStatus.mapping.get(taskId).map(_.asString).getOrElse(""))
+      case IndexOfInChoice(OptionDataValue.StringBased(stringValue), fcId) =>
+        val expressionResult = loop(FormCtx(fcId))
+        evalIndexOfInChoice(expressionResult, stringValue, unsupportedOperation("String")(expr))
       case DisplayAsEntered(fcId) => loop(FormCtx(fcId))
       case _                      => unsupportedOperation("String")(expr)
     }
 
     loop(typeInfo.expr)
   }
+
+  private def evalIndexOfInChoice(
+    expressionResult: ExpressionResult,
+    stringValue: String,
+    onFailure: => ExpressionResult
+  ): ExpressionResult =
+    expressionResult match {
+      case OptionResult(values) =>
+        values.toList match {
+          case value :: Nil =>
+            val IndexedId = "^(.+)_(\\d+)$".r
+            value match {
+              case IndexedId(optionValue, index) =>
+                if (optionValue === stringValue)
+                  NumberResult(index.toInt)
+                else
+                  Empty
+              case _ => onFailure
+            }
+          case _ => onFailure
+        }
+      case _ => onFailure
+    }
 
   private def evalLookupColumn(
     fcId: FormComponentId,

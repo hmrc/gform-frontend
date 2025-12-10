@@ -438,10 +438,12 @@ class FormModelBuilder(
         validIf = c.removeItemIf.map(removeItemIf => ValidIf(Not(removeItemIf.booleanExpr)))
       ),
       index,
-      s.allIds
+      s.allIds,
+      s.allDataRetriveIds
     ).updatedWithId.copy(mandatory = Mandatory.False, derived = true, submissible = false)
 
-    val expandedFields = c.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId))
+    val expandedFields =
+      c.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds, s.allDataRetriveIds).updatedWithId))
 
     CheckYourAnswers[T](
       s.pageId.withIndex(index).withSuffix("CYA"),
@@ -468,7 +470,8 @@ class FormModelBuilder(
     s: Section.AddToList,
     index: Int
   ): Singleton[T] = {
-    val expandedFields = d.fields.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId)
+    val expandedFields =
+      d.fields.map(fc => new FormComponentUpdater(fc, index, s.allIds, s.allDataRetriveIds).updatedWithId)
 
     Singleton(
       Page(
@@ -498,9 +501,10 @@ class FormModelBuilder(
 
   private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
-    val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds).updatedWithId
+    val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds, s.allDataRetriveIds).updatedWithId
 
-    val expandedFields = s.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds).updatedWithId))
+    val expandedFields =
+      s.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds, s.allDataRetriveIds).updatedWithId))
 
     def expandAtlDescription(atlDescription: AtlDescription) =
       atlDescription match {
@@ -540,7 +544,7 @@ class FormModelBuilder(
   }
 
   private def mkSingleton(page: Page[Basic], index: Int): Section.AddToList => Page[Basic] =
-    source => PageUpdater(page, index, source.allIds)
+    source => PageUpdater(page, index, source.allIds, source.allDataRetriveIds)
 
   private def mergeIncludeIfs[T <: PageMode](includeIf: IncludeIf, page: Page[T]): Page[T] = page.copy(
     includeIf = Some(page.includeIf.fold(includeIf)(inIf => IncludeIf(And(inIf.booleanExpr, includeIf.booleanExpr))))

@@ -313,6 +313,7 @@ case class FormModel[A <: PageMode](
       case ChoicesSelected(_) | ChoicesAvailable(_, _) | CountSelectedChoices(_) | ChoicesCount(_) =>
         TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case IndexOf(formComponentId, _)   => explicitTypedExpr(expr, formComponentId)
+      case IndexOfInChoice(_, _)         => TypeInfo(expr, StaticTypeData(ExprType.number, None))
       case AuthCtx(AuthInfo.ItmpAddress) => TypeInfo(expr, StaticTypeData(ExprType.address, None))
       case otherwise                     => TypeInfo(expr, StaticTypeData(ExprType.string, None))
     }
