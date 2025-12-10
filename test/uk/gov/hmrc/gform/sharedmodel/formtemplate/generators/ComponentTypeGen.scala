@@ -91,6 +91,7 @@ trait ComponentTypeGen {
       toSmartString("or", "neu"),
       None,
       None,
+      false,
       false
     )
 

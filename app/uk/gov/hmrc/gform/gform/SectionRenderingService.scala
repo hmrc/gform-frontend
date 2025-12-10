@@ -1650,7 +1650,8 @@ class SectionRenderingService(
                 dividerText,
                 noneChoice,
                 _,
-                hideChoicesSelected
+                hideChoicesSelected,
+                noDuplicates
               ) =>
             htmlForChoice(
               formComponent,
@@ -1665,7 +1666,8 @@ class SectionRenderingService(
               dividerPosition,
               dividerText,
               noneChoice,
-              hideChoicesSelected
+              hideChoicesSelected,
+              noDuplicates
             )
           case RevealingChoice(options, multiValue) =>
             htmlForRevealingChoice(
@@ -2586,9 +2588,12 @@ class SectionRenderingService(
     hideChoicesSelected: Boolean,
     optionData: OptionData,
     modelComponentId: ModelComponentId,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    noDuplicates: Boolean,
+    optionsValueLabel: List[(String, String)]
   )(implicit
-    m: Messages
+    m: Messages,
+    sse: SmartStringEvaluator
   ): Boolean = if (!hideChoicesSelected) true
   else {
     val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
@@ -2600,8 +2605,13 @@ class SectionRenderingService(
     val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
     optionData match {
       case OptionData.ValueBased(_, _, _, _, _, _, _) =>
-        val value = optionData.getValue(-1, formModelVisibilityOptics)
-        !selectedValues(value)
+        if (noDuplicates) {
+          val values = optionsValueLabel.filter(item => item._2 == optionData.label.value()).map(_._1)
+          !values.exists(selectedValues.contains)
+        } else {
+          val value = optionData.getValue(-1, formModelVisibilityOptics)
+          !selectedValues(value)
+        }
       case OptionData.IndexBased(_, _, _, _, _) =>
         true // Do not hide index based options
     }
@@ -2649,7 +2659,8 @@ class SectionRenderingService(
     dividerPosition: Option[DividerPosition],
     dividerText: SmartString,
     maybeNoneChoice: Option[NoneChoice],
-    hideChoicesSelected: Boolean
+    hideChoicesSelected: Boolean,
+    noDuplicates: Boolean
   )(implicit
     l: LangADT,
     m: Messages,
@@ -2660,9 +2671,19 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
+    val optionsValueLabel =
+      options.collect(o => o.getValue(-1, ei.formModelOptics.formModelVisibilityOptics) -> o.label.value())
+
     val visibleOptionsWithIndex: NonEmptyList[(OptionData, Int)] = options.zipWithIndex
       .filter { case (o, _) =>
-        hasNotBeenSelectedYet(hideChoicesSelected, o, formComponent.modelComponentId, ei.formModelOptics) &&
+        hasNotBeenSelectedYet(
+          hideChoicesSelected,
+          o,
+          formComponent.modelComponentId,
+          ei.formModelOptics,
+          noDuplicates,
+          optionsValueLabel
+        ) &&
           isVisibleOption(o, ei.formModelOptics) &&
           optionHasContent(o)
       }
@@ -2732,23 +2753,36 @@ class SectionRenderingService(
 
     choice match {
       case Radio | YesNo =>
-        val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
-          case ((option, maybeHint, maybeHelpText), index) =>
-            val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
-            RadioItem(
-              id = Some(formComponent.id.value + index),
-              value = Some(value),
-              content = content.Text(option.label.value()),
-              checked = isChecked(value),
-              conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(
-                option.label,
-                ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
-              ),
-              hint = maybeHint
-            )
+        val allItems = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
+          val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
+          RadioItem(
+            id = Some(formComponent.id.value + index),
+            value = Some(value),
+            content = content.Text(option.label.value()),
+            checked = isChecked(value),
+            conditionalHtml = helpTextHtml(maybeHelpText),
+            attributes = dataLabelAttribute(
+              option.label,
+              ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+            ),
+            hint = maybeHint
+          )
         }
-        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { case (ls, pos) =>
+        val itemsWithNoDivider = if (noDuplicates) {
+          val alreadySeenLabels = scala.collection.mutable.Set.empty[String]
+          allItems.toList.filter { item =>
+            val label = item.content.asHtml.body
+            if (alreadySeenLabels.contains(label)) {
+              false
+            } else {
+              alreadySeenLabels.add(label)
+              true
+            }
+          }
+        } else {
+          allItems.toList
+        }
+        val items = dividerPosition.foldLeft(itemsWithNoDivider) { case (ls, pos) =>
           val (before, after) = pos match {
             case DividerPosition.Value(value)   => ls.span(_.value =!= Some(value))
             case DividerPosition.Number(intPos) => ls.splitAt(intPos)
@@ -2777,31 +2811,44 @@ class SectionRenderingService(
         )
 
       case Checkbox =>
-        val itemsWithNoDivider = optionsWithHintAndHelpText.zipWithIndex.map {
-          case ((option, maybeHint, maybeHelpText), index) =>
-            val item = CheckboxItem(
-              id = Some(formComponent.id.value + index),
-              value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics),
-              content = content.Text(option.label.value()),
-              checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
-              conditionalHtml = helpTextHtml(maybeHelpText),
-              attributes = dataLabelAttribute(
-                option.label,
-                ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
-              ),
-              hint = maybeHint
+        val allItems = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
+          val item = CheckboxItem(
+            id = Some(formComponent.id.value + index),
+            value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics),
+            content = content.Text(option.label.value()),
+            checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
+            conditionalHtml = helpTextHtml(maybeHelpText),
+            attributes = dataLabelAttribute(
+              option.label,
+              ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+            ),
+            hint = maybeHint
+          )
+          if (
+            maybeNoneChoice.exists(noneChoice =>
+              noneChoice.selection === option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
             )
-            if (
-              maybeNoneChoice.exists(noneChoice =>
-                noneChoice.selection === option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
-              )
-            ) {
-              item.copy(behaviour = Some(ExclusiveCheckbox))
-            } else {
-              item
-            }
+          ) {
+            item.copy(behaviour = Some(ExclusiveCheckbox))
+          } else {
+            item
+          }
         }
-        val items = dividerPosition.foldLeft(itemsWithNoDivider.toList) { (ls, pos) =>
+        val itemsWithNoDivider = if (noDuplicates) {
+          val alreadySeenLabels = scala.collection.mutable.Set.empty[String]
+          allItems.toList.filter { item =>
+            val label = item.content.asHtml.body
+            if (alreadySeenLabels.contains(label)) {
+              false
+            } else {
+              alreadySeenLabels.add(label)
+              true
+            }
+          }
+        } else {
+          allItems.toList
+        }
+        val items = dividerPosition.foldLeft(itemsWithNoDivider) { (ls, pos) =>
           val (before, after): (List[CheckboxItem], List[CheckboxItem]) = pos match {
             case DividerPosition.Value(value)   => ls.span(_.value =!= value)
             case DividerPosition.Number(intPos) => ls.splitAt(intPos)
