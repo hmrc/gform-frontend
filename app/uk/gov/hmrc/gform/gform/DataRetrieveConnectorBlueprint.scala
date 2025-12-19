@@ -20,7 +20,6 @@ import org.slf4j.{ Logger, LoggerFactory }
 import play.api.http.Status.{ NOT_FOUND, OK }
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
-import uk.gov.hmrc.gform.gform.DataRetrieveResponseValidator._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
@@ -31,23 +30,10 @@ class DataRetrieveConnectorBlueprint(
   httpClient: HttpClientV2,
   rawUrl: String,
   identifier: String,
-  exceptionalResponses: Option[List[ExceptionalResponse]] = None,
-  enableResponseValidation: Boolean = false
+  exceptionalResponses: Option[List[ExceptionalResponse]] = None
 ) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  private def validateResponse(json: JsValue, dataRetrieve: DataRetrieve): Unit =
-    if (enableResponseValidation) {
-      val result = validateDataRetrieveResponse(json, dataRetrieve)
-      result match {
-        case DataRetrieveValidationResult.Success => // Success, do nothing
-        case DataRetrieveValidationResult.Failure(errors) =>
-          throw new DataRetrieveResponseValidationException(
-            s"Data Retrieve response validation failed: ${errors.mkString(", ")}"
-          )
-      }
-    }
 
   def get(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(implicit
     ex: ExecutionContext,
@@ -61,8 +47,6 @@ class DataRetrieveConnectorBlueprint(
       .setHeader(header: _*)
       .execute[JsValue]
       .map { response =>
-        validateResponse(response, dataRetrieve)
-
         dataRetrieve
           .processResponse(response)
           .fold(
@@ -106,8 +90,6 @@ class DataRetrieveConnectorBlueprint(
       .map { response =>
         response.status match {
           case OK =>
-            validateResponse(response.json, dataRetrieve)
-
             dataRetrieve
               .processResponse(response.json)
               .fold(
@@ -160,8 +142,6 @@ class DataRetrieveConnectorBlueprint(
         (maybeExceptionalResponse, status) match {
           case (Some(_), _) | (_, 200) =>
             val responseJson = maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response))
-
-            validateResponse(responseJson, dataRetrieve)
 
             dataRetrieve
               .processResponse(responseJson)

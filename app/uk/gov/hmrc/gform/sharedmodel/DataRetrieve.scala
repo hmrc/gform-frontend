@@ -21,8 +21,10 @@ import julienrf.json.derived
 import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
+import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
 import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
 import uk.gov.hmrc.gform.typeclasses.Now
@@ -141,21 +143,30 @@ case class DataRetrieve(
     )
   }
 
-  def fromObject(json: JsValue, instructions: List[AttributeInstruction]): List[(DataRetrieve.Attribute, String)] =
-    instructions.flatMap { x =>
+  def fromObject(json: JsValue, instructions: List[AttributeInstruction]): List[(DataRetrieve.Attribute, String)] = {
+    val errors = scala.collection.mutable.ListBuffer[String]()
+    val attrValueList = instructions.flatMap { x =>
       def extractJsPath(fetch: Fetch): JsPath =
         fetch.path.foldLeft(JsPath: JsPath)((acc, next) => acc \ next)
 
       def fromFetch(fetch: Fetch): String = {
         val jsPath = extractJsPath(fetch)
         jsPath.json.pick[JsValue].reads(json) match {
-          case JsSuccess(JsString(attributeValue), _) => attributeValue
+          case JsSuccess(JsString(attributeValue), _) =>
+            validateAttribute(attributeValue, JsStringType)
+            attributeValue
           case JsSuccess(JsNumber(attributeValue), _) =>
+            validateAttribute(attributeValue.toString, JsNumberType)
             TextFormatter.stripTrailingZeros(attributeValue.toString)
-          case JsSuccess(JsBoolean(attributeValue), _) => attributeValue.toString
-          case _                                       => ""
+          case JsSuccess(JsBoolean(attributeValue), _) =>
+            validateAttribute(attributeValue.toString, JsBooleanType)
+            attributeValue.toString
+          case _ =>
+            validateAttribute("", JsStringType)
+            ""
         }
       }
+
       def fetchArray(fetch: Fetch): List[String] = {
         val jsPath = extractJsPath(fetch)
         jsPath.json.pick[JsValue].reads(json) match {
@@ -163,6 +174,30 @@ case class DataRetrieve(
           case _                                      => List.empty
         }
       }
+
+      def validateAttribute(value: String, allowedValueType: AllowedValueType): Unit =
+        x.allowedValues.foreach { allowedValues =>
+          val isEmpty = value.isEmpty
+          val isWrongType = allowedValues.valueType != allowedValueType && !allowedValues.allowsAnyValue
+          val isInvalidValue = !allowedValues.allowsAnyValue && !allowedValues.values.contains(value)
+
+          if (isEmpty && allowedValues.isRequired) {
+            errors += s"required field '${x.attribute.name}' cannot be empty"
+          } else if (!isEmpty && isInvalidValue) {
+            errors += s"unexpected value for '${x.attribute.name}': '$value'"
+          } else if (isWrongType) {
+            errors += s"field '${x.attribute.name}' must be a ${getValueTypeAsString(allowedValues.valueType)}"
+          }
+        }
+
+      def getValueTypeAsString(valueType: AllowedValueType): String =
+        valueType match {
+          case AllowedValueType.JsStringType  => "string"
+          case AllowedValueType.JsNumberType  => "number"
+          case AllowedValueType.JsBooleanType => "boolean"
+          case AllowedValueType.AnyValueType  => "any"
+        }
+
       x.from match {
         case ConstructAttribute.AsIs(fetch) => List(x.attribute -> fromFetch(fetch))
         case ConstructAttribute.ExtractAtIndex(fetch, index) =>
@@ -184,6 +219,14 @@ case class DataRetrieve(
         case ConstructAttribute.Combine(fetches) => fetches.map { case (attr, fetch) => attr -> fromFetch(fetch) }
       }
     }
+    if (errors.nonEmpty) {
+      throw new DataRetrieveResponseValidationException(
+        s"Data Retrieve response validation failed: ${errors.mkString(", ")}"
+      )
+    } else {
+      attrValueList
+    }
+  }
 
   def processResponse(json: JsValue): JsResult[DataRetrieve.Response] =
     attributes match {
