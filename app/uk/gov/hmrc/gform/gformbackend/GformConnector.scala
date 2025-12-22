@@ -42,6 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsByFormIdData }
+import uk.gov.hmrc.gform.sharedmodel.sdes.SdesSubmission
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
@@ -52,6 +53,7 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
@@ -824,5 +826,27 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       .withBody(Json.toJson(overrides))
       .execute[HttpResponse]
   }
+
+  def getSdesSubmissionsByEnvelopeId(envelopeId: EnvelopeId)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[List[SdesSubmission]] =
+    httpClient
+      .get(url"$baseUrl/sdes/envelopeId/${envelopeId.value}")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == 200) {
+          Try(response.json.as[List[SdesSubmission]]) match {
+            case Success(list) => list
+            case Failure(_) =>
+              Try(response.json.as[SdesSubmission]) match {
+                case Success(sub) => List(sub)
+                case Failure(_) =>
+                  logger.warn(s"Unable to retrieve any SdesSubmissions for envelopeId ${envelopeId.value}")
+                  List.empty[SdesSubmission]
+              }
+          }
+        } else List.empty[SdesSubmission]
+      }
 
 }
