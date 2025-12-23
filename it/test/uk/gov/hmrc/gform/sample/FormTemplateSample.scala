@@ -126,7 +126,9 @@ trait FormTemplateSample {
           instructionPdfFields = Some(InstructionPdfFields.Ordered),
           convertSingleQuotes = None,
           payload = None,
-          payloadType = TemplateType.XML
+          payloadType = TemplateType.XML,
+          roboticsAsAttachment = None,
+          submissionPrefix = None
         )
       ),
       acknowledgementSection = AcknowledgementSection(

@@ -48,7 +48,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
@@ -58,6 +58,7 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
 import uk.gov.hmrc.gform.eval.ExpressionResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -72,6 +73,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
+
 import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -313,17 +315,14 @@ class TestOnlyController(
     bulleted_list(links)
   }
 
-  private def submittedDataTab(formTemplate: FormTemplate, accessCode: Option[AccessCode], envelopeId: EnvelopeId)(
-    implicit hc: HeaderCarrier
-  ) = {
+  private def submittedDataTab(formTemplate: FormTemplate, accessCode: Option[AccessCode], envelopeId: EnvelopeId) = {
 
-    def createDownloadContent(destination: SdesDestination, submissionPrefix: Option[String], actual: Boolean) = {
+    def createDownloadContent(destination: SdesDestination, submissionPrefix: Option[String]) = {
       val queryParams = submissionPrefix.fold("")(p => s"?prefix=$p")
-      val msg = submissionPrefix.fold("")(p => s" (with submission prefix: $p)")
-      val actualOrPossible = if (actual) "actual" else "possible"
+      val msg = submissionPrefix.fold("")(p => s" (submission prefix: $p)")
 
       destination -> uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-        s"Download $actualOrPossible file for ${destination.description}$msg",
+        s"Download files for ${destination.description}$msg",
         uk.gov.hmrc.gform.testonly.routes.TestOnlyController
           .proxyToGform(
             s"gform/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}$queryParams"
@@ -331,8 +330,16 @@ class TestOnlyController(
       )
     }
 
-    val possibleLinks =
-      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent(_, None, false))
+    val allDmsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      s"Download all files in object store DMS directory",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform(
+          s"gform/object-store/dms/envelopes/${envelopeId.value}"
+        )
+    )
+
+    val startingLinks =
+      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent(_, None))
 
     val dataStoreWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View data-store-work-item entry",
@@ -352,22 +359,21 @@ class TestOnlyController(
         .proxyToGform("gform/sdes/envelopeId/" + envelopeId.value)
     )
 
-    val linksF = for {
-      sdesSubmissions <- gformConnector.getSdesSubmissionsByEnvelopeId(envelopeId)
-    } yield {
-      val actualSubmissions = sdesSubmissions
-        .filter(_.destination.isDefined)
-        .map { sdesSubmission =>
-          createDownloadContent(sdesSubmission.sdesDestination, sdesSubmission.submissionPrefix, true)
+    val dmsSubs: List[String] = formTemplate.destinations match {
+      case Destinations.DestinationList(destinations, _, _) =>
+        destinations.collect { case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix)) =>
+          submissionPrefix
         }
-
-      possibleLinks.flatMap { case (dest, link) =>
-        val actuals = actualSubmissions.filter(_._1 === dest).map(_._2)
-        if (actuals.isEmpty) List(link) else actuals
-      }
+      case _ => List.empty[String]
     }
 
-    linksF.map(links => bulleted_list(links ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink)))
+    val destinationLinks = startingLinks.flatMap {
+      case (Dms, _) if dmsSubs.nonEmpty =>
+        allDmsLink +: dmsSubs.map(prefix => createDownloadContent(Dms, Some(prefix))._2)
+      case (_, link) => List(link)
+    }
+
+    bulleted_list(destinationLinks ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink))
   }
 
   private def developmentToolsTab(
@@ -752,64 +758,62 @@ class TestOnlyController(
       val isFormBuilderEnabled = request.cookies.get(CookieNames.formBuilderCookieName).isDefined
       val isSpecimen = cache.formTemplate.isSpecimen
 
-      submittedDataTab(cache.formTemplate, accessCode, cache.form.envelopeId).map { submittedDataTab =>
-        val govukTabs = new GovukTabs()(
-          Tabs(
-            items = Seq(
-              TabItem(
-                id = Some("form"),
-                label = "Form",
-                panel = TabPanel(
-                  content = HtmlContent(formTab(formTemplateId, accessCode, isFormBuilderEnabled, isSpecimen))
-                )
-              ),
-              TabItem(
-                id = Some("form-overrides"),
-                label = "Form overrides",
-                panel = TabPanel(
-                  content = HtmlContent(
-                    formOverridesTab(
-                      cache.formTemplate._id,
-                      accessCode,
-                      cache.formTemplate.overrides
-                    )
+      val govukTabs = new GovukTabs()(
+        Tabs(
+          items = Seq(
+            TabItem(
+              id = Some("form"),
+              label = "Form",
+              panel = TabPanel(
+                content = HtmlContent(formTab(formTemplateId, accessCode, isFormBuilderEnabled, isSpecimen))
+              )
+            ),
+            TabItem(
+              id = Some("form-overrides"),
+              label = "Form overrides",
+              panel = TabPanel(
+                content = HtmlContent(
+                  formOverridesTab(
+                    cache.formTemplate._id,
+                    accessCode,
+                    cache.formTemplate.overrides
                   )
                 )
-              ),
-              TabItem(
-                id = Some("submitted-data"),
-                label = "Submitted data",
-                panel = TabPanel(
-                  content = HtmlContent(submittedDataTab)
-                )
-              ),
-              TabItem(
-                id = Some("reports"),
-                label = "Reports",
-                panel = TabPanel(
-                  content = HtmlContent(reportsTab(cache.formTemplate, accessCode))
-                )
-              ),
-              TabItem(
-                id = Some("development-tools"),
-                label = "Development tools",
-                panel = TabPanel(
-                  content = HtmlContent(developmentToolsTab(cache.formTemplate, accessCode, cache.form.envelopeId))
-                )
-              ),
-              TabItem(
-                id = Some("translation-tools"),
-                label = "Welsh translation",
-                panel = TabPanel(
-                  content = HtmlContent(translationsTab(cache.formTemplate, accessCode))
-                )
+              )
+            ),
+            TabItem(
+              id = Some("submitted-data"),
+              label = "Submitted data",
+              panel = TabPanel(
+                content = HtmlContent(submittedDataTab(cache.formTemplate, accessCode, cache.form.envelopeId))
+              )
+            ),
+            TabItem(
+              id = Some("reports"),
+              label = "Reports",
+              panel = TabPanel(
+                content = HtmlContent(reportsTab(cache.formTemplate, accessCode))
+              )
+            ),
+            TabItem(
+              id = Some("development-tools"),
+              label = "Development tools",
+              panel = TabPanel(
+                content = HtmlContent(developmentToolsTab(cache.formTemplate, accessCode, cache.form.envelopeId))
+              )
+            ),
+            TabItem(
+              id = Some("translation-tools"),
+              label = "Welsh translation",
+              panel = TabPanel(
+                content = HtmlContent(translationsTab(cache.formTemplate, accessCode))
               )
             )
           )
         )
+      )
 
-        Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs))
-      }
+      Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs)).pure[Future]
   }
 
   def handlebarPayload(
