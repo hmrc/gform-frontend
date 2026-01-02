@@ -63,7 +63,9 @@ trait DestinationGen {
         instructionPdfFields,
         None,
         None,
-        TemplateType.XML
+        TemplateType.XML,
+        None,
+        None
       )
 
   def submissionConsolidatorGen: Gen[Destination.SubmissionConsolidator] =

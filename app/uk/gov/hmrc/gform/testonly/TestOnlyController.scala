@@ -48,7 +48,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, SdesDestination }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
@@ -58,6 +58,7 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
 import uk.gov.hmrc.gform.eval.ExpressionResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -72,6 +73,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.SessionCookieCrypto
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
+
 import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -315,25 +317,40 @@ class TestOnlyController(
 
   private def submittedDataTab(formTemplate: FormTemplate, accessCode: Option[AccessCode], envelopeId: EnvelopeId) = {
 
-    def createDownloadContent(destination: SdesDestination) =
-      uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-        s"Download files for ${destination.description}",
-        uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-          .proxyToGform(s"gform/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}")
-      )
+    def createDownloadContent(destination: SdesDestination, submissionPrefix: Option[String]) = {
+      val queryParams = submissionPrefix.fold("")(p => s"?prefix=$p")
+      val msg = submissionPrefix.fold("")(p => s" (submission prefix: $p)")
 
-    val downloadContents = List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent)
+      destination -> uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+        s"Download files for ${destination.description}$msg",
+        uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+          .proxyToGform(
+            s"gform/object-store/${destination.downloadPath}/envelopes/${envelopeId.value}$queryParams"
+          )
+      )
+    }
+
+    val allDmsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      s"Download all files in object store DMS directory",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform(
+          s"gform/object-store/dms/envelopes/${envelopeId.value}"
+        )
+    )
+
+    val startingLinks =
+      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive).map(createDownloadContent(_, None))
 
     val dataStoreWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View data-store-work-item entry",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-        .proxyToGform("gform/data-store-work-item/envelopeId/" + envelopeId.value)
+        .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=DataStore")
     )
 
     val dmsWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View dms-work-item entry",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-        .proxyToGform("gform/dms-work-item/envelopeId/" + envelopeId.value)
+        .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=Dms")
     )
 
     val viewSDESLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
@@ -342,8 +359,21 @@ class TestOnlyController(
         .proxyToGform("gform/sdes/envelopeId/" + envelopeId.value)
     )
 
-    val links = downloadContents ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink)
-    bulleted_list(links)
+    val dmsSubs: List[String] = formTemplate.destinations match {
+      case Destinations.DestinationList(destinations, _, _) =>
+        destinations.collect { case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix)) =>
+          submissionPrefix
+        }
+      case _ => List.empty[String]
+    }
+
+    val destinationLinks = startingLinks.flatMap {
+      case (Dms, _) if dmsSubs.nonEmpty =>
+        allDmsLink +: dmsSubs.map(prefix => createDownloadContent(Dms, Some(prefix))._2)
+      case (_, link) => List(link)
+    }
+
+    bulleted_list(destinationLinks ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink))
   }
 
   private def developmentToolsTab(
@@ -784,8 +814,8 @@ class TestOnlyController(
       )
 
       Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs)).pure[Future]
-
   }
+
   def handlebarPayload(
     formTemplateId: FormTemplateId,
     destinationId: DestinationId,

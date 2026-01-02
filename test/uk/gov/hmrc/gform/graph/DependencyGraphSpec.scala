@@ -733,7 +733,9 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None,
         None,
         None,
-        TemplateType.XML
+        TemplateType.XML,
+        None,
+        None
       )
     val emptyCompositeDestination =
       Destination.Composite(DestinationId(""), HandlebarValue(""), NonEmptyList.one(emptyHmrcDms))

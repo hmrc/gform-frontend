@@ -148,7 +148,9 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     None,
     None,
     None,
-    TemplateType.XML
+    TemplateType.XML,
+    None,
+    None
   )
 
   val ackSection =
