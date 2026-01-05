@@ -145,7 +145,7 @@ case class DataRetrieve(
 
   def fromObject(json: JsValue, instructions: List[AttributeInstruction]): List[(DataRetrieve.Attribute, String)] = {
     val errors = scala.collection.mutable.ListBuffer[String]()
-    val attrValueList = instructions.flatMap { x =>
+    val attrValueList = instructions.flatMap { attributeInstruction =>
       def extractJsPath(fetch: Fetch): JsPath =
         fetch.path.foldLeft(JsPath: JsPath)((acc, next) => acc \ next)
 
@@ -176,17 +176,17 @@ case class DataRetrieve(
       }
 
       def validateAttribute(value: String, allowedValueType: AllowedValueType): Unit =
-        x.allowedValues.foreach { allowedValues =>
+        attributeInstruction.allowedValues.foreach { allowedValues =>
           val isEmpty = value.isEmpty
           val isWrongType = allowedValues.valueType != allowedValueType && !allowedValues.allowsAnyValue
           val isInvalidValue = !allowedValues.allowsAnyValue && !allowedValues.values.contains(value)
 
           if (isEmpty && allowedValues.isRequired) {
-            errors += s"required field '${x.attribute.name}' cannot be empty"
+            errors += s"required field '${attributeInstruction.attribute.name}' cannot be empty"
           } else if (!isEmpty && isInvalidValue) {
-            errors += s"unexpected value for '${x.attribute.name}': '$value'"
+            errors += s"unexpected value for '${attributeInstruction.attribute.name}': '$value'"
           } else if (isWrongType) {
-            errors += s"field '${x.attribute.name}' must be a ${getValueTypeAsString(allowedValues.valueType)}"
+            errors += s"field '${attributeInstruction.attribute.name}' must be a ${getValueTypeAsString(allowedValues.valueType)}"
           }
         }
 
@@ -198,10 +198,10 @@ case class DataRetrieve(
           case AllowedValueType.AnyValueType  => "any"
         }
 
-      x.from match {
-        case ConstructAttribute.AsIs(fetch) => List(x.attribute -> fromFetch(fetch))
+      attributeInstruction.from match {
+        case ConstructAttribute.AsIs(fetch) => List(attributeInstruction.attribute -> fromFetch(fetch))
         case ConstructAttribute.ExtractAtIndex(fetch, index) =>
-          List(x.attribute -> fetchArray(fetch).lift(index).getOrElse(""))
+          List(attributeInstruction.attribute -> fetchArray(fetch).lift(index).getOrElse(""))
         case ConstructAttribute.Concat(fetches) =>
           val res = fetches
             .map { fetch =>
@@ -215,7 +215,7 @@ case class DataRetrieve(
             }
             .mkString(" ")
             .trim()
-          List(x.attribute -> res)
+          List(attributeInstruction.attribute -> res)
         case ConstructAttribute.Combine(fetches) => fetches.map { case (attr, fetch) => attr -> fromFetch(fetch) }
       }
     }
