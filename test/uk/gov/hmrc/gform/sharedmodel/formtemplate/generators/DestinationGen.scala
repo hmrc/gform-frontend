@@ -123,13 +123,6 @@ trait DestinationGen {
       )
     }
 
-  def compositeGen: Gen[Destination.Composite] =
-    for {
-      id           <- destinationIdGen
-      includeIf    <- includeIfGen()
-      destinations <- PrimitiveGen.oneOrMoreGen(singularDestinationGen)
-    } yield Destination.Composite(id, includeIf, destinations)
-
   def stateTransitionGen: Gen[Destination.StateTransition] =
     for {
       id            <- destinationIdGen
@@ -176,10 +169,8 @@ trait DestinationGen {
       personalisation
     )
 
-  def singularDestinationGen: Gen[Destination] =
+  def destinationGen: Gen[Destination] =
     Gen.oneOf(hmrcDmsGen, handlebarsHttpApiGen, stateTransitionGen, logGen, emailGen, submissionConsolidatorGen)
-
-  def destinationGen: Gen[Destination] = Gen.frequency(10 -> singularDestinationGen, 1 -> compositeGen)
 
   def destinationWithFixedIdGen(id: DestinationId): Gen[Destination] = hmrcDmsGen.map(_.copy(id = id))
 

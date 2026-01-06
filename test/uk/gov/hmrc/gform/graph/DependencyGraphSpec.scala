@@ -737,8 +737,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None,
         None
       )
-    val emptyCompositeDestination =
-      Destination.Composite(DestinationId(""), HandlebarValue(""), NonEmptyList.one(emptyHmrcDms))
     val emptyDestinationList =
       DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, Some(emptyDeclarationSection))
     val field = mkFormComponent("b", ctx)
@@ -766,7 +764,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("declarationSection.continueLabel",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(continueLabel = Some(stringExpr)))))),
       ("declarationSection.fields",           dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(fields = field :: Nil))))),
       ("destination.hmrcDms.customerId",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx))))),
-      ("destination.composite.destinations",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyCompositeDestination.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx)))))))
       // format: on
     )
   }

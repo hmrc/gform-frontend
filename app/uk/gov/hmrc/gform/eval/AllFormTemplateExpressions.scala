@@ -78,7 +78,6 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
         case d: Destination.HmrcDms                => d.customerId :: Nil
         case d: Destination.SubmissionConsolidator => d.customerId :: Nil
         case d: Destination.HandlebarsHttpApi      => Nil
-        case d: Destination.Composite              => d.destinations.toList.flatMap(fromDestination)
         case d: Destination.StateTransition        => Nil
         case d: Destination.Log                    => Nil
         case d: Destination.Email                  => Nil
