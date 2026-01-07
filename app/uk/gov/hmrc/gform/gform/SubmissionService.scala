@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import org.slf4j.LoggerFactory
 import play.api.i18n.I18nSupport
+import play.api.libs.json.{ JsError, JsSuccess }
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -29,6 +30,7 @@ import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics, Signed }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsFileUpload, IsMultiFileUpload }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
@@ -102,8 +104,14 @@ class SubmissionService(
                   )
 
     } yield {
-      val (_, customerId) = result
-      auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files)
+      val (response, customerId) = result
+      val dmsSubmissions = response.json.validate[List[DmsDestinationResponse]] match {
+        case JsSuccess(submissions, _) => submissions
+        case JsError(err) =>
+          logger.error(s"Unable to parse destination responses: $err")
+          List.empty[DmsDestinationResponse]
+      }
+      auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files, dmsSubmissions)
       customerId
     }
   }
@@ -112,9 +120,17 @@ class SubmissionService(
     cache: AuthCacheWithForm,
     customerId: CustomerId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    envelopeFiles: List[File]
+    envelopeFiles: List[File],
+    dmsSubmissions: List[DmsDestinationResponse]
   )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator, l: LangADT): Unit =
-    auditService.sendSubmissionEvent(cache.form, formModelVisibilityOptics, cache.retrievals, customerId, envelopeFiles)
+    auditService.sendSubmissionEvent(
+      cache.form,
+      formModelVisibilityOptics,
+      cache.retrievals,
+      customerId,
+      envelopeFiles,
+      dmsSubmissions
+    )
 
   private def cleanseEnvelope(
     envelopeId: EnvelopeId,
