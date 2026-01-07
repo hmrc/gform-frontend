@@ -26,7 +26,8 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.WiremockSupport
-import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, Fetch, ServiceResponse }
+import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
+import uk.gov.hmrc.gform.sharedmodel.{ AllowedValueType, AllowedValues, Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, Fetch, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.HttpTestUtils
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId }
@@ -70,29 +71,39 @@ class BankAccountReputationAsyncConnectorSpec
         List(
           AttributeInstruction(
             DataRetrieve.Attribute("isValid"),
-            ConstructAttribute.AsIs(Fetch(List("accountNumberIsWellFormatted")))
+            ConstructAttribute.AsIs(Fetch(List("accountNumberIsWellFormatted"))),
+            Some(AllowedValues(List("yes", "no", "indeterminate"), AllowedValueType.JsStringType, isRequired = true))
           ),
           AttributeInstruction(
             DataRetrieve.Attribute("sortCodeIsPresentOnEISCD"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeIsPresentOnEISCD")))
+            ConstructAttribute.AsIs(Fetch(List("sortCodeIsPresentOnEISCD"))),
+            Some(AllowedValues(List("yes", "no", "error"), AllowedValueType.JsStringType, isRequired = true))
           ),
           AttributeInstruction(
             DataRetrieve.Attribute("sortCodeBankName"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeBankName")))
+            ConstructAttribute.AsIs(Fetch(List("sortCodeBankName"))),
+            Some(AllowedValues(List("*"), AllowedValueType.AnyValueType, isRequired = false))
           ),
           AttributeInstruction(
             DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs"),
-            ConstructAttribute.AsIs(Fetch(List("nonStandardAccountDetailsRequiredForBacs")))
+            ConstructAttribute.AsIs(Fetch(List("nonStandardAccountDetailsRequiredForBacs"))),
+            Some(AllowedValues(List("yes", "no", "inapplicable"), AllowedValueType.JsStringType, isRequired = true))
           ),
           AttributeInstruction(
             DataRetrieve.Attribute("sortCodeSupportsDirectDebit"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectDebit")))
+            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectDebit"))),
+            Some(AllowedValues(List("yes", "no", "error"), AllowedValueType.JsStringType, isRequired = true))
           ),
           AttributeInstruction(
             DataRetrieve.Attribute("sortCodeSupportsDirectCredit"),
-            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectCredit")))
+            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectCredit"))),
+            Some(AllowedValues(List("yes", "no", "error"), AllowedValueType.JsStringType, isRequired = true))
           ),
-          AttributeInstruction(DataRetrieve.Attribute("iban"), ConstructAttribute.AsIs(Fetch(List("iban"))))
+          AttributeInstruction(
+            DataRetrieve.Attribute("iban"),
+            ConstructAttribute.AsIs(Fetch(List("iban"))),
+            Some(AllowedValues(List("*"), AllowedValueType.AnyValueType, isRequired = false))
+          )
         )
       ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
@@ -223,6 +234,62 @@ class BankAccountReputationAsyncConnectorSpec
         )
       )
     }
+  }
+
+  "validateBankDetails" should "call the validate bank details service endpoint with the given request and fail for unexpected values" in new TestFixture {
+    stubFor(
+      WireMock
+        .post(s"/validate/bank-details")
+        .withHeader("Content-Type", equalTo("application/json"))
+        .willReturn(
+          ok(
+            Json
+              .obj(
+                "accountNumberIsWellFormatted"             -> "invalid",
+                "nonStandardAccountDetailsRequiredForBacs" -> "invalid",
+                "sortCodeIsPresentOnEISCD"                 -> "invalid",
+                "sortCodeBankName"                         -> "invalid",
+                "sortCodeSupportsDirectDebit"              -> "invalid",
+                "sortCodeSupportsDirectCredit"             -> "invalid",
+                "iban"                                     -> ""
+              )
+              .toString()
+          )
+        )
+    )
+
+    val future = bankAccountReputationAsyncConnector.validateBankDetails(
+      dataRetrieveValidateBankDetails,
+      request
+    )
+
+    whenReady(future) { response =>
+      response shouldBe CannotRetrieveResponse
+    }
+  }
+
+  "fromObject" should "throw DataRetrieveResponseValidationException with correct error messages for invalid/missing values" in new TestFixture {
+    val json = Json.obj(
+      "accountNumberIsWellFormatted"             -> "invalid",
+      "nonStandardAccountDetailsRequiredForBacs" -> "invalid",
+      "sortCodeIsPresentOnEISCD"                 -> "invalid",
+      "sortCodeBankName"                         -> "invalid",
+      "sortCodeSupportsDirectDebit"              -> "",
+      "iban"                                     -> ""
+    )
+
+    val exception = intercept[DataRetrieveResponseValidationException] {
+      dataRetrieveValidateBankDetails.fromObject(
+        json,
+        dataRetrieveValidateBankDetails.attributes.asInstanceOf[Attr.FromObject].inst
+      )
+    }
+
+    exception.getMessage should include("unexpected value for 'isValid': 'invalid'")
+    exception.getMessage should include("unexpected value for 'sortCodeIsPresentOnEISCD': 'invalid'")
+    exception.getMessage should include("unexpected value for 'nonStandardAccountDetailsRequiredForBacs': 'invalid'")
+    exception.getMessage should include("required field 'sortCodeSupportsDirectDebit' cannot be empty")
+    exception.getMessage should include("required field 'sortCodeSupportsDirectCredit' cannot be empty")
   }
 
   it should "call the validate bank details service endpoint and override bad request with exceptional response" in new TestFixture {
