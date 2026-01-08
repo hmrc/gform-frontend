@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsB
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
-import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
+import uk.gov.hmrc.gform.testonly.{ DataRetrieveDescription, EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -662,6 +662,16 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       .withBody(Json.toJson(payload))
       .setHeader("Content-Type" -> ContentType.`application/json`.value)
       .execute[List[SnapshotOverview]]
+  }
+
+  def getDataRetrieveDefinitions()(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[List[DataRetrieveDescription]] = {
+    val url = s"$baseUrl/test-only/dataretrieves"
+    httpClient
+      .get(url"$url")
+      .execute[List[DataRetrieveDescription]]
   }
 
   def saveFormPage(formId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsValue] = {

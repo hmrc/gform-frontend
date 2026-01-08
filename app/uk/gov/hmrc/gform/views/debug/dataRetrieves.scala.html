@@ -1,0 +1,121 @@
+@*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+
+@(
+    formTemplate: FormTemplate,
+    accessCode: Option[AccessCode],
+    frontendAppConfig: FrontendAppConfig,
+    content: Html
+)(implicit
+    request: Request[_],
+    messages: Messages,
+    l:LangADT,
+)
+
+<head>
+    <style>
+        .code-block {
+            background-color: #f3f2f1;
+            padding: 10px;
+        }
+        .code-block pre {
+            margin: 0px;
+        }
+        .code-block code {
+            font-size: 15px;
+        }
+        .app-copy-button {
+            font-family: "GDS Transport", arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-weight: 400;
+            font-size: 1rem;
+            line-height: 1.25;
+            position: relative;
+            z-index: 1;
+            top: -10px;
+            right: 15px;
+            float: right;
+            min-width: 110px;
+            padding: 3px 10px;
+            border: 1px solid #00823b;
+            color: #00823b;
+            background-color: #fff;
+            box-shadow: 0 2px 0 0 #00703c;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+
+            &:focus:not(:hover) {
+                color: #0b0c0c;
+                background-color: #fd0;
+                box-shadow: 0 2px 0 0 #0b0c0c;
+            }
+
+            &:active,
+            &:focus {
+                padding: 2px 10px;
+                border: 2px solid #fd0;
+                outline: 2px solid transparent;
+                box-shadow: none;
+            }
+
+            &:active {
+                margin-top: 2px;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+
+@heading = @{"Toolbox"}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = heading,
+    formTemplate = formTemplate,
+    frontendAppConfig = frontendAppConfig,
+    isMainContentFullWidth = true,
+    accessCode = accessCode
+) {
+    @content
+}
+
+<script @CSPNonce.attr type="text/javascript">
+    var allButtons = document.querySelectorAll('button[class^=app-copy-button]');
+
+    for (var i = 0; i < allButtons.length; i++) {
+        (function(i) {
+            var theButton = allButtons[i]
+            var codeId = theButton.id + 'Code';
+            theButton.addEventListener('click', function () {
+                var content = document.getElementById(codeId).innerHTML;
+                navigator.clipboard.writeText(content).then(function() {
+                    theButton.innerHTML = "Copied";
+                    setTimeout(() => {theButton.innerHTML = "Copy code"}, 2500);
+                }, function(err) {
+                    console.error('Async: Could not copy text: ', err);
+                });
+                return false;
+            });
+        }(i));
+    }
+</script>
