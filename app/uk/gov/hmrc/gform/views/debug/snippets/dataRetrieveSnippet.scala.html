@@ -33,23 +33,23 @@
 </div>
 
 <h3 class="govuk-heading-s govuk-!-margin-top-6">Output type:</h3>
-    @if(isArrayResult) {
-        <p class="govuk-body">
-            Returns a list of records. Refer to record number using [n], where [0] is the first record in the results.
-        </p>
-        <p class="govuk-body">
-            Count the number of response records using:
-        </p>
-        <div class="code-block">
-            <code>
-                ${count(dataRetrieve.@{definitionType}Id)}
-            </code>
-        </div>
-    } else {
-        <p class="govuk-body">
-            Returns a single record.
-        </p>
-    }
+@if(isArrayResult) {
+    <p class="govuk-body">
+        Returns a list of records. Refer to record number using [n], where [0] is the first record in the results.
+    </p>
+    <p class="govuk-body">
+        Count the number of response records using:
+    </p>
+    <div class="code-block">
+        <code>
+            ${count(dataRetrieve.@{definitionType}Id)}
+        </code>
+    </div>
+} else {
+    <p class="govuk-body">
+        Returns a single record.
+    </p>
+}
 
 <h3 class="govuk-heading-s govuk-!-margin-top-6">Available response attributes:</h3>
 <div class="code-block">
