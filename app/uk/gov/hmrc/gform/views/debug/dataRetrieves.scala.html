@@ -23,7 +23,8 @@
     formTemplate: FormTemplate,
     accessCode: Option[AccessCode],
     frontendAppConfig: FrontendAppConfig,
-    content: Html
+    content: Html,
+    backLink: BackLink
 )(implicit
     request: Request[_],
     messages: Messages,
@@ -41,6 +42,7 @@
         }
         .code-block code {
             font-size: 15px;
+            line-height: 1.3;
         }
         .app-copy-button {
             font-family: "GDS Transport", arial, sans-serif;
@@ -87,15 +89,17 @@
 </head>
 
 
-@heading = @{"Toolbox"}
+@heading = @{"Toolbox - DataRetrieve Definitions"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
     formTemplate = formTemplate,
     frontendAppConfig = frontendAppConfig,
     isMainContentFullWidth = true,
-    accessCode = accessCode
+    accessCode = accessCode,
+    backLink = Some(backLink)
 ) {
+    <h1 class="govuk-heading-l">Data Retrieve Definitions</h1>
     @content
 }
 
@@ -110,9 +114,9 @@
                 var content = document.getElementById(codeId).innerHTML;
                 navigator.clipboard.writeText(content).then(function() {
                     theButton.innerHTML = "Copied";
-                    setTimeout(() => {theButton.innerHTML = "Copy code"}, 2500);
+                    setTimeout(() => {theButton.innerHTML = "Copy JSON"}, 2500);
                 }, function(err) {
-                    console.error('Async: Could not copy text: ', err);
+                    console.error('Error, could not copy JSON: ', err);
                 });
                 return false;
             });

@@ -1,0 +1,61 @@
+@*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@(
+    definitionType: String,
+    theCode: String,
+    examples: List[String],
+    url: Option[String],
+    isArrayResult: Boolean
+)
+
+@url.map { url =>
+    <p class="govuk-body">See underlying <a href="@{url}" class="govuk-link" target="_blank">API documentation</a> for more information.</p>
+}
+
+<h3 class="govuk-heading-s">Example definition:</h3>
+<div class="code-block">
+    <button id="@{definitionType}" class="app-copy-button" style="margin-top: 25px">Copy JSON</button>
+    <pre><code id="@{definitionType}Code">@theCode</code></pre>
+</div>
+
+<h3 class="govuk-heading-s govuk-!-margin-top-6">Output type:</h3>
+    @if(isArrayResult) {
+        <p class="govuk-body">
+            Returns a list of records. Refer to record number using [n], where [0] is the first record in the results.
+        </p>
+        <p class="govuk-body">
+            Count the number of response records using:
+        </p>
+        <div class="code-block">
+            <code>
+                ${count(dataRetrieve.@{definitionType}Id)}
+            </code>
+        </div>
+    } else {
+        <p class="govuk-body">
+            Returns a single record.
+        </p>
+    }
+
+<h3 class="govuk-heading-s govuk-!-margin-top-6">Available response attributes:</h3>
+<div class="code-block">
+    <code>
+        @examples.map { example =>
+            @example<br>
+        }
+    </code>
+</div>

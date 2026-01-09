@@ -51,7 +51,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
-import uk.gov.hmrc.gform.views.html.debug.snippets.inputWrapper
+import uk.gov.hmrc.gform.views.html.debug.snippets.{ dataRetrieveSnippet, inputWrapper }
 import uk.gov.hmrc.gform.views.html.debug.{ dataRetrieves, toolbox, viewExpressions }
 import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -59,7 +59,7 @@ import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
 import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ BackLink, InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukAccordion, GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.accordion.Accordion
@@ -263,11 +263,6 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.toggleFormBuilder(formTemplateId, accessCode)
     )
 
-    val viewDataRetrievesLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-      "View all data retrieve definitions",
-      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handleDataRetrieves(formTemplateId, accessCode)
-    )
-
     val links =
       List(
         returnToSummaryLink,
@@ -276,8 +271,7 @@ class TestOnlyController(
         saveCurrentFormLink,
         restoreFormLink,
         toggleSpecimen,
-        toggleFormBuilder,
-        viewDataRetrievesLink
+        toggleFormBuilder
       )
 
     bulleted_list(links)
@@ -381,37 +375,6 @@ class TestOnlyController(
     }
 
     bulleted_list(destinationLinks ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink))
-  }
-
-  private def dataRetrieveDefinitionsTab(definitions: List[DataRetrieveDescription]) = {
-    val rows = definitions.map { definition =>
-      val theCode = "\"dataRetrieve\": [\n  " + Json
-        .prettyPrint(definition.exampleJson)
-        .replaceAll("\n", "\n  ") + "\n]"
-
-      val codeHeader = s"""<h3 class="govuk-heading-s">Example definition:</h3>"""
-      val codeDiv =
-        s"""<div class="code-block">
-           |<button id="${definition.tpe}" class="app-copy-button" style="margin-top: 25px">Copy code</button>
-           |<pre><code id="${definition.tpe}Code">$theCode</code></pre></div>""".stripMargin
-      val examplesHtml =
-        definition.attributeReferences.map("<code>" + _ + "</code>").mkString("<br>")
-
-      val examplesHeader = s"""<h3 class="govuk-heading-s govuk-!-margin-top-6">Example output usage:</h3>"""
-      val examplesDiv = s"""<div class="code-block">$examplesHtml</div>"""
-
-      uk.gov.hmrc.govukfrontend.views.viewmodels.accordion.Section(
-        headingContent = Text(definition.tpe),
-        content = HtmlContent(codeHeader + codeDiv + examplesHeader + examplesDiv)
-      )
-    }
-
-    new GovukAccordion()(
-      Accordion(
-        id = "accordion-default",
-        items = rows
-      )
-    )
   }
 
   private def developmentToolsTab(
@@ -542,6 +505,11 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showExpressions(formTemplate._id, accessCode)
     )
 
+    val viewDataRetrievesLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View all data retrieve definitions",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handleDataRetrieves(formTemplate._id, accessCode)
+    )
+
     val links = List(
       viewHandlebarModelLink,
       viewSourceTemplateLink,
@@ -551,7 +519,8 @@ class TestOnlyController(
       viewTranslationLink,
       viewExpressionsLink,
       viewAllExpressionsLink,
-      viewFormModelLink
+      viewFormModelLink,
+      viewDataRetrievesLink
     )
 
     val bulletedList = bulleted_list(links)
@@ -794,24 +763,53 @@ class TestOnlyController(
       import i18nSupport._
 
       gformConnector.getDataRetrieveDefinitions().map { dataRetrieveDefinitions =>
-        val govukTabs = new GovukTabs()(
-          Tabs(
-            items = Seq(
-              TabItem(
-                id = Some("data-retrieves"),
-                label = "Data retrieves available",
-                panel = TabPanel(
-                  content = HtmlContent(
-                    dataRetrieveDefinitionsTab(dataRetrieveDefinitions)
-                  )
-                )
-              )
+        Ok(
+          dataRetrieves(
+            cache.formTemplate,
+            accessCode,
+            frontendAppConfig,
+            getDataRetrievesContent(dataRetrieveDefinitions),
+            new BackLink(
+              href = uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+                .handleToolbox(formTemplateId, accessCode)
+                .url + "#development-tools",
+              content = Text(englishMessages("linkText.back"))
             )
           )
         )
-
-        Ok(dataRetrieves(cache.formTemplate, accessCode, frontendAppConfig, govukTabs))
       }
+  }
+
+  private def getDataRetrievesContent(definitions: List[DataRetrieveDescription]) = {
+
+    val rows = definitions
+      .sortWith((x, y) => x.tpe.compareTo(y.tpe) < 0)
+      .map { definition =>
+        val theCode = "\"dataRetrieve\": [\n  " + Json
+          .prettyPrint(definition.exampleJson)
+          .replaceAll("\n", "\n  ") + "\n]"
+
+        uk.gov.hmrc.govukfrontend.views.viewmodels.accordion.Section(
+          headingContent = Text(definition.tpe),
+          content = HtmlContent(
+            dataRetrieveSnippet(
+              definition.tpe,
+              theCode,
+              definition.attributeReferences,
+              definition.documentationUrl,
+              definition.isArrayResult
+            )
+          )
+        )
+      }
+
+    new GovukAccordion()(
+      Accordion(
+        id = "accordion-default",
+        items = rows,
+        rememberExpanded = Some(true)
+      )
+    )
   }
 
   def handleToolbox(
