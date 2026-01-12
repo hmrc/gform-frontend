@@ -778,11 +778,21 @@ class TestOnlyController(
         )
       }
 
-    new GovukAccordion()(
-      Accordion(
-        id = "accordion-default",
-        items = rows,
-        rememberExpanded = Some(true)
+    HtmlFormat.fill(
+      List(
+        Html("""<h2 class="govuk-heading-m">Data retrieve definitions</h2>"""),
+        p(
+          "This page provides details on all data retrieves currently available for use within the GForms platform.",
+          "govuk-body"
+        ),
+        new GovukAccordion()(
+          Accordion(
+            id = "accordion-default",
+            items = rows,
+            headingLevel = 3,
+            rememberExpanded = Some(true)
+          )
+        )
       )
     )
   }
