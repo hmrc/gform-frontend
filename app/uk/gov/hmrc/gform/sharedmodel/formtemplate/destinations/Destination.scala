@@ -33,6 +33,12 @@ sealed trait DestinationWithCustomerId extends Destination {
   def customerId(): Expr
 }
 
+sealed trait DestinationWithCustomerCaseflow {
+  def customerId(): Expr
+  def caseId(): Option[Expr]
+  def postalCode(): Option[Expr]
+}
+
 sealed trait DestinationWithTaxpayerId extends Destination {
   def taxpayerId(): Expr
 }
@@ -75,6 +81,7 @@ sealed trait Destination extends Product with Serializable {
 object Destination {
   case class HmrcDms(
     id: DestinationId,
+    routing: SdesDestination,
     dmsFormId: String,
     customerId: Expr,
     classificationType: String,
@@ -89,8 +96,10 @@ object Destination {
     payload: Option[String],
     payloadType: TemplateType,
     roboticsAsAttachment: Option[Boolean],
-    submissionPrefix: Option[String]
-  ) extends Destination with DestinationWithCustomerId
+    submissionPrefix: Option[String],
+    caseId: Option[Expr],
+    postalCode: Option[Expr]
+  ) extends Destination with DestinationWithCustomerCaseflow
 
   case class DataStore(
     id: DestinationId,
@@ -216,6 +225,7 @@ object Destination {
 
 case class UploadableHmrcDmsDestination(
   id: DestinationId,
+  routing: Option[SdesDestination],
   dmsFormId: String,
   customerId: TextExpression,
   classificationType: String,
@@ -226,7 +236,11 @@ case class UploadableHmrcDmsDestination(
   dataOutputFormat: Option[DataOutputFormat],
   formdataXml: Option[Boolean],
   closedStatus: Option[Boolean],
-  instructionPdfFields: Option[InstructionPdfFields] = None
+  instructionPdfFields: Option[InstructionPdfFields] = None,
+  roboticsAsAttachment: Option[Boolean],
+  submissionPrefix: Option[String] = None,
+  caseId: Option[TextExpression] = None,
+  postalCode: Option[TextExpression] = None
 ) {
 
   def toHmrcDmsDestination: Either[String, Destination.HmrcDms] =
@@ -234,6 +248,7 @@ case class UploadableHmrcDmsDestination(
       cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
     } yield Destination.HmrcDms(
       id,
+      routing.getOrElse(SdesDestination.Dms),
       dmsFormId,
       customerId.expr,
       classificationType,
@@ -247,8 +262,10 @@ case class UploadableHmrcDmsDestination(
       convertSingleQuotes,
       None,
       TemplateType.XML,
-      None,
-      None
+      roboticsAsAttachment,
+      submissionPrefix,
+      caseId.map(_.expr),
+      postalCode.map(_.expr)
     )
 }
 

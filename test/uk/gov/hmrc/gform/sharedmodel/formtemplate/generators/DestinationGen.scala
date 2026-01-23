@@ -20,7 +20,8 @@ import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, DestinationIncludeIf, ProjectId, TemplateType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Dms, PegaCaseflow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, DestinationIncludeIf, ProjectId, SdesDestination, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierPersonalisationFieldId, NotifierTemplateId }
 
 trait DestinationGen {
@@ -35,10 +36,12 @@ trait DestinationGen {
   def customerIdGen: Gen[Expr] = ExprGen.exprGen()
   def businessAreaGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
   def projectIdGen: Gen[ProjectId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(ProjectId(_))
+  def dmsSdesDestinationGen: Gen[SdesDestination] = Gen.frequency(9 -> Dms, 1 -> PegaCaseflow)
 
   def hmrcDmsGen: Gen[Destination.HmrcDms] =
     for {
       id                   <- destinationIdGen
+      routing              <- dmsSdesDestinationGen
       dmsFormId            <- dmsFormIdGen
       customerId           <- customerIdGen
       classificationType   <- classificationTypeGen
@@ -51,6 +54,7 @@ trait DestinationGen {
     } yield Destination
       .HmrcDms(
         id,
+        routing,
         dmsFormId,
         customerId,
         classificationType,
@@ -64,6 +68,8 @@ trait DestinationGen {
         None,
         None,
         TemplateType.XML,
+        None,
+        None,
         None,
         None
       )

@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult }
 
@@ -39,6 +39,32 @@ object DestinationEvaluator {
     val evaluations = formTemplate.destinations match {
       case dl: DestinationList =>
         dl.destinations.collect {
+          case d: DestinationWithCustomerCaseflow =>
+            val includeIfEval = evalIncludeIf(d.includeIf)
+            val customerId =
+              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId()).stringRepresentation.take(32)
+
+            val postalCode =
+              d.postalCode().map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
+
+            val caseId = d.caseId().map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
+
+            DestinationResult(
+              d.id,
+              includeIfEval,
+              Some(customerId),
+              None,
+              None,
+              None,
+              None,
+              postalCode,
+              caseId,
+              None,
+              None,
+              None,
+              None,
+              None
+            )
           case d: DestinationWithCustomerId =>
             val includeIfEval = evalIncludeIf(d.includeIf)
             val customerId =

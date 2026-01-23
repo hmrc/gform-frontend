@@ -107,6 +107,7 @@ class UploadableDestinationSpec extends Spec {
     import destination._
     UploadableHmrcDmsDestination(
       id,
+      Some(routing),
       dmsFormId,
       TextExpression(destination.customerId),
       classificationType,
@@ -117,7 +118,8 @@ class UploadableDestinationSpec extends Spec {
       dataOutputFormat,
       Some(formdataXml),
       backscan,
-      instructionPdfFields
+      instructionPdfFields,
+      None
     )
   }
 

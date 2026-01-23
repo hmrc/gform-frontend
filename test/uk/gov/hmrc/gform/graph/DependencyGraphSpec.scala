@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
 import uk.gov.hmrc.gform.models.{ Basic, DependencyGraphVerification, FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, PrintSection, TemplateType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, PrintSection, SdesDestination, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
@@ -721,6 +721,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val emptyHmrcDms =
       Destination.HmrcDms(
         DestinationId(""),
+        SdesDestination.Dms,
         "",
         Value,
         "",
@@ -734,6 +735,8 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None,
         None,
         TemplateType.XML,
+        None,
+        None,
         None,
         None
       )

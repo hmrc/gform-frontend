@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerId, Destinations }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerCaseflow, DestinationWithCustomerId, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object CustomerIdRecalculation {
@@ -39,7 +39,10 @@ object CustomerIdRecalculation {
 
   private def customerIdExpressions(destinations: Destinations): List[Expr] = destinations match {
     case ds: Destinations.DestinationList =>
-      ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId() }
+      ds.destinations.collect {
+        case d: DestinationWithCustomerId       => d.customerId()
+        case d: DestinationWithCustomerCaseflow => d.customerId()
+      }
     case _ =>
       Nil
   }
