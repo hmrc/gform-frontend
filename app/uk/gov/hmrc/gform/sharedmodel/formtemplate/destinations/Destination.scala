@@ -96,6 +96,7 @@ object Destination {
     payload: Option[String],
     payloadType: TemplateType,
     roboticsAsAttachment: Option[Boolean],
+    includeAttachmentNames: Option[Boolean],
     submissionPrefix: Option[String],
     caseId: Option[Expr],
     postalCode: Option[Expr]
@@ -238,6 +239,7 @@ case class UploadableHmrcDmsDestination(
   closedStatus: Option[Boolean],
   instructionPdfFields: Option[InstructionPdfFields] = None,
   roboticsAsAttachment: Option[Boolean],
+  includeAttachmentNames: Option[Boolean] = None,
   submissionPrefix: Option[String] = None,
   caseId: Option[TextExpression] = None,
   postalCode: Option[TextExpression] = None
@@ -263,6 +265,7 @@ case class UploadableHmrcDmsDestination(
       None,
       TemplateType.XML,
       roboticsAsAttachment,
+      includeAttachmentNames,
       submissionPrefix,
       caseId.map(_.expr),
       postalCode.map(_.expr)

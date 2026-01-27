@@ -128,6 +128,7 @@ trait FormTemplateSample {
           payload = None,
           payloadType = TemplateType.XML,
           roboticsAsAttachment = None,
+          includeAttachmentNames = None,
           submissionPrefix = None,
           caseId = None,
           postalCode = None

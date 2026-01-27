@@ -371,7 +371,7 @@ class TestOnlyController(
     val dmsSubs: List[String] = formTemplate.destinations match {
       case Destinations.DestinationList(destinations, _, _) =>
         destinations.collect {
-          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _, _) =>
+          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _, _) =>
             submissionPrefix
         }
       case _ => List.empty[String]

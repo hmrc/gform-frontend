@@ -153,6 +153,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     None,
     None,
     None,
+    None,
     None
   )
 
