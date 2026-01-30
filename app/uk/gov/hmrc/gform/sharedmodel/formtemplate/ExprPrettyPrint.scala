@@ -35,7 +35,7 @@ object ExprPrettyPrint {
     case In(formCtx, _)                   => "In"
     case HasAnswer(formCtx, atlRef)       => formCtx.prettyPrint + " in " + atlRef.allExpressions.head.prettyPrint
     case MatchRegex(expr, _)              => "Regex"
-    case FormPhase(_)                     => "Form phase"
+    case FormPhase(value)                 => s"Form phase is $value"
     case First(formCtx)                   => "First"
     case IsLogin(loginInfo)               => prettyPrintLoginInfo(loginInfo)
     case DuplicateExists(fieldList) =>
@@ -44,7 +44,7 @@ object ExprPrettyPrint {
 
   def prettyPrintLoginInfo(loginInfo: LoginInfo): String = loginInfo match {
     case LoginInfo.EmailLogin => "is logged in with email"
-    case LoginInfo.GGLogin    => "is logged in with Goverment gateway"
+    case LoginInfo.GGLogin    => "is logged in with Government gateway"
   }
 
   def prettyPrintExpr(expr: Expr): String = expr match {
@@ -80,12 +80,12 @@ object ExprPrettyPrint {
       }
     case AddressLens(fcId, addressDetail) =>
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value
-    case DataRetrieveCtx(_, _)             => "Data retrieve"
+    case DataRetrieveCtx(id, attr)         => s"Data retrieve(${id.value}.${attr.name})"
     case DataRetrieveCount(_)              => "Data retrieve count"
     case LookupColumn(_, _)                => "Lookup column check"
     case CsvCountryCountCheck(_, _, _)     => "Country count"
     case Size(_, _)                        => "Size"
-    case Typed(e, _)                       => "Typed"
+    case Typed(e, tpe)                     => "Typed(" + e.prettyPrint + ") as " + tpe.toString
     case IndexOf(_, _)                     => "IndexOf"
     case IndexOfInChoice(_, _)             => "IndexOfInChoice"
     case IndexOfDataRetrieveCtx(_, _)      => "IndexOfDataRetrieveCtx"
@@ -93,7 +93,7 @@ object ExprPrettyPrint {
     case BulletedList(_)                   => "Bulleted List"
     case NumberedListChoicesSelected(_, _) => "Numbered List Choices Selected"
     case BulletedListChoicesSelected(_, _) => "Bulleted List Choices Selected"
-    case StringOps(_, stringFnc)           => stringFnc.toString
+    case StringOps(e, stringFnc)           => stringFnc.toString + "(" + e.prettyPrint + ")"
     case Concat(_)                         => "Concat"
     case CountryOfItmpAddress              => "CountryOfItmpAddress"
     case ChoicesRevealedField(_)           => "ChoicesRevealedField"
@@ -101,7 +101,7 @@ object ExprPrettyPrint {
     case ChoicesAvailable(_, _)            => "ChoicesAvailable"
     case CountSelectedChoices(_)           => "ChoicesSelectedSum"
     case ChoicesCount(_)                   => "ChoicesCount"
-    case TaskStatus(_)                     => "TaskStatus"
+    case TaskStatus(id)                    => s"TaskStatus of ${id.id}"
     case LookupOps(_, lookupFnc)           => lookupFnc.toString
     case DisplayAsEntered(_)               => "DisplayAsEntered"
   }
@@ -113,8 +113,8 @@ object ExprPrettyPrint {
   }
 
   def prettyPrintAuthInfo(authInfo: AuthInfo): String = authInfo match {
-    case AuthInfo.GG                     => "Goverment Gateway"
-    case AuthInfo.PayeNino               => "Paye"
+    case AuthInfo.GG                     => "Government Gateway"
+    case AuthInfo.PayeNino               => "Paye NINO"
     case AuthInfo.EmailId                => "Email"
     case AuthInfo.SaUtr                  => "SA UTR"
     case AuthInfo.CtUtr                  => "CT UTR"

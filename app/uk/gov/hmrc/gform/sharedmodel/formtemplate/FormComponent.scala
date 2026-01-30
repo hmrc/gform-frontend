@@ -151,6 +151,34 @@ case class FormComponent(
       case other                                                      => other.`type`.showType
     }
 
+  val getMin: Option[String] =
+    this match {
+      case IsText(Text(ShortText(min, _), _, _, _, _, _, _))            => Some(min.toString)
+      case IsText(Text(TextWithRestrictions(min, _), _, _, _, _, _, _)) => Some(min.toString)
+      case IsText(Text(ReferenceNumber(min, _), _, _, _, _, _, _))      => Some(min.toString)
+      case _                                                            => None
+    }
+
+  val getMax: Option[String] =
+    this match {
+      case IsText(Text(ShortText(_, max), _, _, _, _, _, _))            => Some(max.toString)
+      case IsText(Text(TextWithRestrictions(_, max), _, _, _, _, _, _)) => Some(max.toString)
+      case IsText(Text(ReferenceNumber(_, max), _, _, _, _, _, _))      => Some(max.toString)
+      case _                                                            => None
+    }
+
+  val getValue: Option[String] =
+    this match {
+      case IsText(Text(_, Value, _, _, _, _, _))                         => None
+      case IsText(Text(_, expr, _, _, _, _, _))                          => Some(expr.prettyPrint)
+      case IsTextArea(TextArea(_, Value, _, _, _, _))                    => None
+      case IsTextArea(TextArea(_, expr, _, _, _, _))                     => Some(expr.prettyPrint)
+      case IsDate(Date(_, _, Some(dateExpr)))                            => Some(dateExpr.toString)
+      case IsAddress(Address(_, _, _, Some(expr)))                       => Some(expr.prettyPrint)
+      case IsOverseasAddress(OverseasAddress(_, _, _, Some(expr), _, _)) => Some(expr.prettyPrint)
+      case _                                                             => None
+    }
+
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
 
   def hideOnSummary(booleanExprResolver: BooleanExprResolver): Boolean =

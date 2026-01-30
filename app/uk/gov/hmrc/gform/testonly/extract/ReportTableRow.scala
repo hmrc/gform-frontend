@@ -17,8 +17,9 @@
 package uk.gov.hmrc.gform.testonly.extract
 
 import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Content
 
-case class ReportTableRow(content: String, rowspan: Option[Int] = None)
+case class ReportTableRow(content: Content, rowspan: Option[Int] = None)
 
 object ReportTableRow {
   implicit val format: OFormat[ReportTableRow] = Json.format[ReportTableRow]
