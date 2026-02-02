@@ -81,7 +81,7 @@ object ExprPrettyPrint {
     case AddressLens(fcId, addressDetail) =>
       ExprPrettyPrint.prettyPrintAddressDetail(addressDetail) + " of " + fcId.value
     case DataRetrieveCtx(id, attr)         => s"Data retrieve(${id.value}.${attr.name})"
-    case DataRetrieveCount(_)              => "Data retrieve count"
+    case DataRetrieveCount(id)             => s"Data retrieve count(${id.value})"
     case LookupColumn(_, _)                => "Lookup column check"
     case CsvCountryCountCheck(_, _, _)     => "Country count"
     case Size(_, _)                        => "Size"
