@@ -30,6 +30,7 @@ case class FormTemplateDetail(
   fieldMandatory: Boolean,
   fieldLabel: SmartString,
   fieldFormat: String,
+  fieldFormatExample: String,
   fieldMin: Option[String],
   fieldMax: Option[String],
   fieldValueSource: Option[String],
