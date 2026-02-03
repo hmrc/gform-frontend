@@ -35,6 +35,20 @@ trait ErrorValueProvider {
   ): List[VariadicFormData[SourceOrigin.OutOfDate]]
 }
 
+class TextWithTimeConstraintErrorProvider extends ErrorValueProvider {
+  private val rawValues = List("12:00", "12:20")
+
+  override def errorValues(
+    fc: FormComponent,
+    existingData: VariadicFormData[SourceOrigin.Current]
+  ): List[VariadicFormData[OutOfDate]] =
+    rawValues.map { time =>
+      VariadicFormData[OutOfDate](
+        Map(fc.id.modelComponentId -> VariadicValue.One(time))
+      )
+    }
+}
+
 class DateErrorProvider extends ErrorValueProvider {
   private val rawValues = List(
     ("", "", ""),

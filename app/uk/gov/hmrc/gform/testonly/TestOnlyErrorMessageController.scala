@@ -255,6 +255,12 @@ class TestOnlyErrorMessageController(
   ): List[FieldErrorReport] = {
     val res = formComponents
       .map {
+        case (fc @ IsText(Text(TimeFormat, _, _, _, _, _, _)), sectionId, seq) =>
+          (
+            validateWithDataProvider(fc, cache, formModelOptics, Some(new TextWithTimeConstraintErrorProvider())),
+            sectionId,
+            seq
+          )
         case (fc @ IsDate(_), sectionId, seq) =>
           (validateWithDataProvider(fc, cache, formModelOptics, Some(new DateErrorProvider())), sectionId, seq)
         case (fc, sectionId, seq) => (validateWithDataProvider(fc, cache, formModelOptics, None), sectionId, seq)
