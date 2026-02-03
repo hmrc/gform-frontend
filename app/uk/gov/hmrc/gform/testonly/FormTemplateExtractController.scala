@@ -105,6 +105,7 @@ class FormTemplateExtractController(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     isCsv: Boolean
   )(implicit sse: SmartStringEvaluator) = {
+    import uk.gov.hmrc.gform.testonly.extract.FormComponentHelpers._
 
     val booleanExprResolver: BooleanExprResolver = formModelOptics.formModelVisibilityOptics.booleanExprResolver
 
@@ -147,10 +148,10 @@ class FormTemplateExtractController(
                 field.mandatory.eval(booleanExprResolver),
                 field.shortName.getOrElse(field.label),
                 field.showFormat,
-                field.showFormatExample,
-                field.getMin,
-                field.getMax,
-                field.getValue,
+                showFormatExample(field),
+                getMin(field),
+                getMax(field),
+                getValue(field),
                 field.includeIf,
                 false,
                 getSpecimenLink(field)
@@ -171,10 +172,10 @@ class FormTemplateExtractController(
                 field.mandatory.eval(booleanExprResolver),
                 field.shortName.getOrElse(field.label),
                 field.showFormat,
-                field.showFormatExample,
-                field.getMin,
-                field.getMax,
-                field.getValue,
+                showFormatExample(field),
+                getMin(field),
+                getMax(field),
+                getValue(field),
                 field.includeIf,
                 false,
                 getSpecimenLink(field)
@@ -196,10 +197,10 @@ class FormTemplateExtractController(
                     field.mandatory.eval(booleanExprResolver),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
-                    field.showFormatExample,
-                    field.getMin,
-                    field.getMax,
-                    field.getValue,
+                    showFormatExample(field),
+                    getMin(field),
+                    getMax(field),
+                    getValue(field),
                     field.includeIf,
                     true,
                     getSpecimenLink(field)
@@ -247,10 +248,10 @@ class FormTemplateExtractController(
                     field.mandatory.eval(booleanExprResolver),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
-                    field.showFormatExample,
-                    field.getMin,
-                    field.getMax,
-                    field.getValue,
+                    showFormatExample(field),
+                    getMin(field),
+                    getMax(field),
+                    getValue(field),
                     field.includeIf,
                     false,
                     getSpecimenLink(field)
@@ -271,10 +272,10 @@ class FormTemplateExtractController(
                     field.mandatory.eval(booleanExprResolver),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
-                    field.showFormatExample,
-                    field.getMin,
-                    field.getMax,
-                    field.getValue,
+                    showFormatExample(field),
+                    getMin(field),
+                    getMax(field),
+                    getValue(field),
                     field.includeIf,
                     false,
                     getSpecimenLink(field)
@@ -296,10 +297,10 @@ class FormTemplateExtractController(
                         field.mandatory.eval(booleanExprResolver),
                         field.shortName.getOrElse(field.label),
                         field.showFormat,
-                        field.showFormatExample,
-                        field.getMin,
-                        field.getMax,
-                        field.getValue,
+                        showFormatExample(field),
+                        getMin(field),
+                        getMax(field),
+                        getValue(field),
                         field.includeIf,
                         true,
                         getSpecimenLink(field)
