@@ -391,7 +391,7 @@ class GformBackEndService(
     formTemplate.destinations match {
       case DestinationList(destinations, _, _) =>
         destinations.collectFirst {
-          case HmrcDms(_, _, _, _, _, _, _, _, _, _, Some(instructionPdfFields), _, _, _, _, _) =>
+          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, Some(instructionPdfFields), _, _, _, _, _, _, _, _) =>
             instructionPdfFields
         }
 

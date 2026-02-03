@@ -28,6 +28,7 @@ object DestinationResponse {
 
 case class DmsDestinationResponse(
   dmsFormId: String,
+  routing: SdesDestination,
   classificationType: String,
   businessArea: String,
   dataItemCount: Int
