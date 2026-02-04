@@ -69,7 +69,7 @@ class TimeChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     val isMandatory = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
     ifProgram(
-      cond = timeValue.isDefined && !(Range.timeSlots(time) contains timeValue.get),
+      andCond = timeValue.isDefined && !(Range.timeSlots(time) contains timeValue.get),
       thenProgram = validationFailure(
         formComponent,
         messages(

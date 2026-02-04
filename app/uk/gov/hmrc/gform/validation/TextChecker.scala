@@ -530,7 +530,7 @@ object TextChecker {
 
       switchProgram(
         switchCase(
-          cond = localTime.isEmpty,
+          andCond = localTime.isEmpty,
           thenProgram = {
             val placeholder =
               fieldValue.errorShortName.map(_.transform(identity, w => s" $w").value().pure[List]) orElse (Some(
@@ -540,7 +540,7 @@ object TextChecker {
           }
         ),
         switchCase(
-          cond = localTime.exists(TimeFormatter.isNoonConfusing(_, timeStr)),
+          andCond = localTime.exists(TimeFormatter.isNoonConfusing(_, timeStr)),
           thenProgram = {
             val placeHolder = localTime.map { t =>
               List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t)).map(
@@ -551,7 +551,7 @@ object TextChecker {
           }
         ),
         switchCase(
-          cond = localTime.exists(TimeFormatter.isNoonRangeConfusing(_, timeStr)),
+          andCond = localTime.exists(TimeFormatter.isNoonRangeConfusing(_, timeStr)),
           thenProgram = {
             val placeHolder = localTime.map(t =>
               List(TimeFormatter.normalizeLocalTime(t.minusHours(12)), TimeFormatter.normalizeLocalTime(t))
