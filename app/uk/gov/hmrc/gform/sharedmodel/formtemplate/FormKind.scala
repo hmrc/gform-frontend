@@ -152,7 +152,8 @@ final case class Task(
   includeIf: Option[IncludeIf],
   caption: Option[SmartString],
   startIf: Option[IncludeIf],
-  notRequiredIf: Option[IncludeIf]
+  notRequiredIf: Option[IncludeIf],
+  hint: Option[SmartString]
 )
 
 object Task {

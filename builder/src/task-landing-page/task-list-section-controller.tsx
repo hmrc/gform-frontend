@@ -40,6 +40,7 @@ export const TaskListSectionControllerFactory =
     const tasks: Task[] = taskSection.tasks;
     const taskTitles: SmartString[] = tasks.map((task) => task.title);
     const taskCaptions: SmartString[] = tasks.map((task) => (task.caption !== undefined ? task.caption : ""));
+    const taskHints: SmartString[] = tasks.map((task) => (task.hint !== undefined ? task.hint : ""));
     const taskSummarySections: boolean[] = tasks.map((task) => task.summarySection !== undefined);
     const taskDeclarationSections: boolean[] = tasks.map((task) => task.declarationSection !== undefined);
 
@@ -49,12 +50,14 @@ export const TaskListSectionControllerFactory =
     const titleInput = useRef<SmartStringDiv>(null);
     const taskTitleInputs = taskTitles.map((task) => useRef<SmartStringDiv>(null));
     const taskCaptionInputs = taskCaptions.map((task) => useRef<SmartStringDiv>(null));
+    const taskHintInputs = taskHints.map((task) => useRef<SmartStringDiv>(null));
     const taskSummarySectionsInputs = taskSummarySections.map((task) => useRef<HTMLInputElement>(null));
     const taskDeclarationSectionsInputs = taskDeclarationSections.map((task) => useRef<HTMLInputElement>(null));
 
     const [titleValue, setTitleValue] = useState(taskSection.title);
     const [taskTitlesValue, setTaskTitlesValue] = useState(taskTitles);
     const [taskCaptionsValue, setTaskCaptionsValue] = useState(taskCaptions);
+    const [taskHintsValue, setTaskHintsValue] = useState(taskHints);
     const [taskSummarySectionsValue, setTaskSummarySectionsValue] = useState(taskSummarySections);
     const [taskDeclarationSectionsValue, setTaskDeclarationSectionsValue] = useState(taskDeclarationSections);
     const [buttonLabel, setButtonLabel] = useState("");
@@ -86,15 +89,18 @@ export const TaskListSectionControllerFactory =
     const refreshTaskSection = (hideContent: boolean) => {
       const taskUpdates: UpdateByPath[] = taskTitleInputs
         .map((taskTitleInput, taskNumber) => {
-          return [taskTitleInput, taskCaptionInputs[taskNumber]];
+          return [taskTitleInput, taskCaptionInputs[taskNumber], taskHintInputs[taskNumber]];
         })
-        .map(([taskTitleInput, taskCaptionInput], taskNumber) => {
+        .map(([taskTitleInput, taskCaptionInput, taskHintInput], taskNumber) => {
           const taskSectionPayload: TaskSectionPart = {};
           if (taskTitleInput.current !== null) {
             taskSectionPayload["title"] = taskTitleInput.current.value;
           }
           if (taskCaptionInput.current !== null) {
             taskSectionPayload["caption"] = taskCaptionInput.current.value;
+          }
+          if (taskHintInput.current !== null) {
+            taskSectionPayload["hint"] = taskHintInput.current.value;
           }
           const coordinates: Coordinates = {
             taskSectionNumber: taskSectionNumber,
@@ -212,12 +218,37 @@ export const TaskListSectionControllerFactory =
 
               if (taskListNameAndHint !== null) {
                 const hasLink = taskListNameAndHint.querySelector("a");
-                const hasDiv = taskListNameAndHint.querySelector("div");
+                const hasDiv = taskListNameAndHint.querySelector("div:not(.govuk-task-list__hint)");
+                const hasHintDiv = taskListNameAndHint.querySelector("div.govuk-task-list__hint");
+
                 if (hasLink !== null) {
                   hasLink.textContent = taskTitle;
                 }
                 if (hasDiv !== null) {
                   hasDiv.textContent = taskTitle;
+                }
+
+                if (response.taskHints !== undefined && response.taskHints.length >= index + 1) {
+                  const newHintValue = response.taskHints[index];
+                  if (hasHintDiv !== null) {
+                    if (newHintValue.length === 0) {
+                      hasHintDiv.parentNode.removeChild(hasHintDiv);
+                    } else {
+                      hasHintDiv.textContent = newHintValue;
+                    }
+                  } else {
+                    if (newHintValue.length > 0) {
+                      const newHintDiv = document.createElement("div");
+                      newHintDiv.classList.add("govuk-task-list__hint");
+                      newHintDiv.textContent = newHintValue;
+                      if (hasLink !== null) {
+                        hasLink.parentNode.insertBefore(newHintDiv, hasLink.nextSibling);
+                      }
+                      if (hasDiv !== null) {
+                        hasDiv.parentNode.insertBefore(newHintDiv, hasDiv.nextSibling);
+                      }
+                    }
+                  }
                 }
               }
             });
@@ -266,6 +297,16 @@ export const TaskListSectionControllerFactory =
       refreshTaskSection(false);
     };
 
+    const taskHintKeyUp = (index: number) => (e: Event) => {
+      const current = taskHintInputs[index].current;
+      if (current !== null) {
+        taskHintsValue[index] = current.value;
+        setTaskHintsValue(taskHintsValue);
+      }
+
+      refreshTaskSection(false);
+    };
+
     const summaryIncludeToggle = (index: number) => (e: MouseEvent) => {
       const current = taskSummarySectionsInputs[index].current;
       if (current !== null) {
@@ -287,6 +328,7 @@ export const TaskListSectionControllerFactory =
     const tasksControls = tasks.map((task, index) => {
       const editTitleId = `edit-title-${index}`;
       const editCaptionId = `edit-caption-${index}`;
+      const editHintId = `edit-hint-${index}`;
       const includeSummaryId = `task-summary-section-${index}`;
       const includeDeclarationId = `task-declaration-section-${index}`;
       return (
@@ -310,6 +352,16 @@ export const TaskListSectionControllerFactory =
               onKeyUp={taskCaptionKeyUp(index)}
             >
               Task caption
+            </SmartStringInputDeprecated>
+          </SmartStringDiv>
+          <SmartStringDiv ref={taskHintInputs[index]}>
+            <SmartStringInputDeprecated
+              id={editHintId}
+              class="form-control"
+              value={taskHintsValue[index]}
+              onKeyUp={taskHintKeyUp(index)}
+            >
+              Task hint
             </SmartStringInputDeprecated>
           </SmartStringDiv>
           <div>

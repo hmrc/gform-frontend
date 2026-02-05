@@ -523,6 +523,7 @@ export interface TaskSubmitSectionUpdateRequest {
 export interface TaskSection {
   title: SmartString;
   caption?: SmartString;
+  hint?: SmartString;
   displayWidth?: string;
   tasks: Task[];
 }
@@ -533,6 +534,7 @@ export interface Task {
   title: SmartString;
   sections: Section[];
   caption?: string;
+  hint?: SmartString;
   summarySection?: TaskSummarySection | string;
   declarationSection?: TaskDeclarationSection | string;
 }
@@ -684,6 +686,7 @@ export type UpdateTaskList = {
   taskSectionTitle?: string;
   taskTitles?: string[];
   taskCaptions?: string[];
+  taskHints?: string[];
 };
 
 export type SmartStringCondition = {

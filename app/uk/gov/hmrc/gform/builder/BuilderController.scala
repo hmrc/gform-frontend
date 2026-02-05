@@ -436,11 +436,15 @@ class BuilderController(
               val taskTitles = taskListSection.tasks.map { task =>
                 task.title.value()
               }
+              val taskHints = taskListSection.tasks.map { task =>
+                task.hint.map(_.value()).getOrElse("")
+              }
 
               Ok(
                 Json.obj(
                   "taskSectionTitle" := taskListSection.title.value(),
-                  "taskTitles" := taskTitles
+                  "taskTitles" := taskTitles,
+                  "taskHints" := taskHints
                 )
               ).pure[Future]
             }
