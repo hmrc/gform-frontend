@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.eval.{ AllFormTemplateExpressions, ExprMetadata }
 import uk.gov.hmrc.gform.models.{ Basic, DependencyGraphVerification, FormModel, FormModelSupport, Interim, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, PrintSection, TemplateType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, PrintSection, SdesDestination, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode._
@@ -721,6 +721,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val emptyHmrcDms =
       Destination.HmrcDms(
         DestinationId(""),
+        SdesDestination.Dms,
         "",
         Value,
         "",
@@ -733,10 +734,13 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
         None,
         None,
         None,
-        TemplateType.XML
+        TemplateType.XML,
+        None,
+        None,
+        None,
+        None,
+        None
       )
-    val emptyCompositeDestination =
-      Destination.Composite(DestinationId(""), HandlebarValue(""), NonEmptyList.one(emptyHmrcDms))
     val emptyDestinationList =
       DestinationList(NonEmptyList.one(emptyHmrcDms), emptyAcknowledgementSection, Some(emptyDeclarationSection))
     val field = mkFormComponent("b", ctx)
@@ -764,7 +768,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       ("declarationSection.continueLabel",    dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(continueLabel = Some(stringExpr)))))),
       ("declarationSection.fields",           dummyFormTemplate.copy(destinations = emptyDestinationList.copy(declarationSection = Some(emptyDeclarationSection.copy(fields = field :: Nil))))),
       ("destination.hmrcDms.customerId",      dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx))))),
-      ("destination.composite.destinations",  dummyFormTemplate.copy(destinations = emptyDestinationList.copy(destinations = NonEmptyList.one(emptyCompositeDestination.copy(destinations = NonEmptyList.one(emptyHmrcDms.copy(customerId = ctx)))))))
       // format: on
     )
   }

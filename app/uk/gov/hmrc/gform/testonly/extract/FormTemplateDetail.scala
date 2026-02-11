@@ -27,10 +27,16 @@ case class FormTemplateDetail(
   pageTitle: FormTemplateDetailRow,
   pageCondition: Option[IncludeIf],
   fieldId: FormComponentId,
+  fieldMandatory: Boolean,
   fieldLabel: SmartString,
   fieldFormat: String,
+  fieldFormatExample: String,
+  fieldMin: Option[String],
+  fieldMax: Option[String],
+  fieldValueSource: Option[String],
   fieldCondition: Option[IncludeIf],
-  fieldRepeats: Boolean
+  fieldRepeats: Boolean,
+  fieldSpecimenLink: Option[String]
 )
 
 object FormTemplateDetail {

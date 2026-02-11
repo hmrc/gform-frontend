@@ -69,24 +69,21 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
       httpClient,
       baseUrl + "/validate/bank-details",
       "validate bank details",
-      validateBankDetailsExceptionalResponses,
-      enableResponseValidation = true
+      validateBankDetailsExceptionalResponses
     )
   val businessBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl + "/verify/business",
       "business bank account existence",
-      businessAndPersonalExceptionalResponses,
-      enableResponseValidation = true
+      businessAndPersonalExceptionalResponses
     )
   val personalBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl + "/verify/personal",
       "personal bank account existence",
-      businessAndPersonalExceptionalResponses,
-      enableResponseValidation = true
+      businessAndPersonalExceptionalResponses
     )
 
   override def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit

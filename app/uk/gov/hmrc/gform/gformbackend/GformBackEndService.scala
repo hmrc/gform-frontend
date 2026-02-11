@@ -390,8 +390,9 @@ class GformBackEndService(
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Option[InstructionPdfFields] =
     formTemplate.destinations match {
       case DestinationList(destinations, _, _) =>
-        destinations.collectFirst { case HmrcDms(_, _, _, _, _, _, _, _, _, _, Some(instructionPdfFields), _, _, _) =>
-          instructionPdfFields
+        destinations.collectFirst {
+          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, Some(instructionPdfFields), _, _, _, _, _, _, _, _) =>
+            instructionPdfFields
         }
 
       case _ => None

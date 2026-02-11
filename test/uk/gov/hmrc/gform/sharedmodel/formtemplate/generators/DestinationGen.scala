@@ -20,7 +20,8 @@ import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Expr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, DestinationIncludeIf, ProjectId, TemplateType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Dms, PegaCaseflow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, Destination, DestinationId, DestinationIncludeIf, ProjectId, SdesDestination, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierPersonalisationFieldId, NotifierTemplateId }
 
 trait DestinationGen {
@@ -35,10 +36,12 @@ trait DestinationGen {
   def customerIdGen: Gen[Expr] = ExprGen.exprGen()
   def businessAreaGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
   def projectIdGen: Gen[ProjectId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(ProjectId(_))
+  def dmsSdesDestinationGen: Gen[SdesDestination] = Gen.frequency(9 -> Dms, 1 -> PegaCaseflow)
 
   def hmrcDmsGen: Gen[Destination.HmrcDms] =
     for {
       id                   <- destinationIdGen
+      routing              <- dmsSdesDestinationGen
       dmsFormId            <- dmsFormIdGen
       customerId           <- customerIdGen
       classificationType   <- classificationTypeGen
@@ -51,6 +54,7 @@ trait DestinationGen {
     } yield Destination
       .HmrcDms(
         id,
+        routing,
         dmsFormId,
         customerId,
         classificationType,
@@ -63,7 +67,12 @@ trait DestinationGen {
         instructionPdfFields,
         None,
         None,
-        TemplateType.XML
+        TemplateType.XML,
+        None,
+        None,
+        None,
+        None,
+        None
       )
 
   def submissionConsolidatorGen: Gen[Destination.SubmissionConsolidator] =
@@ -121,13 +130,6 @@ trait DestinationGen {
       )
     }
 
-  def compositeGen: Gen[Destination.Composite] =
-    for {
-      id           <- destinationIdGen
-      includeIf    <- includeIfGen()
-      destinations <- PrimitiveGen.oneOrMoreGen(singularDestinationGen)
-    } yield Destination.Composite(id, includeIf, destinations)
-
   def stateTransitionGen: Gen[Destination.StateTransition] =
     for {
       id            <- destinationIdGen
@@ -174,10 +176,8 @@ trait DestinationGen {
       personalisation
     )
 
-  def singularDestinationGen: Gen[Destination] =
+  def destinationGen: Gen[Destination] =
     Gen.oneOf(hmrcDmsGen, handlebarsHttpApiGen, stateTransitionGen, logGen, emailGen, submissionConsolidatorGen)
-
-  def destinationGen: Gen[Destination] = Gen.frequency(10 -> singularDestinationGen, 1 -> compositeGen)
 
   def destinationWithFixedIdGen(id: DestinationId): Gen[Destination] = hmrcDmsGen.map(_.copy(id = id))
 

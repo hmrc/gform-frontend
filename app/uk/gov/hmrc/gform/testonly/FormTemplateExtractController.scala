@@ -20,12 +20,16 @@ import cats.implicits._
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.eval.BooleanExprResolver
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplateId, IsInformationMessage, IsMiniSummaryList, IsTableComp }
 import uk.gov.hmrc.gform.testonly.extract.{ FormTemplateDetail, FormTemplateDetailRow, ReportTableRow }
 import uk.gov.hmrc.gform.views.html
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ HeadCell, Table, Text }
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ HeadCell, HtmlContent, Table, Text }
 import uk.gov.hmrc.govukfrontend.views.html.components.GovukTable
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.TableRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -53,10 +57,16 @@ class FormTemplateExtractController(
     "Page title",
     "Page condition",
     "Field ID",
+    "Field mandatory",
     "Field label",
     "Field format",
+    "Field format example",
+    "Field min length",
+    "Field max length",
+    "Field value source",
     "Field condition",
-    "Field repeats"
+    "Field repeats",
+    "Specimen link"
   )
 
   private def evalSmartString(smartString: SmartString)(implicit lang: LangADT) =
@@ -90,7 +100,27 @@ class FormTemplateExtractController(
     input.map(processRow)
   }
 
-  private def extractFormTemplate(cache: AuthCacheWithForm) = {
+  private def extractFormTemplate(
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    isCsv: Boolean
+  )(implicit sse: SmartStringEvaluator) = {
+    import uk.gov.hmrc.gform.testonly.extract.FormComponentHelpers._
+
+    val booleanExprResolver: BooleanExprResolver = formModelOptics.formModelVisibilityOptics.booleanExprResolver
+
+    val pagesWithIndex = formModelOptics.formModelRenderPageOptics.formModel.pagesWithIndex
+
+    def getSpecimenLink(fc: FormComponent) =
+      pagesWithIndex
+        .find { case (page, _) => page.allFormComponentIds.map(_.baseComponentId).contains(fc.id.baseComponentId) }
+        .map { case (page, sn) =>
+          val sectionTitle = SectionTitle4Ga.sectionTitle4GaFactory(page, sn).value
+          val url = s"/submissions/form/specimen-${cache.formTemplateId.value}/$sectionTitle?n=${sn.value}&se=t&ff=t"
+          val html = s"""<a class="govuk-link" href="$url" target="_blank">${sn.value}</a>"""
+          if (isCsv) url else html
+        }
+
     cache.formTemplate.formKind
       .fold { classic =>
         val sectionFieldCount = classic.sections
@@ -115,10 +145,16 @@ class FormTemplateExtractController(
                 FormTemplateDetailRow(page.title, pageFieldCount),
                 page.includeIf,
                 field.id,
+                field.mandatory.eval(booleanExprResolver),
                 field.shortName.getOrElse(field.label),
                 field.showFormat,
+                showFormatExample(field),
+                getMin(field),
+                getMax(field),
+                getValue(field),
                 field.includeIf,
-                false
+                false,
+                getSpecimenLink(field)
               )
             }
           } { repeatingPage =>
@@ -133,10 +169,16 @@ class FormTemplateExtractController(
                 FormTemplateDetailRow(page.title, pageFieldCount),
                 page.includeIf,
                 field.id,
+                field.mandatory.eval(booleanExprResolver),
                 field.shortName.getOrElse(field.label),
                 field.showFormat,
+                showFormatExample(field),
+                getMin(field),
+                getMax(field),
+                getValue(field),
                 field.includeIf,
-                false
+                false,
+                getSpecimenLink(field)
               )
             )
           } { atl =>
@@ -152,10 +194,16 @@ class FormTemplateExtractController(
                     FormTemplateDetailRow(page.title, pageFieldCount),
                     page.includeIf,
                     field.id,
+                    field.mandatory.eval(booleanExprResolver),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
+                    showFormatExample(field),
+                    getMin(field),
+                    getMax(field),
+                    getValue(field),
                     field.includeIf,
-                    true
+                    true,
+                    getSpecimenLink(field)
                   )
                 )
             }
@@ -197,10 +245,16 @@ class FormTemplateExtractController(
                     FormTemplateDetailRow(page.title, pageFieldCount),
                     page.includeIf,
                     field.id,
+                    field.mandatory.eval(booleanExprResolver),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
+                    showFormatExample(field),
+                    getMin(field),
+                    getMax(field),
+                    getValue(field),
                     field.includeIf,
-                    false
+                    false,
+                    getSpecimenLink(field)
                   )
                 }
               } { repeatingPage =>
@@ -215,10 +269,16 @@ class FormTemplateExtractController(
                     FormTemplateDetailRow(page.title, pageFieldCount),
                     page.includeIf,
                     field.id,
+                    field.mandatory.eval(booleanExprResolver),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
+                    showFormatExample(field),
+                    getMin(field),
+                    getMax(field),
+                    getValue(field),
                     field.includeIf,
-                    false
+                    false,
+                    getSpecimenLink(field)
                   )
                 )
               } { atl =>
@@ -234,10 +294,16 @@ class FormTemplateExtractController(
                         FormTemplateDetailRow(page.title, pageFieldCount),
                         page.includeIf,
                         field.id,
+                        field.mandatory.eval(booleanExprResolver),
                         field.shortName.getOrElse(field.label),
                         field.showFormat,
+                        showFormatExample(field),
+                        getMin(field),
+                        getMax(field),
+                        getValue(field),
                         field.includeIf,
-                        true
+                        true,
+                        getSpecimenLink(field)
                       )
                     )
                 }
@@ -248,48 +314,60 @@ class FormTemplateExtractController(
       }
   }
 
-  private def makeReportTableRows(cache: AuthCacheWithForm)(implicit lang: LangADT) = {
-    val formTemplateDetails = extractFormTemplate(cache)
+  private def makeReportTableRows(
+    cache: AuthCacheWithForm,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    isCsv: Boolean
+  )(implicit lang: LangADT, sse: SmartStringEvaluator) = {
+    val formTemplateDetails = extractFormTemplate(cache, formModelOptics, isCsv)
 
     val tableRows = formTemplateDetails.map { row =>
       List(
         Some(
           ReportTableRow(
-            content = evalSmartString(row.sectionTitle.value),
+            content = Text(evalSmartString(row.sectionTitle.value)),
             rowspan = Some(row.sectionTitle.rowSpan)
           )
         ),
         Some(
           ReportTableRow(
-            content = evalSmartString(row.taskTitle.value),
+            content = Text(evalSmartString(row.taskTitle.value)),
             rowspan = Some(row.taskTitle.rowSpan)
           )
         ),
         Some(
           ReportTableRow(
-            content = row.shortName.map(evalSmartString).getOrElse(""),
+            content = Text(row.shortName.map(evalSmartString).getOrElse("")),
             rowspan = Some(row.pageTitle.rowSpan)
           )
         ),
         Some(
           ReportTableRow(
-            content = evalSmartString(row.pageTitle.value),
+            content = Text(evalSmartString(row.pageTitle.value)),
             rowspan = Some(row.pageTitle.rowSpan)
           )
         ),
         Some(
           ReportTableRow(
-            content = row.pageCondition.map(cond => s"$${${cond.booleanExpr.prettyPrint}}").getOrElse(""),
+            content = Text(row.pageCondition.map(cond => s"$${${cond.booleanExpr.prettyPrint}}").getOrElse("")),
             rowspan = Some(row.pageTitle.rowSpan)
           )
         ),
-        Some(ReportTableRow(content = row.fieldId.value)),
-        Some(ReportTableRow(content = evalSmartString(row.fieldLabel))),
-        Some(ReportTableRow(content = row.fieldFormat)),
+        Some(ReportTableRow(content = Text(row.fieldId.value))),
+        Some(ReportTableRow(content = Text(if (row.fieldMandatory) "Y" else "N"))),
+        Some(ReportTableRow(content = Text(evalSmartString(row.fieldLabel)))),
+        Some(ReportTableRow(content = Text(row.fieldFormat))),
+        Some(ReportTableRow(content = Text(row.fieldFormatExample))),
+        Some(ReportTableRow(content = Text(row.fieldMin.getOrElse("")))),
+        Some(ReportTableRow(content = Text(row.fieldMax.getOrElse("")))),
+        Some(ReportTableRow(content = Text(row.fieldValueSource.getOrElse("")))),
         Some(
-          ReportTableRow(content = row.fieldCondition.map(cond => s"$${${cond.booleanExpr.prettyPrint}}").getOrElse(""))
+          ReportTableRow(content =
+            Text(row.fieldCondition.map(cond => s"$${${cond.booleanExpr.prettyPrint}}").getOrElse(""))
+          )
         ),
-        Some(ReportTableRow(content = if (row.fieldRepeats) "Y" else "N"))
+        Some(ReportTableRow(content = Text(if (row.fieldRepeats) "Y" else "N"))),
+        Some(ReportTableRow(content = HtmlContent(row.fieldSpecimenLink.getOrElse("Unknown"))))
       )
     }
 
@@ -298,7 +376,7 @@ class FormTemplateExtractController(
 
   def extract(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, accessCode, OperationWithForm.EditForm) {
-      implicit request => implicit lang => cache => _ => _ =>
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         val header: List[HeadCell] = headers.map(header =>
           HeadCell(
             content = Text(header)
@@ -306,8 +384,8 @@ class FormTemplateExtractController(
         )
 
         val tableRows: List[List[Option[TableRow]]] =
-          makeReportTableRows(cache).map(
-            _.map(_.map(row => TableRow(content = Text(row.content), rowspan = row.rowspan)))
+          makeReportTableRows(cache, formModelOptics, false).map(
+            _.map(_.map(row => TableRow(content = row.content, rowspan = row.rowspan)))
           )
 
         val title = s"Detailed Report for Form Template `${formTemplateId.value}`"
@@ -326,8 +404,16 @@ class FormTemplateExtractController(
 
   def exportToCSV(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, accessCode, OperationWithForm.EditForm) {
-      _ => implicit lang => cache => _ => _ =>
-        val csvContent = (headers +: makeReportTableRows(cache).map(_.map(_.map(_.content).getOrElse(""))))
+      _ => implicit lang => cache => implicit sse => formModelOptics =>
+        val csvContent = (headers +: makeReportTableRows(cache, formModelOptics, true).map(
+          _.map(_.map { row =>
+            row.content match {
+              case HtmlContent(value) => s""""${value.toString}""""
+              case Text(value)        => s""""$value""""
+              case _                  => "\"\""
+            }
+          }.getOrElse("\"\""))
+        ))
           .map(_.mkString(","))
           .mkString("\n")
 

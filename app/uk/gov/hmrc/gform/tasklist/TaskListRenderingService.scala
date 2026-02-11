@@ -35,7 +35,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, TaskIdT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.validation.ValidationService
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle }
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ TaskList, TaskListItemTitle, Text }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.tag.Tag
 import uk.gov.hmrc.govukfrontend.views.viewmodels.tasklist.{ TaskListItem, TaskListItemStatus }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -137,7 +138,7 @@ class TaskListRenderingService(
               )
               new TaskListItem(
                 title = new TaskListItemTitle(content = content.Text(task.title.value())),
-                hint = None,
+                hint = task.hint.map(hint => Hint(content = Text(hint.value()))),
                 status = taskListStatus(status),
                 href = taskUrl(coordinates, status)
               )

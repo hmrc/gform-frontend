@@ -23,8 +23,6 @@ import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import UploadableConditioning._
-import cats.data.NonEmptyList
-import JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, FormStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.{ HandlebarValue, IncludeIfValue }
@@ -33,6 +31,12 @@ import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierPersonalisationFieldId
 
 sealed trait DestinationWithCustomerId extends Destination {
   def customerId(): Expr
+}
+
+sealed trait DestinationWithCustomerCaseflow {
+  def customerId(): Expr
+  def caseId(): Option[Expr]
+  def postalCode(): Option[Expr]
 }
 
 sealed trait DestinationWithTaxpayerId extends Destination {
@@ -77,6 +81,7 @@ sealed trait Destination extends Product with Serializable {
 object Destination {
   case class HmrcDms(
     id: DestinationId,
+    routing: SdesDestination,
     dmsFormId: String,
     customerId: Expr,
     classificationType: String,
@@ -89,8 +94,13 @@ object Destination {
     instructionPdfFields: Option[InstructionPdfFields],
     convertSingleQuotes: Option[Boolean],
     payload: Option[String],
-    payloadType: TemplateType
-  ) extends Destination with DestinationWithCustomerId
+    payloadType: TemplateType,
+    roboticsAsAttachment: Option[Boolean],
+    includeAttachmentNames: Option[Boolean],
+    submissionPrefix: Option[String],
+    caseId: Option[Expr],
+    postalCode: Option[Expr]
+  ) extends Destination with DestinationWithCustomerCaseflow
 
   case class DataStore(
     id: DestinationId,
@@ -140,11 +150,6 @@ object Destination {
     convertSingleQuotes: Option[Boolean]
   ) extends Destination
 
-  case class Composite(id: DestinationId, includeIf: DestinationIncludeIf, destinations: NonEmptyList[Destination])
-      extends Destination {
-    val failOnError: Boolean = false
-  }
-
   case class StateTransition(
     id: DestinationId,
     requiredState: FormStatus,
@@ -191,15 +196,11 @@ object Destination {
   val infoArchive: String = "hmrcInfoArchive"
   val submissionConsolidator: String = "submissionConsolidator"
   val handlebarsHttpApi: String = "handlebarsHttpApi"
-  val composite: String = "composite"
   val stateTransition: String = "stateTransition"
   val log: String = "log"
   val email: String = "email"
   val pegaApi: String = "pegaApi"
   val niRefundClaimApi: String = "niRefundClaimApi"
-
-  private implicit def nonEmptyListOfDestinationsFormat: OFormat[NonEmptyList[Destination]] =
-    derived.oformat[NonEmptyList[Destination]]()
 
   implicit def format: OFormat[Destination] = {
     implicit val personalisationReads =
@@ -213,7 +214,6 @@ object Destination {
         infoArchive            -> UploadableInfoArchiveDestination.reads,
         submissionConsolidator -> UploadableSubmissionConsolidator.reads,
         handlebarsHttpApi      -> UploadableHandlebarsHttpApiDestination.reads,
-        composite              -> UploadableCompositeDestination.reads,
         stateTransition        -> UploadableStateTransitionDestination.reads,
         log                    -> UploadableLogDestination.reads,
         email                  -> UploadableEmailDestination.reads,
@@ -226,6 +226,7 @@ object Destination {
 
 case class UploadableHmrcDmsDestination(
   id: DestinationId,
+  routing: Option[SdesDestination],
   dmsFormId: String,
   customerId: TextExpression,
   classificationType: String,
@@ -236,7 +237,12 @@ case class UploadableHmrcDmsDestination(
   dataOutputFormat: Option[DataOutputFormat],
   formdataXml: Option[Boolean],
   closedStatus: Option[Boolean],
-  instructionPdfFields: Option[InstructionPdfFields] = None
+  instructionPdfFields: Option[InstructionPdfFields] = None,
+  roboticsAsAttachment: Option[Boolean],
+  includeAttachmentNames: Option[Boolean] = None,
+  submissionPrefix: Option[String] = None,
+  caseId: Option[TextExpression] = None,
+  postalCode: Option[TextExpression] = None
 ) {
 
   def toHmrcDmsDestination: Either[String, Destination.HmrcDms] =
@@ -244,6 +250,7 @@ case class UploadableHmrcDmsDestination(
       cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
     } yield Destination.HmrcDms(
       id,
+      routing.getOrElse(SdesDestination.Dms),
       dmsFormId,
       customerId.expr,
       classificationType,
@@ -256,7 +263,12 @@ case class UploadableHmrcDmsDestination(
       instructionPdfFields,
       convertSingleQuotes,
       None,
-      TemplateType.XML
+      TemplateType.XML,
+      roboticsAsAttachment,
+      includeAttachmentNames,
+      submissionPrefix,
+      caseId.map(_.expr),
+      postalCode.map(_.expr)
     )
 }
 
@@ -364,26 +376,6 @@ object UploadableSubmissionConsolidator {
     private val d: Reads[UploadableSubmissionConsolidator] = derived.reads[UploadableSubmissionConsolidator]()
     override def reads(json: JsValue): JsResult[Destination.SubmissionConsolidator] =
       d.reads(json).flatMap(_.toSubmissionConsolidatorDestination.fold(JsError(_), JsSuccess(_)))
-  }
-}
-
-case class UploadableCompositeDestination(
-  id: DestinationId,
-  convertSingleQuotes: Option[Boolean],
-  includeIf: DestinationIncludeIf,
-  destinations: NonEmptyList[Destination]
-) {
-  def toCompositeDestination: Either[String, Destination.Composite] =
-    for {
-      cvii <- addErrorInfo(id, convertSingleQuotes, includeIf)
-    } yield Destination.Composite(id, cvii, destinations)
-}
-
-object UploadableCompositeDestination {
-  implicit val reads: Reads[Destination.Composite] = new Reads[Destination.Composite] {
-    private val d: Reads[UploadableCompositeDestination] = derived.reads[UploadableCompositeDestination]()
-    override def reads(json: JsValue): JsResult[Destination.Composite] =
-      d.reads(json).flatMap(_.toCompositeDestination.fold(JsError(_), JsSuccess(_)))
   }
 }
 

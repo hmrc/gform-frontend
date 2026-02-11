@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.testonly.extract
+package uk.gov.hmrc.gform.testonly
 
-import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Content
+import julienrf.json.derived
+import play.api.libs.json.{ JsObject, OFormat }
 
-case class ReportTableRow(content: Content, rowspan: Option[Int] = None)
+case class DataRetrieveDescription(
+  tpe: String,
+  exampleJson: JsObject,
+  attributeReferences: List[String],
+  documentationUrl: Option[String],
+  isArrayResult: Boolean
+)
 
-object ReportTableRow {
-  implicit val format: OFormat[ReportTableRow] = Json.format[ReportTableRow]
+object DataRetrieveDescription {
+  implicit val format: OFormat[DataRetrieveDescription] = derived.oformat()
 }

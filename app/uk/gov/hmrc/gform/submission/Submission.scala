@@ -24,6 +24,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ SubmissionRef, ValueClassFormat }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
+import java.net.URLEncoder
+
 case class DmsMetaData(
   formTemplateId: FormTemplateId
 )
@@ -58,7 +60,7 @@ case class Submission(
 ) {
   def pdfName: String =
     if (customerId.isEmpty()) s"${submissionRef.value}.pdf"
-    else s"${submissionRef.value}-${customerId.id}.pdf"
+    else s"${submissionRef.value}-${URLEncoder.encode(customerId.id, "UTF-8")}.pdf"
 }
 
 object Submission {

@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId, TemplateType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId, SdesDestination, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
@@ -136,6 +136,7 @@ trait ExampleDestination { self: ExampleAuthConfig =>
 
   val hmrcDms = HmrcDms(
     DestinationId("TestHmrcDmsId"),
+    SdesDestination.Dms,
     "TestHmrcDmsFormId",
     Constant("TestHmrcDmsCustomerId"),
     "TestHmrcDmsClassificationType",
@@ -148,7 +149,12 @@ trait ExampleDestination { self: ExampleAuthConfig =>
     None,
     None,
     None,
-    TemplateType.XML
+    TemplateType.XML,
+    None,
+    None,
+    None,
+    None,
+    None
   )
 
   val ackSection =

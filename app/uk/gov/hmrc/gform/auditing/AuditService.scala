@@ -32,6 +32,7 @@ import uk.gov.hmrc.gform.objectStore.File
 import uk.gov.hmrc.gform.sharedmodel.LangADT.langADTToString
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo.ItmpDateOfBirth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, DataRetrieveCtx, Expr, FormComponent, FormComponentId, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, DataRetrieve, DataRetrieveId, LangADT, RetrieveDataType, SmartString, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -374,20 +375,21 @@ trait AuditService {
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formCreated", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
+    sendEvent("formCreated", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
 
   def sendFormResumeEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formResumed", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
+    sendEvent("formResumed", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
 
   def sendSubmissionEvent[D <: DataOrigin](
     form: Form,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
-    envelopeFiles: List[File]
+    envelopeFiles: List[File],
+    dmsSubmissions: List[DmsDestinationResponse]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, sse: SmartStringEvaluator, l: LangADT): Unit =
     sendEvent(
       "formSubmitted",
@@ -396,33 +398,43 @@ trait AuditService {
       retrievals,
       customerId,
       envelopeFiles,
-      Map.empty
+      Map.empty,
+      dmsSubmissions
     )
 
   def formSavedEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formSaved", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
+    sendEvent("formSaved", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
 
   def sendFormTimoutEvent[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formTimeout", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
+    sendEvent("formTimeout", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
 
   def sendFormSignOut[D <: DataOrigin](
     form: Form,
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty)
+    sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
 
   def sendFormValidationErrorEvent[D <: DataOrigin](
     form: Form,
     validationErrors: Map[FormComponentId, List[String]],
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formValidationError", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, validationErrors)
+    sendEvent(
+      "formValidationError",
+      form,
+      UserValues.empty,
+      retrievals,
+      CustomerId.empty,
+      List.empty,
+      validationErrors,
+      List.empty
+    )
 
   private def sendEvent(
     auditType: String,
@@ -431,9 +443,10 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File],
-    validationErrors: Map[FormComponentId, List[String]]
+    validationErrors: Map[FormComponentId, List[String]],
+    dmsSubmissions: List[DmsDestinationResponse]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
-    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles, validationErrors)
+    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles, validationErrors, dmsSubmissions)
     auditConnector.sendExplicitAudit(auditType, auditDetails)
   }
 
@@ -454,7 +467,7 @@ trait AuditService {
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
-      detail = details(form, detail, retrievals, customerId, List.empty, Map.empty)
+      detail = details(form, detail, retrievals, customerId, List.empty, Map.empty, List.empty)
     )
 
   private def details(
@@ -463,7 +476,8 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File],
-    validationErrors: Map[FormComponentId, List[String]]
+    validationErrors: Map[FormComponentId, List[String]],
+    dmsSubmissions: List[DmsDestinationResponse]
   )(implicit hc: HeaderCarrier, lang: LangADT) = {
 
     val userInfo =
@@ -577,6 +591,14 @@ trait AuditService {
         Json.obj()
       }
 
+    val dmsSubmissionsJsObj: JsObject =
+      if (dmsSubmissions.nonEmpty)
+        Json.obj(
+          "DmsSubmissions" -> Json.toJson(dmsSubmissions)
+        )
+      else
+        Json.obj()
+
     Json.obj(
       "FormId"         -> form._id.value,
       "EnvelopeId"     -> form.envelopeId.value,
@@ -589,7 +611,7 @@ trait AuditService {
       Json.obj(
         "UserInfo"      -> userInfoWithEnrolments,
         "SubmissionRef" -> SubmissionRef(form.envelopeId).value
-      ) ++ envelopeFilesJsObj
+      ) ++ envelopeFilesJsObj ++ dmsSubmissionsJsObj
   }
 
   def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(implicit
