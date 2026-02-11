@@ -498,18 +498,18 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     )
 
   private val urlCaseflowCaseDetails = s"$baseUrl/hip/caseflow-case-details/{{caseId}}"
-  private val caseflowCaseDetailsB = new DataRetrieveConnectorBlueprint(httpClient, urlCaseflowCaseDetails, "caseflow case details")
+  private val caseflowCaseDetailsB =
+    new DataRetrieveConnectorBlueprint(httpClient, urlCaseflowCaseDetails, "caseflow case details")
 
   def getCaseflowCaseDetails(
-                              dataRetrieve: DataRetrieve,
-                              request: DataRetrieve.Request
-                            )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] = {
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
     caseflowCaseDetailsB.getEmptyIfNotFound(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
     )
-  }
 
   /** **** Tax Period *****
     */
