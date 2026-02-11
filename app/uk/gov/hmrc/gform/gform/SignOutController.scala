@@ -35,7 +35,6 @@ import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.http.HeaderCarrier
 
 class SignOutController(
   frontendConfig: FrontendAppConfig,
@@ -79,14 +78,12 @@ class SignOutController(
     }
   }
 
-  private def sendSignOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] = {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+  private def sendSignOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
-      _ => implicit lang => cache => _ => formModelOptics =>
+      implicit request => implicit lang => cache => _ => formModelOptics =>
         auditService.sendFormSignOut(cache.form, cache.retrievals)
         Future.successful(Ok("success"))
     }
-  }
 
   def showSignedOutPage(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth {
     implicit request => implicit l =>

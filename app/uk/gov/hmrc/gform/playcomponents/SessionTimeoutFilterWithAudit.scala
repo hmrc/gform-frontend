@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.playcomponents
 
 import org.apache.pekko.stream.Materializer
 import uk.gov.hmrc.play.bootstrap.frontend.filters.{ SessionTimeoutFilter, SessionTimeoutFilterConfig }
-
 import uk.gov.hmrc.gform.FormTemplateKey
 import play.api.mvc._
+
 import scala.concurrent.{ ExecutionContext, Future }
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 class SessionTimeoutFilterWithAudit(
   config: SessionTimeoutFilterConfig,
@@ -68,8 +69,8 @@ class SessionTimeoutFilterWithAudit(
 
   private def sendTimeOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
-      _ => implicit lang => cache => _ => formModelOptics =>
-        implicit val hc: HeaderCarrier = HeaderCarrier()
+      implicit request => implicit lang => cache => _ => formModelOptics =>
+        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
         auditService.sendFormTimoutEvent(cache.form, cache.retrievals)
         Future.successful(Ok("success"))
     }
