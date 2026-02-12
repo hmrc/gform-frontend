@@ -30,8 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auditing.AuditService
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 
 class SessionTimeoutFilterWithAudit(
   config: SessionTimeoutFilterConfig,
@@ -40,7 +39,7 @@ class SessionTimeoutFilterWithAudit(
 )(implicit
   ec: ExecutionContext,
   override val mat: Materializer
-) extends SessionTimeoutFilter(config) {
+) extends SessionTimeoutFilter(config) with FrontendHeaderCarrierProvider {
 
   private def timestampToInstant(timestampMs: String): Option[Instant] =
     try Some(Instant.ofEpochMilli(timestampMs.toLong))
@@ -70,7 +69,6 @@ class SessionTimeoutFilterWithAudit(
   private def sendTimeOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
-        implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
         auditService.sendFormTimoutEvent(cache.form, cache.retrievals)
         Future.successful(Ok("success"))
     }
