@@ -162,7 +162,7 @@ object DataRetrieveEval {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
-        .flatMap(_.failureCountResetTime.map(_.format(DateTimeFormatter.ofPattern("HH:mm"))))
+        .flatMap(_.failureCountResetTime.map(_.format(DateTimeFormatter.ofPattern("h:mma"))))
 
     getAttributes(dataRetrieveCtx.id)
       .orElse(
