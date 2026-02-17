@@ -98,18 +98,25 @@ object DataRetrieveService {
     maybeRequestParams: Option[JsValue],
     executor: (DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]],
     maybeFailureTest: Option[DataRetrieve.Response => Boolean]
-  )(implicit ex: ExecutionContext): Future[Option[DataRetrieveResult]] = {
+  )(implicit ex: ExecutionContext, now: Now[LocalDateTime]): Future[Option[DataRetrieveResult]] = {
+    val nowOnce = now.apply().plusMinutes(1).truncatedTo(ChronoUnit.MINUTES)
+
+    def isReset: Option[Boolean] = request.failureResetTime.map(_.isBefore(nowOnce))
+
+    def isBlocked: Boolean =
+      (request.previousFailureCount, dataRetrieve.maxFailedAttempts, isReset) match {
+        case (Some(failCount), Some(maxAttempts), Some(false)) => failCount >= maxAttempts
+        case (_, _, _)                                         => false
+      }
 
     def maybeHandleFailureLogic(
       result: DataRetrieve.Response
-    )(implicit now: Now[LocalDateTime]): (Option[Int], Option[LocalDateTime]) = {
+    ): (Option[Int], Option[LocalDateTime]) = {
 
       def runFailureLogic(
         resetMinutes: Long,
         fn: DataRetrieve.Response => Boolean
       ): (Option[Int], Option[LocalDateTime]) = {
-        val nowOnce = now.apply().plusMinutes(1).truncatedTo(ChronoUnit.MINUTES)
-        val isReset = request.failureResetTime.map(_.isBefore(nowOnce))
         val incrementedValue = Some(request.previousFailureCount.fold(1)(_ + 1))
         (fn(result), isReset) match {
           case (true, None)        => (incrementedValue, Some(nowOnce.plusMinutes(resetMinutes)))
@@ -128,10 +135,9 @@ object DataRetrieveService {
 
     val requestParams = request.paramsAsJson()
 
-    if (request.notReady() || maybeRequestParams.contains(requestParams)) {
+    if (request.notReady() || maybeRequestParams.contains(requestParams) || isBlocked) {
       Future.successful(None)
     } else {
-
       executor(dataRetrieve, request).map {
         case ServiceResponse(result) =>
           val (failureCount, failureResetTime) = maybeHandleFailureLogic(result)
