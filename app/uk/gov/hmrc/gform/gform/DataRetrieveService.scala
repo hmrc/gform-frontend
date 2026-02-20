@@ -67,6 +67,7 @@ object DataRetrieveService {
         case DataRetrieve.Type("hmrcTaxRates")               => fileSystemConnector.map(_.getHmrcTaxRate)
         case DataRetrieve.Type("delegatedAgentAuthVat")      => delegatedAgentAuthConnector.map(_.mtdVatAuth)
         case DataRetrieve.Type("delegatedAgentAuthPaye")     => delegatedAgentAuthConnector.map(_.payeAuth)
+        case DataRetrieve.Type("caseflowCaseDetails")        => gformConnector.map(_.getCaseflowCaseDetails)
         case _                                               => Option.empty
       }
 
@@ -77,7 +78,8 @@ object DataRetrieveService {
         case DataRetrieve.Type("personalBankAccountExistence") => bankAccountReputationConnector.map(_.isFailure)
         case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
           bankAccountReputationConnector.map(_.isFailure)
-        case _ => Option.empty
+        case DataRetrieve.Type("caseflowCaseDetails") => gformConnector.map(_.caseflowCaseDetailsFailure)
+        case _                                        => Option.empty
       }
 
     maybeExecutor.flatTraverse { executor =>
