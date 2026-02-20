@@ -78,7 +78,8 @@ object DataRetrieveService {
         case DataRetrieve.Type("personalBankAccountExistence") => bankAccountReputationConnector.map(_.isFailure)
         case DataRetrieve.Type("personalBankAccountExistenceWithName") =>
           bankAccountReputationConnector.map(_.isFailure)
-        case _ => Option.empty
+        case DataRetrieve.Type("caseflowCaseDetails") => gformConnector.map(_.caseflowCaseDetailsFailure)
+        case _                                        => Option.empty
       }
 
     maybeExecutor.flatTraverse { executor =>

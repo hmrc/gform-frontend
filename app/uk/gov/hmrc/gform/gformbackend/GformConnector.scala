@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
+import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType.{ ListType, ObjectType }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
@@ -510,6 +511,16 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
     )
+
+  def caseflowCaseDetailsFailure(response: DataRetrieve.Response): Boolean =
+    response.toRetrieveDataType() match {
+      case ObjectType(data) =>
+        data.get(DataRetrieve.Attribute("pyHTTPResponseCode")) match {
+          case Some("1") => true
+          case _         => false
+        }
+      case ListType(_) => throw new IllegalStateException("List type is illegal for caseflow get case details response")
+    }
 
   /** **** Tax Period *****
     */
