@@ -21,13 +21,12 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMapping }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ TaskStatus => TaskStatusExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormKind, FormTemplate, IsPostcodeLookup, Task, TaskNumber, TaskSection, TaskSectionNumber, TaskStatus => TaskStatusExpr }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormKind, FormTemplate, Task, TaskNumber, TaskSection, TaskSectionNumber }
 import uk.gov.hmrc.gform.tasklist.TaskStatus.NotStarted
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -135,11 +134,19 @@ object TaskListUtils {
                                     formModelVisibilityOptics
                                   )
                               } yield {
+                                val allPostcodeLookupsConfirmed = formModel.taskList
+                                  .allFormComponents(coordinate)
+                                  .collect { case fc @ IsPostcodeLookup(_) =>
+                                    fc.id
+                                  }
+                                  .map(fcId => cache.thirdPartyData.confirmedAddresses.fold(false)(_.contains(fcId)))
+                                  .forall(b => b === true)
+
                                 val taskStatus =
                                   if (dataForCoordinate.isEmpty) {
                                     TaskStatus.NotStarted
                                   } else if (
-                                    formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid
+                                    formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid && allPostcodeLookupsConfirmed
                                   ) {
                                     TaskStatus.Completed
                                   } else {
@@ -184,4 +191,31 @@ object TaskListUtils {
     val leafs: List[Expr] = allExprs.flatMap(_.leafs())
     leafs.exists { case TaskStatusExpr(_) => true; case _ => false }
   }
+
+  def evalTaskIdTaskStatus(
+    cache: AuthCacheWithForm,
+    envelope: EnvelopeWithMapping,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    validationService: ValidationService
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Future[TaskIdTaskStatusMapping] =
+    if (hasTaskStatusExpr(cache, formModelOptics)) {
+      val taskCoordinatesMap = toTaskCoordinatesMap(cache.formTemplate)
+      for {
+        statusesLookup <-
+          evalStatusLookup(
+            cache.toCacheData,
+            envelope,
+            formModelOptics,
+            validationService,
+            taskCoordinatesMap
+          )
+      } yield evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookup)
+    } else
+      TaskIdTaskStatusMapping.empty.pure[Future]
 }
