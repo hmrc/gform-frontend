@@ -25,6 +25,7 @@ import play.api.inject.{ Injector, SimpleInjector }
 import play.api.libs.ws.ahc.{ AhcWSClient, AhcWSClientConfigFactory, AhcWSComponents }
 import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
+
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.addresslookup.AddressLookupModule
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -57,6 +58,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateContextCacheManage
 import uk.gov.hmrc.play.bootstrap.LoggerModule
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
 import uk.gov.hmrc.http.client.{ HttpClientV2, HttpClientV2Impl }
+import uk.gov.hmrc.play.audit.http.HttpAuditing
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.frontend.filters.crypto.ApplicationCrypto
 
 class ApplicationLoader extends play.api.ApplicationLoader with Base64ConfigDecoder {
@@ -111,12 +114,17 @@ class ApplicationModule(context: Context)
 
   val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
 
+  private val httpAuditing = new HttpAuditing {
+    override def auditConnector: AuditConnector = auditingModule.auditConnector
+    override def appName: String = configModule.appConfig.appName
+  }
+
   private val httpClientV2: HttpClientV2 =
     new HttpClientV2Impl(
       wsClient = AhcWSClient(AhcWSClientConfigFactory.forConfig(configuration.underlying)),
       actorSystem,
       configuration,
-      hooks = Seq.empty
+      hooks = Seq(httpAuditing.AuditingHook)
     )
 
   protected lazy val wSHttpModule = new WSHttpModule(httpClientV2)
