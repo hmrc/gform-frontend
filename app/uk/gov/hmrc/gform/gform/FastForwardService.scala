@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.implicits.catsSyntaxApplicativeId
 import cats.instances.future._
 import cats.syntax.eq._
 import cats.syntax.traverse._
@@ -25,24 +26,22 @@ import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.gform.{ ForceReload, NoSpecificAction }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.gform.ForceReload
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, QueryParams, Summary, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
-import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SectionOrSummary, SuppressErrors }
+import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionOrSummary
-import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 
 class FastForwardService(
   objectStoreService: ObjectStoreService,
@@ -119,16 +118,27 @@ class FastForwardService(
         )
         for {
           envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
+          envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
+          isTaskList = cache.formTemplate.formKind.fold(_ => false)(_ => true)
+          taskIdTaskStatusMapping <- if (isTaskList) {
+                                       TaskListUtils.evalTaskIdTaskStatus(
+                                         cache,
+                                         envelopeWithMapping,
+                                         DataOrigin.swapDataOrigin(processData.formModelOptics),
+                                         validationService
+                                       )
+                                     } else TaskIdTaskStatusMapping.empty.pure[Future]
+          cacheUpd = cache.copy(form = cache.form.copy(taskIdTaskStatus = taskIdTaskStatusMapping))
           res <-
             updateUserData(
-              cache,
+              cacheUpd,
               processData,
               maybeAccessCode,
               fastForward,
-              EnvelopeWithMapping(envelope, cache.form),
+              envelopeWithMapping,
               maybeSectionNumber
             )(
-              redirectResult(cache, maybeAccessCode, processData, _, fastForward, _, suppressErrors)
+              redirectResult(cacheUpd, maybeAccessCode, processData, _, fastForward, _, suppressErrors)
             )
         } yield res
 

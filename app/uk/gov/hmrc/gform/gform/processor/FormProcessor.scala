@@ -410,10 +410,11 @@ class FormProcessor(
         } else Option.empty.pure[Future]
 
       taskIdTaskStatusMapping <- if (sectionNumber.isTaskList) {
-                                   evalTaskIdTaskStatus(
+                                   TaskListUtils.evalTaskIdTaskStatus(
                                      updatedCache,
                                      envelopeWithMapping,
-                                     DataOrigin.swapDataOrigin(processData.formModelOptics)
+                                     DataOrigin.swapDataOrigin(processData.formModelOptics),
+                                     validationService
                                    )
                                  } else TaskIdTaskStatusMapping.empty.pure[Future]
 
@@ -502,31 +503,6 @@ class FormProcessor(
         )
     )
   }
-
-  private def evalTaskIdTaskStatus(
-    cache: AuthCacheWithForm,
-    envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  )(implicit
-    hc: HeaderCarrier,
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator
-  ): Future[TaskIdTaskStatusMapping] =
-    if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics)) {
-      val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(cache.formTemplate)
-      for {
-        statusesLookup <-
-          TaskListUtils.evalStatusLookup(
-            cache.toCacheData,
-            envelope,
-            formModelOptics,
-            validationService,
-            taskCoordinatesMap
-          )
-      } yield TaskListUtils.evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookup)
-    } else
-      TaskIdTaskStatusMapping.empty.pure[Future]
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
     messages: Messages
