@@ -185,7 +185,7 @@ case class DataRetrieve(
             errors += s"required field '${attributeInstruction.attribute.name}' cannot be empty"
           } else if (!isEmpty && isInvalidValue) {
             errors += s"unexpected value for '${attributeInstruction.attribute.name}': '$value'"
-          } else if (isWrongType) {
+          } else if (!isEmpty && isWrongType) {
             errors += s"field '${attributeInstruction.attribute.name}' must be a ${getValueTypeAsString(allowedValues.valueType)}"
           }
         }
