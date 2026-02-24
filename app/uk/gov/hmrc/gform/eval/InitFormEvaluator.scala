@@ -93,7 +93,7 @@ case class InitFormEvaluator(
             .url
         case InternalLink.NewForm =>
           uk.gov.hmrc.gform.gform.routes.NewFormController
-            .dashboardNewFormLink(cache.formTemplate._id)
+            .dashboard(cache.formTemplate._id)
             .url
         case InternalLink.NewSession =>
           uk.gov.hmrc.gform.gform.routes.NewFormController
