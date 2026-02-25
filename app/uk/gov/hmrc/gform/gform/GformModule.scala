@@ -290,7 +290,6 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     nonRepudiationHelpers,
     sectionRenderingService,
-    auditingModule.auditService,
     gformBackendModule.gformConnector,
     pdfRenderService,
     pdfGeneratorService,

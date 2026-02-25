@@ -21,7 +21,6 @@ import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.commons.HeaderCarrierUtil
 import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.gform.CustomerId
@@ -37,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, DataRetrieveCtx, Ex
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, DataRetrieve, DataRetrieveId, LangADT, RetrieveDataType, SmartString, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
+import uk.gov.hmrc.play.audit.model.DataEvent
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext
@@ -450,26 +449,6 @@ trait AuditService {
     auditConnector.sendExplicitAudit(auditType, auditDetails)
   }
 
-  def calculateSubmissionEvent[D <: DataOrigin](
-    form: Form,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    retrievals: MaterialisedRetrievals,
-    customerId: CustomerId
-  )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator, l: LangADT): ExtendedDataEvent =
-    eventFor(form, getUserValues(form.thirdPartyData, formModelVisibilityOptics), retrievals, customerId)
-
-  private def eventFor(
-    form: Form,
-    detail: UserValues,
-    retrievals: MaterialisedRetrievals,
-    customerId: CustomerId
-  )(implicit hc: HeaderCarrier, lang: LangADT) =
-    ExtendedDataEvent(
-      auditSource = "Gform-Frontend",
-      auditType = "formSubmitted",
-      detail = details(form, detail, retrievals, customerId, List.empty, Map.empty, List.empty)
-    )
-
   private def details(
     form: Form,
     detail: UserValues,
@@ -614,23 +593,21 @@ trait AuditService {
       ) ++ envelopeFilesJsObj ++ dmsSubmissionsJsObj
   }
 
-  def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(implicit
+  def sendSubmissionEventHashed(hashedValue: String, formAsString: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ) =
-    sendHashedValues(hashedValue, formAsString, eventId)
+    sendHashedValues(hashedValue, formAsString)
 
-  private def sendHashedValues(hash: String, formAsString: String, eventId: String)(implicit
+  private def sendHashedValues(hash: String, formAsString: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ) = auditConnector.sendEvent(hashedValueEvent(hash, formAsString, eventId))
+  ) = auditConnector.sendEvent(hashedValueEvent(hash, formAsString))
 
-  private def hashedValueEvent(hashedValue: String, formString: String, eventId: String)(implicit hc: HeaderCarrier) =
+  private def hashedValueEvent(hashedValue: String, formString: String) =
     DataEvent(
       auditSource = "GForm",
       auditType = "printedReturnNonrepudiation",
-      tags = HeaderCarrierUtil.allHeadersFromHC().toMap,
-      eventId = eventId,
       detail = Map(
         "hashType"    -> "sha256",
         "hashedValue" -> hashedValue,

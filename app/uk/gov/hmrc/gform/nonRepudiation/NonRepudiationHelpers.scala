@@ -30,8 +30,8 @@ class NonRepudiationHelpers(auditModule: AuditingModule) {
 
   def computeHash(formJson: String): String = CryptoUtil.sha256Hash(formJson)
 
-  def sendAuditEvent(hashedValue: String, formAsString: String, eventId: String)(implicit
+  def sendAuditEvent(hashedValue: String, formAsString: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ) = auditModule.auditService.sendSubmissionEventHashed(hashedValue, formAsString, eventId)
+  ) = auditModule.auditService.sendSubmissionEventHashed(hashedValue, formAsString)
 }
