@@ -20,11 +20,9 @@ import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
-import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
@@ -46,7 +44,6 @@ class AcknowledgementPdfService(
   i18nSupport: I18nSupport,
   nonRepudiationHelpers: NonRepudiationHelpers,
   renderer: SectionRenderingService,
-  auditService: AuditService,
   gformConnector: GformConnector,
   pdfRenderService: PDFRenderService,
   pdfGeneratorService: PdfGeneratorService,
@@ -123,21 +120,7 @@ class AcknowledgementPdfService(
 
     for {
       _ <- if (sendAuditEvent) {
-             val customerId = CustomerIdRecalculation
-               .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
-                 cache,
-                 formModelOptics.formModelVisibilityOptics
-               )
-             val eventId = auditService
-               .calculateSubmissionEvent(
-                 cache.form,
-                 formModelOptics.formModelVisibilityOptics,
-                 cache.retrievals,
-                 customerId
-               )
-               .eventId
-
-             nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
+             nonRepudiationHelpers.sendAuditEvent(hashedValue, formString)
              Future.unit
            } else Future.unit
       submission <- getSubmission(cache, maybeAccessCode)
