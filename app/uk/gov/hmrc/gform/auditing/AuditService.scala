@@ -421,7 +421,7 @@ trait AuditService {
 
   def sendFormValidationErrorEvent[D <: DataOrigin](
     form: Form,
-    validationErrors: Map[FormComponentId, List[String]],
+    validationErrors: Map[String, Map[FormComponentId, List[String]]],
     retrievals: MaterialisedRetrievals
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent(
@@ -442,7 +442,7 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File],
-    validationErrors: Map[FormComponentId, List[String]],
+    validationErrors: Map[String, Map[FormComponentId, List[String]]],
     dmsSubmissions: List[DmsDestinationResponse]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
     val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles, validationErrors, dmsSubmissions)
@@ -455,7 +455,7 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File],
-    validationErrors: Map[FormComponentId, List[String]],
+    validationErrors: Map[String, Map[FormComponentId, List[String]]],
     dmsSubmissions: List[DmsDestinationResponse]
   )(implicit hc: HeaderCarrier, lang: LangADT) = {
 
@@ -559,10 +559,15 @@ trait AuditService {
     val validationErrorsJsObj: JsObject =
       if (validationErrors.nonEmpty) {
         Json.obj(
-          "ValidationErrors" -> Json.toJson(validationErrors.map { case (fcId, errors) =>
+          "ValidationErrors" -> Json.toJson(validationErrors.map { case (sectionTitle, errors) =>
             Json.obj(
-              "formComponentId" -> fcId.value,
-              "errors"          -> errors
+              "sectionTitle" -> sectionTitle,
+              "errors" -> Json.toJson(errors.map { case (fcId, fieldErrors) =>
+                Json.obj(
+                  "formComponentId" -> fcId.value,
+                  "errors"          -> fieldErrors
+                )
+              })
             )
           })
         )
