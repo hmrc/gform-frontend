@@ -88,10 +88,12 @@ class DataRetrieveConnectorBlueprint(
       .setHeader(header: _*)
       .execute[HttpResponse]
       .map { response =>
-        response.status match {
-          case OK =>
+        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponse(response)
+        (maybeExceptionalResponse, response.status) match {
+          case (Some(_), _) | (_, OK) =>
+            val responseJson = maybeExceptionalResponse.fold(response.json)(ex => Json.parse(ex.response))
             dataRetrieve
-              .processResponse(response.json)
+              .processResponse(responseJson)
               .fold(
                 invalid => {
                   logger.error(
@@ -104,8 +106,8 @@ class DataRetrieveConnectorBlueprint(
                   ServiceResponse(valid)
                 }
               )
-          case NOT_FOUND => dataRetrieve.emptyValidResponse()
-          case other =>
+          case (_, NOT_FOUND) => dataRetrieve.emptyValidResponse()
+          case (_, other) =>
             logger.error(s"Unexpected status $other received when calling $identifier")
             CannotRetrieveResponse
         }
@@ -119,6 +121,10 @@ class DataRetrieveConnectorBlueprint(
           CannotRetrieveResponse
       }
   }
+
+  private def exceptionalResponse(httpResponse: HttpResponse) = exceptionalResponses.flatMap(_.find { ex =>
+    httpResponse.status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
+  })
 
   def post(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(
     implicit
@@ -135,9 +141,7 @@ class DataRetrieveConnectorBlueprint(
       .execute[HttpResponse]
       .map { httpResponse =>
         val status: Int = httpResponse.status
-        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponses.flatMap(_.find { ex =>
-          status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
-        })
+        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponse(httpResponse)
 
         (maybeExceptionalResponse, status) match {
           case (Some(_), _) | (_, 200) =>
