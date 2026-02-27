@@ -504,7 +504,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       ExceptionalResponse(
         400,
         "path.caseId failed validation",
-        """{"pyHTTPResponseCode":1}"""
+        """{"error":"CASE_ID_VALIDATION_ERROR"}"""
       )
     )
   )
