@@ -30,7 +30,7 @@ import org.typelevel.ci.CIString
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.auth.models.{ EmailRetrievals, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
+import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
@@ -499,8 +499,22 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     )
 
   private val urlCaseflowCaseDetails = s"$baseUrl/hip/caseflow-case-details/{{caseId}}"
+  private val caseflowExceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "path.caseId failed validation",
+        """{"error":"CASE_ID_VALIDATION_ERROR"}"""
+      )
+    )
+  )
   private val caseflowCaseDetailsB =
-    new DataRetrieveConnectorBlueprint(httpClient, urlCaseflowCaseDetails, "caseflow case details")
+    new DataRetrieveConnectorBlueprint(
+      httpClient,
+      urlCaseflowCaseDetails,
+      "caseflow case details",
+      caseflowExceptionalResponses
+    )
 
   def getCaseflowCaseDetails(
     dataRetrieve: DataRetrieve,
