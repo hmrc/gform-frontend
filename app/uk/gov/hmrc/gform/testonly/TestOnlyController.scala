@@ -63,6 +63,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, T
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukAccordion, GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.accordion.Accordion
+import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ HtmlContent, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.Select
@@ -864,7 +865,8 @@ class TestOnlyController(
           )
         )
 
-        Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs))
+        val backLink = BackLink(content = content.Text("Return to form"))
+        Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs, Some(backLink)))
       }
   }
 
