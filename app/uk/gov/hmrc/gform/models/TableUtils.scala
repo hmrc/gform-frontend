@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, FormComponent, FormComponentId, FormCtx, TableComp, TableValue, TableValueRow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, FormComponent, FormComponentId, FormCtx, IndexOfDataRetrieveCtx, TableComp, TableValue, TableValueRow }
 
 object TableUtils {
 
   def expand[D <: DataOrigin](formComponent: FormComponent, table: TableComp)(implicit
-    fmvo: FormModelVisibilityOptics[D]
+    fmvo: FormModelVisibilityOptics[D],
+    messages: Messages
   ): FormComponent = {
     val rows: List[TableValueRow] = table.rows.flatMap { row =>
       row.dynamic.fold(List(row)) {
-        case d @ Dynamic.ATLBased(formComponentId) =>
+        case d @ Dynamic.ATLBased(_) =>
           val allAddToListBrackets: List[Bracket.AddToList[Visibility]] = fmvo.formModel.brackets.addToListBrackets
 
           val addToListComponentBaseIds: Set[BaseComponentId] =
@@ -40,7 +42,8 @@ object TableUtils {
           // Expand only addToList's components
           val baseIds = determineBaseIds(row).filter(baseId => addToListComponentBaseIds(baseId.baseComponentId))
           expandTable[D](row, d, baseIds).toList
-        case Dynamic.DataRetrieveBased(_) => List(row)
+        case Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx) =>
+          expandDataRetrieveTable(row, indexOfDataRetrieveCtx)
       }
     }
     val updTable = table.copy(rows = rows)
@@ -92,6 +95,36 @@ object TableUtils {
             case None => tableValueRow
           }
         }
+    }
+  }
+
+  def expandDataRetrieveTableValue(index: Int, tableValue: TableValue): TableValue =
+    tableValue.copy(
+      value = tableValue.value.expandDataRetrieve(index)
+    )
+
+  def updateDataRetrieveTableValueRow(
+    index: Int,
+    tableValueRow: TableValueRow
+  ): TableValueRow =
+    tableValueRow.copy(
+      values = tableValueRow.values.map(expandDataRetrieveTableValue(index, _)),
+      dynamic = tableValueRow.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _))
+    )
+
+  private def expandDataRetrieveTable[D <: DataOrigin](
+    tableValueRow: TableValueRow,
+    indexOfDataRetrieveCtx: IndexOfDataRetrieveCtx
+  )(implicit
+    fmvo: FormModelVisibilityOptics[D],
+    messages: Messages
+  ): List[TableValueRow] = {
+    val expressionResult = fmvo.evalAndApplyTypeInfoFirst(indexOfDataRetrieveCtx.ctx)
+    val results = expressionResult.listRepresentation
+    if (results.isEmpty) {
+      List(tableValueRow)
+    } else {
+      results.zipWithIndex.map { case (_, index) => updateDataRetrieveTableValueRow(index, tableValueRow) }
     }
   }
 }

@@ -95,6 +95,36 @@ class FormComponentUpdaterSpec extends Spec {
     res shouldBe expected
   }
 
+  it should "update dynamic DataRetrieveId in TableValueRow when inside an addToList" in {
+    val dataRetrieveId = "individualsEmploymentsAtl"
+    val formComponent = mkFormComponent(
+      "vatDetailsTable",
+      mkTableComp(dataRetrieveId)
+    )
+
+    val res = updateSection(formComponent)
+
+    val expectedDataRetrieveId = "11_individualsEmploymentsAtl"
+    val tableComp = res.`type`.asInstanceOf[TableComp]
+    val row = tableComp.rows.head
+
+    row.dynamic shouldBe Some(
+      Dynamic.DataRetrieveBased(
+        IndexOfDataRetrieveCtx(
+          DataRetrieveCtx(DataRetrieveId(expectedDataRetrieveId), DataRetrieve.Attribute("employerName")),
+          Constant("0")
+        )
+      )
+    )
+
+    row.values.head.value.allInterpolations shouldBe List(
+      DataRetrieveCtx(DataRetrieveId(expectedDataRetrieveId), DataRetrieve.Attribute("employerName"))
+    )
+    row.values(1).value.allInterpolations shouldBe List(
+      DataRetrieveCtx(DataRetrieveId(expectedDataRetrieveId), DataRetrieve.Attribute("payeNumber"))
+    )
+  }
+
   private def updateGroup(formComponent: FormComponent) = {
     val group = mkGroup(2, List(mkFormComponent("choice", Value)))
 
@@ -154,5 +184,47 @@ class FormComponentUpdaterSpec extends Spec {
         summaryValue = None,
         keyWord = None
       )
+    )
+
+  private def mkTableComp(dataRetrieveId: String) =
+    TableComp(
+      header = List(
+        TableHeadCell(toSmartString("Employer name"), None),
+        TableHeadCell(toSmartString("Employer PAYE reference"), None)
+      ),
+      rows = List(
+        TableValueRow(
+          values = List(
+            TableValue(
+              toSmartStringExpression(
+                "{0}",
+                DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("employerName"))
+              ),
+              None,
+              None,
+              None
+            ),
+            TableValue(
+              toSmartStringExpression(
+                "{0}",
+                DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("payeNumber"))
+              ),
+              None,
+              None,
+              None
+            )
+          ),
+          includeIf = None,
+          dynamic = Some(
+            Dynamic.DataRetrieveBased(
+              IndexOfDataRetrieveCtx(
+                DataRetrieveCtx(DataRetrieveId(dataRetrieveId), DataRetrieve.Attribute("employerName")),
+                Constant("0")
+              )
+            )
+          )
+        )
+      ),
+      summaryValue = toSmartString("View employments")
     )
 }
