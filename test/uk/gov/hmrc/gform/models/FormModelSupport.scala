@@ -97,12 +97,14 @@ trait FormModelSupport extends GraphSpec {
 
   def mkFormModelOptics(
     formTemplate: FormTemplate,
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] = {
-    val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
+    data: VariadicFormData[SourceOrigin.OutOfDate],
+    authCache: Option[AuthCacheWithForm] = None
+  )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] =
     FormModelOptics
-      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](data, authCache)
-  }
+      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
+        data,
+        authCache.fold(mkAuthCacheWithForm(formTemplate))(ac => ac)
+      )
 
   def mkFormModelOpticsMongo(
     formTemplate: FormTemplate,

@@ -98,12 +98,12 @@ object TableUtils {
     }
   }
 
-  def expandDataRetrieveTableValue(index: Int, tableValue: TableValue): TableValue =
+  private def expandDataRetrieveTableValue(index: Int, tableValue: TableValue): TableValue =
     tableValue.copy(
       value = tableValue.value.expandDataRetrieve(index)
     )
 
-  def updateDataRetrieveTableValueRow(
+  private def updateDataRetrieveTableValueRow(
     index: Int,
     tableValueRow: TableValueRow
   ): TableValueRow =
