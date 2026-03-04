@@ -40,6 +40,8 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     new DefaultMessagesApiProvider(environment, configuration, langs, httpConfiguration).get
   implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
 
+  // --- DataRetrieve Based Dynamic tests ---
+
   private val dataRetrieveId = DataRetrieveId("individualsEmployments")
 
   private val employerNameAttr = DataRetrieve.Attribute("employerName")
@@ -217,5 +219,170 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
 
     assertEquals(resultTable.rows.size, 1)
     assertEquals(resultTable, table)
+  }
+
+  // --- ATLBased Dynamic tests ---
+
+  private val personNameFcId = FormComponentId("personName")
+  private val personAgeFcId = FormComponentId("personAge")
+
+  private def mkAtlTableComp: TableComp =
+    TableComp(
+      header = List(
+        TableHeadCell(toSmartString("Person name"), None),
+        TableHeadCell(toSmartString("Person age"), None)
+      ),
+      rows = List(
+        TableValueRow(
+          values = List(
+            TableValue(toSmartStringExpression("{0}", FormCtx(personNameFcId)), None, None, None),
+            TableValue(toSmartStringExpression("{0}", FormCtx(personAgeFcId)), None, None, None)
+          ),
+          includeIf = None,
+          dynamic = Some(Dynamic.ATLBased(personNameFcId))
+        )
+      ),
+      summaryValue = toSmartString("View people")
+    )
+
+  private def buildAtlFmvo(
+    tableComponent: FormComponent,
+    atlData: VariadicFormData[SourceOrigin.OutOfDate]
+  ): FormModelOptics[DataOrigin.Browser] = {
+    val personNameFc = mkFormComponent("personName", Value)
+    val personAgeFc = mkFormComponent("personAge", Value)
+    val atlSection = mkAddToListSection(
+      "addAnotherPerson",
+      None,
+      List(personNameFc, personAgeFc)
+    )
+    val tableSection = mkSection(List(tableComponent))
+    val formTemplate = mkFormTemplate(List(atlSection, tableSection))
+    mkFormModelOptics(formTemplate, atlData)
+  }
+
+  test("expand - ATLBased row is expanded into one row per AddToList iteration") {
+    val table = mkAtlTableComp
+    val tableComponent = mkFormComponent("personsTable", table)
+
+    val data = mkVariadicFormData[SourceOrigin.OutOfDate](
+      "1_personName"       -> VariadicValue.One("nameValue1"),
+      "1_personAge"        -> VariadicValue.One("3"),
+      "2_personName"       -> VariadicValue.One("nameValue2"),
+      "2_personAge"        -> VariadicValue.One("5"),
+      "1_addAnotherPerson" -> VariadicValue.Many(List("0")),
+      "2_addAnotherPerson" -> VariadicValue.Many(List("1"))
+    )
+
+    val optics = buildAtlFmvo(tableComponent, data)
+    implicit val fmvo = optics.formModelVisibilityOptics
+
+    val result = TableUtils.expand(tableComponent, table)
+    val resultTable = result.`type`.asInstanceOf[TableComp]
+
+    assertEquals(resultTable.rows.size, 2)
+
+    val row0 = resultTable.rows(0)
+    assertEquals(
+      row0.values.head.value.allInterpolations,
+      List(FormCtx(FormComponentId("1_personName")))
+    )
+    assertEquals(
+      row0.values(1).value.allInterpolations,
+      List(FormCtx(FormComponentId("1_personAge")))
+    )
+    assertEquals(
+      row0.dynamic,
+      Some(Dynamic.ATLBased(FormComponentId("1_personName")))
+    )
+
+    val row1 = resultTable.rows(1)
+    assertEquals(
+      row1.values.head.value.allInterpolations,
+      List(FormCtx(FormComponentId("2_personName")))
+    )
+    assertEquals(
+      row1.values(1).value.allInterpolations,
+      List(FormCtx(FormComponentId("2_personAge")))
+    )
+    assertEquals(
+      row1.dynamic,
+      Some(Dynamic.ATLBased(FormComponentId("2_personName")))
+    )
+  }
+
+  test("expand - ATLBased row with single iteration produces one expanded row") {
+    val table = mkAtlTableComp
+    val tableComponent = mkFormComponent("personsTable", table)
+
+    val data = mkVariadicFormData[SourceOrigin.OutOfDate](
+      "1_personName"       -> VariadicValue.One("nameValue1"),
+      "1_personAge"        -> VariadicValue.One("3"),
+      "1_addAnotherPerson" -> VariadicValue.Many(List("1"))
+    )
+
+    val optics = buildAtlFmvo(tableComponent, data)
+    implicit val fmvo = optics.formModelVisibilityOptics
+
+    val result = TableUtils.expand(tableComponent, table)
+    val resultTable = result.`type`.asInstanceOf[TableComp]
+
+    assertEquals(resultTable.rows.size, 1)
+
+    val row0 = resultTable.rows(0)
+    assertEquals(
+      row0.values.head.value.allInterpolations,
+      List(FormCtx(FormComponentId("1_personName")))
+    )
+    assertEquals(
+      row0.values(1).value.allInterpolations,
+      List(FormCtx(FormComponentId("1_personAge")))
+    )
+    assertEquals(
+      row0.dynamic,
+      Some(Dynamic.ATLBased(FormComponentId("1_personName")))
+    )
+  }
+
+  test("expand - ATLBased row with three iterations produces three expanded rows") {
+    val table = mkAtlTableComp
+    val tableComponent = mkFormComponent("personsTable", table)
+
+    val data = mkVariadicFormData[SourceOrigin.OutOfDate](
+      "1_personName"       -> VariadicValue.One("nameValue1"),
+      "1_personAge"        -> VariadicValue.One("3"),
+      "2_personName"       -> VariadicValue.One("nameValue2"),
+      "2_personAge"        -> VariadicValue.One("5"),
+      "3_personName"       -> VariadicValue.One("nameValue3"),
+      "3_personAge"        -> VariadicValue.One("2"),
+      "1_addAnotherPerson" -> VariadicValue.Many(List("0")),
+      "2_addAnotherPerson" -> VariadicValue.Many(List("0")),
+      "3_addAnotherPerson" -> VariadicValue.Many(List("1"))
+    )
+
+    val optics = buildAtlFmvo(tableComponent, data)
+    implicit val fmvo = optics.formModelVisibilityOptics
+
+    val result = TableUtils.expand(tableComponent, table)
+    val resultTable = result.`type`.asInstanceOf[TableComp]
+
+    assertEquals(resultTable.rows.size, 3)
+
+    for (i <- 0 until 3) {
+      val row = resultTable.rows(i)
+      val idx = i + 1
+      assertEquals(
+        row.values.head.value.allInterpolations,
+        List(FormCtx(FormComponentId(s"${idx}_personName")))
+      )
+      assertEquals(
+        row.values(1).value.allInterpolations,
+        List(FormCtx(FormComponentId(s"${idx}_personAge")))
+      )
+      assertEquals(
+        row.dynamic,
+        Some(Dynamic.ATLBased(FormComponentId(s"${idx}_personName")))
+      )
+    }
   }
 }
