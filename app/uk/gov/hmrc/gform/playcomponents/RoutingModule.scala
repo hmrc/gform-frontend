@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.health.HealthController
-import uk.gov.hmrc.hmrcfrontend.config.LanguageConfig
 import uk.gov.hmrc.hmrcfrontend.controllers.{ KeepAliveController, LanguageController, Assets => HmrcAssets }
 import uk.gov.hmrc.play.language.LanguageUtils
 
@@ -56,8 +55,7 @@ class RoutingModule(
     LanguageController(
       configModule.playConfiguration,
       new LanguageUtils(playBuiltInsModule.langs, configModule.playConfiguration)(playBuiltInsModule.messagesApi),
-      controllersModule.messagesControllerComponents,
-      new LanguageConfig(configModule.playConfiguration)
+      controllersModule.messagesControllerComponents
     )
   )
 
