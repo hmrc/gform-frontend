@@ -155,7 +155,8 @@ class FormComponentUpdater(
   private def expandTableValueRow(row: TableValueRow): TableValueRow =
     row.copy(
       values = row.values.map(expandTableValue),
-      includeIf = row.includeIf.map(expandIncludeIf)
+      includeIf = row.includeIf.map(expandIncludeIf),
+      dynamic = row.dynamic.map(d => ExpandUtils.expandOptionDataDynamicDataRetrieveCtx(index, d, dataRetrieveIds))
     )
 
   private def expandTableValue(tableValue: TableValue): TableValue =
