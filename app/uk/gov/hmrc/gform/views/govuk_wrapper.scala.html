@@ -20,12 +20,16 @@
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.summary.FullMainContent
 @import uk.gov.hmrc.gform.views.html.custom.{ CustomUserResearchBanner, CustomHmrcHeader }
+@import uk.gov.hmrc.govukfrontend.views.Aliases.ServiceNavigation
 @import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers
 @import uk.gov.hmrc.hmrcfrontend.views.html.components
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, LanguageSelect}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage.Banners
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.header.v2._
 @import uk.gov.hmrc.hmrcfrontend.views.config.HmrcFooterItems
 @import uk.gov.hmrc.hmrcfrontend.views.Aliases.{UserResearchBanner, Header}
 @import views.html.helper.CSPNonce
@@ -75,10 +79,6 @@
 
 @displayAccountMenu = @{
   maybeFormTemplate.exists(_.displayAccountHeader)
-}
-
-@displayServiceNavigation = @{
-  maybeFormTemplate.exists(_.serviceNavigationComponent)
 }
 
 @isSpecimen = @{
@@ -193,17 +193,18 @@
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@tudorCrownConfig = @{TudorCrownConfig(appConfig.configuration)}
-@rebrandConfig = @{RebrandConfig(appConfig.configuration)}
+@tudorCrownConfig = @{new TudorCrownConfig(appConfig.configuration)}
+@rebrandConfig = @{new RebrandConfig(appConfig.configuration)}
 @govukLogo = @{new GovukLogo()}
 @govukHeader = @{new GovukHeader(tudorCrownConfig, rebrandConfig, govukLogo)}
 @govukFooter = @{new GovukFooter(rebrandConfig, govukLogo)}
 @govukBackLink = @{new GovukBackLink()}
 @govukSkipLink = @{new GovukSkipLink()}
 @hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
-@hmrcUserResearchBanner = @{new CustomUserResearchBanner}
+@hmrcUserResearchBanner = @{new CustomUserResearchBanner()}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
-@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig, rebrandConfig, govukLogo, displayServiceNavigation, serviceLink)}
+@govukServiceNavigation = @{new GovukServiceNavigation()}
+@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig, rebrandConfig, govukLogo, govukServiceNavigation)}
 @hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout, rebrandConfig)}
@@ -248,35 +249,30 @@
             ))
         </div>
 }
-
-@headerBlock = {
-  @hmrcHeader(Header(
-    serviceName = Some(serviceTitle),
-    serviceUrl = serviceLink,
-    signOutHref = if(!displayAccountMenu) timeoutDialog.flatMap(_.signOutUrl) else None,
-    language = if(messages.lang.code == "cy") Cy else En,
-    assetsPath = Assets.at("govuk/images").url,
-    userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
-    phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
-    displayHmrcBanner = displayHMRCLogo,
-    additionalBannersBlock = if(displaySignOut && displayAccountMenu) Some(ptaNav) else None,
-    inputLanguageToggle = if(displayAccountMenu && displaySignOut && formSupportsLanguages) Some(new LanguageToggle(SortedMap(En -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "english").url, Cy -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "cymraeg").url))) else None
-  ))
-
+@serviceNavigation = @{
+    val serviceNavTemp = ServiceNavigation(serviceName = Some(serviceTitle), serviceUrl = if (serviceLink.isEmpty) None else Some(serviceLink))
+    if(formSupportsLanguages) serviceNavTemp.withLanguageToggle() else serviceNavTemp
 }
 
-@languageSwitch = @{
-  if(formSupportsLanguages) {
-    new components.HmrcLanguageSelect()(LanguageSelect(language, En -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "english").url, Cy -> appConfig.languageSwitchCall(maybeFormTemplate, accessCode, "cymraeg").url))
-  } else HtmlFormat.empty
+@headerBlock = {
+  @hmrcHeader(HeaderParams(
+    headerUrls = HeaderUrls(serviceUrl = serviceLink, assetsPath = Assets.at("govuk/images").url, signOutHref = if(!displayAccountMenu) timeoutDialog.flatMap(_.signOutUrl) else None),
+    banners = Banners(
+      displayHmrcBanner = displayHMRCLogo,
+      phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
+      userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
+      additionalBannersBlock = if(displaySignOut && displayAccountMenu) Some(ptaNav) else None,
+      useDeprecatedPositionForHmrcBanner = true
+    ),
+    serviceNavigation = Some(serviceNavigation),
+    language = if(messages.lang.code == "cy") Cy else En,
+    inputLanguageToggle = None
+  ))
 }
 
 @beforeContentBlock = {
   @if(!displayHMRCLogo){
     <br/>
-  }
-  @if(!displayAccountMenu || !displaySignOut) {
-    @languageSwitch
   }
   @backLink.map(govukBackLink.apply)
 }

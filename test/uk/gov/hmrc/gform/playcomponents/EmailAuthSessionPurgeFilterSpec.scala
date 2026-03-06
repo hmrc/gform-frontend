@@ -223,8 +223,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
     displayAccountHeader = false,
     serviceStartPageUrl = None,
     downloadPreviousSubmissionPdf = true,
-    overrides = None,
-    serviceNavigationComponent = false
+    overrides = None
   )
 
 }
