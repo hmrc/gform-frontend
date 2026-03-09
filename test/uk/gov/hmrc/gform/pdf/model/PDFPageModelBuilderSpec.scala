@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, Instruction, InvisiblePageTitle, IsTrue, MiniSummaryList, MiniSummaryListValue, Section, Value }
 import uk.gov.hmrc.gform.validation.{ FieldOk, ValidationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayInSummary
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.MiniSummaryRow.ValueRow
 
@@ -130,13 +131,32 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List(
       PageData(
         Some("Section Name"),
         List(
           SimpleField(Some("name"), List(Html("name&amp;value"))),
           SimpleField(Some("Key"), List(Html("name&value")))
+        ),
+        "n0"
+      )
+    )
+  }
+
+  "PDFPageModelBuilder.makeModel - PDFType.Summary" should "build model for non-repeating section with filter" in new Fixture {
+    makeModel[DataOrigin.Mongo, PDFType.Summary](
+      formModelOptics,
+      cache,
+      envelopeWithMapping,
+      validationResult,
+      Some(List(BaseComponentId("name")))
+    ) shouldBe List(
+      PageData(
+        Some("Section Name"),
+        List(
+          SimpleField(Some("name"), List(Html("name&amp;value")))
         ),
         "n0"
       )
@@ -162,7 +182,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List(
       PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name-value1")))), "r0.0"),
       PageData(Some("Section Name"), List(SimpleField(Some("name"), List(Html("name-value2")))), "r0.1")
@@ -211,7 +232,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List(
       AddToListData(
         "Pet owner summaryName",
@@ -282,7 +304,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List(
       PageData(
         None,
@@ -324,7 +347,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         formModelOptics,
         cache,
         envelopeWithMapping,
-        validationResult
+        validationResult,
+        None
       ) shouldBe List(
         PageData(
           Some("page2-instruction"),
@@ -350,7 +374,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List(
       PageData(
         None,
@@ -384,7 +409,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List(
       PageData(
         Some("some-instruction"),
@@ -409,7 +435,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       formModelOptics,
       cache,
       envelopeWithMapping,
-      validationResult
+      validationResult,
+      None
     ) shouldBe List.empty
   }
 

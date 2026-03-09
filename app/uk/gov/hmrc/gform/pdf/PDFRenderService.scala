@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
@@ -56,7 +57,8 @@ class PDFRenderService(
     summaryDeclaration: Option[Html],
     maybeDraftText: Option[String] = None,
     maybePdfOptions: Option[PDFModel.Options] = None,
-    maybeFormName: Option[String] = None
+    maybeFormName: Option[String] = None,
+    maybeFilterFieldIds: Option[List[BaseComponentId]] = None
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -75,7 +77,8 @@ class PDFRenderService(
           .validateFormModel(cache.toCacheData, envelopeWithMapping, formModelOptics.formModelVisibilityOptics, None)
     } yield {
       val envelopeByPurpose = envelopeWithMapping.byPurpose(purpose)
-      val pdfModel = PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult)
+      val pdfModel =
+        PDFPageModelBuilder.makeModel(formModelOptics, cache, envelopeByPurpose, validationResult, maybeFilterFieldIds)
 
       val layout =
         if (maybePdfOptions.flatMap(_.tabularFormat).getOrElse(true)) PDFLayout.Tabular else pdfFunctions.layout

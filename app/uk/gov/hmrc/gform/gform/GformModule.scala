@@ -282,6 +282,8 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     pdfGeneratorService,
     sectionRenderingService,
+    pdfRenderService,
+    fopService,
     summaryRenderingService,
     controllersModule.messagesControllerComponents
   )
