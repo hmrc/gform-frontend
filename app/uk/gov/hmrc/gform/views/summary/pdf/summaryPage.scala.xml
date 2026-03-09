@@ -15,7 +15,7 @@
                             <fo:block role="H2"
                                       font-size="16px"
                                       font-weight="bold"
-                                      line-height="16px"
+                                      line-height="20px"
                                       border-after-style="solid"
                                       padding-after="0.1cm"
                                       border-color="#D3D3D3"

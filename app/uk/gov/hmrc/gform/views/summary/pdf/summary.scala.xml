@@ -126,7 +126,7 @@
                               role="H1"
                               font-size="22px"
                               font-weight="bold"
-                              line-height="22pt"
+                              line-height="28pt"
                               padding-after="1cm">
                         @formName
                     </fo:block>

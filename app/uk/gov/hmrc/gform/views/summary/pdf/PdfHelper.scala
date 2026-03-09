@@ -48,7 +48,7 @@ object PdfHelper {
   //The text is a block has no spaces, so FOP finds no place where it can break it.
   //Possible solutions: insert some zero-width spaces &#x200B; in the text
   def insertZeroWidthSpace(input: String): String =
-    input.map(c => s"$c\u200B").mkString
+    input.replaceAll(" ", " \u200B")
 
   def convertFOP(html: String): String = {
     val document = Jsoup.parse(html)
@@ -71,11 +71,11 @@ object PdfHelper {
       case "br" =>
         "<fo:block>&#x00A0;</fo:block>"
       case "h1" =>
-        s"<fo:block role='H1' font-size='22px' line-height='22pt' font-weight='bold' padding-after='0.4cm' padding-before='0.4cm'>${convertChildren(element)}</fo:block>"
+        s"<fo:block role='H1' font-size='22px' line-height='28pt' font-weight='bold' padding-after='0.4cm' padding-before='0.4cm'>${convertChildren(element)}</fo:block>"
       case "h2" =>
-        s"<fo:block role='H2' font-size='16pt' line-height='16pt' font-weight='bold' padding-after='0.4cm' padding-before='0.4cm'>${convertChildren(element)}</fo:block>"
+        s"<fo:block role='H2' font-size='16pt' line-height='20pt' font-weight='bold' padding-after='0.4cm' padding-before='0.4cm'>${convertChildren(element)}</fo:block>"
       case "h3" =>
-        s"<fo:block role='H3' font-size='14pt' line-height='14pt' font-weight='bold' padding-after='0.4cm' padding-before='0.4cm'>${convertChildren(element)}</fo:block>"
+        s"<fo:block role='H3' font-size='14pt' line-height='16pt' font-weight='bold' padding-after='0.4cm' padding-before='0.4cm'>${convertChildren(element)}</fo:block>"
       case "ul" =>
         s"<fo:list-block role='L' padding-before='0.4cm' padding-after='0.4cm'>${element
           .children()
@@ -93,6 +93,12 @@ object PdfHelper {
             s"<fo:list-item role='LI' padding-after='0.2cm'><fo:list-item-label end-indent='label-end()'><fo:block>${idx + 1}.</fo:block></fo:list-item-label><fo:list-item-body start-indent='body-start()'><fo:block>${liConvertChildren(li)}</fo:block></fo:list-item-body></fo:list-item>"
           }
           .mkString("\n")}</fo:list-block>"
+      case "a" =>
+        s"""<fo:basic-link external-destination="url('${element.attributes.get(
+          "href"
+        )}')" color="blue" text-decoration="underline" show-destination="new">${convertChildren(
+          element
+        )}</fo:basic-link>"""
       case _ =>
         convertChildren(element)
     }

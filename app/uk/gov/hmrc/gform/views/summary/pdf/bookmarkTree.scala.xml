@@ -3,9 +3,7 @@
 @(formName: Option[String], summaryDatas: List[SummaryData])
 <fo:bookmark-tree>
     <fo:bookmark internal-destination="title">
-        @formName.map{ title =>
-            <fo:bookmark-title>@title</fo:bookmark-title>
-        }
+        <fo:bookmark-title>@formName.getOrElse("")</fo:bookmark-title>
         @for(summaryData <- summaryDatas) {
                 @summaryData match {
                     case p: PageData => {

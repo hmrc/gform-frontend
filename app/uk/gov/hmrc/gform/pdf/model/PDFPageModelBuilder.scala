@@ -19,14 +19,15 @@ package uk.gov.hmrc.gform.pdf.model
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Section, SectionNumber }
 import uk.gov.hmrc.gform.validation.ValidationResult
-import uk.gov.hmrc.gform.pdf.model.PDFModel._
 
 object PDFPageModelBuilder {
 
@@ -34,7 +35,8 @@ object PDFPageModelBuilder {
     formModelOptics: FormModelOptics[D],
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
-    validationResult: ValidationResult
+    validationResult: ValidationResult,
+    maybeFilterFieldIds: Option[List[BaseComponentId]]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -57,7 +59,8 @@ object PDFPageModelBuilder {
           nonRepeatingPage.singleton.sectionNumber,
           nonRepeatingPage.source,
           validationResult,
-          formModelOptics.formModelVisibilityOptics
+          formModelOptics.formModelVisibilityOptics,
+          maybeFilterFieldIds
         ).toList: List[SummaryData]
       } { repeatingPage =>
         repeatingPage.singletons.toList.flatMap { case SingletonWithNumber(singleton, sectionNumber) =>
@@ -68,7 +71,8 @@ object PDFPageModelBuilder {
             sectionNumber,
             repeatingPage.source,
             validationResult,
-            formModelOptics.formModelVisibilityOptics
+            formModelOptics.formModelVisibilityOptics,
+            maybeFilterFieldIds
           )
         }
       } { addToList =>
@@ -91,7 +95,8 @@ object PDFPageModelBuilder {
                   sectionNumber,
                   addToList.source,
                   validationResult,
-                  formModelOptics.formModelVisibilityOptics
+                  formModelOptics.formModelVisibilityOptics,
+                  maybeFilterFieldIds
                 )
               }
             val addToListIterationTitle = iteration.repeater.repeater.expandedShortName.value()
@@ -130,7 +135,8 @@ object PDFPageModelBuilder {
     sectionNumber: SectionNumber,
     source: Section,
     validationResult: ValidationResult,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    maybeFilterFieldIds: Option[List[BaseComponentId]]
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -140,7 +146,9 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    val filteredFields = doFilter(singleton.page.fields, formModelVisibilityOptics.booleanExprResolver)
+    val filteredFields = doFilter(singleton.page.fields, formModelVisibilityOptics.booleanExprResolver).filter(fc =>
+      maybeFilterFieldIds.fold(true)(_.contains(fc.id.baseComponentId))
+    )
     val pageFields: List[PageField] = formComponentOrdering
       .fold(filteredFields)(filteredFields.sorted(_))
       .flatMap(fc =>
