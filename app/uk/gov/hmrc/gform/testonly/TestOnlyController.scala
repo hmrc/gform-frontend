@@ -515,6 +515,12 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showExpressions(formTemplate._id, accessCode)
     )
 
+    val qaUrl =
+      """https://kibana.mdtp-qa.telemetry.tax.service.gov.uk/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-60m,to:now))&_a=(columns:!(level,message),dataSource:(dataViewId:match_all_logstash_ingested_logs_kibana_index_pattern,type:dataView),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:match_all_logstash_ingested_logs_kibana_index_pattern,key:app,negate:!f,params:!(gform,gform-frontend),type:phrases,value:!(gform,gform-frontend)),query:(bool:(minimum_should_match:1,should:!((match_phrase:(app:gform)),(match_phrase:(app:gform-frontend)))))),('$state':(store:appState),meta:(alias:!n,disabled:!f,field:level,index:match_all_logstash_ingested_logs_kibana_index_pattern,key:level,negate:!f,params:(query:ERROR),type:phrase),query:(match_phrase:(level:ERROR)))),grid:(columns:(level:(width:123))),interval:auto,query:(language:lucene,query:''),sort:!(!('@timestamp',desc)))"""
+    val viewErrorLogsLink = Html(
+      s"""<a id="view-error-logs" href="$qaUrl" class="govuk-link" target="_blank">View recent error logs</a>"""
+    )
+
     val links = List(
       viewHandlebarModelLink,
       viewSourceTemplateLink,
@@ -524,7 +530,8 @@ class TestOnlyController(
       viewTranslationLink,
       viewExpressionsLink,
       viewAllExpressionsLink,
-      viewFormModelLink
+      viewFormModelLink,
+      viewErrorLogsLink
     )
 
     val bulletedList = bulleted_list(links)
