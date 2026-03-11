@@ -287,7 +287,6 @@ class FormDataHelpersSpec extends Spec {
           List.empty,
           None,
           None,
-          None,
           toSmartString("or", "neu"),
           None,
           None,
@@ -302,13 +301,11 @@ class FormDataHelpersSpec extends Spec {
             RevealingChoiceElement(
               toOptionData("Label1"),
               List(mkFormComponent("revealingChoiceField1", Value)),
-              None,
               false
             ),
             RevealingChoiceElement(
               toOptionData("Label2"),
               List(mkFormComponent("revealingChoiceField2", Value)),
-              None,
               false
             )
           ),

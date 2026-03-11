@@ -150,7 +150,6 @@ class FormComponentUpdaterSpec extends Spec {
       List.empty,
       None,
       None,
-      None,
       toSmartString("or", "neu"),
       None,
       None,

@@ -1462,7 +1462,6 @@ class StructuredFormDataBuilderSpec
         Nil,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -1479,7 +1478,6 @@ class StructuredFormDataBuilderSpec
         toOptionData(NonEmptyList.of("One", "Two", "Three")),
         Vertical,
         Nil,
-        None,
         None,
         None,
         divider,
@@ -1502,7 +1500,7 @@ class StructuredFormDataBuilderSpec
     createFormComponent(id, RevealingChoice(element1 :: elements.toList, multiValue))
 
   def createRevealingChoiceElement(fields: FormComponent*): RevealingChoiceElement =
-    RevealingChoiceElement(toOptionData("foo"), fields.toList, None, false)
+    RevealingChoiceElement(toOptionData("foo"), fields.toList, false)
 
   def createAddress(id: String): FormComponent =
     createFormComponent(id, Address(false, List.empty[Address.Configurable.Mandatory], false, None))

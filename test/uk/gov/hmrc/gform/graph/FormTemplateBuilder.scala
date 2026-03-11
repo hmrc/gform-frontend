@@ -351,7 +351,6 @@ object FormTemplateBuilder {
         List.empty,
         None,
         None,
-        None,
         toSmartString("or", "neu"),
         None,
         None,

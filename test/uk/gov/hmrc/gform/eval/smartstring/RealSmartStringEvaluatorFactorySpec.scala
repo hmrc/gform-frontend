@@ -166,7 +166,6 @@ class RealSmartStringEvaluatorFactorySpec
           List.empty,
           None,
           None,
-          None,
           divider,
           None,
           None,
@@ -215,7 +214,6 @@ class RealSmartStringEvaluatorFactorySpec
           List.empty,
           None,
           None,
-          None,
           divider,
           None,
           None,
@@ -253,7 +251,6 @@ class RealSmartStringEvaluatorFactorySpec
           toOptionData(NonEmptyList.of("Choice1", "Choice2")),
           Horizontal,
           List.empty,
-          None,
           None,
           None,
           divider,
@@ -294,7 +291,6 @@ class RealSmartStringEvaluatorFactorySpec
           List.empty,
           None,
           None,
-          None,
           divider,
           None,
           None,
@@ -333,7 +329,6 @@ class RealSmartStringEvaluatorFactorySpec
           List.empty,
           None,
           None,
-          None,
           divider,
           None,
           None,
@@ -369,8 +364,8 @@ class RealSmartStringEvaluatorFactorySpec
         "revealingChoiceField",
         RevealingChoice(
           List(
-            RevealingChoiceElement(toOptionData("Option1"), List(choice1TextField), None, true),
-            RevealingChoiceElement(toOptionData("Option2"), List(choice2TextField), None, true)
+            RevealingChoiceElement(toOptionData("Option1"), List(choice1TextField), true),
+            RevealingChoiceElement(toOptionData("Option2"), List(choice2TextField), true)
           ),
           true
         ),
@@ -405,8 +400,8 @@ class RealSmartStringEvaluatorFactorySpec
         "revealingChoiceField",
         RevealingChoice(
           List(
-            RevealingChoiceElement(toOptionData("Option1"), List(choice1TextField), None, true),
-            RevealingChoiceElement(toOptionData("Option2"), List(choice2TextField), None, true)
+            RevealingChoiceElement(toOptionData("Option1"), List(choice1TextField), true),
+            RevealingChoiceElement(toOptionData("Option2"), List(choice2TextField), true)
           ),
           true
         ),
@@ -638,7 +633,6 @@ class RealSmartStringEvaluatorFactorySpec
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -682,7 +676,6 @@ class RealSmartStringEvaluatorFactorySpec
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -723,8 +716,8 @@ class RealSmartStringEvaluatorFactorySpec
       "revealingChoiceField",
       RevealingChoice(
         List(
-          RevealingChoiceElement(toOptionData("Option 1"), List(choice1TextField), None, true),
-          RevealingChoiceElement(toOptionData("Option 2"), List(choice2TextField), None, true)
+          RevealingChoiceElement(toOptionData("Option 1"), List(choice1TextField), true),
+          RevealingChoiceElement(toOptionData("Option 2"), List(choice2TextField), true)
         ),
         true
       ),
@@ -764,7 +757,6 @@ class RealSmartStringEvaluatorFactorySpec
         toOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,
@@ -819,7 +811,6 @@ class RealSmartStringEvaluatorFactorySpec
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -870,7 +861,6 @@ class RealSmartStringEvaluatorFactorySpec
         toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,
@@ -925,7 +915,6 @@ class RealSmartStringEvaluatorFactorySpec
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -978,7 +967,6 @@ class RealSmartStringEvaluatorFactorySpec
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -995,7 +983,6 @@ class RealSmartStringEvaluatorFactorySpec
         toOptionData(NonEmptyList.of("Yes", "No")),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,

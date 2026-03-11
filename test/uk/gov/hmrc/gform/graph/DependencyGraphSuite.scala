@@ -172,7 +172,6 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
         List.empty,
         None,
         None,
-        None,
         toSmartString("or", "neu"),
         None,
         None,
@@ -225,13 +224,11 @@ class DependencyGraphSuite extends FunSuite with FormModelSupport with VariadicF
           RevealingChoiceElement(
             toOptionData("Label1"),
             List(mkFormComponent("revealingChoiceField1", Value)),
-            None,
             false
           ),
           RevealingChoiceElement(
             toOptionData("Label2"),
             List(mkFormComponent("revealingChoiceField2", Value)),
-            None,
             false
           )
         ),
