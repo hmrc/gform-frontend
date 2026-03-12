@@ -143,4 +143,16 @@
             }
         }(i));
     }
+
+    var errorLink = document.getElementById("view-error-logs");
+    if (errorLink != null) {
+        var errorHref = errorLink.getAttribute("href");
+        if (window.location.href.includes("test-www.tax.service.gov.uk")) {
+            errorLink.setAttribute("href", errorHref.replace("kibana.mdtp-qa.", "kibana.mdtp-externaltest."));
+        } else if (window.location.href.includes("www.staging.tax.service.gov.uk")) {
+            errorLink.setAttribute("href", errorHref.replace("kibana.mdtp-qa.", "kibana.mdtp-staging."));
+        } else if (window.location.href.includes("localhost")) {
+            errorLink.parentNode.remove();
+        }
+    }
 </script>
