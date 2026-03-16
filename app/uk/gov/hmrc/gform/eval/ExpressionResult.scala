@@ -373,7 +373,10 @@ sealed trait ExpressionResult extends Product with Serializable {
   def withStringResult[B](noString: B)(f: String => B): B =
     fold[B](_ => noString)(_ => noString)(_ => noString)(_ => noString)(r => f(r.value))(_ => noString)(_ => noString)(
       _ => noString
-    )(_ => noString)(_ => noString)(_ => noString)
+    )(_ => noString)(_ => noString)(listResult =>
+      // DataRetrieveCtx(_, _) can evaluate to ListResult even if it is not used in ATL.
+      listResult.list.headOption.fold[B](noString)(_.withStringResult(noString)(f))
+    )
 
   def convertNumberToString: ExpressionResult =
     fold[ExpressionResult](identity)(identity)(identity)(r => StringResult(r.value.toString))(identity)(identity)(
