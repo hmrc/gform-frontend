@@ -71,11 +71,11 @@ class ExpressionResultSpec extends FunSuite {
     assert(empHid)
   }
 
-  test("identical needs to return false for Hidden and Hidden") {
+  test("identical needs to return true for Hidden and Hidden") {
 
     val hidHid = Hidden.identical(Hidden)
 
-    assertEquals(false, hidHid)
+    assertEquals(true, hidHid)
   }
 
   test("identical needs to return true for Empty and Empty") {
