@@ -26,6 +26,7 @@ sealed trait SdesDestination extends Product with Serializable {
     case SdesDestination.DataStore | SdesDestination.DataStoreLegacy => "data-store"
     case SdesDestination.Dms | SdesDestination.PegaCaseflow          => "dms"
     case SdesDestination.InfoArchive                                 => "info-archive"
+    case SdesDestination.DataLakehouse                               => "data-lakehouse"
   }
 
   def description: String = this match {
@@ -35,6 +36,7 @@ sealed trait SdesDestination extends Product with Serializable {
     case SdesDestination.Dms             => "DMS"
     case SdesDestination.InfoArchive     => "InfoArchive"
     case SdesDestination.PegaCaseflow    => "Pega Caseflow"
+    case SdesDestination.DataLakehouse   => "Data Lakehouse"
   }
 }
 
@@ -51,6 +53,8 @@ object SdesDestination {
 
   case object PegaCaseflow extends SdesDestination
 
+  case object DataLakehouse extends SdesDestination
+
   implicit val equal: Eq[SdesDestination] = Eq.fromUniversalEquals
 
   implicit val format: Format[SdesDestination] =
@@ -60,6 +64,7 @@ object SdesDestination {
       "DataStoreLegacy" -> DataStoreLegacy,
       "DataStore"       -> DataStore,
       "InfoArchive"     -> InfoArchive,
-      "PegaCaseflow"    -> PegaCaseflow
+      "PegaCaseflow"    -> PegaCaseflow,
+      "DataLakehouse"   -> DataLakehouse
     )
 }
