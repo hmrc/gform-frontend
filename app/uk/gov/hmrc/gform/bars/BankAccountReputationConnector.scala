@@ -104,16 +104,12 @@ class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: Str
   override def isFailure(response: DataRetrieve.Response): Boolean =
     response.toRetrieveDataType() match {
       case ObjectType(data) =>
-        val accountNumWellFormattedValue = data.getOrElse(DataRetrieve.Attribute("accountNumberIsWellFormatted"), "")
-        val accountExistsValue = data.getOrElse(DataRetrieve.Attribute("accountExists"), "")
-        val nameMatchesValue = data.getOrElse(DataRetrieve.Attribute("nameMatches"), "")
+        val accountExists = data.getOrElse(DataRetrieve.Attribute("accountExists"), "")
+        val nameMatches = data.getOrElse(DataRetrieve.Attribute("nameMatches"), "")
 
-        val commonPredicate = accountNumWellFormattedValue =!= "no"
-        val failureCheck1 = commonPredicate && accountExistsValue === "inapplicable"
-        val failureCheck2 =
-          commonPredicate && accountExistsValue === "yes" && nameMatchesValue =!= "yes" && nameMatchesValue =!= "partial"
+        val isSuccess = accountExists === "yes" && (nameMatches === "yes" || nameMatches === "partial")
 
-        failureCheck1 || failureCheck2
+        !isSuccess
       case ListType(_) => throw new IllegalStateException("List type is illegal for BARs check response")
     }
 }
