@@ -63,6 +63,22 @@ sealed trait DestinationWithNiRefundClaimBankDetails extends Destination {
   def nino: Expr
 }
 
+sealed trait DestinationWithNrsOrchestrator extends Destination {
+  def businessId: String
+  def notableEvent: String
+  def saUtr: Option[Expr]
+  def ctUtr: Option[Expr]
+  def submissionReferenceId: Option[Expr]
+  def formId: FormId
+  def version: String
+  def taxpayerId: Expr
+  def regime: String
+  def includeSessionInfo: Boolean
+  def handlebarPayload: Boolean
+  def formDataPayload: Boolean
+  def payload: Option[String]
+}
+
 sealed trait DestinationIncludeIf extends Product with Serializable
 
 object DestinationIncludeIf {
@@ -190,6 +206,25 @@ object Destination {
     nino: Expr
   ) extends Destination with DestinationWithNiRefundClaimBankDetails
 
+  case class NRSOrchestrator(
+    id: DestinationId,
+    includeIf: DestinationIncludeIf,
+    failOnError: Boolean,
+    businessId: String,
+    notableEvent: String,
+    saUtr: Option[Expr],
+    ctUtr: Option[Expr],
+    submissionReferenceId: Option[Expr],
+    formId: FormId,
+    version: String,
+    taxpayerId: Expr,
+    regime: String,
+    includeSessionInfo: Boolean,
+    handlebarPayload: Boolean,
+    formDataPayload: Boolean,
+    payload: Option[String]
+  ) extends DestinationWithNrsOrchestrator
+
   val typeDiscriminatorFieldName: String = "type"
   val hmrcDms: String = "hmrcDms"
   val dataStore: String = "hmrcIlluminate"
@@ -201,6 +236,7 @@ object Destination {
   val email: String = "email"
   val pegaApi: String = "pegaApi"
   val niRefundClaimApi: String = "niRefundClaimApi"
+  val nrsOrchestrator: String = "nrsOrchestrator"
 
   implicit def format: OFormat[Destination] = {
     implicit val personalisationReads =
@@ -218,7 +254,8 @@ object Destination {
         log                    -> UploadableLogDestination.reads,
         email                  -> UploadableEmailDestination.reads,
         pegaApi                -> UploadablePegaApiDestination.reads,
-        niRefundClaimApi       -> UploadableNiRefundClaimApiDestination.reads
+        niRefundClaimApi       -> UploadableNiRefundClaimApiDestination.reads,
+        nrsOrchestrator        -> UploadableNrsOrchestratorDestination.reads
       )
     )
   }
@@ -550,6 +587,55 @@ object UploadableNiRefundClaimApiDestination {
     private val d: Reads[UploadableNiRefundClaimApiDestination] = derived.reads[UploadableNiRefundClaimApiDestination]()
     override def reads(json: JsValue): JsResult[Destination.NiRefundClaimApi] =
       d.reads(json).flatMap(_.toNiRefundClaimApiDestination.fold(JsError(_), JsSuccess(_)))
+  }
+}
+
+case class UploadableNrsOrchestratorDestination(
+  id: DestinationId,
+  includeIf: DestinationIncludeIf,
+  failOnError: Boolean,
+  businessId: String,
+  notableEvent: String,
+  saUtr: Option[TextExpression],
+  ctUtr: Option[TextExpression],
+  submissionReferenceId: Option[TextExpression],
+  formId: String,
+  version: String,
+  taxpayerId: TextExpression,
+  regime: String,
+  includeSessionInfo: Boolean,
+  handlebarPayload: Boolean,
+  formDataPayload: Boolean,
+  payload: Option[String]
+) {
+  private def toNrsOchestratorDestination: Either[String, Destination.NRSOrchestrator] =
+    for {
+      cvii <- addErrorInfo(id, None, includeIf)
+    } yield Destination.NRSOrchestrator(
+      id,
+      cvii,
+      failOnError,
+      businessId,
+      notableEvent,
+      saUtr.map(_.expr),
+      ctUtr.map(_.expr),
+      submissionReferenceId.map(_.expr),
+      FormId(formId),
+      version,
+      taxpayerId.expr,
+      regime,
+      includeSessionInfo,
+      handlebarPayload,
+      formDataPayload,
+      payload
+    )
+}
+
+object UploadableNrsOrchestratorDestination {
+  implicit val reads: Reads[Destination.NRSOrchestrator] = new Reads[Destination.NRSOrchestrator] {
+    private val d: Reads[UploadableNrsOrchestratorDestination] = derived.reads()
+    override def reads(json: JsValue): JsResult[Destination.NRSOrchestrator] =
+      d.reads(json).flatMap(_.toNrsOchestratorDestination.fold(JsError(_), JsSuccess(_)))
   }
 }
 

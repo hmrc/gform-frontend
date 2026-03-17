@@ -105,7 +105,8 @@ class SubmissionDataTest extends Spec {
           |       "credentialId":"",
           |       "authEmail":"",
           |       "authPhone":"",
-          |       "enrolments":[]
+          |       "enrolments":[],
+          |       "onSubmitHeaders":[]
           |   }
           |}""".stripMargin
     )

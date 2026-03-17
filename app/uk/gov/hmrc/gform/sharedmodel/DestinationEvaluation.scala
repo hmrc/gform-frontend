@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json.{ Format, Json, OFormat }
+import play.api.libs.json.{ Format, JsError, JsObject, JsResult, Json, OFormat }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 
 case class DestinationResult(
@@ -33,7 +33,8 @@ case class DestinationResult(
   sortCode: Option[String],
   accountNumber: Option[String],
   rollNumber: Option[String],
-  refundClaimReference: Option[String]
+  refundClaimReference: Option[String],
+  data: Option[JsObject]
 )
 
 object DestinationResult {
@@ -45,4 +46,57 @@ case class DestinationEvaluation(evaluation: List[DestinationResult])
 object DestinationEvaluation {
   val empty = DestinationEvaluation(List.empty[DestinationResult])
   implicit val format: OFormat[DestinationEvaluation] = Json.format[DestinationEvaluation]
+}
+
+case class NRSOrchestratorDestinationResultData(
+  saUtr: Option[String],
+  ctUtr: Option[String],
+  submissionReferenceId: Option[String]
+)
+
+object NRSOrchestratorDestinationResultData {
+  implicit val dataFormat: Format[NRSOrchestratorDestinationResultData] = Json.format
+}
+
+case class NRSOrchestratorDestinationResult(
+  id: DestinationId,
+  includeIf: Option[Boolean],
+  taxPayerId: String,
+  data: NRSOrchestratorDestinationResultData
+) {
+  def toDestinationResult: DestinationResult =
+    DestinationResult(
+      id,
+      includeIf,
+      Some(taxPayerId),
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(Json.toJson(data).as[JsObject])
+    )
+}
+
+object NRSOrchestratorDestinationResult {
+  def fromDestinationResult(destinationResult: DestinationResult): JsResult[NRSOrchestratorDestinationResult] =
+    destinationResult.data
+      .map { dataJson =>
+        val data = dataJson.validate[NRSOrchestratorDestinationResultData]
+        data.map { data =>
+          NRSOrchestratorDestinationResult(
+            destinationResult.destinationId,
+            destinationResult.includeIf,
+            destinationResult.taxpayerId.getOrElse(throw new RuntimeException("taxpayer id not found")),
+            data
+          )
+        }
+      }
+      .getOrElse(JsError("destination result has no data object"))
 }
