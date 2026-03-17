@@ -19,13 +19,15 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 
 @(
   formTemplate: FormTemplate,
   envelopeId: EnvelopeId,
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
-  tabs: Html
+  tabs: Html,
+  backLink: Option[BackLink] = None
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -34,6 +36,9 @@
 
 <head>
     <style>
+        .govuk-main-wrapper {
+            padding-top: 20px!important;
+        }
         .code-block {
             background-color: #f3f2f1;
             padding: 10px;
@@ -90,15 +95,20 @@
 </head>
 
 @heading = @{"Toolbox"}
+@formWithCSRF = @{new FormWithCSRF()}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   formTemplate = formTemplate,
   frontendAppConfig = frontendAppConfig,
   isMainContentFullWidth = true,
+  backLink = backLink,
   accessCode = accessCode
 ) {
     @tabs
+    @formWithCSRF(action = uk.gov.hmrc.gform.gform.routes.NewFormController.decision(formTemplate._id), args = 'id -> "return-to-form") {
+        <input type="hidden" name="decision" value="continue"/>
+    }
 }
 
 <script @CSPNonce.attr type="text/javascript">
@@ -106,7 +116,7 @@
 
     for (var i = 0; i < allButtons.length; i++) {
         (function(i) {
-            var theButton = allButtons[i]
+            var theButton = allButtons[i];
             var codeId = theButton.id + 'Code';
             theButton.addEventListener('click', function () {
                 var content = document.getElementById(codeId).innerHTML;
@@ -119,5 +129,30 @@
                 return false;
             });
         }(i));
+    }
+
+    var backLinks = document.querySelectorAll('a[class^=govuk-back-link]');
+
+    for (var i = 0; i < backLinks.length; i++) {
+        (function(i) {
+            var theLink = backLinks[i];
+            if (theLink.innerHTML == "Return to form") {
+                theLink.addEventListener('click', function () {
+                    document.getElementById("return-to-form").submit();
+                });
+            }
+        }(i));
+    }
+
+    var errorLink = document.getElementById("view-error-logs");
+    if (errorLink != null) {
+        var errorHref = errorLink.getAttribute("href");
+        if (window.location.href.includes("test-www.tax.service.gov.uk")) {
+            errorLink.setAttribute("href", errorHref.replace("kibana.mdtp-qa.", "kibana.mdtp-externaltest."));
+        } else if (window.location.href.includes("www.staging.tax.service.gov.uk")) {
+            errorLink.setAttribute("href", errorHref.replace("kibana.mdtp-qa.", "kibana.mdtp-staging."));
+        } else if (window.location.href.includes("localhost")) {
+            errorLink.parentNode.remove();
+        }
     }
 </script>
