@@ -329,7 +329,7 @@ class BankAccountReputationAsyncConnectorSpec
     }
   }
 
-  "isFailure" should "return false if account number not well formatted" in new TestFixture {
+  "isFailure" should "return true if account exists is indeterminate" in new TestFixture {
     val response = DataRetrieve.Response.Object(
       Map(
         DataRetrieve.Attribute("accountNumberIsWellFormatted") -> "no",
@@ -342,7 +342,7 @@ class BankAccountReputationAsyncConnectorSpec
       )
     )
 
-    bankAccountReputationAsyncConnector.isFailure(response) shouldBe false
+    bankAccountReputationAsyncConnector.isFailure(response) shouldBe true
   }
 
   it should "return true if account exists is inapplicable" in new TestFixture {
