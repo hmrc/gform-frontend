@@ -197,9 +197,7 @@ object DestinationEvaluator {
               evalIncludeIf(d.includeIf),
               taxpayerId,
               NRSOrchestratorDestinationResultData(
-                d.saUtr.map(evalString),
-                d.ctUtr.map(evalString),
-                d.submissionReferenceId.map(evalString)
+                d.searchKeys.map { case (key, value) => key -> evalString(value) }
               )
             ).toDestinationResult
           case others =>

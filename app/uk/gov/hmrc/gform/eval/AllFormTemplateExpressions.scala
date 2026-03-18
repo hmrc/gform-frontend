@@ -94,7 +94,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
             Some(d.nino)
           ).flatten
         case d: Destination.NRSOrchestrator =>
-          List(d.saUtr, d.ctUtr, d.submissionReferenceId, Some(d.taxpayerId)).flatten
+          d.searchKeys.values.toList ++ Some(d.taxpayerId)
       }
 
       def fromDestinations(destinations: NonEmptyList[Destination]): List[ExprMetadata] =
