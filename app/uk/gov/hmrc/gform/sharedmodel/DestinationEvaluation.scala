@@ -59,14 +59,13 @@ object NRSOrchestratorDestinationResultData {
 case class NRSOrchestratorDestinationResult(
   id: DestinationId,
   includeIf: Option[Boolean],
-  taxPayerId: String,
   data: NRSOrchestratorDestinationResultData
 ) {
   def toDestinationResult: DestinationResult =
     DestinationResult(
       id,
       includeIf,
-      Some(taxPayerId),
+      None,
       None,
       None,
       None,
@@ -91,7 +90,6 @@ object NRSOrchestratorDestinationResult {
           NRSOrchestratorDestinationResult(
             destinationResult.destinationId,
             destinationResult.includeIf,
-            destinationResult.taxpayerId.getOrElse(throw new RuntimeException("taxpayer id not found")),
             data
           )
         }

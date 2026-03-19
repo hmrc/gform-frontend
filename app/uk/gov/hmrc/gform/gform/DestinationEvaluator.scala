@@ -189,13 +189,10 @@ object DestinationEvaluator {
             )
           case d: DestinationWithNrsOrchestrator =>
             def evalString(expr: Expr) = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
-            val taxpayerId =
-              formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.taxpayerId).stringRepresentation.take(32)
 
             NRSOrchestratorDestinationResult(
               d.id,
               evalIncludeIf(d.includeIf),
-              taxpayerId,
               NRSOrchestratorDestinationResultData(
                 d.searchKeys.map { case (key, value) => key -> evalString(value) }
               )
