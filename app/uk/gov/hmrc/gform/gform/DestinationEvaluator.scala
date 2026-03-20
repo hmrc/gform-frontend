@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithNrsOrchestrator, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult }
+import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult, NRSOrchestratorDestinationResult, NRSOrchestratorDestinationResultData }
 
 object DestinationEvaluator {
 
@@ -63,6 +63,7 @@ object DestinationEvaluator {
               None,
               None,
               None,
+              None,
               None
             )
           case d: DestinationWithCustomerId =>
@@ -74,6 +75,7 @@ object DestinationEvaluator {
               d.id,
               includeIfEval,
               Some(customerId),
+              None,
               None,
               None,
               None,
@@ -96,6 +98,7 @@ object DestinationEvaluator {
               includeIfEval,
               None,
               Some(taxpayerId),
+              None,
               None,
               None,
               None,
@@ -132,6 +135,7 @@ object DestinationEvaluator {
               None,
               None,
               None,
+              None,
               None
             )
           case d: DestinationWithPegaCaseId =>
@@ -147,6 +151,7 @@ object DestinationEvaluator {
               None,
               None,
               Some(caseId),
+              None,
               None,
               None,
               None,
@@ -179,13 +184,25 @@ object DestinationEvaluator {
               Some(sortCode),
               Some(accountNumber),
               rollNumber,
-              Some(refundClaimReference)
+              Some(refundClaimReference),
+              None
             )
+          case d: DestinationWithNrsOrchestrator =>
+            def evalString(expr: Expr) = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
+
+            NRSOrchestratorDestinationResult(
+              d.id,
+              evalIncludeIf(d.includeIf),
+              NRSOrchestratorDestinationResultData(
+                d.searchKeys.map { case (key, value) => key -> evalString(value) }
+              )
+            ).toDestinationResult
           case others =>
             val includeIfEval = evalIncludeIf(others.includeIf)
             DestinationResult(
               others.id,
               includeIfEval,
+              None,
               None,
               None,
               None,

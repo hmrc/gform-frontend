@@ -41,7 +41,8 @@ object UserSessionBuilder {
       affinityGroup,
       authEmail,
       "", //authPhone does not exist in Gov Gtwy account
-      enrolments
+      enrolments,
+      request.headers.headers
     )
     userSession.pure[F]
   }
