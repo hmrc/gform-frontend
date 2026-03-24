@@ -116,7 +116,7 @@ class SubmissionService(
           }
           auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files, dmsSubmissions)
           customerId
-        case _ => throw new Exception(response.body)
+        case _ => throw new Exception("Unknown exception occurred during form submission")
       }
     }
   }
