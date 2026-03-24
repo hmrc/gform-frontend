@@ -363,6 +363,12 @@ class TestOnlyController(
         .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=Dms")
     )
 
+    val dataLakehouseWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View data-lakehouse-work-item entry",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=DataLakehouse")
+    )
+
     val viewSDESLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View sdes submission",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -384,7 +390,9 @@ class TestOnlyController(
       case (_, link) => List(link)
     }
 
-    bulleted_list(destinationLinks ++ List(dataStoreWorkItemLink, dmsWorkItemLink, viewSDESLink))
+    bulleted_list(
+      destinationLinks ++ List(dataStoreWorkItemLink, dataLakehouseWorkItemLink, dmsWorkItemLink, viewSDESLink)
+    )
   }
 
   private def developmentToolsTab(
