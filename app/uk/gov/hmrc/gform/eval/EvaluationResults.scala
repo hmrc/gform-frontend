@@ -763,6 +763,14 @@ case class EvaluationResults(
                 .url
             case InternalLink.UrlLink(url) =>
               uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
+            case InternalLink.PrintSectionPdf =>
+              uk.gov.hmrc.gform.gform.routes.PrintSectionController
+                .downloadNotificationPDF(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode)
+                .url
+            case InternalLink.SummaryPage =>
+              uk.gov.hmrc.gform.gform.routes.SummaryController
+                .summaryById(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, None, None)
+                .url
           }
         nonEmptyStringResult(StringResult(link))
       case DateCtx(dateExpr) => evalDateExpr(recData, evaluationContext, this, booleanExprResolver)(dateExpr)
