@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import org.slf4j.LoggerFactory
+import play.api.http.Status.OK
 import play.api.i18n.I18nSupport
 import play.api.libs.json.{ JsError, JsSuccess }
 import play.api.mvc.{ AnyContent, Request }
@@ -105,14 +106,21 @@ class SubmissionService(
 
     } yield {
       val (response, customerId) = result
-      val dmsSubmissions = response.json.validate[List[DmsDestinationResponse]] match {
-        case JsSuccess(submissions, _) => submissions
-        case JsError(err) =>
-          logger.error(s"Unable to parse destination responses: $err")
-          List.empty[DmsDestinationResponse]
+      response.status match {
+        case OK =>
+          val dmsSubmissions = response.json.validate[List[DmsDestinationResponse]] match {
+            case JsSuccess(submissions, _) => submissions
+            case JsError(err) =>
+              logger.error(s"Unable to parse DMS destination responses: ${response.json}. Got an error: $err")
+              List.empty[DmsDestinationResponse]
+          }
+          auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files, dmsSubmissions)
+          customerId
+        case unexpected =>
+          throw new Exception(
+            s"Unknown exception occurred during form submission. Status: $unexpected, response body: ${response.json}"
+          )
       }
-      auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files, dmsSubmissions)
-      customerId
     }
   }
 
