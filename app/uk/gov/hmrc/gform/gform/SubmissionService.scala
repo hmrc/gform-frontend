@@ -111,12 +111,15 @@ class SubmissionService(
           val dmsSubmissions = response.json.validate[List[DmsDestinationResponse]] match {
             case JsSuccess(submissions, _) => submissions
             case JsError(err) =>
-              logger.warn(s"Unable to parse any DMS destination responses: $err")
+              logger.error(s"Unable to parse DMS destination responses: ${response.json}. Got an error: $err")
               List.empty[DmsDestinationResponse]
           }
           auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files, dmsSubmissions)
           customerId
-        case _ => throw new Exception("Unknown exception occurred during form submission")
+        case unexpected =>
+          throw new Exception(
+            s"Unknown exception occurred during form submission. Status: $unexpected, response body: ${response.json}"
+          )
       }
     }
   }
