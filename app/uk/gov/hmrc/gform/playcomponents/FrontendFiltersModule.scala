@@ -160,7 +160,8 @@ class FrontendFiltersModule(
     SessionTimeoutFilterConfig
       .fromConfig(configModule.playConfiguration),
     controllersModule.authenticatedRequestActions,
-    auditingModule.auditService
+    auditingModule.auditService,
+    playBuiltInsModule
   )
 
   private val deviceIdFilter = new DefaultDeviceIdFilter(

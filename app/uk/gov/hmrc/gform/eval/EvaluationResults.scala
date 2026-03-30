@@ -712,9 +712,21 @@ case class EvaluationResults(
       case FormTemplateCtx(value: FormTemplateProp) =>
         nonEmptyStringResult {
           value match {
-            case FormTemplateProp.Id                  => StringResult(evaluationContext.formTemplateId.value)
-            case FormTemplateProp.SubmissionReference => StringResult(evaluationContext.submissionRef.value)
-            case FormTemplateProp.FileSizeLimit       => StringResult(evaluationContext.fileSizeLimit.value.toString)
+            case FormTemplateProp.Id => StringResult(evaluationContext.formTemplateId.value)
+            case FormTemplateProp.SubmissionReference =>
+              val submissionRef = evaluationContext.customSubmissionRef match {
+                case None => SubmissionRef.fromEnvelopeId(evaluationContext.envelopeId)
+                case Some(customSubmissionRef) =>
+                  loop(customSubmissionRef.expr) match {
+                    case StringResult(res) => SubmissionRef.fromSeed(res)
+                    case unexpected =>
+                      throw new Exception(
+                        s"Failed to compute submission reference using expression: $customSubmissionRef. Exprected StringResult, but got $unexpected"
+                      )
+                  }
+              }
+              StringResult(submissionRef.value)
+            case FormTemplateProp.FileSizeLimit => StringResult(evaluationContext.fileSizeLimit.value.toString)
           }
         }
 

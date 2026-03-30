@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.controllers.GformSessionKeys.{ COMPOSITE_AUTH_DETAILS_S
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gform.MaskUtil.maskEmail
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig.hmrcSimpleModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, Composite, FormTemplateId }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ signed_out, signed_out_email_auth }
@@ -81,7 +82,12 @@ class SignOutController(
   private def sendSignOutEvent(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, None, OperationWithForm.AuditSessionEnd) {
       implicit request => implicit lang => cache => _ => formModelOptics =>
-        auditService.sendFormSignOut(cache.form, cache.retrievals)
+        val submissionRef = SubmissionRef(
+          cache.formTemplate,
+          cache.form.envelopeId,
+          formModelOptics.formModelVisibilityOptics
+        )
+        auditService.sendFormSignOut(cache.form, cache.retrievals, submissionRef)
         Future.successful(Ok("success"))
     }
 

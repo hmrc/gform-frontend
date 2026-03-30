@@ -1386,7 +1386,8 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     destinationList: DestinationList,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    submissionRef: SubmissionRef
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -1428,7 +1429,8 @@ class SectionRenderingService(
       showReference,
       formCategory,
       envelopeId,
-      heading
+      heading,
+      submissionRef
     )
     val snippets = destinationList.acknowledgementSection.toPage.renderUnits.map(renderUnit =>
       htmlFor(
@@ -1460,7 +1462,8 @@ class SectionRenderingService(
     showReference: Boolean,
     formCategory: FormCategory,
     envelopeId: EnvelopeId,
-    heading: String
+    heading: String,
+    submissionRef: SubmissionRef
   )(implicit
     messages: Messages
   ): Html = {
@@ -1468,7 +1471,7 @@ class SectionRenderingService(
     val htmlContent: Content =
       if (showReference) {
         HtmlContent(
-          uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.submission_reference(SubmissionRef(envelopeId))
+          uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.submission_reference(submissionRef)
         )
       } else {
         Empty

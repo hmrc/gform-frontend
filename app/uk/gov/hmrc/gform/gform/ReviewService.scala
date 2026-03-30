@@ -160,17 +160,21 @@ class ReviewService[F[_]: Monad](
   ): NonEmptyList[BundledFormSubmissionData] =
     forms.map { form =>
       val formModelVisibilityOptics: FormModelVisibilityOptics[D] = null
+      val formTemplate = formTemplates(form.formTemplateId)
       val sfd = StructuredFormDataBuilder[D](
         formModelVisibilityOptics,
-        formTemplates(form.formTemplateId).destinations,
-        formTemplates(form.formTemplateId).expressionsOutput,
+        formTemplate.destinations,
+        formTemplate.expressionsOutput,
         lookupRegistry
       )
 
       BundledFormSubmissionData(
-        FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),
+        FormIdData.fromForm(
+          form,
+          Some(AccessCode.fromSubmissionRef(SubmissionRef(formTemplate, form.envelopeId, formModelVisibilityOptics)))
+        ),
         sfd,
-        DestinationEvaluator(formTemplates(form.formTemplateId), formModelVisibilityOptics)
+        DestinationEvaluator(formTemplate, formModelVisibilityOptics)
       )
 
     }

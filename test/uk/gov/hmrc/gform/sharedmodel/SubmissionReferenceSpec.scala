@@ -25,17 +25,17 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 class SubmissionReferenceSpec extends Spec with TableDrivenPropertyChecks {
 
   "A valid EnvelopeID" should "return a 12 digit alphanumeric string separated with hyphens" in {
-    val res: String = SubmissionRef(envelopeId).toString
+    val res: String = SubmissionRef.fromEnvelopeId(envelopeId).toString
     res should fullyMatch regex "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
   }
 
   "A missing EnvelopeID" should "return an empty string" in {
-    val res: String = SubmissionRef(EnvelopeId("")).toString
+    val res: String = SubmissionRef.fromEnvelopeId(EnvelopeId("")).toString
     res should be("")
   }
 
   "A Submission Reference" should "Have it's last digit be derived from the previous eleven" in {
-    val res: Boolean = SubmissionRef.verifyCheckChar(SubmissionRef(envelopeId).toString)
+    val res: Boolean = SubmissionRef.verifyCheckChar(SubmissionRef.fromEnvelopeId(envelopeId).toString)
     res should be(true)
   }
 

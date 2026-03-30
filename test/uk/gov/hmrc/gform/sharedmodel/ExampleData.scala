@@ -65,7 +65,8 @@ trait ExampleEvaluationContext {
   val evaluationContext: EvaluationContext =
     EvaluationContext(
       formTemplateId,
-      submissionRef,
+      EnvelopeId(""),
+      Option.empty[CustomSubmissionRef],
       None,
       authContext,
       ThirdPartyData.empty,
@@ -952,7 +953,8 @@ trait ExampleFormTemplate {
       false,
       None,
       true,
-      None
+      None,
+      Option.empty[CustomSubmissionRef]
     )
 }
 

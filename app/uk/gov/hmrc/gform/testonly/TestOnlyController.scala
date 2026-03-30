@@ -193,7 +193,8 @@ class TestOnlyController(
       l,
       None,
       DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-      userSession
+      userSession,
+      SubmissionRef(formTemplate, form.envelopeId, formModelVisibilityOptics)
     )
     for {
 
@@ -993,7 +994,8 @@ class TestOnlyController(
       l,
       None,
       DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-      userSession
+      userSession,
+      SubmissionRef(formTemplate, form.envelopeId, formModelVisibilityOptics)
     )
     for {
 

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform.handlers
 
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.CacheData
@@ -24,7 +25,7 @@ import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SectionNumber, SectionOrSummary, SectionTitle4Ga, SuppressErrors }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -64,7 +65,12 @@ class FormControllerRequestHandler(
     enteredVariadicFormData: EnteredVariadicFormData,
     form: Form,
     retrievals: MaterialisedRetrievals
-  )(implicit hc: HeaderCarrier, lang: LangADT, sse: SmartStringEvaluator): Future[FormValidationOutcome] =
+  )(implicit
+    hc: HeaderCarrier,
+    lang: LangADT,
+    sse: SmartStringEvaluator,
+    messages: Messages
+  ): Future[FormValidationOutcome] =
     for {
       formHandlerResult <- formValidator.validatePageModelBySectionNumber(
                              formModelOptics,
@@ -79,7 +85,9 @@ class FormControllerRequestHandler(
       _ <- if (!outcome.isValid) {
              val pageModel = formModelOptics.formModelVisibilityOptics.formModel(sectionNumber)
              val sectionTitle = SectionTitle4Ga.sectionTitle4GaFactory(pageModel, sectionNumber).value
-             auditFormValidationErrors(formHandlerResult, form, retrievals, sectionTitle)
+             val submissionRef =
+               SubmissionRef(cache.formTemplate, form.envelopeId, formModelOptics.formModelVisibilityOptics)
+             auditFormValidationErrors(formHandlerResult, form, retrievals, sectionTitle, submissionRef)
            } else {
              Future.successful(())
            }
@@ -90,7 +98,8 @@ class FormControllerRequestHandler(
     formHandlerResult: FormHandlerResult,
     form: Form,
     retrievals: MaterialisedRetrievals,
-    sectionTitle: String
+    sectionTitle: String,
+    submissionRef: SubmissionRef
   )(implicit hc: HeaderCarrier, lang: LangADT): Future[Unit] = {
     val validationErrors: Map[FormComponentId, List[String]] =
       formHandlerResult.validationResult.lookup.collect {
@@ -103,7 +112,8 @@ class FormControllerRequestHandler(
         auditService.sendFormValidationErrorEvent(
           form,
           Map(sectionTitle -> validationErrors),
-          retrievals
+          retrievals,
+          submissionRef
         )
       }
     } else {

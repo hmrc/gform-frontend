@@ -338,7 +338,8 @@ object FormTemplateBuilder {
     false,
     None,
     true,
-    None
+    None,
+    Option.empty[CustomSubmissionRef]
   )
 
   def addToListQuestion(addAnotherQuestionName: String): FormComponent =

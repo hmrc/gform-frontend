@@ -55,7 +55,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   def evaluationContext(formTemplate: FormTemplate): EvaluationContext =
     EvaluationContext(
       formTemplate._id,
-      SubmissionRef(EnvelopeId("")),
+      EnvelopeId(""),
+      Option.empty[CustomSubmissionRef],
       None,
       ExampleData.authContext,
       ThirdPartyData.empty,

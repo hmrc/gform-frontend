@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.models.{ CheckYourAnswers, FastForward, PageModel, Repe
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -768,12 +768,15 @@ class BuilderController(
         (title, showReference)
       } match {
         case Some((title, showReference)) =>
+          val submissionRef =
+            SubmissionRef(cache.formTemplate, cache.form.envelopeId, formModelOptics.formModelVisibilityOptics)
           val html = renderer.renderAcknowledgementPanel(
             title,
             showReference,
             formCategory,
             envelopeId,
-            heading
+            heading,
+            submissionRef
           )
           Ok(Json.obj("panelHtml" := sanitiseHtml(html))).pure[Future]
         case _ => badRequest(s"Destination list is not defined").pure[Future]

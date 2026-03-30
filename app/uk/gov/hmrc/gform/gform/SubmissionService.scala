@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics, Signed }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsFileUpload, IsMultiFileUpload }
@@ -86,12 +87,14 @@ class SubmissionService(
     for {
       files <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
+      submissionRef = SubmissionRef(cache.formTemplate, cache.form.envelopeId, formModelVisibilityOptics)
       submission <- gformBackEnd.createSubmission(
                       cache.form._id,
                       cache.form.formTemplateId,
                       cache.form.envelopeId,
                       customerId.id,
-                      attachments.size
+                      attachments.size,
+                      submissionRef
                     )
       result <- gformBackEnd
                   .submitWithUpdatedFormStatus(
@@ -114,7 +117,14 @@ class SubmissionService(
               logger.error(s"Unable to parse DMS destination responses: ${response.json}. Got an error: $err")
               List.empty[DmsDestinationResponse]
           }
-          auditSubmissionEvent(cacheUpd, customerId, formModelVisibilityOptics, files, dmsSubmissions)
+          auditSubmissionEvent(
+            cacheUpd,
+            customerId,
+            formModelVisibilityOptics,
+            files,
+            dmsSubmissions,
+            submissionRef
+          )
           customerId
         case unexpected =>
           throw new Exception(
@@ -129,7 +139,8 @@ class SubmissionService(
     customerId: CustomerId,
     formModelVisibilityOptics: FormModelVisibilityOptics[D],
     envelopeFiles: List[File],
-    dmsSubmissions: List[DmsDestinationResponse]
+    dmsSubmissions: List[DmsDestinationResponse],
+    submissionRef: SubmissionRef
   )(implicit hc: HeaderCarrier, sse: SmartStringEvaluator, l: LangADT): Unit =
     auditService.sendSubmissionEvent(
       cache.form,
@@ -137,7 +148,8 @@ class SubmissionService(
       cache.retrievals,
       customerId,
       envelopeFiles,
-      dmsSubmissions
+      dmsSubmissions,
+      submissionRef
     )
 
   private def cleanseEnvelope(

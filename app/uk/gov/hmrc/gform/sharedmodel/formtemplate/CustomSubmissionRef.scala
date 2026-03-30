@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-trait SubmissionRefGen {
-  def submissionRefGen: Gen[SubmissionRef] =
-    PrimitiveGen.nonEmptyAlphaNumStrGen.map(EnvelopeId(_)).map(SubmissionRef.fromEnvelopeId(_))
+final case class CustomSubmissionRef(expr: Expr) extends AnyVal
+
+object CustomSubmissionRef {
+
+  implicit val format: OFormat[CustomSubmissionRef] = derived.oformat()
 }
-
-object SubmissionRefGen extends SubmissionRefGen

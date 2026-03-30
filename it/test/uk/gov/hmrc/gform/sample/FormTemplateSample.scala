@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.CustomSubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId, InstructionPdfFields, SdesDestination, TemplateType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AcknowledgementSection, Anonymous, AuthCtx, AuthInfo, ContinueOrDeletePage, DeclarationSection, EmailAuthConfig, FormComponent, FormComponentId, FormKind, FormTemplate, FormTemplateId, FormTemplateVersion, KeyDisplayWidth, LayoutDisplayWidth, Mandatory, OnePerUser, Page, SummarySection, TextConstraint, UserResearchUrl }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
@@ -177,7 +178,8 @@ trait FormTemplateSample {
     displayAccountHeader = false,
     serviceStartPageUrl = None,
     downloadPreviousSubmissionPdf = true,
-    overrides = None
+    overrides = None,
+    customSubmissionRef = Option.empty[CustomSubmissionRef]
   )
 
   val formTemplateEmailAuthWithOptionalDetails = formTemplateEmailAuth.copy(

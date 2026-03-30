@@ -434,7 +434,8 @@ class NewFormController(
     cache: AuthCacheWithoutForm,
     form: Form,
     queryParams: QueryParams
-  )(implicit request: Request[AnyContent], lang: LangADT) =
+  )(implicit request: Request[AnyContent], lang: LangADT) = {
+    val submissionRef = SubmissionRef.noCustomReference(formTemplate, form.envelopeId)
     (form.status, draftRetrievalMethod) match {
       case (_, NotPermitted) =>
         fastForwardService.deleteForm(
@@ -448,7 +449,7 @@ class NewFormController(
               ContinueOrDeletePage.Skip
             )
           ) =>
-        auditService.sendFormResumeEvent(form, cache.retrievals)
+        auditService.sendFormResumeEvent(form, cache.retrievals, submissionRef)
         redirectContinue[SectionSelectorType.Normal](
           cache.copy(formTemplate = formTemplate),
           form,
@@ -456,10 +457,11 @@ class NewFormController(
           request
         )
       case (_, _) =>
-        auditService.sendFormResumeEvent(form, cache.retrievals)
+        auditService.sendFormResumeEvent(form, cache.retrievals, submissionRef)
         val continueFormPage = new ContinueFormPage(formTemplate, choice)
         Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
     }
+  }
 
   def newOrContinue(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
@@ -573,7 +575,8 @@ class NewFormController(
       maybeFormTemplate <- gformConnector.maybeFormTemplate(formTemplateId)
       res <- maybeFormTemplate.fold(notFound(formIdData)) { formTemplate =>
                handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
-                 auditService.sendFormCreateEvent(form, cache.retrievals)
+                 val submissionRef = SubmissionRef.noCustomReference(formTemplate, form.envelopeId)
+                 auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef)
                  redirectContinue[SectionSelectorType.Normal](
                    cache.copy(formTemplate = formTemplate),
                    form,
@@ -773,7 +776,8 @@ class NewFormController(
     for {
       formIdData <- startFreshForm(cache.formTemplate._id, cache.retrievals, QueryParams.empty)
       _ <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
-             auditService.sendFormCreateEvent(form, cache.retrievals).pure[Future]
+             val submissionRef = SubmissionRef.noCustomReference(cache.formTemplate, form.envelopeId)
+             auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef).pure[Future]
            }
       result <- processNewFormData(formIdData, drm)
     } yield result
