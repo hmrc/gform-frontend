@@ -278,13 +278,14 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int
+    noOfAttachments: Int,
+    submissionRef: SubmissionRef
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
     httpClient
       .post(
         url"$baseUrl/forms/${formId.value}/${formTemplateId.value}/${envelopeId.value}/$noOfAttachments/createSubmission"
       )
-      .withBody("")
+      .withBody(Json.toJson(submissionRef))
       .setHeader("customerId" -> StringEscapeUtils.escapeHtml4(customerId))
       .execute[Submission]
 

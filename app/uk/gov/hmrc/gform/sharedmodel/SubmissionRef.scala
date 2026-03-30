@@ -19,10 +19,13 @@ package uk.gov.hmrc.gform.sharedmodel
 import java.math.BigInteger
 import java.security.MessageDigest
 import cats.Eq
+import play.api.i18n.Messages
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.math.pow
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 
 case class SubmissionRef(value: String) extends AnyVal {
   override def toString = value
@@ -38,12 +41,36 @@ object SubmissionRef {
 
   implicit val equal: Eq[SubmissionRef] = Eq.fromUniversalEquals
 
-  def apply(value: EnvelopeId): SubmissionRef = SubmissionRef(getSubmissionReference(value))
+  def noCustomReference(formTemplate: FormTemplate, envelopeId: EnvelopeId): Option[SubmissionRef] =
+    formTemplate.customSubmissionRef match {
+      case None    => Some(fromEnvelopeId(envelopeId))
+      case Some(_) => None // Custom submission reference cannot be computed at this point.
+    }
 
-  private def getSubmissionReference(envelopeId: EnvelopeId): String =
-    if (envelopeId.value.nonEmpty) {
+  def fromEnvelopeId(envelopeId: EnvelopeId): SubmissionRef =
+    fromSeed(envelopeId.value)
+
+  def apply[D <: DataOrigin](
+    formTemplate: FormTemplate,
+    envelopeId: EnvelopeId,
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(implicit messages: Messages): SubmissionRef = {
+    val seed = formTemplate.customSubmissionRef
+      .fold(envelopeId.value)(customSubmissionRef =>
+        formModelVisibilityOptics
+          .evalAndApplyTypeInfoFirst(customSubmissionRef.expr)
+          .stringRepresentation
+      )
+    fromSeed(seed)
+  }
+
+  def fromSeed(seed: String): SubmissionRef =
+    SubmissionRef(getSubmissionReference(seed))
+
+  private def getSubmissionReference(seed: String): String =
+    if (seed.nonEmpty) {
       // As 36^11 (number of combinations of 11 base 36 digits) < 2^63 (number of combinations of 63 base 2 digits) we can get full significance from this digest.
-      val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes()).take(8)
+      val digest = MessageDigest.getInstance("SHA-256").digest(seed.getBytes()).take(8)
       val initialValue = new BigInteger(digest).abs()
       val unformattedString = calculate(initialValue, radix, digits, comb)
       unformattedString.grouped(4).mkString("-").toUpperCase

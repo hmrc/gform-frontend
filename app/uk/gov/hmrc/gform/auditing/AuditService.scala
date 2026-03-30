@@ -372,15 +372,37 @@ trait AuditService {
 
   def sendFormCreateEvent[D <: DataOrigin](
     form: Form,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    submissionRef: Option[SubmissionRef]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formCreated", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
+    sendEvent(
+      "formCreated",
+      form,
+      UserValues.empty,
+      retrievals,
+      CustomerId.empty,
+      List.empty,
+      Map.empty,
+      List.empty,
+      submissionRef
+    )
 
   def sendFormResumeEvent[D <: DataOrigin](
     form: Form,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    submissionRef: Option[SubmissionRef]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formResumed", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
+    sendEvent(
+      "formResumed",
+      form,
+      UserValues.empty,
+      retrievals,
+      CustomerId.empty,
+      List.empty,
+      Map.empty,
+      List.empty,
+      submissionRef
+    )
 
   def sendSubmissionEvent[D <: DataOrigin](
     form: Form,
@@ -388,7 +410,8 @@ trait AuditService {
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File],
-    dmsSubmissions: List[DmsDestinationResponse]
+    dmsSubmissions: List[DmsDestinationResponse],
+    submissionRef: SubmissionRef
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, sse: SmartStringEvaluator, l: LangADT): Unit =
     sendEvent(
       "formSubmitted",
@@ -398,31 +421,66 @@ trait AuditService {
       customerId,
       envelopeFiles,
       Map.empty,
-      dmsSubmissions
+      dmsSubmissions,
+      Some(submissionRef)
     )
 
   def formSavedEvent[D <: DataOrigin](
     form: Form,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    submissionRef: SubmissionRef
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formSaved", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
+    sendEvent(
+      "formSaved",
+      form,
+      UserValues.empty,
+      retrievals,
+      CustomerId.empty,
+      List.empty,
+      Map.empty,
+      List.empty,
+      Some(submissionRef)
+    )
 
   def sendFormTimoutEvent[D <: DataOrigin](
     form: Form,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    submissionRef: SubmissionRef
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formTimeout", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
+    sendEvent(
+      "formTimeout",
+      form,
+      UserValues.empty,
+      retrievals,
+      CustomerId.empty,
+      List.empty,
+      Map.empty,
+      List.empty,
+      Some(submissionRef)
+    )
 
   def sendFormSignOut[D <: DataOrigin](
     form: Form,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    submissionRef: SubmissionRef
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
-    sendEvent("formSignOut", form, UserValues.empty, retrievals, CustomerId.empty, List.empty, Map.empty, List.empty)
+    sendEvent(
+      "formSignOut",
+      form,
+      UserValues.empty,
+      retrievals,
+      CustomerId.empty,
+      List.empty,
+      Map.empty,
+      List.empty,
+      Some(submissionRef)
+    )
 
   def sendFormValidationErrorEvent[D <: DataOrigin](
     form: Form,
     validationErrors: Map[String, Map[FormComponentId, List[String]]],
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    submissionRef: SubmissionRef
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
     sendEvent(
       "formValidationError",
@@ -432,7 +490,8 @@ trait AuditService {
       CustomerId.empty,
       List.empty,
       validationErrors,
-      List.empty
+      List.empty,
+      Some(submissionRef)
     )
 
   private def sendEvent(
@@ -443,9 +502,11 @@ trait AuditService {
     customerId: CustomerId,
     envelopeFiles: List[File],
     validationErrors: Map[String, Map[FormComponentId, List[String]]],
-    dmsSubmissions: List[DmsDestinationResponse]
+    dmsSubmissions: List[DmsDestinationResponse],
+    submissionRef: Option[SubmissionRef]
   )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
-    val auditDetails = details(form, detail, retrievals, customerId, envelopeFiles, validationErrors, dmsSubmissions)
+    val auditDetails =
+      details(form, detail, retrievals, customerId, envelopeFiles, validationErrors, dmsSubmissions, submissionRef)
     auditConnector.sendExplicitAudit(auditType, auditDetails)
   }
 
@@ -456,7 +517,8 @@ trait AuditService {
     customerId: CustomerId,
     envelopeFiles: List[File],
     validationErrors: Map[String, Map[FormComponentId, List[String]]],
-    dmsSubmissions: List[DmsDestinationResponse]
+    dmsSubmissions: List[DmsDestinationResponse],
+    maybeSubmissionRef: Option[SubmissionRef]
   )(implicit hc: HeaderCarrier, lang: LangADT) = {
 
     val userInfo =
@@ -583,6 +645,8 @@ trait AuditService {
       else
         Json.obj()
 
+    val submissionRef = maybeSubmissionRef.map(_.value).getOrElse("")
+
     Json.obj(
       "FormId"         -> form._id.value,
       "EnvelopeId"     -> form.envelopeId.value,
@@ -594,7 +658,7 @@ trait AuditService {
     ) ++ userAddressesJsObj ++ summaryItemsJsObj ++ validationErrorsJsObj ++
       Json.obj(
         "UserInfo"      -> userInfoWithEnrolments,
-        "SubmissionRef" -> SubmissionRef(form.envelopeId).value
+        "SubmissionRef" -> submissionRef
       ) ++ envelopeFilesJsObj ++ dmsSubmissionsJsObj
   }
 

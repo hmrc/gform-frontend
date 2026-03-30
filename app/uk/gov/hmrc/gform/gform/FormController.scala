@@ -967,9 +967,15 @@ class FormController(
                      case SaveAndContinue => processSaveAndContinue(processData)
                      case SaveAndExit =>
                        processSaveAndExit(processData).map { result =>
+                         val submissionRef = SubmissionRef(
+                           cache.formTemplate,
+                           processData.cache.form.envelopeId,
+                           formModelOptics.formModelVisibilityOptics
+                         )
                          auditService.formSavedEvent(
                            processData.cache.form,
-                           processData.cache.retrievals
+                           processData.cache.retrievals,
+                           submissionRef
                          )
                          result
                        }

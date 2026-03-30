@@ -43,7 +43,8 @@ class SubmissionDataTest extends Spec {
       LangADT.En,
       None,
       DestinationEvaluation.empty,
-      UserSession.empty
+      UserSession.empty,
+      submissionRef
     )
     Json.toJson(submissionData) should be(expectedJson)
     expectedJson.as[SubmissionData] should be(submissionData)
@@ -107,6 +108,9 @@ class SubmissionDataTest extends Spec {
           |       "authPhone":"",
           |       "enrolments":[],
           |       "onSubmitHeaders":[]
+          |   },
+          |   "submissionRef":{
+          |     "submissionRef": "submission-ref"
           |   }
           |}""".stripMargin
     )

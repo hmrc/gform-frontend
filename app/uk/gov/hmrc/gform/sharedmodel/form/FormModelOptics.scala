@@ -64,7 +64,8 @@ object FormModelOptics {
     val evaluationContext =
       EvaluationContext(
         cache.formTemplate._id,
-        SubmissionRef(""),
+        EnvelopeId(""),
+        cache.formTemplate.customSubmissionRef,
         cache.accessCode,
         cache.retrievals,
         ThirdPartyData.empty,

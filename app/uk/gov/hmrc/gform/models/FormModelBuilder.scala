@@ -226,7 +226,8 @@ class FormModelBuilder(
     val evaluationContext =
       EvaluationContext(
         formTemplate._id,
-        SubmissionRef(envelopeId),
+        envelopeId,
+        formTemplate.customSubmissionRef,
         maybeAccessCode,
         retrievals,
         thirdPartyData,

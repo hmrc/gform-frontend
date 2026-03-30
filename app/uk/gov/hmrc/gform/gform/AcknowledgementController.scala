@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.http.BadRequestException
@@ -87,7 +87,8 @@ class AcknowledgementController(
                   maybeAccessCode,
                   cache,
                   destinationList,
-                  formModelOptics
+                  formModelOptics,
+                  SubmissionRef(cache.formTemplate, cache.form.envelopeId, formModelOptics.formModelVisibilityOptics)
                 )
             )
           )

@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.pdf.model.PDFCustomRender
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.InstructionPdfFields
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfContent, SourceOrigin, SubmissionData, UserId, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, QueryParams, UserData }
@@ -59,7 +60,8 @@ trait GformBackEndAlgebra[F[_]] {
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int
+    noOfAttachments: Int,
+    submissionRef: SubmissionRef
   )(implicit hc: HeaderCarrier): F[Submission]
 
   def submissionDetails(formIdData: FormIdData, envelopeId: EnvelopeId)(implicit
@@ -119,9 +121,10 @@ class GformBackEndService(
     formTemplateId: FormTemplateId,
     envelopeId: EnvelopeId,
     customerId: String,
-    noOfAttachments: Int
+    noOfAttachments: Int,
+    submissionRef: SubmissionRef
   )(implicit hc: HeaderCarrier): Future[Submission] =
-    gformConnector.createSubmission(formId, formTemplateId, envelopeId, customerId, noOfAttachments)
+    gformConnector.createSubmission(formId, formTemplateId, envelopeId, customerId, noOfAttachments, submissionRef)
 
   def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(implicit
     hc: HeaderCarrier
@@ -238,6 +241,7 @@ class GformBackEndService(
       response <- handleSubmission(
                     cache.retrievals,
                     cache.formTemplate,
+                    cache.form.envelopeId,
                     emailParameter(cache.formTemplate, formModelOptics.formModelVisibilityOptics),
                     maybeAccessCode,
                     customerId,
@@ -331,6 +335,7 @@ class GformBackEndService(
   private def handleSubmission[D <: DataOrigin](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
+    envelopeId: EnvelopeId,
     emailParameters: EmailParametersRecalculated,
     maybeAccessCode: Option[AccessCode],
     customerId: CustomerId,
@@ -351,6 +356,7 @@ class GformBackEndService(
         customerId,
         retrievals,
         formTemplate,
+        envelopeId,
         emailParameters,
         structuredFormData,
         attachments,
@@ -367,6 +373,7 @@ class GformBackEndService(
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
+    envelopeId: EnvelopeId,
     emailParameters: EmailParametersRecalculated,
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
@@ -384,7 +391,8 @@ class GformBackEndService(
       l,
       maybeEmailAddress,
       DestinationEvaluator(formTemplate, formModelVisibilityOptics),
-      userSession
+      userSession,
+      SubmissionRef(formTemplate, envelopeId, formModelVisibilityOptics)
     )
 
   private def dmsDestinationWithIncludeInstructionPdf(formTemplate: FormTemplate): Option[InstructionPdfFields] =

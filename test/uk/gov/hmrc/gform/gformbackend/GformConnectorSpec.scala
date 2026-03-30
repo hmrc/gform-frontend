@@ -162,7 +162,14 @@ class GformConnectorSpec extends Spec {
     implicit val localDateTime: LocalDateTime = LocalDateTime.now()
     val responseJson = Some(Json.toJson(submission))
     connector
-      .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1)
+      .createSubmission(
+        formIdData.toFormId,
+        formTemplateId,
+        envelopeId,
+        "some-customer-id",
+        1,
+        submissionRef
+      )
       .futureValue shouldBe submission
   }
 
@@ -170,7 +177,7 @@ class GformConnectorSpec extends Spec {
     val status = 400
     val responseJson = None
     val isUpstream400Response = connector
-      .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1)
+      .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1, submissionRef)
       .failed
       .futureValue match {
       case UpstreamErrorResponse.Upstream4xxResponse(_) => true

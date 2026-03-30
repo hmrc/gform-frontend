@@ -370,7 +370,10 @@ object TextChecker {
     def submissionRefFormatCheck(): CheckProgram[Unit] =
       ifProgram(
         cond = formTemplate.parentFormSubmissionRefs.contains(fieldValue.id),
-        thenProgram = validateParentSubmissionRef(fieldValue, SubmissionRef(envelopeId))(formModelVisibilityOptics),
+        thenProgram = validateParentSubmissionRef(
+          fieldValue,
+          SubmissionRef(formTemplate, envelopeId, formModelVisibilityOptics)
+        )(formModelVisibilityOptics),
         elseProgram = validateSubmissionRefFormat(fieldValue, inputText)
       )
 
@@ -704,7 +707,7 @@ object TextChecker {
         thenProgram = List(
           validateSubmissionRefFormat(fieldValue, value.getOrElse("")),
           ifProgram(
-            cond = value.get === thisFormSubmissionRef.value,
+            cond = value.getOrElse("") === thisFormSubmissionRef.value,
             thenProgram = validationFailure(fieldValue, genericErrorParentSubmissionRefSameAsFormSubmissionRef, None),
             elseProgram = successProgram(())
           )

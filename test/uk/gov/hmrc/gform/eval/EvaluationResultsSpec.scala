@@ -66,7 +66,8 @@ class EvaluationResultsSpec extends Spec with TableDrivenPropertyChecks {
   ) =
     EvaluationContext(
       formTemplateId,
-      submissionRef,
+      envelopeId,
+      Option.empty[CustomSubmissionRef],
       None,
       retrievals,
       thirdPartyData.copy(queryParams =
