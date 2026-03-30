@@ -231,6 +231,66 @@ class NewFormControllerSpec
     redirectLocation(result) shouldBe Some("/new-form/tst1/new-or-previous?se=f")
   }
 
+  "downloadOldOrNewForm with legacy template versioning" should "redirect to download page when submitted form exists under legacy template with different IDs" in new LegacyFormSubmissionWithV2IdFixture {
+    initCommonMocks()
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(version1Form))
+      )
+    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(Future.successful(None))
+    when(
+      mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
+        *[HeaderCarrier],
+        *[ExecutionContext]
+      )
+    )
+      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
+
+    val result: Future[Result] = newFormController
+      .downloadOldOrNewForm(v2TemplateId, Yes)
+      .apply(request)
+
+    status(result) shouldBe Status.OK
+    contentType(result) shouldBe Some(MimeTypes.HTML)
+    val html: String = contentAsString(result)
+    html should include("What do you want to do?")
+    html should include("Get a copy of the form that you submitted")
+    html should include("Start a new form")
+  }
+
+  it should "redirect to previous submission page using new template ID when legacy form submitted" in new LegacyFormSubmissionWithV2IdFixture {
+    override lazy val request: FakeRequest[AnyContent] =
+      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "download")
+    initCommonMocks()
+
+    val result: Future[Result] = newFormController
+      .downloadDecision(v2TemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    redirectLocation(result) shouldBe Some("/new-form/tst1-v2/previous-submission/-")
+  }
+
+  it should "start a new form when legacy form submitted and user chooses startNew" in new LegacyFormSubmissionWithV2IdFixture {
+    override lazy val request: FakeRequest[AnyContent] =
+      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "startNew")
+    initCommonMocks()
+    val v2Form: Form = mkForm(v2TemplateId)
+    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+      .thenReturn(
+        Future.successful(Some(v2Form))
+      )
+
+    val result: Future[Result] = newFormController
+      .downloadDecision(v2TemplateId)
+      .apply(request)
+
+    status(result) shouldBe Status.SEE_OTHER
+    val location = redirectLocation(result).get
+    location should include("/form/tst1-v2/")
+  }
+
   "lastSubmission" should "display page with submission ref and download PDF button" in new TestFixture {
     initCommonMocks()
     when(
@@ -591,6 +651,32 @@ class NewFormControllerSpec
       status = Submitted,
       formTemplateVersion = Some(FormTemplateVersion(1))
     )
+    override lazy val authCacheWithForm: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate).copy(
+      form = version1Form
+    )
+
+    override lazy val authCacheWithoutForm: AuthCacheWithoutForm = authCacheWithForm.toAuthCacheWithoutForm
+  }
+
+  trait LegacyFormSubmissionWithV2IdFixture extends TestFixture {
+    val v2TemplateId: FormTemplateId = FormTemplateId("tst1-v2")
+
+    override lazy val formTemplate: FormTemplate =
+      mkFormTemplate(sections).copy(
+        _id = v2TemplateId,
+        originalId = v2TemplateId,
+        version = FormTemplateVersion(2),
+        legacyFormIds = Some(NonEmptyList.of(FormTemplateId("tst1-v1")))
+      )
+
+    val v1TemplateId: FormTemplateId = FormTemplateId("tst1-v1")
+
+    val version1Form: Form = mkForm(v1TemplateId).copy(
+      formTemplateId = v1TemplateId,
+      status = Submitted,
+      formTemplateVersion = Some(FormTemplateVersion(1))
+    )
+
     override lazy val authCacheWithForm: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate).copy(
       form = version1Form
     )

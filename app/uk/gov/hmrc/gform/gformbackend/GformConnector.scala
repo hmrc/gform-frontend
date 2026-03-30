@@ -200,12 +200,18 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     )
 
     getForm(legacyFormIdData)
-      .flatMap { _ =>
-        logger.info(
-          s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as a fallback succeeded and form saved."
-        )
-
-        createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_))
+      .flatMap { form =>
+        if (form.status === Submitted) {
+          logger.info(
+            s"Attempt to access form $formIdData, legacy form $legacyFormIdData found with Submitted status. Returning legacy form as-is."
+          )
+          Future.successful(Some(form))
+        } else {
+          logger.info(
+            s"Attempt to access form $formIdData, but form not found in MongoDB, attempt to look for $legacyFormIdData as a fallback succeeded and form saved."
+          )
+          createFormFromLegacy(legacyFormIdData, formIdData).map(Some(_))
+        }
       }
       .recoverWith {
         case UpstreamErrorResponse.WithStatusCode(statusCode) if statusCode === StatusCodes.NotFound.intValue =>
