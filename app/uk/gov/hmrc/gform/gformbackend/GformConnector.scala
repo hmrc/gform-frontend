@@ -255,7 +255,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
           s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}/from-legacy"
       }
-    httpClient.put(url"$url").withBody(Json.toJson(newFormId)).execute[Form]
+    httpClient.post(url"$url").withBody(Json.toJson(newFormId)).execute[Form]
   }
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit
