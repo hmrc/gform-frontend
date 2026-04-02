@@ -534,12 +534,13 @@ class NewFormController(
                      formModelOptics
                    )
                    .map { pdfSize =>
+                     val formTemplateForPage = cache.formTemplate.copy(_id = formTemplateId)
                      val downloadThenNew: DownloadThenNewFormPage = startNewOrLogout
                        .bindFromRequest()
                        .fold(
                          error =>
                            new DownloadThenNewFormPage(
-                             cache.formTemplate,
+                             formTemplateForPage,
                              error,
                              submission,
                              pdfSize,
@@ -548,7 +549,7 @@ class NewFormController(
                            ),
                          _ =>
                            new DownloadThenNewFormPage(
-                             cache.formTemplate,
+                             formTemplateForPage,
                              startNewOrLogout,
                              submission,
                              pdfSize,
