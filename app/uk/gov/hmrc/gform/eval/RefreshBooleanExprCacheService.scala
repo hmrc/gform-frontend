@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, Seis
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormCtx, In }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, DataSource, FormCtx, In }
 import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -57,16 +57,15 @@ class RefreshBooleanExprCacheService[F[_]: Monad](
 
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
-    val ins: List[In] =
-      ((formModel.allIncludeIfsWithDependingFormComponents ++
+    val allBooleanExprs: List[BooleanExpr] =
+      (formModel.allIncludeIfsWithDependingFormComponents ++
         formModel.allComponentIncludeIfs)
         .map(_._1)
         .map(_.booleanExpr) ++ formModel.allValidIfs
         .flatMap(_._1)
-        .map(_.booleanExpr))
-        .collect { case in: In =>
-          in
-        }
+        .map(_.booleanExpr)
+
+    val ins = allBooleanExprs.flatMap(_.allIns)
 
     val insEvaluated: F[List[(DataSource, String, Boolean)]] = ins.flatTraverse {
       case In(FormCtx(formComponentId), dataSource) =>
