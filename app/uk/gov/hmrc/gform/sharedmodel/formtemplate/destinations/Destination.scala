@@ -165,7 +165,6 @@ object Destination {
     payloadType: TemplateType,
     includeIf: DestinationIncludeIf,
     failOnError: Boolean,
-    multiRequestPayload: Boolean,
     convertSingleQuotes: Option[Boolean]
   ) extends Destination
 
@@ -485,7 +484,6 @@ case class UploadableHandlebarsHttpApiDestination(
         payloadType.getOrElse(TemplateType.JSON),
         cvii,
         failOnError.getOrElse(true),
-        multiRequestPayload.getOrElse(false),
         convertSingleQuotes
       )
 }
