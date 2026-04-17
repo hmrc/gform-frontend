@@ -137,7 +137,9 @@ object DataRetrieveService {
 
     val requestParams = request.paramsAsJson()
 
-    if (request.notReady() || maybeRequestParams.contains(requestParams) || isBlocked) {
+    if (
+      request.notReady() || (maybeRequestParams.contains(requestParams) && !dataRetrieve.callOnNoChange) || isBlocked
+    ) {
       Future.successful(None)
     } else {
       executor(dataRetrieve, request).map {
