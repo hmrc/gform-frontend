@@ -382,7 +382,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -470,7 +469,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,
@@ -588,7 +586,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
                       Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))),
                       sterling
                     ) :: Nil,
-                    None,
                     false
                   ),
                   RevealingChoiceElement(
@@ -598,7 +595,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
                       Add(FormCtx(FormComponentId("a")), FormCtx(FormComponentId("b"))),
                       sterling
                     ) :: Nil,
-                    None,
                     false
                   )
                 ),
@@ -653,8 +649,8 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
             "rc",
             RevealingChoice(
               List(
-                RevealingChoiceElement(toOptionData("Yes"), mkFormComponent("a", Value, sterling) :: Nil, None, false),
-                RevealingChoiceElement(toOptionData("No"), mkFormComponent("b", Value, sterling) :: Nil, None, false)
+                RevealingChoiceElement(toOptionData("Yes"), mkFormComponent("a", Value, sterling) :: Nil, false),
+                RevealingChoiceElement(toOptionData("No"), mkFormComponent("b", Value, sterling) :: Nil, false)
               ),
               true
             )
@@ -798,7 +794,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -932,7 +927,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,
@@ -1267,7 +1261,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         List.empty,
         None,
         None,
-        None,
         divider,
         None,
         None,
@@ -1308,7 +1301,6 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
         NonEmptyList.one(toOptionData("foo", alwaysFalse)),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,

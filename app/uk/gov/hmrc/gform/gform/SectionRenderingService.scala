@@ -1647,7 +1647,6 @@ class SectionRenderingService(
                 options,
                 orientation,
                 selections,
-                hints,
                 optionalHelpText,
                 dividerPosition,
                 dividerText,
@@ -1662,7 +1661,6 @@ class SectionRenderingService(
               options,
               orientation,
               selections,
-              hints,
               optionalHelpText,
               validationResult,
               ei,
@@ -2655,7 +2653,6 @@ class SectionRenderingService(
     options: NonEmptyList[OptionData],
     orientation: Orientation,
     selections: List[Int],
-    hints: Option[NonEmptyList[SmartString]],
     optionalHelpText: Option[NonEmptyList[SmartString]],
     validationResult: ValidationResult,
     ei: ExtraInfo,
@@ -2707,20 +2704,7 @@ class SectionRenderingService(
         .getOrElse(visibleOptionsWithIndex.map(_._1).map(option => (option, None)))
 
     val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
-      hints
-        .flatMap(
-          _.toList.zipWithIndex.filter(h => visibleOptionsWithIndex.map(_._2).toList.contains(h._2)).map(_._1).toNel
-        )
-        .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
-          (
-            option,
-            if (hint.isEmpty(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)))
-              toHint(option.hint)
-            else toHint(Some(hint)),
-            helpText
-          )
-        })
-        .getOrElse(optionsWithHelpText.map { case (option, helpText) => (option, toHint(option.hint), helpText) })
+      optionsWithHelpText.map { case (option, helpText) => (option, toHint(option.hint), helpText) }
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
@@ -3026,7 +3010,7 @@ class SectionRenderingService(
               case Nil     => None
             }
 
-        (o.choice, toHint(o.hint.orElse(o.choice.hint)), isSelected, maybeRevealingFieldsHtml)
+        (o.choice, toHint(o.choice.hint), isSelected, maybeRevealingFieldsHtml)
       }
 
     val errors: Option[String] = ValidationUtil.renderErrors(formFieldValidationResult).headOption

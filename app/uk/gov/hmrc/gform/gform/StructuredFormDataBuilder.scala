@@ -150,8 +150,8 @@ class StructuredFormDataBuilder[D <: DataOrigin](
 
   private val isStrictlyMultiSelectionIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
     .collect {
-      case fc @ IsChoice(Choice(Checkbox, _, _, _, _, _, _, _, _, _, _, _)) => fc.id
-      case fc @ IsRevealingChoice(RevealingChoice(_, true))                 => fc.id
+      case fc @ IsChoice(Choice(Checkbox, _, _, _, _, _, _, _, _, _, _)) => fc.id
+      case fc @ IsRevealingChoice(RevealingChoice(_, true))              => fc.id
     }
     .map(_.modelComponentId)
     .toSet
@@ -167,7 +167,7 @@ class StructuredFormDataBuilder[D <: DataOrigin](
     (ModelComponentId, Either[NonEmptyList[(Int, OptionData.ValueBased)], NonEmptyList[(Int, OptionData.IndexBased)]])
   ] =
     formModelVisibilityOptics.formModel.allFormComponents.collect {
-      case fc @ IsChoice(Choice(_, options, _, _, _, _, _, _, _, _, _, _)) if options.exists(_.dynamic.isDefined) =>
+      case fc @ IsChoice(Choice(_, options, _, _, _, _, _, _, _, _, _)) if options.exists(_.dynamic.isDefined) =>
         val indexBased: List[OptionData.IndexBased] = options.collect { case ib: OptionData.IndexBased =>
           ib
         }

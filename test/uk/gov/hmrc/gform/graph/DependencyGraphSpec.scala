@@ -93,7 +93,6 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     List.empty,
     None,
     None,
-    None,
     toSmartString("or", "neu"),
     None,
     None,
@@ -194,8 +193,8 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(toOptionData("Yes"), fcA :: Nil, None, false),
-          RevealingChoiceElement(toOptionData("No"), fcB :: Nil, None, false)
+          RevealingChoiceElement(toOptionData("Yes"), fcA :: Nil, false),
+          RevealingChoiceElement(toOptionData("No"), fcB :: Nil, false)
         ),
         true
       )
@@ -419,7 +418,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
     val revealingChoice =
       RevealingChoice(
         List(
-          RevealingChoiceElement(OptionData.IndexBased(choice, None, None, None, None), fcA :: fcB :: Nil, None, false)
+          RevealingChoiceElement(OptionData.IndexBased(choice, None, None, None, None), fcA :: fcB :: Nil, false)
         ),
         true
       )
@@ -446,7 +445,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       val revealingChoice =
         RevealingChoice(
           List(
-            RevealingChoiceElement(toOptionData(""), fcA :: Nil, None, false)
+            RevealingChoiceElement(toOptionData(""), fcA :: Nil, false)
           ),
           true
         )
@@ -470,7 +469,7 @@ class DependencyGraphSpec extends AnyFlatSpecLike with Matchers with FormModelSu
       val revealingChoice =
         RevealingChoice(
           List(
-            RevealingChoiceElement(toOptionData(""), fcA :: fcB :: Nil, None, false)
+            RevealingChoiceElement(toOptionData(""), fcA :: fcB :: Nil, false)
           ),
           true
         )

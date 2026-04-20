@@ -408,7 +408,6 @@ export type FormComponent = {
   noneChoiceError?: SmartString;
   choices?: string[] | ChoiceObject[] | string;
   revealingFields?: string[] | string;
-  hints?: string[] | string;
   cityMandatory?: boolean | "";
   countyDisplayed?: boolean | "";
   line2Mandatory?: boolean | "";

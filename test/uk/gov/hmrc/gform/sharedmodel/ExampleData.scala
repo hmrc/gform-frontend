@@ -538,7 +538,6 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       List(),
       None,
       None,
-      None,
       divider,
       None,
       None,
@@ -583,10 +582,9 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
           RevealingChoiceElement(
             toOptionData("choice1"),
             List(`fieldValue - text1`, `fieldValue - text2`),
-            None,
             true
           ),
-          RevealingChoiceElement(toOptionData("choice2"), List(`fieldValue - address`), None, true)
+          RevealingChoiceElement(toOptionData("choice2"), List(`fieldValue - address`), true)
         ),
         true
       ),
@@ -636,7 +634,6 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
         toOptionData(NonEmptyList.of("yes", "no")),
         Vertical,
         List.empty,
-        None,
         None,
         None,
         divider,
