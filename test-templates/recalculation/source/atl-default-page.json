@@ -1,0 +1,100 @@
+{
+  "_id": "atl-default-page",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Visibility options",
+      "fields": [
+        {
+          "id": "visibilityOptions",
+          "type": "choice",
+          "multivalue": true,
+          "noneChoice": "showNothing",
+          "noneChoiceError": "To choose this option you need to deselect all other options",
+          "choices": [
+            {
+              "en": "Show Add To List",
+              "value": "showATL"
+            },
+            {
+              "en": "Show default page",
+              "value": "showDefaultPage"
+            },
+            {
+              "en": "Show additional info on default page",
+              "value": "showAdditionalInfo"
+            },
+            {
+              "en": "Show nothing",
+              "value": "showNothing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Names you have added",
+      "includeIf": "${visibilityOptions contains 'showATL'}",
+      "summaryName": "Names",
+      "shortName": "Name $n",
+      "summaryDescription": "${name}",
+      "description": "$n. ${name}",
+      "addAnotherQuestion": {
+        "id": "addAnotherName",
+        "type": "choice",
+        "label": "Do you want to add another name?",
+        "format": "yesno"
+      },
+      "defaultPage": {
+        "continueLabel": "${'Add'} $n",
+        "title": "Add the first name on the next page",
+        "includeIf": "${visibilityOptions contains 'showDefaultPage'}",
+        "fields": [
+          {
+            "id": "basicInfo",
+            "type": "info",
+            "label": "",
+            "infoText": "${'Basic info.'}",
+            "infoType": "noformat"
+          },
+          {
+            "id": "additionalInfo",
+            "includeIf": "${visibilityOptions contains 'showAdditionalInfo'}",
+            "type": "info",
+            "label": "",
+            "infoText": "${'Additional info.'}",
+            "infoType": "noformat"
+          }
+        ]
+      },
+      "pages": [
+        {
+          "title": "Enter name $n",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

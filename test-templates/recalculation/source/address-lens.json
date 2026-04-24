@@ -1,0 +1,167 @@
+{
+  "_id": "address-lens",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Postcode lookup ZZ9Z 9TT",
+      "fields": [
+        {
+          "id": "postcodeLookup",
+          "type": "postcodeLookup"
+        }
+      ]
+    },
+    {
+      "title": "Postcode lookup manual",
+      "fields": [
+        {
+          "id": "postcodeLookupManual",
+          "type": "postcodeLookup"
+        }
+      ]
+    },
+    {
+      "title": "Address",
+      "fields": [
+        {
+          "id": "address",
+          "type": "address",
+          "countyDisplayed": true,
+          "international": false
+        }
+      ]
+    },
+    {
+      "title": "Overseas address",
+      "fields": [
+        {
+          "id": "overseasAddress",
+          "type": "overseasAddress"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "postcodeLookup.line1",
+              "value": "postcodeLookup.line1: ${postcodeLookup.line1}"
+            },
+            {
+              "key": "postcodeLookup.line2",
+              "value": "postcodeLookup.line2: ${postcodeLookup.line2}"
+            },
+            {
+              "key": "postcodeLookup.line3",
+              "value": "postcodeLookup.line3: ${postcodeLookup.line3}"
+            },
+            {
+              "key": "postcodeLookup.line4",
+              "value": "postcodeLookup.line4: ${postcodeLookup.line4}"
+            },
+            {
+              "key": "postcodeLookup.postcode",
+              "value": "postcodeLookup.postcode: ${postcodeLookup.postcode}"
+            },
+            {
+              "key": "postcodeLookup.country",
+              "value": "postcodeLookup.country: ${postcodeLookup.country}"
+            },
+            {
+              "key": "postcodeLookupManual.line1",
+              "value": "postcodeLookupManual.line1: ${postcodeLookupManual.line1}"
+            },
+            {
+              "key": "postcodeLookupManual.line2",
+              "value": "postcodeLookupManual.line2: ${postcodeLookupManual.line2}"
+            },
+            {
+              "key": "postcodeLookupManual.line3",
+              "value": "postcodeLookupManual.line3: ${postcodeLookupManual.line3}"
+            },
+            {
+              "key": "postcodeLookupManual.line4",
+              "value": "postcodeLookupManual.line4: ${postcodeLookupManual.line4}"
+            },
+            {
+              "key": "postcodeLookupManual.postcode",
+              "value": "postcodeLookupManual.postcode: ${postcodeLookupManual.postcode}"
+            },
+            {
+              "key": "postcodeLookupManual.country",
+              "value": "postcodeLookupManual.country: ${postcodeLookupManual.country}"
+            },
+            {
+              "key": "address.line1",
+              "value": "address.line1: ${address.line1}"
+            },
+            {
+              "key": "address.line2",
+              "value": "address.line2: ${address.line2}"
+            },
+            {
+              "key": "address.line3",
+              "value": "address.line3: ${address.line3}"
+            },
+            {
+              "key": "address.line4",
+              "value": "address.line4: ${address.line4}"
+            },
+            {
+              "key": "address.postcode",
+              "value": "address.postcode: ${address.postcode}"
+            },
+            {
+              "key": "address.country",
+              "value": "address.country: ${address.country}"
+            },
+            {
+              "key": "overseasAddress.line1",
+              "value": "overseasAddress.line1: ${overseasAddress.line1}"
+            },
+            {
+              "key": "overseasAddress.line2",
+              "value": "overseasAddress.line2: ${overseasAddress.line2}"
+            },
+            {
+              "key": "overseasAddress.line3",
+              "value": "overseasAddress.line3: ${overseasAddress.line3}"
+            },
+            {
+              "key": "overseasAddress.line4",
+              "value": "overseasAddress.line4: ${overseasAddress.line4}"
+            },
+            {
+              "key": "overseasAddress.postcode",
+              "value": "overseasAddress.postcode: ${overseasAddress.postcode}"
+            },
+            {
+              "key": "overseasAddress.country",
+              "value": "overseasAddress.country: ${overseasAddress.country}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

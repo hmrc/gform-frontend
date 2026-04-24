@@ -1,0 +1,71 @@
+{
+  "_id": "address",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Address",
+      "fields": [
+        {
+          "id": "address",
+          "type": "address",
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "title": "Address with County",
+      "fields": [
+        {
+          "id": "addressCounty",
+          "type": "address",
+          "cityMandatory": true,
+          "countyDisplayed": true,
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "title": "International address",
+      "fields": [
+        {
+          "id": "internationalAddress",
+          "type": "address",
+          "international": true,
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "title": "Test ${address} - ${addressCounty} - ${internationalAddress}",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "address: ${address}\n\naddress with county: ${addressCounty}\n\ninternational address: ${internationalAddress}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

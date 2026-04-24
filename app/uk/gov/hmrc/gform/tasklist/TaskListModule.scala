@@ -37,7 +37,8 @@ class TaskListModule(
     configModule.frontendAppConfig,
     validationModule.validationService,
     gformBackendModule.gformConnector,
-    processDataService
+    processDataService,
+    graphModule.smartStringEvaluatorFactory
   )
 
 }

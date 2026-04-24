@@ -17,13 +17,12 @@
 package uk.gov.hmrc.gform.controllers
 
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.FormModel
 
 trait Navigation {
 
-  def formModel: FormModel[Visibility]
+  def formModel: FormModel
 
   val availableSectionNumbers: List[SectionNumber] =
     formModel.availableSectionNumbers
@@ -65,11 +64,11 @@ trait Navigation {
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(formModel: FormModel[Visibility]) extends Navigation
+case class Origin(formModel: FormModel) extends Navigation
 
 case class Navigator(
   sectionNumber: SectionNumber,
-  formModel: FormModel[Visibility]
+  formModel: FormModel
 ) extends Navigation {
 
   val previousSectionNumber: Option[SectionNumber] =

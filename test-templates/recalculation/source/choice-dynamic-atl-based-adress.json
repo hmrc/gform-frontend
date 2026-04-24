@@ -1,0 +1,148 @@
+{
+  "_id": "choice-dynamic-atl-based-adress",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "addressDescription": "if addAddressChoice.count > 1 then concat(whichAddressChoice) else if addAddressChoice.count = 1 then concat(ukAddressProperty) else concat(ukAddress)"
+  },
+  "sections": [
+    {
+      "title": "Find your address ZZ9Z 9TT",
+      "continueLabel": "Find address",
+      "fields": [
+        {
+          "id": "ukAddress",
+          "type": "postcodeLookup",
+          "label": "Address"
+        }
+      ]
+    },
+    {
+      "title": "Do you also let rooms at any other addresses?",
+      "fields": [
+        {
+          "id": "otherAddresses",
+          "type": "choice",
+          "format": "yesno"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "You have added ${addAddressChoice.count} ${if addAddressChoice.count = 1 then 'address' else 'addresses'}",
+      "includeIf": "${otherAddresses contains 0}",
+      "summaryName": "Your addresses with let rooms",
+      "shortName": "Address $n",
+      "presentationHint": "invisiblePageTitle",
+      "description": {
+        "key": [
+          {
+            "en": "**Address $n** "
+          }
+        ],
+        "value": [
+          {
+            "en": "${ukAddressProperty}"
+          }
+        ]
+      },
+      "summaryDescription": "UK address property",
+      "addAnotherQuestion": {
+        "id": "addAddressChoice",
+        "type": "choice",
+        "label": "Do you have more addresses to add?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "caption": "Address $n",
+          "title": "UK address you provide a room for rent FX1A 7GA",
+          "fields": [
+            {
+              "id": "ukAddressProperty",
+              "type": "postcodeLookup",
+              "label": "Address"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "You have added ${addRoomChoice.count} ${if addRoomChoice.count = 1 then 'room' else 'rooms'}. Addresses count ${addAddressChoice.count}",
+      "summaryName": "Your rooms",
+      "shortName": "Room $n",
+      "description": {
+        "key": [
+          {
+            "en": "**Room description $n:**"
+          }
+        ],
+        "value": [
+          {
+            "en": "Room $n rented in: ${addressDescription}"
+          }
+        ]
+      },
+      "summaryDescription": "${whichAddressChoice}",
+      "addAnotherQuestion": {
+        "id": "addRoomChoice",
+        "type": "choice",
+        "label": "Do you have more rooms to add?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "caption": "Room $n",
+          "includeIf": "${addAddressChoice.count > 1}",
+          "title": "Which address is this room at?",
+          "fields": [
+            {
+              "id": "whichAddressChoice",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "${ukAddressProperty}",
+                  "dynamic": "ukAddressProperty",
+                  "value": "ukAddressProperty"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "caption": "Room $n",
+          "title": "Is this a new tenancy?",
+          "fields": [
+            {
+              "id": "newTenancyChoice",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Yes"
+                },
+                {
+                  "en": "No, it’s a rent change for an existing tenancy"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

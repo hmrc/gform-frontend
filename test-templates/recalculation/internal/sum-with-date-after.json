@@ -1,0 +1,1069 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "sum test"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Data: {0}: {1} : {2} : {3} : {4}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "pageA"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "startDate"
+                          }
+                        },
+                        {
+                          "IfElse": {
+                            "cond": {
+                              "DateAfter": {
+                                "left": {
+                                  "DateFormCtxVar": {
+                                    "formCtx": {
+                                      "formComponentId": "startDate"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "DateValueExpr": {
+                                    "value": {
+                                      "ExactDateExprValue": {
+                                        "year": 2024,
+                                        "month": 1,
+                                        "day": 1
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "field1": {
+                              "Constant": {
+                                "value": "10"
+                              }
+                            },
+                            "field2": {
+                              "Constant": {
+                                "value": "20"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "Add": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "pageA"
+                              }
+                            },
+                            "field2": {
+                              "IfElse": {
+                                "cond": {
+                                  "DateAfter": {
+                                    "left": {
+                                      "DateFormCtxVar": {
+                                        "formCtx": {
+                                          "formComponentId": "startDate"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "DateValueExpr": {
+                                        "value": {
+                                          "ExactDateExprValue": {
+                                            "year": 2024,
+                                            "month": 1,
+                                            "day": 1
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Constant": {
+                                    "value": "10"
+                                  }
+                                },
+                                "field2": {
+                                  "Constant": {
+                                    "value": "20"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "Sum": {
+                            "field1": {
+                              "Add": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "pageA"
+                                  }
+                                },
+                                "field2": {
+                                  "IfElse": {
+                                    "cond": {
+                                      "DateAfter": {
+                                        "left": {
+                                          "DateFormCtxVar": {
+                                            "formCtx": {
+                                              "formComponentId": "startDate"
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "DateValueExpr": {
+                                            "value": {
+                                              "ExactDateExprValue": {
+                                                "year": 2024,
+                                                "month": 1,
+                                                "day": 1
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field1": {
+                                      "Constant": {
+                                        "value": "10"
+                                      }
+                                    },
+                                    "field2": {
+                                      "Constant": {
+                                        "value": "20"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Page A"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "shortName": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Animal details"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Apportion amount"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "pageA",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Number": {
+                            "maxWholeDigits": 11,
+                            "maxFractionalDigits": 2,
+                            "roundingMode": "Down"
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Start date"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "GreaterThanOrEquals": {
+                      "left": {
+                        "FormCtx": {
+                          "formComponentId": "pageA"
+                        }
+                      },
+                      "right": {
+                        "Constant": {
+                          "value": "100"
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Page"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "startDate",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "AnyDate": {}
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "external expression sum: {0}"
+                  },
+                  "interpolations": [
+                    {
+                      "Sum": {
+                        "field1": {
+                          "Add": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "pageA"
+                              }
+                            },
+                            "field2": {
+                              "IfElse": {
+                                "cond": {
+                                  "DateAfter": {
+                                    "left": {
+                                      "DateFormCtxVar": {
+                                        "formCtx": {
+                                          "formComponentId": "startDate"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "DateValueExpr": {
+                                        "value": {
+                                          "ExactDateExprValue": {
+                                            "year": 2024,
+                                            "month": 1,
+                                            "day": 1
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Constant": {
+                                    "value": "10"
+                                  }
+                                },
+                                "field2": {
+                                  "Constant": {
+                                    "value": "20"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another item?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Sum test: {0}"
+                  },
+                  "interpolations": [
+                    {
+                      "Sum": {
+                        "field1": {
+                          "Add": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "pageA"
+                              }
+                            },
+                            "field2": {
+                              "IfElse": {
+                                "cond": {
+                                  "DateAfter": {
+                                    "left": {
+                                      "DateFormCtxVar": {
+                                        "formCtx": {
+                                          "formComponentId": "startDate"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "DateValueExpr": {
+                                        "value": {
+                                          "ExactDateExprValue": {
+                                            "year": 2024,
+                                            "month": 1,
+                                            "day": 1
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Constant": {
+                                    "value": "10"
+                                  }
+                                },
+                                "field2": {
+                                  "Constant": {
+                                    "value": "20"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Item $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Sum": {
+                        "field1": {
+                          "Add": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "pageA"
+                              }
+                            },
+                            "field2": {
+                              "IfElse": {
+                                "cond": {
+                                  "DateAfter": {
+                                    "left": {
+                                      "DateFormCtxVar": {
+                                        "formCtx": {
+                                          "formComponentId": "startDate"
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "DateValueExpr": {
+                                        "value": {
+                                          "ExactDateExprValue": {
+                                            "year": 2024,
+                                            "month": 1,
+                                            "day": 1
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Constant": {
+                                    "value": "10"
+                                  }
+                                },
+                                "field2": {
+                                  "Constant": {
+                                    "value": "20"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "153"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secret",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Found"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "found"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Result"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "table",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Equation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculation.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "pageA"
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "DateAfter": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "startDate"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2024,
+                                                              "month": 1,
+                                                              "day": 1
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Constant": {
+                                                      "value": "10"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "20"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculation = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Add": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "pageA"
+                                            }
+                                          },
+                                          "field2": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "DateAfter": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "startDate"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2024,
+                                                          "month": 1,
+                                                          "day": 1
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Constant": {
+                                                  "value": "10"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "20"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "pageA: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "pageA"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "sum-with-date-after",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "sum-with-date-after",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

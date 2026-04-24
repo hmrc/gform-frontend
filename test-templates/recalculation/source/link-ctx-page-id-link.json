@@ -1,0 +1,105 @@
+{
+  "_id": "link-ctx-page-id-link",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "fileSizeLimit": 123,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "First page",
+      "id": "firstPageId",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "refreshInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "[Refresh this page](${link.firstPageId})",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "${name} $n",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Name $n",
+          "id": "atlPageId",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "label": "Name",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Atl test $n",
+          "fields": [
+            {
+              "id": "atlDummy",
+              "label": "Dummy",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "goodsSummaryInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "[Go to previous page](${link.atlPageId})",
+              "infoType": "noformat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Final test",
+      "fields": [
+        {
+          "id": "finalDummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "finalTest",
+          "type": "info",
+          "label": "",
+          "infoText": "[Go back and add or remove goods items](${link.addAnotherField})",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

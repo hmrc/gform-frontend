@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ addToListQuestion => _, _ }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.PDFPageModelBuilder.makeModel
@@ -118,16 +117,19 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         maybeAccessCode,
         new LookupRegistry(Map())
       )
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])
-        .asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
+    lazy val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cache.variadicFormData,
+          cache
+        )
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
   }
 
   "PDFPageModelBuilder.makeModel - PDFType.Summary" should "build model for non-repeating section" in new Fixture {
-    makeModel[DataOrigin.Mongo, PDFType.Summary](
+    makeModel[PDFType.Summary](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -146,7 +148,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
   }
 
   "PDFPageModelBuilder.makeModel - PDFType.Summary" should "build model for non-repeating section with filter" in new Fixture {
-    makeModel[DataOrigin.Mongo, PDFType.Summary](
+    makeModel[PDFType.Summary](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -178,7 +180,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       None
     )
 
-    makeModel[DataOrigin.Mongo, PDFType.Summary](
+    makeModel[PDFType.Summary](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -228,7 +230,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       None
     )
 
-    makeModel[DataOrigin.Mongo, PDFType.Summary](
+    makeModel[PDFType.Summary](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -300,7 +302,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       None
     )
 
-    makeModel[DataOrigin.Mongo, PDFType.Summary](
+    makeModel[PDFType.Summary](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -343,7 +345,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         None
       )
 
-      makeModel[DataOrigin.Mongo, PDFType.Instruction](
+      makeModel[PDFType.Instruction](
         formModelOptics,
         cache,
         envelopeWithMapping,
@@ -370,7 +372,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
 
   it should "skip page title when instruction is not defined" in new Fixture {
 
-    makeModel[DataOrigin.Mongo, PDFType.Instruction](
+    makeModel[PDFType.Instruction](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -405,7 +407,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       None
     )
 
-    makeModel[DataOrigin.Mongo, PDFType.Instruction](
+    makeModel[PDFType.Instruction](
       formModelOptics,
       cache,
       envelopeWithMapping,
@@ -431,7 +433,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       )
     )
 
-    makeModel[DataOrigin.Mongo, PDFType.Instruction](
+    makeModel[PDFType.Instruction](
       formModelOptics,
       cache,
       envelopeWithMapping,

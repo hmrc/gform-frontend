@@ -1,0 +1,174 @@
+{
+  "_id": "sum-reference-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "externalExpression": "pageA + pageB + pageC + pageD + (if startDate after 01012024 then 10 else 20)",
+    "externalExpression1": "pageA + pageB + pageC + pageD "
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Sum test: ${externalExpression.sum}",
+      "summaryName": "sum test",
+      "shortName": "Item $n",
+      "description": "Sum test: ${externalExpression.sum} : ${externalExpression} : ${externalExpression1}",
+      "summaryDescription": "sumary description",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Page A",
+          "shortName": "Animal details",
+          "fields": [
+            {
+              "id": "pageA",
+              "label": "Apportion amount",
+              "type": "text",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Page B",
+          "includeIf": "${pageA <10}",
+          "fields": [
+            {
+              "id": "pageB",
+              "type": "text",
+              "label": "Page B",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Page C",
+          "includeIf": "${pageA > 10}",
+          "fields": [
+            {
+              "id": "pageC",
+              "type": "text",
+              "label": "Page C",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Page D",
+          "includeIf": "${pageA > 100}",
+          "fields": [
+            {
+              "id": "pageD",
+              "type": "text",
+              "label": "Page D",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Page E",
+          "includeIf": "${pageA > 100}",
+          "fields": [
+            {
+              "id": "startDate",
+              "type": "date",
+              "label": "Page #"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "externalExpression.sum = ${externalExpression.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "externalExpression = ${externalExpression}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "externalExpression1: ${externalExpression1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "pageA: ${pageA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "pageB: ${pageB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "pageC: ${pageC}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "pageD: ${pageD}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page ",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
