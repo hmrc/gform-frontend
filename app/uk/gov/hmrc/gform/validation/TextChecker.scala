@@ -23,7 +23,6 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.lookup.LookupOptions.filterBySelectionCriteria
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -37,9 +36,9 @@ import uk.gov.hmrc.referencechecker.VatReferenceChecker
 import scala.util.matching.Regex
 import ComponentChecker._
 
-class TextChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class TextChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -161,20 +160,20 @@ object TextChecker {
 
   val ukSortCodeFormat = """^[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}\d{2}[^0-9]{0,2}$""".r
 
-  private def textData[D <: DataOrigin](
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  private def textData(
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     fieldValue: FormComponent
   ): Option[String] =
-    formModelVisibilityOptics.data
-      .one(fieldValue.modelComponentId)
+    formModelVisibilityOptics
+      .textResult(fieldValue.modelComponentId)
       .filterNot(_.isEmpty())
 
-  def lookupValidation[D <: DataOrigin](
+  def lookupValidation(
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
     lookup: Lookup,
     lookupLabel: LookupLabel,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -237,13 +236,13 @@ object TextChecker {
     }
   }
 
-  def validateText[D <: DataOrigin](
+  def validateText(
     fieldValue: FormComponent,
     constraint: TextConstraint,
     formTemplate: FormTemplate,
     envelopeId: EnvelopeId
   )(
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     lookupRegistry: LookupRegistry
   )(implicit
     messages: Messages,
@@ -253,7 +252,7 @@ object TextChecker {
 
     import lookupRegistry.extractors.IsRadioLookupTextConstraint
 
-    val isMandatory = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
+    val isMandatory = fieldValue.mandatory.eval(formModelVisibilityOptics.freeCalculator)
     val inputText: String = textData(formModelVisibilityOptics, fieldValue).getOrElse("")
     val isInputTextEmpty = inputText.isEmpty
 
@@ -686,16 +685,16 @@ object TextChecker {
     )
   }
 
-  def validateParentSubmissionRef[D <: DataOrigin](
+  def validateParentSubmissionRef(
     fieldValue: FormComponent,
     thisFormSubmissionRef: SubmissionRef
   )(
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
-    val isMandatory = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
+    val isMandatory = fieldValue.mandatory.eval(formModelVisibilityOptics.freeCalculator)
     val value = textData(formModelVisibilityOptics, fieldValue)
     switchProgram(
       switchCase(

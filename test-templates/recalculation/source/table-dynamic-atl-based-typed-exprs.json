@@ -1,0 +1,185 @@
+{
+  "_id": "table-dynamic-atl-based-typed-exprs",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "mgTRlossSurrenderedAccountingPeriod": {
+      "value": "lossSurrenderedWholePeriod + lossSurrenderedSecondSplitPeriod",
+      "type": "sterling"
+    },
+    "mgTRlossSurrenderedAccountingPeriodTotal": {
+      "value": "mgTRlossSurrenderedAccountingPeriod.sum",
+      "type": "sterling"
+    },
+    "mgTRtaxCredit": {
+      "value": "if splitPeriod then lossSurrenderedSecondSplitPeriod * 0.45 else lossSurrenderedWholePeriod * 0.20",
+      "type": "sterling"
+    },
+    "mgTRtaxCreditTotal": {
+      "value": "mgTRtaxCredit.sum",
+      "type": "sterling"
+    }
+  },
+  "booleanExpressions": {
+    "splitPeriod": "accountingEnd after 31032025",
+    "notSplitPeriod": "!splitPeriod"
+  },
+  "sections": [
+    {
+      "title": "Accounting period end date",
+      "fields": [
+        {
+          "id": "accountingEnd",
+          "label": "End date of accounting period",
+          "type": "date",
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Claiming tax relief",
+      "summaryName": "Tax Relief",
+      "summaryDescription": "Tax relief",
+      "shortName": "Tax relief",
+      "description": "$n. ${productionName}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another tax relief claim?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "What is the name of the exhibition?",
+          "fields": [
+            {
+              "id": "productionName",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "includeIf": "${notSplitPeriod}",
+          "title": "Amount of loss surrendered for the accounting period",
+          "fields": [
+            {
+              "id": "lossSurrenderedWholePeriod",
+              "type": "text",
+              "label": "What is the amount of loss surrendered?",
+              "format": "positiveSterling"
+            }
+          ]
+        },
+        {
+          "includeIf": "${splitPeriod}",
+          "title": "Amount of loss surrendered during the second part of the accounting period",
+          "fields": [
+            {
+              "id": "lossSurrenderedSecondSplitPeriod",
+              "type": "text",
+              "label": "What is the amount of loss surrendered for the second part of the accounting period?",
+              "format": "positiveSterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tax Relief production totals for the accounting period ending ${accountingEnd}",
+      "fields": [
+        {
+          "id": "calculationsTable",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Production name",
+              "classes": "govuk-!-font-size-16"
+            },
+            {
+              "en": "Loss surrendered for accounting period",
+              "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+            },
+            {
+              "en": "Tax credit claim for accounting period",
+              "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+            }
+          ],
+          "rows": [
+            {
+              "dynamic": "addAnother",
+              "values": [
+                {
+                  "value": "${productionName}",
+                  "class": "govuk-!-font-size-16"
+                },
+                {
+                  "value": "${mgTRlossSurrenderedAccountingPeriod}",
+                  "class": "govuk-!-font-size-16 govuk-table__header--numeric"
+                },
+                {
+                  "value": "${mgTRtaxCredit}",
+                  "class": "govuk-!-font-size-16 govuk-table__header--numeric"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": "Total for the accounting period"
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": "${mgTRlossSurrenderedAccountingPeriodTotal}"
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": "${mgTRtaxCreditTotal}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${mgTRlossSurrenderedAccountingPeriodTotal >= 300}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

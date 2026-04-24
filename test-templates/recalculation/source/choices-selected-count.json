@@ -1,0 +1,126 @@
+{
+  "_id": "choices-selected-count",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${employer}",
+      "addAnotherQuestion": {
+        "id": "addAnotherEmployer",
+        "type": "choice",
+        "label": "Do you want to add another employer?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer $n",
+          "fields": [
+            {
+              "id": "employer",
+              "label": "Employer",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${typeOfIncome} - ${choicesSelected(typeOfIncome).count} :: ${choicesSelected(typeOfIncome)}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "caption": "Other source of income $n / ${choicesSelected(typeOfIncome).count} :: ${choicesSelected(typeOfIncome)}",
+          "title": "What other source of income do you want to tell us about?",
+          "fields": [
+            {
+              "id": "typeOfIncome",
+              "type": "choice",
+              "multivalue": true,
+              "choices": [
+                {
+                  "en": "${employer}",
+                  "dynamic": "employer",
+                  "value": "employer"
+                },
+                {
+                  "en": "Other",
+                  "value": "other"
+                },
+                {
+                  "en": "None",
+                  "value": "none"
+                }
+              ]
+            },
+            {
+              "id": "basicInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "Choices selected: ${choicesSelected(typeOfIncome).count} :: ${choicesSelected(typeOfIncome)}",
+              "infoType": "noformat"
+            }
+          ]
+        },
+        {
+          "title": "Secret $n",
+          "includeIf": "${choicesSelected(typeOfIncome).count > 4}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "outsideInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Choices selected: ${choicesSelected(typeOfIncome).count} :: ${choicesSelected(typeOfIncome)}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -24,12 +24,10 @@ import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
-import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -38,7 +36,6 @@ import uk.gov.hmrc.gform.validation.GformError.linkedHashSetMonoid
 import uk.gov.hmrc.gform.validation.ValidationUtil.GformError
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.html
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.collection.mutable
@@ -49,7 +46,8 @@ class TestOnlyErrorMessageController(
   auth: AuthenticatedRequestActions,
   controllerComponents: MessagesControllerComponents,
   validationReportService: ValidationService,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -61,24 +59,20 @@ class TestOnlyErrorMessageController(
     isUsageReport: Boolean = false
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => _ => cache => _ => formModelOptics =>
-        implicit val hc = HeaderCarrier()
-
+      implicit request => l => cache => _ => formModelOptics =>
         val messagesApi: MessagesApi = controllerComponents.messagesApi
         val englishMessages: Messages = messagesApi.preferred(Seq(Lang("en")))
         val welshMessages: Messages = messagesApi.preferred(Seq(Lang("cy")))
-        val factory = new RealSmartStringEvaluatorFactory(englishMessages)
         val cacheUpd = updateTemplateAllPagesVisible(cache)
         val updatedFormModelOptics = mkFormModelOptics(
-          formModelOptics.formModelVisibilityOptics.recData.variadicFormData
-            .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+          formModelOptics.variadicFormData,
           cacheUpd
-        )(englishMessages, LangADT.En, hc)
+        )(l, englishMessages)
 
         val englishSse: SmartStringEvaluator =
-          factory.apply(updatedFormModelOptics.formModelVisibilityOptics)(englishMessages, LangADT.En)
+          smartStringEvaluatorFactory(updatedFormModelOptics.formModelVisibilityOptics)(englishMessages, LangADT.En)
         val welshSse: SmartStringEvaluator =
-          factory.apply(updatedFormModelOptics.formModelVisibilityOptics)(welshMessages, LangADT.Cy)
+          smartStringEvaluatorFactory(updatedFormModelOptics.formModelVisibilityOptics)(welshMessages, LangADT.Cy)
 
         val formComponents =
           updatedFormModelOptics.formModelRenderPageOptics.formModel.pagesWithIndex.toList
@@ -117,15 +111,13 @@ class TestOnlyErrorMessageController(
           fieldErrorReportsF(formComponents, updatedFormModelOptics, cacheUpd, inputBaseComponentId)(
             englishMessages,
             LangADT.En,
-            englishSse,
-            hc
+            englishSse
           )
         val welshReports =
           fieldErrorReportsF(formComponents, updatedFormModelOptics, cacheUpd, inputBaseComponentId)(
             welshMessages,
             LangADT.Cy,
-            welshSse,
-            hc
+            welshSse
           )
 
         // Sort messages alphabetically by English
@@ -232,26 +224,21 @@ class TestOnlyErrorMessageController(
     cache.copy(formTemplateContext = formTemplateContextUpd)
   }
 
-  private def mkFormModelOptics(data: VariadicFormData[SourceOrigin.OutOfDate], cache: AuthCacheWithForm)(implicit
-    messages: Messages,
-    l: LangADT,
-    hc: HeaderCarrier
+  private def mkFormModelOptics(data: VariadicFormData, cache: AuthCacheWithForm)(implicit
+    lang: LangADT,
+    messages: Messages
   ) =
-    FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
-      data,
-      cache
-    )
+    FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](data, cache)
 
   private def fieldErrorReportsF(
     formComponents: List[(FormComponent, String, Int)],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     cache: AuthCacheWithForm,
     inputBaseComponentId: Option[String]
   )(implicit
     messages: Messages,
     l: LangADT,
-    sse: SmartStringEvaluator,
-    hc: HeaderCarrier
+    sse: SmartStringEvaluator
   ): List[FieldErrorReport] = {
     val res = formComponents
       .map {
@@ -274,29 +261,27 @@ class TestOnlyErrorMessageController(
   private def validateWithDataProvider(
     formComponent: FormComponent,
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     dataProvider: Option[ErrorValueProvider]
   )(implicit
     messages: Messages,
     l: LangADT,
-    sse: SmartStringEvaluator,
-    hc: HeaderCarrier
+    sse: SmartStringEvaluator
   ): (FormComponent, GformError) = {
 
     def validate(
       targetComponent: FormComponent,
-      formModelOptics: FormModelOptics[DataOrigin.Mongo],
+      formModelOptics: FormModelOptics,
       useErrorInterpreter: Boolean
     ) = {
 
-      def validator(fmo: FormModelOptics[DataOrigin.Mongo]) =
-        new ComponentsValidator[DataOrigin.Mongo](
+      def validator(fmo: FormModelOptics) =
+        new ComponentsValidator(
           fmo.formModelVisibilityOptics,
           targetComponent,
           cache.toCacheData,
           EnvelopeWithMapping.empty,
           lookupRegistry,
-          new BooleanExprEval(),
           if (useErrorInterpreter) ComponentChecker.ErrorReportInterpreter
           else ComponentChecker.NonShortCircuitInterpreter,
           true
@@ -320,7 +305,7 @@ class TestOnlyErrorMessageController(
       } { dataProvider =>
         validate(formComponent, formModelOptics, useErrorInterpreter = true) |+| {
           val e = dataProvider
-            .errorValues(formComponent, formModelOptics.formModelVisibilityOptics.recData.variadicFormData)
+            .errorValues(formComponent, formModelOptics.variadicFormData)
             .map(data => validate(formComponent, mkFormModelOptics(data, cache), useErrorInterpreter = false))
           e.foldLeft(Map.empty[ModelComponentId, mutable.LinkedHashSet[String]]) { case (a, m) => a |+| m }
         }

@@ -1,0 +1,1501 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Items"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - data: {0} : {1} : {2}."
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "amount"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "number"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "string"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Amount"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Amount"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "amount",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Number": {
+                            "maxWholeDigits": 11,
+                            "maxFractionalDigits": 2,
+                            "roundingMode": "Down"
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Apply offset"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "control",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Yes"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "offset"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "No"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "keep"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Offset"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "Contains": {
+                      "multiValueField": {
+                        "formComponentId": "control"
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "offset"
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Number"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "number",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Number": {
+                            "maxWholeDigits": 11,
+                            "maxFractionalDigits": 2,
+                            "roundingMode": "Down"
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "String"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "string",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Items"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Items"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Item $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Sum": {
+                        "field1": {
+                          "Add": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "amount"
+                              }
+                            },
+                            "field2": {
+                              "IfElse": {
+                                "cond": {
+                                  "Equals": {
+                                    "left": {
+                                      "FormCtx": {
+                                        "formComponentId": "number"
+                                      }
+                                    },
+                                    "right": {
+                                      "Constant": {
+                                        "value": "1"
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Constant": {
+                                    "value": "10"
+                                  }
+                                },
+                                "field2": {
+                                  "Constant": {
+                                    "value": "20"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "56"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secret",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Found"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "found"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Result"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "table",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Test"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "setLiteralNumber = if number = 1 then 10 else 20<br>literalSetNumber = if 1 = number then 10 else 20<br>setLiteralString = if string = ''FOO'' then 10 else 20<br>literalSetString = if ''FOO'' = string then 10 else 20<br>calculationSetLiteralNumber = amount + setLiteralNumber<br>calculationLiteralSetNumber = amount + literalSetNumber<br>calculationSetLiteralString = amount + setLiteralString<br>calculationLiteralSetString = amount + literalSetString"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationSetLiteralNumber.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "amount"
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Equals": {
+                                                      "left": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "number"
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "Constant": {
+                                                          "value": "1"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Constant": {
+                                                      "value": "10"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "20"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationLiteralSetNumber.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "amount"
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Equals": {
+                                                      "left": {
+                                                        "Constant": {
+                                                          "value": "1"
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "number"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Constant": {
+                                                      "value": "10"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "20"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationSetLiteralString.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "amount"
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Equals": {
+                                                      "left": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "string"
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "Constant": {
+                                                          "value": "FOO"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Constant": {
+                                                      "value": "10"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "20"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationLiteralSetString.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "amount"
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Equals": {
+                                                      "left": {
+                                                        "Constant": {
+                                                          "value": "FOO"
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "string"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Constant": {
+                                                      "value": "10"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "20"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationSetLiteralNumber = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Add": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "amount"
+                                            }
+                                          },
+                                          "field2": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Equals": {
+                                                  "left": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "number"
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "Constant": {
+                                                      "value": "1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Constant": {
+                                                  "value": "10"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "20"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationLiteralSetNumber = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Add": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "amount"
+                                            }
+                                          },
+                                          "field2": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Equals": {
+                                                  "left": {
+                                                    "Constant": {
+                                                      "value": "1"
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "number"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Constant": {
+                                                  "value": "10"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "20"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationSetLiteralString = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Add": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "amount"
+                                            }
+                                          },
+                                          "field2": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Equals": {
+                                                  "left": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "string"
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "Constant": {
+                                                      "value": "FOO"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Constant": {
+                                                  "value": "10"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "20"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "calculationLiteralSetString = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Add": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "amount"
+                                            }
+                                          },
+                                          "field2": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Equals": {
+                                                  "left": {
+                                                    "Constant": {
+                                                      "value": "FOO"
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "string"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Constant": {
+                                                  "value": "10"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "20"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "setLiteralNumber = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Equals": {
+                                              "left": {
+                                                "FormCtx": {
+                                                  "formComponentId": "number"
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "1"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "10"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "20"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "literalSetNumber = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Equals": {
+                                              "left": {
+                                                "Constant": {
+                                                  "value": "1"
+                                                }
+                                              },
+                                              "right": {
+                                                "FormCtx": {
+                                                  "formComponentId": "number"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "10"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "20"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "setLiteralString = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Equals": {
+                                              "left": {
+                                                "FormCtx": {
+                                                  "formComponentId": "string"
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "FOO"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "10"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "20"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "literalSetString = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Equals": {
+                                              "left": {
+                                                "Constant": {
+                                                  "value": "FOO"
+                                                }
+                                              },
+                                              "right": {
+                                                "FormCtx": {
+                                                  "formComponentId": "string"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "10"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "20"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "amount: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "amount"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "number: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "number"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "sum-with-equals-set-and-literal",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "sum-with-equals-set-and-literal",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

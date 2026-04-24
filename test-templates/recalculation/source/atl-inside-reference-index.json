@@ -1,0 +1,58 @@
+{
+  "_id": "atl-inside-reference-index",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "atlIndexLabel": "if addAnother.index = 1 then 'first' else if addAnother.index = 2 then 'second' else if addAnother.index = 3 then 'third' else if addAnother.index = 4 then 'fourth' else if addAnother.index = 5 then 'fifth' else ''"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${name}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": [
+            {
+              "includeIf": "${addAnother.index < 6}",
+              "en": "Enter ${atlIndexLabel} name"
+            },
+            {
+              "en": "Enter name $n"
+            }
+          ],
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

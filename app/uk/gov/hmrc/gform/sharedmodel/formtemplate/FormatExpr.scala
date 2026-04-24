@@ -26,7 +26,7 @@ import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry }
 import uk.gov.hmrc.gform.lookup.LookupOptions.getLookupValue
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ SelectionCriteriaExpr, SelectionCriteriaReference, SelectionCriteriaSimpleValue }
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, LocalisedString }
 
@@ -499,10 +499,10 @@ object SimplifiedSelectionCriteria {
 
   implicit val format: OFormat[SimplifiedSelectionCriteria] = derived.oformat()
 
-  def convertToSimplifiedSelectionCriteria[D <: DataOrigin](
+  def convertToSimplifiedSelectionCriteria(
     lsc: List[SelectionCriteria],
     lookupRegistry: LookupRegistry,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     l: LangADT,
     messages: Messages

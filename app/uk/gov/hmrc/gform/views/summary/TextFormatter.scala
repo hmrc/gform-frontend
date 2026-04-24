@@ -20,6 +20,7 @@ import java.text.NumberFormat
 import cats.syntax.option._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil._
+import uk.gov.hmrc.gform.commons.NumberFormatUtil._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
@@ -28,10 +29,17 @@ import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
-import uk.gov.hmrc.gform.commons.NumberFormatUtil._
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 
 object TextFormatter {
+
+  def handlebarText(currentValue: String, textConstraint: TextConstraint)(implicit l: LangADT): String =
+    textConstraint match {
+      case IsPositiveNumberOrNumber(fractional, rm, unit) => formatNumber(currentValue, fractional, rm, unit)
+      case _: WholeSterling                               => stripDecimal(currentValue)
+      case UkSortCodeFormat                               => formatUkSortCode(currentValue)
+      case _                                              => currentValue
+    }
 
   def componentTextReadonly(currentValue: String, textConstraint: TextConstraint)(implicit l: LangADT): String =
     textConstraint match {
@@ -64,19 +72,19 @@ object TextFormatter {
       // format: on
     }
 
-  def componentTextForSummary[D <: DataOrigin](
+  def componentTextForSummary(
     currentValue: String,
     textConstraint: TextConstraint,
     prefix: Option[SmartString],
     suffix: Option[SmartString],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     l: LangADT,
     sse: SmartStringEvaluator
   ): String =
     (textConstraint, prefix, suffix) match {
       // format: off
-      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised(formModelVisibilityOptics.booleanExprResolver.resolve(_))).orElse(unit))
+      case (IsPositiveNumberOrNumber(maxFractionalDigits, roundingMode, unit), p, s) => prependPrefix(p) + formatNumber(currentValue, maxFractionalDigits, roundingMode, s.map(_.localised(formModelVisibilityOptics.freeCalculator.evalBooleanExpr)).orElse(unit))
       case (_: Sterling, _, _)                                                       => formatSterling(currentValue)
       case (_: WholeSterling, _, _)                                                  => stripDecimal(formatSterling(currentValue))
       case (UkSortCodeFormat, _, _)                                                  => formatUkSortCode(currentValue)
@@ -130,16 +138,7 @@ object TextFormatter {
   ): String = {
     val un = unit.fold("")(" " + _.value)
     val maybeBigDecimal = toBigDecimalSafe(currentValue)
-    stripTrailingZeros(maybeBigDecimal.fold(currentValue)(roundAndFormat(_, maxFractionalDigits, rm))) + un
-  }
-
-  def formatNumberWithPrecise(
-    currentValue: String,
-    maxFractionalDigits: Int,
-    rm: RoundingMode
-  ): String = {
-    val maybeBigDecimal = toBigDecimalSafe(currentValue)
-    maybeBigDecimal.fold(currentValue)(formatWithPrecise(_, maxFractionalDigits, rm))
+    maybeBigDecimal.fold(currentValue)(formatWithPrecise(_, maxFractionalDigits, rm)) + un
   }
 
   def formatSterling(currentValue: String, format: NumberFormat = currencyFormat): String =
@@ -166,12 +165,12 @@ object TextFormatter {
     }
   }
 
-  def formatText[D <: DataOrigin](
+  def formatText(
     validationResult: FormFieldValidationResult,
     envelope: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
     suffix: Option[SmartString] = None,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     l: LangADT,
     messages: Messages,

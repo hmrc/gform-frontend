@@ -1,0 +1,136 @@
+{
+  "_id": "atl-outside-reference-chain",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "currentTaxYear": "2023",
+    "lastTaxYear": "2022",
+    "selectedEndYear": "if taxYear contains 0 then currentTaxYear else lastTaxYear",
+    "pptRate": {
+      "value": "if selectedEndYear > 2022 then 210.82 else 200",
+      "type": "sterling"
+    },
+    "liableAmount": {
+      "value": "weightOfFinishedPPT * (pptRate/1000)",
+      "type": "sterling",
+      "round": "Down"
+    },
+    "liableAmountAtl": {
+      "value": "weightOfFinishedPPT * (pptRateAtl/1000)",
+      "type": "sterling",
+      "round": "Down"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Added $n plastic packaging tax",
+      "shortName": "Returns",
+      "summaryDescription": "bsummary",
+      "summaryName": "Plastic packaging tax returns",
+      "description": "Tax period $n - Calculated amount due: ${liableAmount}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to submit another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Which year are you reporting on?",
+          "fields": [
+            {
+              "type": "choice",
+              "id": "taxYear",
+              "notPII": true,
+              "label": "Which year are you reporting on? ",
+              "helpText": "Select one year. You can add more later.",
+              "errorMessage": "Select which year you are reporting on",
+              "shortName": "Year",
+              "choices": [
+                {
+                  "en": "2023"
+                },
+                {
+                  "en": "2022"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "How much you manufactured",
+          "fields": [
+            {
+              "type": "text",
+              "id": "weightOfFinishedPPT",
+              "label": "How much did your manufactured finished plastic packaging components weigh?",
+              "format": "positiveNumber(11, 0)",
+              "suffix": "kg"
+            },
+            {
+              "id": "pptRateAtl",
+              "type": "text",
+              "label": "Plastic packaging total",
+              "format": "sterling",
+              "value": "${pptRate}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Summary of Plastic Packaging Tax return calculations",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "liableAmountAtl.sum = ${liableAmountAtl.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "liableAmount.sum = ${liableAmount.sum}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

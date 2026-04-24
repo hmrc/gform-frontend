@@ -1,0 +1,105 @@
+{
+  "_id": "address-lens-visibility-postcode-lookup",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "correspondenceAddressLine1": "if (addressInUK contains 'yes') then uppercase(correspondenceAddressUK.line1) else uppercase(correspondenceAddressINT.line1)"
+  },
+  "booleanExpressions": {
+    "hasOfficeAddressZZ": "substring(removeSpaces(correspondenceAddressUK.postcode),0,2) = 'ZZ'"
+  },
+  "sections": [
+    {
+      "title": "Is your contact address in the UK?",
+      "fields": [
+        {
+          "id": "addressInUK",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Yes",
+              "value": "yes"
+            },
+            {
+              "en": "No",
+              "value": "no"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Enter your contact address ZZ9Z 9TT",
+      "includeIf": "${addressInUK = 'yes'}",
+      "fields": [
+        {
+          "type": "postcodeLookup",
+          "id": "correspondenceAddressUK",
+          "label": "Contact address"
+        }
+      ]
+    },
+    {
+      "title": "What is your contact address?",
+      "includeIf": "${addressInUK = 'no'}",
+      "fields": [
+        {
+          "id": "correspondenceAddressINT",
+          "type": "overseasAddress"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "line1Info",
+          "type": "info",
+          "label": "",
+          "infoText": "Line 1: ${correspondenceAddressLine1}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${hasOfficeAddressZZ}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

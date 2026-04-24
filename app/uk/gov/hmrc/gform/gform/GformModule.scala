@@ -93,8 +93,7 @@ class GformModule(
     authModule.ggConnector,
     configModule.frontendAppConfig,
     controllersModule.messagesControllerComponents,
-    graphModule.smartStringEvaluatorFactory,
-    englishMessages
+    graphModule.smartStringEvaluatorFactory
   )
 
   val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator(), auditingModule.auditService)
@@ -185,7 +184,7 @@ class GformModule(
     addressLookupModule.addressLookupService,
     bankAccountInsightsConnector,
     agentAccessControlConnector,
-    englishMessages
+    graphModule.smartStringEvaluatorFactory
   )
 
   val confirmationService = new ConfirmationService(
@@ -347,7 +346,7 @@ class GformModule(
     controllersModule.messagesControllerComponents,
     gformBackEndService,
     ninoInsightsConnector,
-    englishMessages,
+    graphModule.smartStringEvaluatorFactory,
     acknowledgementPdfService
   )
 

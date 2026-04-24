@@ -53,9 +53,9 @@ POST          /submissions/test-only/snapshot-delete/:snapshotId                
 GET           /submissions/test-only/form-data/:formTemplateId/:accessCode                          uk.gov.hmrc.gform.testonly.TestOnlyController.getFormData(formTemplateId: FormTemplateId,  accessCode: Option[AccessCode])
 GET           /submissions/test-only/toggle-form-builder/:formTemplateId                            uk.gov.hmrc.gform.testonly.TestOnlyController.toggleFormBuilder(formTemplateId: FormTemplateId,  accessCode: Option[AccessCode])
 GET           /submissions/test-only/change-toolbox-template-override/:formTemplateId/:value/:bool  uk.gov.hmrc.gform.testonly.TestOnlyController.changeToolboxTemplateOverrides(formTemplateId: FormTemplateId,  accessCode: Option[AccessCode], value: String, bool: Boolean)
+GET           /submissions/test-only/test-setup-data/:formTemplateId                                uk.gov.hmrc.gform.testonly.TestOnlyController.testSetupData(formTemplateId: FormTemplateId,  accessCode: Option[AccessCode])
 GET           /submissions/test-only/gform-plugin/exprs/:formTemplateId                             uk.gov.hmrc.gform.testonly.DebugController.exprs(formTemplateId: FormTemplateId)
 GET           /submissions/test-only/gform-plugin/model/:formTemplateId                             uk.gov.hmrc.gform.testonly.DebugController.model(formTemplateId: FormTemplateId)
-GET           /submissions/test-only/gform-plugin/verify/:formTemplateId                            uk.gov.hmrc.gform.testonly.DebugController.verify(formTemplateId: FormTemplateId)
 
 GET           /submissions/test-only/translation/:formTemplateId                                     uk.gov.hmrc.gform.testonly.TranslationController.translationDebug(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /submissions/test-only/translation-quick/:formTemplateId                               uk.gov.hmrc.gform.testonly.TranslationController.translationQuick(formTemplateId: FormTemplateId, a: Option[AccessCode])

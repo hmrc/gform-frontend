@@ -16,37 +16,19 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
-import cats.data.NonEmptyList
-import play.api.mvc.{ AnyContentAsFormUrlEncoded, Results }
-import play.api.test.FakeRequest
-import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.controllers.RequestRelatedData
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.SingletonWithNumber
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
-import uk.gov.hmrc.gform.models.{ Bracket, BracketsWithSectionNumber, DataExpanded, EnteredVariadicFormData, FormModel, Singleton }
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, Constant, EORI, FormComponentId, FormTemplateId, Horizontal, NINO, OptionData, Page, RevealingChoice, RevealingChoiceElement, RoundingMode, SaUTR, SectionNumber, Sterling, Text, UkEORI, UkVrn, Value, WholeSterling }
-
 import java.time.Instant
-import scala.concurrent.Future
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, QueryParams, TaskIdTaskStatusMapping }
+import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, EnvelopeId, Form, FormData, FormField, FormId, ThirdPartyData, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 
 class FormDataHelpersSpec extends Spec {
 
   private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map { case (fcId, value) =>
     FormField(FormComponentId(fcId).modelComponentId, value)
   }
-
-  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
-    xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None, None))
-
-  private def toOptionData(s: String): OptionData.IndexBased =
-    OptionData.IndexBased(toSmartString(s), None, None, None, None)
 
   "updateFormField" should "update FormField in form data" in {
     val formFields = toFormFields(

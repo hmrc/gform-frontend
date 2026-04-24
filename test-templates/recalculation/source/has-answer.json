@@ -1,0 +1,134 @@
+{
+  "_id": "has-answer",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "What country do you live in?",
+      "fields": [
+        {
+          "id": "homeCountry",
+          "type": "text",
+          "format": "lookup(country)",
+          "shortName": "Country name"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Lists of countries you have added",
+      "summaryName": "Countries",
+      "shortName": "Country $n",
+      "description": "$n: ${country}",
+      "summaryDescription": "Countries",
+      "addAnotherQuestion": {
+        "id": "addAnotherCountry",
+        "type": "choice",
+        "label": "Do you want to add another country?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "What is the country where you went to live?",
+          "fields": [
+            {
+              "id": "country",
+              "type": "text",
+              "format": "lookup(country)",
+              "shortName": "Country name"
+            }
+          ]
+        },
+        {
+          "title": "Test",
+          "fields": [
+            {
+              "id": "dummy",
+              "type": "text",
+              "label": "Text",
+              "format": "text"
+            },
+            {
+              "id": "table",
+              "type": "table",
+              "summaryValue": "Login info",
+              "label": "Login info",
+              "header": [
+                {
+                  "en": "Login info"
+                }
+              ],
+              "rows": [
+                {
+                  "values": [
+                    {
+                      "value": "Home country: ${homeCountry}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "Country: ${country}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "Home country is in country: ${if homeCountry in country then 'Yes' else 'No'}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "Home country is not in country: ${if homeCountry notIn country then 'Yes' else 'No'}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "In secret $n",
+          "fields": [
+            {
+              "id": "inSecret",
+              "includeIf": "${homeCountry in country}",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Not in secret $n",
+          "fields": [
+            {
+              "id": "notInSecret",
+              "includeIf": "${homeCountry notIn country}",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page ",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

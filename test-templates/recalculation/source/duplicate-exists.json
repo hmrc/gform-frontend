@@ -1,0 +1,124 @@
+{
+  "_id": "duplicate-exists",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "People in charge you have added",
+      "shortName": "People in charge",
+      "summaryDescription": "summaryDescription",
+      "summaryName": "People in charge",
+      "description": "$n: ${personName} - ${personNino}!",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another person?",
+        "format": "yesno"
+      },
+      "fields": [
+        {
+          "id": "minimumNotReachedInfo",
+          "type": "info",
+          "infoType": "noformat",
+          "label": "",
+          "infoText": "You have told us about ${addAnother.count}."
+        }
+      ],
+      "pages": [
+        {
+          "title": "Name and Nino $n",
+          "fields": [
+            {
+              "type": "text",
+              "id": "personName",
+              "label": "Name",
+              "format": "text"
+            },
+            {
+              "id": "personNino",
+              "type": "text",
+              "format": "nino",
+              "label": "Nino",
+              "toUpperCase": true,
+              "displayWidth": "m"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "personName = ${personName}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "personNino = ${personNino}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Duplicate exists in personName: ${if duplicateExists(personName) then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Duplicate exists in personNino: ${if duplicateExists(personNino) then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Duplicate exists in (personName, personNino): ${if duplicateExists(personName, personNino) then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

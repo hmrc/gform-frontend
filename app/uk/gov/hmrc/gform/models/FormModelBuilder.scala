@@ -17,437 +17,281 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.{ AuthCache, CacheData }
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
-import uk.gov.hmrc.gform.eval._
 import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageUpdater }
-import uk.gov.hmrc.gform.graph.{ RecData, Recalculation, RecalculationResult }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
+import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.recalculation.{ DependencyGraph, EvaluationContext, EvaluationStatus, FreeCalculator, Metadata, MongoUserData, Recalculator }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{ Instant, LocalDate, ZoneId }
-import scala.util.matching.Regex
+import java.time.{ LocalDate, ZoneId }
 
 object FormModelBuilder {
   def fromCache(
     cache: AuthCache,
     cacheData: CacheData,
     componentIdToFileId: FormComponentIdToFileIdMapping,
-    lookupRegistry: LookupRegistry,
     taskIdTaskStatus: TaskIdTaskStatusMapping
-  )(implicit
-    hc: HeaderCarrier
   ): FormModelBuilder =
     new FormModelBuilder(
       cache.retrievals,
       cache.formTemplate,
+      Metadata.from(cache.formTemplate),
       cacheData.thirdPartyData,
       cacheData.envelopeId,
       cache.accessCode,
       componentIdToFileId,
-      lookupRegistry,
+      cache.lookupRegistry,
       taskIdTaskStatus
     )
-
-  def evalRemoveItemIf[T <: PageMode](
-    removeItemIf: RemoveItemIf,
-    recalculationResult: RecalculationResult,
-    recData: RecData[SourceOrigin.Current],
-    formModel: FormModel[T],
-    booleanExprCache: BooleanExprCache
-  ): Boolean =
-    evalBooleanExpr[T](removeItemIf.booleanExpr, recalculationResult, recData, formModel, booleanExprCache, None)
-
-  def evalIncludeIf[T <: PageMode](
-    includeIf: IncludeIf,
-    recalculationResult: RecalculationResult,
-    recData: RecData[SourceOrigin.Current],
-    formModel: FormModel[T],
-    booleanExprCache: BooleanExprCache,
-    phase: Option[FormPhase]
-  ): Boolean =
-    evalBooleanExpr[T](includeIf.booleanExpr, recalculationResult, recData, formModel, booleanExprCache, phase)
-
-  private def evalBooleanExpr[T <: PageMode](
-    booleanExpr: BooleanExpr,
-    recalculationResult: RecalculationResult,
-    recData: RecData[SourceOrigin.Current],
-    formModel: FormModel[T],
-    booleanExprCache: BooleanExprCache,
-    phase: Option[FormPhase]
-  ): Boolean = {
-
-    def booleanExprResolver = BooleanExprResolver(loop)
-
-    def compare(expr1: Expr, expr2: Expr, f: (ExpressionResult, ExpressionResult) => Boolean): Boolean = {
-      val typeInfo1 = formModel.toFirstOperandTypeInfo(expr1)
-      val typeInfo2 = formModel.toFirstOperandTypeInfo(expr2)
-      val r = recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo1, recData, booleanExprResolver, recalculationResult.evaluationContext)
-        .applyTypeInfo(typeInfo1)
-      val s = recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo2, recData, booleanExprResolver, recalculationResult.evaluationContext)
-        .applyTypeInfo(typeInfo2)
-      f(r, s)
-    }
-
-    def compareDate(
-      dateExprLHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
-      dateExprRHS: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr,
-      f: (DateResult, DateResult) => Boolean
-    ): Boolean = {
-      val evalFunc: uk.gov.hmrc.gform.sharedmodel.formtemplate.DateExpr => ExpressionResult =
-        DateExprEval
-          .eval(
-            formModel,
-            recData.asInstanceOf[RecData[OutOfDate]],
-            recalculationResult.evaluationContext,
-            booleanExprResolver,
-            recalculationResult.evaluationResults
-          )
-      val exprResultLHS = evalFunc(dateExprLHS)
-      val exprResultRHS = evalFunc(dateExprRHS)
-      (exprResultLHS, exprResultRHS) match {
-        case (left @ DateResult(_), right @ DateResult(_)) => f(left, right)
-        case _                                             => false
-      }
-    }
-
-    def matchRegex(expr: Expr, regex: Regex): Boolean = {
-      val typeInfo1 = formModel.toFirstOperandTypeInfo(expr)
-      val expressionResult = recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo1, recData, booleanExprResolver, recalculationResult.evaluationContext)
-        .applyTypeInfo(typeInfo1)
-
-      expressionResult.matchRegex(regex)
-    }
-
-    def loop(booleanExpr: BooleanExpr): Boolean = booleanExpr match {
-      case Equals(field1, field2)              => compare(field1, field2, _ identical _)
-      case GreaterThan(field1, field2)         => compare(field1, field2, _ > _)
-      case DateAfter(field1, field2)           => compareDate(field1, field2, _ after _)
-      case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _)
-      case LessThan(field1, field2)            => compare(field1, field2, _ < _)
-      case DateBefore(field1, field2)          => compareDate(field1, field2, _ before _)
-      case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _)
-      case Not(invertedExpr)                   => !loop(invertedExpr)
-      case Or(expr1, expr2)                    => val e1 = loop(expr1); val e2 = loop(expr2); e1 | e2
-      case And(expr1, expr2)                   => val e1 = loop(expr1); val e2 = loop(expr2); e1 & e2
-      case IsTrue                              => true
-      case IsFalse                             => false
-      case Contains(field1, field2)            => compare(field1, field2, _ contains _)
-      case in: In                              => RefreshBooleanExprCacheService.evalInExpr(in, booleanExprCache, recData)
-      case h @ HasAnswer(_, _) =>
-        BooleanExprEval.evalHasAnswer(
-          h,
-          formModel,
-          recalculationResult.evaluationResults,
-          recalculationResult.evaluationContext,
-          booleanExprResolver,
-          recData
-        )
-      case DuplicateExists(fieldList)      => BooleanExprEval.evalDuplicateExpr(fieldList, recData)
-      case MatchRegex(expr, regex)         => matchRegex(expr, regex)
-      case FormPhase(value)                => phase.fold(false)(_.value == value)
-      case First(FormCtx(formComponentId)) => BooleanExprEval.evalFirstExpr(formComponentId)
-      case IsLogin(value)                  => BooleanExprEval.evalIsLoginExpr(value, recalculationResult.evaluationContext.retrievals)
-    }
-
-    loop(booleanExpr)
-
-  }
-
-  private def toCurrentData(
-    modelComponentId: ModelComponentId,
-    expressionResult: ExpressionResult,
-    typeInfo: TypeInfo
-  )(implicit messages: Messages): VariadicFormData[SourceOrigin.Current] =
-    expressionResult match {
-      case ExpressionResult.Empty      => VariadicFormData.one[SourceOrigin.Current](modelComponentId, "")
-      case ExpressionResult.Hidden     => VariadicFormData.empty[SourceOrigin.Current]
-      case ExpressionResult.Invalid(_) => VariadicFormData.empty[SourceOrigin.Current]
-      case ExpressionResult.NumberResult(bigDecimal) =>
-        VariadicFormData.one[SourceOrigin.Current](modelComponentId, bigDecimal.toString)
-      case ExpressionResult.StringResult(value) => VariadicFormData.one[SourceOrigin.Current](modelComponentId, value)
-      case ExpressionResult.OptionResult(value) =>
-        VariadicFormData.many[SourceOrigin.Current](modelComponentId, value.map(_.toString))
-      case d @ ExpressionResult.DateResult(_) =>
-        VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
-      case d @ ExpressionResult.TaxPeriodResult(_, _) =>
-        VariadicFormData.one[SourceOrigin.Current](modelComponentId, d.asString)
-      case p @ ExpressionResult.PeriodResult(_) =>
-        VariadicFormData.one[SourceOrigin.Current](modelComponentId, p.asString)
-      case a @ ExpressionResult.AddressResult(_) =>
-        VariadicFormData.one[SourceOrigin.Current](modelComponentId, a.stringRepresentation(typeInfo, messages))
-      case ExpressionResult.ListResult(list) =>
-        list.foldLeft(VariadicFormData.empty[SourceOrigin.Current]) { case (acc, result) =>
-          acc ++ toCurrentData(modelComponentId, result, typeInfo)
-        }
-    }
-
 }
 
 class FormModelBuilder(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
+  metadata: Metadata,
   thirdPartyData: ThirdPartyData,
   envelopeId: EnvelopeId,
   maybeAccessCode: Option[AccessCode],
   componentIdToFileId: FormComponentIdToFileIdMapping,
   lookupRegistry: LookupRegistry,
   taskIdTaskStatus: TaskIdTaskStatusMapping
-)(implicit
-  hc: HeaderCarrier
 ) {
 
-  private def toRecalculationResults(
-    data: VariadicFormData[SourceOrigin.OutOfDate],
-    formModel: FormModel[Interim],
-    formPhase: Option[FormPhase],
-    lang: LangADT,
-    messages: Messages,
-    formStartDate: Instant,
-    booleanExprCache: BooleanExprCache
-  ): RecalculationResult = {
-    val modelComponentId: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
-      formModel.allMultiFileIds.map { modelComponentId =>
-        modelComponentId -> data.filesOfMultiFileComponent(modelComponentId)
-      }.toMap
-    val evaluationContext =
-      EvaluationContext(
-        formTemplate._id,
-        envelopeId,
-        formTemplate.customSubmissionRef,
-        maybeAccessCode,
-        retrievals,
-        thirdPartyData,
-        formTemplate.authConfig,
-        hc,
-        formPhase,
-        FileIdsWithMapping(formModel.allFileIds, formModel.allMultiFileIds, componentIdToFileId),
-        modelComponentId,
-        formModel.dateLookup,
-        formModel.addressLookup,
-        formModel.overseasAddressLookup,
-        formModel.postcodeLookup,
-        formModel.pageIdSectionNumberMap,
-        lang,
-        messages,
-        formModel.allIndexedComponentIds,
-        formModel.taxPeriodDate,
-        FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        formModel.dataRetrieveAll,
-        formModel.hideChoicesSelected,
-        formModel.choiceLookup,
-        formModel.addToListIds,
-        lookupRegistry,
-        formModel.lookupRegister,
-        formModel.constraints,
-        taskIdTaskStatus,
-        LocalDate.ofInstant(formStartDate, ZoneId.of("Europe/London")),
-        formModel.noDuplicates
-      )
-
-    Recalculation
-      .recalculateFormDataNew(
-        data,
-        formModel,
-        formTemplate,
-        retrievals,
-        evaluationContext,
-        messages,
-        booleanExprCache
-      )
-  }
-
-  def dependencyGraphValidation[U <: SectionSelectorType: SectionSelector]: FormModel[DependencyGraphVerification] =
-    expand(VariadicFormData.empty[SourceOrigin.OutOfDate])
-
-  def renderPageModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    booleanExprCache: BooleanExprCache,
-    phase: Option[FormPhase]
-  )(implicit messages: Messages): FormModelOptics[D] = {
-
-    implicit val fmvo = formModelVisibilityOptics
-
-    val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
-    val dataOutOfDate = data.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
-    val formModel: FormModel[DataExpanded] = expand(dataOutOfDate)
-    val formModelVisibility: FormModel[Visibility] =
-      getVisibilityModel(formModel, formModelVisibilityOptics, booleanExprCache, phase)
-
-    val formModelVisibilityOpticsFinal = new FormModelVisibilityOptics[D](
-      formModelVisibility,
-      formModelVisibilityOptics.recData,
-      formModelVisibilityOptics.recalculationResult,
-      booleanExprCache
-    )
-
-    val formModelRenderPageOptics = FormModelRenderPageOptics[D](
-      formModel,
-      formModelVisibilityOptics.recData
-    )
-
-    FormModelOptics[D](formModelRenderPageOptics, formModelVisibilityOpticsFinal)
-  }
-
-  private def getVisibilityModel[D <: DataOrigin](
-    formModel: FormModel[DataExpanded],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
-    booleanExprCache: BooleanExprCache,
-    phase: Option[FormPhase]
-  ): FormModel[Visibility] = {
-    val data: VariadicFormData[SourceOrigin.Current] = formModelVisibilityOptics.recData.variadicFormData
-
-    FormComponentVisibilityFilter(formModelVisibilityOptics, phase)
-      .stripHiddenFormComponents(formModel)
-      .filter { pageModel =>
-        pageModel.getIncludeIf.fold(true) { includeIf =>
-          FormModelBuilder.evalIncludeIf(
-            includeIf,
-            formModelVisibilityOptics.recalculationResult,
-            formModelVisibilityOptics.recData,
-            formModelVisibilityOptics.formModel,
-            booleanExprCache,
-            phase
-          )
-        } && pageModel.getNotRequiredIf.fold(true) { includeIf =>
-          !FormModelBuilder.evalIncludeIf(
-            includeIf,
-            formModelVisibilityOptics.recalculationResult,
-            formModelVisibilityOptics.recData,
-            formModelVisibilityOptics.formModel,
-            booleanExprCache,
-            phase
-          )
-        }
-      }
-      .map[Visibility] { singleton: Singleton[DataExpanded] =>
-        val updatedFields = singleton.page.fields.flatMap {
-          case fc @ IsRevealingChoice(rc) => fc.copy(`type` = RevealingChoice.slice(fc.id)(data)(rc)) :: Nil
-          case otherwise                  => otherwise :: Nil
-        }
-        singleton.copy(page = singleton.page.copy(fields = updatedFields))
-      } { checkYourAnswers: CheckYourAnswers[DataExpanded] =>
-        checkYourAnswers.asInstanceOf[CheckYourAnswers[Visibility]]
-      } { repeater: Repeater[DataExpanded] =>
-        repeater.asInstanceOf[Repeater[Visibility]]
-      }
-  }
-
-  def visibilityModel[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    data: VariadicFormData[SourceOrigin.OutOfDate],
+  def visibilityModel[U <: SectionSelectorType: SectionSelector](
+    data: VariadicFormData,
     phase: Option[FormPhase],
-    formStartDate: Instant,
-    booleanExprCache: BooleanExprCache
-  )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics[D] = {
-    val formModel: FormModel[Interim] = expand(data)
+    form: Form
+  )(implicit lang: LangADT, messages: Messages): FormModelOptics = {
 
-    val recalculationResult: RecalculationResult =
-      toRecalculationResults(data, formModel, phase, lang, messages, formStartDate, booleanExprCache)
+    val (formModel, freeCalculator, graph): (FormModel, FreeCalculator, DependencyGraph) = fastModel(data, form, phase)
 
-    buildFormModelVisibilityOptics(
-      data,
-      formModel,
-      recalculationResult,
-      booleanExprCache,
-      phase
-    )
+    val formModelVisibilityOptics: FormModelVisibilityOptics =
+      buildFormModelVisibilityOptics(formModel, freeCalculator, graph)
+    val formModelRenderPageOptics = new FormModelRenderPageOptics(formModel)
+
+    new FormModelOptics(formModelRenderPageOptics, formModelVisibilityOptics)
   }
 
-  private def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector, D <: DataOrigin](
-    data: VariadicFormData[OutOfDate],
-    formModel: FormModel[Interim],
-    recalculationResult: RecalculationResult,
-    booleanExprCache: BooleanExprCache,
-    phase: Option[FormPhase]
-  )(implicit messages: Messages): FormModelVisibilityOptics[D] = {
-    val evaluationResults = recalculationResult.evaluationResults
-    val dataOld = RecData(data).asInstanceOf[RecData[SourceOrigin.Current]]
-    val visibilityFormModel: FormModel[Visibility] = formModel.filter[Visibility] { pageModel =>
-      pageModel.getIncludeIf.fold(true) { includeIf =>
-        FormModelBuilder.evalIncludeIf(
-          includeIf,
-          recalculationResult,
-          dataOld,
-          formModel,
-          booleanExprCache,
-          phase
-        )
+  // This also removes unselected or hidden options of choices
+  private def hideFormComponents(
+    formComponents: List[FormComponent],
+    freeCalculator: FreeCalculator
+  )(implicit messages: Messages): List[FormComponent] =
+    formComponents
+      .filter { formComponent =>
+        val maybeEvaluationStatus: Option[EvaluationStatus] =
+          freeCalculator.answerMap.get(formComponent.modelComponentId)
+        maybeEvaluationStatus match {
+          case Some(evaluationStatus) => evaluationStatus != EvaluationStatus.Hidden
+          case None                   => formComponent.includeIf.fold(true)(includeIf => freeCalculator.evalIncludeIf(includeIf))
+        }
       }
-    }
+      .map {
+        case fc @ IsChoice(choice) =>
+          val choiceRes = choice.copy(
+            options = choice.options.zipWithIndex.flatMap { case (choiceElement, index) =>
+              val isChoiceHidden: Boolean =
+                choiceElement.includeIf
+                  .map(includeIf => !freeCalculator.evalIncludeIf(includeIf))
+                  .getOrElse(false)
 
-    val visibleTypedExprs: List[(FormComponentId, TypeInfo)] = visibilityFormModel.allFormComponents.collect {
-      case fc @ HasValueExpr(expr) if !fc.editable => (fc.id, visibilityFormModel.explicitTypedExpr(expr, fc.id))
-    }
+              if (isChoiceHidden) List.empty else List(choiceElement)
+            }
+          )
+          // choiceRes is used in validation (but not on render time)
+          fc.copy(`type` = choiceRes)
+        case fc @ IsRevealingChoice(revealingChoice) =>
+          val revealingChoiceRes = revealingChoice.copy(
+            options = revealingChoice.options.zipWithIndex.flatMap { case (revealingChoiceElement, index) =>
+              val isRevalingChoiceHidden: Boolean =
+                revealingChoiceElement.choice.includeIf
+                  .map(includeIf => !freeCalculator.evalIncludeIf(includeIf))
+                  .getOrElse(false)
 
-    val booleanExprResolver = BooleanExprResolver(booleanExpr =>
-      FormModelBuilder.evalIncludeIf(
-        IncludeIf(booleanExpr),
-        recalculationResult,
-        dataOld,
-        visibilityFormModel,
-        booleanExprCache,
-        phase
+              val evaluationStatus: EvaluationStatus =
+                freeCalculator.answerMapWithFallback.toStringResultOrOptionResult(fc.modelComponentId)
+
+              val choiceValue: String = revealingChoiceElement.choice match {
+                case OptionData.IndexBased(_, _, _, _, _)                                        => index.toString
+                case OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _) => value
+                case OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _) =>
+                  freeCalculator.evalExpr(expr).stringRepresentation(messages)
+              }
+
+              val isSelected = evaluationStatus.optionRepresentation.fold(false)(_.contains(choiceValue))
+
+              if (isRevalingChoiceHidden || !isSelected) {
+                List.empty[RevealingChoiceElement]
+              } else {
+                List(
+                  revealingChoiceElement.copy(revealingFields =
+                    revealingChoiceElement.revealingFields.filter(revealingField =>
+                      !freeCalculator.answerMap.get(revealingField.modelComponentId).contains(EvaluationStatus.Hidden)
+                    )
+                  )
+                )
+              }
+            }
+          )
+
+          fc.copy(`type` = revealingChoiceRes)
+        case other => other
+      }
+
+  private def hideSingletonWithNumber(
+    singleton: SingletonWithNumber,
+    freeCalculator: FreeCalculator
+  )(implicit messages: Messages): Option[SingletonWithNumber] = {
+    val isVisiblePage =
+      singleton.singleton.page.includeIf
+        .fold(true)(includeIf => freeCalculator.evalIncludeIf(includeIf))
+    if (isVisiblePage) {
+      val visibleFields = hideFormComponents(singleton.singleton.page.fields, freeCalculator)
+      Some(
+        singleton.copy(
+          singleton = singleton.singleton.copy(
+            page = singleton.singleton.page.copy(
+              fields = visibleFields
+            )
+          )
+        )
+      )
+    } else {
+      None
+    }
+  }
+
+  private def hideCheckYourAnswersWithNumber(
+    checkYourAnswersWithNumber: CheckYourAnswersWithNumber,
+    freeCalculator: FreeCalculator
+  )(implicit messages: Messages): CheckYourAnswersWithNumber = {
+
+    val visibleFields =
+      hideFormComponents(checkYourAnswersWithNumber.checkYourAnswers.fields.toList.flatMap(_.toList), freeCalculator)
+
+    val visibleFieldsNel = NonEmptyList.fromList(visibleFields)
+
+    checkYourAnswersWithNumber.copy(
+      checkYourAnswers = checkYourAnswersWithNumber.checkYourAnswers.copy(
+        fields = visibleFieldsNel
       )
     )
+  }
 
-    val visibleVariadicData: VariadicFormData[SourceOrigin.Current] =
-      visibleTypedExprs.foldMap { case (fcId, typeInfo) =>
-        val expressionResult =
-          evaluationResults
-            .evalExpr(typeInfo, RecData(data), booleanExprResolver, recalculationResult.evaluationContext)
-            .applyTypeInfo(typeInfo)
+  private def hideInvisiblePages(
+    brackets: NonEmptyList[Bracket],
+    freeCalculator: FreeCalculator
+  )(implicit messages: Messages): List[Bracket] =
+    brackets.toList.flatMap { bracket =>
+      bracket.fold[List[Bracket]] { nonRepeatingPage =>
+        hideSingletonWithNumber(nonRepeatingPage.singleton, freeCalculator).map { singleton =>
+          nonRepeatingPage.copy(singleton = singleton)
+        }.toList
 
-        FormModelBuilder.toCurrentData(fcId.modelComponentId, expressionResult, typeInfo)
+      } { repeatingPage =>
+        val singletons =
+          repeatingPage.singletons.toList.flatMap(singleton => hideSingletonWithNumber(singleton, freeCalculator))
+
+        NonEmptyList
+          .fromList(singletons)
+          .fold(List.empty[Bracket]) { singletonsNel =>
+            List(repeatingPage.copy(singletons = singletonsNel))
+          }
+      } { addToList =>
+        addToList.includeIf match {
+          case Some(includeIf) if !freeCalculator.evalIncludeIf(includeIf) => List.empty
+          case _ =>
+            val iterations: List[Bracket.AddToListIteration] = addToList.iterations.toList.flatMap { iteration =>
+              val defaultPage =
+                iteration.defaultPage.flatMap(singleton => hideSingletonWithNumber(singleton, freeCalculator))
+
+              val declarationSection =
+                iteration.declarationSection.flatMap(singleton => hideSingletonWithNumber(singleton, freeCalculator))
+
+              val singletons =
+                iteration.singletons.toList.flatMap(singleton => hideSingletonWithNumber(singleton, freeCalculator))
+
+              val checkYourAnswers = iteration.checkYourAnswers.map { checkYourAnswers =>
+                hideCheckYourAnswersWithNumber(checkYourAnswers, freeCalculator)
+              }
+
+              NonEmptyList
+                .fromList(singletons)
+                .map { singletonsNel =>
+                  iteration.copy(
+                    defaultPage = defaultPage,
+                    singletons = singletonsNel,
+                    checkYourAnswers = checkYourAnswers,
+                    declarationSection = declarationSection
+                  )
+                }
+            }
+
+            NonEmptyList
+              .fromList(iterations)
+              .fold(List.empty[Bracket]) { iterationsNel =>
+                List(
+                  addToList.copy(
+                    iterations = iterationsNel
+                  )
+                )
+              }
+        }
       }
+    }
 
-    val currentData = data ++ visibleVariadicData
+  private def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector](
+    formModel: FormModel,
+    freeCalculator: FreeCalculator,
+    graph: DependencyGraph
+  )(implicit messages: Messages): FormModelVisibilityOptics = {
 
-    val recData: RecData[SourceOrigin.Current] = RecData.empty.copy(variadicFormData = currentData)
+    val bracketsWithSectionNumbers = formModel.brackets.fold[Brackets] { classic =>
+      val brackets: List[Bracket] = hideInvisiblePages(classic.brackets, freeCalculator)
+      NonEmptyList.fromList(brackets) match {
+        case None              => throw new RuntimeException("All pages are hidden")
+        case Some(bracketsNel) => Brackets.Classic(bracketsNel)
+      }
+    } { taskList =>
+      val brackets = taskList.brackets.map { case (coordinated, taskList) =>
+        val visibilityTaskList = taskList match {
+          case TaskModel.AllHidden() => TaskModel.AllHidden()
+          case TaskModel.Editable(brackets) =>
+            val bracketsVisiblity: List[Bracket] = hideInvisiblePages(brackets, freeCalculator)
 
-    FormModelVisibilityOptics[D](visibilityFormModel, recData, recalculationResult, booleanExprCache)
+            NonEmptyList.fromList(bracketsVisiblity).fold[TaskModel](TaskModel.AllHidden()) { brackets =>
+              TaskModel.Editable(brackets)
+            }
+        }
+        coordinated -> visibilityTaskList
+
+      }
+      Brackets.TaskList(brackets)
+    }
+
+    val visibilityFormModel: FormModel = new FormModel(bracketsWithSectionNumbers)
+
+    new FormModelVisibilityOptics(visibilityFormModel, freeCalculator)
   }
 
-  def expand[T <: PageMode: FormModelExpander, U <: SectionSelectorType: SectionSelector](
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): FormModel[T] = {
-    val basicFm: FormModel[T] = basic(data)
-    mkFormModel(basicFm, data)
-  }
-
-  private def mkCheckYourAnswers[T <: PageMode](
+  private def mkCheckYourAnswers(
     c: CheckYourAnswersPage,
     s: Section.AddToList,
     index: Int
-  ): CheckYourAnswers[T] = {
-    // dummy FormComponentId so that CheckYourAnswers page model works as expected when computing visited indexes
-    val fc = new FormComponentUpdater(
-      s.addAnotherQuestion.copy(
-        id = s.addAnotherQuestion.id.withSuffix("CYA"),
-        validIf = c.removeItemIf.map(removeItemIf => ValidIf(Not(removeItemIf.booleanExpr)))
-      ),
-      index,
-      s.allIds,
-      s.allDataRetriveIds
-    ).updatedWithId.copy(mandatory = Mandatory.False, derived = true, submissible = false)
+  ): CheckYourAnswers = {
 
     val expandedFields =
       c.fields.map(_.map(fc => new FormComponentUpdater(fc, index, s.allIds, s.allDataRetriveIds).updatedWithId))
 
-    CheckYourAnswers[T](
-      s.pageId.withIndex(index).withSuffix("CYA"),
+    CheckYourAnswers(
+      s.pageId.withIndex(index),
       c.title.map(_.expand(index, s.allIds)),
       c.caption.map(_.expand(index, s.allIds)),
       c.updateTitle.expand(index, s.allIds),
@@ -456,7 +300,6 @@ class FormModelBuilder(
       c.header.map(_.expand(index, s.allIds)),
       c.footer.map(_.expand(index, s.allIds)),
       c.continueLabel.map(_.expand(index, s.allIds)),
-      fc,
       index,
       c.presentationHint,
       c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
@@ -466,41 +309,7 @@ class FormModelBuilder(
     )
   }
 
-  private def mkDeclaration[T <: PageMode](
-    d: DeclarationSection,
-    s: Section.AddToList,
-    index: Int
-  ): Singleton[T] = {
-    val expandedFields =
-      d.fields.map(fc => new FormComponentUpdater(fc, index, s.allIds, s.allDataRetriveIds).updatedWithId)
-
-    Singleton(
-      Page(
-        title = d.title.expand(index, s.allIds),
-        id = Some(s.pageId.withIndex(index).withSuffix("DEC")),
-        noPIITitle = d.noPIITitle.map(_.expand(index, s.allIds)),
-        description = d.description.map(_.expand(index, s.allIds)),
-        shortName = d.shortName.map(_.expand(index, s.allIds)),
-        caption = d.caption.map(_.expand(index, s.allIds)),
-        includeIf = d.includeIf.map(i => IncludeIf(BooleanExprUpdater(i.booleanExpr, index, s.allIds))),
-        fields = expandedFields,
-        continueLabel = d.continueLabel.map(_.expand(index, s.allIds)),
-        continueIf = None,
-        instruction = None,
-        presentationHint = None,
-        dataRetrieve = None,
-        confirmation = None,
-        redirects = None,
-        hideSaveAndComeBackButton = Some(true),
-        removeItemIf = None,
-        displayWidth = None,
-        notRequiredIf = None,
-        specimenNote = None
-      )
-    )
-  }
-
-  private def mkRepeater[T <: PageMode](s: Section.AddToList, index: Int): Repeater[T] = {
+  private def mkRepeater(s: Section.AddToList, index: Int): Repeater = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds, s.allDataRetriveIds).updatedWithId
 
@@ -521,7 +330,7 @@ class FormModelBuilder(
         case None          => None
       }
 
-    Repeater[T](
+    Repeater(
       expand(s.title),
       s.caption.map(expand),
       s.pageId.withIndex(index),
@@ -530,7 +339,6 @@ class FormModelBuilder(
       expand(s.summaryDescription),
       expand(s.shortName),
       expand(s.summaryName),
-      s.includeIf,
       fc,
       index,
       s.instruction,
@@ -544,191 +352,182 @@ class FormModelBuilder(
     )
   }
 
-  private def mkSingleton(page: Page[Basic], index: Int): Section.AddToList => Page[Basic] =
-    source => PageUpdater(page, index, source.allIds, source.allDataRetriveIds)
-
-  private def mergeIncludeIfs[T <: PageMode](includeIf: IncludeIf, page: Page[T]): Page[T] = page.copy(
-    includeIf = Some(page.includeIf.fold(includeIf)(inIf => IncludeIf(And(inIf.booleanExpr, includeIf.booleanExpr))))
-  )
-
-  private def basicDefaultPage[T <: PageMode: FormModelExpander](
-    s: Section.AddToList,
-    templateSectionIndex: TemplateSectionIndex,
-    maybeCoordinates: Option[Coordinates],
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): Option[SingletonWithNumber[T]] = {
-    val addToListPages: Option[Page[Basic]] = s.defaultPage
-
-    addToListPages.map { page =>
-      val page2: Page[Basic] = mkSingleton(page, 1)(s).copy(notRequiredIf = s.notRequiredIf)
-      val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
-      val sectionNumber = mkSectionNumber(
-        SectionNumber.Classic.AddToListPage.DefaultPage(templateSectionIndex),
-        maybeCoordinates
-      )
-      SingletonWithNumber[T](Singleton(page3), sectionNumber)
-    }
-  }
-
-  private def basicAddToList[T <: PageMode: FormModelExpander](
-    defaultPage: Option[SingletonWithNumber[T]],
-    s: Section.AddToList,
-    templateSectionIndex: TemplateSectionIndex,
-    maybeCoordinates: Option[Coordinates],
-    iterationIndex: Int,
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): Option[Bracket.AddToListIteration[T]] = {
-    val singletons: List[SingletonWithNumber[T]] = {
-      val addToListPages: NonEmptyList[Page[Basic]] = s.pages
-
-      addToListPages.zipWithIndex.map { case (page, pageIndex) =>
-        val page1: Page[Basic] = s.includeIf
-          .fold(page)(includeIf => mergeIncludeIfs(includeIf, page))
-          .copy(notRequiredIf = s.notRequiredIf)
-        val page2: Page[Basic] = mkSingleton(page1, iterationIndex)(s)
-        val page3: Page[T] = implicitly[FormModelExpander[T]].lift(page2, data)
-        val sectionNumber = mkSectionNumber(
-          SectionNumber.Classic.AddToListPage.Page(templateSectionIndex, iterationIndex, pageIndex),
-          maybeCoordinates
-        )
-        SingletonWithNumber[T](Singleton(page3), sectionNumber)
-      }.toList
-    }
-
-    val repeater: Repeater[T] = mkRepeater(s, iterationIndex)
-
-    val checkYourAnswers: Option[CheckYourAnswersWithNumber[T]] = s.cyaPage.map(c =>
-      CheckYourAnswersWithNumber(
-        mkCheckYourAnswers(c, s, iterationIndex),
-        mkSectionNumber(
-          SectionNumber.Classic.AddToListPage
-            .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.CyaPage),
-          maybeCoordinates
-        )
-      )
-    )
-
-    val declaration: Option[SingletonWithNumber[T]] = s.declarationSection.map(d =>
-      SingletonWithNumber(
-        mkDeclaration(d, s, iterationIndex),
-        mkSectionNumber(
-          SectionNumber.Classic.AddToListPage
-            .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.DeclarationPage),
-          maybeCoordinates
-        )
-      )
-    )
-
-    NonEmptyList
-      .fromList(singletons)
-      .map(
-        Bracket.AddToListIteration(
-          defaultPage,
-          _,
-          checkYourAnswers,
-          declaration,
-          RepeaterWithNumber(
-            repeater,
-            mkSectionNumber(
-              SectionNumber.Classic.AddToListPage
-                .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.RepeaterPage),
-              maybeCoordinates
-            )
-          )
-        )
-      )
-  }
-
   private def mkSectionNumber(
     sn: SectionNumber.Classic,
     coordinates: Option[Coordinates]
   ): SectionNumber = coordinates.fold[SectionNumber](sn)(coordinates => SectionNumber.TaskList(coordinates, sn))
 
-  private def basic[T <: PageMode, U <: SectionSelectorType](
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  )(implicit formModelExpander: FormModelExpander[T], sectionIncluder: SectionSelector[U]): FormModel[T] = {
+  def fastModel[U <: SectionSelectorType](
+    variadiFormData: VariadicFormData,
+    form: Form,
+    phase: Option[FormPhase]
+  )(implicit
+    lang: LangADT,
+    messages: Messages,
+    sectionIncluder: SectionSelector[U]
+  ): (FormModel, FreeCalculator, DependencyGraph) = {
+    val mongoUserData = new MongoUserData(variadiFormData)
+
+    val multiFilesData: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
+      metadata.allMultiFileUploads
+        .map { baseComponentId =>
+          variadiFormData.filesOfMultiFileComponent(baseComponentId)
+        }
+        .foldLeft(Map.empty[ModelComponentId, List[(FileComponentId, VariadicValue.One)]])(_.concat(_))
+
+    val evaluationContext = EvaluationContext(
+      formTemplateId = form.formTemplateId,
+      envelopeId = form.envelopeId,
+      customSubmissionRef = formTemplate.customSubmissionRef,
+      fileSizeLimit = FileSizeLimit(formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
+      maybeAccessCode = maybeAccessCode,
+      authConfig = formTemplate.authConfig,
+      retrievals = retrievals,
+      thirdPartyData = form.thirdPartyData,
+      taskIdTaskStatus = taskIdTaskStatus,
+      formStartDate = LocalDate.ofInstant(form.startDate, ZoneId.of("Europe/London")),
+      lookupRegistry = lookupRegistry,
+      lookupRegister = metadata.lookupRegister,
+      componentIdToFileId = form.componentIdToFileId,
+      multiFilesData = multiFilesData,
+      formPhase = phase,
+      lang = lang
+    )
+    val visitIndex = form.visitsIndex
+    val recalculator: Recalculator =
+      Recalculator.from(
+        formTemplate,
+        metadata,
+        mongoUserData,
+        visitIndex,
+        evaluationContext
+      )
+
+    val freeCalculator: FreeCalculator = recalculator.recalculate()
+
+    // recalculator.graph.pretty()
 
     val allSections: AllSections = sectionIncluder.getSections(formTemplate)
 
-    val staticTypeInfo: StaticTypeInfo =
-      allSections.sections.foldLeft(StaticTypeInfo.empty)(_ ++ _.section.staticTypeInfo)
-
-    val revealingChoiceInfo: RevealingChoiceInfo =
-      allSections.sections.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.section.revealingChoiceInfo)
-
-    val brackets: BracketPlainCoordinated[T] = allSections.mapSection { maybeCoordinates =>
+    val brackets: Brackets = allSections.mapSection { maybeCoordinates =>
       {
         case IndexedSection.SectionNoIndex(s) =>
-          val page = formModelExpander.lift(s.page, data)
           val sectionNumber =
             mkSectionNumber(SectionNumber.classicFixed, maybeCoordinates)
-          Some(Bracket.NonRepeatingPage(SingletonWithNumber[T](Singleton(page), sectionNumber), s))
+          Some(Bracket.NonRepeatingPage(SingletonWithNumber(Singleton(s.page), sectionNumber), s))
         case IndexedSection.SectionIndex(s: Section.NonRepeatingPage, index) =>
-          val page = formModelExpander.lift(s.page, data)
           val sectionNumber = mkSectionNumber(SectionNumber.Classic.NormalPage(index), maybeCoordinates)
-          Some(Bracket.NonRepeatingPage(SingletonWithNumber[T](Singleton(page), sectionNumber), s))
-        case IndexedSection.SectionIndex(s: Section.RepeatingPage, index) =>
-          formModelExpander.liftRepeating(s, index, data)
-        case IndexedSection.SectionIndex(s: Section.AddToList, index) =>
-          val defaultPage: Option[SingletonWithNumber[T]] = basicDefaultPage(s, index, maybeCoordinates, data)
-          basicAddToList(defaultPage, s, index, maybeCoordinates, 1, data).map(atl =>
-            Bracket.AddToList(NonEmptyList.one(atl), s)
+          Some(
+            Bracket
+              .NonRepeatingPage(SingletonWithNumber(Singleton.expand(s.page, freeCalculator), sectionNumber), s)
           )
-      }
-    }
-
-    val sumInfo: SumInfo = allSections.sections.foldLeft(SumInfo.empty)(_ ++ _.section.sumInfo)
-
-    FormModel.fromPages(brackets, staticTypeInfo, revealingChoiceInfo, sumInfo, formTemplate.dataRetrieve)
-  }
-
-  private def repeaterIsYes(
-    modelComponentId: ModelComponentId,
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): Boolean = {
-    val nextOne: Option[Seq[String]] = data.many(modelComponentId)
-    val next = nextOne.toSeq.flatten
-    next.contains("0")
-  }
-
-  private def answeredAddToListIterations[T <: PageMode: FormModelExpander](
-    iteration: Bracket.AddToListIteration[T],
-    data: VariadicFormData[SourceOrigin.OutOfDate],
-    source: Section.AddToList
-  ): NonEmptyList[Bracket.AddToListIteration[T]] = {
-    def loop(
-      repeater: RepeaterWithNumber[T],
-      acc: NonEmptyList[Bracket.AddToListIteration[T]]
-    ): NonEmptyList[Bracket.AddToListIteration[T]] =
-      if (repeaterIsYes(repeater.repeater.addAnotherQuestion.modelComponentId, data)) {
-        val templateSectionIndex: TemplateSectionIndex = repeater.sectionNumber.templateSectionIndex
-        val maybeCoordinates: Option[Coordinates] = repeater.sectionNumber.maybeCoordinates
-        val maybeBracket =
-          basicAddToList(
-            None, // next iteration has no default page
-            source,
-            templateSectionIndex,
-            maybeCoordinates,
-            repeater.repeater.index + 1,
-            data
-          ) // Add next iteration
-        maybeBracket
-          .map { bracket =>
-            loop(bracket.repeater, acc ::: NonEmptyList.one(bracket))
+        case IndexedSection.SectionIndex(s: Section.RepeatingPage, index) =>
+          freeCalculator.evalExpr(s.repeats).evaluationStatus match {
+            case EvaluationStatus.NumberResult(repeats) =>
+              val repeatingPages = (1 to repeats.toInt).map { iterationIndex =>
+                val pageUpdated = PageUpdater(s.page, iterationIndex, s.allIds, s.page.allDataRetriveIds)
+                SingletonWithNumber(
+                  Singleton(pageUpdated),
+                  mkSectionNumber(SectionNumber.Classic.RepeatedPage(index, iterationIndex - 1), maybeCoordinates)
+                )
+              }
+              NonEmptyList.fromList(repeatingPages.toList).map { repeatingPagesNel =>
+                Bracket.RepeatingPage(repeatingPagesNel, s)
+              }
+            case EvaluationStatus.Empty | EvaluationStatus.Hidden => Option.empty[Bracket]
+            case other =>
+              throw new Exception(
+                s"Failed to create a repeatingPage. Expected NumberResult, Empty or Hidden but got: $other"
+              )
           }
-          .getOrElse(acc)
-      } else {
-        acc
-      }
-    loop(iteration.repeater, NonEmptyList.one(iteration))
-  }
 
-  private def mkFormModel[T <: PageMode: FormModelExpander](
-    formModel: FormModel[T],
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  ): FormModel[T] =
-    formModel.flatMapRepeater {
-      case (NonEmptyList(iteration, Nil), source) => answeredAddToListIterations(iteration, data, source)
-      case (iterations, _)                        => iterations
+        case IndexedSection.SectionIndex(s: Section.AddToList, templateSectionIndex) =>
+          val baseComponentId = s.addAnotherQuestion.id.baseComponentId
+
+          // Find out how many times this baseComponentId appears in the data.
+          val numberOfIterations: Int =
+            mongoUserData.lookup.forBaseComponentId(baseComponentId).count {
+              case (_, VariadicValue.Many(Seq("0"))) => true
+              case (_, VariadicValue.Many(_))        => false
+              case (_, one) =>
+                throw new Exception(
+                  s"AddToList repeater question answer must be Many, but One received: $one"
+                )
+            }
+
+          val maybeIterations = (0 to numberOfIterations).map { index =>
+            val iterationIndex = index + 1
+            val defaultPage: Option[SingletonWithNumber] =
+              s.defaultPage
+                .filter(_ => iterationIndex == 1) // Only first iteration can have default page
+                .map { dp =>
+                  val dpSectionNumber = mkSectionNumber(
+                    SectionNumber.Classic.AddToListPage.DefaultPage(templateSectionIndex),
+                    maybeCoordinates
+                  )
+                  SingletonWithNumber(Singleton(PageUpdater(dp, 1, s.allIds, dp.allDataRetriveIds)), dpSectionNumber)
+                }
+            val checkYourAnswers: Option[CheckYourAnswersWithNumber] = s.cyaPage.map { cyaPage =>
+              val checkYourAnswers = mkCheckYourAnswers(cyaPage, s, iterationIndex)
+
+              val cyaSectionNumber: SectionNumber = mkSectionNumber(
+                SectionNumber.Classic.AddToListPage
+                  .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.CyaPage),
+                maybeCoordinates
+              )
+
+              CheckYourAnswersWithNumber(checkYourAnswers, cyaSectionNumber)
+            }
+
+            val declarationSection = s.declarationSection.map { declarationSection =>
+              val pageUpdated = PageUpdater(declarationSection.toPage, iterationIndex, s.allIds, s.allDataRetriveIds)
+
+              val sectionNumber = mkSectionNumber(
+                SectionNumber.Classic.AddToListPage
+                  .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.DeclarationPage),
+                maybeCoordinates
+              )
+              SingletonWithNumber(Singleton(pageUpdated), sectionNumber)
+            }
+
+            val singletons: NonEmptyList[SingletonWithNumber] = s.pages.zipWithIndex.map { case (page, pageIndex) =>
+              val pageUpdated = PageUpdater(page, iterationIndex, s.allIds, page.allDataRetriveIds)
+
+              val sectionNumber = mkSectionNumber(
+                SectionNumber.Classic.AddToListPage.Page(templateSectionIndex, iterationIndex, pageIndex),
+                maybeCoordinates
+              )
+              SingletonWithNumber(Singleton.expand(pageUpdated, freeCalculator), sectionNumber)
+            }
+
+            val repeater: Repeater = mkRepeater(s, iterationIndex)
+
+            Bracket.AddToListIteration(
+              defaultPage = defaultPage,
+              singletons = singletons,
+              checkYourAnswers = checkYourAnswers,
+              declarationSection = declarationSection,
+              repeater = RepeaterWithNumber(
+                repeater,
+                mkSectionNumber(
+                  SectionNumber.Classic.AddToListPage
+                    .TerminalPage(templateSectionIndex, iterationIndex, TerminalPageKind.RepeaterPage),
+                  maybeCoordinates
+                )
+              )
+            )
+          }
+
+          NonEmptyList
+            .fromList(maybeIterations.toList)
+            .fold(
+              Option.empty[Bracket]
+            )(iterations => Some(Bracket.AddToList(s.includeIf, iterations, s)))
+      }
     }
+
+    val formModel = new FormModel(brackets)
+
+    (formModel, freeCalculator.withFormModelMetadata(formModel.metadata), recalculator.graph)
+  }
 }
