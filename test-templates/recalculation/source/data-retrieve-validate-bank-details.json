@@ -62,7 +62,7 @@
               "value": "sortCodeBankName: ${dataRetrieve.bankDetails.sortCodeBankName}"
             },
             {
-              "key": "nonStandardAccountDetailsRequiredForBacs",
+              "key": "nonStandardAccountDetailsRequiredForBacsX",
               "value": "nonStandardAccountDetailsRequiredForBacs: ${dataRetrieve.bankDetails.nonStandardAccountDetailsRequiredForBacs}"
             },
             {
