@@ -1,0 +1,95 @@
+{
+  "_id": "between-expr",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Enter start and end dates",
+      "fields": [
+        {
+          "id": "startDate",
+          "label": "Start date",
+          "type": "date"
+        },
+        {
+          "id": "endDate",
+          "label": "End date",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "startDate: ${startDate}\n\nendDate: ${endDate}\n\ndaysBetween: ${daysBetween(startDate, endDate)}\n\nweeksBetween: ${weeksBetween(startDate, endDate)}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret days",
+      "includeIf": "${daysBetween(startDate, endDate) > 100}",
+      "fields": [
+        {
+          "id": "secretDays",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret weeks",
+      "includeIf": "${weeksBetween(startDate, endDate) > 100}",
+      "fields": [
+        {
+          "id": "secretWeeks",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -22,15 +22,12 @@ import cats.implicits._
 import org.typelevel.ci.CIString
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.PageModel
-import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -49,18 +46,17 @@ import ComponentChecker.CheckInterpreter
 import GformError.linkedHashSetMonoid
 
 class ValidationService(
-  booleanExprEval: BooleanExprEval,
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
   checkInterpreter: CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
 )(implicit ec: ExecutionContext) {
 
   private def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
-  def validatePageModel[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
+  def validatePageModel(
+    pageModel: PageModel,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(implicit
     hc: HeaderCarrier,
@@ -70,11 +66,11 @@ class ValidationService(
   ): Future[ValidatedType[ValidatorsResult]] =
     validatePageModelBase(pageModel, cache, envelope, formModelVisibilityOptics, getEmailCodeFieldMatcher, true)
 
-  def validatePageModelWithoutCustomValidators[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
+  def validatePageModelWithoutCustomValidators(
+    pageModel: PageModel,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(implicit
     hc: HeaderCarrier,
@@ -84,11 +80,11 @@ class ValidationService(
   ): Future[ValidatedType[ValidatorsResult]] =
     validatePageModelBase(pageModel, cache, envelope, formModelVisibilityOptics, getEmailCodeFieldMatcher, false)
 
-  private def validatePageModelBase[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
+  private def validatePageModelBase(
+    pageModel: PageModel,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
     validateCustomValidators: Boolean
   )(implicit
@@ -116,10 +112,10 @@ class ValidationService(
     eT.value.map(Validated.fromEither)
   }
 
-  def validateFormModel[D <: DataOrigin](
+  def validateFormModel(
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeCoordinates: Option[Coordinates]
   )(implicit
     hc: HeaderCarrier,
@@ -150,9 +146,9 @@ class ValidationService(
     } yield ValidationUtil.evaluateValidationResult(allFields, v, formModelVisibilityOptics, envelope)
   }
 
-  def validateATLs[D <: DataOrigin](
-    pageModels: List[PageModel[Visibility]],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  def validateATLs(
+    pageModels: List[PageModel],
+    formModelVisibilityOptics: FormModelVisibilityOptics
   ): ValidatedType[Unit] =
     pageModels
       .flatMap(_.allATLRepeatsWhiles)
@@ -169,9 +165,9 @@ class ValidationService(
       .toList
       .combineAll
 
-  private def validatePageModelComponents[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  private def validatePageModelComponents(
+    pageModel: PageModel,
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
@@ -192,9 +188,9 @@ class ValidationService(
     Monoid[ValidatedType[Unit]].combineAll(res)
   }
 
-  def validateAllSections[D <: DataOrigin](
+  def validateAllSections(
     cache: CacheData,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     envelope: EnvelopeWithMapping
   )(implicit
     messages: Messages,
@@ -219,9 +215,9 @@ class ValidationService(
     ValidationUtil.evaluateValidationResult(allFields, validatedType, formModelVisibilityOptics, envelope)
   }
 
-  private def validateFormComponent[D <: DataOrigin](
+  private def validateFormComponent(
     formComponent: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
@@ -231,20 +227,19 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): ValidatedType[Unit] =
-    new ComponentsValidator[D](
+    new ComponentsValidator(
       formModelVisibilityOptics,
       formComponent,
       cache,
       envelope,
       lookupRegistry,
-      booleanExprEval,
       checkInterpreter,
       validateValidators
     ).validate(getEmailCodeFieldMatcher)
 
-  private def sendVerificationEmails[D <: DataOrigin](
-    pageModel: PageModel[Visibility],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  private def sendVerificationEmails(
+    pageModel: PageModel,
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     thirdPartyData: ThirdPartyData,
     formTemplateId: FormTemplateId
   )(implicit

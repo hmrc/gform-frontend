@@ -22,7 +22,6 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.email.EmailFieldId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.LocalisedString
@@ -34,11 +33,11 @@ import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
-class TimeChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class TimeChecker() extends ComponentChecker[Unit] {
 
   private val genericErrorInvalid = "generic.error.invalid"
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -58,7 +57,7 @@ class TimeChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   private def validateTime(
     formComponent: FormComponent,
     time: Time,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -67,7 +66,7 @@ class TimeChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       formModelVisibilityOptics.data.one(formComponent.modelComponentId).filterNot(_.isEmpty)
     val timeErrorRequired = "time.error.required"
 
-    val isMandatory = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver)
+    val isMandatory = formComponent.mandatory.eval(formModelVisibilityOptics.freeCalculator)
     ifProgram(
       andCond = timeValue.isDefined && !(Range.timeSlots(time) contains timeValue.get),
       thenProgram = validationFailure(
@@ -95,9 +94,9 @@ class TimeChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   }
 }
 
-class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class ChoiceChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -135,7 +134,7 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   def validateChoice(
     fieldValue: FormComponent
   )(
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     sse: SmartStringEvaluator
@@ -157,7 +156,7 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
       case _ => Set.empty[String]
     }
 
-    val choiceValues: Seq[String] = formModelVisibilityOptics.evaluationResults.recData.variadicFormData
+    val choiceValues: Seq[String] = formModelVisibilityOptics.freeCalculator.variadicFormData
       .get(fieldValue.modelComponentId)
       .toSeq
       .flatMap(_.toSeq)
@@ -165,7 +164,7 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
     ifProgram(
       cond = fieldValue.mandatory.eval(
-        formModelVisibilityOptics.booleanExprResolver
+        formModelVisibilityOptics.freeCalculator
       ) && (choiceValues.isEmpty || (availableSelections.nonEmpty && !choiceValues.forall(
         availableSelections
       ))),
@@ -179,7 +178,7 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     noneChoice: NoneChoice,
     error: LocalisedString
   )(
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit l: LangADT): CheckProgram[Unit] = {
     val choiceValue = formModelVisibilityOptics.data
       .many(fieldValue.modelComponentId)
@@ -195,9 +194,9 @@ class ChoiceChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   }
 }
 
-class EmailFieldIdChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class EmailFieldIdChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -214,7 +213,7 @@ class EmailFieldIdChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
   def validateEmailCode(
     formComponent: FormComponent,
     emailFieldId: EmailFieldId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     thirdPartyData: ThirdPartyData
   )(implicit
     messages: Messages,

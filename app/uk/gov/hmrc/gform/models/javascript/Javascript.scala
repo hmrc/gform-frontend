@@ -20,7 +20,6 @@ import cats.syntax.eq._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.ops._
@@ -32,8 +31,8 @@ private case class JsFunction(name: String) extends AnyVal {
 object Javascript {
 
   def fieldJavascript(
-    pageModel: PageModel[DataExpanded],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    pageModel: PageModel,
+    formModelOptics: FormModelOptics
   ): String = {
 
     val fcWithSuccessors: List[(FormComponent, Set[ModelComponentId])] = pageModel.allFormComponents
@@ -42,10 +41,8 @@ object Javascript {
         maybeExpr
           .map { expr =>
             val leafs: Set[BaseComponentId] = expr
-              .leafs(formModelOptics.formModelRenderPageOptics.formModel)
-              .collect { case FormCtx(fcId) =>
-                fcId.baseComponentId
-              }
+              .allFormComponentIds()
+              .map(_.baseComponentId)
               .toSet
             val modelComponentIds =
               pageModel.allModelComponentIds.filter(modelComponentId => leafs(modelComponentId.baseComponentId))
@@ -119,7 +116,7 @@ object Javascript {
     field: FormComponent,
     expr: Expr,
     successorLookup: Map[FormComponentId, Set[ModelComponentId]],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   ): String = {
 
     val elementId = field.id
@@ -177,7 +174,7 @@ object Javascript {
         case Divide(a, b)           => compute("divide", a, b)
         case sum @ Sum(FormCtx(id)) => sumCalc(id, sum)
         case IfElse(cond, a, b) =>
-          if (formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(cond))
+          if (formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr(cond))
             computeExpr(a)
           else
             computeExpr(b)

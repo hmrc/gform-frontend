@@ -1,0 +1,639 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Operands"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsFalse": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Operand 1"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "op1",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "Number": {
+                          "maxWholeDigits": 11,
+                          "maxFractionalDigits": 2,
+                          "roundingMode": "Down"
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsFalse": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Operand 2"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "op2",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "Number": {
+                          "maxWholeDigits": 11,
+                          "maxFractionalDigits": 2,
+                          "roundingMode": "Down"
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "tableOutside",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Equation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "''{0}'' orElse ''{1}'' orElse ''Fallback'' = {2}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "op1"
+                                        }
+                                      },
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "op2"
+                                        }
+                                      },
+                                      {
+                                        "Else": {
+                                          "field1": {
+                                            "Else": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "op1"
+                                                }
+                                              },
+                                              "field2": {
+                                                "FormCtx": {
+                                                  "formComponentId": "op2"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "Fallback"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "validators": [],
+                  "id": "secretOp1",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "includeIf": {
+                    "booleanExpr": {
+                      "Equals": {
+                        "left": {
+                          "Else": {
+                            "field1": {
+                              "Else": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "op1"
+                                  }
+                                },
+                                "field2": {
+                                  "FormCtx": {
+                                    "formComponentId": "op2"
+                                  }
+                                }
+                              }
+                            },
+                            "field2": {
+                              "Constant": {
+                                "value": "Fallback"
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "FormCtx": {
+                            "formComponentId": "op1"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Op1"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "validators": [],
+                  "id": "secretOp2",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "includeIf": {
+                    "booleanExpr": {
+                      "Equals": {
+                        "left": {
+                          "Else": {
+                            "field1": {
+                              "Else": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "op1"
+                                  }
+                                },
+                                "field2": {
+                                  "FormCtx": {
+                                    "formComponentId": "op2"
+                                  }
+                                }
+                              }
+                            },
+                            "field2": {
+                              "Constant": {
+                                "value": "Fallback"
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "FormCtx": {
+                            "formComponentId": "op2"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Op2"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "validators": [],
+                  "id": "secretFallback",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "includeIf": {
+                    "booleanExpr": {
+                      "Equals": {
+                        "left": {
+                          "Else": {
+                            "field1": {
+                              "Else": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "op1"
+                                  }
+                                },
+                                "field2": {
+                                  "FormCtx": {
+                                    "formComponentId": "op2"
+                                  }
+                                }
+                              }
+                            },
+                            "field2": {
+                              "Constant": {
+                                "value": "Fallback"
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "Constant": {
+                            "value": "Fallback"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Fallback"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "or-else",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "or-else",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

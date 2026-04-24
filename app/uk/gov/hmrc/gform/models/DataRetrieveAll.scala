@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 import scala.collection.immutable.ListMap
@@ -38,10 +39,10 @@ final case class DataRetrieveAll(lookup: Map[DataRetrieveId, DataRetrieve]) exte
 object DataRetrieveAll {
   val empty: DataRetrieveAll = DataRetrieveAll(Map.empty)
 
-  def from[A <: PageMode](formModel: FormModel[A]): DataRetrieveAll =
+  def from(formModel: FormModel, formTemplate: FormTemplate): DataRetrieveAll =
     DataRetrieveAll(
       ListMap(formModel.pages.map(_.dataRetrieves).flatMap(drs => drs.map(dr => dr.id -> dr)): _*) ++
-        formModel.dataRetrieve.fold(Map.empty[DataRetrieveId, DataRetrieve])(drs =>
+        formTemplate.dataRetrieve.fold(Map.empty[DataRetrieveId, DataRetrieve])(drs =>
           ListMap(drs.toList.map(dr => dr.id -> dr): _*)
         )
     )

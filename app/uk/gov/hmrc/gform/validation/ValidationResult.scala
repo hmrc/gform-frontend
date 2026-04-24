@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
-import uk.gov.hmrc.gform.models.DataExpanded
 import uk.gov.hmrc.gform.models.EnteredVariadicFormData
 import uk.gov.hmrc.gform.models.Singleton
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -57,7 +56,7 @@ case class ValidationResult(
 
   def formFieldValidationResults: List[FormFieldValidationResult] = lookup.values.toList
 
-  def formFieldValidationResults(singleton: Singleton[DataExpanded]): List[FormFieldValidationResult] =
+  def formFieldValidationResults(singleton: Singleton): List[FormFieldValidationResult] =
     singleton.allFormComponents.map(apply)
 
   def toFormValidationOutcome(

@@ -30,8 +30,9 @@ import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Basic, Bracket, CheckYourAnswers, DataExpanded, DateExpr, FastForward, FileUploadUtils, FormModel, PageMode, PageModel, Repeater, SectionRenderingInformation, Singleton, Visibility }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Bracket, CheckYourAnswers, DateExpr, FastForward, FileUploadUtils, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.monoidHtml
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
@@ -43,7 +44,7 @@ import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.FileExtension
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -108,14 +109,14 @@ class SectionRenderingService(
   choiceRuntimeIndexService: ChoiceRuntimeIndexService
 ) {
 
-  def renderAddToListCheckYourAnswers[T <: PageMode](
-    checkYourAnswers: CheckYourAnswers[T],
+  def renderAddToListCheckYourAnswers(
+    checkYourAnswers: CheckYourAnswers,
     formTemplate: FormTemplate,
     specimenSource: Option[FormTemplate],
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    addToListIteration: Bracket.AddToListIteration[Visibility],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    addToListIteration: Bracket.AddToListIteration,
+    formModelOptics: FormModelOptics,
     validationResult: ValidationResult,
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
@@ -168,7 +169,7 @@ class SectionRenderingService(
             case fc @ IsTableComp(table) =>
               htmlForTableComp(fc, table, formModelOptics)
             case fc @ IsMiniSummaryList(miniSummaryList) =>
-              val repeaterPage: Page[Basic] =
+              val repeaterPage: Page =
                 Page(
                   title = checkYourAnswers.title,
                   id = checkYourAnswers.id,
@@ -192,7 +193,7 @@ class SectionRenderingService(
                   specimenNote = None
                 )
 
-              val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
+              val singleton = Singleton(repeaterPage)
 
               val ei: ExtraInfo = ExtraInfo(
                 singleton = singleton,
@@ -268,10 +269,10 @@ class SectionRenderingService(
 
   def renderATLDeclarationSection(
     maybeAccessCode: Option[AccessCode],
-    declarationPage: Singleton[DataExpanded],
+    declarationPage: Singleton,
     cache: AuthCacheWithForm,
     formHandlerResult: FormHandlerResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     fastForward: List[FastForward],
     sectionNumber: SectionNumber
   )(implicit
@@ -333,7 +334,7 @@ class SectionRenderingService(
       declarationPage.page.sectionHeader(),
       declarationPage.noPIITitle.fold(
         declarationPage.title.valueWithoutInterpolations(
-          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+          formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
         )
       )(_.value()),
       infoFields,
@@ -384,13 +385,13 @@ class SectionRenderingService(
   }
 
   def renderAddToList(
-    repeater: Repeater[DataExpanded],
-    bracket: Bracket.AddToList[DataExpanded],
-    formModel: FormModel[DataExpanded],
+    repeater: Repeater,
+    bracket: Bracket.AddToList,
+    formModel: FormModel,
     maybeAccessCode: Option[AccessCode],
     form: Form,
     sectionNumber: SectionNumber,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     formTemplate: FormTemplate,
     specimenSource: Option[FormTemplate],
     validationResult: ValidationResult,
@@ -473,7 +474,7 @@ class SectionRenderingService(
         content = content.Text(option.label.value()),
         checked = isChecked(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
         attributes =
-          dataLabelAttribute(option.label, formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+          dataLabelAttribute(option.label, formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr)
       )
     }
 
@@ -512,7 +513,7 @@ class SectionRenderingService(
             case fc @ IsTableComp(table) =>
               htmlForTableComp(fc, table, formModelOptics)
             case fc @ IsMiniSummaryList(miniSummaryList) =>
-              val repeaterPage: Page[Basic] =
+              val repeaterPage: Page =
                 Page(
                   title = repeater.title,
                   id = repeater.id,
@@ -535,7 +536,7 @@ class SectionRenderingService(
                   notRequiredIf = None,
                   specimenNote = None
                 )
-              val singleton = Singleton(repeaterPage).asInstanceOf[Singleton[DataExpanded]]
+              val singleton = Singleton(repeaterPage)
 
               val ei: ExtraInfo = ExtraInfo(
                 singleton = singleton,
@@ -567,8 +568,7 @@ class SectionRenderingService(
 
     val radiosWithYes =
       radios.copy(
-        items =
-          items.copy(head = items.head.copy(checked = true), tail = items.tail.map(_.copy(checked = false))).toList,
+        items = items.zipWithIndex.map { case (item, index) => item.copy(checked = index === 0) }.toList,
         fieldset = hiddenFieldset
       )
 
@@ -583,8 +583,7 @@ class SectionRenderingService(
 
     val radiosWithNo =
       radios.copy(
-        items =
-          items.copy(head = items.head.copy(checked = false), tail = items.tail.map(_.copy(checked = true))).toList,
+        items = items.zipWithIndex.map { case (item, index) => item.copy(checked = index =!= 0) }.toList,
         fieldset = hiddenFieldset
       )
 
@@ -603,7 +602,7 @@ class SectionRenderingService(
     val shouldDisplayBack: Boolean = {
       if (sectionNumber.isTaskList) true
       else
-        Origin(DataOrigin.unSwapDataOrigin(formModelOptics).formModelVisibilityOptics.formModel)
+        Origin(formModelOptics.formModelVisibilityOptics.formModel)
           .filteredSectionNumbers(sectionNumber)
           .sorted
           .exists(_ < sectionNumber)
@@ -740,7 +739,7 @@ class SectionRenderingService(
       repeater.expandedCaption.map(_.value()),
       repeater.noPIITitle.fold(
         repeater.title.valueWithoutInterpolations(
-          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+          formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
         )
       )(_.value()),
       bracket,
@@ -773,14 +772,14 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     specimenSource: Option[FormTemplate],
     envelopeId: EnvelopeId,
-    singleton: Singleton[DataExpanded],
+    singleton: Singleton,
     formMaxAttachmentSizeMB: Int,
     allowedFileTypes: AllowedFileTypes,
     restrictedFileExtensions: List[FileExtension],
     retrievals: MaterialisedRetrievals,
     obligations: Obligations,
     fastForward: List[FastForward],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     upscanInitiate: UpscanInitiate,
     addressRecordLookup: AddressRecordLookup
   )(implicit
@@ -824,9 +823,7 @@ class SectionRenderingService(
       case None => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     }
 
-    val originSection = Origin(
-      DataOrigin.unSwapDataOrigin(formModelOptics).formModelVisibilityOptics.formModel
-    ).minSectionNumber
+    val originSection = Origin(formModelOptics.formModelVisibilityOptics.formModel).minSectionNumber
     val renderUnits: List[RenderUnit] = page.renderUnits
 
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
@@ -856,7 +853,7 @@ class SectionRenderingService(
         htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
       )
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
-      !_.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver)
+      !_.isTerminationPage(formModelOptics.formModelVisibilityOptics.freeCalculator)
     ) && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals) && !singleton.page.isHideSaveAndComeBackButton
 
     val tableComps = formComponents.collect { case IsTableComp(tc) => tc }
@@ -904,7 +901,7 @@ class SectionRenderingService(
 
     val mainForm: Html = html.form.form_standard(
       renderingInfo,
-      shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver),
+      shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.freeCalculator),
       ei.saveAndComeBackLaterButton,
       ei.isFileUploadOnlyPage(validationResult).isDefined,
       ei.getButtonName(validationResult)
@@ -933,7 +930,7 @@ class SectionRenderingService(
     )
   }
 
-  private def pageIncludeIf(page: Page[Basic], formComponentId: FormComponentId): Option[IncludeIf] = {
+  private def pageIncludeIf(page: Page, formComponentId: FormComponentId): Option[IncludeIf] = {
     val firstPageFormComponentId: Option[FormComponentId] =
       page.fields.headOption.map(_.id)
 
@@ -950,7 +947,7 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     specimenSource: Option[FormTemplate],
     sectionNumber: SectionNumber,
-    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo]
+    formModelRenderPageOptics: FormModelRenderPageOptics
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -958,10 +955,10 @@ class SectionRenderingService(
   ): Html =
     if (formTemplate.isSpecimen) {
       sectionNumber.fold { classic =>
-        val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
+        val pages: NonEmptyList[(PageModel, SectionNumber)] =
           formModelRenderPageOptics.formModel.pagesWithIndex
 
-        val currentPageModel: Option[PageModel[DataExpanded]] =
+        val currentPageModel: Option[PageModel] =
           pages.collectFirst { case (pageModel, sn) if sn === classic => pageModel }
 
         val firstFormComponentId: Option[FormComponentId] = currentPageModel.flatMap(_.allFormComponentIds.headOption)
@@ -987,7 +984,7 @@ class SectionRenderingService(
             case _ => throw new Exception("Not a specimen")
           }
 
-        val classicPages: List[(PageModel[DataExpanded], SectionNumber.Classic)] =
+        val classicPages: List[(PageModel, SectionNumber.Classic)] =
           pages.toList.collect { case (pageModel, c: SectionNumber.Classic) =>
             pageModel -> c
           }
@@ -1006,10 +1003,10 @@ class SectionRenderingService(
         val coordinates: Coordinates = taskList.coordinates
         val classic: SectionNumber.Classic = taskList.sectionNumber
 
-        val pages: NonEmptyList[(PageModel[DataExpanded], SectionNumber)] =
+        val pages: NonEmptyList[(PageModel, SectionNumber)] =
           formModelRenderPageOptics.formModel.pagesWithIndex
 
-        val currentPageModel: Option[PageModel[DataExpanded]] =
+        val currentPageModel: Option[PageModel] =
           pages.collectFirst { case (pageModel, sn) if sn === taskList => pageModel }
 
         val maybeSpecimenNote = currentPageModel.flatMap(pm => pm.fold(_.page.specimenNote)(_ => None)(_ => None))
@@ -1049,7 +1046,7 @@ class SectionRenderingService(
 
         val firstSectionNumbers: List[SectionNumber] = allSectionNumbers.filter(isFirstSectionNumber)
 
-        val taskListPages: List[(PageModel[DataExpanded], SectionNumber.TaskList)] =
+        val taskListPages: List[(PageModel, SectionNumber.TaskList)] =
           pages.toList.collect {
             case (pageModel, c @ SectionNumber.TaskList(coordinates, _)) if coordinates === taskList.coordinates =>
               pageModel -> c
@@ -1078,7 +1075,7 @@ class SectionRenderingService(
 
   def renderSummarySectionDeclaration(
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     maybeAccessCode: Option[AccessCode],
     summarySection: SummarySection,
     validationResult: ValidationResult
@@ -1095,7 +1092,7 @@ class SectionRenderingService(
 
     val page = summarySection.toPage
     val ei = ExtraInfo(
-      Singleton(page.asInstanceOf[Page[DataExpanded]]),
+      Singleton(page),
       maybeAccessCode,
       formTemplate.sectionNumberZero,
       formModelOptics,
@@ -1126,10 +1123,10 @@ class SectionRenderingService(
   def renderDeclarationSection(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
-    singleton: Singleton[DataExpanded],
+    singleton: Singleton,
     retrievals: MaterialisedRetrievals,
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -1182,7 +1179,7 @@ class SectionRenderingService(
       declarationPage.sectionHeader(),
       declarationPage.noPIITitle.fold(
         declarationPage.title.valueWithoutInterpolations(
-          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+          formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
         )
       )(_.value()),
       snippets,
@@ -1236,9 +1233,9 @@ class SectionRenderingService(
   def renderTaskDeclarationSection(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
-    singleton: Singleton[DataExpanded],
+    singleton: Singleton,
     retrievals: MaterialisedRetrievals,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     coordinates: Coordinates,
     taskCompleted: Option[Boolean]
   )(implicit
@@ -1285,7 +1282,7 @@ class SectionRenderingService(
       declarationPage.sectionHeader(),
       declarationPage.noPIITitle.fold(
         declarationPage.title.valueWithoutInterpolations(
-          formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+          formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
         )
       )(_.value()),
       snippets,
@@ -1386,7 +1383,7 @@ class SectionRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     destinationList: DestinationList,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     submissionRef: SubmissionRef
   )(implicit
     request: Request[_],
@@ -1401,7 +1398,7 @@ class SectionRenderingService(
 
     val ackSection = destinationList.acknowledgementSection.toSection
     val ei = ExtraInfo(
-      Singleton(ackSection.page.asInstanceOf[Page[DataExpanded]]),
+      Singleton(ackSection.page),
       maybeAccessCode,
       formTemplate.sectionNumberZero,
       formModelOptics,
@@ -1491,9 +1488,9 @@ class SectionRenderingService(
 
   def renderEnrolmentSection(
     formTemplate: FormTemplate,
-    singleton: Singleton[DataExpanded],
+    singleton: Singleton,
     retrievals: MaterialisedRetrievals,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     globalErrors: List[ErrorLink],
     validationResult: ValidationResult
   )(implicit
@@ -1582,10 +1579,18 @@ class SectionRenderingService(
 
   private def isVisible(
     formComponent: FormComponent,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
-  ): Boolean = formComponent.includeIf.fold(true) { includeIf =>
-    formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
-  }
+    formModelOptics: FormModelOptics
+  ): Boolean =
+    // Why did I put EvaluationStatus.Hidden check here? It breaks revealing choices fiels rendering.
+    // val maybeEvaluationStatus: Option[EvaluationStatus] =
+    //   formModelOptics.formModelVisibilityOptics.freeCalculator.answerMap.get(formComponent.modelComponentId)
+    // maybeEvaluationStatus match {
+    //   case Some(evaluationStatus) => evaluationStatus != EvaluationStatus.Hidden
+    //   case None =>
+    formComponent.includeIf.fold(true)(includeIf =>
+      formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)
+    )
+  //}
 
   private def htmlForUpscan(
     formComponent: FormComponent,
@@ -1656,6 +1661,7 @@ class SectionRenderingService(
                 hideChoicesSelected,
                 noDuplicates
               ) =>
+            println("HeRe 515151")
             htmlForChoice(
               formComponent,
               choice,
@@ -1847,13 +1853,13 @@ class SectionRenderingService(
         )
     }
 
-  private def htmlForHmrcTaxPeriod[D <: DataOrigin](
+  private def htmlForHmrcTaxPeriod(
     formComponent: FormComponent,
     ei: ExtraInfo,
     validationResult: ValidationResult,
     obligations: Obligations,
     hmrcTP: HmrcTaxPeriod,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
 
     val maybeTaxPeriodOptions: Option[NonEmptyList[OptionParams]] = obligations match {
@@ -1977,7 +1983,7 @@ class SectionRenderingService(
 
       def summaryListRowByPageId(key: Option[SmartString], value: String, pageId: PageId) = {
         val formModel = ei.formModelOptics.formModelVisibilityOptics.formModel
-        val sn: SectionNumber = formModel.pageIdSectionNumberMap.toList
+        val sn: SectionNumber = formModel.metadata.pageIdSectionNumberMap.toList
           .sortBy(_._1.maybeIndex)(Ordering[Option[Int]].reverse)
           .find { case (modelPageId, _) =>
             modelPageId.baseId == pageId.modelPageId.baseId
@@ -1994,7 +2000,7 @@ class SectionRenderingService(
           SummaryListRowHelper.summaryListRow(
             key
               .map(sse(_, false))
-              .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
+              .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.freeCalculator)),
             Html(value),
             Some(""),
             SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
@@ -2057,7 +2063,7 @@ class SectionRenderingService(
           SummaryListRowHelper.summaryListRow(
             key
               .map(sse(_, false))
-              .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
+              .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.freeCalculator)),
             Html(value),
             Some(""),
             SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
@@ -2088,7 +2094,7 @@ class SectionRenderingService(
             SummaryListRowHelper.summaryListRow(
               key
                 .map(sse(_, false))
-                .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
+                .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.freeCalculator)),
               Html(
                 formattedExprStr(e) + MiniSummaryListHelper
                   .checkAndReturnSuffix(e, ei.formModelOptics.formModelVisibilityOptics.formModel)
@@ -2112,7 +2118,7 @@ class SectionRenderingService(
               val fc = formModel.fcLookup(formComponentId)
               val fcUpdated = key.map(k => fc.copy(shortName = Some(k))).getOrElse(fc)
               FormComponentSummaryRenderer
-                .summaryListRows[DataOrigin.Mongo, SummaryRender](
+                .summaryListRows[SummaryRender](
                   fcUpdated,
                   ei.singleton.page.id.map(_.modelPageId),
                   formTemplateId,
@@ -2138,7 +2144,7 @@ class SectionRenderingService(
             SummaryListRowHelper.summaryListRow(
               key
                 .map(sse(_, false))
-                .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver)),
+                .getOrElse(fcrd.label(formComponent, ei.formModelOptics.formModelVisibilityOptics.freeCalculator)),
               Html(ss.value()),
               Some(""),
               SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
@@ -2164,7 +2170,7 @@ class SectionRenderingService(
         val baseIds: List[FormComponentId] = iteration.singletons.toList.flatMap { singletonWithNumber =>
           val page = singletonWithNumber.singleton.page
           page.fields
-            .filterNot(_.hideOnSummary(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver))
+            .filterNot(_.hideOnSummary(ei.formModelOptics.formModelVisibilityOptics.freeCalculator))
             .map(fId => FormComponentId(fId.baseComponentId.value))
         }
         def updatedIncludeIf(mayBeIncludeIf: Option[IncludeIf]) =
@@ -2231,7 +2237,7 @@ class SectionRenderingService(
   private def htmlForTableComp(
     formComponent: FormComponent,
     table: TableComp,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     sse: SmartStringEvaluator,
     l: LangADT
@@ -2251,7 +2257,7 @@ class SectionRenderingService(
 
     def isNumeric(v: TableValue): Boolean = {
       val interpolationsAreNumeric =
-        v.value.interpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)) match {
+        v.value.interpolations(formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr) match {
           case List(Typed(_, ExplicitExprType.Sterling(_)))      => true
           case List(Typed(_, ExplicitExprType.WholeSterling(_))) => true
           case List(Typed(_, ExplicitExprType.Number(_, _)))     => true
@@ -2259,7 +2265,7 @@ class SectionRenderingService(
           case _                                                 => false
         }
       interpolationsAreNumeric && v.value
-        .valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+        .valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr)
         .trim
         .isEmpty()
     }
@@ -2591,7 +2597,7 @@ class SectionRenderingService(
     hideChoicesSelected: Boolean,
     optionData: OptionData,
     modelComponentId: ModelComponentId,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     noDuplicates: Boolean,
     optionsValueLabel: List[(String, String)]
   )(implicit
@@ -2601,10 +2607,11 @@ class SectionRenderingService(
   else {
     val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
     val allValues: Iterable[(ModelComponentId, VariadicValue)] =
-      formModelVisibilityOptics.recData.variadicFormData.forBaseComponentId(modelComponentId.baseComponentId).filter {
-        case (mcId, _) =>
+      formModelVisibilityOptics.freeCalculator.variadicFormData
+        .forBaseComponentId(modelComponentId.baseComponentId)
+        .filter { case (mcId, _) =>
           mcId =!= modelComponentId // Ignore itself, so user can edit it
-      }
+        }
     val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
     optionData match {
       case OptionData.ValueBased(_, _, _, _, _, _, _) =>
@@ -2622,7 +2629,7 @@ class SectionRenderingService(
 
   private def isVisibleOption(
     optionData: OptionData,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   ): Boolean =
     optionData match {
       case OptionData.ValueBased(_, _, includeIf, _, value, _, _) =>
@@ -2638,7 +2645,7 @@ class SectionRenderingService(
 
   private def isVisibleMiniSummaryListRow(
     row: MiniSummaryRow,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   ): Boolean = row match {
     case v: ValueRow =>
       v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
@@ -2652,7 +2659,7 @@ class SectionRenderingService(
   private def htmlForChoice(
     formComponent: FormComponent,
     choice: ChoiceType,
-    options: NonEmptyList[OptionData],
+    options: List[OptionData],
     orientation: Orientation,
     selections: List[Int],
     hints: Option[NonEmptyList[SmartString]],
@@ -2670,14 +2677,14 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ) = {
     val prepopValues =
-      if (ei.formModelOptics.pageOpticsData.contains(formComponent.modelComponentId))
+      if (ei.formModelOptics.variadicFormData.contains(formComponent.modelComponentId))
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
     val optionsValueLabel =
       options.collect(o => o.getValue(-1, ei.formModelOptics.formModelVisibilityOptics) -> o.label.value())
 
-    val visibleOptionsWithIndex: NonEmptyList[(OptionData, Int)] = options.zipWithIndex
+    val visibleOptionsWithIndex: List[(OptionData, Int)] = options.zipWithIndex
       .filter { case (o, _) =>
         hasNotBeenSelectedYet(
           hideChoicesSelected,
@@ -2690,31 +2697,34 @@ class SectionRenderingService(
           isVisibleOption(o, ei.formModelOptics) &&
           optionHasContent(o)
       }
-      .toNel
-      .getOrElse(throw new IllegalArgumentException("All options of the choice component are invisible"))
 
-    val optionsWithHelpText: NonEmptyList[(OptionData, Option[Html])] =
+    if (visibleOptionsWithIndex.isEmpty)
+      throw new IllegalArgumentException("All options of the choice component are invisible")
+
+    val (optionsData: List[OptionData], indices: List[Int]) = visibleOptionsWithIndex.unzip
+
+    val optionsWithHelpText: List[(OptionData, Option[Html])] =
       optionalHelpText
         .map(
-          _.zipWith(visibleOptionsWithIndex.map(_._1))((helpText, option) =>
+          _.toList.zip(optionsData).map { case (helpText, option) =>
             (
               option,
-              if (helpText.isEmpty(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))) None
+              if (helpText.isEmpty(ei.formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr)) None
               else Some(markDownParser(helpText))
             )
-          )
+          }
         )
-        .getOrElse(visibleOptionsWithIndex.map(_._1).map(option => (option, None)))
+        .getOrElse(optionsData.map(option => (option, None)))
 
-    val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
+    val optionsWithHintAndHelpText: List[(OptionData, Option[Hint], Option[Html])] =
       hints
-        .flatMap(
-          _.toList.zipWithIndex.filter(h => visibleOptionsWithIndex.map(_._2).toList.contains(h._2)).map(_._1).toNel
+        .map(
+          _.toList.zipWithIndex.filter(h => indices.toList.contains(h._2)).map(_._1)
         )
-        .map(_.zipWith(optionsWithHelpText) { case (hint, (option, helpText)) =>
+        .map(_.zip(optionsWithHelpText).map { case (hint, (option, helpText)) =>
           (
             option,
-            if (hint.isEmpty(ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)))
+            if (hint.isEmpty(ei.formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr))
               toHint(option.hint)
             else toHint(Some(hint)),
             helpText
@@ -2766,14 +2776,14 @@ class SectionRenderingService(
             conditionalHtml = helpTextHtml(maybeHelpText),
             attributes = dataLabelAttribute(
               option.label,
-              ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              ei.formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
             ),
             hint = maybeHint
           )
         }
         val itemsWithNoDivider = if (noDuplicates) {
           val alreadySeenLabels = scala.collection.mutable.Set.empty[String]
-          allItems.toList.filter { item =>
+          allItems.filter { item =>
             val label = item.content.asHtml.body
             if (alreadySeenLabels.contains(label)) {
               false
@@ -2783,7 +2793,7 @@ class SectionRenderingService(
             }
           }
         } else {
-          allItems.toList
+          allItems
         }
         val items = dividerPosition.foldLeft(itemsWithNoDivider) { case (ls, pos) =>
           val (before, after) = pos match {
@@ -2823,7 +2833,7 @@ class SectionRenderingService(
             conditionalHtml = helpTextHtml(maybeHelpText),
             attributes = dataLabelAttribute(
               option.label,
-              ei.formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              ei.formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
             ),
             hint = maybeHint
           )
@@ -2906,7 +2916,7 @@ class SectionRenderingService(
         )
 
         val currentValue =
-          ei.formModelOptics.pageOpticsData
+          ei.formModelOptics.variadicFormData
             .many(formComponent.modelComponentId)
             .fold(Option(""))(items => items.headOption)
 
@@ -2975,7 +2985,7 @@ class SectionRenderingService(
     obligations: Obligations,
     upscanInitiate: UpscanInitiate,
     upscanData: Map[FormComponentId, UpscanData],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit request: RequestHeader, message: Messages, l: LangADT, sse: SmartStringEvaluator) = {
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
     val nestedEi: FormComponentId => Int => ExtraInfo = formComponentId =>
@@ -2987,9 +2997,9 @@ class SectionRenderingService(
               Map("data-checkbox" -> (formComponent.id.value + index)) // Used by javascript for dynamic calculations
           )
 
-    val visibleOptions =
+    val visibleOptions: List[RevealingChoiceElement] =
       options.filter(o => isVisibleOption(o.choice, extraInfo.formModelOptics) && optionHasContent(o.choice))
-    if (visibleOptions.length === 0)
+    if (visibleOptions.isEmpty)
       throw new IllegalArgumentException(
         s"All options of the revealing choice component are invisible for${formComponent.id}"
       )
@@ -2999,7 +3009,7 @@ class SectionRenderingService(
       visibleOptions.map { o =>
         val isSelected: String => Boolean =
           index =>
-            extraInfo.formModelOptics.pageOpticsData
+            extraInfo.formModelOptics.variadicFormData
               .get(formComponent.modelComponentId)
               .fold(o.selected)(_.contains(index))
 
@@ -3064,7 +3074,7 @@ class SectionRenderingService(
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(
               option.label,
-              formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
             ),
             hint = maybeHint
           )
@@ -3094,7 +3104,7 @@ class SectionRenderingService(
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
             attributes = dataLabelAttribute(
               option.label,
-              formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
             ),
             hint = maybeHint
           )
@@ -3125,7 +3135,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator
   ): Html = {
 
-    val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
+    val prepopValue = ei.formModelOptics.variadicFormData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
 
     val labelString = formComponent.label.value()
@@ -3221,7 +3231,7 @@ class SectionRenderingService(
     sse: SmartStringEvaluator,
     messages: Messages
   ) = {
-    val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
+    val prepopValue = ei.formModelOptics.variadicFormData.one(formComponent.modelComponentId)
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
 
     val labelContent = content.Text(formComponent.label.value())
@@ -3310,10 +3320,15 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit l: LangADT, messages: Messages, sse: SmartStringEvaluator) = {
-    def prepopValue: String =
-      ei.formModelOptics.formModelVisibilityOptics
+    def prepopValue: String = {
+      val prep = ei.formModelOptics.formModelVisibilityOptics
         .evalAndApplyTypeInfoExplicit(text.value, formComponent.id)
-        .stringRepresentation
+      prep.evaluationStatus match {
+        case EvaluationStatus.Empty | EvaluationStatus.Hidden => ""
+        case _                                                => prep.stringRepresentation
+      }
+
+    }
 
     val formFieldValidationResult = validationResult(formComponent)
 
@@ -3542,7 +3557,7 @@ class SectionRenderingService(
       CalendarDate
         .fields(formComponent.modelComponentId.indexedComponentId)
         .map { modelComponentId =>
-          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val prepop = ei.formModelOptics.variadicFormData.one(modelComponentId)
           val atom = modelComponentId.atom
           val inputClasses = getInputClasses(formFieldValidationResult, atom)
 
@@ -3618,7 +3633,7 @@ class SectionRenderingService(
       PostcodeLookup
         .fields(formComponent.modelComponentId.indexedComponentId)
         .map { modelComponentId =>
-          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val prepop = ei.formModelOptics.variadicFormData.one(modelComponentId)
           val atom = modelComponentId.atom
 
           val labelContent = content.Text(messages("postcodeLookup." + atom.value.capitalize))
@@ -3696,7 +3711,7 @@ class SectionRenderingService(
       TaxPeriodDate
         .fields(formComponent.modelComponentId.indexedComponentId)
         .map { modelComponentId =>
-          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val prepop = ei.formModelOptics.variadicFormData.one(modelComponentId)
           val atom = modelComponentId.atom
           val inputWidth = if (atom === TaxPeriodDate.year) "4" else "2"
           val inputClasses = getInputClasses(formFieldValidationResult, atom)
@@ -3774,7 +3789,7 @@ class SectionRenderingService(
       Date
         .fields(formComponent.modelComponentId.indexedComponentId)
         .map { modelComponentId =>
-          val prepop = ei.formModelOptics.pageOpticsData.one(modelComponentId)
+          val prepop = ei.formModelOptics.variadicFormData.one(modelComponentId)
           val atom = modelComponentId.atom
           val inputClasses = getInputClasses(formFieldValidationResult, atom)
 
@@ -3821,7 +3836,7 @@ class SectionRenderingService(
     validationResult: ValidationResult,
     ei: ExtraInfo
   )(implicit sse: SmartStringEvaluator, m: Messages) = {
-    val prepopValue = ei.formModelOptics.pageOpticsData.one(formComponent.modelComponentId)
+    val prepopValue = ei.formModelOptics.variadicFormData.one(formComponent.modelComponentId)
     val formFieldValidationResult = validationResult(formComponent)
 
     val labelContent = content.Text(formComponent.label.value())
@@ -3993,7 +4008,7 @@ class SectionRenderingService(
         throw new IllegalArgumentException(s"Expected group index, but got ${formComponent.modelComponentId}")
       )
 
-      val isLast = !ei.formModelOptics.pageOpticsData.contains(formComponent.modelComponentId.increment)
+      val isLast = !ei.formModelOptics.variadicFormData.contains(formComponent.modelComponentId.increment)
 
       val lhtml = group.fields.map(formComponent =>
         htmlFor(
@@ -4061,7 +4076,7 @@ class SectionRenderingService(
   )
 
   def shouldDisplayHeading(
-    singleton: Singleton[DataExpanded]
+    singleton: Singleton
   ): Boolean =
     singleton.page.allFields.dropWhile(_.onlyShowOnSummary).headOption.exists(_.isPageHeading)
 
@@ -4149,11 +4164,11 @@ class SectionRenderingService(
 
 object SectionRenderingService {
 
-  def atlCyaTitles[T <: PageMode](
+  def atlCyaTitles(
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
-    checkYourAnswers: CheckYourAnswers[T],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    checkYourAnswers: CheckYourAnswers,
+    formModelOptics: FormModelOptics
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -4172,7 +4187,7 @@ object SectionRenderingService {
       else
         checkYourAnswers.expandedNoPIIUpdateTitle.fold(checkYourAnswers.expandedNoPIITitle match {
           case Some(value) =>
-            value.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+            value.valueWithoutInterpolations(formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr)
           case None => messages("summary.checkYourAnswers")
         })(_.value())
 
@@ -4180,11 +4195,11 @@ object SectionRenderingService {
 
   }
 
-  def summaryList[T <: PageMode](
+  def summaryList(
     formTemplateId: FormTemplateId,
-    checkYourAnswers: CheckYourAnswers[T],
-    addToListIteration: Bracket.AddToListIteration[Visibility],
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    checkYourAnswers: CheckYourAnswers,
+    addToListIteration: Bracket.AddToListIteration,
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     validationResult: ValidationResult,
@@ -4210,10 +4225,10 @@ object SectionRenderingService {
         val keyDisplayWidth = checkYourAnswers.keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
 
         val rows = page.fields
-          .filterNot(_.hideOnSummary(formModelVisibilityOptics.booleanExprResolver))
+          .filterNot(_.hideOnSummary(formModelVisibilityOptics.freeCalculator))
           .flatMap { fc =>
             FormComponentSummaryRenderer
-              .summaryListRows[DataOrigin.Mongo, AddToListCYARender](
+              .summaryListRows[AddToListCYARender](
                 fc,
                 page.id.map(_.modelPageId),
                 formTemplateId,

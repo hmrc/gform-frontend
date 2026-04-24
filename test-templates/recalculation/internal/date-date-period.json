@@ -1,0 +1,521 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "periods"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "{0} ... {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "startDate"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "endDate"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Period"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Start Date"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "startDate",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "AnyDate": {}
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "End Date"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "endDate",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "AnyDate": {}
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "periods"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "So you want to add another period?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "This is for AddToList Period sum : {0}\n\nPeriod totalMonths : {1}\n\nPeriod years : {2}\n\nPeriod months : {3}\n\nPeriod days : {4}"
+                  },
+                  "interpolations": [
+                    {
+                      "Period": {
+                        "dateCtx1": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "startDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "dateCtx2": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "endDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "func": {
+                          "Sum": {}
+                        }
+                      }
+                    },
+                    {
+                      "Period": {
+                        "dateCtx1": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "startDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "dateCtx2": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "endDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "func": {
+                          "TotalMonths": {}
+                        }
+                      }
+                    },
+                    {
+                      "Period": {
+                        "dateCtx1": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "startDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "dateCtx2": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "endDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "func": {
+                          "Years": {}
+                        }
+                      }
+                    },
+                    {
+                      "Period": {
+                        "dateCtx1": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "startDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "dateCtx2": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "endDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "func": {
+                          "Months": {}
+                        }
+                      }
+                    },
+                    {
+                      "Period": {
+                        "dateCtx1": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "startDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "dateCtx2": {
+                          "DateCtx": {
+                            "value": {
+                              "DateFormCtxVar": {
+                                "formCtx": {
+                                  "formComponentId": "endDate"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "func": {
+                          "Days": {}
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "periods"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "date-date-period",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page "
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "date-date-period",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

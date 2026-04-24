@@ -40,9 +40,16 @@ case class FormComponentId(value: String) {
 
   def toAtomicFormComponentId(atom: Atom): ModelComponentId.Atomic = modelComponentId.toAtomicFormComponentId(atom)
 
+  def noIndex: FormComponentId = FormComponentId(baseComponentId.value)
+
 }
 
 object FormComponentId {
+
+  val root: FormComponentId = FormComponentId("__root__")
+
+  // Placeholder used when page with includeIf has no enterable field
+  val leaf: FormComponentId = FormComponentId("__leaf__")
 
   implicit val catsEq: Eq[FormComponentId] = Eq.fromUniversalEquals
 

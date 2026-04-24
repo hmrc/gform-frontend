@@ -1,0 +1,154 @@
+{
+  "_id": "sum-with-in",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "expressions": {
+    "offset": "if vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo then 10 else 20",
+    "calculation": "amount + offset"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amount} : ${vatNumber}.",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount",
+          "fields": [
+            {
+              "id": "amount",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "showVat",
+              "type": "choice",
+              "label": "Show Vat number",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "yes"
+                },
+                {
+                  "en": "No",
+                  "value": "no"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Vat number",
+          "includeIf": "${showVat contains 'yes'}",
+          "fields": [
+            {
+              "id": "vatNumber",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculation.sum = '56'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "calculation.sum = ${calculation.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculation = ${calculation}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amount: ${amount}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "vatNumber: ${vatNumber}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo: ${if vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

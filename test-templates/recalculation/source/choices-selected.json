@@ -1,0 +1,67 @@
+{
+  "_id": "choices-selected",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${typeOfIncome} - ${choicesAvailable(typeOfIncome)} - ${choicesSelected(typeOfIncome)} - ${choicesCount(typeOfIncome)}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "caption": "Other source of income $n",
+          "title": "What other source of income do you want to tell us about?",
+          "fields": [
+            {
+              "id": "typeOfIncome",
+              "type": "choice",
+              "multivalue": true,
+              "hideChoicesSelected": true,
+              "choices": [
+                {
+                  "en": "Tips",
+                  "value": "tips"
+                },
+                {
+                  "en": "Commission",
+                  "value": "commission"
+                },
+                {
+                  "en": "Other income (earned)",
+                  "value": "otherEarned"
+                },
+                {
+                  "en": "Other income (not earned)",
+                  "value": "otherNotEarned"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

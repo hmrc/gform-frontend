@@ -1,0 +1,506 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "miniSummary",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "MiniSummaryList": {
+                      "rows": [
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "submissionReference"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "submissionReference: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "FormTemplateCtx": {
+                                        "value": {
+                                          "SubmissionReference": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "id"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "id: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "FormTemplateCtx": {
+                                        "value": {
+                                          "Id": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "fileSizeLimit"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "fileSizeLimit: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "FormTemplateCtx": {
+                                        "value": {
+                                          "FileSizeLimit": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "lang"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "lang: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "LangCtx": {}
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "displayInSummary": {
+                        "booleanExpression": {
+                          "IsFalse": {}
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Under limit"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "LessThanOrEquals": {
+                    "left": {
+                      "FormTemplateCtx": {
+                        "value": {
+                          "FileSizeLimit": {}
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "100"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Under limit"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "underLimit",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Over Limit"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThan": {
+                    "left": {
+                      "FormTemplateCtx": {
+                        "value": {
+                          "FileSizeLimit": {}
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "100"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Over Limit"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "overLimit",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "form-template-ctx",
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "form-template-ctx",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": [],
+  "fileSizeLimit": 123,
+  "downloadPreviousSubmissionPdf": true
+}

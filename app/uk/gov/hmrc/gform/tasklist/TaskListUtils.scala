@@ -21,8 +21,7 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, Visibility }
+import uk.gov.hmrc.gform.models.Brackets
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, Expr, FormKind, FormTemplate, IsPostcodeLookup, Task, TaskNumber, TaskSection, TaskSectionNumber, TaskStatus => TaskStatusExpr }
@@ -86,7 +85,7 @@ object TaskListUtils {
   def evalStatusLookup(
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     validationService: ValidationService,
     taskCoordinatesMap: Map[Task, Coordinates]
   )(implicit
@@ -97,7 +96,7 @@ object TaskListUtils {
     ex: ExecutionContext
   ): Future[NonEmptyList[(Coordinates, TaskStatus)]] = {
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
-    val taskList: BracketsWithSectionNumber.TaskList[Visibility] = formModel.brackets.unsafeToTaskList
+    val taskList: Brackets.TaskList = formModel.brackets.unsafeToTaskList
     val coordinates: NonEmptyList[Coordinates] = taskList.brackets.map(_._1)
     if (cache.formTemplate.isSpecimen) {
       Future.successful(coordinates.map(coordinates => coordinates -> TaskStatus.NotStarted))
@@ -115,7 +114,7 @@ object TaskListUtils {
                               val hasTerminationPage = formModel.taskList
                                 .availablePages(coordinate)
                                 .exists(
-                                  _.isTerminationPage(formModelVisibilityOptics.booleanExprResolver)
+                                  _.isTerminationPage(formModelVisibilityOptics.freeCalculator)
                                 )
 
                               for {
@@ -181,21 +180,21 @@ object TaskListUtils {
     TaskIdTaskStatusMapping(mapping)
   }
 
-  def hasTaskStatusExpr(cache: AuthCacheWithForm, formModelOptics: FormModelOptics[DataOrigin.Mongo]) = {
+  def hasTaskStatusExpr(cache: AuthCacheWithForm, formModelOptics: FormModelOptics): Boolean = {
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
-    val allBracketExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
+    val allBracketExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs())
     val allCustomExprs = cache.formTemplateContext.formTemplate.formKind.allCustomExprs
     val expressionsOutExprs =
       cache.formTemplateContext.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.values.toList)
     val allExprs = allBracketExprs ++ allCustomExprs ++ expressionsOutExprs
-    val leafs: List[Expr] = allExprs.flatMap(_.leafs())
-    leafs.exists { case TaskStatusExpr(_) => true; case _ => false }
+    val taskStatuses: List[TaskStatusExpr] = allExprs.flatMap(_.allTaskStatuses())
+    taskStatuses.nonEmpty
   }
 
   def evalTaskIdTaskStatus(
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     validationService: ValidationService
   )(implicit
     hc: HeaderCarrier,

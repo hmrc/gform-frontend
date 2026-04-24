@@ -1,0 +1,48 @@
+{
+  "_id": "date-expr-earliest-of",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Dates",
+      "fields": [
+        {
+          "id": "date1",
+          "label": "Date1",
+          "type": "date"
+        },
+        {
+          "id": "date2",
+          "label": "Date2",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Note",
+      "includeIf": "${earliestOf(date1, date2) before 01012024}",
+      "fields": [
+        {
+          "id": "note",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -21,8 +21,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.SaveAndExit
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.models.{ DataExpanded, FastForward, Singleton }
+import uk.gov.hmrc.gform.models.{ FastForward, Singleton }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -35,10 +34,10 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import scala.util.{ Failure, Success, Try }
 
 final case class ExtraInfo(
-  singleton: Singleton[DataExpanded],
+  singleton: Singleton,
   maybeAccessCode: Option[AccessCode],
   sectionNumber: SectionNumber,
-  formModelOptics: FormModelOptics[DataOrigin.Mongo],
+  formModelOptics: FormModelOptics,
   formTemplate: FormTemplate,
   envelopeId: EnvelopeId,
   envelope: EnvelopeWithMapping,
@@ -58,7 +57,7 @@ final case class ExtraInfo(
 
   val valueLookup: Map[ModelComponentId, Option[VariadicValue]] =
     modelComponentIds
-      .map(modelComponentId => (modelComponentId, formModelOptics.pageOpticsData.get(modelComponentId)))
+      .map(modelComponentId => (modelComponentId, formModelOptics.variadicFormData.get(modelComponentId)))
       .toMap
 
   def getFileIdSingle(formComponent: FormComponent): FileId =
@@ -90,7 +89,7 @@ final case class ExtraInfo(
     renderableAsSingleFileUpload match {
       // If file is uploaded we want to fallback to standard form implementation
       case (fc @ IsFileUpload(fu)) :: Nil
-          if fc.mandatory.eval(formModelOptics.formModelVisibilityOptics.booleanExprResolver) && !isAlreadyUploaded(
+          if fc.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator) && !isAlreadyUploaded(
             fc,
             validationResult
           ) =>
@@ -101,7 +100,7 @@ final case class ExtraInfo(
   def getButtonName(validationResult: ValidationResult): Option[String] =
     renderableAsSingleFileUpload match {
       case (fc @ IsFileUpload(_)) :: Nil
-          if fc.mandatory.eval(formModelOptics.formModelVisibilityOptics.booleanExprResolver) && !isAlreadyUploaded(
+          if fc.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator) && !isAlreadyUploaded(
             fc,
             validationResult
           ) =>
@@ -134,7 +133,7 @@ final case class ExtraInfo(
     validationResult: ValidationResult
   ): Boolean = {
     val minFilesRequired: Int =
-      if (!formComponent.mandatory.eval(formModelOptics.formModelVisibilityOptics.booleanExprResolver)) 0
+      if (!formComponent.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator)) 0
       else
         Try(
           fileUpload.minFiles

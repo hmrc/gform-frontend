@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.gform
 
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormTemplate }
 import uk.gov.hmrc.gform.validation.ValidationResult
@@ -29,7 +28,7 @@ package object processor {
     FormTemplate,
     MaterialisedRetrievals,
     EnrolmentSection,
-    FormModelOptics[DataOrigin.Mongo],
+    FormModelOptics,
     List[ErrorLink],
     ValidationResult
   ) => Html

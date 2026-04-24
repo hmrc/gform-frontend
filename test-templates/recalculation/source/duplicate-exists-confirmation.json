@@ -1,0 +1,124 @@
+{
+  "_id": "duplicate-exists-confirmation",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "activeOfficers": "2"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "People you have added",
+      "shortName": "People",
+      "summaryDescription": "People",
+      "summaryName": "People",
+      "description": "$n: <strong>${personName}</strong> - nino: ${personNino}",
+      "repeatsWhile": "${addAnother.count < activeOfficers}",
+      "repeatsUntil": "${addAnother.count >= activeOfficers}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another person?",
+        "format": "yesno"
+      },
+      "fields": [
+        {
+          "id": "minimumNotReachedInfo",
+          "type": "info",
+          "infoType": "noformat",
+          "label": "",
+          "infoText": "You have told us about ${addAnother.count} of ${activeOfficers}. ${if addAnother.count < activeOfficers then concat('You need to add the remaining') else concat('You have provided the details of all the')} persons."
+        }
+      ],
+      "pages": [
+        {
+          "title": "What is the full name $n?",
+          "fields": [
+            {
+              "type": "text",
+              "id": "personName",
+              "notPII": true,
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "id": "personNinoPage",
+          "title": "What is the National Insurance number for ${personName}?",
+          "fields": [
+            {
+              "id": "personNino",
+              "type": "text",
+              "format": "nino",
+              "toUpperCase": true
+            }
+          ]
+        },
+        {
+          "includeIf": "${duplicateExists(personNino)}",
+          "removeItemIf": "${personChangeOrRemoveChoice contains 'removePerson'}",
+          "title": "You have already added a person with this nino",
+          "fields": [
+            {
+              "id": "duplicatesMiniSummary",
+              "type": "miniSummaryList",
+              "label": "Person you are adding",
+              "rows": [
+                {
+                  "key": "Name",
+                  "value": "${personName}"
+                },
+                {
+                  "key": "Nino",
+                  "value": "${personNino}"
+                }
+              ]
+            }
+          ],
+          "confirmation": {
+            "question": {
+              "id": "personChangeOrRemoveChoice",
+              "type": "choice",
+              "label": "What do you want to do next?",
+              "choices": [
+                {
+                  "includeIf": "${duplicateExists(personNino)}",
+                  "en": "Change the nino",
+                  "value": "changeNino"
+                },
+                {
+                  "en": "Remove ${personName}",
+                  "value": "removePerson"
+                }
+              ]
+            },
+            "redirects": [
+              {
+                "if": "${personChangeOrRemoveChoice contains 'changeNino'}",
+                "pageId": "personNinoPage"
+              }
+            ],
+            "fieldsConfirmed": [
+              "personName",
+              "personNino"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
