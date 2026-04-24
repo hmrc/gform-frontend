@@ -16,31 +16,23 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.models.{ Basic, Bracket, DataExpanded, FormModel, PageMode, Singleton }
+import uk.gov.hmrc.gform.models.{ Bracket, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, CheckYourAnswersPage, Expr, Page }
 
 object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
   /*
    * Returns list of every single expression in a bracket
    */
-  def allExprs[A <: PageMode](formModel: FormModel[DataExpanded])(bracket: Bracket[A]): List[Expr] = {
+  def allExprs(bracket: Bracket): List[Expr] = {
     val bracketExprs =
       bracket match {
         case AllPageModelExpressions(exprMetadatas) => exprMetadatas.map(_.expr)
         case otherwise                              => List.empty[Expr]
       }
-    bracketExprs ++ formComponentsExprs(formModel)(bracket)
-
+    bracketExprs ++ formComponentsExprs(bracket)
   }
 
-  private def fromBooleanExprExprs(formModel: FormModel[DataExpanded])(
-    booleanExpr: BooleanExpr
-  ): List[Expr] =
-    booleanExpr.allExpressions.flatMap(_.leafs(formModel))
-
-  def fromSingleton[A <: PageMode](
-    formModel: FormModel[DataExpanded]
-  )(singleton: Singleton[A]): List[Expr] = {
+  def fromSingleton(singleton: Singleton): List[Expr] = {
     val componentsExprs: List[Expr] = singleton.allFormComponents
       .flatMap {
         case AllFormComponentExpressions(exprs) => exprs.map(_.expr)
@@ -49,20 +41,23 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
 
     val includeIfBooleanExprs: List[BooleanExpr] =
       singleton.getIncludeIf.toList.map(_.booleanExpr)
+
     val includeIfsBooleanExprs: List[BooleanExpr] =
       singleton.allComponentIncludeIfs
         .map(_._1)
         .map(_.booleanExpr)
+
     val validIfsBooleanExprs: List[BooleanExpr] =
       singleton.allValidIfs
         .flatMap(_._1)
         .map(_.booleanExpr)
 
     val booleanExprsExprs: List[Expr] =
-      (includeIfBooleanExprs ++ includeIfsBooleanExprs ++ validIfsBooleanExprs).flatMap(fromBooleanExprExprs(formModel))
+      (includeIfBooleanExprs ++ includeIfsBooleanExprs ++ validIfsBooleanExprs).flatMap(_.allExpressions)
 
     componentsExprs ++ booleanExprsExprs
   }
+
   def fromCheckYourAnswerPage(cyap: CheckYourAnswersPage): List[Expr] =
     cyap.updateTitle.allInterpolations ++
       fromOption(
@@ -75,7 +70,7 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
         cyap.continueLabel
       )
 
-  private def fromPage(page: Page[Basic]) =
+  private def fromPage(page: Page) =
     page.allFields.flatMap {
       case AllFormComponentExpressions(exprs) => exprs.map(_.expr)
       case _                                  => List.empty[Expr]
@@ -87,20 +82,19 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
         page.continueLabel
       )
 
-  private def formComponentsExprs[A <: PageMode](
-    formModel: FormModel[DataExpanded]
-  )(bracket: Bracket[A]): List[Expr] =
+  private def formComponentsExprs(bracket: Bracket): List[Expr] =
     bracket.fold { nonRepeatingPage =>
-      fromSingleton(formModel)(nonRepeatingPage.singleton.singleton)
+      fromSingleton(nonRepeatingPage.singleton.singleton)
     } { repeatingPage =>
-      repeatingPage.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel))
+      repeatingPage.singletons.map(_.singleton).toList.flatMap(fromSingleton)
     } { addToList =>
-      addToList.iterations.toList.flatMap { iteration =>
-        iteration.defaultPage.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
-          iteration.singletons.map(_.singleton).toList.flatMap(fromSingleton(formModel)) ++
-          addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil) ++
-          addToList.source.defaultPage.map(fromPage).getOrElse(Nil)
-      }
+      addToList.includeIf.fold(List.empty[Expr])(includeIf => includeIf.booleanExpr.allExpressions) ++
+        addToList.iterations.toList.flatMap { iteration =>
+          iteration.defaultPage.map(_.singleton).toList.flatMap(fromSingleton) ++
+            iteration.singletons.map(_.singleton).toList.flatMap(fromSingleton) ++
+            addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil) ++
+            addToList.source.defaultPage.map(fromPage).getOrElse(Nil)
+        }
     }
 
 }

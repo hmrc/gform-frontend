@@ -1,0 +1,91 @@
+{
+  "_id": "period-between-two-dates-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${dateA} - ${dateB}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Dates $n",
+          "fields": [
+            {
+              "id": "dateA",
+              "type": "date",
+              "label": "Date A"
+            },
+            {
+              "id": "dateB",
+              "type": "date",
+              "label": "Date B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Date A: ${dateA}\n\nDate B: ${dateB}\n\nPeriod: ${period(dateA, dateB)}\n\nTotal months: ${period(dateA, dateB).totalMonths}\n\nTotal year: ${period(dateA, dateB).years}\n\nMonths: ${period(dateA, dateB).months}\n\nDays: ${period(dateA, dateB).days}\n\nSum: ${period(dateA, dateB).sum}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${earliestOf(dateA, dateB) before 01012024}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

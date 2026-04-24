@@ -28,7 +28,6 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
@@ -60,9 +59,12 @@ class MiniSummaryListHelperSpec extends FunSuite with FormModelSupport {
       new LookupRegistry(Map())
     )
 
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])
-        .asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
+    lazy val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cache.variadicFormData,
+          cache
+        )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)

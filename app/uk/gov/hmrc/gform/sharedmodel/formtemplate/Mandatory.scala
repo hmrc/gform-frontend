@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
+import uk.gov.hmrc.gform.recalculation.FreeCalculator
 
 final case class Mandatory(booleanExpr: BooleanExpr) extends AnyVal {
-  def eval(booleanExprResolver: BooleanExprResolver): Boolean =
-    booleanExprResolver.resolve(booleanExpr)
+  def eval(freeCalculator: FreeCalculator): Boolean =
+    freeCalculator.evalBooleanExpr(booleanExpr)
 }
 
 object Mandatory {

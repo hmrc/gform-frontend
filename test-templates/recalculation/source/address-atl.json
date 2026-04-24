@@ -1,0 +1,94 @@
+{
+  "_id": "address-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Addresses where goods are processed",
+      "shortName": "Processing address $n",
+      "summaryDescription": "${processingAddress}",
+      "summaryName": "Processing addresses for goods",
+      "description": "Address $n: ${processingAddress}",
+      "addAnotherQuestion": {
+        "id": "addAnotherProcessingAddress",
+        "type": "choice",
+        "label": "Do you want to add another address?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Address visibility",
+          "fields": [
+            {
+              "id": "addressControl",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Show address",
+                  "value": "showAddress"
+                },
+                {
+                  "en": "Hide address",
+                  "value": "hideAddress"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "What is address $n where goods are processed?",
+          "includeIf": "${addressControl contains 'showAddress'}",
+          "fields": [
+            {
+              "type": "address",
+              "id": "processingAddress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "all addresses: ${processingAddress}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Alternative address details",
+      "includeIf": "${processingAddress = ''}",
+      "fields": [
+        {
+          "id": "details",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

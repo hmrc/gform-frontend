@@ -29,17 +29,16 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ Atom, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import java.time.format.DateTimeFormatter
-import java.time.{ Instant, LocalDate }
+import java.time.LocalDate
 import scala.collection.mutable.LinkedHashSet
 
 class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport with ScalaFutures {
@@ -78,17 +77,16 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
   implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
 
   private def mkComponentsValidator(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     formComponent: FormComponent,
     cacheData: CacheData
-  ): ComponentsValidator[DataOrigin.Mongo] =
+  ): ComponentsValidator =
     new ComponentsValidator(
       formModelVisibilityOptics,
       formComponent,
       cacheData,
       EnvelopeWithMapping.empty,
       lookupRegistry,
-      booleanExprEval,
       ComponentChecker.NonShortCircuitInterpreter,
       true
     )
@@ -96,13 +94,13 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
   private def componentsValidator(
     formTemplate: FormTemplate,
     formComponent: FormComponent,
-    data: VariadicFormData[SourceOrigin.OutOfDate]
+    data: VariadicFormData
   ) = {
 
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
-    val fmvo =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, BooleanExprCache.empty)
+    val formModelOptics =
+      fmb.visibilityModel[SectionSelectorType.Normal](data, None, Form.dummy(FormTemplateId("")))
 
     val cacheData = new CacheData(
       EnvelopeId(""),
@@ -110,7 +108,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
       formTemplate
     )
 
-    mkComponentsValidator(fmvo, formComponent, cacheData)
+    mkComponentsValidator(formModelOptics.formModelVisibilityOptics, formComponent, cacheData)
   }
 
   val table1: List[
@@ -536,7 +534,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
           mkFormComponent("accPeriodStartDate", date)
             .withErrorFields(errorShortName, errorShortNameStart, errorExample)
 
-        val data = variadicFormData[SourceOrigin.OutOfDate](
+        val data = variadicFormData(
           "accPeriodStartDate-day"   -> acceptedAfter.getDayOfMonth.toString,
           "accPeriodStartDate-month" -> acceptedAfter.getMonthValue.toString,
           "accPeriodStartDate-year"  -> acceptedAfter.getYear.toString
@@ -995,7 +993,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
         val fieldValue =
           mkFormComponent("accPeriodStartDate", date).withErrorFields(errorShortName, errorShortNameStart, errorExample)
 
-        val data = variadicFormData[SourceOrigin.OutOfDate](
+        val data = variadicFormData(
           "accPeriodStartDate-day"   -> day,
           "accPeriodStartDate-month" -> month,
           "accPeriodStartDate-year"  -> year
@@ -1045,7 +1043,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
 
       val fieldValue = mkFormComponent("accPeriodStartDate", date).copy(mandatory = Mandatory.False)
 
-      val data = variadicFormData[SourceOrigin.OutOfDate](
+      val data = variadicFormData(
         "accPeriodStartDate-day"   -> day,
         "accPeriodStartDate-month" -> month,
         "accPeriodStartDate-year"  -> year
@@ -1125,7 +1123,7 @@ class DateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDa
 
   table3
     .foreach { case (description, formTemplate, formComponentToValidate, expected) =>
-      val data = variadicFormData[SourceOrigin.OutOfDate](
+      val data = variadicFormData(
         "1_startDate-day"   -> "1",
         "1_startDate-month" -> "1",
         "1_startDate-year"  -> "2020",

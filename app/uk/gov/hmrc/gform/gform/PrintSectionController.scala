@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestAc
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -164,7 +163,7 @@ class PrintSectionController(
 
   def createPDFContent(
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     headerFooter: PDFModel.HeaderFooter,
     maybeFieldIds: Option[List[BaseComponentId]]
   )(implicit
@@ -173,7 +172,7 @@ class PrintSectionController(
     ss: SmartStringEvaluator
   ): Future[PdfContent] =
     pdfRenderService
-      .createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      .createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         cache.formTemplate.formName.value + " - GOV.UK",
         None,
         cache,

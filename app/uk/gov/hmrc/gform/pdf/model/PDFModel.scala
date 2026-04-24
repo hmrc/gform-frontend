@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.pdf.model
 
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
-import uk.gov.hmrc.gform.models.{ Bracket, SingletonWithNumber, Visibility }
+import uk.gov.hmrc.gform.models.{ Bracket, SingletonWithNumber }
+import uk.gov.hmrc.gform.recalculation.FreeCalculator
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import cats.syntax.option._
@@ -79,16 +79,16 @@ trait PDFCustomRender[A] {
 
   val layout: PDFLayout
 
-  val pageOrdering: Option[Ordering[Page[Visibility]]] = None
-  val bracketOrdering: Option[Ordering[Bracket[Visibility]]] = None
-  val singletonWithNumberOrdering: Option[Ordering[SingletonWithNumber[Visibility]]] = None
+  val pageOrdering: Option[Ordering[Page]] = None
+  val bracketOrdering: Option[Ordering[Bracket]] = None
+  val singletonWithNumberOrdering: Option[Ordering[SingletonWithNumber]] = None
   val formComponentOrdering: Option[Ordering[FormComponent]] = None
 
-  def getPageTitle(page: Page[_], maybePresentationHint: Option[PresentationHint])(implicit
+  def getPageTitle(page: Page, maybePresentationHint: Option[PresentationHint])(implicit
     lise: SmartStringEvaluator
   ): Option[String]
   def getFormComponentLabel(formComponent: FormComponent)(implicit lise: SmartStringEvaluator): Option[String]
-  def doFilter(fields: List[FormComponent], booleanExprResolver: BooleanExprResolver): List[FormComponent]
+  def doFilter(fields: List[FormComponent], freeCalculator: FreeCalculator): List[FormComponent]
 }
 
 object PDFCustomRender {
@@ -98,7 +98,7 @@ object PDFCustomRender {
 
       override val layout: PDFLayout = PDFLayout.Default
 
-      override def getPageTitle(page: Page[_], maybePresentationHint: Option[PresentationHint])(implicit
+      override def getPageTitle(page: Page, maybePresentationHint: Option[PresentationHint])(implicit
         lise: SmartStringEvaluator
       ): Option[String] =
         maybePresentationHint match {
@@ -117,8 +117,8 @@ object PDFCustomRender {
 
       override def doFilter(
         fields: List[FormComponent],
-        booleanExprResolver: BooleanExprResolver
-      ): List[FormComponent] = fields.filterNot(_.hideOnSummary(booleanExprResolver))
+        freeCalculator: FreeCalculator
+      ): List[FormComponent] = fields.filterNot(_.hideOnSummary(freeCalculator))
     }
 
   implicit val instructionPDFCustomRenderInstance: PDFCustomRender[PDFType.Instruction] =
@@ -128,13 +128,13 @@ object PDFCustomRender {
 
       private def instructionOrderVal(i: Option[Instruction]): Int = i.flatMap(_.order).getOrElse(Integer.MAX_VALUE)
 
-      override val pageOrdering: Option[Ordering[Page[Visibility]]] = new Ordering[Page[Visibility]] {
-        override def compare(x: Page[Visibility], y: Page[Visibility]) =
+      override val pageOrdering: Option[Ordering[Page]] = new Ordering[Page] {
+        override def compare(x: Page, y: Page) =
           instructionOrderVal(x.instruction).compareTo(instructionOrderVal(y.instruction))
       }.some
 
-      override val bracketOrdering: Option[Ordering[Bracket[Visibility]]] = new Ordering[Bracket[Visibility]] {
-        override def compare(x: Bracket[Visibility], y: Bracket[Visibility]) =
+      override val bracketOrdering: Option[Ordering[Bracket]] = new Ordering[Bracket] {
+        override def compare(x: Bracket, y: Bracket) =
           x.fold(a => instructionOrderVal(a.source.page.instruction))(a =>
             instructionOrderVal(a.source.page.instruction)
           )(a => instructionOrderVal(a.source.instruction))
@@ -145,9 +145,9 @@ object PDFCustomRender {
             )
       }.some
 
-      override val singletonWithNumberOrdering: Option[Ordering[SingletonWithNumber[Visibility]]] =
-        new Ordering[SingletonWithNumber[Visibility]] {
-          override def compare(x: SingletonWithNumber[Visibility], y: SingletonWithNumber[Visibility]) =
+      override val singletonWithNumberOrdering: Option[Ordering[SingletonWithNumber]] =
+        new Ordering[SingletonWithNumber] {
+          override def compare(x: SingletonWithNumber, y: SingletonWithNumber) =
             instructionOrderVal(x.singleton.page.instruction)
               .compareTo(instructionOrderVal(y.singleton.page.instruction))
         }.some
@@ -157,7 +157,7 @@ object PDFCustomRender {
           instructionOrderVal(x.instruction).compareTo(instructionOrderVal(y.instruction))
       }.some
 
-      override def getPageTitle(page: Page[_], maybePresentationHint: Option[PresentationHint])(implicit
+      override def getPageTitle(page: Page, maybePresentationHint: Option[PresentationHint])(implicit
         lise: SmartStringEvaluator
       ): Option[String] =
         page.instruction.flatMap(_.name.map(_.value()))
@@ -169,8 +169,8 @@ object PDFCustomRender {
 
       override def doFilter(
         fields: List[FormComponent],
-        booleanExprResolver: BooleanExprResolver
+        freeCalculator: FreeCalculator
       ): List[FormComponent] = fields
-        .filter(f => !f.hideOnSummary(booleanExprResolver) && f.instruction.isDefined)
+        .filter(f => !f.hideOnSummary(freeCalculator) && f.instruction.isDefined)
     }
 }

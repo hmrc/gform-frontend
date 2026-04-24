@@ -1,0 +1,544 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Postcode lookup visibility"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Postcode lookup visibility"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "postcodeLookupControl",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Show postcode lookup"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "showPostcodeLookup"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Hide postcode lookup"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "hidePostcodeLookup"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Postcode lookup"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Contains": {
+                    "multiValueField": {
+                      "formComponentId": "postcodeLookupControl"
+                    },
+                    "value": {
+                      "Constant": {
+                        "value": "showPostcodeLookup"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Postcode lookup"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "postcodeLookup",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "PostcodeLookup": {}
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Test"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "info",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Postcode lookup: ''{0}''\n\nPostcode lookup is (=) {1}\n\nPostcode lookup is (!=) {2}"
+                            },
+                            "interpolations": [
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "postcodeLookup"
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "Equals": {
+                                      "left": {
+                                        "FormCtx": {
+                                          "formComponentId": "postcodeLookup"
+                                        }
+                                      },
+                                      "right": {
+                                        "Constant": {
+                                          "value": ""
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "hidden"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "visible"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "Not": {
+                                      "e": {
+                                        "Equals": {
+                                          "left": {
+                                            "FormCtx": {
+                                              "formComponentId": "postcodeLookup"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": ""
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "visible"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "hidden"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Postcode lookup details"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Not": {
+                    "e": {
+                      "Equals": {
+                        "left": {
+                          "FormCtx": {
+                            "formComponentId": "postcodeLookup"
+                          }
+                        },
+                        "right": {
+                          "Constant": {
+                            "value": ""
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Postcode lookup details"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "details",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "postcode-lookup-visibility",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "postcode-lookup-visibility",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

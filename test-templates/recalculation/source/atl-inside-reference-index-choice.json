@@ -1,0 +1,68 @@
+{
+  "_id": "atl-inside-reference-index-choice",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${name}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Enter name $n",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Secret $n",
+          "includeIf": "${addAnother.index = 2}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

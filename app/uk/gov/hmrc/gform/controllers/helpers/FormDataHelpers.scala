@@ -24,10 +24,12 @@ import org.slf4j.LoggerFactory
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
 import uk.gov.hmrc.gform.controllers.helpers.InvisibleCharsHelper._
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
-import uk.gov.hmrc.gform.models.{ DataExpanded, EnteredVariadicFormData, ExpandUtils, FormModel, PageModel }
+import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
+import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, ExpandUtils, FormModel, PageModel }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.recalculation.Metadata
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Date, FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber, TimeFormat }
 import uk.gov.hmrc.gform.ops.FormComponentOps
@@ -41,13 +43,14 @@ object FormDataHelpers {
 
   def processResponseDataFromBody(
     request: Request[AnyContent],
-    formModelRenderPageOptics: FormModelRenderPageOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     maybeSectionNumber: Option[SectionNumber] = None
   )(
-    continuation: RequestRelatedData => VariadicFormData[SourceOrigin.OutOfDate] => EnteredVariadicFormData => Future[
-      Result
-    ]
-  ): Future[Result] =
+    continuation: RequestRelatedData => VariadicFormData => EnteredVariadicFormData => Future[Result]
+  ): Future[Result] = {
+    val formModelRenderPageOptics: FormModelRenderPageOptics = formModelOptics.formModelRenderPageOptics
+    val variadicFormData: VariadicFormData = formModelOptics.variadicFormData
+    val metadata: Metadata = formModelOptics.formModelVisibilityOptics.freeCalculator.metadata
     request.body.asFormUrlEncoded
       .map(_.map { case (field, values) =>
         (
@@ -71,34 +74,36 @@ object FormDataHelpers {
         )
       }) match {
       case Some(requestData) =>
-        val (variadicFormData, requestRelatedData, enteredVariadicFormData) =
-          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, requestData)
+        val (newVariadicFormData, requestRelatedData, enteredVariadicFormData) =
+          buildVariadicFormDataFromBrowserPostData(formModelRenderPageOptics.formModel, metadata, requestData)
 
         val variadicFormDataWithPropagation =
-          formModelRenderPageOptics.formModel.propagator.propagate(variadicFormData, formModelRenderPageOptics.recData)
+          formModelRenderPageOptics.formModel.propagator
+            .propagate(newVariadicFormData, variadicFormData)
 
         val maybeSectionModelComponentIds = maybeSectionNumber.toSeq.flatMap(s =>
           unselectedChoiceElements(formModelRenderPageOptics.formModel(s), requestData)
         )
         continuation(requestRelatedData)(
-          formModelRenderPageOptics.recData.variadicFormData ++
+          variadicFormData ++
             variadicFormDataWithPropagation --
             maybeSectionModelComponentIds
         )(
           EnteredVariadicFormData(
-            formModelRenderPageOptics.recData.variadicFormData ++
+            variadicFormData ++
               enteredVariadicFormData --
               maybeSectionModelComponentIds
           )
         )
       case None =>
-        val variadicFormData = formModelRenderPageOptics.recData.variadicFormData ++
-          VariadicFormData.empty[SourceOrigin.OutOfDate] --
+        val newVariadicFormData = variadicFormData ++
+          VariadicFormData.empty --
           maybeSectionNumber.toSeq.flatMap(s =>
             unselectedChoiceElements(formModelRenderPageOptics.formModel(s), Map.empty)
           )
-        continuation(RequestRelatedData.empty)(variadicFormData)(EnteredVariadicFormData(variadicFormData))
+        continuation(RequestRelatedData.empty)(newVariadicFormData)(EnteredVariadicFormData(newVariadicFormData))
     }
+  }
 
   private def trimAndReplaceCRLFWithLF(value: String) = value.trim.replaceAll("\r\n", "\n")
 
@@ -108,7 +113,7 @@ object FormDataHelpers {
   def anyFormId(data: Map[FormComponentId, Seq[String]]): Option[FormId] =
     data.get(FormComponentId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
-  def dataEnteredInGroup[S <: SourceOrigin](group: Group, fieldData: VariadicFormData[S]): Boolean =
+  def dataEnteredInGroup(group: Group, fieldData: VariadicFormData): Boolean =
     group.fields
       .flatMap(_.multiValueId.toModelComponentIds)
       .exists(id => fieldData.get(id).exists(_.exists(_.nonEmpty)))
@@ -119,9 +124,10 @@ object FormDataHelpers {
   }
 
   private def buildVariadicFormDataFromBrowserPostData(
-    formModel: FormModel[DataExpanded],
+    formModel: FormModel,
+    metadata: Metadata,
     requestData: Map[String, Seq[String]]
-  ): (VariadicFormData[SourceOrigin.OutOfDate], RequestRelatedData, VariadicFormData[SourceOrigin.OutOfDate]) = {
+  ): (VariadicFormData, RequestRelatedData, VariadicFormData) = {
 
     val upperCaseIds: Set[ModelComponentId] = formModel.allUpperCaseIds
     val variadicFormComponentIds: Set[ModelComponentId] = formModel.allModelComponentIds
@@ -147,7 +153,7 @@ object FormDataHelpers {
         case (true, false) =>
           s.toList match {
             case first :: _ =>
-              val isTimeFormat = formModel.staticTypeInfo
+              val isTimeFormat = metadata.staticTypeInfo
                 .get(modelComponentId.baseComponentId)
                 .flatMap(_.textConstraint)
                 .contains(TimeFormat)
@@ -188,9 +194,9 @@ object FormDataHelpers {
 
     xs.foldLeft(
       (
-        VariadicFormData.empty[SourceOrigin.OutOfDate],
+        VariadicFormData.empty,
         RequestRelatedData.empty,
-        VariadicFormData.empty[SourceOrigin.OutOfDate]
+        VariadicFormData.empty
       )
     ) { case ((variadicFormDataAcc, requestRelatedDataAcc, entVariadicFormDataAcc), (maybeVar, maybeReq, maybeEnt)) =>
       (
@@ -206,7 +212,7 @@ object FormDataHelpers {
    * identify and remove them
    */
   private def unselectedChoiceElements(
-    pageModel: PageModel[DataExpanded],
+    pageModel: PageModel,
     requestData: Map[String, Seq[String]]
   ): Seq[ModelComponentId] =
     pageModel.allFormComponents.collect {
@@ -219,7 +225,7 @@ object FormDataHelpers {
   private def cleanVariadicValues(
     value: String,
     formComponentId: FormComponentId,
-    formModel: FormModel[DataExpanded]
+    formModel: FormModel
   ): String =
     formModel.fcLookup.get(formComponentId) match {
       case Some(formComponent) if formComponent.isNumeric                              => value.replace("£", "")

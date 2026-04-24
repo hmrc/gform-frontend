@@ -1,0 +1,364 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Page A"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "What is the main reason you are repaying the grant money?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "repayReasonChoice",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "RevealingChoice": {
+                      "options": [
+                        {
+                          "choice": {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "I am not eligible"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "revealingFields": [],
+                          "selected": false
+                        },
+                        {
+                          "choice": {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "I would prefer to repay it, or part of it"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "revealingFields": [
+                            {
+                              "mandatory": {
+                                "booleanExpr": {
+                                  "IsTrue": {}
+                                }
+                              },
+                              "notPII": false,
+                              "derived": false,
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Page A"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "validators": [],
+                              "id": "pageA",
+                              "submissible": true,
+                              "isPageHeading": false,
+                              "type": {
+                                "Text": {
+                                  "constraint": {
+                                    "Number": {
+                                      "maxWholeDigits": 11,
+                                      "maxFractionalDigits": 2,
+                                      "roundingMode": "Down"
+                                    }
+                                  },
+                                  "value": {
+                                    "Value": {}
+                                  },
+                                  "displayWidth": "DEFAULT",
+                                  "toUpperCase": {
+                                    "IsNotUpperCase": {}
+                                  }
+                                }
+                              },
+                              "onlyShowOnSummary": false,
+                              "editable": true
+                            }
+                          ],
+                          "selected": false
+                        },
+                        {
+                          "choice": {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "I believe HMRC has paid me too much in error"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "revealingFields": [],
+                          "selected": false
+                        }
+                      ],
+                      "multiValue": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Page B"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThan": {
+                    "left": {
+                      "FormCtx": {
+                        "formComponentId": "pageA"
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "10"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Page B"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "pageB",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "Number": {
+                          "maxWholeDigits": 11,
+                          "maxFractionalDigits": 2,
+                          "roundingMode": "Down"
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "revealing-choice",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "revealing-choice",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

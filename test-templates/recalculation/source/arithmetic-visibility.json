@@ -1,0 +1,160 @@
+{
+  "_id": "arithmetic-visibility",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Value",
+      "fields": [
+        {
+          "id": "value",
+          "type": "text",
+          "format": "sterling"
+        }
+      ]
+    },
+    {
+      "title": "Op 1",
+      "includeIf": "${value > 0}",
+      "fields": [
+        {
+          "id": "op1",
+          "type": "text",
+          "format": "sterling"
+        }
+      ]
+    },
+    {
+      "title": "Op 2",
+      "includeIf": "${value < 0}",
+      "fields": [
+        {
+          "id": "op2",
+          "type": "text",
+          "format": "sterling"
+        }
+      ]
+    },
+    {
+      "title": "Page D",
+      "fields": [
+        {
+          "id": "mul",
+          "type": "text",
+          "format": "sterling",
+          "label": "Mul *",
+          "submitMode": "readonly",
+          "value": "${op1 * op2}"
+        },
+        {
+          "id": "div",
+          "type": "text",
+          "format": "sterling",
+          "label": "Div /",
+          "submitMode": "readonly",
+          "value": "${op1 / op2}"
+        },
+        {
+          "id": "add",
+          "type": "text",
+          "format": "sterling",
+          "label": "Add +",
+          "submitMode": "readonly",
+          "value": "${op1 + op2}"
+        },
+        {
+          "id": "sub",
+          "type": "text",
+          "format": "sterling",
+          "label": "Sub -",
+          "submitMode": "readonly",
+          "value": "${op1 - op2}"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "${op1} + ${op2} = ${op1 + op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} + ${op1} = ${op2 + op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op1} - ${op2} = ${op1 - op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} - ${op1} = ${op2 - op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op1} * ${op2} = ${op1 * op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} = ${op2 * op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op1} / ${op2} = ${op1 / op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} = ${op2 / op1}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

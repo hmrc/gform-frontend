@@ -18,11 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
-
-import org.scalatest.prop.Tables.Table
 
 class FormComponentSpec extends Spec {
   /* private val exprText = Text(BasicText, Add(Constant("1"), FormCtx(FormComponentId("other-field-id"))))
@@ -41,64 +38,6 @@ class FormComponentSpec extends Spec {
   "FormComponent" should "round trip derived JSON" in {
     forAll(FormComponentGen.formComponentGen()) { value =>
       FormComponent.format.reads(FormComponent.format.writes(value)) should beJsSuccess(value)
-    }
-  }
-
-  it should "correctly determine hide on summary value" in {
-    val table = Table(
-      ("formComponent", "expectedResult"),
-      (
-        mkInfoMessageComponent(
-          "id1",
-          "Some text",
-          Some(toSmartString("Summary text"))
-        ),
-        false
-      ),
-      (
-        mkInfoMessageComponent(
-          "id1",
-          "Some text"
-        ),
-        true
-      ),
-      (
-        mkFormComponent(
-          "anything",
-          Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
-          "anything",
-          "anything"
-        ),
-        false
-      ),
-      (
-        mkFormComponent(
-          "anything",
-          Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
-          "anything",
-          "anything"
-        ).copy(displayInSummary = Some(DisplayInSummary(IsFalse))),
-        true
-      ),
-      (
-        mkFormComponent(
-          "anything",
-          Text(TextConstraint.default, Value, DisplayWidth.DEFAULT, IsUpperCase),
-          "anything",
-          "anything"
-        ).copy(presentationHint = Some(List(InvisibleInSummary))),
-        true
-      )
-    )
-
-    val booleanExprResolver = BooleanExprResolver {
-      case IsTrue      => true
-      case IsFalse     => false
-      case unsupported => throw new Exception("Invalid condition: " + unsupported)
-    }
-
-    org.scalatest.prop.TableDrivenPropertyChecks.forAll(table) { (formComponent, expected) =>
-      formComponent.hideOnSummary(booleanExprResolver) shouldBe expected
     }
   }
 

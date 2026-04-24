@@ -1,0 +1,76 @@
+{
+  "_id": "sum-of-non-repeated-field",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "overpaymentTotal": {
+      "value": "overpayment.sum",
+      "type": "sterling"
+    }
+  },
+  "sections": [
+    {
+      "title": "How much PAYE are you requesting a refund for?",
+      "fields": [
+        {
+          "id": "overpayment",
+          "type": "text",
+          "format": "positiveSterling"
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "Overpayment total is: ${hideZeroDecimals(overpaymentTotal)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Overpayment is: ${hideZeroDecimals(overpayment)}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

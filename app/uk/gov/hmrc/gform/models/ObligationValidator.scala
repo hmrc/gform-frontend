@@ -18,17 +18,16 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ Obligations, RetrievedObligations, TaxResponse }
 
 trait ObligationValidator extends TaxSelectionNavigator {
 
   def validateWithDes(
-    formModelOptics: FormModelOptics[DataOrigin.Browser],
+    formModelOptics: FormModelOptics,
     cachedObligation: Obligations,
     desObligation: Obligations
-  ): FormModelOptics[DataOrigin.Browser] =
+  ): FormModelOptics =
     (cachedObligation, desObligation) match {
       case (RetrievedObligations(obligation), RetrievedObligations(responseObligation)) =>
         clearTaxResponses(formModelOptics, obligation, responseObligation)
@@ -36,10 +35,10 @@ trait ObligationValidator extends TaxSelectionNavigator {
     }
 
   private def clearTaxResponses(
-    formModelOptics: FormModelOptics[DataOrigin.Browser],
+    formModelOptics: FormModelOptics,
     cachedObligation: NonEmptyList[TaxResponse],
     desObligation: NonEmptyList[TaxResponse]
-  ): FormModelOptics[DataOrigin.Browser] = {
+  ): FormModelOptics = {
     val toRemove: List[ModelComponentId] = cachedObligation.toList
       .zip(desObligation.toList)
       .map { case (cached, taxResponse) =>

@@ -1,0 +1,78 @@
+{
+  "_id": "postcode-lookup-visibility",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Postcode lookup visibility",
+      "fields": [
+        {
+          "id": "postcodeLookupControl",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Show postcode lookup",
+              "value": "showPostcodeLookup"
+            },
+            {
+              "en": "Hide postcode lookup",
+              "value": "hidePostcodeLookup"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Postcode lookup",
+      "includeIf": "${postcodeLookupControl contains 'showPostcodeLookup'}",
+      "fields": [
+        {
+          "id": "postcodeLookup",
+          "type": "postcodeLookup"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "Postcode lookup: '${postcodeLookup}'\n\nPostcode lookup is (=) ${if postcodeLookup = '' then 'hidden' else 'visible'}\n\nPostcode lookup is (!=) ${if postcodeLookup != '' then  'visible' else 'hidden'}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Postcode lookup details",
+      "includeIf": "${postcodeLookup != ''}",
+      "fields": [
+        {
+          "id": "details",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

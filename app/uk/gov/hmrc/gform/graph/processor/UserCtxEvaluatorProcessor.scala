@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.graph.processor
 
 import org.slf4j.LoggerFactory
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -57,7 +56,7 @@ object UserCtxEvaluatorProcessor extends IdentifierExtractor {
           }
           .getOrElse("")
       case (_, UserField.AffinityGroup) =>
-        affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals))
+        affinityGroupNameO(retrievals.maybeAffinityGroup)
       case (_, UserField.CredentialRole) =>
         val credentialRole: String =
           retrievals.getCredentialRole.fold("")(credentialRole => credentialRole.toString.toLowerCase)

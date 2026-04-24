@@ -16,36 +16,19 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 object Helpers {
-  def mkData[A <: SourceOrigin](fields: (String, String)*): VariadicFormData[A] =
-    fields.foldLeft(VariadicFormData.empty[A]) { case (acc, (fcId, value)) =>
+  def mkData(fields: (String, String)*): VariadicFormData =
+    fields.foldLeft(VariadicFormData.empty) { case (acc, (fcId, value)) =>
       acc addOne (FormComponentId(fcId).modelComponentId -> value)
     }
 
-  def mkDataMany[A <: SourceOrigin](fields: (String, Seq[String])*): VariadicFormData[A] =
-    fields.foldLeft(VariadicFormData.empty[A]) { case (acc, (fcId, value)) =>
+  def mkDataMany(fields: (String, Seq[String])*): VariadicFormData =
+    fields.foldLeft(VariadicFormData.empty) { case (acc, (fcId, value)) =>
       acc addMany (FormComponentId(fcId).modelComponentId -> value)
     }
-
-  def mkDataCurrent(fields: (String, String)*): VariadicFormData[SourceOrigin.Current] =
-    mkData[SourceOrigin.Current](fields: _*)
-
-  def mkDataOutOfDate(fields: (String, String)*): VariadicFormData[SourceOrigin.OutOfDate] =
-    mkData[SourceOrigin.OutOfDate](fields: _*)
-
-  def mkDataManyCurrent(fields: (String, String)*): VariadicFormData[SourceOrigin.Current] =
-    mkDataMany[SourceOrigin.Current](fields.map(stringToSeq): _*)
-
-  def mkDataManyOutOfDate(fields: (String, String)*): VariadicFormData[SourceOrigin.OutOfDate] =
-    mkDataMany[SourceOrigin.OutOfDate](fields.map(stringToSeq): _*)
-
-  private def stringToSeq(t: (String, String)): (String, Seq[String]) = {
-    val (a, b) = t
-    (a, b.split(",").toIndexedSeq)
-  }
 
   def toLocalisedString(string: String): LocalisedString =
     LocalisedString(Map(LangADT.En -> string))

@@ -24,18 +24,10 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RoundingMode => GformRoundin
 
 object NumberFormatUtil {
   val defaultFormat = NumberFormat.getInstance(Locale.UK)
-  def defaultFormat(i: Int) = {
-    val formatter = NumberFormat.getInstance(Locale.UK)
-    formatter.setMaximumFractionDigits(i)
-    formatter.setRoundingMode(RoundingMode.FLOOR)
-    formatter
-  }
-
-  def roundAndFormat(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode): String =
-    NumberFormatUtil.defaultFormat(scale).format(NumberSetScale.setScale(bd, scale, roundingMode))
 
   def formatWithPrecise(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode): String = {
-    defaultFormat.setMinimumFractionDigits(scale)
+    defaultFormat.setMinimumFractionDigits(0)
+    defaultFormat.setMaximumFractionDigits(scale)
     defaultFormat.setRoundingMode(RoundingMode.FLOOR)
     defaultFormat.format(NumberSetScale.setScale(bd, scale, roundingMode))
   }

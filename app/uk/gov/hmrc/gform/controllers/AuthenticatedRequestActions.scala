@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.eq._
-import com.softwaremill.quicklens._
 
 import java.time.LocalDate
 import org.slf4j.LoggerFactory
@@ -43,7 +42,7 @@ import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -71,9 +70,7 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm
   )(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-      DataOrigin.Mongo
-    ] => F[Result]
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => F[Result]
   ): Action[AnyContent]
 }
 
@@ -319,9 +316,7 @@ class AuthenticatedRequestActions(
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm
   )(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-      DataOrigin.Mongo
-    ] => Future[Result]
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[Result]
   ): Action[AnyContent] =
     async(formTemplateId, maybeAccessCode) {
       implicit request => lang => cache => smartStringEvaluator => formModelOptics =>
@@ -346,9 +341,7 @@ class AuthenticatedRequestActions(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode]
   )(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-      DataOrigin.Mongo
-    ] => Future[Result]
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[Result]
   ): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       import i18nSupport._
@@ -376,7 +369,7 @@ class AuthenticatedRequestActions(
     }
 
   private def withForm[U <: SectionSelectorType: SectionSelector](
-    f: AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
+    f: AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[Result]
   )(
     maybeAccessCode: Option[AccessCode],
     formTemplateContext: FormTemplateContext
@@ -429,21 +422,9 @@ class AuthenticatedRequestActions(
                   lookupRegistry
                 )
 
-        formModelOptics = FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, U](
-                            cache.variadicFormData,
-                            cache
-                          )
+        formModelOptics = FormModelOptics.mkFormModelOptics[U](cache.variadicFormData, cache)
 
-        formModelOpticsUpd =
-          formModelOptics
-            .modify(_.formModelVisibilityOptics.recalculationResult.evaluationContext.formTemplateId)
-            .setTo(formUpd.formTemplateId)
-
-        smartStringEvaluator =
-          smartStringEvaluatorFactory
-            .apply(
-              formModelOpticsUpd.formModelVisibilityOptics
-            )
+        smartStringEvaluator = smartStringEvaluatorFactory.apply(formModelOptics.formModelVisibilityOptics)
         result <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
 
@@ -619,29 +600,23 @@ case class AuthCacheWithForm(
   lookupRegistry: LookupRegistry
 ) extends AuthCache {
   val formTemplate: FormTemplate = formTemplateContext.formTemplate
+
   val formTemplateId: FormTemplateId = formTemplate._id
-  def formModel[U <: SectionSelectorType: SectionSelector](implicit
-    hc: HeaderCarrier
-  ): FormModel[DependencyGraphVerification] =
-    FormModelBuilder
-      .fromCache(
-        this,
-        toCacheData,
-        form.componentIdToFileId,
-        lookupRegistry,
-        form.taskIdTaskStatus
-      )
-      .dependencyGraphValidation
 
   def toCacheData: CacheData = new CacheData(
     form.envelopeId,
     form.thirdPartyData,
     formTemplate
   )
-  def variadicFormData[U <: SectionSelectorType: SectionSelector](implicit
-    hc: HeaderCarrier
-  ): VariadicFormData[SourceOrigin.OutOfDate] =
-    VariadicFormData.buildFromMongoData(formModel, form.formData.toData)
+
+  val multiValueIds: Set[BaseComponentId] =
+    formTemplate.formKind.allEnterableFields.collect {
+      case c @ IsChoice(_)          => c.id.baseComponentId
+      case c @ IsRevealingChoice(_) => c.id.baseComponentId
+    }.toSet ++ formTemplate.formKind.allAddAnotherQuestions.map(_.id.baseComponentId).toSet
+
+  val variadicFormData: VariadicFormData =
+    VariadicFormData.buildFromMongoData(multiValueIds, form.formData.toData)
 
   def toAuthCacheWithoutForm =
     AuthCacheWithoutForm(

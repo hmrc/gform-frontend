@@ -1,0 +1,65 @@
+{
+  "_id": "revealing-choice-in-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "$n) Add to list",
+      "shortName": "$n) Add to list",
+      "summaryName": "Add to list",
+      "description": "$n - ${tradesUnderDifferentName}",
+      "summaryDescription": "${tradesUnderDifferentName}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "$n) So you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "$n) Page A",
+          "fields": [
+            {
+              "id": "tradesUnderDifferentName",
+              "type": "revealingChoice",
+              "label": "$n) Does your company trade under a different name?",
+              "choices": [
+                "Yes",
+                "No",
+                "Don't know"
+              ],
+              "revealingFields": [
+                [],
+                [],
+                [
+                  {
+                    "id": "tradingNameUnknownHelp",
+                    "type": "info",
+                    "label": "",
+                    "infoText": "$n) You should be more knowledgeable about your business"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

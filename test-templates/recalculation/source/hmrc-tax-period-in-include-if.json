@@ -1,0 +1,87 @@
+{
+  "_id": "hmrc-tax-period-in-include-if",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc",
+    "agentAccess": "allowAnyAgentAffinityUser",
+    "enrolmentCheck": "forNonAgents",
+    "serviceId": "HMRC-OBTDS-ORG",
+    "regimeId": "GD",
+    "enrolmentOutcomes": {
+      "insufficientCredentialsPage": {
+        "title": "Title 1",
+        "content": "Content 1"
+      },
+      "notMatchedPage": {
+        "title": "Title 2",
+        "content": "Content 2"
+      },
+      "alreadyLinkedPage": {
+        "title": "Title 3",
+        "content": "Content 3"
+      },
+      "technicalFailurePage": {
+        "title": "Title 4",
+        "content": "Content 4"
+      },
+      "successPage": {
+        "title": "Title 5",
+        "content": "Content 5"
+      }
+    }
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "GDreg",
+          "type": "text",
+          "format": "shortText",
+          "label": "You are completing a return for the registration:",
+          "value": "${user.enrolledIdentifier}",
+          "submitMode": "readonly",
+          "presentationHint": "totalValue"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "fields": [
+        {
+          "id": "returnPeriod",
+          "type": "hmrcTaxPeriod",
+          "label": "Select tax period",
+          "idType": "eeits",
+          "idNumber": "${GDreg}",
+          "regimeType": "GD"
+        }
+      ]
+    },
+    {
+      "title": "Page C",
+      "includeIf": "${returnPeriod.periodTo after 01042022}",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "label": "Page C",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

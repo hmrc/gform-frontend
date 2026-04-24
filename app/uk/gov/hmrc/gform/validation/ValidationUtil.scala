@@ -18,18 +18,17 @@ package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated
 import cats.implicits._
-import com.softwaremill.quicklens._
+import uk.gov.hmrc.gform.eval.DataRetrieveEval
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.objectStore.File
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.mutable.LinkedHashSet
-import uk.gov.hmrc.gform.eval.DataRetrieveEval
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 
@@ -87,10 +86,10 @@ object ValidationUtil {
     }
   }
 
-  def evaluateValidationResult[D <: DataOrigin](
+  def evaluateValidationResult(
     atomicFields: List[FormComponent],
     validationResult: ValidatedType[ValidatorsResult],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     envelope: EnvelopeWithMapping
   ): ValidationResult = {
 
@@ -103,10 +102,10 @@ object ValidationUtil {
 
     def multiFieldValidationResult(
       formComponent: FormComponent,
-      optics: FormModelVisibilityOptics[D]
+      variadicFormData: VariadicFormData
     ): FormFieldValidationResult = {
 
-      val getter: ModelComponentId => Seq[String] = fId => optics.data.get(fId).toList.flatMap(_.toSeq)
+      val getter: ModelComponentId => Seq[String] = fId => variadicFormData.get(fId).toList.flatMap(_.toSeq)
       val valSuffixResult: List[(ModelComponentId, FormFieldValidationResult)] =
         evaluateWithSuffix(formComponent, gFormErrors)(getter)
 
@@ -126,19 +125,20 @@ object ValidationUtil {
       isUkAddress: Boolean
     ) = {
       val atomMap =
-        formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve.fold(
+        formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.dataRetrieve.fold(
           Map.empty[String, String]
         )(dr => DataRetrieveEval.getDataRetrieveAddressMap(dr, dataRetrieveId, isUkAddress))
 
-      val syntheticOptics = formModelVisibilityOptics
-        .modify(_.recData.variadicFormData)
-        .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
-      multiFieldValidationResult(formComponent, syntheticOptics)
+      val syntheticVariadicFormData =
+        formModelVisibilityOptics.freeCalculator.answerMapWithFallback.mongoUserData.lookup
+          .withCopyFromAtom(formComponent.modelComponentId, atomMap)
+
+      multiFieldValidationResult(formComponent, syntheticVariadicFormData)
     }
 
     def matchComponentType(formComponent: FormComponent): FormFieldValidationResult = formComponent match {
       case IsAddress(Address(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)))) =>
-        val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+        val itmpAddress = formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.itmpRetrievals
           .flatMap(_.itmpAddress)
         val atomMap: Map[String, String] = Map(
           "street1"  -> itmpAddress.flatMap(_.line1).getOrElse(""),
@@ -150,10 +150,11 @@ object ValidationUtil {
           "country"  -> itmpAddress.flatMap(_.countryName).filter(_.trim.nonEmpty).getOrElse("")
         )
 
-        val syntheticOptics = formModelVisibilityOptics
-          .modify(_.recData.variadicFormData)
-          .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
-        multiFieldValidationResult(formComponent, syntheticOptics)
+        val syntheticVariadicFormData =
+          formModelVisibilityOptics.freeCalculator.answerMapWithFallback.mongoUserData.lookup
+            .withCopyFromAtom(formComponent.modelComponentId, atomMap)
+
+        multiFieldValidationResult(formComponent, syntheticVariadicFormData)
 
       case IsAddress(Address(_, _, _, Some(DataRetrieveCtx(drId, Attribute("registeredOfficeAddress"))))) =>
         handleDataRetrieveAddress(formComponent, drId, isUkAddress = true)
@@ -166,16 +167,18 @@ object ValidationUtil {
           case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
           case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
         }
-        val syntheticOptics = formModelVisibilityOptics
-          .modify(_.recData.variadicFormData)
-          .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
-        multiFieldValidationResult(formComponent, syntheticOptics)
+
+        val syntheticVariadicFormData: VariadicFormData =
+          formModelVisibilityOptics.freeCalculator.answerMapWithFallback.mongoUserData.lookup
+            .withSyntheticCopy(fcId.baseComponentId, mapper)
+
+        multiFieldValidationResult(formComponent, syntheticVariadicFormData)
 
       case IsOverseasAddress(OverseasAddress(_, _, _, Some(DataRetrieveCtx(drId, Attribute("agencyAddress"))), _, _)) =>
         handleDataRetrieveAddress(formComponent, drId, isUkAddress = false)
 
       case IsOverseasAddress(OverseasAddress(_, _, _, Some(AuthCtx(AuthInfo.ItmpAddress)), _, _)) =>
-        val itmpAddress = formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+        val itmpAddress = formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.itmpRetrievals
           .flatMap(_.itmpAddress)
         val itmpLines = List(
           itmpAddress.flatMap(_.line1).getOrElse(""),
@@ -199,25 +202,32 @@ object ValidationUtil {
         )
         val atomMap: Map[String, String] = linesMap ++ otherMap
 
-        val syntheticOptics = formModelVisibilityOptics
-          .modify(_.recData.variadicFormData)
-          .using(_.withCopyFromAtom(formComponent.modelComponentId, atomMap))
-        multiFieldValidationResult(formComponent, syntheticOptics)
+        val syntheticVariadicFormData =
+          formModelVisibilityOptics.freeCalculator.answerMapWithFallback.mongoUserData.lookup
+            .withCopyFromAtom(formComponent.modelComponentId, atomMap)
+
+        multiFieldValidationResult(formComponent, syntheticVariadicFormData)
 
       case IsOverseasAddress(OverseasAddress(_, _, _, Some(FormCtx(fcId)), _, _)) =>
         def mapper: IndexedComponentId => IndexedComponentId = {
           case IndexedComponentId.Pure(_)           => IndexedComponentId.Pure(formComponent.baseComponentId)
           case IndexedComponentId.Indexed(_, index) => IndexedComponentId.Indexed(formComponent.baseComponentId, index)
         }
-        val syntheticOptics = formModelVisibilityOptics
-          .modify(_.recData.variadicFormData)
-          .using(_.withSyntheticCopy(fcId.baseComponentId, mapper))
-        multiFieldValidationResult(formComponent, syntheticOptics)
 
-      case IsMultiField(_) => multiFieldValidationResult(formComponent, formModelVisibilityOptics)
+        val syntheticVariadicFormData =
+          formModelVisibilityOptics.freeCalculator.answerMapWithFallback.mongoUserData.lookup
+            .withSyntheticCopy(fcId.baseComponentId, mapper)
+
+        multiFieldValidationResult(formComponent, syntheticVariadicFormData)
+
+      case IsMultiField(_) =>
+        val variadicFormData = formModelVisibilityOptics.freeCalculator.answerMapWithFallback.mongoUserData.lookup
+
+        multiFieldValidationResult(formComponent, variadicFormData)
 
       case IsTextOrTextArea(constraint) =>
         val atomicFcId = formComponent.modelComponentId
+        // val data = formModelVisibilityOptics.textResult(atomicFcId).getOrElse("") Don't do this // TODO JoVl delete after QA testing
         val data = dataGetter(atomicFcId).headOption.getOrElse("")
         val okData = constraint match {
           case UkVrn | CompanyRegistrationNumber | EORI | UkEORI => data.replace(" ", "")

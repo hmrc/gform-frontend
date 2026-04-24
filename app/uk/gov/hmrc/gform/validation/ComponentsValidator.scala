@@ -20,17 +20,14 @@ import cats.Monoid
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
-import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.FormModel
-import uk.gov.hmrc.gform.models.Visibility
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.email.VerificationCodeFieldId
 import uk.gov.hmrc.gform.models.email.verificationCodeFieldId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -57,7 +54,7 @@ class GetEmailCodeFieldMatcher(fcIds: Map[VerificationCodeFieldId, EmailFieldId]
 }
 
 object GetEmailCodeFieldMatcher {
-  def apply(formModel: FormModel[Visibility]) = {
+  def apply(formModel: FormModel) = {
     val fcIds: Map[VerificationCodeFieldId, EmailFieldId] = formModel.allFormComponents.collect {
       case IsEmailVerifier(emailFcId, emailVerifiedBy) =>
         (verificationCodeFieldId(emailVerifiedBy.formComponentId), emailFcId)
@@ -67,13 +64,12 @@ object GetEmailCodeFieldMatcher {
   val noop = new GetEmailCodeFieldMatcher(Map.empty)
 }
 
-class ComponentsValidator[D <: DataOrigin](
-  formModelVisibilityOptics: FormModelVisibilityOptics[D],
+class ComponentsValidator(
+  formModelVisibilityOptics: FormModelVisibilityOptics,
   formComponent: FormComponent,
   cache: CacheData,
   envelope: EnvelopeWithMapping,
   lookupRegistry: LookupRegistry,
-  booleanExprEval: BooleanExprEval,
   interpreter: CheckInterpreter,
   validateCustomValidators: Boolean
 )(implicit
@@ -88,43 +84,42 @@ class ComponentsValidator[D <: DataOrigin](
     validationResult: ValidatedType[Unit]
   ): ValidatedType[Unit] =
     if (validationResult.isValid) {
-      val firstCustomer = if (validateCustomValidators) findFirstCustomValidationError else None
-      produceCustomValidationErrorOrDefaultValidationResult(firstCustomer, validationResult)
+      val firstCustomValidationError = if (validateCustomValidators) findFirstCustomValidationError else None
+      produceCustomValidationErrorOrDefaultValidationResult(firstCustomValidationError, validationResult)
     } else validationResult
 
   private def produceCustomValidationErrorOrDefaultValidationResult(
-    customValidationError: Option[SmartString],
+    customValidationError: Option[(ValidIf, SmartString)],
     validationResult: ValidatedType[Unit]
   ): ValidatedType[Unit] =
     customValidationError
-      .map(produceValidationError(_))
+      .map { case (validIf, message) => produceValidationError(validIf, message) }
       .getOrElse(defaultFormComponentValidIf(validationResult))
 
-  private def findFirstCustomValidationError: Option[SmartString] = {
+  private def findFirstCustomValidationError: Option[(ValidIf, SmartString)] = {
     val customResult = evaluateCustomValidators(formComponent)
     customResult.find(listItem => !listItem._1).map(_._2)
   }
 
   private def evaluateCustomValidators(
     formComponent: FormComponent
-  ): List[(Boolean, SmartString)] =
+  ): List[(Boolean, (ValidIf, SmartString))] =
     formComponent.validators.map { formComponentValidator =>
-      val fb: Boolean = booleanExprEval.eval(formModelVisibilityOptics, cache.thirdPartyData.booleanExprCache)(
-        formComponentValidator.validIf.booleanExpr
-      )
-      (fb, formComponentValidator.errorMessage)
+      val fb: Boolean = formModelVisibilityOptics.freeCalculator.evalValidIf(formComponentValidator.validIf)
+      (fb, (formComponentValidator.validIf, formComponentValidator.errorMessage))
 
     }
 
   private def produceValidationError(
+    validIf: ValidIf,
     message: SmartString
   ): ValidatedType[Unit] =
     formComponent match {
       case IsMultiField(_) =>
-        val evaluationResults = formModelVisibilityOptics.evaluationResults
-        val maybeAddressDetail = evaluationResults.exprMap.keys.collectFirst {
-          case AddressLens(fcId, addressDetail) if fcId === formComponent.id => addressDetail
-        }
+        val maybeAddressDetail: Option[AddressDetail] =
+          validIf.booleanExpr.allExpressions.flatMap(_.allAddressLens()).collectFirst {
+            case AddressLens(fcId, addressDetail) if fcId === formComponent.id => addressDetail
+          }
         val modelComponentIds = maybeAddressDetail.fold(formComponent.multiValueId.atomsModelComponentIds) {
           addressDetail =>
             formComponent match {
@@ -153,7 +148,7 @@ class ComponentsValidator[D <: DataOrigin](
     validationResult: ValidatedType[Unit]
   ): ValidatedType[Unit] =
     formComponent.validIf.fold(validationResult) { vi =>
-      val b = booleanExprEval.eval(formModelVisibilityOptics, cache.thirdPartyData.booleanExprCache)(vi.booleanExpr)
+      val b = formModelVisibilityOptics.freeCalculator.evalValidIf(vi)
       if (b)
         validationResult
       else
@@ -166,8 +161,8 @@ class ComponentsValidator[D <: DataOrigin](
     messages: Messages
   ): ValidatedType[Unit] = {
 
-    val checkerDependency = new CheckerDependency[D] {
-      def formModelVisibilityOptics: FormModelVisibilityOptics[D] = self.formModelVisibilityOptics
+    val checkerDependency = new CheckerDependency {
+      def formModelVisibilityOptics: FormModelVisibilityOptics = self.formModelVisibilityOptics
       def formComponent: FormComponent = self.formComponent
       def cache: CacheData = self.cache
       def envelope: EnvelopeWithMapping = self.envelope
@@ -185,59 +180,59 @@ class ComponentsValidator[D <: DataOrigin](
       formComponent.`type` match {
         case date @ Date(_, _, _) =>
           validIf(
-            new DateChecker[D]().runCheck(checkerDependency)
+            new DateChecker().runCheck(checkerDependency)
           )
         case CalendarDate =>
           validIf(
-            new CalendarDateChecker[D]().runCheck(checkerDependency)
+            new CalendarDateChecker().runCheck(checkerDependency)
           )
         case PostcodeLookup(_, _, _) =>
           validIf(
-            new PostcodeLookupChecker[D]().runCheck(checkerDependency)
+            new PostcodeLookupChecker().runCheck(checkerDependency)
           )
         case TaxPeriodDate =>
           validIf(
-            new TaxPeriodDateChecker[D]().runCheck(checkerDependency)
+            new TaxPeriodDateChecker().runCheck(checkerDependency)
           )
         case emailCodeFieldMatcher.EmailCodeField(emailField) =>
           validIf(
-            new EmailFieldIdChecker[D]().runCheck(checkerDependency)
+            new EmailFieldIdChecker().runCheck(checkerDependency)
           )
         case Text(constraint, _, _, _, _, _, _) =>
           validIf(
-            new TextChecker[D]().runCheck(checkerDependency)
+            new TextChecker().runCheck(checkerDependency)
           )
 
         case TextArea(constraint, _, _, _, _, _) =>
           validIf(
-            new TextChecker[D]().runCheck(checkerDependency)
+            new TextChecker().runCheck(checkerDependency)
           )
         case address @ Address(_, _, _, _) =>
           validIf(
-            new AddressChecker[D]().runCheck(checkerDependency)
+            new AddressChecker().runCheck(checkerDependency)
           )
         case overseasAddress @ OverseasAddress(_, _, _, _, _, _) =>
           validIf(
-            new OverseasAddressChecker[D]().runCheck(checkerDependency)
+            new OverseasAddressChecker().runCheck(checkerDependency)
           )
         case Choice(_, _, _, _, _, _, _, _, _, _, _, _) =>
-          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+          validIf(new ChoiceChecker().runCheck(checkerDependency))
         case _: RevealingChoice =>
-          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+          validIf(new ChoiceChecker().runCheck(checkerDependency))
         case Group(_, _, _, _, _) => validationSuccess
         case FileUpload(_, _) =>
           validIf(
-            new FileUploadChecker[D]().runCheck(checkerDependency)
+            new FileUploadChecker().runCheck(checkerDependency)
           )
         case MultiFileUpload(_, _, _, _, _, _, _) =>
           validIf(
-            new FileUploadChecker[D]().runCheck(checkerDependency)
+            new FileUploadChecker().runCheck(checkerDependency)
           )
         case InformationMessage(_, _, _) => validationSuccess
         case HmrcTaxPeriod(_, _, _) =>
-          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+          validIf(new ChoiceChecker().runCheck(checkerDependency))
         case t @ Time(_, _) =>
-          validIf(new TimeChecker[D]().runCheck(checkerDependency))
+          validIf(new TimeChecker().runCheck(checkerDependency))
         case MiniSummaryList(_, _, _) => validationSuccess
         case _: TableComp             => validationSuccess
         case _: Button                => validationSuccess

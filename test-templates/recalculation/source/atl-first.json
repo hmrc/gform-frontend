@@ -1,0 +1,74 @@
+{
+  "_id": "atl-first",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "owner",
+      "shortName": "${name}",
+      "description": "$n - ${name} - ${age} - ${tax}",
+      "summaryDescription": "summaryDescription",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Name",
+          "includeIf": "${addAnother.first}",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Age",
+          "includeIf": "${!addAnother.first}",
+          "fields": [
+            {
+              "id": "age",
+              "type": "text",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Tax",
+          "fields": [
+            {
+              "id": "tax",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "declarationSection": {
+    "shortName": "Declaration",
+    "title": "Declaration",
+    "fields": []
+  },
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.NonEmptyList
 import munit.FunSuite
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, Horizontal, Mandatory, OptionData, OptionDataValue }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 
 class PropagatorSuite extends FunSuite {
   test("Change of component value is propagated to selected option value") {
@@ -32,23 +30,22 @@ class PropagatorSuite extends FunSuite {
 
     val propagator = Propagator(formComponents)
 
-    val newData: VariadicFormData[SourceOrigin.OutOfDate] =
+    val newData: VariadicFormData =
       VariadicFormData(
         Map(
           FormComponentId("cake").modelComponentId -> VariadicValue.One("new_value") // Data from POST request
         )
       )
 
-    val oldData: RecData[SourceOrigin.Current] = RecData(
+    val oldData: VariadicFormData =
       VariadicFormData(
         Map(
           FormComponentId("cake").modelComponentId   -> VariadicValue.One("old_value"),
           FormComponentId("forWho").modelComponentId -> VariadicValue.Many(List("cake_old_value"))
         )
       )
-    )
 
-    val expected: VariadicFormData[SourceOrigin.OutOfDate] =
+    val expected: VariadicFormData =
       VariadicFormData(
         Map(
           FormComponentId("cake").modelComponentId   -> VariadicValue.One("new_value"),
@@ -56,7 +53,7 @@ class PropagatorSuite extends FunSuite {
         )
       )
 
-    val result: VariadicFormData[SourceOrigin.OutOfDate] = propagator.propagate(newData, oldData)
+    val result: VariadicFormData = propagator.propagate(newData, oldData)
 
     assertEquals(result, expected)
 
@@ -98,7 +95,7 @@ class PropagatorSuite extends FunSuite {
     )
 
   private def mkChoiceOptions() =
-    NonEmptyList.one(
+    List(
       OptionData.ValueBased(
         label = toSmartString("label"),
         hint = None,

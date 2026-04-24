@@ -1,0 +1,84 @@
+{
+  "_id": "string-functions",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Name and tax",
+      "fields": [
+        {
+          "id": "name",
+          "type": "text",
+          "label": "Name",
+          "format": "text"
+        },
+        {
+          "id": "shout",
+          "type": "text",
+          "label": "Shout",
+          "format": "text"
+        },
+        {
+          "id": "tax",
+          "type": "text",
+          "label": "Tax",
+          "format": "sterling"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Name: ${name}\n\nShout: ${shout}\n\nTax: ${tax}\n\nUppercase name: ${uppercase(name)}\n\nLowercase name: ${lowercase(name)}\n\nUppercase tax ${uppercase(tax)}\n\nCapitalize name: ${capitalize(name)}\n\nCapitalizeAll name: ${capitalizeAll(name)}\n\nRemove spaces name: ${removeSpaces(name)}\n\nLowercaseFirst shout: ${lowercaseFirst(shout)}\n\nSubstring(4) name: ${substring(name, 4)}\n\nSubstring(4, 10) name: ${substring(name, 4, 10)}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${substring(name, 5, 7) = 'de'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

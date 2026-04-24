@@ -23,7 +23,6 @@ import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids.ModelComponentId.Atomic
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -36,9 +35,9 @@ import scala.collection.mutable.LinkedHashSet
 
 import ComponentChecker._
 
-class AddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class AddressChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -46,14 +45,14 @@ class AddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     val formComponent = context.formComponent
     formComponent match {
       case IsAddress(address) =>
-        val checker = new AddressCheckerHelper[D](address)
+        val checker = new AddressCheckerHelper(address)
         checker.validateAddress(context.formComponent)(context.formModelVisibilityOptics)
       case _ => throw new IllegalArgumentException("FormComponent is not a Address")
     }
   }
 }
 
-class AddressCheckerHelper[D <: DataOrigin](address: Address)(implicit messages: Messages, sse: SmartStringEvaluator) {
+class AddressCheckerHelper(address: Address)(implicit messages: Messages, sse: SmartStringEvaluator) {
 
   implicit val atomicValueForReport: ValueForReport[Atomic] = new ValueForReport[Atomic] {
     def valueForReport(): Atomic =
@@ -65,16 +64,22 @@ class AddressCheckerHelper[D <: DataOrigin](address: Address)(implicit messages:
   def validateAddress(
     fieldValue: FormComponent
   )(
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   ): CheckProgram[Unit] = {
 
     val configurableMandatoryFields: Set[Atom] = address.configurableMandatoryAtoms
 
-    val addressValueOf: Atom => Seq[String] = suffix =>
+    val addressValueOf: Atom => Seq[String] = suffix => {
+
+      val fcId = address.value match {
+        case Some(FormCtx(formComponentId)) => formComponentId.toAtomicFormComponentId(suffix)
+        case _                              => fieldValue.atomicFormComponentId(suffix)
+      }
       formModelVisibilityOptics.data
-        .get(fieldValue.atomicFormComponentId(suffix))
+        .get(fcId)
         .toSeq
         .flatMap(_.toSeq)
+    }
 
     def blankAtomicModelComponentId(atom: Atom): Option[ModelComponentId.Atomic] = {
       val atomicFcId = fieldValue.atomicFormComponentId(atom)

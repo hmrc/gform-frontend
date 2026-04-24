@@ -34,10 +34,9 @@ import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartSt
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ CheckYourAnswers, FastForward, PageModel, Repeater, Visibility }
+import uk.gov.hmrc.gform.models.{ CheckYourAnswers, FastForward, PageModel, Repeater }
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.{ Bracket, DataExpanded, FormModel, SectionSelectorType, Singleton }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ Bracket, FormModel, SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -80,7 +79,7 @@ class BuilderController(
             io.circe.parser.parse(jsonString)
 
           val json: Option[Json] = maybeCirceJson.toOption.flatMap { json =>
-            val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+            val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
 
             val bracket = formModel.bracket(sectionNumber)
 
@@ -164,7 +163,7 @@ class BuilderController(
     }
 
   private def hiddenChoiceIndexes(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     sectionNumber: SectionNumber
   ): Map[String, List[Int]] = {
     val visibilityFormComponents =
@@ -274,8 +273,8 @@ class BuilderController(
 
   private def originalSectionInAddToList(
     json: Json,
-    addToList: Bracket.AddToList[DataExpanded],
-    formModel: FormModel[DataExpanded],
+    addToList: Bracket.AddToList,
+    formModel: FormModel,
     sectionNumber: SectionNumber,
     historySuffix: List[CursorOp]
   ): Option[Json] = {
@@ -409,8 +408,8 @@ class BuilderController(
         componentHtml match {
           case Left(error) => badRequest(error).pure[Future]
           case Right(html) =>
-            val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
-            val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+            val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
+            val singleton = formModel(sectionNumber).asInstanceOf[Singleton]
             val formLevelHeading = renderer.shouldDisplayHeading(singleton)
 
             Ok(
@@ -503,13 +502,13 @@ class BuilderController(
 
   private def badRequest(error: String): Result = BadRequest(PlayJson.obj("error" -> error))
 
-  private def toSectionHtml(formModelOptics: FormModelOptics[DataOrigin.Mongo], sectionNumber: SectionNumber)(implicit
+  private def toSectionHtml(formModelOptics: FormModelOptics, sectionNumber: SectionNumber)(implicit
     sse: SmartStringEvaluator,
     messages: Messages,
     l: LangADT
   ): Html = {
-    val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
-    val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+    val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
+    val singleton = formModel(sectionNumber).asInstanceOf[Singleton]
 
     val sectionHeader = singleton.page.sectionHeader()
 
@@ -560,7 +559,7 @@ class BuilderController(
   private def renderHtmlForSumarySectionFormComponent(
     summarySection: SummarySection,
     formComponentId: FormComponentId,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     cache: AuthCacheWithForm
   )(implicit
     sse: SmartStringEvaluator,
@@ -586,7 +585,7 @@ class BuilderController(
             val obligations = NotChecked
 
             val page = summarySection.toPage
-            val singleton = Singleton(page.asInstanceOf[Page[DataExpanded]])
+            val singleton = Singleton(page)
 
             val ei: ExtraInfo = ExtraInfo(
               singleton = singleton,
@@ -618,7 +617,7 @@ class BuilderController(
   }
 
   private def toComponentHtml(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
     formComponentId: FormComponentId,
@@ -629,14 +628,14 @@ class BuilderController(
     messages: Messages,
     l: LangADT
   ): Either[String, Html] = {
-    val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+    val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
 
     val maybeFormComponent = formModel.fcLookup.get(formComponentId)
 
     maybeFormComponent match {
       case None => Left(s"No component with id = $formComponentId found")
       case Some(formComponent) =>
-        val singleton = formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+        val singleton = formModel(sectionNumber).asInstanceOf[Singleton]
 
         val formFieldValidationResult: FormFieldValidationResult = formComponent match {
           case IsOverseasAddress(_) =>
@@ -712,7 +711,7 @@ class BuilderController(
   }
 
   private def hiddenComponentIdsBySection(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     sectionNumber: SectionNumber
   ): List[String] = {
     val visibilityOptics = formModelOptics.formModelVisibilityOptics
@@ -814,7 +813,7 @@ class BuilderController(
   private def renderHtmlForAcknowledgementFormComponent(
     acknowledgementSection: AcknowledgementSection,
     formComponentId: FormComponentId,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     cache: AuthCacheWithForm
   )(implicit
     sse: SmartStringEvaluator,
@@ -840,7 +839,7 @@ class BuilderController(
             val obligations = NotChecked
 
             val page = acknowledgementSection.toPage
-            val singleton = Singleton(page.asInstanceOf[Page[DataExpanded]])
+            val singleton = Singleton(page)
 
             val ei: ExtraInfo = ExtraInfo(
               singleton = singleton,
@@ -880,7 +879,7 @@ class BuilderController(
       implicit request => lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
         val singleton =
-          formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).asInstanceOf[Singleton[DataExpanded]]
+          formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).asInstanceOf[Singleton]
 
         val pageHeading: Html = uk.gov.hmrc.gform.views.html
           .page_heading(singleton.title.value(), singleton.caption.map(_.value()))
@@ -911,7 +910,7 @@ class BuilderController(
       implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
 
-        val visibleIteration: Bracket.AddToListIteration[Visibility] =
+        val visibleIteration: Bracket.AddToListIteration =
           formModelOptics.formModelVisibilityOptics.formModel
             .bracket(sectionNumber)
             .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
@@ -919,7 +918,7 @@ class BuilderController(
         val checkYourAnswers =
           formModelOptics.formModelRenderPageOptics
             .formModel(sectionNumber)
-            .asInstanceOf[CheckYourAnswers[DataExpanded]]
+            .asInstanceOf[CheckYourAnswers]
 
         val (title, noPIITitle) =
           SectionRenderingService.atlCyaTitles(cache, sectionNumber, checkYourAnswers, formModelOptics)
@@ -1067,21 +1066,21 @@ class BuilderController(
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode]
   )(
-    f: Messages => SmartStringEvaluator => Repeater[DataExpanded] => Bracket.AddToList[DataExpanded] => Json
+    f: Messages => SmartStringEvaluator => Repeater => Bracket.AddToList => Json
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => lang => cache => sse => formModelOptics =>
         import i18nSupport._
-        val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
-        val pageModel: PageModel[DataExpanded] = formModel(sectionNumber)
-        val bracket: Bracket[DataExpanded] = formModel.bracket(sectionNumber)
+        val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
+        val pageModel: PageModel = formModel(sectionNumber)
+        val bracket: Bracket = formModel.bracket(sectionNumber)
 
         bracket match {
           case Bracket.NonRepeatingPage(_, _) =>
             badRequest("Expected AddToList bracket, but got NonRepeatingPage").pure[Future]
           case Bracket.RepeatingPage(_, _) =>
             badRequest("Expected AddToList bracket, but got RepeatingPage").pure[Future]
-          case bracket @ Bracket.AddToList(_, _) =>
+          case bracket @ Bracket.AddToList(_, _, _) =>
             pageModel
               .fold(singleton => badRequest("Invalid page model. Expected Repeater got Singleton"))(checkYourAnswers =>
                 badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")

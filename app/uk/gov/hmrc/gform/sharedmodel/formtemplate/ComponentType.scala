@@ -28,8 +28,8 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, SourceOrigin, ValueClassFormat, VariadicFormData }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
@@ -346,7 +346,7 @@ sealed trait OptionData extends Product with Serializable {
     case o @ OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _) => value
     case _                                                                               => index.toString
   }
-  def getValue[D <: DataOrigin](index: Int, formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
+  def getValue(index: Int, formModelVisibilityOptics: FormModelVisibilityOptics)(implicit
     m: Messages
   ): String =
     this match {
@@ -408,7 +408,7 @@ object DividerPosition {
 }
 case class Choice(
   `type`: ChoiceType,
-  options: NonEmptyList[OptionData],
+  options: List[OptionData],
   orientation: Orientation,
   selections: List[Int],
   hints: Option[NonEmptyList[SmartString]],
@@ -420,10 +420,10 @@ case class Choice(
   hideChoicesSelected: Boolean,
   noDuplicates: Boolean
 ) extends ComponentType {
-  def renderToString[D <: DataOrigin](
+  def renderToString(
     formComponent: FormComponent,
     formFieldValidationResult: FormFieldValidationResult,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     evaluator: SmartStringEvaluator,
     m: Messages
@@ -461,17 +461,21 @@ case class RevealingChoiceElement(
   revealingFields: List[FormComponent],
   hint: Option[SmartString],
   selected: Boolean
-)
+) {
+  val allEnterableFormComponents: List[FormComponent] =
+    revealingFields.filter(_.isEnterableFormComponent)
+}
 object RevealingChoiceElement {
   implicit val format: OFormat[RevealingChoiceElement] = derived.oformat()
 }
 // options is NonEmptyList on the backend, but it needs to support 'emptiness' here due to need of Visibility model
 // ie. it needs to be able to represent that no option has been selected by a user
 case class RevealingChoice(options: List[RevealingChoiceElement], multiValue: Boolean) extends ComponentType
+
 object RevealingChoice {
   implicit val format: OFormat[RevealingChoice] = derived.oformat()
 
-  def slice[S <: SourceOrigin](fcId: FormComponentId): VariadicFormData[S] => RevealingChoice => RevealingChoice =
+  def slice(fcId: FormComponentId): VariadicFormData => RevealingChoice => RevealingChoice =
     data =>
       revealingChoice => {
         val indices: List[String] =

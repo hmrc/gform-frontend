@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -82,11 +81,12 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       new LookupRegistry(Map())
     )
 
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache
-      )
+    lazy val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.Normal](
+          cache.variadicFormData,
+          cache
+        )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
@@ -116,7 +116,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formTemplate,
         None,
         envelopeId,
-        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
         0,
         FileInfoConfig.allAllowedFileTypes,
         Nil,
@@ -157,7 +157,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formTemplate,
         None,
         envelopeId,
-        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
         0,
         FileInfoConfig.allAllowedFileTypes,
         Nil,
@@ -197,7 +197,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formTemplate.copy(draftRetrievalMethod = NotPermitted),
         None,
         envelopeId,
-        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
         0,
         FileInfoConfig.allAllowedFileTypes,
         Nil,
@@ -242,7 +242,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         formTemplate.copy(draftRetrievalMethod = NotPermitted),
         None,
         envelopeId,
-        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton[DataExpanded]],
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
         0,
         FileInfoConfig.allAllowedFileTypes,
         Nil,
@@ -259,17 +259,18 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {
 
-    override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache
-      )
+    override lazy val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cache.variadicFormData,
+          cache
+        )
 
     val generatedHtml = testService
       .renderDeclarationSection(
         Some(accessCode),
         formTemplate,
-        formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
+        formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton],
         authContext,
         ValidationResult.empty,
         formModelOptics
@@ -292,17 +293,18 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       )
     )
 
-    override lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache
-      )
+    override lazy val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cache.variadicFormData,
+          cache
+        )
 
     val generatedHtml = testService
       .renderDeclarationSection(
         Some(accessCode),
         formTemplate,
-        formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton[DataExpanded]],
+        formModelOptics.formModelRenderPageOptics.formModel.pages.last.asInstanceOf[Singleton],
         authContext,
         ValidationResult.empty,
         formModelOptics
@@ -315,7 +317,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
     val generatedHtml = testService.renderEnrolmentSection(
       formTemplate,
-      Singleton[DataExpanded](enrolmentSection.toSection.page.asInstanceOf[Page[DataExpanded]]),
+      Singleton(enrolmentSection.toSection.page),
       authContext,
       formModelOptics,
       List.empty,

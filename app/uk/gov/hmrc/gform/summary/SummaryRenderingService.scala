@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.{ DraftRetrievalHelper, HtmlSanitiser, NoErrors, PageLevelErrorHtml, SectionRenderingService, SummaryPagePurpose, routes }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
@@ -67,7 +67,7 @@ class SummaryRenderingService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     pdf: PrintSection.Pdf,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     maybeCoordinates: Option[Coordinates]
   )(implicit
     request: Request[_],
@@ -99,7 +99,7 @@ class SummaryRenderingService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     pdfNotification: PdfNotification,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -153,7 +153,7 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     maybeCoordinates: Option[Coordinates],
     maybeSummarySection: Option[SummarySection],
     taskCompleted: Option[Boolean]
@@ -211,7 +211,7 @@ class SummaryRenderingService(
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
     pdfFieldIds: List[FormComponentId],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -251,10 +251,10 @@ object SummaryRenderingService {
   private val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
   private val dateFormat = DateTimeFormatter.ofPattern("d MMM yyyy")
 
-  def renderSummary[D <: DataOrigin](
+  def renderSummary(
     formTemplate: FormTemplate,
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[D],
+    formModelOptics: FormModelOptics,
     maybeAccessCode: Option[AccessCode],
     envelope: EnvelopeWithMapping,
     retrievals: MaterialisedRetrievals,
@@ -336,7 +336,7 @@ object SummaryRenderingService {
   def renderNotificationPdfSummary(
     formTemplate: FormTemplate,
     validationResult: ValidationResult,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeAccessCode: Option[AccessCode],
     envelope: EnvelopeWithMapping,
     retrievals: MaterialisedRetrievals,
@@ -398,9 +398,9 @@ object SummaryRenderingService {
     )
   }
 
-  def summaryRowsForRender[D <: DataOrigin](
+  def summaryRowsForRender(
     validationResult: ValidationResult,
-    formModelOptics: FormModelOptics[D],
+    formModelOptics: FormModelOptics,
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: EnvelopeWithMapping,
@@ -417,7 +417,7 @@ object SummaryRenderingService {
     val formModel = formModelOptics.formModelVisibilityOptics.formModel
 
     def middleSummaryListRows(
-      singleton: Singleton[Visibility],
+      singleton: Singleton,
       sectionNumber: SectionNumber,
       iterationTitle: Option[String] = None
     )(implicit
@@ -435,9 +435,9 @@ object SummaryRenderingService {
       val fieldsIncConf: List[FormComponent] = page.fields ++ page.confirmation.map(_.question)
 
       fieldsIncConf
-        .filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.booleanExprResolver))
+        .filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.freeCalculator))
         .flatMap(formComponent =>
-          FormComponentSummaryRenderer.summaryListRows[D, SummaryRender](
+          FormComponentSummaryRenderer.summaryListRows[SummaryRender](
             formComponent,
             page.id.map(_.modelPageId),
             formTemplate._id,
@@ -474,7 +474,7 @@ object SummaryRenderingService {
         List(heading, govukSummaryList)
       }
 
-    def addToListSummary(bracket: Bracket.AddToList[Visibility]): Html =
+    def addToListSummary(bracket: Bracket.AddToList): Html =
       begin_section(bracket.source.summaryName)
 
     def summarizeGroupedRows(
@@ -499,7 +499,7 @@ object SummaryRenderingService {
           currentHeading.map(ct => resultBuffer :+ (ct, accumulatedRows)).getOrElse(resultBuffer)
       }
 
-    def addToListRenderBracket(bracket: Bracket.AddToList[Visibility]): List[Html] = {
+    def addToListRenderBracket(bracket: Bracket.AddToList): List[Html] = {
       val ignoreCard =
         bracket.iterations.toList
           .flatMap(
@@ -510,7 +510,7 @@ object SummaryRenderingService {
           )
           .nonEmpty
 
-      val repeaters: NonEmptyList[RepeaterWithNumber[Visibility]] = bracket.iterations.map(_.repeater)
+      val repeaters: NonEmptyList[RepeaterWithNumber] = bracket.iterations.map(_.repeater)
 
       val hidePageTitleByComponent = bracket.source.fold(_ => false)(_ => false)(addToList =>
         addToList.presentationHint.fold(false)(_ == InvisiblePageTitle)
@@ -612,9 +612,9 @@ object SummaryRenderingService {
       val fcrd = implicitly[FormComponentRenderDetails[SummaryRender]]
       val slrTables: List[SummaryListRow] = bracket.iterations.last.repeater.repeater.fields
         .map(
-          _.filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.booleanExprResolver))
+          _.filterNot(_.hideOnSummary(formModelOptics.formModelVisibilityOptics.freeCalculator))
             .collect { case fc @ IsTableComp(table) =>
-              val label = fcrd.label(fc, formModelOptics.formModelVisibilityOptics.booleanExprResolver)
+              val label = fcrd.label(fc, formModelOptics.formModelVisibilityOptics.freeCalculator)
               summaryListRow(
                 label,
                 markDownParser(table.summaryValue),
@@ -636,14 +636,14 @@ object SummaryRenderingService {
       new GovukSummaryList()(SummaryList(rows = slr :: slrTables, classes = "govuk-!-margin-bottom-8")) :: htmls
     }
 
-    def brackets: List[Bracket[Visibility]] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
+    def brackets: List[Bracket] = formModel.brackets.fold(_.brackets.toList)(taskListBrackets =>
       maybeCoordinates.fold(taskListBrackets.allBrackets.toList)(coordinates =>
         taskListBrackets.bracketsFor(coordinates).toBracketsList
       )
     )
 
     def getHeadingHtml(pageTitle: SmartString, addToListSection: Boolean = false) = {
-      val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(_))
+      val isEmpty = pageTitle.isEmpty(formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr)
 
       (isEmpty, addToListSection) match {
         case (true, _)      => HtmlFormat.empty
@@ -652,7 +652,7 @@ object SummaryRenderingService {
       }
     }
 
-    def getPageTitle(source: Section, page: Page[Visibility]) = {
+    def getPageTitle(source: Section, page: Page) = {
       val pageTitle = page.shortName.getOrElse(page.title)
       source.fold { _ =>
         page.presentationHint
@@ -675,7 +675,7 @@ object SummaryRenderingService {
 
     val (accumulatedRows, summaryLists) =
       brackets.foldLeft((Map.empty[HtmlFormat.Appendable, List[SummaryListRow]], List.empty[HtmlFormat.Appendable])) {
-        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _)) =>
+        case ((accumulatedRows, accList), bracket @ Bracket.AddToList(_, _, _)) =>
           accumulatedRows.headOption match {
             case Some((heading, rows)) =>
               val updatedList =
@@ -732,7 +732,7 @@ object SummaryRenderingService {
 
   def summaryForNotificationPdf(
     validationResult: ValidationResult,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: EnvelopeWithMapping,
@@ -744,7 +744,7 @@ object SummaryRenderingService {
     def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
       val rows = fields
         .flatMap(formComponent =>
-          FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+          FormComponentSummaryRenderer.summaryListRows[SummaryRender](
             formComponent,
             None,
             formTemplate._id,

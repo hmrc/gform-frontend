@@ -1,0 +1,70 @@
+{
+  "_id": "display-as-entered",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Details entered",
+      "summaryName": "Details entered",
+      "shortName": "Details $n",
+      "description": "<strong>Details</strong>\n\n${displayAsEntered(textArea)}",
+      "presentationHint": "invisiblePageTitle",
+      "summaryDescription": "summary",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another detail?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Detail",
+          "fields": [
+            {
+              "type": "text",
+              "id": "textArea",
+              "format": "text",
+              "multiline": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${displayAsEntered(textArea) = ''}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -19,16 +19,17 @@ package uk.gov.hmrc.gform.gform
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.eval.ExpressionResult
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, StringResult }
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.mappings.{ HMRCOBTDSORG, IRCT, IRSA, NINO, VRN }
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus.StringResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 
 object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals, itmpRetrievals: Option[ItmpRetrievals])(implicit
     messages: Messages
-  ): ExpressionResult = value match {
+  ): EvaluationStatus = value match {
     case AuthInfo.GG                     => StringResult(retrievals.ggCredId)
     case AuthInfo.PayeNino               => StringResult(retrievals.getTaxIdValue(NINO()))
     case AuthInfo.SaUtr                  => StringResult(retrievals.getTaxIdValue(IRSA()))
@@ -60,28 +61,28 @@ object AuthContextPrepop {
 
   private def getItmpDateOfBirth(itmpRetrievals: Option[ItmpRetrievals])(implicit messages: Messages): String =
     itmpRetrievals.flatMap(_.itmpDateOfBirth).fold("") { ld =>
-      ExpressionResult.DateResult(ld).asString
+      EvaluationStatus.DateResult.mkDate(ld).asString
     }
 
-  private def getItmpAddress(itmpRetrievals: Option[ItmpRetrievals]): AddressResult =
-    AddressResult(
+  def getItmpAddress(itmpRetrievals: Option[ItmpRetrievals]): EvaluationStatus =
+    EvaluationStatus.AddressResult(
       itmpRetrievals
         .flatMap(_.itmpAddress)
         .map { itmpAddress =>
-          val joinLines45 =
+          val joinLines45: Option[String] =
             itmpAddress.line4.map(formatAddressLine(_) + " ") |+| itmpAddress.line5.map(formatAddressLine)
           List(
-            itmpAddress.line1.map(formatAddressLine),
-            itmpAddress.line2.map(formatAddressLine),
-            itmpAddress.line3.map(formatAddressLine),
-            joinLines45,
-            itmpAddress.postCode,
-            itmpAddress.countryName.map(formatCountryName)
+            itmpAddress.line1.map(formatAddressLine).map(Address.street1       -> _),
+            itmpAddress.line2.map(formatAddressLine).map(Address.street2       -> _),
+            itmpAddress.line3.map(formatAddressLine).map(Address.street3       -> _),
+            joinLines45.map(Address.street4                                    -> _),
+            itmpAddress.postCode.map(Address.postcode                          -> _),
+            itmpAddress.countryName.map(formatCountryName).map(Address.country -> _)
           ).collect {
-            case Some(entry) if entry.trim.nonEmpty => entry
+            case Some((atom, entry)) if entry.trim.nonEmpty => atom -> entry
           }
         }
-        .getOrElse(List.empty[String])
+        .getOrElse(List.empty[(Atom, String)])
     )
 
   private def formatAddressLine(s: String) = if (s.exists(_.isLower)) capitalizeAll(s) else capitalizeAll(s.toLowerCase)

@@ -82,7 +82,7 @@ trait ComponentTypeGen {
       helpText    <- Gen.option(PrimitiveGen.oneOrMoreGen(SmartStringGen.smartStringGen))
     } yield Choice(
       tpe,
-      options,
+      options.toList,
       orientation,
       selections,
       hint,

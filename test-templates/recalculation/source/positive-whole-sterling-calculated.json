@@ -1,0 +1,51 @@
+{
+  "_id": "positive-whole-sterling-calculated",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Valuers",
+      "fields": [
+        {
+          "id": "sterling",
+          "type": "text",
+          "label": "Sterling",
+          "format": "sterling"
+        },
+        {
+          "id": "positiveWholeSterling",
+          "type": "text",
+          "label": "Positive whole sterling",
+          "format": "positiveWholeSterling"
+        }
+      ]
+    },
+    {
+      "title": "Summary",
+      "fields": [
+        {
+          "id": "calculated",
+          "type": "text",
+          "label": "Calculated",
+          "format": "positiveWholeSterling",
+          "submitMode": "readonly",
+          "value": "${sterling + positiveWholeSterling}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

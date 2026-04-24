@@ -26,7 +26,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.http.HttpConfiguration
 import play.api.i18n._
-import uk.gov.hmrc.gform.Helpers.mkDataOutOfDate
+import uk.gov.hmrc.gform.Helpers.mkData
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.LookupLoader
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -277,7 +277,7 @@ class TextCheckerSpec
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
+        mkData(textComponent.id.value -> inputData)
       )
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
         formModelOptics.formModelVisibilityOptics,
@@ -342,7 +342,7 @@ class TextCheckerSpec
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
+        mkData(textComponent.id.value -> inputData)
       )
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
         formModelOptics.formModelVisibilityOptics,
@@ -377,7 +377,7 @@ class TextCheckerSpec
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
+        mkData(textComponent.id.value -> inputData)
       )
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
         formModelOptics.formModelVisibilityOptics,
@@ -468,7 +468,7 @@ class TextCheckerSpec
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
+        mkData(textComponent.id.value -> inputData)
       )
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
         formModelOptics.formModelVisibilityOptics,
@@ -567,7 +567,7 @@ class TextCheckerSpec
     TableDrivenPropertyChecks.forAll(table) { (inputData, expected) =>
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
+        mkData(textComponent.id.value -> inputData)
       )
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
         formModelOptics.formModelVisibilityOptics,
@@ -624,7 +624,7 @@ class TextCheckerSpec
         .copy(label = label)
       val formModelOptics = mkFormModelOptics(
         mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-        mkDataOutOfDate(textComponent.id.value -> inputData)
+        mkData(textComponent.id.value -> inputData)
       )
 
       val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
@@ -651,7 +651,7 @@ class TextCheckerSpec
       .copy(label = toSmartString("Port"))
     val formModelOptics = mkFormModelOptics(
       mkFormTemplate(mkSection(textComponent.copy(`type` = Text(constraint, Value)))),
-      mkDataOutOfDate(textComponent.id.value -> "Not a port")
+      mkData(textComponent.id.value -> "Not a port")
     )
     val result = TextChecker.validateText(fc, constraint, formTemplate, envelopeId)(
       formModelOptics.formModelVisibilityOptics,

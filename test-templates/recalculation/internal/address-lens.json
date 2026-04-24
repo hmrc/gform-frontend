@@ -1,0 +1,1168 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Postcode lookup ZZ9Z 9TT"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Postcode lookup ZZ9Z 9TT"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "postcodeLookup",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "PostcodeLookup": {}
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Postcode lookup manual"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Postcode lookup manual"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "postcodeLookupManual",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "PostcodeLookup": {}
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Address"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Address"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "address",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Address": {
+                      "international": false,
+                      "mandatoryFields": [],
+                      "countyDisplayed": true
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Overseas address"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Overseas address"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "overseasAddress",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "OverseasAddress": {
+                      "mandatoryFields": [],
+                      "optionalFields": [],
+                      "countryLookup": true,
+                      "countryDisplayed": true
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "miniSummary",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "MiniSummaryList": {
+                      "rows": [
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line1"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line1: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookup",
+                                        "detail": {
+                                          "Line1": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line2"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line2: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookup",
+                                        "detail": {
+                                          "Line2": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line3"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line3: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookup",
+                                        "detail": {
+                                          "Line3": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line4"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.line4: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookup",
+                                        "detail": {
+                                          "Line4": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.postcode"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.postcode: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookup",
+                                        "detail": {
+                                          "Postcode": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.country"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookup.country: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookup",
+                                        "detail": {
+                                          "Country": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line1"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line1: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookupManual",
+                                        "detail": {
+                                          "Line1": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line2"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line2: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookupManual",
+                                        "detail": {
+                                          "Line2": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line3"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line3: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookupManual",
+                                        "detail": {
+                                          "Line3": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line4"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.line4: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookupManual",
+                                        "detail": {
+                                          "Line4": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.postcode"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.postcode: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookupManual",
+                                        "detail": {
+                                          "Postcode": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.country"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "postcodeLookupManual.country: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "postcodeLookupManual",
+                                        "detail": {
+                                          "Country": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line1"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line1: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "address",
+                                        "detail": {
+                                          "Line1": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line2"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line2: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "address",
+                                        "detail": {
+                                          "Line2": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line3"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line3: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "address",
+                                        "detail": {
+                                          "Line3": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line4"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.line4: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "address",
+                                        "detail": {
+                                          "Line4": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.postcode"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.postcode: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "address",
+                                        "detail": {
+                                          "Postcode": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.country"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address.country: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "address",
+                                        "detail": {
+                                          "Country": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line1"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line1: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "overseasAddress",
+                                        "detail": {
+                                          "Line1": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line2"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line2: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "overseasAddress",
+                                        "detail": {
+                                          "Line2": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line3"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line3: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "overseasAddress",
+                                        "detail": {
+                                          "Line3": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line4"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.line4: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "overseasAddress",
+                                        "detail": {
+                                          "Line4": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.postcode"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.postcode: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "overseasAddress",
+                                        "detail": {
+                                          "Postcode": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.country"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "overseasAddress.country: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AddressLens": {
+                                        "formComponentId": "overseasAddress",
+                                        "detail": {
+                                          "Country": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "displayInSummary": {
+                        "booleanExpression": {
+                          "IsFalse": {}
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "address-lens",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "address-lens",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

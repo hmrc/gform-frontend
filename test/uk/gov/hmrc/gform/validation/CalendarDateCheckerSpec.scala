@@ -31,9 +31,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.FormModelSupport
 import uk.gov.hmrc.gform.models.VariadicFormDataSupport
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.CalendarDate
@@ -66,9 +64,9 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   val langs = new DefaultLangs()
   val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
 
-  def checkerDependency[D <: DataOrigin](optics: FormModelVisibilityOptics[D]) =
-    new CheckerDependency[D] {
-      def formModelVisibilityOptics: FormModelVisibilityOptics[D] = optics
+  def checkerDependency(optics: FormModelVisibilityOptics) =
+    new CheckerDependency {
+      def formModelVisibilityOptics: FormModelVisibilityOptics = optics
       def formComponent: FormComponent = dateComponent
       def cache: CacheData = ???
       def envelope: EnvelopeWithMapping = ???
@@ -82,27 +80,27 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   test("validate should return valid when calendarDate atoms are correct") {
 
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateDayAtom   -> VariadicValue.One("1"),
         dateMonthAtom -> VariadicValue.One("1")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val calendarDateValidation = new CalendarDateChecker[DataOrigin.Browser]()
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val calendarDateValidation = new CalendarDateChecker()
 
     assertEquals(
-      calendarDateValidation.runCheck(checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)),
+      calendarDateValidation.runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       validationSuccess
     )
   }
 
   test("validate should return invalid when all calendarDate atoms are missing") {
-    val data = VariadicFormData[OutOfDate](Map.empty)
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val data = VariadicFormData(Map.empty)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
+      new CalendarDateChecker()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
@@ -114,32 +112,32 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   }
 
   test("validate should return invalid when calendarDate month atom missing") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateDayAtom   -> VariadicValue.One("1"),
         dateMonthAtom -> VariadicValue.One("")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
+      new CalendarDateChecker()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(Map(dateMonthAtom -> mutable.LinkedHashSet("Date must include a month", "Enter real month")))
     )
   }
 
   test("validate should return invalid when calendarDate day atom missing") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateDayAtom   -> VariadicValue.One(""),
         dateMonthAtom -> VariadicValue.One("1")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
+      new CalendarDateChecker()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(Map(dateDayAtom -> mutable.LinkedHashSet("Date must include a day", "Enter real day")))
     )
@@ -147,16 +145,16 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   test("validate should return invalid when calendarDate atoms have length > 2") {
 
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateDayAtom   -> VariadicValue.One("111"),
         dateMonthAtom -> VariadicValue.One("222")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
+      new CalendarDateChecker()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
@@ -169,16 +167,16 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   test("validate should return invalid when some calendarDate atoms are not integers") {
 
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateDayAtom   -> VariadicValue.One("a"),
         dateMonthAtom -> VariadicValue.One("b")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
-      new CalendarDateChecker[DataOrigin.Browser]()
+      new CalendarDateChecker()
         .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
       Invalid(
         Map(
@@ -189,9 +187,9 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     )
   }
 
-  val table: List[(VariadicFormData[OutOfDate], ModelComponentId, String, String)] = List(
+  val table: List[(VariadicFormData, ModelComponentId, String, String)] = List(
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateDayAtom   -> VariadicValue.One("0"),
           dateMonthAtom -> VariadicValue.One("1")
@@ -202,7 +200,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
       "Day outside range"
     ),
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateDayAtom   -> VariadicValue.One("1"),
           dateMonthAtom -> VariadicValue.One("0")
@@ -213,7 +211,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
       "Month outside range"
     ),
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateDayAtom   -> VariadicValue.One("30"),
           dateMonthAtom -> VariadicValue.One("2")
@@ -227,9 +225,9 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   table.zipWithIndex.foreach { case ((data, atom, message, description), index) =>
     test(s"${index + 1}. $description") {
-      val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+      val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new CalendarDateChecker[DataOrigin.Browser]()
+        new CalendarDateChecker()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
@@ -240,9 +238,9 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     }
   }
 
-  val table1: List[(VariadicFormData[OutOfDate], ModelComponentId, ModelComponentId, String, String, String)] = List(
+  val table1: List[(VariadicFormData, ModelComponentId, ModelComponentId, String, String, String)] = List(
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateDayAtom   -> VariadicValue.One("0"),
           dateMonthAtom -> VariadicValue.One("0")
@@ -258,9 +256,9 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   table1.zipWithIndex.foreach { case ((data, atom1, atom2, message1, message2, description), index) =>
     test(s"${index + 1}. $description") {
-      val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+      val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new CalendarDateChecker[DataOrigin.Browser]()
+        new CalendarDateChecker()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(

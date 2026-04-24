@@ -22,19 +22,19 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.views.summary.TextFormatter.componentTextForSummary
 
 object TextFormatter {
-  def formatText[D <: DataOrigin](
+  def formatText(
     validationResult: FormFieldValidationResult,
     envelopeWithMapping: EnvelopeWithMapping,
     prefix: Option[SmartString] = None,
     suffix: Option[SmartString] = None,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     l: LangADT,
     messages: Messages,

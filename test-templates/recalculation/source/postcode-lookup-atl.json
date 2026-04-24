@@ -1,0 +1,105 @@
+{
+  "_id": "postcode-lookup-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Postcode lookups",
+      "shortName": "Postcode lookup $n",
+      "summaryDescription": "${postcodeLookup}",
+      "summaryName": "Postcode lookups",
+      "description": "Postcode lookup $n: ${postcodeLookup}",
+      "addAnotherQuestion": {
+        "id": "addAnotherPostcodeLookup",
+        "type": "choice",
+        "label": "Do you want to add another postcode lookup?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Postcode lookup visibility",
+          "fields": [
+            {
+              "id": "postcodeLookupControl",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Show postcode lookup",
+                  "value": "showPostcodeLookup"
+                },
+                {
+                  "en": "Hide postcode lookup",
+                  "value": "hidePostcodeLookup"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Postcode lookup $n",
+          "includeIf": "${postcodeLookupControl contains 'showPostcodeLookup'}",
+          "fields": [
+            {
+              "type": "postcodeLookup",
+              "id": "postcodeLookup"
+            }
+          ]
+        },
+        {
+          "title": "Manual entry",
+          "includeIf": "${postcodeLookup = ''}",
+          "fields": [
+            {
+              "id": "manualEntry",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "all addresses: ${postcodeLookup}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Postcode lookup details",
+      "includeIf": "${postcodeLookup = ''}",
+      "fields": [
+        {
+          "id": "details",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

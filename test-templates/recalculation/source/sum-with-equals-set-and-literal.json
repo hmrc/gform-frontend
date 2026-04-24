@@ -1,0 +1,237 @@
+{
+  "_id": "sum-with-equals-set-and-literal",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "setLiteralNumber": "if number = 1 then 10 else 20",
+    "literalSetNumber": "if 1 = number then 10 else 20",
+    "setLiteralString": "if string = 'FOO' then 10 else 20",
+    "literalSetString": "if 'FOO' = string then 10 else 20",
+    "calculationSetLiteralNumber": "amount + setLiteralNumber",
+    "calculationLiteralSetNumber": "amount + literalSetNumber",
+    "calculationSetLiteralString": "amount + setLiteralString",
+    "calculationLiteralSetString": "amount + literalSetString"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amount} : ${number} : ${string}.",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount",
+          "fields": [
+            {
+              "id": "amount",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "control",
+              "type": "choice",
+              "label": "Apply offset",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "offset"
+                },
+                {
+                  "en": "No",
+                  "value": "keep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Offset",
+          "includeIf": "${control contains 'offset'}",
+          "fields": [
+            {
+              "id": "number",
+              "type": "text",
+              "format": "number",
+              "label": "Number"
+            },
+            {
+              "id": "string",
+              "type": "text",
+              "format": "text",
+              "label": "String"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculationSetLiteralNumber.sum = '56'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "setLiteralNumber = if number = 1 then 10 else 20<br>literalSetNumber = if 1 = number then 10 else 20<br>setLiteralString = if string = 'FOO' then 10 else 20<br>literalSetString = if 'FOO' = string then 10 else 20<br>calculationSetLiteralNumber = amount + setLiteralNumber<br>calculationLiteralSetNumber = amount + literalSetNumber<br>calculationSetLiteralString = amount + setLiteralString<br>calculationLiteralSetString = amount + literalSetString"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationSetLiteralNumber.sum = ${calculationSetLiteralNumber.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLiteralSetNumber.sum = ${calculationLiteralSetNumber.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationSetLiteralString.sum = ${calculationSetLiteralString.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLiteralSetString.sum = ${calculationLiteralSetString.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationSetLiteralNumber = ${calculationSetLiteralNumber}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLiteralSetNumber = ${calculationLiteralSetNumber}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationSetLiteralString = ${calculationSetLiteralString}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLiteralSetString = ${calculationLiteralSetString}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "setLiteralNumber = ${setLiteralNumber}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "literalSetNumber = ${literalSetNumber}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "setLiteralString = ${setLiteralString}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "literalSetString = ${literalSetString}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amount: ${amount}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "number: ${number}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

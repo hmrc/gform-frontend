@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.graph
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceInfo, StandaloneSumInfo, StaticTypeInfo, SumInfo }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
@@ -31,7 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
 
 object FormTemplateBuilder {
 
-  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
+  private def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
     xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None, None))
 
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
@@ -48,7 +47,7 @@ object FormTemplateBuilder {
     includeIf: Option[IncludeIf] = None,
     instruction: Option[Instruction] = None,
     presentationHint: Option[PresentationHint] = None
-  ): Page[Basic] = Page(
+  ): Page = Page(
     toSmartString("Section Name"),
     None,
     None,
@@ -71,7 +70,7 @@ object FormTemplateBuilder {
     None
   )
 
-  def mkAddToListSection(pages: Page[Basic]*): Section.AddToList = Section.AddToList(
+  def mkAddToListSection(pages: Page*): Section.AddToList = Section.AddToList(
     toSmartString("Pet owner title"),
     None,
     Some(toSmartString("Pet owner no PII title")),
@@ -347,7 +346,7 @@ object FormTemplateBuilder {
       addAnotherQuestionName,
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("yes", "no")),
+        toOptionData(List("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -361,7 +360,7 @@ object FormTemplateBuilder {
       )
     )
 
-  def mkPage(formComponents: List[FormComponent]): Page[Visibility] = Page[Visibility](
+  def mkPage(formComponents: List[FormComponent]): Page = Page(
     toSmartString("Section Name"),
     None,
     None,
@@ -384,8 +383,8 @@ object FormTemplateBuilder {
     None
   )
 
-  def mkPageIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf): Page[Visibility] =
-    Page[Visibility](
+  def mkPageIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf): Page =
+    Page(
       toSmartString("Section Name"),
       None,
       None,
@@ -408,17 +407,6 @@ object FormTemplateBuilder {
       None
     )
 
-  def fromPagesWithIndex[A <: PageMode](
-    brackets: NonEmptyList[Bracket[A]],
-    staticTypeInfo: StaticTypeInfo
-  ): FormModel[A] =
-    FormModel(
-      BracketsWithSectionNumber.Classic(brackets),
-      staticTypeInfo,
-      RevealingChoiceInfo.empty,
-      SumInfo.empty,
-      StandaloneSumInfo.empty,
-      None
-    )
+  def fromPagesWithIndex(brackets: NonEmptyList[Bracket]): FormModel = new FormModel(Brackets.Classic(brackets))
 
 }

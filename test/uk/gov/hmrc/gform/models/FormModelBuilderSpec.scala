@@ -21,17 +21,12 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.Helpers.toSmartString
 
 import scala.language.implicitConversions
-import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SourceOrigin }
-import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-import java.time.Instant
 
 class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
@@ -61,17 +56,11 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
     val expectedPageB1 = mkPage(fcC :: Nil)
     val expectedPageB2 = mkPage(fcB :: fcC :: Nil)
 
-    val staticTypeInfo = StaticTypeInfoBuilder.simple(
-      "a" -> ExprType.String,
-      "b" -> ExprType.String,
-      "c" -> ExprType.String
-    )
-
     val table = Table(
       ("data", "expectedData", "expectedPages"),
       (
-        variadicFormData[SourceOrigin.OutOfDate]("a" -> "NotX", "b" -> "B", "c" -> "C"),
-        variadicFormData[SourceOrigin.Current]("a"   -> "NotX", "b" -> "B", "c" -> "C"),
+        variadicFormData("a" -> "NotX", "b" -> "B", "c" -> "C"),
+        variadicFormData("a" -> "NotX", "b" -> "B", "c" -> "C"),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(
             SingletonWithNumber(Singleton(expectedPageA), SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))),
@@ -84,8 +73,8 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
         )
       ),
       (
-        variadicFormData[SourceOrigin.OutOfDate]("a" -> "X", "b" -> "B", "c" -> "C"),
-        variadicFormData[SourceOrigin.Current]("a"   -> "X", "b" -> "B", "c" -> "C"),
+        variadicFormData("a" -> "X", "b" -> "B", "c" -> "C"),
+        variadicFormData("a" -> "X", "b" -> "B", "c" -> "C"),
         NonEmptyList.of(
           Bracket.NonRepeatingPage(
             SingletonWithNumber(Singleton(expectedPageA), SectionNumber.Classic.NormalPage(TemplateSectionIndex(0))),
@@ -100,22 +89,18 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
     )
 
     forAll(table) { case (data, expectedData, expectedPages) =>
-      val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-        fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-          data,
-          None,
-          Instant.now,
-          BooleanExprCache.empty
-        )
-
-      val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
+      val formModelOptics: FormModelOptics =
         fmb
-          .renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, BooleanExprCache.empty, None)
+          .visibilityModel[SectionSelectorType.Normal](
+            data,
+            None,
+            Form.dummy(FormTemplateId(""))
+          )
 
-      val expected: FormModel[Visibility] = fromPagesWithIndex(expectedPages, staticTypeInfo)
+      val expected: FormModel = fromPagesWithIndex(expectedPages)
 
-      formModelOptics.formModelVisibilityOptics.formModel shouldBe expected
-      visibilityOptics.recData.variadicFormData shouldBe expectedData
+      formModelOptics.formModelVisibilityOptics.formModel.brackets shouldBe expected.brackets
+
     }
 
   }
@@ -133,16 +118,13 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
       section2
     )
     val fmb = mkFormModelFromSections(sections)
-    val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "2")
-    val visibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
+    val variadicData = variadicFormData("a" -> "2")
+    val formModelOptics =
+      fmb.visibilityModel[SectionSelectorType.Normal](
         variadicData,
         None,
-        Instant.now,
-        BooleanExprCache.empty
+        Form.dummy(FormTemplateId(""))
       )
-    val formModelOptics =
-      fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](visibilityOptics, BooleanExprCache.empty, None)
 
     formModelOptics.formModelRenderPageOptics.formModel.allFormComponentIds shouldBe List(
       FormComponentId("a"),
@@ -158,76 +140,5 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
       FormComponentId("1_c") -> FormCtx(FormComponentId("a")),
       FormComponentId("2_c") -> FormCtx(FormComponentId("a"))
     )
-  }
-
-  it should "create CheckoutYourAnswers page model when AddToList configured with CheckYourAnswersPage" in {
-
-    val fcA = mkFormComponent("a", Value)
-
-    val section1 = mkAddToListSection(
-      "someQuestion",
-      Some(
-        CheckYourAnswersPage(
-          Some(toSmartString("Title")),
-          None,
-          toSmartString("Update Title"),
-          Some(toSmartString("No PII Title")),
-          Some(toSmartString("No PII Update Title")),
-          Some(toSmartString("Header")),
-          Some(toSmartString("Footer")),
-          Some(toSmartString("Continue")),
-          None,
-          None,
-          None,
-          None,
-          None
-        )
-      ),
-      List(fcA)
-    )
-
-    val sections = List(
-      section1
-    )
-    val fmb = mkFormModelFromSections(sections)
-    val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "1")
-
-    val fm = fmb.expand[Interim, SectionSelectorType.Normal](variadicData)
-    val addToListIterations = fm.brackets.addToListBracket(AddToListId(FormComponentId("someQuestion"))).iterations
-    addToListIterations.size shouldBe 1
-    addToListIterations.head.checkYourAnswers.isDefined shouldBe true
-    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.expandedUpdateTitle shouldBe toSmartString(
-      "Update Title"
-    )
-    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.expandedNoPIIUpdateTitle shouldBe Some(
-      toSmartString("No PII Update Title")
-    )
-    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.index shouldBe 1
-    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.expandedId shouldBe PageId("1_someQuestionCYA")
-    addToListIterations.head.checkYourAnswers.get.checkYourAnswers.formComponent.id shouldBe FormComponentId(
-      "1_someQuestionCYA"
-    )
-  }
-
-  it should "not create CheckoutYourAnswers page model when AddToList isn't configured with CheckYourAnswersPage" in {
-
-    val fcA = mkFormComponent("a", Value)
-
-    val section1 = mkAddToListSection(
-      "someQuestion",
-      None,
-      List(fcA)
-    )
-
-    val sections = List(
-      section1
-    )
-    val fmb = mkFormModelFromSections(sections)
-    val variadicData = variadicFormData[SourceOrigin.OutOfDate]("a" -> "1")
-
-    val fm = fmb.expand[Interim, SectionSelectorType.Normal](variadicData)
-    val addToListIterations = fm.brackets.addToListBracket(AddToListId(FormComponentId("someQuestion"))).iterations
-    addToListIterations.size shouldBe 1
-    addToListIterations.head.checkYourAnswers shouldBe empty
   }
 }

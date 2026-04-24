@@ -1,0 +1,48 @@
+{
+  "_id": "period-between-two-dates-if-else",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Enter dates for period",
+      "fields": [
+        {
+          "id": "startDate",
+          "type": "date",
+          "label": "Start Date"
+        },
+        {
+          "id": "endDate",
+          "type": "date",
+          "label": "End Date"
+        }
+      ]
+    },
+    {
+      "title": "${if period(startDate, endDate).totalMonths > 30 then 'More than 30' else 'Less than 30'}",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text",
+          "label": "TotalMonths: ${period(startDate, endDate).totalMonths}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page ",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

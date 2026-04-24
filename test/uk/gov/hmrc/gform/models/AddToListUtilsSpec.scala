@@ -24,11 +24,10 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormComponentIdToFileIdMapping, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, FileComponentId, FileUpload, FormComponentId, Section, ShortText, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 
 class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport with VariadicFormDataSupport {
 
@@ -36,7 +35,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "AddToListUtils.removeRecord" should "remove instance by its index" in {
-    val data: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val data: VariadicFormData = mkVariadicFormData(
       "regular" -> One("r"),
       // Owner data
       "1_a"     -> One("a_1"),
@@ -68,7 +67,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       "1_fruit"  -> Many("0" :: Nil)
     )
 
-    val expectedData1: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData1: VariadicFormData = mkVariadicFormData(
       "regular"  -> One("r"),
       "1_a"      -> One("a_2"),
       "1_b"      -> One("b_2"),
@@ -90,7 +89,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       "1_fruit"  -> Many("0" :: Nil)
     )
 
-    val expectedData2: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData2: VariadicFormData = mkVariadicFormData(
       "regular"  -> One("r"),
       "1_a"      -> One("a_1"),
       "1_b"      -> One("b_1"),
@@ -112,7 +111,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       "1_fruit"  -> Many("0" :: Nil)
     )
 
-    val expectedData3: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData3: VariadicFormData = mkVariadicFormData(
       "regular"  -> One("r"),
       "1_a"      -> One("a_1"),
       "1_b"      -> One("b_1"),
@@ -134,7 +133,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       "1_fruit"  -> Many("0" :: Nil)
     )
 
-    val expectedData4: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData4: VariadicFormData = mkVariadicFormData(
       "regular"  -> One("r"),
       "1_a"      -> One("a_1"),
       "1_b"      -> One("b_1"),
@@ -161,7 +160,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
       "1_fruitB" -> One("banana_2")
     )
 
-    val expectedData5: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData5: VariadicFormData = mkVariadicFormData(
       "regular"  -> One("r"),
       "1_a"      -> One("a_1"),
       "1_b"      -> One("b_1"),
@@ -218,7 +217,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
         ) :: Nil
 
     val formTemplate = mkFormTemplate(sections)
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
 
@@ -249,7 +248,7 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
     )
 
     forAll(variations) { case (index, addToListId, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) =>
-      val bracket: Bracket.AddToList[DataExpanded] =
+      val bracket: Bracket.AddToList =
         formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
       val (updatedVariadicData, updatedMapping, filesToDelete) =
         AddToListUtils.removeRecord(processData, bracket, index, originalMapping)

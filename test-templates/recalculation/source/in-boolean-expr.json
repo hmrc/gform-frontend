@@ -1,0 +1,136 @@
+{
+  "_id": "in-boolean-expr",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "sections": [
+    {
+      "title": "Enter VAT Number",
+      "fields": [
+        {
+          "id": "vatNumber",
+          "type": "text",
+          "label": "Submission Reference",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Checks",
+          "label": "Checks",
+          "header": [
+            {
+              "en": "Check"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "${vatNumber} in user.enrolments.HMCE-VATDEC-ORG.VatRegNo: ${if vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${vatNumber} in delegated.classic.enrolments.HMCE-VATDEC-ORG.VatRegNo: ${if vatNumber in delegated.classic.enrolments.HMCE-VATDEC-ORG.VatRegNo then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${vatNumber} in service.seiss: ${if vatNumber in service.seiss then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${vatNumber} in mongo.mtdVatNumber: ${if vatNumber in mongo.mtdVatNumber then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Tax year: ${yearToDate('0504', if vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo then '2012' else '2025')}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo}",
+      "fields": [
+        {
+          "id": "secretDelegated",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${vatNumber in delegated.classic.enrolments.HMCE-VATDEC-ORG.VatRegNo}",
+      "fields": [
+        {
+          "id": "secretUser",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${vatNumber in service.seiss}",
+      "fields": [
+        {
+          "id": "secretSeiss",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${vatNumber in mongo.mtdVatNumber}",
+      "fields": [
+        {
+          "id": "secretMongo",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "_id": "address-lens-visibility-address",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "addressLine1": "uppercase(address.line1)"
+  },
+  "booleanExpressions": {
+    "hasOfficeAddressZZ": "substring(removeSpaces(address.postcode),0,2) = 'ZZ'"
+  },
+  "sections": [
+    {
+      "title": "Enter your contact address",
+      "fields": [
+        {
+          "type": "address",
+          "id": "address",
+          "label": "Address"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "line1Info",
+          "type": "info",
+          "label": "",
+          "infoText": "Line 1: ${addressLine1}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${hasOfficeAddressZZ}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

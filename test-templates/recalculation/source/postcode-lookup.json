@@ -1,0 +1,48 @@
+{
+  "_id": "postcode-lookup",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Postcode lookup",
+      "fields": [
+        {
+          "id": "postcodeLookup",
+          "type": "postcodeLookup",
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "title": "Test ${postcodeLookup}",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "postcodeLookup: ${postcodeLookup}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

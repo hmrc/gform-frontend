@@ -21,19 +21,22 @@ import org.slf4j.{ Logger, LoggerFactory }
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
 import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.File
+import uk.gov.hmrc.gform.recalculation.DateResultFlag
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, RetrieveDataType }
 import uk.gov.hmrc.gform.sharedmodel.LangADT.langADTToString
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo.ItmpDateOfBirth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataRetrieveCtx
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, DataRetrieveCtx, Expr, FormComponent, FormComponentId, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, DataRetrieve, DataRetrieveId, LangADT, RetrieveDataType, SmartString, SubmissionRef, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, Expr, FormComponent, FormComponentId, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
+import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, LangADT, SmartString, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
@@ -47,9 +50,9 @@ trait AuditService {
 
   def auditConnector: AuditConnector
 
-  def getUserValues[D <: DataOrigin](
+  def getUserValues(
     thirdPartyData: ThirdPartyData,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit sse: SmartStringEvaluator, l: LangADT): UserValues = {
     import scala.language.implicitConversions
     implicit def toOpt(str: String): Option[String] = Option.unless(str.isBlank)(str)
@@ -173,12 +176,14 @@ trait AuditService {
       addressesFromComponents ++ getThirdPartyDataAddresses
     }
 
+    def zeroPadding(x: Int) = "%02d".format(x)
+
     def getSummaryItemsMap(
       mslComponents: List[(String, MiniSummaryList)],
       infoComponents: List[(String, InformationMessage)]
     ): Map[String, SummaryAuditItem] = {
 
-      def processExpressionResult(expressionResult: ExpressionResult, expr: Expr): SummaryAuditItem = {
+      def processExpressionResult(evaluationStatus: EvaluationStatus, expr: Expr): SummaryAuditItem = {
 
         def extractItmpData[T](extractor: ItmpRetrievals => Option[T]): Option[T] =
           thirdPartyData.itmpRetrievals.flatMap(extractor)
@@ -217,11 +222,11 @@ trait AuditService {
           }
         }
 
-        expressionResult match {
-          case ExpressionResult.NumberResult(value) =>
+        evaluationStatus match {
+          case EvaluationStatus.NumberResult(value) =>
             SummaryAuditItem.fromText(value.toString())
 
-          case ExpressionResult.StringResult(value) =>
+          case EvaluationStatus.StringResult(value) =>
             expr match {
               case AuthCtx(authInfo) if authInfo == ItmpDateOfBirth =>
                 extractItmpData(_.itmpDateOfBirth) match {
@@ -231,22 +236,29 @@ trait AuditService {
               case _ => SummaryAuditItem.fromText(value)
             }
 
-          case ExpressionResult.DateResult(localDate) =>
-            SummaryAuditItem.fromDate(localDate)
-
-          case ExpressionResult.TaxPeriodResult(month, year) =>
-            SummaryAuditItem.fromText(s"$year-$month")
-
-          case p @ ExpressionResult.PeriodResult(_) =>
+          case EvaluationStatus.DateResult(localDate, flag) =>
+            flag match {
+              case DateResultFlag.Date =>
+                SummaryAuditItem.fromDate(localDate)
+              case DateResultFlag.CalendarDate =>
+                val day = zeroPadding(localDate.getDayOfMonth())
+                val month = zeroPadding(localDate.getMonthValue())
+                SummaryAuditItem.fromText(s"$month-$day")
+              case DateResultFlag.TaxPeriodDate =>
+                val year = zeroPadding(localDate.getYear())
+                val month = zeroPadding(localDate.getMonthValue())
+                SummaryAuditItem.fromText(s"$year-$month")
+            }
+          case p @ EvaluationStatus.PeriodResult(_) =>
             SummaryAuditItem.fromText(p.asString)
 
-          case ExpressionResult.OptionResult(values) =>
+          case EvaluationStatus.OptionResult(values) =>
             SummaryAuditItem.fromTextList(values.toList)
 
-          case ExpressionResult.ListResult(results) =>
+          case EvaluationStatus.ListResult(results) =>
             val processedResults = results.map(processExpressionResult(_, expr))
             SummaryAuditItem.combineAll(processedResults)
-          case ExpressionResult.AddressResult(_) =>
+          case EvaluationStatus.AddressResult(_) =>
             expr match {
               case AuthCtx(_) =>
                 extractItmpData(_.itmpAddress) match {
@@ -284,10 +296,10 @@ trait AuditService {
         mslValue match {
           case MiniSummaryListValue.AnyExpr(expr) =>
             val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
-            processExpressionResult(result.expressionResult, expr)
+            processExpressionResult(result.evaluationStatus, expr)
           case MiniSummaryListValue.Reference(expr) =>
             val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
-            processExpressionResult(result.expressionResult, expr)
+            processExpressionResult(result.evaluationStatus, expr)
         }
 
       def shouldIncludeRow(includeIf: Option[IncludeIf]): Boolean =
@@ -324,11 +336,11 @@ trait AuditService {
         case Some(summaryValue) =>
           if (
             summaryValue.rawValue(
-              formModelVisibilityOptics.booleanExprResolver.resolve(_)
+              formModelVisibilityOptics.freeCalculator.evalBooleanExpr(_)
             ) == "{0}" && summaryValue.allInterpolations.headOption.nonEmpty
           ) {
             val result = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(summaryValue.allInterpolations.head)
-            val summaryItem = processExpressionResult(result.expressionResult, summaryValue.allInterpolations.head)
+            val summaryItem = processExpressionResult(result.evaluationStatus, summaryValue.allInterpolations.head)
             Some(componentId -> summaryItem)
           } else {
             val textValue =
@@ -354,7 +366,7 @@ trait AuditService {
         .collect { case fc @ IsMiniSummaryList(msl) =>
           fc.id.value -> msl
         }
-        .filter(t => t._2.displayInSummary.displayInSummary(formModelVisibilityOptics.booleanExprResolver))
+        .filter(t => t._2.displayInSummary.displayInSummary(formModelVisibilityOptics.freeCalculator))
 
     val infoComponents: List[(String, InformationMessage)] =
       formModelVisibilityOptics.allFormComponents
@@ -370,7 +382,7 @@ trait AuditService {
     )
   }
 
-  def sendFormCreateEvent[D <: DataOrigin](
+  def sendFormCreateEvent(
     form: Form,
     retrievals: MaterialisedRetrievals,
     submissionRef: Option[SubmissionRef]
@@ -387,7 +399,7 @@ trait AuditService {
       submissionRef
     )
 
-  def sendFormResumeEvent[D <: DataOrigin](
+  def sendFormResumeEvent(
     form: Form,
     retrievals: MaterialisedRetrievals,
     submissionRef: Option[SubmissionRef]
@@ -404,9 +416,9 @@ trait AuditService {
       submissionRef
     )
 
-  def sendSubmissionEvent[D <: DataOrigin](
+  def sendSubmissionEvent(
     form: Form,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId,
     envelopeFiles: List[File],
@@ -425,7 +437,7 @@ trait AuditService {
       Some(submissionRef)
     )
 
-  def formSavedEvent[D <: DataOrigin](
+  def formSavedEvent(
     form: Form,
     retrievals: MaterialisedRetrievals,
     submissionRef: SubmissionRef
@@ -442,7 +454,7 @@ trait AuditService {
       Some(submissionRef)
     )
 
-  def sendFormTimoutEvent[D <: DataOrigin](
+  def sendFormTimoutEvent(
     form: Form,
     retrievals: MaterialisedRetrievals,
     submissionRef: SubmissionRef
@@ -459,7 +471,7 @@ trait AuditService {
       Some(submissionRef)
     )
 
-  def sendFormSignOut[D <: DataOrigin](
+  def sendFormSignOut(
     form: Form,
     retrievals: MaterialisedRetrievals,
     submissionRef: SubmissionRef
@@ -476,7 +488,7 @@ trait AuditService {
       Some(submissionRef)
     )
 
-  def sendFormValidationErrorEvent[D <: DataOrigin](
+  def sendFormValidationErrorEvent(
     form: Form,
     validationErrors: Map[String, Map[FormComponentId, List[String]]],
     retrievals: MaterialisedRetrievals,

@@ -1,0 +1,2290 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "employer"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Employer $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Employer"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "employer",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another employer?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnotherEmployer",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating fields"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0} - {1} :: {2} :: {3}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "typeOfIncome"
+                          }
+                        },
+                        {
+                          "CountSelectedChoices": {
+                            "formComponentId": "typeOfIncome"
+                          }
+                        },
+                        {
+                          "ChoicesSelected": {
+                            "formComponentId": "typeOfIncome"
+                          }
+                        },
+                        {
+                          "Subtraction": {
+                            "field1": {
+                              "ChoicesCount": {
+                                "formComponentId": "typeOfIncome"
+                              }
+                            },
+                            "field2": {
+                              "ChoicesAvailable": {
+                                "formComponentId": "typeOfIncome"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Type of income"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": true,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Type of income"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "typeOfIncome",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "employer"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "dynamic": {
+                                "ATLBased": {
+                                  "formComponentId": "employer"
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "employer"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "2024 to 25"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "includeIf": {
+                                "booleanExpr": {
+                                  "LessThanOrEquals": {
+                                    "left": {
+                                      "DateFunction": {
+                                        "value": {
+                                          "Year": {
+                                            "dateExpr": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2026,
+                                                    "month": 1,
+                                                    "day": 1
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "Constant": {
+                                        "value": "2025"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "2025"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "2025 to 26"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "2026"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Other"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "other"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "None"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "none"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Checkbox": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": true
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Calculations"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "table",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "TableComp": {
+                        "classes": "",
+                        "header": [
+                          {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Calculation"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "summaryValue": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Calculations"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "rows": [
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "table - totalChoicesSelected(typeOfIncome): {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "Subtraction": {
+                                            "field1": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "field2": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome",
+                                                "insideAtl": true
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "table - choicesCount(typeOfIncome): {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "ChoicesCount": {
+                                            "formComponentId": "typeOfIncome"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "table - choicesAvailable(typeOfIncome): {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "ChoicesAvailable": {
+                                            "formComponentId": "typeOfIncome",
+                                            "insideAtl": true
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "table - choicesSelected(typeOfIncome).count: {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "CountSelectedChoices": {
+                                            "formComponentId": "typeOfIncome"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "table - choicesSelected(typeOfIncome): {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "ChoicesSelected": {
+                                            "formComponentId": "typeOfIncome"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        "captionClasses": "",
+                        "firstCellIsHeader": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "InludeIfs"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "includeIfs",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "TableComp": {
+                        "classes": "",
+                        "header": [
+                          {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "IncludeIfs"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "summaryValue": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "InludeIfs"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "rows": [
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringCond": {
+                                    "ifConditions": [
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "Subtraction": {
+                                                "field1": {
+                                                  "ChoicesCount": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "ChoicesAvailable": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "totalChoicesSelected(typeOfIncome) = 0"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "Subtraction": {
+                                                "field1": {
+                                                  "ChoicesCount": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "ChoicesAvailable": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "1"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "totalChoicesSelected(typeOfIncome) = 1"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "Subtraction": {
+                                                "field1": {
+                                                  "ChoicesCount": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "ChoicesAvailable": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "2"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "totalChoicesSelected(typeOfIncome) = 2"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "Subtraction": {
+                                                "field1": {
+                                                  "ChoicesCount": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "ChoicesAvailable": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "3"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "totalChoicesSelected(typeOfIncome) = 3"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "Subtraction": {
+                                                "field1": {
+                                                  "ChoicesCount": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "ChoicesAvailable": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "4"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "totalChoicesSelected(typeOfIncome) = 4"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "Subtraction": {
+                                                "field1": {
+                                                  "ChoicesCount": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "ChoicesAvailable": {
+                                                    "formComponentId": "typeOfIncome"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "5"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "totalChoicesSelected(typeOfIncome) = 5"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ]
+                                    ],
+                                    "elseCondition": {
+                                      "localised": {
+                                        "en": "totalChoicesSelected(typeOfIncome) out of bound: {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "Subtraction": {
+                                            "field1": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "field2": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome",
+                                                "insideAtl": true
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringCond": {
+                                    "ifConditions": [
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesCount(typeOfIncome) = 0"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "1"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesCount(typeOfIncome) = 1"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "2"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesCount(typeOfIncome) = 2"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "3"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesCount(typeOfIncome) = 3"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "4"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesCount(typeOfIncome) = 4"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesCount": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "5"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesCount(typeOfIncome) = 5"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ]
+                                    ],
+                                    "elseCondition": {
+                                      "localised": {
+                                        "en": "choicesCount(typeOfIncome) out of bound: {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "ChoicesCount": {
+                                            "formComponentId": "typeOfIncome"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringCond": {
+                                    "ifConditions": [
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesAvailable(typeOfIncome) = 0"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "1"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesAvailable(typeOfIncome) = 1"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "2"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesAvailable(typeOfIncome) = 2"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "3"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesAvailable(typeOfIncome) = 3"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "4"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesAvailable(typeOfIncome) = 4"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesAvailable": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "5"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesAvailable(typeOfIncome) = 5"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ]
+                                    ],
+                                    "elseCondition": {
+                                      "localised": {
+                                        "en": "choicesAvailable(typeOfIncome) out of bound: {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "ChoicesAvailable": {
+                                            "formComponentId": "typeOfIncome",
+                                            "insideAtl": true
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringCond": {
+                                    "ifConditions": [
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "CountSelectedChoices": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome).count = 0"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "CountSelectedChoices": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "1"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome).count = 1"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "CountSelectedChoices": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "2"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome).count = 2"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "CountSelectedChoices": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "3"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome).count = 3"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "CountSelectedChoices": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "4"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome).count = 4"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "CountSelectedChoices": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "5"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome).count = 5"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ]
+                                    ],
+                                    "elseCondition": {
+                                      "localised": {
+                                        "en": "choicesSelected(typeOfIncome).count out of bound: {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "CountSelectedChoices": {
+                                            "formComponentId": "typeOfIncome"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "values": [
+                              {
+                                "value": {
+                                  "SmartStringCond": {
+                                    "ifConditions": [
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesSelected": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome) = 0"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesSelected": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "1"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome) = 1"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesSelected": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "2"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome) = 2"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesSelected": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "3"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome) = 3"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesSelected": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "4"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome) = 4"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ],
+                                      [
+                                        {
+                                          "Equals": {
+                                            "left": {
+                                              "ChoicesSelected": {
+                                                "formComponentId": "typeOfIncome"
+                                              }
+                                            },
+                                            "right": {
+                                              "Constant": {
+                                                "value": "5"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "localised": {
+                                            "en": "choicesSelected(typeOfIncome) = 5"
+                                          },
+                                          "interpolations": []
+                                        }
+                                      ]
+                                    ],
+                                    "elseCondition": {
+                                      "localised": {
+                                        "en": "choicesSelected(typeOfIncome) out of bound: {0}"
+                                      },
+                                      "interpolations": [
+                                        {
+                                          "ChoicesSelected": {
+                                            "formComponentId": "typeOfIncome"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        "captionClasses": "",
+                        "firstCellIsHeader": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": ""
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "miniSummary",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "MiniSummaryList": {
+                        "rows": [
+                          {
+                            "SmartStringRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Line 1"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "miniSummaryList - totalChoicesSelected(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "typeOfIncome"
+                                            }
+                                          },
+                                          "field2": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "typeOfIncome",
+                                              "insideAtl": true
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "SmartStringRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Line 2"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "miniSummaryList - choicesCount(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesCount": {
+                                          "formComponentId": "typeOfIncome"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "SmartStringRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Line 3"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "miniSummaryList - choicesAvailable(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesAvailable": {
+                                          "formComponentId": "typeOfIncome",
+                                          "insideAtl": true
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "SmartStringRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Line 4"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "miniSummaryList - choicesSelected(typeOfIncome).count: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "CountSelectedChoices": {
+                                          "formComponentId": "typeOfIncome"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "SmartStringRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Line 5"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "miniSummaryList - choicesSelected(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesSelected": {
+                                          "formComponentId": "typeOfIncome"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "displayInSummary": {
+                          "booleanExpression": {
+                            "IsFalse": {}
+                          }
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What payment did you make in {0}?"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "typeOfIncome"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What payment did you make in {0}?"
+                          },
+                          "interpolations": [
+                            {
+                              "FormCtx": {
+                                "formComponentId": "typeOfIncome"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "amount",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": false
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another field?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating fields"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Text"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Text"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "tableOutside",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Calculation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - outside - totalChoicesSelected(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "typeOfIncome"
+                                            }
+                                          },
+                                          "field2": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "typeOfIncome",
+                                              "insideAtl": false
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - outside - choicesCount(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesCount": {
+                                          "formComponentId": "typeOfIncome"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - outside - choicesAvailable(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesAvailable": {
+                                          "formComponentId": "typeOfIncome",
+                                          "insideAtl": false
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - outside - choicesSelected(typeOfIncome).count: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "CountSelectedChoices": {
+                                          "formComponentId": "typeOfIncome"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - outside - choicesSelected(typeOfIncome): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesSelected": {
+                                          "formComponentId": "typeOfIncome"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "choices-selected-total",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "choices-selected-total",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}
