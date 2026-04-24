@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.models.helpers
 
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
+import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
-import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, TypeInfo }
-import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.FormModel
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormCtx, IncludeIf, IsText }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -30,28 +30,28 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import scala.util.{ Success, Try }
 
 object MiniSummaryListHelper {
-  def getFormattedExprStr[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D], e: Expr)(implicit
+  def getFormattedExprStr(formModelVisibilityOptics: FormModelVisibilityOptics, e: Expr)(implicit
     l: LangADT,
     messages: Messages
   ): String = {
     val exprResult = formModelVisibilityOptics.evalAndApplyTypeInfoFirst(e)
-    val exprStr = exprResult.typeInfo match {
-      case TypeInfo(_, StaticTypeData(ExprType.address, _)) =>
+    val exprStr = exprResult.staticTypeData match {
+      case StaticTypeData(ExprType.Address, _) =>
         exprResult.addressRepresentation.map(HtmlFormat.escape).map(_.body).mkString("<br>")
       case _ => exprResult.stringRepresentation
     }
-    exprResult.typeInfo.staticTypeData.textConstraint.fold(exprStr) { textConstraint =>
+    exprResult.staticTypeData.textConstraint.fold(exprStr) { textConstraint =>
       TextFormatter.componentTextReadonly(exprStr, textConstraint)
     }
   }
 
-  def evaluateIncludeIf[D <: DataOrigin](
+  def evaluateIncludeIf(
     includeIf: Option[IncludeIf],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   ): Boolean =
     includeIf.forall(incI => formModelVisibilityOptics.evalIncludeIfExpr(incI, None))
 
-  def checkAndReturnSuffix(expr: Expr, formModel: FormModel[Visibility])(implicit sse: SmartStringEvaluator): String =
+  def checkAndReturnSuffix(expr: Expr, formModel: FormModel)(implicit sse: SmartStringEvaluator): String =
     expr match {
       case formCtx: FormCtx =>
         Try(formModel.fcLookup(formCtx.formComponentId)) match {

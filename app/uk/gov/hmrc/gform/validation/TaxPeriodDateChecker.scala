@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -34,9 +33,9 @@ import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import scala.collection.mutable.LinkedHashSet
 import ComponentChecker._
 
-class TaxPeriodDateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class TaxPeriodDateChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -47,7 +46,7 @@ class TaxPeriodDateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] 
 
 }
 
-class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
+class TaxPeriodDateCheckerHelper(formModelVisibilityOptics: FormModelVisibilityOptics)(implicit
   messages: Messages,
   sse: SmartStringEvaluator
 ) {
@@ -62,7 +61,7 @@ class TaxPeriodDateCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: For
 
   def validate(formComponent: FormComponent): CheckProgram[Unit] =
     ifProgram(
-      cond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
+      cond = formComponent.mandatory.eval(formModelVisibilityOptics.freeCalculator),
       thenProgram = validateRequired(formComponent).andThen(_ => validateMonthYear(formComponent)),
       elseProgram = checkAllFieldsEmpty(formComponent) orElse validateMonthYear(formComponent)
     )

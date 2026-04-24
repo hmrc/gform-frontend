@@ -1,0 +1,105 @@
+{
+  "_id": "choices-revealed-field",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Lists of partners you have added",
+      "summaryName": "Partners",
+      "shortName": "Partner",
+      "description": "$n - ${choicesRevealedField(idType)} - ${lowercase(choicesRevealedField(idType))}",
+      "presentationHint": "invisiblePageTitle",
+      "summaryDescription": "${choicesRevealedField(idType)}",
+      "addAnotherQuestion": {
+        "id": "partnerList",
+        "type": "choice",
+        "label": "Do you want to add another partner?",
+        "choices": [
+          "Yes",
+          "No"
+        ],
+        "errorMessage": "Select whether you want to add another partner?"
+      },
+      "pages": [
+        {
+          "title": "What identifiaction do they hold?",
+          "fields": [
+            {
+              "id": "idType",
+              "type": "revealingChoice",
+              "multivalue": true,
+              "label": "Enter the partner's name",
+              "choices": [
+                {
+                  "en": "Passport",
+                  "value": "pass"
+                },
+                {
+                  "en": "Driving licence",
+                  "value": "drive"
+                },
+                {
+                  "en": "ID card",
+                  "value": "id"
+                },
+                {
+                  "en": "Other",
+                  "value": "other"
+                }
+              ],
+              "revealingFields": [
+                [],
+                [],
+                [],
+                [
+                  {
+                    "id": "otherType",
+                    "type": "text",
+                    "format": "text",
+                    "label": "Enter the other type"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Secret $n",
+          "includeIf": "${choicesRevealedField(idType) = 'other'}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

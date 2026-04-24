@@ -16,21 +16,14 @@
 
 package uk.gov.hmrc.gform.graph
 
-import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import play.api.i18n.Messages
 
 class GraphModule(
-  authModule: AuthModule,
-  gformBackendModule: GformBackendModule,
   englishMessages: Messages
 ) {
 
   val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
     new RealSmartStringEvaluatorFactory(englishMessages)
-
-  val booleanExprEval: BooleanExprEval = new BooleanExprEval()
 
 }

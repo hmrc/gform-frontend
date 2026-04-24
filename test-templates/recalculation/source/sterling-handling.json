@@ -1,0 +1,99 @@
+{
+  "_id": "sterling-handling",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Claiming Tax Relief",
+      "summaryName": "Tax Reliefs added",
+      "summaryDescription": "Reliefs",
+      "shortName": "Reliefs",
+      "description": "$n. {coreExpenditure}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another claim?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Total UK core expenditure",
+          "fields": [
+            {
+              "id": "coreExpenditure",
+              "type": "text",
+              "format": "positiveWholeSterling",
+              "notPII": true
+            }
+          ]
+        },
+        {
+          "title": "Additional deductions",
+          "fields": [
+            {
+              "id": "deductionToDate",
+              "type": "text",
+              "format": "positiveWholeSterling",
+              "notPII": true,
+              "validators": [
+                {
+                  "validIf": "${deductionToDate <= coreExpenditure}",
+                  "errorMessage": {
+                    "en": "The additional deductions cannot be more than ${deductionToDate}"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Additional deductions too low",
+          "includeIf": "${deductionToDate < 10000}",
+          "fields": [
+            {
+              "id": "warning",
+              "type": "info",
+              "label": "",
+              "infoType": "noformat",
+              "infoText": "Your tax will be 20% because your ${deductionToDate} is less than £10,000"
+            }
+          ]
+        },
+        {
+          "title": "Test",
+          "fields": [
+            {
+              "id": "dummy",
+              "type": "text",
+              "label": "Dummy",
+              "format": "text"
+            },
+            {
+              "id": "test",
+              "type": "info",
+              "label": "",
+              "infoType": "noformat",
+              "infoText": "${if deductionToDate <= coreExpenditure then 'FOO' else 'BAR'}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

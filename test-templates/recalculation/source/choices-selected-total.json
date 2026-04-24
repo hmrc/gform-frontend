@@ -1,0 +1,433 @@
+{
+  "_id": "choices-selected-total",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${employer}",
+      "addAnotherQuestion": {
+        "id": "addAnotherEmployer",
+        "type": "choice",
+        "label": "Do you want to add another employer?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer $n",
+          "fields": [
+            {
+              "id": "employer",
+              "label": "Employer",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${typeOfIncome} - ${choicesSelected(typeOfIncome).count} :: ${choicesSelected(typeOfIncome)} :: ${totalChoicesSelected(typeOfIncome)}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Type of income",
+          "fields": [
+            {
+              "id": "typeOfIncome",
+              "label": "Type of income",
+              "type": "choice",
+              "multivalue": true,
+              "notPII": true,
+              "hideChoicesSelected": true,
+              "choices": [
+                {
+                  "en": "${employer}",
+                  "dynamic": "employer",
+                  "value": "employer"
+                },
+                {
+                  "en": "2024 to 25",
+                  "value": "2025",
+                  "includeIf": "${year(01012026) <= 2025}"
+                },
+                {
+                  "en": "2025 to 26",
+                  "value": "2026"
+                },
+                {
+                  "en": "Other",
+                  "value": "other"
+                },
+                {
+                  "en": "None",
+                  "value": "none"
+                }
+              ]
+            },
+            {
+              "id": "table",
+              "type": "table",
+              "summaryValue": "Calculations",
+              "label": "Calculations",
+              "header": [
+                {
+                  "en": "Calculation"
+                }
+              ],
+              "rows": [
+                {
+                  "values": [
+                    {
+                      "value": "table - totalChoicesSelected(typeOfIncome): ${totalChoicesSelected(typeOfIncome)}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "table - choicesCount(typeOfIncome): ${choicesCount(typeOfIncome)}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "table - choicesAvailable(typeOfIncome): ${choicesAvailable(typeOfIncome)}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "table - choicesSelected(typeOfIncome).count: ${choicesSelected(typeOfIncome).count}"
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": "table - choicesSelected(typeOfIncome): ${choicesSelected(typeOfIncome)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "includeIfs",
+              "type": "table",
+              "summaryValue": "InludeIfs",
+              "label": "InludeIfs",
+              "header": [
+                {
+                  "en": "IncludeIfs"
+                }
+              ],
+              "rows": [
+                {
+                  "values": [
+                    {
+                      "value": [
+                        {
+                          "includeIf": "${totalChoicesSelected(typeOfIncome) = 0}",
+                          "en": "totalChoicesSelected(typeOfIncome) = 0"
+                        },
+                        {
+                          "includeIf": "${totalChoicesSelected(typeOfIncome) = 1}",
+                          "en": "totalChoicesSelected(typeOfIncome) = 1"
+                        },
+                        {
+                          "includeIf": "${totalChoicesSelected(typeOfIncome) = 2}",
+                          "en": "totalChoicesSelected(typeOfIncome) = 2"
+                        },
+                        {
+                          "includeIf": "${totalChoicesSelected(typeOfIncome) = 3}",
+                          "en": "totalChoicesSelected(typeOfIncome) = 3"
+                        },
+                        {
+                          "includeIf": "${totalChoicesSelected(typeOfIncome) = 4}",
+                          "en": "totalChoicesSelected(typeOfIncome) = 4"
+                        },
+                        {
+                          "includeIf": "${totalChoicesSelected(typeOfIncome) = 5}",
+                          "en": "totalChoicesSelected(typeOfIncome) = 5"
+                        },
+                        {
+                          "en": "totalChoicesSelected(typeOfIncome) out of bound: ${totalChoicesSelected(typeOfIncome)}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": [
+                        {
+                          "includeIf": "${choicesCount(typeOfIncome) = 0}",
+                          "en": "choicesCount(typeOfIncome) = 0"
+                        },
+                        {
+                          "includeIf": "${choicesCount(typeOfIncome) = 1}",
+                          "en": "choicesCount(typeOfIncome) = 1"
+                        },
+                        {
+                          "includeIf": "${choicesCount(typeOfIncome) = 2}",
+                          "en": "choicesCount(typeOfIncome) = 2"
+                        },
+                        {
+                          "includeIf": "${choicesCount(typeOfIncome) = 3}",
+                          "en": "choicesCount(typeOfIncome) = 3"
+                        },
+                        {
+                          "includeIf": "${choicesCount(typeOfIncome) = 4}",
+                          "en": "choicesCount(typeOfIncome) = 4"
+                        },
+                        {
+                          "includeIf": "${choicesCount(typeOfIncome) = 5}",
+                          "en": "choicesCount(typeOfIncome) = 5"
+                        },
+                        {
+                          "en": "choicesCount(typeOfIncome) out of bound: ${choicesCount(typeOfIncome)}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": [
+                        {
+                          "includeIf": "${choicesAvailable(typeOfIncome) = 0}",
+                          "en": "choicesAvailable(typeOfIncome) = 0"
+                        },
+                        {
+                          "includeIf": "${choicesAvailable(typeOfIncome) = 1}",
+                          "en": "choicesAvailable(typeOfIncome) = 1"
+                        },
+                        {
+                          "includeIf": "${choicesAvailable(typeOfIncome) = 2}",
+                          "en": "choicesAvailable(typeOfIncome) = 2"
+                        },
+                        {
+                          "includeIf": "${choicesAvailable(typeOfIncome) = 3}",
+                          "en": "choicesAvailable(typeOfIncome) = 3"
+                        },
+                        {
+                          "includeIf": "${choicesAvailable(typeOfIncome) = 4}",
+                          "en": "choicesAvailable(typeOfIncome) = 4"
+                        },
+                        {
+                          "includeIf": "${choicesAvailable(typeOfIncome) = 5}",
+                          "en": "choicesAvailable(typeOfIncome) = 5"
+                        },
+                        {
+                          "en": "choicesAvailable(typeOfIncome) out of bound: ${choicesAvailable(typeOfIncome)}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": [
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome).count = 0}",
+                          "en": "choicesSelected(typeOfIncome).count = 0"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome).count = 1}",
+                          "en": "choicesSelected(typeOfIncome).count = 1"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome).count = 2}",
+                          "en": "choicesSelected(typeOfIncome).count = 2"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome).count = 3}",
+                          "en": "choicesSelected(typeOfIncome).count = 3"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome).count = 4}",
+                          "en": "choicesSelected(typeOfIncome).count = 4"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome).count = 5}",
+                          "en": "choicesSelected(typeOfIncome).count = 5"
+                        },
+                        {
+                          "en": "choicesSelected(typeOfIncome).count out of bound: ${choicesSelected(typeOfIncome).count}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "values": [
+                    {
+                      "value": [
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome) = 0}",
+                          "en": "choicesSelected(typeOfIncome) = 0"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome) = 1}",
+                          "en": "choicesSelected(typeOfIncome) = 1"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome) = 2}",
+                          "en": "choicesSelected(typeOfIncome) = 2"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome) = 3}",
+                          "en": "choicesSelected(typeOfIncome) = 3"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome) = 4}",
+                          "en": "choicesSelected(typeOfIncome) = 4"
+                        },
+                        {
+                          "includeIf": "${choicesSelected(typeOfIncome) = 5}",
+                          "en": "choicesSelected(typeOfIncome) = 5"
+                        },
+                        {
+                          "en": "choicesSelected(typeOfIncome) out of bound: ${choicesSelected(typeOfIncome)}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "miniSummary",
+              "type": "miniSummaryList",
+              "label": "",
+              "rows": [
+                {
+                  "key": "Line 1",
+                  "value": "miniSummaryList - totalChoicesSelected(typeOfIncome): ${totalChoicesSelected(typeOfIncome)}"
+                },
+                {
+                  "key": "Line 2",
+                  "value": "miniSummaryList - choicesCount(typeOfIncome): ${choicesCount(typeOfIncome)}"
+                },
+                {
+                  "key": "Line 3",
+                  "value": "miniSummaryList - choicesAvailable(typeOfIncome): ${choicesAvailable(typeOfIncome)}"
+                },
+                {
+                  "key": "Line 4",
+                  "value": "miniSummaryList - choicesSelected(typeOfIncome).count: ${choicesSelected(typeOfIncome).count}"
+                },
+                {
+                  "key": "Line 5",
+                  "value": "miniSummaryList - choicesSelected(typeOfIncome): ${choicesSelected(typeOfIncome)}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "What payment did you make in ${typeOfIncome}?",
+          "fields": [
+            {
+              "id": "amount",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Calculation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "table - outside - totalChoicesSelected(typeOfIncome): ${totalChoicesSelected(typeOfIncome)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - outside - choicesCount(typeOfIncome): ${choicesCount(typeOfIncome)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - outside - choicesAvailable(typeOfIncome): ${choicesAvailable(typeOfIncome)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - outside - choicesSelected(typeOfIncome).count: ${choicesSelected(typeOfIncome).count}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - outside - choicesSelected(typeOfIncome): ${choicesSelected(typeOfIncome)}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -31,11 +31,9 @@ import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.html.components
@@ -81,7 +79,7 @@ class FormAddToListController(
             .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId, fastForward)
         val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
-          case bracket @ Bracket.AddToList(iterations, source) =>
+          case bracket @ Bracket.AddToList(_, iterations, source) =>
             val (pageError, fieldErrors) = {
               val errorMessage =
                 source.errorMessage.fold(request.messages.messages("addToList.error.selectOption"))(error =>
@@ -210,7 +208,7 @@ class FormAddToListController(
     }
 
   private def removeAndRedirect(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     templateSectionIndex: TemplateSectionIndex,
@@ -226,8 +224,7 @@ class FormAddToListController(
     for {
       processData <- processDataService
                        .getProcessData[SectionSelectorType.Normal](
-                         formModelOptics.formModelRenderPageOptics.recData.variadicFormData
-                           .asInstanceOf[VariadicFormData[OutOfDate]],
+                         formModelOptics.variadicFormData,
                          cache,
                          gformConnector.getAllTaxPeriods,
                          NoSpecificAction,

@@ -1,0 +1,117 @@
+{
+  "_id": "data-retrieve-count-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. Nino A ${ninoA} - ${count(dataRetrieve.employmentsNinoA)} employments\n\nNino B ${ninoB} - ${count(dataRetrieve.employmentsNinoB)} employments",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Enter date and ninos $n",
+          "fields": [
+            {
+              "id": "date",
+              "label": "Date",
+              "type": "date"
+            },
+            {
+              "id": "ninoA",
+              "type": "text",
+              "label": "Nino A",
+              "helpText": "AA111111A (1 employment)",
+              "format": "nino"
+            },
+            {
+              "id": "ninoB",
+              "type": "text",
+              "label": "Nino B",
+              "helpText": "AA333333A (3 employments)",
+              "format": "nino"
+            }
+          ],
+          "dataRetrieve": [
+            {
+              "type": "employments",
+              "id": "employmentsNinoA",
+              "parameters": {
+                "nino": "${ninoA}",
+                "taxYear": "${taxYear(date)}"
+              }
+            },
+            {
+              "type": "employments",
+              "id": "employmentsNinoB",
+              "parameters": {
+                "nino": "${ninoB}",
+                "taxYear": "${taxYear(date)}"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Test",
+          "fields": [
+            {
+              "id": "dummy",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "info",
+              "type": "info",
+              "label": "",
+              "infoText": "$n. count(dataRetrieve.employmentsNinoA): ${count(dataRetrieve.employmentsNinoA)}\n\ncount(dataRetrieve.employmentsNinoB): ${count(dataRetrieve.employmentsNinoB)}",
+              "infoType": "noformat"
+            }
+          ]
+        },
+        {
+          "title": "Secret $n",
+          "includeIf": "${count(dataRetrieve.employmentsNinoA) = 1}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

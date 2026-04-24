@@ -1,0 +1,1049 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n. {0} - {1}."
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "dateA"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "dateB"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Dates visibility"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Dates visibility"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "dateControl",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Show both"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "showBoth"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Show date A only"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "showDateA"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Show date B only"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "showDateB"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Hide both"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "hideBoth"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Dates $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "validators": [],
+                    "id": "dateA",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "AnyDate": {}
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "includeIf": {
+                      "booleanExpr": {
+                        "Or": {
+                          "left": {
+                            "Contains": {
+                              "multiValueField": {
+                                "formComponentId": "dateControl"
+                              },
+                              "value": {
+                                "Constant": {
+                                  "value": "showBoth"
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "Contains": {
+                              "multiValueField": {
+                                "formComponentId": "dateControl"
+                              },
+                              "value": {
+                                "Constant": {
+                                  "value": "showDateA"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Date A"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "validators": [],
+                    "id": "dateB",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "AnyDate": {}
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "includeIf": {
+                      "booleanExpr": {
+                        "Or": {
+                          "left": {
+                            "Contains": {
+                              "multiValueField": {
+                                "formComponentId": "dateControl"
+                              },
+                              "value": {
+                                "Constant": {
+                                  "value": "showBoth"
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "Contains": {
+                              "multiValueField": {
+                                "formComponentId": "dateControl"
+                              },
+                              "value": {
+                                "Constant": {
+                                  "value": "showDateB"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Date B"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Dummy"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "dummy",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another field?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating fields"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Test"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy2",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "basicInfo",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Date A: {0}\n\nDate B: {1}\n\nPeriod: {2}\n\nTotal months: {3}\n\nTotal year: {4}\n\nMonths: {5}\n\nDays: {6}\n\nSum: {7}"
+                            },
+                            "interpolations": [
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "dateA"
+                                }
+                              },
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "dateB"
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "TotalMonths": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Years": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Months": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Days": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Sum": {}
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "DateBefore": {
+                    "left": {
+                      "EarliestOf": {
+                        "exprs": [
+                          {
+                            "DateFormCtxVar": {
+                              "formCtx": {
+                                "formComponentId": "dateA"
+                              }
+                            }
+                          },
+                          {
+                            "DateFormCtxVar": {
+                              "formCtx": {
+                                "formComponentId": "dateB"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "right": {
+                      "DateValueExpr": {
+                        "value": {
+                          "ExactDateExprValue": {
+                            "year": 2024,
+                            "month": 1,
+                            "day": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secret",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Reveal"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "reveal"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Keep hidden"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "keepHidden"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "period-between-two-dates-atl-conditional",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "period-between-two-dates-atl-conditional",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

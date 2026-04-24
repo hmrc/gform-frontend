@@ -1,0 +1,78 @@
+{
+  "_id": "overseas-address-visibility",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Overseas address visibility",
+      "fields": [
+        {
+          "id": "addressControl",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Show address",
+              "value": "showAddress"
+            },
+            {
+              "en": "Hide address",
+              "value": "hideAddress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Overseas address",
+      "includeIf": "${addressControl contains 'showAddress'}",
+      "fields": [
+        {
+          "id": "overseasAddress",
+          "type": "overseasAddress"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "Overseas address: '${overseasAddress}'\n\nOverseas address is (=) ${if overseasAddress = '' then 'hidden' else 'visible'}\n\nOverseas address is (!=) ${if overseasAddress != '' then  'visible' else 'hidden'}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Oveseas address details",
+      "includeIf": "${overseasAddress != ''}",
+      "fields": [
+        {
+          "id": "details",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

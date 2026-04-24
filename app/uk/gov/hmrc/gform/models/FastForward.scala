@@ -42,7 +42,7 @@ sealed trait FastForward extends Product with Serializable {
         FastForward.ffCYA + ":" + to.value
     }("back:" + _.until.value)
 
-  def next(formModel: FormModel[Visibility], sn: SectionNumber): FastForward =
+  def next(formModel: FormModel, sn: SectionNumber): FastForward =
     fold[FastForward](identity) { st =>
       formModel.availableSectionNumbers
         .find(s => s >= st.stopAt && s >= sn)

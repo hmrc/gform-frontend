@@ -1,0 +1,102 @@
+{
+  "_id": "table-dynamic-atl-based",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${employerName} - ${tax}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer",
+          "fields": [
+            {
+              "id": "employerName",
+              "label": "Name",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "tax",
+              "label": "Tax",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Name and tax",
+      "fields": [
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Name",
+              "classes": "govuk-!-font-size-16"
+            },
+            {
+              "en": "Tax",
+              "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+            }
+          ],
+          "rows": [
+            {
+              "dynamic": "addAnother",
+              "values": [
+                {
+                  "value": "${employerName}",
+                  "class": "govuk-!-font-size-16"
+                },
+                {
+                  "value": "${tax}",
+                  "class": "govuk-!-font-size-16 govuk-table__header--numeric"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": "Total tax"
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": "${tax.sum}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

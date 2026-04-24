@@ -1,0 +1,1111 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Accounting period end date"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": true,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "End date of accounting period"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "accountingEnd",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Date": {
+                      "constraintType": {
+                        "AnyDate": {}
+                      },
+                      "offset": {
+                        "value": 0
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Tax Relief"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n. {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "productionName"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What is the name of the exhibition?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is the name of the exhibition?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "productionName",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Amount of loss surrendered for the accounting period"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "Not": {
+                      "e": {
+                        "DateAfter": {
+                          "left": {
+                            "DateFormCtxVar": {
+                              "formCtx": {
+                                "formComponentId": "accountingEnd"
+                              }
+                            }
+                          },
+                          "right": {
+                            "DateValueExpr": {
+                              "value": {
+                                "ExactDateExprValue": {
+                                  "year": 2025,
+                                  "month": 3,
+                                  "day": 31
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is the amount of loss surrendered?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "lossSurrenderedWholePeriod",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": true
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Amount of loss surrendered during the second part of the accounting period"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "DateAfter": {
+                      "left": {
+                        "DateFormCtxVar": {
+                          "formCtx": {
+                            "formComponentId": "accountingEnd"
+                          }
+                        }
+                      },
+                      "right": {
+                        "DateValueExpr": {
+                          "value": {
+                            "ExactDateExprValue": {
+                              "year": 2025,
+                              "month": 3,
+                              "day": 31
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is the amount of loss surrendered for the second part of the accounting period?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "lossSurrenderedSecondSplitPeriod",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": true
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Tax relief"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another tax relief claim?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Claiming tax relief"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Tax relief"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Tax Relief production totals for the accounting period ending {0}"
+                    },
+                    "interpolations": [
+                      {
+                        "FormCtx": {
+                          "formComponentId": "accountingEnd"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "calculationsTable",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Production name"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          },
+                          "classes": "govuk-!-font-size-16"
+                        },
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Loss surrendered for accounting period"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          },
+                          "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+                        },
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Tax credit claim for accounting period"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          },
+                          "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "productionName"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "cssClass": "govuk-!-font-size-16"
+                            },
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "lossSurrenderedWholePeriod"
+                                                }
+                                              },
+                                              "field2": {
+                                                "FormCtx": {
+                                                  "formComponentId": "lossSurrenderedSecondSplitPeriod"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "cssClass": "govuk-!-font-size-16 govuk-table__header--numeric"
+                            },
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "DateAfter": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "accountingEnd"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2025,
+                                                          "month": 3,
+                                                          "day": 31
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "lossSurrenderedSecondSplitPeriod"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.45"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "lossSurrenderedWholePeriod"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.20"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "cssClass": "govuk-!-font-size-16 govuk-table__header--numeric"
+                            }
+                          ],
+                          "dynamic": {
+                            "ATLBased": {
+                              "formComponentId": "addAnother"
+                            }
+                          }
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Total for the accounting period"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "cssClass": "govuk-table__header"
+                            },
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Sum": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Add": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrenderedWholePeriod"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrenderedSecondSplitPeriod"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "cssClass": "govuk-!-font-weight-bold govuk-!-text-align-right"
+                            },
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Sum": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "DateAfter": {
+                                                          "left": {
+                                                            "DateFormCtxVar": {
+                                                              "formCtx": {
+                                                                "formComponentId": "accountingEnd"
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "DateValueExpr": {
+                                                              "value": {
+                                                                "ExactDateExprValue": {
+                                                                  "year": 2025,
+                                                                  "month": 3,
+                                                                  "day": 31
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Multiply": {
+                                                          "field1": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "lossSurrenderedSecondSplitPeriod"
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "Constant": {
+                                                              "value": "0.45"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Multiply": {
+                                                          "field1": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "lossSurrenderedWholePeriod"
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "Constant": {
+                                                              "value": "0.20"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "cssClass": "govuk-!-font-weight-bold govuk-!-text-align-right"
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThanOrEquals": {
+                    "left": {
+                      "Typed": {
+                        "expr": {
+                          "Sum": {
+                            "field1": {
+                              "Typed": {
+                                "expr": {
+                                  "Add": {
+                                    "field1": {
+                                      "FormCtx": {
+                                        "formComponentId": "lossSurrenderedWholePeriod"
+                                      }
+                                    },
+                                    "field2": {
+                                      "FormCtx": {
+                                        "formComponentId": "lossSurrenderedSecondSplitPeriod"
+                                      }
+                                    }
+                                  }
+                                },
+                                "tpe": {
+                                  "Sterling": {
+                                    "roundingMode": "Down"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "tpe": {
+                          "Sterling": {
+                            "roundingMode": "Down"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "300"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secret",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Reveal"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "reveal"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Keep hidden"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "keepHidden"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "table-dynamic-atl-based-typed-exprs",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "table-dynamic-atl-based-typed-exprs",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}
