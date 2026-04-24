@@ -201,7 +201,7 @@ sealed trait TextConstraint {
     case SubmissionRefFormat          => CssClassSize._20
     case TelephoneNumber              => CssClassSize._10
     case Email                        => CssClassSize._30
-    case EmailVerifiedBy(_, _)        => CssClassSize._10
+    case EmailVerifiedBy(_, _)        => CssClassSize._30
     case SaUTR                        => CssClassSize._10
     case CtUTR                        => CssClassSize._10
     case NINO                         => CssClassSize._10
