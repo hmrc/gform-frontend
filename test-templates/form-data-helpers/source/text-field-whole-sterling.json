@@ -1,0 +1,32 @@
+{
+  "_id": "text-field-whole-sterling",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Whole sterling",
+      "fields": [
+        {
+          "id": "amountField",
+          "type": "text",
+          "format": "positiveWholeSterling"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

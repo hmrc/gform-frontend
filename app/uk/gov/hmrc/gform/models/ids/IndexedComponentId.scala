@@ -48,6 +48,8 @@ sealed trait IndexedComponentId extends Product with Serializable {
     case IndexedComponentId.Indexed(baseComponentId, index) =>
       IndexedComponentId.pure(baseComponentId)
   }
+
+  def value(): String = fold(s => s.baseComponentId.value)(r => r.index.toString + "_" + r.baseComponentId.value)
 }
 
 object IndexedComponentId {

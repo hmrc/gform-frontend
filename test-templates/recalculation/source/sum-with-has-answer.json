@@ -1,0 +1,172 @@
+{
+  "_id": "sum-with-has-answer",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "offset": "if homeCountry in country then 10 else 20",
+    "calculation": "amount + offset"
+  },
+  "sections": [
+    {
+      "title": "Home country",
+      "fields": [
+        {
+          "id": "homeCountry",
+          "type": "text",
+          "format": "lookup(country)"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amount} : ${country} : ${calculation} : ${calculation.sum}.",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount",
+          "fields": [
+            {
+              "id": "amount",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "showCountry",
+              "type": "choice",
+              "label": "Show country",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "yes"
+                },
+                {
+                  "en": "No",
+                  "value": "no"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Country",
+          "includeIf": "${showCountry contains 'yes'}",
+          "fields": [
+            {
+              "id": "country",
+              "type": "text",
+              "format": "lookup(country)",
+              "shortName": "Country"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculation.sum = '56'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "calculation.sum = ${calculation.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculation = ${calculation}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "homeCountry: ${homeCountry}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amount: ${amount}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "country: ${country}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "homeCountry in country: ${if homeCountry in country then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

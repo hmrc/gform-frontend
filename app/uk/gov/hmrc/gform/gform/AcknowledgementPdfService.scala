@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
@@ -65,7 +64,7 @@ class AcknowledgementPdfService(
   def getRenderedPdfSize(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -87,7 +86,7 @@ class AcknowledgementPdfService(
   def createPDFContent(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     sendAuditEvent: Boolean
   )(implicit
     request: Request[_],
@@ -126,7 +125,7 @@ class AcknowledgementPdfService(
       submission <- getSubmission(cache, maybeAccessCode)
       pdfContent <-
         pdfRenderService
-          .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
+          .createPDFContent[SectionSelectorType.WithAcknowledgement, PDFType.Summary](
             s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
             None,
             cache,

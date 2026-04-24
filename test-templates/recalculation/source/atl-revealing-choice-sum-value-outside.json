@@ -1,0 +1,78 @@
+{
+  "_id": "atl-revealing-choice-sum-value-outside",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n. ${repayReasonChoice}",
+      "summaryDescription": "${repayReasonChoice}",
+      "addAnotherQuestion": {
+        "id": "anotherItem",
+        "type": "choice",
+        "label": "Do you want to add another pageA?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Page A",
+          "fields": [
+            {
+              "id": "repayReasonChoice",
+              "type": "revealingChoice",
+              "label": "What is the main reason you are repaying the grant money?",
+              "choices": [
+                "I am not eligible",
+                "I would prefer to repay it, or part of it",
+                "I believe HMRC has paid me too much in error"
+              ],
+              "revealingFields": [
+                [],
+                [
+                  {
+                    "id": "pageA",
+                    "type": "text",
+                    "label": "Page A",
+                    "format": "number"
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "number(11, 0)",
+          "submitMode": "readonly",
+          "value": "${pageA.sum}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

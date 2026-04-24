@@ -1,0 +1,2221 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Data"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Number A"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "numberA",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "Number": {
+                          "maxWholeDigits": 5,
+                          "maxFractionalDigits": 0,
+                          "roundingMode": "Down"
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Number B"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "numberB",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "Number": {
+                          "maxWholeDigits": 5,
+                          "maxFractionalDigits": 0,
+                          "roundingMode": "Up"
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include A"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "LessThan": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberA"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include A"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxA",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "AAA"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include B"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "LessThan": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberB"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include B"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxB",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "BBB"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include C"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "LessThanOrEquals": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberA"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include C"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxC",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "CCC"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include D"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "LessThanOrEquals": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberB"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include D"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxD",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "DDD"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include E"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThan": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberA"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include E"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxE",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "EEE"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include F"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThan": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberB"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include F"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxF",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "FFF"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include G"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThanOrEquals": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberA"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include G"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxG",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "GGG"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include H"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "GreaterThanOrEquals": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberB"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include H"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxH",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "HHH"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include I"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberA"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include I"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxI",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "III"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Include J"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Multiply": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "numberB"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "0.1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "16"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Include J"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "textBoxJ",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "JJJ"
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "tableOutside",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Equation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "numberA - Down: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "numberA"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "numberB - Up: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "numberB"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxA: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxA"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxB: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxB"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxC: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxC"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxD: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxD"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxE: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxE"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxF: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxF"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxG: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxG"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxH: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxH"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxI: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxI"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "textBoxJ: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "textBoxJ"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxA visible: {0} : numberA * 0.1 < 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "LessThan": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberA"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxB visible: {0} : numberB * 0.1 < 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "LessThan": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberB"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxC visible: {0} : numberA * 0.1 <= 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "LessThanOrEquals": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberA"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxD visible: {0} : numberB * 0.1 <= 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "LessThanOrEquals": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberB"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxE visible: {0} : numberA * 0.1 > 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "GreaterThan": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberA"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxF visible: {0} : numberB * 0.1 > 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "GreaterThan": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberB"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxG visible: {0} : numberA * 0.1 >= 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "GreaterThanOrEquals": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberA"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxH visible: {0} : numberB * 0.1 >= 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "GreaterThanOrEquals": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberB"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxI visible: {0} : numberA * 0.1 = 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Equals": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberA"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Is textBoxJ visible: {0} : numberB * 0.1 = 16"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Equals": {
+                                              "left": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "numberB"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": "0.1"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "16"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "numberA * 0.1: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Multiply": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "numberA"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "0.1"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "numberB * 0.1: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Multiply": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "numberB"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "0.1"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "numberA * 0.123: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Multiply": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "numberA"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "0.123"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "numberB * 0.123: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Multiply": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "numberB"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "0.123"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "0.123 * numberA: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Multiply": {
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "0.123"
+                                            }
+                                          },
+                                          "field2": {
+                                            "FormCtx": {
+                                              "formComponentId": "numberA"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "0.123 * numberB: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Multiply": {
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "0.123"
+                                            }
+                                          },
+                                          "field2": {
+                                            "FormCtx": {
+                                              "formComponentId": "numberB"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "text-number-rounding-lhs",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "text-number-rounding-lhs",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

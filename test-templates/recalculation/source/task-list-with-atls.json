@@ -1,0 +1,129 @@
+{
+  "_id": "task-list-with-atls",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "submitSection": {
+    "label": "Submit",
+    "taskLabel": "Submit"
+  },
+  "sections": [
+    {
+      "title": "Section A",
+      "tasks": [
+        {
+          "title": "Task A 1",
+          "sections": [
+            {
+              "type": "addToList",
+              "title": "Items you have added",
+              "summaryName": "Items",
+              "shortName": "Item $n",
+              "description": "$n. ${pageA}",
+              "summaryDescription": "${pageA}",
+              "addAnotherQuestion": {
+                "id": "anotherItemA",
+                "type": "choice",
+                "label": "Do you want to add another pageA?",
+                "format": "yesno"
+              },
+              "pages": [
+                {
+                  "title": "Page A",
+                  "fields": [
+                    {
+                      "id": "pageA",
+                      "type": "text",
+                      "label": "Page A",
+                      "format": "number"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Section B",
+      "tasks": [
+        {
+          "title": "Task B 1",
+          "sections": [
+            {
+              "type": "addToList",
+              "title": "Items you have added",
+              "summaryName": "Items",
+              "shortName": "Item $n",
+              "description": "$n. ${pageB}",
+              "summaryDescription": "${pageB}",
+              "addAnotherQuestion": {
+                "id": "anotherItemB",
+                "type": "choice",
+                "label": "Do you want to add another pageB?",
+                "format": "yesno"
+              },
+              "pages": [
+                {
+                  "title": "Page B",
+                  "fields": [
+                    {
+                      "id": "pageB",
+                      "type": "text",
+                      "label": "Page B",
+                      "format": "number"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Section C",
+      "tasks": [
+        {
+          "title": "Task C 1",
+          "sections": [
+            {
+              "title": "Page C",
+              "fields": [
+                {
+                  "id": "pageC",
+                  "type": "text",
+                  "label": "Page C",
+                  "format": "number",
+                  "submitMode": "readonly",
+                  "value": "${pageA.sum + pageB.sum}"
+                },
+                {
+                  "id": "pageD",
+                  "type": "text",
+                  "label": "Page D",
+                  "format": "number"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

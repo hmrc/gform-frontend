@@ -203,22 +203,28 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     "/mdtp/uplift?origin=gForm&completionURL=%2Fnew-form%2Faaa999&failureURL=%2Fidentity-verification%2Ffailure%2Faaa999&confidenceLevel=200"
   )
 
+  val formTemplateAAA999 = buildFormTemplate.copy(_id = FormTemplateId("AAA999"))
+
   val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuthNoCheck)
-  val formTemplateAgentDenied = buildFormTemplate.copy(authConfig = authConfigAgentDenied)
+  val formTemplateAgentDenied =
+    formTemplateAAA999.copy(authConfig = authConfigAgentDenied)
 
   val authConfigAnyAgentAllowed = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuthNoCheck)
-  val formTemplateAnyAgentAllowed = buildFormTemplate.copy(authConfig = authConfigAnyAgentAllowed)
+  val formTemplateAnyAgentAllowed =
+    formTemplateAAA999.copy(authConfig = authConfigAnyAgentAllowed)
 
   val authConfigRequireMTDAgentEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthNoCheck)
-  val formTemplateRequireMTDAgentEnrolment = buildFormTemplate.copy(authConfig = authConfigRequireMTDAgentEnrolment)
+  val formTemplateRequireMTDAgentEnrolment =
+    formTemplateAAA999.copy(authConfig = authConfigRequireMTDAgentEnrolment)
 
   val authConfigEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthCheck)
   val authConfigEnrolmentOrg = HmrcEnrolmentModule(enrolmentAuthCheck)
-  val formTemplateEnrolment = buildFormTemplate.copy(authConfig = authConfigEnrolment)
-  val formTemplateEnrolmentOrg = buildFormTemplate.copy(authConfig = authConfigEnrolmentOrg)
+  val formTemplateEnrolment = formTemplateAAA999.copy(authConfig = authConfigEnrolment)
+  val formTemplateEnrolmentOrg =
+    formTemplateAAA999.copy(authConfig = authConfigEnrolmentOrg)
 
   val authAWSALB: AuthConfig = AWSALBAuth
-  val formTemplateAWSALB = buildFormTemplate.copy(authConfig = authAWSALB)
+  val formTemplateAWSALB = formTemplateAAA999.copy(authConfig = authAWSALB)
 
   val authConfigHmrcVerifiedMTDAgent = HmrcVerified(
     LocalisedString(Map(LangADT.En -> "test")),
@@ -254,7 +260,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate, None),
+        FormTemplateContext.basicContext(formTemplateAAA999, None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessful,
@@ -420,21 +426,22 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   }
 
   it should "block authorization for GG-authenticated users with hmrcVerified and AgentAccess configured with RequireMTDAgentEnrolment only" in {
+
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedMTDAgent), None),
+        FormTemplateContext.basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedMTDAgent), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulAgent,
         None
       )
-    result.futureValue should be(AuthRedirect(routes.AgentEnrolmentController.prologue(buildFormTemplate._id).url))
+    result.futureValue should be(AuthRedirect(routes.AgentEnrolmentController.prologue(formTemplateAAA999._id).url))
   }
 
   it should "authorize GG-authenticated users with hmrcVerified and AgentAccess configured with RequireMTDAgentEnrolment and valid enrolment" in {
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        FormTemplateContext.basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulEnrolledAgent,
@@ -446,7 +453,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorize GG-authenticated users with hmrcVerified and AgentAccess configured with AllowAnyAgentAffinityUser" in {
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        FormTemplateContext.basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulEnrolledAgent,
@@ -458,7 +465,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "authorize GG-authenticated CL200 Individual with hmrcVerified with a NINO" in {
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        FormTemplateContext.basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulIndividualCL200WithNino,
@@ -471,7 +478,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "redirect to IV uplift GG-authenticated CL200 Individual with hmrcVerified and no NINO" in {
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        FormTemplateContext.basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulIndividualCL200,
@@ -484,7 +491,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
   it should "redirect to IV uplift GG-authenticated CL50 Individual with hmrcVerified and allowSAIndividuals set to false" in {
     val result =
       authService.authenticateAndAuthorise(
-        FormTemplateContext.basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
+        FormTemplateContext.basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAnyAgent), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessful,
@@ -498,7 +505,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService.authenticateAndAuthorise(
         FormTemplateContext
-          .basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAllowSAIndividuals), None),
+          .basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAllowSAIndividuals), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulIndividualWithSA,
@@ -512,7 +519,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService.authenticateAndAuthorise(
         FormTemplateContext
-          .basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAllowOrganisations), None),
+          .basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAllowOrganisations), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulOrganisation,
@@ -526,7 +533,7 @@ class AuthServiceSpec extends ExampleData with Spec with TableDrivenPropertyChec
     val result =
       authService.authenticateAndAuthorise(
         FormTemplateContext
-          .basicContext(buildFormTemplate.copy(authConfig = authConfigHmrcVerifiedAllowSAIndividuals), None),
+          .basicContext(formTemplateAAA999.copy(authConfig = authConfigHmrcVerifiedAllowSAIndividuals), None),
         getAffinityGroup,
         getGovernmentGatewayId,
         ggAuthorisedSuccessfulOrganisation,

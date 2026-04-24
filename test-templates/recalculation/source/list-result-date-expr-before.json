@@ -1,0 +1,57 @@
+{
+  "_id": "list-result-date-expr-before",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "summaryDescription": "${enterDate}",
+      "description": "$n. ${enterDate}",
+      "addAnotherQuestion": {
+        "id": "anotherItem",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Enter date $n",
+          "fields": [
+            {
+              "id": "enterDate",
+              "type": "date"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Enter name",
+      "includeIf": "${enterDate before 01012001}",
+      "fields": [
+        {
+          "id": "name",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

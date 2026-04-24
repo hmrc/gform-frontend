@@ -28,15 +28,14 @@ import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, DestinationEvaluator, FrontEndSubmissionVariablesBuilder, SectionRenderingService, StructuredFormDataBuilder, SummaryPagePurpose, UserSessionBuilder }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType, UserSession }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.pdf.model.PDFCustomRender
 import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.InstructionPdfFields
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfContent, SourceOrigin, SubmissionData, UserId, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT, PdfContent, SubmissionData, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, FormIdData, FormModelOptics, FormStatus, QueryParams, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormPhase, FormTemplate, FormTemplateContext, FormTemplateId, InstructionPDF }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.models.optics.DataOrigin.Mongo
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
@@ -68,14 +67,14 @@ trait GformBackEndAlgebra[F[_]] {
     hc: HeaderCarrier
   ): F[Option[Submission]]
 
-  def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+  def submitWithUpdatedFormStatus[U <: SectionSelectorType: SectionSelector](
     formStatus: FormStatus,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails],
     customerId: CustomerId,
     attachments: Attachments,
-    formModelOptics: FormModelOptics[D]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -136,14 +135,14 @@ class GformBackEndService(
   ): Future[Option[Submission]] =
     gformConnector.submissionDetails(formIdData, envelopeId)
 
-  def submitWithUpdatedFormStatus[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+  def submitWithUpdatedFormStatus[U <: SectionSelectorType: SectionSelector](
     formStatus: FormStatus,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails],
     customerId: CustomerId,
     attachments: Attachments,
-    formModelOptics: FormModelOptics[D]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -159,13 +158,13 @@ class GformBackEndService(
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector.forceUpdateFormStatus(formId, status)
 
-  private def handleSubmission[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+  private def handleSubmission[U <: SectionSelectorType: SectionSelector](
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     customerId: CustomerId,
     submissionDetails: Option[SubmissionDetails],
     attachments: Attachments,
-    formModelOptics: FormModelOptics[D]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -175,7 +174,7 @@ class GformBackEndService(
   ): Future[HttpResponse] = {
     val summarySectionDeclaration = renderer.renderSummarySectionDeclaration(
       cache,
-      formModelOptics.asInstanceOf[FormModelOptics[DataOrigin.Mongo]],
+      formModelOptics,
       maybeAccessCode,
       cache.formTemplate.summarySection.excludeFieldsFromPDF,
       ValidationResult.empty
@@ -196,7 +195,7 @@ class GformBackEndService(
 
     for {
       htmlForPDF <-
-        pdfRenderService.createPDFContent[D, U, PDFType.Summary](
+        pdfRenderService.createPDFContent[U, PDFType.Summary](
           s"${messages("summary.acknowledgement.pdf")} - ${cache.formTemplate.formName.value}",
           None,
           cache,
@@ -215,14 +214,14 @@ class GformBackEndService(
       htmlForInstructionPDF <-
         dmsDestinationWithIncludeInstructionPdf(cache.formTemplate) match {
           case Some(InstructionPdfFields.Ordered) =>
-            createHTMLForInstructionPDF[SectionSelectorType.Normal, D, PDFType.Instruction](
+            createHTMLForInstructionPDF[SectionSelectorType.Normal, PDFType.Instruction](
               cache,
               submissionDetails,
               formModelOptics,
               None
             )
           case Some(InstructionPdfFields.All) =>
-            createHTMLForInstructionPDF[SectionSelectorType.Normal, D, PDFType.Summary](
+            createHTMLForInstructionPDF[SectionSelectorType.Normal, PDFType.Summary](
               cache,
               submissionDetails,
               formModelOptics,
@@ -256,10 +255,10 @@ class GformBackEndService(
     } yield response
   }
 
-  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, D <: DataOrigin, P <: PDFType](
+  private def createHTMLForInstructionPDF[U <: SectionSelectorType: SectionSelector, P <: PDFType](
     cache: AuthCacheWithForm,
     submissionDetails: Option[SubmissionDetails],
-    formModelOptics: FormModelOptics[D],
+    formModelOptics: FormModelOptics,
     maybeFormName: Option[String]
   )(implicit
     messages: Messages,
@@ -268,9 +267,8 @@ class GformBackEndService(
     hc: HeaderCarrier,
     pdfFunctions: PDFCustomRender[P]
   ): Future[Option[PdfContent]] = {
-    val formModelOpticsUpdated = FormModelOptics.mkFormModelOptics[D, SectionSelectorType.Normal](
-      formModelOptics.formModelVisibilityOptics.recData.variadicFormData
-        .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+    val formModelOpticsUpdated = FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
+      formModelOptics.formModelVisibilityOptics.freeCalculator.variadicFormData,
       cache,
       Some(FormPhase(InstructionPDF))
     )
@@ -278,11 +276,10 @@ class GformBackEndService(
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory
       .apply(
         formModelOpticsUpdated.formModelVisibilityOptics
-          .asInstanceOf[FormModelVisibilityOptics[Mongo]]
       )
 
     pdfRenderService
-      .createPDFContent[D, U, P](
+      .createPDFContent[U, P](
         s"Instructions PDF - ${cache.formTemplate.formName.value}",
         None,
         cache,
@@ -301,9 +298,9 @@ class GformBackEndService(
 
   }
 
-  def emailParameter[D <: DataOrigin](
+  def emailParameter(
     formTemplate: FormTemplate,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages): EmailParametersRecalculated =
     formTemplate.emailParameters.fold(EmailParametersRecalculated.empty) { emailParameters =>
       val emailParametersRecalculated: Map[EmailTemplateVariable, EmailParameterValue] = emailParameters
@@ -332,7 +329,7 @@ class GformBackEndService(
         )
       )
 
-  private def handleSubmission[D <: DataOrigin](
+  private def handleSubmission(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     envelopeId: EnvelopeId,
@@ -343,7 +340,7 @@ class GformBackEndService(
     htmlForInstructionPDF: Option[PdfContent],
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeEmailAddress: Option[String],
     userSession: UserSession
   )(implicit hc: HeaderCarrier, l: LangADT, m: Messages): Future[HttpResponse] =
@@ -364,10 +361,10 @@ class GformBackEndService(
         maybeEmailAddress,
         userSession
       ),
-      AffinityGroupUtil.fromRetrievals(retrievals)
+      retrievals.maybeAffinityGroup
     )
 
-  private def buildSubmissionData[D <: DataOrigin](
+  private def buildSubmissionData(
     htmlForPDF: PdfContent,
     htmlForInstructionPDF: Option[PdfContent],
     customerId: CustomerId,
@@ -377,7 +374,7 @@ class GformBackEndService(
     emailParameters: EmailParametersRecalculated,
     structuredFormData: StructuredFormValue.ObjectStructure,
     attachments: Attachments,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeEmailAddress: Option[String],
     userSession: UserSession
   )(implicit l: LangADT, m: Messages): SubmissionData =
@@ -412,7 +409,7 @@ class GformBackEndService(
     for {
       newFormData <-
         gformConnector
-          .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals), queryParams)
+          .newForm(formTemplateId, UserId(retrievals), retrievals.maybeAffinityGroup, queryParams)
       _ <- gformConnector.upsertAuthRetrievalsByFormIdData(
              AuthRetrievalsByFormIdData(newFormData, Json.toJson(retrievals))
            )

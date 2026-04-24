@@ -1,0 +1,167 @@
+{
+  "_id": "duplicate-exists-or-duplicate-exists",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "People in charge of the business you have added",
+      "shortName": "People",
+      "summaryDescription": "${personName}",
+      "summaryName": "People in charge of the business",
+      "description": "$n - ${personName} - ${if personLocationChoice contains 0 then 'National Insurance number:' else 'National Identification number:'} ${personNino}${personNationalId}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another person?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "What is your full name?",
+          "fields": [
+            {
+              "id": "personName",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Is your residential address in the UK?",
+          "fields": [
+            {
+              "id": "personLocationChoice",
+              "type": "choice",
+              "format": "yesno"
+            }
+          ]
+        },
+        {
+          "id": "personNinoPage",
+          "includeIf": "${personLocationChoice contains 0}",
+          "title": "What is your National Insurance number?",
+          "fields": [
+            {
+              "id": "personNino",
+              "type": "text",
+              "format": "nino",
+              "toUpperCase": true
+            }
+          ]
+        },
+        {
+          "id": "personNationalIdPage",
+          "includeIf": "${personLocationChoice contains 1}",
+          "title": "What is your national identification number?",
+          "fields": [
+            {
+              "id": "personNationalId",
+              "format": "text",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "includeIf": "${duplicateExists(personNino) || duplicateExists(personNationalId)}",
+          "removeItemIf": "${personChangeOrRemoveChoice contains 'removePerson'}",
+          "caption": "People in charge of the business",
+          "title": [
+            {
+              "includeIf": "${personLocationChoice contains 0}",
+              "en": "You have already added a person with this National Insurance number"
+            },
+            {
+              "en": "You have already added a person with this national identification number"
+            }
+          ],
+          "fields": [
+            {
+              "id": "duplicateInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "<h2 class='govuk-heading-m'>Details of the person you are trying to add</h2>",
+              "infoType": "noformat"
+            },
+            {
+              "id": "duplicatesMiniSummary",
+              "type": "miniSummaryList",
+              "label": {
+                "en": "Person you are adding"
+              },
+              "rows": [
+                {
+                  "key": "Full name",
+                  "value": "${personName}"
+                },
+                {
+                  "includeIf": "${personLocationChoice contains 0}",
+                  "key": "National Insurance number",
+                  "value": "${personNino}"
+                },
+                {
+                  "includeIf": "${personLocationChoice contains 1}",
+                  "key": "National Identification number",
+                  "value": "${personNationalId}"
+                }
+              ]
+            }
+          ],
+          "confirmation": {
+            "question": {
+              "id": "personChangeOrRemoveChoice",
+              "type": "choice",
+              "label": "What do you want to do next?",
+              "displayInSummary": false,
+              "choices": [
+                {
+                  "includeIf": "${duplicateExists(personNino)}",
+                  "en": "Change the National Insurance number",
+                  "value": "changeNino"
+                },
+                {
+                  "includeIf": "${duplicateExists(personNationalId)}",
+                  "en": "Change the National Identity number",
+                  "value": "changeNID"
+                },
+                {
+                  "en": "Remove ${personName}",
+                  "value": "removePerson"
+                }
+              ]
+            },
+            "redirects": [
+              {
+                "if": "${personChangeOrRemoveChoice contains 'changeNino'}",
+                "pageId": "personNinoPage"
+              },
+              {
+                "if": "${personChangeOrRemoveChoice contains 'changeNID'}",
+                "pageId": "personNationalIdPage"
+              }
+            ],
+            "fieldsConfirmed": [
+              "personName",
+              "personNino",
+              "personNationalId"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

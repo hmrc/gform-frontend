@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import SmartStringGen.smartStringGen
 import cats.data.NonEmptyList
@@ -99,7 +98,7 @@ trait SectionGen {
       includeIf
     )
 
-  def pageGen: Gen[Page[Basic]] =
+  def pageGen: Gen[Page] =
     for {
       title            <- smartStringGen
       id               <- Gen.option(PageIdGen.pageIdGen)

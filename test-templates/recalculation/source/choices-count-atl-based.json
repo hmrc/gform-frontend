@@ -1,0 +1,86 @@
+{
+  "_id": "choices-count-atl-based",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${employer}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another employer?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer",
+          "fields": [
+            {
+              "id": "employer",
+              "label": "Employer",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Which employer are you claiming pension tax relief for?",
+      "fields": [
+        {
+          "id": "selectedEmployer",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "${employer}",
+              "dynamic": "employer",
+              "value": "employer"
+            },
+            {
+              "en": "Other",
+              "value": "other"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Choices count: ${choicesCount(selectedEmployer)}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

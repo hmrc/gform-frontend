@@ -1,0 +1,107 @@
+{
+  "_id": "atl-inside-reference-count",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${genre} ${repeatingField}",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Genre $n",
+          "fields": [
+            {
+              "id": "genre",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Film",
+                  "value": "film"
+                },
+                {
+                  "en": "Game",
+                  "value": "game"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Repeating field",
+          "includeIf": "${genre contains 'game'}",
+          "fields": [
+            {
+              "id": "repeatingField",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Check page $n ${repeatingField.count}",
+          "fields": [
+            {
+              "id": "check",
+              "label": "Check",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "secret",
+              "includeIf": "${repeatingField.count > 2}",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Secret",
+          "includeIf": "${secret contains 'reveal'}",
+          "fields": [
+            {
+              "id": "basicInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "${concat('tada')} $n",
+              "infoType": "noformat"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

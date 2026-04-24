@@ -15,15 +15,17 @@
  *@
 
 @import uk.gov.hmrc.gform.objectStore.Envelope
-@import uk.gov.hmrc.gform.models.optics.DataOrigin
 @import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 @import views.html.helper.CSPNonce
 
-@(formModelOptics: FormModelOptics[_ <: DataOrigin], totalColumns: Int, envelope: Envelope)(implicit requestHeader: RequestHeader)
+@(formModelOptics: FormModelOptics, totalColumns: Int, envelope: Envelope)(implicit requestHeader: RequestHeader)
 
 <html>
     <head>
 	<style @{CSPNonce.attr}>
+         table, th, td {
+              border: 1px solid black;
+         }
 	 body {
 	     font-family: monospace;
 	 }
@@ -61,7 +63,7 @@
 		<tr>
 		    <td colspan="@totalColumns">
 			<ul>
-			    @for(pair <- formModelOptics.formModelRenderPageOptics.recData.variadicFormData.data.toList.sortBy(_._1.toMongoIdentifier)) {
+			    @for(pair <- formModelOptics.variadicFormData.data.toList.sortBy(_._1.toMongoIdentifier)) {
 				<li>
 				@pair._1 - @{pair._2.fold(_.value)(_.value.mkString(","))}
 				</li>

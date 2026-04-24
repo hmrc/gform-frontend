@@ -38,32 +38,32 @@ sealed trait AllSections extends Product with Serializable {
       case r: AllSections.TaskList => g(r)
     }
 
-  def mapSection[A <: PageMode](
-    f: Option[Coordinates] => IndexedSection => Option[Bracket[A]]
-  ): BracketPlainCoordinated[A] =
-    fold[BracketPlainCoordinated[A]] { classic =>
-      val xs: List[Bracket[A]] = classic.sections.map(f(None)).collect { case Some(bracket) =>
+  def mapSection(
+    f: Option[Coordinates] => IndexedSection => Option[Bracket]
+  ): Brackets =
+    fold[Brackets] { classic =>
+      val xs: List[Bracket] = classic.sections.map(f(None)).collect { case Some(bracket) =>
         bracket
       }
       NonEmptyList
         .fromList(xs)
         .fold(throw new IllegalArgumentException("Form must have at least one (visible) page")) {
-          BracketPlainCoordinated.Classic(_)
+          Brackets.Classic(_)
         }
     } { taskList =>
-      val xs: NonEmptyList[(Coordinates, TaskModel[A])] = taskList.coordSections.map { case (coordinates, sections) =>
-        val xs: List[Bracket[A]] = sections.map(f(Some(coordinates))).collect { case Some(bracket) =>
+      val xs: NonEmptyList[(Coordinates, TaskModel)] = taskList.coordSections.map { case (coordinates, sections) =>
+        val xs: List[Bracket] = sections.map(f(Some(coordinates))).collect { case Some(bracket) =>
           bracket
         }
 
-        val taskModelCoordinated: TaskModel[A] = NonEmptyList
+        val taskModelCoordinated: TaskModel = NonEmptyList
           .fromList(xs)
-          .fold(TaskModel.allHidden[A])(brackets => TaskModel.editable[A](brackets))
+          .fold(TaskModel.allHidden)(brackets => TaskModel.editable(brackets))
 
         coordinates -> taskModelCoordinated
 
       }
-      BracketPlainCoordinated.TaskList(xs)
+      Brackets.TaskList(xs)
     }
 
   def +(others: List[Section.NonRepeatingPage]) = fold[AllSections](_.copy(others = others))(_.copy(others = others))

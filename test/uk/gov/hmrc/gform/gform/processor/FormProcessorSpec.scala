@@ -26,21 +26,20 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.addresslookup.AddressLookupService
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInformationAsyncConnector, DelegatedAgentAuthAsyncConnector, NinoInsightsAsyncConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
+import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ FastForwardService, FileSystemConnector }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreService
-import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormModelOptics, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormModelOptics, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Mandatory, PageId, ShortText, TemplateSectionIndex, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 
-import java.time.Instant
 import scala.concurrent.Future
 
 class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormDataSupport {
@@ -73,6 +72,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
   private val addressLookupService: AddressLookupService[Future] = mock[AddressLookupService[Future]]
   private val bankAccountInsightsConnector: BankAccountInsightsAsyncConnector = mock[BankAccountInsightsAsyncConnector]
   private val delegatedAgentAuthConnector: DelegatedAgentAuthAsyncConnector = mock[DelegatedAgentAuthAsyncConnector]
+  private val smartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
 
   val formProcessor = new FormProcessor(
     i18nSupport,
@@ -89,7 +89,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     addressLookupService,
     bankAccountInsightsConnector,
     delegatedAgentAuthConnector,
-    messages
+    smartStringEvaluatorFactory
   )
 
   "checkForRevisits" should "correctly remove page(s) from visits index" in {
@@ -126,25 +126,19 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
       )
     }.toList
 
-    val existingData: VariadicFormData[SourceOrigin.OutOfDate] =
-      variadicFormData[SourceOrigin.OutOfDate]((0 to 4).map(i => s"comp$i" -> s"val$i"): _*)
+    val existingData: VariadicFormData =
+      variadicFormData((0 to 4).map(i => s"comp$i" -> s"val$i"): _*)
 
     val fmb: FormModelBuilder = mkFormModelFromSections(sections)
 
-    val visibilityOpticsMongo: FormModelVisibilityOptics[DataOrigin.Mongo] =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-        existingData,
-        None,
-        Instant.now,
-        BooleanExprCache.empty
-      )
-    val formModelOpticsMongo =
-      fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-        visibilityOpticsMongo,
-        BooleanExprCache.empty,
-        None
-      )
-    val visibilityFormModelVisibility: FormModel[Visibility] = formModelOpticsMongo.formModelVisibilityOptics.formModel
+    val formModelOptics: FormModelOptics =
+      fmb
+        .visibilityModel[SectionSelectorType.Normal](
+          existingData,
+          None,
+          Form.dummy(FormTemplateId(""))
+        )
+    val visibilityFormModelVisibility: FormModel = formModelOptics.formModelVisibilityOptics.formModel
     val initialVisitsIndex = VisitIndex.Classic(
       (0 to 4).map(pageIdx => Classic.NormalPage(TemplateSectionIndex(pageIdx))).toSet
     )
@@ -152,7 +146,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
     val table = Table(
       ("enteredData", "pageIdxToValidate", "expected"),
       (
-        variadicFormData[SourceOrigin.OutOfDate](
+        variadicFormData(
           "comp0" -> "val0",
           "comp1" -> "val1",
           "comp2" -> "valUpdate",
@@ -163,7 +157,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         Set(0, 1, 2, 3, 4)
       ),
       (
-        variadicFormData[SourceOrigin.OutOfDate](
+        variadicFormData(
           "comp0" -> "val0",
           "comp1" -> "val1",
           "comp2" -> "valUpdate",
@@ -174,7 +168,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         Set(0, 1, 2, 4)
       ),
       (
-        variadicFormData[SourceOrigin.OutOfDate](
+        variadicFormData(
           "comp0" -> "valUpdate",
           "comp1" -> "val1",
           "comp2" -> "val2",
@@ -185,7 +179,7 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         Set(0, 3)
       ),
       (
-        variadicFormData[SourceOrigin.OutOfDate](
+        variadicFormData(
           "comp0" -> "val0",
           "comp1" -> "val1",
           "comp2" -> "val2",
@@ -203,14 +197,8 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         expectedPageSet.map(pageIdx => Classic.NormalPage(TemplateSectionIndex(pageIdx)))
       )
 
-      val visibilityPageModel: PageModel[Visibility] =
+      val visibilityPageModel: PageModel =
         visibilityFormModelVisibility(Classic.NormalPage(TemplateSectionIndex(pageIdxToValidate)))
-      val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-        fmb.renderPageModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-          visibilityOpticsMongo,
-          BooleanExprCache.empty,
-          None
-        )
 
       val actual: VisitIndex = formProcessor.checkForRevisits(
         visibilityPageModel,

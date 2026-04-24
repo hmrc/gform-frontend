@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.auth.AuthConnector
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.GformRequestAttrKeys.emailSessionClearAttrKey
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section.NonRepeatingPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
@@ -112,7 +111,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
       .Classic(
         List(
           NonRepeatingPage(
-            Page[Basic](
+            Page(
               title = toSmartString("Page1"),
               id = None,
               noPIITitle = None,
@@ -226,5 +225,4 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
     overrides = None,
     customSubmissionRef = Option.empty[CustomSubmissionRef]
   )
-
 }

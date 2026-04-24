@@ -1,0 +1,41 @@
+{
+  "_id": "date-expr-month",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Enter start date",
+      "fields": [
+        {
+          "id": "startDate",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Enter name",
+      "includeIf": "${month(startDate) < 10}",
+      "fields": [
+        {
+          "id": "name",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

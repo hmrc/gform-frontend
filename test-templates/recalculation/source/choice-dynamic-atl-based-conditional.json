@@ -1,0 +1,99 @@
+{
+  "_id": "choice-dynamic-atl-based-conditional",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Show / Hide Add To List",
+      "fields": [
+        {
+          "id": "controlAddToList",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Show Add To List",
+              "value": "show"
+            },
+            {
+              "en": "Skip Add To List",
+              "value": "skip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "includeIf": "${controlAddToList contains 'show'}",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${employerName} - ${director}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer",
+          "fields": [
+            {
+              "id": "employerName",
+              "label": "Name",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "director",
+              "label": "Director",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Which employer are you claiming pension tax relief for?",
+      "fields": [
+        {
+          "id": "employerChoiceFromAtl",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "${employerName} is ${director}",
+              "dynamic": "employerName",
+              "value": "employerName"
+            },
+            {
+              "en": "${director} of ${employerName}",
+              "dynamic": "director",
+              "value": "director"
+            },
+            {
+              "en": "Different employer ${if controlAddToList contains 'skip' then '(Add to list has been skipped)' else ''}",
+              "value": "NONE"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

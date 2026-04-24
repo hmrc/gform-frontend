@@ -17,11 +17,22 @@
 package uk.gov.hmrc.gform.commons
 
 import scala.util.Try
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus
 
 object BigDecimalUtil {
 
   def toBigDecimalSafe(str: String): Option[BigDecimal] =
     Try(BigDecimal(str.replace(",", ""))).toOption
+
+  def toBigDecimalNormalized(str: String): Option[BigDecimal] =
+    toBigDecimalSafe(str)
+      .map { bd =>
+        if (bd.isWhole) bd.setScale(0) else bd
+      }
+
+  def toBigDecimalOrString(str: String): EvaluationStatus =
+    toBigDecimalNormalized(str)
+      .fold[EvaluationStatus](EvaluationStatus.StringResult(str))(bd => EvaluationStatus.NumberResult(bd))
 
   def toBigDecimalDefault(str: String): BigDecimal =
     toBigDecimalSafe(str).getOrElse(0)

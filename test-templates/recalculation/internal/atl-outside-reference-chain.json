@@ -1,0 +1,930 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Plastic packaging tax returns"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Tax period $n - Calculated amount due: {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "Typed": {
+                            "expr": {
+                              "Multiply": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "weightOfFinishedPPT"
+                                  }
+                                },
+                                "field2": {
+                                  "Divide": {
+                                    "field1": {
+                                      "Typed": {
+                                        "expr": {
+                                          "IfElse": {
+                                            "cond": {
+                                              "GreaterThan": {
+                                                "left": {
+                                                  "IfElse": {
+                                                    "cond": {
+                                                      "Contains": {
+                                                        "multiValueField": {
+                                                          "formComponentId": "taxYear"
+                                                        },
+                                                        "value": {
+                                                          "Constant": {
+                                                            "value": "0"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field1": {
+                                                      "Constant": {
+                                                        "value": "2023"
+                                                      }
+                                                    },
+                                                    "field2": {
+                                                      "Constant": {
+                                                        "value": "2022"
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "right": {
+                                                  "Constant": {
+                                                    "value": "2022"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "field1": {
+                                              "Constant": {
+                                                "value": "210.82"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "200"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field2": {
+                                      "Constant": {
+                                        "value": "1000"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "tpe": {
+                              "Sterling": {
+                                "roundingMode": "Down"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Which year are you reporting on?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "notPII": true,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Which year are you reporting on? "
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "helpText": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Select one year. You can add more later."
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "id": "taxYear",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "errorMessage": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Select which year you are reporting on"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "2023"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "2022"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "shortName": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Year"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "How much you manufactured"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "How much did your manufactured finished plastic packaging components weigh?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "weightOfFinishedPPT",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "suffix": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "kg"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "displayWidth": "DEFAULT",
+                        "constraint": {
+                          "PositiveNumber": {
+                            "maxWholeDigits": 11,
+                            "maxFractionalDigits": 0,
+                            "roundingMode": "Down"
+                          }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Plastic packaging total"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "pptRateAtl",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": false
+                          }
+                        },
+                        "value": {
+                          "Typed": {
+                            "expr": {
+                              "IfElse": {
+                                "cond": {
+                                  "GreaterThan": {
+                                    "left": {
+                                      "IfElse": {
+                                        "cond": {
+                                          "Contains": {
+                                            "multiValueField": {
+                                              "formComponentId": "taxYear"
+                                            },
+                                            "value": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "field1": {
+                                          "Constant": {
+                                            "value": "2023"
+                                          }
+                                        },
+                                        "field2": {
+                                          "Constant": {
+                                            "value": "2022"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "Constant": {
+                                        "value": "2022"
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Constant": {
+                                    "value": "210.82"
+                                  }
+                                },
+                                "field2": {
+                                  "Constant": {
+                                    "value": "200"
+                                  }
+                                }
+                              }
+                            },
+                            "tpe": {
+                              "Sterling": {
+                                "roundingMode": "Down"
+                              }
+                            }
+                          }
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "bsummary"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to submit another?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Added $n plastic packaging tax"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Returns"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Summary of Plastic Packaging Tax return calculations"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "tableOutside",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Equation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "liableAmountAtl.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Typed": {
+                                              "expr": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "weightOfFinishedPPT"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Divide": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "pptRateAtl"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "1000"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "tpe": {
+                                                "Sterling": {
+                                                  "roundingMode": "Down"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "liableAmount.sum = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Sum": {
+                                          "field1": {
+                                            "Typed": {
+                                              "expr": {
+                                                "Multiply": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "weightOfFinishedPPT"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Divide": {
+                                                      "field1": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "IfElse": {
+                                                              "cond": {
+                                                                "GreaterThan": {
+                                                                  "left": {
+                                                                    "IfElse": {
+                                                                      "cond": {
+                                                                        "Contains": {
+                                                                          "multiValueField": {
+                                                                            "formComponentId": "taxYear"
+                                                                          },
+                                                                          "value": {
+                                                                            "Constant": {
+                                                                              "value": "0"
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "field1": {
+                                                                        "Constant": {
+                                                                          "value": "2023"
+                                                                        }
+                                                                      },
+                                                                      "field2": {
+                                                                        "Constant": {
+                                                                          "value": "2022"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "right": {
+                                                                    "Constant": {
+                                                                      "value": "2022"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "field1": {
+                                                                "Constant": {
+                                                                  "value": "210.82"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "200"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "1000"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "tpe": {
+                                                "Sterling": {
+                                                  "roundingMode": "Down"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "atl-outside-reference-chain",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "atl-outside-reference-chain",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

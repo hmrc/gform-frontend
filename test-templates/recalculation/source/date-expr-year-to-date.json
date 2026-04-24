@@ -1,0 +1,66 @@
+{
+  "_id": "date-expr-year-to-date",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "effectiveDate": "yearToDate(2405, importerDate)"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "fooChoice",
+          "type": "choice",
+          "label": "Select an item",
+          "choices": [
+            {
+              "en": "Foo",
+              "value": "Foo"
+            },
+            {
+              "en": "Bar",
+              "value": "Bar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Importer date",
+      "includeIf": "${fooChoice = 'Foo'}",
+      "fields": [
+        {
+          "id": "importerDate",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Note",
+      "includeIf": "${day(effectiveDate) = '24' && month(effectiveDate) = '05'}",
+      "fields": [
+        {
+          "id": "note",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

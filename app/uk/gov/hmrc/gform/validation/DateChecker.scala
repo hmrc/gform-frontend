@@ -21,7 +21,6 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -42,9 +41,9 @@ import DateValidationLogic._
 
 case class SomeDate(year: Int, month: Int, day: Int)
 
-class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class DateChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -79,14 +78,14 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   def validateDate(
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     date: Date
   )(implicit
     sse: SmartStringEvaluator,
     messages: Messages
   ): CheckProgram[Unit] =
     ifProgram(
-      cond = fieldValue.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
+      cond = fieldValue.mandatory.eval(formModelVisibilityOptics.freeCalculator),
       thenProgram = validateRequired(fieldValue, formModelVisibilityOptics).andThen(_ =>
         validateDateImpl(fieldValue, formModelVisibilityOptics, date)
       ),
@@ -162,7 +161,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def validateRequired(
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     sse: SmartStringEvaluator,
     messages: Messages
@@ -182,7 +181,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def checkAllFieldsEmpty(
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     sse: SmartStringEvaluator,
     messages: Messages
@@ -198,7 +197,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def validateDateImpl(
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     date: Date
   )(implicit
     sse: SmartStringEvaluator,
@@ -285,7 +284,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def validateConcreteDateWithMessages(
     formComponent: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
     offset: OffsetDate
@@ -316,7 +315,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def validateTodayWithMessages(
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     offset: OffsetDate
   )(implicit
@@ -329,7 +328,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def validateDateFieldWithMessages(
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     dateField: DateField,
     offset: OffsetDate
@@ -477,7 +476,7 @@ class DateChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   private def validateInputDate(
     formComponent: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     sse: SmartStringEvaluator,
     messages: Messages

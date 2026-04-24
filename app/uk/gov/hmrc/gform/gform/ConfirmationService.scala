@@ -22,9 +22,8 @@ import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
-import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData, Visibility }
+import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Expr, FormComponentId, HasExpr }
@@ -37,19 +36,19 @@ object ConfirmationService {
   // Detect an invalid confirmations based on expression only
   // For example on sign-in into the form (at that point there are no browser data)
   def processConfirmation(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     form: Form
   )(implicit messages: Messages): (List[Confirmation], Map[FormComponentId, List[String]]) =
-    processConfirmation(formModelOptics, DataOrigin.unSwapDataOrigin(formModelOptics), form)
+    processConfirmation(formModelOptics, formModelOptics, form)
 
   def processConfirmation(
-    mongoFormModelOptics: FormModelOptics[DataOrigin.Mongo],
-    browserFormModelOptics: FormModelOptics[DataOrigin.Browser],
+    mongoFormModelOptics: FormModelOptics,
+    browserFormModelOptics: FormModelOptics,
     form: Form
   )(implicit messages: Messages): (List[Confirmation], Map[FormComponentId, List[String]]) = {
     val confirmations = form.thirdPartyData.confirmations
 
-    val formModel: FormModel[Visibility] = mongoFormModelOptics.formModelVisibilityOptics.formModel
+    val formModel: FormModel = mongoFormModelOptics.formModelVisibilityOptics.formModel
 
     val allConfirmations = formModel.allConfirmations
 
@@ -92,8 +91,8 @@ object ConfirmationService {
 
   def isFieldChange(
     confirmation: Confirmation,
-    browserFormModelOptics: FormModelOptics[DataOrigin.Browser],
-    mongoFormModelOptics: FormModelOptics[DataOrigin.Mongo],
+    browserFormModelOptics: FormModelOptics,
+    mongoFormModelOptics: FormModelOptics,
     form: Form
   ): Boolean =
     confirmation.fieldsConfirmed
@@ -130,7 +129,7 @@ object ConfirmationService {
 
   def mkCurrentConfirmations(
     allConfirmations: List[Confirmation],
-    formModelOptics: FormModelOptics[DataOrigin.Browser]
+    formModelOptics: FormModelOptics
   )(implicit messages: Messages): Map[FormComponentId, List[String]] =
     allConfirmations.flatMap { confirmation =>
       val expressionsConfirmed: Option[NonEmptyList[Expr]] = confirmation.expressionsConfirmed
@@ -157,7 +156,7 @@ class ConfirmationService(
     processData: ProcessData,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     fastForward: List[FastForward],
     form: Form
   )(implicit messages: Messages): ConfirmationAction = {
@@ -165,8 +164,8 @@ class ConfirmationService(
     val (confirmationsToReset, currentConfirmations) =
       ConfirmationService.processConfirmation(formModelOptics, processData.formModelOptics, form)
 
-    val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
-    val pageModel: PageModel[Visibility] = formModel(sectionNumber)
+    val formModel: FormModel = processData.formModelOptics.formModelVisibilityOptics.formModel
+    val pageModel: PageModel = formModel(sectionNumber)
 
     val confirmationPage: ConfirmationPage = pageModel.confirmationPage
 
@@ -220,7 +219,7 @@ class ConfirmationService(
               // Page is not confirmed
               val modelPageId: ModelPageId = redirect.pageId.modelPageId
 
-              val sn: SectionNumber = formModel.pageIdSectionNumberMap
+              val sn: SectionNumber = formModel.metadata.pageIdSectionNumberMap
                 .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
 
               val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
@@ -249,8 +248,8 @@ class ConfirmationService(
     enteredVariadicFormData: EnteredVariadicFormData
   ): PurgeConfirmationData = {
 
-    val formModel: FormModel[Visibility] = processData.formModelOptics.formModelVisibilityOptics.formModel
-    val pageModel: PageModel[Visibility] = formModel(sectionNumber)
+    val formModel: FormModel = processData.formModelOptics.formModelVisibilityOptics.formModel
+    val pageModel: PageModel = formModel(sectionNumber)
 
     pageModel.maybeConfirmation match {
 

@@ -26,10 +26,9 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, TaxPeriodDate }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -58,9 +57,9 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   val langs = new DefaultLangs()
   val httpConfiguration = HttpConfiguration.fromConfiguration(configuration, environment)
 
-  def checkerDependency[D <: DataOrigin](optics: FormModelVisibilityOptics[D]) =
-    new CheckerDependency[D] {
-      def formModelVisibilityOptics: FormModelVisibilityOptics[D] = optics
+  def checkerDependency(optics: FormModelVisibilityOptics) =
+    new CheckerDependency {
+      def formModelVisibilityOptics: FormModelVisibilityOptics = optics
       def formComponent: FormComponent = dateComponent
       def cache: CacheData = ???
       def envelope: EnvelopeWithMapping = ???
@@ -73,31 +72,31 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   implicit val messages: Messages = messagesApi.preferred(Seq(langs.availables.head))
 
   test("validate should return valid when taxPeriodDate atoms are correct") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateMonthAtom -> VariadicValue.One("1"),
         dateYearAtom  -> VariadicValue.One("2000")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
     assertEquals(
       taxPeriodDateValidation.runCheck(
-        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+        checkerDependency(formModelOptics.formModelVisibilityOptics)
       ),
       validationSuccess
     )
   }
 
   test("validate should return invalid when all taxPeriodDate atoms are missing") {
-    val data = VariadicFormData[OutOfDate](Map.empty)
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+    val data = VariadicFormData(Map.empty)
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
     assertEquals(
       taxPeriodDateValidation.runCheck(
-        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+        checkerDependency(formModelOptics.formModelVisibilityOptics)
       ),
       Invalid(
         Map(
@@ -109,54 +108,54 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   }
 
   test("validate should return invalid when taxPeriodDate year atom is missing") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateMonthAtom -> VariadicValue.One("1"),
         dateYearAtom  -> VariadicValue.One("")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
     assertEquals(
       taxPeriodDateValidation.runCheck(
-        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+        checkerDependency(formModelOptics.formModelVisibilityOptics)
       ),
       Invalid(Map(dateYearAtom -> mutable.LinkedHashSet("Date must include a year", "Enter real year")))
     )
   }
 
   test("validate should return invalid when taxPeriodDate month atom is missing") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateMonthAtom -> VariadicValue.One(""),
         dateYearAtom  -> VariadicValue.One("2000")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
     assertEquals(
       taxPeriodDateValidation.runCheck(
-        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+        checkerDependency(formModelOptics.formModelVisibilityOptics)
       ),
       Invalid(Map(dateMonthAtom -> mutable.LinkedHashSet("Date must include a month", "Enter real month")))
     )
   }
 
   test("validate should return invalid when taxPeriodDate atoms have abnormal lengths") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateMonthAtom -> VariadicValue.One("123"),
         dateYearAtom  -> VariadicValue.One("20000")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
     assertEquals(
       taxPeriodDateValidation.runCheck(
-        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+        checkerDependency(formModelOptics.formModelVisibilityOptics)
       ),
       Invalid(
         Map(
@@ -168,18 +167,18 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   }
 
   test("validate should return invalid when taxPeriodDate atoms are not integers") {
-    val data = VariadicFormData[OutOfDate](
+    val data = VariadicFormData(
       Map(
         dateMonthAtom -> VariadicValue.One("a"),
         dateYearAtom  -> VariadicValue.One("b")
       )
     )
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-    val taxPeriodDateValidation = new TaxPeriodDateChecker[DataOrigin.Browser]()
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+    val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
     assertEquals(
       taxPeriodDateValidation.runCheck(
-        checkerDependency[DataOrigin.Browser](formModelOptics.formModelVisibilityOptics)
+        checkerDependency(formModelOptics.formModelVisibilityOptics)
       ),
       Invalid(
         Map(
@@ -190,9 +189,9 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
     )
   }
 
-  val table: List[(VariadicFormData[OutOfDate], ModelComponentId, String, String)] = List(
+  val table: List[(VariadicFormData, ModelComponentId, String, String)] = List(
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateMonthAtom -> VariadicValue.One("1"),
           dateYearAtom  -> VariadicValue.One("0")
@@ -203,7 +202,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
       "Year outside range"
     ),
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateMonthAtom -> VariadicValue.One("0"),
           dateYearAtom  -> VariadicValue.One("2000")
@@ -214,7 +213,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
       "Month outside bottom range"
     ),
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateMonthAtom -> VariadicValue.One("13"),
           dateYearAtom  -> VariadicValue.One("2000")
@@ -228,9 +227,9 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   table.zipWithIndex.foreach { case ((data, atom, message, description), index) =>
     test(s"${index + 1}. $description") {
-      val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+      val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new TaxPeriodDateChecker[DataOrigin.Browser]()
+        new TaxPeriodDateChecker()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(
@@ -243,9 +242,9 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
     }
   }
 
-  val table1: List[(VariadicFormData[OutOfDate], ModelComponentId, ModelComponentId, String, String, String)] = List(
+  val table1: List[(VariadicFormData, ModelComponentId, ModelComponentId, String, String, String)] = List(
     (
-      VariadicFormData[OutOfDate](
+      VariadicFormData(
         Map(
           dateMonthAtom -> VariadicValue.One("0"),
           dateYearAtom  -> VariadicValue.One("0")
@@ -261,9 +260,9 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   table1.zipWithIndex.foreach { case ((data, atom1, atom2, message1, message2, description), index) =>
     test(s"${index + 1}. $description") {
-      val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
+      val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
       assertEquals(
-        new TaxPeriodDateChecker[DataOrigin.Browser]()
+        new TaxPeriodDateChecker()
           .runCheck(checkerDependency(formModelOptics.formModelVisibilityOptics)),
         Invalid(
           Map(

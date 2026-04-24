@@ -20,7 +20,6 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
@@ -30,9 +29,9 @@ import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import scala.collection.mutable.LinkedHashSet
 import ComponentChecker._
 
-class PostcodeLookupChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class PostcodeLookupChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -42,7 +41,7 @@ class PostcodeLookupChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D]
   }
 }
 
-class PostcodeLookupCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: FormModelVisibilityOptics[D])(implicit
+class PostcodeLookupCheckerHelper(formModelVisibilityOptics: FormModelVisibilityOptics)(implicit
   messages: Messages,
   sse: SmartStringEvaluator
 ) {
@@ -56,7 +55,7 @@ class PostcodeLookupCheckerHelper[D <: DataOrigin](formModelVisibilityOptics: Fo
       .atomsModelComponentIdsFilterByAtom(_.atom =!= PostcodeLookup.filter)
       .map(m => ModelComponentIdValue(m, formModelVisibilityOptics.data.one(m)))
     ifProgram[Unit](
-      andCond = formComponent.mandatory.eval(formModelVisibilityOptics.booleanExprResolver),
+      andCond = formComponent.mandatory.eval(formModelVisibilityOptics.freeCalculator),
       thenProgram = {
         val programs = atomsWithValues.map { mcv =>
           val placeholder = formComponent.errorShortName

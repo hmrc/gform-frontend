@@ -1,0 +1,124 @@
+{
+  "_id": "hide-zero-decimals",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Claim back",
+      "fields": [
+        {
+          "id": "dutyClaimBack",
+          "type": "text",
+          "format": "sterling",
+          "label": "Duty you are claiming back"
+        },
+        {
+          "id": "vatClaimBack",
+          "type": "text",
+          "format": "sterling",
+          "label": "VAT you are claiming back"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "readonly",
+          "type": "text",
+          "format": "sterling",
+          "label": "Read only",
+          "submitMode": "readonly",
+          "value": "${hideZeroDecimals(dutyClaimBack)}"
+        },
+        {
+          "id": "totalRefundTable",
+          "summaryValue": "${hideZeroDecimals(dutyClaimBack + vatClaimBack)}",
+          "type": "table",
+          "label": "Total refund summary",
+          "header": [
+            {
+              "en": "Description"
+            },
+            {
+              "en": "Amount"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "class": "",
+                  "value": "Duty refund"
+                },
+                {
+                  "class": "govuk-table__cell--numeric",
+                  "value": "${hideZeroDecimals(dutyClaimBack)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "",
+                  "value": "VAT refund"
+                },
+                {
+                  "class": "govuk-table__cell--numeric",
+                  "value": "${hideZeroDecimals(vatClaimBack)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": "Requested refund total"
+                },
+                {
+                  "class": "govuk-table__header govuk-table__cell--numeric",
+                  "value": "${hideZeroDecimals(dutyClaimBack + vatClaimBack)}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${hideZeroDecimals(dutyClaimBack) != ''}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

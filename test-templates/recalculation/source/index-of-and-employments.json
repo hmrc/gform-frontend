@@ -1,0 +1,113 @@
+{
+  "_id": "index-of-and-employments",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "selectedEmployer": "indexOf(EMP in employer)",
+    "selectedWorksNumber": "dataRetrieve.employments.worksNumber[selectedEmployer]",
+    "selectedTaxDistrictNumber": "dataRetrieve.employments.taxDistrictNumber[selectedEmployer]",
+    "selectedEmployerName": "dataRetrieve.employments.employerName[selectedEmployer]"
+  },
+  "sections": [
+    {
+      "title": "Data",
+      "fields": [
+        {
+          "id": "taxYear",
+          "type": "text",
+          "label": "Tax year",
+          "format": "text"
+        },
+        {
+          "id": "nino",
+          "type": "text",
+          "label": "Nino",
+          "format": "nino"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "employments",
+          "id": "employments",
+          "parameters": {
+            "nino": "${nino}",
+            "taxYear": "${taxYear}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Which employer are you claiming pension tax relief for?",
+      "fields": [
+        {
+          "id": "employer",
+          "type": "choice",
+          "dividerPosition": "NONE",
+          "choices": [
+            {
+              "en": "${dataRetrieve.employments.employerName}",
+              "dynamic": "dataRetrieve.employments.employerName",
+              "value": "EMP"
+            },
+            {
+              "en": "Different employer",
+              "value": "NONE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "dataRetrieve.employments.worksNumber: ${dataRetrieve.employments.worksNumber}\n\nemployer: ${employer}\n\nindexOf(EMP in employer): ${selectedEmployer}\n\nemployerName / taxDistrictNumber / worksNumber: ${selectedEmployerName} / ${selectedTaxDistrictNumber} / ${selectedWorksNumber}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${selectedEmployer > 0}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

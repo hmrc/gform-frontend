@@ -1,0 +1,85 @@
+{
+  "_id": "atl-outside-reference-index-of-conditional",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${name}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Enter name $n",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "label": "Name",
+              "format": "text",
+              "notPII": true
+            }
+          ]
+        },
+        {
+          "title": "Present for ${name} - first name was ${name[1]}",
+          "includeIf": "${name[1] = 'AAA' || name = 'BBB'}",
+          "fields": [
+            {
+              "id": "present",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Present 1: ${present[1]}\n\nPresent 2: ${present[2]}",
+          "infoType": "noformat"
+        },
+        {
+          "id": "correction",
+          "type": "text",
+          "includeIf": "${present[1] > 100 || present[2] > 100}",
+          "label": "Correction",
+          "format": "sterling"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

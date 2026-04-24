@@ -18,41 +18,41 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 
-sealed trait TaskModel[A <: PageMode] extends Product with Serializable {
+sealed trait TaskModel extends Product with Serializable {
 
-  def fold[B](f: TaskModel.AllHidden[A] => B)(g: TaskModel.Editable[A] => B): B =
+  def fold[B](f: TaskModel.AllHidden => B)(g: TaskModel.Editable => B): B =
     this match {
-      case n: TaskModel.AllHidden[A] => f(n)
-      case r: TaskModel.Editable[A]  => g(r)
+      case n: TaskModel.AllHidden => f(n)
+      case r: TaskModel.Editable  => g(r)
     }
 
-  val toBracketsList: List[Bracket[A]] = fold(_ => List.empty[Bracket[A]])(_.brackets.toList)
+  val toBracketsList: List[Bracket] = fold(_ => List.empty[Bracket])(_.brackets.toList)
 
-  val toBracketsNel: Option[NonEmptyList[Bracket[A]]] =
-    fold(_ => Option.empty[NonEmptyList[Bracket[A]]])(editable => Some(editable.brackets))
+  val toBracketsNel: Option[NonEmptyList[Bracket]] =
+    fold(_ => Option.empty[NonEmptyList[Bracket]])(editable => Some(editable.brackets))
 
-  def mapBracket[B <: PageMode](f: Bracket[A] => Bracket[B]): TaskModel[B] =
-    fold(_ => TaskModel.allHidden[B])(editable => TaskModel.editable(editable.brackets.map(f)))
+  def mapBracket(f: Bracket => Bracket): TaskModel =
+    fold(_ => TaskModel.allHidden)(editable => TaskModel.editable(editable.brackets.map(f)))
 
-  def toTaskModel(): TaskModel[A] =
-    fold(_ => TaskModel.allHidden[A])(editable => TaskModel.editable[A](editable.brackets))
+  def toTaskModel(): TaskModel =
+    fold(_ => TaskModel.allHidden)(editable => TaskModel.editable(editable.brackets))
 
-  def modifyBrackets(f: NonEmptyList[Bracket[A]] => NonEmptyList[Bracket[A]]): TaskModel[A] =
-    fold(_ => TaskModel.allHidden[A])(editable => TaskModel.editable[A](f(editable.brackets)))
+  def modifyBrackets(f: NonEmptyList[Bracket] => NonEmptyList[Bracket]): TaskModel =
+    fold(_ => TaskModel.allHidden)(editable => TaskModel.editable(f(editable.brackets)))
 }
 
 object TaskModel {
 
-  def apply[A <: PageMode](xs: List[Bracket[A]]): TaskModel[A] =
+  def apply(xs: List[Bracket]): TaskModel =
     NonEmptyList
       .fromList(xs)
-      .fold[TaskModel[A]](TaskModel.allHidden)(nel => TaskModel.Editable(nel))
+      .fold[TaskModel](TaskModel.allHidden)(nel => TaskModel.Editable(nel))
 
-  def editable[A <: PageMode](bs: NonEmptyList[Bracket[A]]): TaskModel[A] = TaskModel.Editable(bs)
-  def allHidden[A <: PageMode]: TaskModel[A] = AllHidden[A]()
+  def editable(bs: NonEmptyList[Bracket]): TaskModel = TaskModel.Editable(bs)
+  def allHidden: TaskModel = AllHidden()
 
   // This task has at least one page visible
-  case class Editable[A <: PageMode](brackets: NonEmptyList[Bracket[A]]) extends TaskModel[A]
+  case class Editable(brackets: NonEmptyList[Bracket]) extends TaskModel
   // This task has all pages hidden by include if
-  case class AllHidden[A <: PageMode]() extends TaskModel[A]
+  case class AllHidden() extends TaskModel
 }

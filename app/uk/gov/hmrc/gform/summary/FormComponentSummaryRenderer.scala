@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.summary
 import cats.syntax.all._
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
@@ -27,9 +26,10 @@ import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper.{ evaluateIncludeI
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.models.ids.ModelPageId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ Atom, FastForward }
 import uk.gov.hmrc.gform.monoidHtml
+import uk.gov.hmrc.gform.recalculation.FreeCalculator
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, SmartString }
@@ -43,11 +43,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 
 object FormComponentSummaryRenderer {
-  def summaryListRows[D <: DataOrigin, T <: RenderType](
+  def summaryListRows[T <: RenderType](
     formComponent: FormComponent,
     modelPageId: Option[ModelPageId],
     formTemplateId: FormTemplateId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
@@ -376,10 +376,10 @@ object FormComponentSummaryRenderer {
       keyWidthClass
   }
 
-  private def getMiniSummaryListRows[T <: RenderType, D <: DataOrigin](
+  private def getMiniSummaryListRows[T <: RenderType](
     miniSummaryList: MiniSummaryList,
     fieldValue: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     parentKeyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
@@ -387,7 +387,7 @@ object FormComponentSummaryRenderer {
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] =
-    if (miniSummaryList.displayInSummary.displayInSummary(formModelVisibilityOptics.booleanExprResolver)) {
+    if (miniSummaryList.displayInSummary.displayInSummary(formModelVisibilityOptics.freeCalculator)) {
       miniSummaryList.rows
         .collect {
           case MiniSummaryRow.ValueRow(label, value, includeIf, _, _)
@@ -402,7 +402,7 @@ object FormComponentSummaryRenderer {
         }
         .map { case (label, value) =>
           summaryListRow(
-            label.map(lise(_, false)).getOrElse(fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)),
+            label.map(lise(_, false)).getOrElse(fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)),
             Html(value),
             None,
             SummaryListRowHelper.getKeyDisplayWidthClass(parentKeyDisplayWidth),
@@ -416,7 +416,7 @@ object FormComponentSummaryRenderer {
       List[SummaryListRow]()
     }
 
-  private def getTextSummaryListRows[T <: RenderType, D <: DataOrigin](
+  private def getTextSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -428,7 +428,7 @@ object FormComponentSummaryRenderer {
     suffix: Option[SmartString],
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
@@ -441,7 +441,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -491,7 +491,7 @@ object FormComponentSummaryRenderer {
 
   }
 
-  private def getTextAreaSummaryListRows[T <: RenderType, D <: DataOrigin](
+  private def getTextAreaSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -501,7 +501,7 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
@@ -514,7 +514,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -566,7 +566,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getDateSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getDateSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -576,7 +576,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -587,7 +587,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -644,7 +644,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getCalendarDateSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getCalendarDateSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -654,7 +654,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -665,7 +665,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -721,7 +721,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getTaxPeriodDateSummartListRows[D <: DataOrigin, T <: RenderType](
+  private def getTaxPeriodDateSummartListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -731,7 +731,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -741,7 +741,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -798,7 +798,7 @@ object FormComponentSummaryRenderer {
 
   }
 
-  private def getPostcodeLookupRows[D <: DataOrigin, T <: RenderType](
+  private def getPostcodeLookupRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -809,7 +809,7 @@ object FormComponentSummaryRenderer {
     fastForward: List[FastForward],
     addressRecordLookup: AddressRecordLookup,
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -820,21 +820,22 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
     val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
 
-    def printAddress(addressLines: List[String]): Html =
+    def printAddress(addressLines: List[(Atom, String)]): Html =
       addressLines
+        .map(_._2)
         .filter(_.nonEmpty)
         .map(Html(_))
         .intercalate(br())
 
     val value =
       if (hasErrors) errors
-      else List(addressRecordLookup.lookup(fieldValue.id).map(printAddress).getOrElse(Html("")))
+      else List(printAddress(addressRecordLookup.lookup(fieldValue.id)))
 
     val changeOrViewLabel = if (fieldValue.editable) messages("summary.change") else messages("summary.view")
 
@@ -888,7 +889,7 @@ object FormComponentSummaryRenderer {
 
   }
 
-  private def getTimeSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getTimeSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -898,7 +899,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -909,7 +910,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -954,7 +955,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getAddressSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getAddressSummaryListRows[T <: RenderType](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -964,7 +965,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -974,7 +975,7 @@ object FormComponentSummaryRenderer {
     val hasErrors = formFieldValidationResult.isNotOk
 
     val errors = checkErrors(formComponent, formFieldValidationResult)
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver).capitalize
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator).capitalize
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
@@ -1025,7 +1026,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getOverseasAddressSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getOverseasAddressSummaryListRows[T <: RenderType](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1035,7 +1036,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1045,7 +1046,7 @@ object FormComponentSummaryRenderer {
     val hasErrors = formFieldValidationResult.isNotOk
 
     val errors = checkErrors(formComponent, formFieldValidationResult)
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver).capitalize
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator).capitalize
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
@@ -1096,7 +1097,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getInfoMessageSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getInfoMessageSummaryListRows[T <: RenderType](
     infoMessage: InformationMessage,
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1108,13 +1109,13 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] = {
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
     val viewLabel = messages("summary.view")
     val keyClasses = getKeyClasses(hasErrors = false, keyDisplayWidth)
@@ -1148,7 +1149,7 @@ object FormComponentSummaryRenderer {
 
   }
 
-  private def getTableSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getTableSummaryListRows[T <: RenderType](
     table: TableComp,
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
@@ -1160,13 +1161,13 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] = {
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
     val viewLabel = messages("summary.view")
@@ -1200,7 +1201,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getFileUploadSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getFileUploadSummaryListRows[T <: RenderType](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1211,7 +1212,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1222,7 +1223,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(formComponent, formFieldValidationResult)
 
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
@@ -1266,7 +1267,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getMultiFileUploadSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getMultiFileUploadSummaryListRows[T <: RenderType](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1277,7 +1278,7 @@ object FormComponentSummaryRenderer {
     iterationTitle: Option[String],
     fastForward: List[FastForward],
     keyDisplayWidth: KeyDisplayWidth,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     lise: SmartStringEvaluator,
@@ -1288,7 +1289,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(formComponent, formFieldValidationResult)
 
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
@@ -1344,7 +1345,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getHmrcTaxPeriodSummaryListRows[T <: RenderType, D <: DataOrigin](
+  private def getHmrcTaxPeriodSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1356,7 +1357,7 @@ object FormComponentSummaryRenderer {
     envelope: EnvelopeWithMapping,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
@@ -1369,7 +1370,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(fieldValue, formFieldValidationResult)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
@@ -1424,7 +1425,7 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getChoiceSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getChoiceSummaryListRows[T <: RenderType](
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -1434,7 +1435,7 @@ object FormComponentSummaryRenderer {
     choice: Choice,
     iterationTitle: Option[String],
     fastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     keyDisplayWidth: KeyDisplayWidth
   )(implicit
     messages: Messages,
@@ -1446,7 +1447,7 @@ object FormComponentSummaryRenderer {
 
     val errors = checkErrors(formComponent, formFieldValidationResult)
 
-    val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
 
     val visuallyHiddenText = getVisuallyHiddenText(formComponent)
 
@@ -1504,11 +1505,11 @@ object FormComponentSummaryRenderer {
     )
   }
 
-  private def getRevealingChoiceSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getRevealingChoiceSummaryListRows[T <: RenderType](
     fieldValue: FormComponent,
     modelPageId: Option[ModelPageId],
     formTemplateId: FormTemplateId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
@@ -1530,7 +1531,7 @@ object FormComponentSummaryRenderer {
 
     val indices = formFieldValidationResult.getComponentFieldIndices(fieldValue.id)
 
-    val label = fcrd.label(fieldValue, formModelVisibilityOptics.booleanExprResolver)
+    val label = fcrd.label(fieldValue, formModelVisibilityOptics.freeCalculator)
     val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
 
     val selectionsWithRevealings: List[(SummaryListRow, List[SummaryListRow])] = rc.options
@@ -1556,8 +1557,8 @@ object FormComponentSummaryRenderer {
           .map { _ =>
             val revealingFields = fcrd
               .prepareRenderables(
-                element.revealingFields.filterNot(_.hideOnSummary(formModelVisibilityOptics.booleanExprResolver)),
-                formModelVisibilityOptics.booleanExprResolver
+                element.revealingFields.filterNot(_.hideOnSummary(formModelVisibilityOptics.freeCalculator)),
+                formModelVisibilityOptics.freeCalculator
               )
               .flatMap {
                 summaryListRows(
@@ -1682,12 +1683,12 @@ object FormComponentSummaryRenderer {
     } else selectionsContent
   }
 
-  private def getGroupSummaryListRows[D <: DataOrigin, T <: RenderType](
+  private def getGroupSummaryListRows[T <: RenderType](
     group: Group,
     formComponent: FormComponent,
     modelPageId: Option[ModelPageId],
     formTemplateId: FormTemplateId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
@@ -1712,7 +1713,7 @@ object FormComponentSummaryRenderer {
 
     val label = group.repeatLabel
       .map(_.value())
-      .getOrElse(fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver))
+      .getOrElse(fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator))
 
     val visuallyHiddenText = Some(label)
 
@@ -1720,7 +1721,7 @@ object FormComponentSummaryRenderer {
       case Some(hints) if hints.contains(SummariseGroupAsGrid) =>
         val formFieldValidationResults: List[FormFieldValidationResult] =
           fcrd
-            .prepareRenderables(group.fields, formModelVisibilityOptics.booleanExprResolver)
+            .prepareRenderables(group.fields, formModelVisibilityOptics.freeCalculator)
             .map(validationResult.apply)
 
         val errorResults = formFieldValidationResults.filter(_.isNotOk)
@@ -1776,8 +1777,8 @@ object FormComponentSummaryRenderer {
         )
 
       case _ =>
-        val rows = fcrd.prepareRenderables(group.fields, formModelVisibilityOptics.booleanExprResolver).flatMap {
-          formComponent =>
+        val rows =
+          fcrd.prepareRenderables(group.fields, formModelVisibilityOptics.freeCalculator).flatMap { formComponent =>
             summaryListRows(
               formComponent,
               modelPageId,
@@ -1794,9 +1795,9 @@ object FormComponentSummaryRenderer {
               Some(fastForward),
               keyDisplayWidth
             )
-        }
+          }
 
-        val label = fcrd.label(formComponent, formModelVisibilityOptics.booleanExprResolver)
+        val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
         if (label.nonEmpty && formComponent.modelComponentId.maybeIndex.fold(false)(_ === 1)) {
           val customKeyClasses = "summary-group-label"
 
@@ -1820,11 +1821,11 @@ trait SummaryRender extends RenderType
 trait AddToListCYARender extends RenderType
 
 sealed trait FormComponentRenderDetails[T <: RenderType] {
-  def label(formComponent: FormComponent, booleanExprResolver: BooleanExprResolver)(implicit
+  def label(formComponent: FormComponent, freeCalculator: FreeCalculator)(implicit
     lise: SmartStringEvaluator,
     messages: Messages
   ): String
-  def prepareRenderables(fields: List[FormComponent], booleanExprResolver: BooleanExprResolver): List[FormComponent]
+  def prepareRenderables(fields: List[FormComponent], freeCalculator: FreeCalculator): List[FormComponent]
 }
 
 object FormComponentRenderDetails {
@@ -1834,36 +1835,36 @@ object FormComponentRenderDetails {
 
       override def label(
         formComponent: FormComponent,
-        booleanExprResolver: BooleanExprResolver
-      )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent, booleanExprResolver)
+        freeCalculator: FreeCalculator
+      )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent, freeCalculator)
 
       override def prepareRenderables(
         fields: List[FormComponent],
-        booleanExprResolver: BooleanExprResolver
+        freeCalculator: FreeCalculator
       ): List[FormComponent] =
-        fields.filter(f => !f.hideOnSummary(booleanExprResolver))
+        fields.filter(f => !f.hideOnSummary(freeCalculator))
     }
 
   implicit val addToListCYARender: FormComponentRenderDetails[AddToListCYARender] =
     new FormComponentRenderDetails[AddToListCYARender] {
       override def label(
         formComponent: FormComponent,
-        booleanExprResolver: BooleanExprResolver
-      )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent, booleanExprResolver)
+        freeCalculator: FreeCalculator
+      )(implicit lise: SmartStringEvaluator, messages: Messages): String = getLabel(formComponent, freeCalculator)
 
       override def prepareRenderables(
         fields: List[FormComponent],
-        booleanExprResolver: BooleanExprResolver
+        freeCalculator: FreeCalculator
       ): List[FormComponent] = fields
     }
 
   private def getLabel(
     formComponent: FormComponent,
-    booleanExprResolver: BooleanExprResolver
+    freeCalculator: FreeCalculator
   )(implicit lise: SmartStringEvaluator, messages: Messages): String = {
     val optionalPattern = """\(|\)""".r
     val label = formComponent.shortName.map(ls => ls.value()).getOrElse(formComponent.label.value())
-    if (formComponent.mandatory.eval(booleanExprResolver)) {
+    if (formComponent.mandatory.eval(freeCalculator)) {
       label
     } else if (optionalPattern.findFirstIn(label).isDefined) { label }
     else { s"$label ${messages("summary.label.optional")}" }

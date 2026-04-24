@@ -1,0 +1,52 @@
+{
+  "_id": "date-expr-data-retrieve-hmrc-tax-rates",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Enter date",
+      "fields": [
+        {
+          "id": "enterDate",
+          "type": "date"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "id": "apdRate",
+          "type": "hmrcTaxRates",
+          "parameters": {
+            "regime": "${'APD'}",
+            "code": "${'DOM-RDCD'}",
+            "date": "${enterDate}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Enter name",
+      "includeIf": "${dataRetrieve.apdRate.startDate before 31032024}",
+      "fields": [
+        {
+          "id": "name",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

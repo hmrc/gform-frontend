@@ -18,10 +18,10 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
-case class CheckYourAnswersWithNumber[A <: PageMode](
-  checkYourAnswers: CheckYourAnswers[A],
+case class CheckYourAnswersWithNumber(
+  checkYourAnswers: CheckYourAnswers,
   sectionNumber: SectionNumber
 ) {
-  def map[B <: PageMode](f: CheckYourAnswers[A] => CheckYourAnswers[B]): CheckYourAnswersWithNumber[B] =
+  def map(f: CheckYourAnswers => CheckYourAnswers): CheckYourAnswersWithNumber =
     CheckYourAnswersWithNumber(f(checkYourAnswers), sectionNumber)
 }

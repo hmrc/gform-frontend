@@ -29,12 +29,11 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -57,10 +56,10 @@ class DeclarationController(
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private def getDeclarationPage(formModelOptics: FormModelOptics[DataOrigin.Mongo]): Option[Singleton[DataExpanded]] =
+  private def getDeclarationPage(formModelOptics: FormModelOptics): Option[Singleton] =
     for {
       declarationPage <- formModelOptics.formModelRenderPageOptics.formModel.pages.lastOption
-      singleton       <- declarationPage.fold[Option[Singleton[DataExpanded]]](Some.apply)(_ => None)(_ => None)
+      singleton       <- declarationPage.fold[Option[Singleton]](Some.apply)(_ => None)(_ => None)
     } yield singleton
 
   def showDeclaration(
@@ -119,10 +118,9 @@ class DeclarationController(
       OperationWithForm.SubmitDeclaration
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
       import i18nSupport._
-      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
+      processResponseDataFromBody(request, formModelOptics) {
         requestRelatedData => declarationOnlyVariadicFormData => _ =>
-          val sectionsData = formModelOptics.formModelRenderPageOptics.recData.variadicFormData
-            .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]]
+          val sectionsData = formModelOptics.variadicFormData
           val variadicFormData = sectionsData ++ declarationOnlyVariadicFormData
 
           val envelopeId = cache.form.envelopeId
@@ -224,7 +222,7 @@ class DeclarationController(
   )(implicit
     request: Request[_]
   ): Future[Result] = {
-    val variadicFormData: VariadicFormData[SourceOrigin.Current] = processData.formModelOptics.pageOpticsData
+    val variadicFormData: VariadicFormData = processData.formModelOptics.variadicFormData
 
     val form: Form = cache.form.copy(
       formData = variadicFormData.toFormData

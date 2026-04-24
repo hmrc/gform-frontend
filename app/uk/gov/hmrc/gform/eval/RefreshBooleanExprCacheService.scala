@@ -21,11 +21,9 @@ import cats.syntax.all._
 import uk.gov.hmrc.gform.auth.UtrEligibilityRequest
 import uk.gov.hmrc.gform.auth.models.{ IdentifierValue, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, DataSource, FormCtx, In }
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, FormCtx, In }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class RefreshBooleanExprCacheService[F[_]: Monad](
@@ -50,22 +48,18 @@ class RefreshBooleanExprCacheService[F[_]: Monad](
 
   def refreshBooleanExprCache(
     retrievals: MaterialisedRetrievals,
-    variadicFormData: VariadicFormData[SourceOrigin.OutOfDate],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    variadicFormData: VariadicFormData,
+    formModelOptics: FormModelOptics,
     booleanExprCache: BooleanExprCache
   )(implicit hc: HeaderCarrier): F[BooleanExprCache] = {
 
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
-    val allBooleanExprs: List[BooleanExpr] =
-      (formModel.allIncludeIfsWithDependingFormComponents ++
-        formModel.allComponentIncludeIfs)
-        .map(_._1)
-        .map(_.booleanExpr) ++ formModel.allValidIfs
-        .flatMap(_._1)
-        .map(_.booleanExpr)
-
-    val ins = allBooleanExprs.flatMap(_.allIns)
+    val ins: List[In] =
+      formModel.allBooleanExprs.flatMap(_.allIns).collect {
+        // TODO JoVl this will miss (to be verified) IN in And, Or etc. /// This should be resolved
+        case in: In => in
+      }
 
     val insEvaluated: F[List[(DataSource, String, Boolean)]] = ins.flatTraverse {
       case In(FormCtx(formComponentId), dataSource) =>
@@ -92,15 +86,4 @@ class RefreshBooleanExprCacheService[F[_]: Monad](
       }
     }
   }
-}
-
-object RefreshBooleanExprCacheService {
-  def evalInExpr[S <: SourceOrigin](in: In, booleanExprCache: BooleanExprCache, recData: RecData[S]): Boolean =
-    in match {
-      case In(FormCtx(fcId), dataSource) =>
-        recData.variadicFormData.one(fcId.modelComponentId).fold(false) { value =>
-          booleanExprCache.get(dataSource, value).getOrElse(false)
-        }
-      case _ => false
-    }
 }

@@ -1,0 +1,41 @@
+{
+  "_id": "date-expr-tax-period-date",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Enter tax period date",
+      "fields": [
+        {
+          "id": "startDate",
+          "type": "taxPeriodDate"
+        }
+      ]
+    },
+    {
+      "title": "Enter name",
+      "includeIf": "${month(startDate) < 6}",
+      "fields": [
+        {
+          "id": "name",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

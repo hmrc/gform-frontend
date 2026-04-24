@@ -1,0 +1,86 @@
+{
+  "_id": "column-count",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "euCount": "overseasAddress.column.InEEA.count('1')"
+  },
+  "booleanExpressions": {
+    "euResidence": "euCount > 1"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Addresses where goods are processed",
+      "shortName": "Processing address $n",
+      "summaryDescription": "${overseasAddress}",
+      "summaryName": "Processing addresses for goods",
+      "description": "Address $n: ${overseasAddress}",
+      "addAnotherQuestion": {
+        "id": "addAnotherAddress",
+        "type": "choice",
+        "label": "Do you want to add another address?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Overseas address",
+          "fields": [
+            {
+              "id": "overseasAddress",
+              "type": "text",
+              "format": "lookup(country)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "EU count: ${euCount}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${euResidence}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

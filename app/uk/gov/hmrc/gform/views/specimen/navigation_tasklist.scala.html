@@ -16,7 +16,7 @@
 
 @import cats.syntax.eq._
 @import uk.gov.hmrc.gform.gform.SpecimenLinks
-@import uk.gov.hmrc.gform.models.{ DataExpanded, PageModel }
+@import uk.gov.hmrc.gform.models.PageModel
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExprPrettyPrint, IncludeIf, FormTemplate, SectionNumber, SectionTitle4Ga }
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Task
@@ -25,14 +25,14 @@
 
 @(formTemplate: FormTemplate,
   taskList: SectionNumber.TaskList,
-  pages: List[(PageModel[DataExpanded], SectionNumber.TaskList)],
+  pages: List[(PageModel, SectionNumber.TaskList)],
   tasks: List[(Task, SectionNumber)],
   specimenLinks: SpecimenLinks,
   maybeIncludeIf: Option[IncludeIf],
   maybeSpecimenNote: Option[String]
 )(implicit l: LangADT, sse: SmartStringEvaluator, requestHeader: RequestHeader)
 
-@navigationLink(page: PageModel[DataExpanded], sectionNumber: SectionNumber.TaskList, label: String, templateId: String) = {
+@navigationLink(page: PageModel, sectionNumber: SectionNumber.TaskList, label: String, templateId: String) = {
   @defining(SectionTitle4Ga.sectionTitle4GaFactory(page, sectionNumber).value) { sectionTitle4Ga =>
     <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionNumber.value&se=t&ff=t" class="govuk-link">@label</a>
   }

@@ -1,0 +1,1034 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Find your address ZZ9Z 9TT"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Address"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "ukAddress",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "PostcodeLookup": {}
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ],
+              "continueLabel": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Find address"
+                    },
+                    "interpolations": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you also let rooms at any other addresses?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Do you also let rooms at any other addresses?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "otherAddresses",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Yes",
+                                    "cy": "Iawn"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "No",
+                                    "cy": "Na"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Horizontal": {}
+                      },
+                      "type": {
+                        "YesNo": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Your addresses with let rooms"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "KeyValueBased": {
+                "key": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "**Address $n** "
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "{0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "ukAddressProperty"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "includeIf": {
+              "booleanExpr": {
+                "Contains": {
+                  "multiValueField": {
+                    "formComponentId": "otherAddresses"
+                  },
+                  "value": {
+                    "Constant": {
+                      "value": "0"
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "UK address you provide a room for rent FX1A 7GA"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "caption": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Address $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Address"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "ukAddressProperty",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "PostcodeLookup": {}
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "UK address property"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you have more addresses to add?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAddressChoice",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "presentationHint": {
+              "InvisiblePageTitle": {}
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "You have added {0} {1}"
+                  },
+                  "interpolations": [
+                    {
+                      "Count": {
+                        "formComponentId": "addAddressChoice"
+                      }
+                    },
+                    {
+                      "IfElse": {
+                        "cond": {
+                          "Equals": {
+                            "left": {
+                              "Count": {
+                                "formComponentId": "addAddressChoice"
+                              }
+                            },
+                            "right": {
+                              "Constant": {
+                                "value": "1"
+                              }
+                            }
+                          }
+                        },
+                        "field1": {
+                          "Constant": {
+                            "value": "address"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "addresses"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Address $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Your rooms"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "KeyValueBased": {
+                "key": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "**Room description $n:**"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Room $n rented in: {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "IfElse": {
+                            "cond": {
+                              "GreaterThan": {
+                                "left": {
+                                  "Count": {
+                                    "formComponentId": "addAddressChoice"
+                                  }
+                                },
+                                "right": {
+                                  "Constant": {
+                                    "value": "1"
+                                  }
+                                }
+                              }
+                            },
+                            "field1": {
+                              "Concat": {
+                                "exprs": [
+                                  {
+                                    "FormCtx": {
+                                      "formComponentId": "whichAddressChoice"
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            "field2": {
+                              "IfElse": {
+                                "cond": {
+                                  "Equals": {
+                                    "left": {
+                                      "Count": {
+                                        "formComponentId": "addAddressChoice"
+                                      }
+                                    },
+                                    "right": {
+                                      "Constant": {
+                                        "value": "1"
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Concat": {
+                                    "exprs": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "ukAddressProperty"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                "field2": {
+                                  "Concat": {
+                                    "exprs": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "ukAddress"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Which address is this room at?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "caption": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Room $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "GreaterThan": {
+                      "left": {
+                        "Count": {
+                          "formComponentId": "addAddressChoice"
+                        }
+                      },
+                      "right": {
+                        "Constant": {
+                          "value": "1"
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Which address is this room at?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "whichAddressChoice",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "{0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "ukAddressProperty"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "dynamic": {
+                                "ATLBased": {
+                                  "formComponentId": "ukAddressProperty"
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "ukAddressProperty"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Is this a new tenancy?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "caption": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Room $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Is this a new tenancy?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "newTenancyChoice",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Yes"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "No, it’s a rent change for an existing tenancy"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "FormCtx": {
+                        "formComponentId": "whichAddressChoice"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you have more rooms to add?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addRoomChoice",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "You have added {0} {1}. Addresses count {2}"
+                  },
+                  "interpolations": [
+                    {
+                      "Count": {
+                        "formComponentId": "addRoomChoice"
+                      }
+                    },
+                    {
+                      "IfElse": {
+                        "cond": {
+                          "Equals": {
+                            "left": {
+                              "Count": {
+                                "formComponentId": "addRoomChoice"
+                              }
+                            },
+                            "right": {
+                              "Constant": {
+                                "value": "1"
+                              }
+                            }
+                          }
+                        },
+                        "field1": {
+                          "Constant": {
+                            "value": "room"
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "rooms"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "Count": {
+                        "formComponentId": "addAddressChoice"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Room $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "choice-dynamic-atl-based-adress",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "choice-dynamic-atl-based-adress",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

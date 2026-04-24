@@ -23,9 +23,9 @@ import play.api.libs.json._
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
 import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
-import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -90,7 +90,7 @@ object Attr {
   implicit val format: OFormat[Attr] = derived.oformat()
 }
 
-case class DataRetrieveId(value: String) {
+final case class DataRetrieveId(value: String) {
   val modelPageId = ModelDataRetrieveId.fromId(this)
   def withIndex(index: Int): DataRetrieveId =
     DataRetrieveId(s"${index}_$value")
@@ -101,7 +101,7 @@ object DataRetrieveId {
     JsonUtils.valueClassFormat[DataRetrieveId, String](DataRetrieveId.apply, _.value)
 }
 
-case class DataRetrieve(
+final case class DataRetrieve(
   tpe: DataRetrieve.Type,
   id: DataRetrieveId,
   attributes: Attr,
@@ -114,9 +114,9 @@ case class DataRetrieve(
 ) {
 
   def prepareRequest(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybePreviousResult: Option[DataRetrieveResult],
-    maybeCorrelationId: Option[String]
+    envelopeId: EnvelopeId
   )(implicit messages: Messages): DataRetrieve.Request = {
     val evaluatedParams = params.map { case DataRetrieve.ParamExpr(DataRetrieve.Parameter(name, _, tpe), expr) =>
       name -> tpe.asString(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr))
@@ -140,7 +140,7 @@ case class DataRetrieve(
       evaluatedParams,
       maybePreviousResult.flatMap(_.failureCount),
       maybePreviousResult.flatMap(_.failureCountResetTime),
-      maybeCorrelationId
+      Some(envelopeId.value)
     )
   }
 

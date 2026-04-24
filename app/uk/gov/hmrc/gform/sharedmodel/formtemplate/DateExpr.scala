@@ -18,59 +18,37 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.eval.DateExprEval.evalDateExpr
-import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationContext, EvaluationResults }
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 import java.time.LocalDate
 
 sealed trait DateExpr {
-  def leafExprs: List[Expr] = this match {
-    case DateValueExpr(_)              => DateCtx(this) :: Nil
-    case DateFormCtxVar(formCtx)       => formCtx :: Nil
-    case DateExprWithOffset(dExpr, _)  => dExpr.leafExprs
-    case HmrcTaxPeriodCtx(formCtx, _)  => formCtx :: Nil
-    case DataRetrieveDateCtx(_, _)     => DateCtx(this) :: Nil
-    case DateIfElse(_, field1, field2) => field1.leafExprs ++ field2.leafExprs
-    case DateOrElse(field1, field2)    => field1.leafExprs ++ field2.leafExprs
-    case DateConstructExpr(dm, year)   => dm.leafExprs ++ year.leafs()
-    case EarliestOf(exprs)             => exprs.flatMap(_.leafExprs)
-    case LatestOf(exprs)               => exprs.flatMap(_.leafExprs)
+
+  def booleanExprs(): List[BooleanExpr] = this match {
+    case DateValueExpr(_)                   => Nil
+    case DateFormCtxVar(_)                  => Nil
+    case DateExprWithOffset(dExpr, _)       => dExpr.booleanExprs()
+    case HmrcTaxPeriodCtx(_, _)             => Nil
+    case DataRetrieveDateCtx(_, _)          => Nil
+    case DateIfElse(ifElse, field1, field2) => ifElse :: field1.booleanExprs() ++ field2.booleanExprs()
+    case DateOrElse(field1, field2)         => field1.booleanExprs() ++ field2.booleanExprs()
+    case DateConstructExpr(dm, _)           => dm.booleanExprs()
+    case EarliestOf(exprs)                  => exprs.flatMap(_.booleanExprs())
+    case LatestOf(exprs)                    => exprs.flatMap(_.booleanExprs())
   }
 
-  def maybeFormCtx(
-    recData: RecData[SourceOrigin.OutOfDate],
-    evaluationContext: EvaluationContext,
-    evaluationResults: EvaluationResults,
-    booleanExprResolver: BooleanExprResolver
-  ): Option[FormCtx] = this match {
-    case DateValueExpr(_)        => None
-    case DateFormCtxVar(formCtx) => Some(formCtx)
-    case DateExprWithOffset(dExpr, _) =>
-      dExpr.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
-    case HmrcTaxPeriodCtx(formCtx, _) => Some(formCtx)
-    case DataRetrieveDateCtx(_, _)    => None
-    case DateIfElse(cond, field1, field2) =>
-      if (booleanExprResolver.resolve(cond))
-        field1.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
-      else
-        field2.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
-
-    case DateOrElse(field1, field2) =>
-      val isFirst = evalDateExpr(recData, evaluationContext, evaluationResults, booleanExprResolver)(field1)
-        .fold[Boolean](_ => true)(_ => false)(_ => false)(_ => true)(_ => true)(_ => true)(_ => true)(_ => true)(_ =>
-          true
-        )(_ => true)(_ => true)
-      if (isFirst)
-        field1.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
-      else
-        field2.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)
-    case DateConstructExpr(_, _) => None
-    case EarliestOf(exprs) =>
-      exprs.flatMap(_.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)).headOption
-    case LatestOf(exprs) =>
-      exprs.flatMap(_.maybeFormCtx(recData, evaluationContext, evaluationResults, booleanExprResolver)).headOption
+  def collect[T](pf: PartialFunction[Expr, T]): List[T] = this match {
+    case DateValueExpr(_)             => Nil
+    case DateFormCtxVar(formCtx)      => formCtx.collect(pf)
+    case DateExprWithOffset(dExpr, _) => dExpr.collect(pf)
+    case HmrcTaxPeriodCtx(formCtx, _) => formCtx.collect(pf)
+    case DataRetrieveDateCtx(_, _)    => Nil
+    case DateIfElse(ifElse, field1, field2) =>
+      ifElse.allExpressions.flatMap(_.collect(pf)) ++ field1.collect(pf) ++ field2.collect(pf)
+    case DateOrElse(field1, field2)  => field1.collect(pf) ++ field2.collect(pf)
+    case DateConstructExpr(dm, expr) => dm.collect(pf) ++ expr.collect(pf)
+    case EarliestOf(exprs)           => exprs.flatMap(_.collect(pf))
+    case LatestOf(exprs)             => exprs.flatMap(_.collect(pf))
   }
 
   def expand(index: Int): DateExpr = this match {

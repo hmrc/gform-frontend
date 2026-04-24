@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.testonly
 
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel }
+import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsRevealingChoice }
 
 class RevealingChoiceLookup(formComponents: List[FormComponent]) {
@@ -28,5 +28,5 @@ class RevealingChoiceLookup(formComponents: List[FormComponent]) {
 
 object RevealingChoiceLookup {
   def apply(formComponents: List[FormComponent]) = new RevealingChoiceLookup(formComponents)
-  def apply(formModel: FormModel[DataExpanded]) = new RevealingChoiceLookup(formModel.allFormComponents)
+  def apply(formModel: FormModel) = new RevealingChoiceLookup(formModel.allFormComponents)
 }

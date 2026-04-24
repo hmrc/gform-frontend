@@ -26,6 +26,7 @@ import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.twirl.api.{ Html, HtmlFormat }
+import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.retrieve.~
@@ -41,9 +42,11 @@ import uk.gov.hmrc.gform.gform.{ AcknowledgementPdfService, _ }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.objectStore.Attachments
+import uk.gov.hmrc.gform.recalculation.{ Behaviour, DateResultFlag, EvaluationStatus }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -57,7 +60,6 @@ import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
-import uk.gov.hmrc.gform.eval.ExpressionResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukAccordion, GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
@@ -92,8 +94,7 @@ class TestOnlyController(
   authLoginApiService: AuthLoginApiService,
   summaryController: SummaryController,
   acknowledgementPdfService: AcknowledgementPdfService,
-  sessionCookieCrypto: SessionCookieCrypto,
-  englishMessages: Messages
+  sessionCookieCrypto: SessionCookieCrypto
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
 
@@ -133,7 +134,7 @@ class TestOnlyController(
         import i18nSupport._
         val customerId =
           CustomerIdRecalculation
-            .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+            .evaluateCustomerId[SectionSelectorType.WithAcknowledgement](
               cache,
               formModelOptics.formModelVisibilityOptics
             )
@@ -157,7 +158,7 @@ class TestOnlyController(
   private def fetchHandlebarModel(
     form: Form,
     formTemplate: FormTemplate,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     userSession: UserSession
@@ -168,10 +169,10 @@ class TestOnlyController(
   ): EitherT[Future, UnexpectedState, Result] = {
 
     val emailParameters = EmailParametersRecalculated(Map.empty)
-    val affinityGroup = AffinityGroupUtil.fromRetrievals(retrievals)
+    val affinityGroup = retrievals.maybeAffinityGroup
 
     val structuredFormData =
-      StructuredFormDataBuilder[DataOrigin.Mongo](
+      StructuredFormDataBuilder(
         formModelVisibilityOptics,
         formTemplate.destinations,
         formTemplate.expressionsOutput,
@@ -266,6 +267,11 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.toggleFormBuilder(formTemplateId, accessCode)
     )
 
+    val testSetupData = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "MongoUserData, VisitIndex, AnswerMap",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.testSetupData(formTemplateId, accessCode)
+    )
+
     val links =
       List(
         returnToSummaryLink,
@@ -274,7 +280,8 @@ class TestOnlyController(
         saveCurrentFormLink,
         restoreFormLink,
         toggleSpecimen,
-        toggleFormBuilder
+        toggleFormBuilder,
+        testSetupData
       )
 
     val formLinksH = Html("""<h3 class="govuk-heading-m">Form actions</h3>""")
@@ -573,46 +580,55 @@ class TestOnlyController(
   private def showExpresionValues(
     formTemplateId: FormTemplateId,
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit request: Request[AnyContent], lang: LangADT, hc: HeaderCarrier, message: Messages): Future[Result] = {
 
-    def extractExprMeta(expr: Expr): (String, String, String, String, String) = {
-      val evaluated = formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
-      val staticTypeData = evaluated.typeInfo.staticTypeData
+    def extractExprMeta(expr: Expr): (String, String, String, String, String) =
+      Try(formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)) match {
+        case Failure(e) => ("???", "", "", "", "Invalid expression: " + e.getMessage)
+        case Success(evaluated) =>
+          val staticTypeData = evaluated.staticTypeData
 
-      val tcType = staticTypeData.textConstraint.fold("")(tc => tc.getClass.getSimpleName.stripSuffix("$"))
+          val tcType = staticTypeData.textConstraint.fold("")(tc => tc.getClass.getSimpleName.stripSuffix("$"))
 
-      val rounding = staticTypeData.textConstraint
-        .collect {
-          case Number(_, _, roundingMode, _)         => roundingMode.toString
-          case PositiveNumber(_, _, roundingMode, _) => roundingMode.toString
-          case Sterling(roundingMode, _)             => roundingMode.toString
-        }
-        .getOrElse("")
+          val rounding = staticTypeData.textConstraint
+            .collect {
+              case Number(_, _, roundingMode, _)         => roundingMode.toString
+              case PositiveNumber(_, _, roundingMode, _) => roundingMode.toString
+              case Sterling(roundingMode, _)             => roundingMode.toString
+            }
+            .getOrElse("")
 
-      val fractionalDigits = staticTypeData.textConstraint
-        .collect {
-          case Number(_, maxFractionalDigits, _, _)         => maxFractionalDigits.toString
-          case PositiveNumber(_, maxFractionalDigits, _, _) => maxFractionalDigits.toString
-        }
-        .getOrElse("")
+          val fractionalDigits = staticTypeData.textConstraint
+            .collect {
+              case Number(_, maxFractionalDigits, _, _)         => maxFractionalDigits.toString
+              case PositiveNumber(_, maxFractionalDigits, _, _) => maxFractionalDigits.toString
+            }
+            .getOrElse("")
 
-      val resultType = evaluated.expressionResult match {
-        case ExpressionResult.Invalid(explanation)  => s"Invalid: $explanation"
-        case ExpressionResult.NumberResult(_)       => "Number Result"
-        case ExpressionResult.StringResult(_)       => "String Result"
-        case ExpressionResult.DateResult(_)         => "Date Result"
-        case ExpressionResult.TaxPeriodResult(_, _) => "Tax Period Result"
-        case ExpressionResult.PeriodResult(_)       => "Period Result"
-        case ExpressionResult.OptionResult(_)       => "Option Result"
-        case ExpressionResult.ListResult(_)         => "List Result"
-        case ExpressionResult.AddressResult(_)      => "Address Result"
-        case _                                      => ""
+          val resultType = evaluated.evaluationStatus match {
+            case EvaluationStatus.Invalid(explanation) => s"Invalid: $explanation"
+            case EvaluationStatus.NumberResult(_)      => "Number Result"
+            case EvaluationStatus.StringResult(_)      => "String Result"
+            case EvaluationStatus.DateResult(_, flag) =>
+              flag match {
+                case DateResultFlag.Date          => "Date Result"
+                case DateResultFlag.CalendarDate  => "Date Result (calendar date)"
+                case DateResultFlag.TaxPeriodDate => "Date Result (tax period date)"
+              }
+            //case EvaluationStatus.TaxPeriodResult(_, _) => "Tax Period Result"
+            case EvaluationStatus.PeriodResult(_)                => "Period Result"
+            case EvaluationStatus.OptionResult(_)                => "Option Result"
+            case EvaluationStatus.ListResult(_)                  => "List Result"
+            case EvaluationStatus.AddressResult(_)               => "Address Result"
+            case EvaluationStatus.Hidden                         => "Hidden"
+            case EvaluationStatus.Dirty | EvaluationStatus.Empty => ""
+          }
+          val value = evaluated.stringRepresentation
+
+          (tcType, rounding, fractionalDigits, resultType, value)
+
       }
-      val value = evaluated.stringRepresentation
-
-      (tcType, rounding, fractionalDigits, resultType, value)
-    }
 
     def buildExprRow(
       key: String,
@@ -647,7 +663,11 @@ class TestOnlyController(
     def buildBooleanExprRow(key: String, value: JsValue, maybeExpr: Option[BooleanExpr]): Seq[TableRow] = {
       val exprStr = value.asOpt[String].getOrElse(Json.prettyPrint(value))
       val resolved = maybeExpr
-        .map(be => formModelOptics.formModelVisibilityOptics.booleanExprResolver.resolve(be).toString)
+        .map(be =>
+          formModelOptics.formModelVisibilityOptics.freeCalculator.calc
+            .evalBooleanExprList(be, Behaviour.LessThanCurrent)
+            .toString
+        )
         .getOrElse("not found")
 
       Seq(
@@ -897,7 +917,7 @@ class TestOnlyController(
         import i18nSupport._
         val customerId =
           CustomerIdRecalculation
-            .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+            .evaluateCustomerId[SectionSelectorType.WithAcknowledgement](
               cache,
               formModelOptics.formModelVisibilityOptics
             )
@@ -958,7 +978,7 @@ class TestOnlyController(
   private def fetchHandlebarPayload(
     form: Form,
     formTemplate: FormTemplate,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     customerId: CustomerId,
     destinationId: DestinationId,
     retrievals: MaterialisedRetrievals,
@@ -970,9 +990,9 @@ class TestOnlyController(
   ): EitherT[Future, UnexpectedState, Result] = {
 
     val emailParameters = EmailParametersRecalculated(Map.empty)
-    val affinityGroup = AffinityGroupUtil.fromRetrievals(retrievals)
+    val affinityGroup = retrievals.maybeAffinityGroup
 
-    val structuredFormData = StructuredFormDataBuilder[DataOrigin.Mongo](
+    val structuredFormData = StructuredFormDataBuilder(
       formModelVisibilityOptics,
       formTemplate.destinations,
       formTemplate.expressionsOutput,
@@ -1384,7 +1404,63 @@ class TestOnlyController(
                                      |Body: ${httpResponse.body}""".stripMargin)
           }
       }
+    }
 
+  def testSetupData(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+      implicit request => implicit lang => cache => _ => formModelOptics =>
+        import i18nSupport._
+        val mongoUserData = cache.form.formData.toData.toList
+          .map { case (modelComponentId, answer) =>
+            "\"" + modelComponentId.toMongoIdentifier + "\" -> One(\"" + answer + "\")"
+          }
+          .toList
+          .sorted
+        val visitIndex: List[String] =
+          cache.form.visitsIndex
+            .fold(classic =>
+              classic.visitsIndex.toList.sorted.map { sectionNumber =>
+                "\"" + sectionNumber.value + "\""
+              }.toList
+            ) { taskList =>
+              val orderedByCoordinates: List[(Coordinates, Set[SectionNumber.Classic])] =
+                taskList.visitsIndex.toList.sortBy(_._1.numberValue)
+
+              orderedByCoordinates.flatMap { case (coordinates, classics) =>
+                classics.toList.sorted.map { sectionNumber =>
+                  "\"" + coordinates.value + "," + sectionNumber.value + "\""
+                }
+              }
+            }
+
+        val isVisibleFormComponentId: Set[ModelComponentId] =
+          formModelOptics.formModelVisibilityOptics.allFormComponentIds.map(_.modelComponentId).toSet
+
+        val answerMap: List[String] =
+          formModelOptics.formModelVisibilityOptics.freeCalculator.variadicFormData.toFormData.toData.toList
+            .map { case (modelComponentId, answer) =>
+              val result: String =
+                if (isVisibleFormComponentId(modelComponentId))
+                  s"""StringResult("$answer")"""
+                else
+                  "Hidden"
+              "\"" + modelComponentId.toMongoIdentifier + "\" -> " + result
+            }
+            .toList
+            .sorted
+
+        Future.successful(
+          Ok(
+            test_setup_data(
+              cache.formTemplate,
+              maybeAccessCode,
+              frontendAppConfig,
+              mongoUserData,
+              visitIndex,
+              answerMap
+            )
+          )
+        )
     }
 
   def getSnapshots(
@@ -1701,7 +1777,7 @@ class TestOnlyController(
       maybeAccessCode,
       OperationWithForm.AcceptSummary
     ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
-      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) { _ => _ => _ =>
+      processResponseDataFromBody(request, formModelOptics) { _ => _ => _ =>
         save match {
           case Exit =>
             Redirect(

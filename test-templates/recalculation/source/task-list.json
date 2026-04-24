@@ -1,0 +1,75 @@
+{
+  "_id": "task-list",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "submitSection": {
+    "label": "Submit",
+    "taskLabel": "Submit"
+  },
+  "sections": [
+    {
+      "title": "Section A",
+      "tasks": [
+        {
+          "title": "Task A 1",
+          "sections": [
+            {
+              "title": "Page A",
+              "fields": [
+                {
+                  "id": "pageA",
+                  "type": "text",
+                  "label": "Page A",
+                  "format": "number"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Section B",
+      "tasks": [
+        {
+          "title": "Task B 1",
+          "sections": [
+            {
+              "title": "Page B",
+              "fields": [
+                {
+                  "id": "pageB",
+                  "type": "text",
+                  "label": "Page B",
+                  "format": "number"
+                },
+                {
+                  "id": "pageC",
+                  "includeIf": "${pageA <= 100}",
+                  "type": "text",
+                  "label": "Page C",
+                  "format": "number"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

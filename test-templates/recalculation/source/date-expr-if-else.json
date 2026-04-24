@@ -1,0 +1,45 @@
+{
+  "_id": "date-expr-if-else",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "effectiveDate": "if 11112025 before importerDate then 01012023 else importerDate"
+  },
+  "sections": [
+    {
+      "title": "Importer date",
+      "fields": [
+        {
+          "id": "importerDate",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Note",
+      "includeIf": "${effectiveDate before 01012024}",
+      "fields": [
+        {
+          "id": "note",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

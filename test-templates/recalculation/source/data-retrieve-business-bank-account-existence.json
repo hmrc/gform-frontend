@@ -1,0 +1,149 @@
+{
+  "_id": "data-retrieve-business-bank-account-existence",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Bank details",
+      "fields": [
+        {
+          "id": "accountNumber",
+          "type": "text",
+          "label": "Account number",
+          "format": "ukBankAccountNumber"
+        },
+        {
+          "id": "sortCode",
+          "type": "text",
+          "label": "Sort code",
+          "format": "ukSortCode"
+        },
+        {
+          "id": "companyName",
+          "type": "text",
+          "label": "Company name",
+          "format": "text"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "businessBankAccountExistence",
+          "id": "bankDetails",
+          "maxFailedAttempts": 3,
+          "failureCountResetMinutes": 10,
+          "parameters": {
+            "sortCode": "${sortCode}",
+            "accountNumber": "${accountNumber}",
+            "companyName": "${companyName}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "displayInSummary": true,
+          "label": "",
+          "rows": [
+            {
+              "key": "accountNumberIsWellFormatted",
+              "value": "accountNumberIsWellFormatted: ${dataRetrieve.bankDetails.accountNumberIsWellFormatted}"
+            },
+            {
+              "key": "sortCodeIsPresentOnEISCD",
+              "value": "sortCodeIsPresentOnEISCD: ${dataRetrieve.bankDetails.sortCodeIsPresentOnEISCD}"
+            },
+            {
+              "key": "sortCodeBankName",
+              "value": "sortCodeBankName: ${dataRetrieve.bankDetails.sortCodeBankName}"
+            },
+            {
+              "key": "nonStandardAccountDetailsRequiredForBacs",
+              "value": "nonStandardAccountDetailsRequiredForBacs: ${dataRetrieve.bankDetails.nonStandardAccountDetailsRequiredForBacs}"
+            },
+            {
+              "key": "accountExists",
+              "value": "accountExists: ${dataRetrieve.bankDetails.accountExists}"
+            },
+            {
+              "key": "nameMatches",
+              "value": "nameMatches: ${dataRetrieve.bankDetails.nameMatches}"
+            },
+            {
+              "key": "sortCodeSupportsDirectDebit",
+              "value": "sortCodeSupportsDirectDebit: ${dataRetrieve.bankDetails.sortCodeSupportsDirectDebit}"
+            },
+            {
+              "key": "sortCodeSupportsDirectCredit",
+              "value": "sortCodeSupportsDirectCredit: ${dataRetrieve.bankDetails.sortCodeSupportsDirectCredit}"
+            },
+            {
+              "key": "accountName",
+              "value": "accountName: ${dataRetrieve.bankDetails.accountName}"
+            },
+            {
+              "key": "failedCount",
+              "value": "failedCount: ${dataRetrieve.bankDetails.failedCount}"
+            },
+            {
+              "key": "isBlocked",
+              "value": "isBlocked: ${dataRetrieve.bankDetails.isBlocked}"
+            },
+            {
+              "key": "unblockTime",
+              "value": "unblockTime: ${dataRetrieve.bankDetails.unblockTime}"
+            },
+            {
+              "key": "unblockDate",
+              "value": "unblockDate: ${dataRetrieve.bankDetails.unblockDate}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${dataRetrieve.bankDetails.isBlocked = 'true'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

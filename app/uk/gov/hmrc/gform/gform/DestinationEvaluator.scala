@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithNrsOrchestrator, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
@@ -26,9 +26,9 @@ import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult,
 
 object DestinationEvaluator {
 
-  def apply[D <: DataOrigin](
+  def apply(
     formTemplate: FormTemplate,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages): DestinationEvaluation = {
 
     def evalIncludeIf(includeIf: DestinationIncludeIf) = includeIf match {

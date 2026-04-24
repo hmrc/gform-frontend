@@ -21,4 +21,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 class LookupRegistry(lookup: Map[Register, LookupType]) {
   def get(register: Register): Option[LookupType] = lookup.get(register)
   val extractors: LookupExtractors = new LookupExtractors(lookup)
+
+  def getLookupOptions(register: Register): LocalisedLookupOptions =
+    get(register)
+      .collect { case uk.gov.hmrc.gform.lookup.AjaxLookup(lookupOptions, _, _) => lookupOptions }
+      .getOrElse(throw new Exception(s"No Register $register found in lookupRegistry"))
 }

@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
@@ -39,11 +38,11 @@ class FormControllerRequestHandler(
 )(implicit ec: ExecutionContext) {
 
   def handleSuppressErrors(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     sectionNumbers: List[SectionNumber],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Mongo],
+    validatePageModel: ValidatePageModel[Future],
     suppressErrors: SuppressErrors
   ): Future[FormHandlerResult] =
     formValidator
@@ -57,11 +56,11 @@ class FormControllerRequestHandler(
       .map(suppressErrors.apply)
 
   def handleFormValidation(
-    formModelOptics: FormModelOptics[DataOrigin.Browser],
+    formModelOptics: FormModelOptics,
     sectionNumber: SectionNumber,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    validatePageModel: ValidatePageModel[Future],
     enteredVariadicFormData: EnteredVariadicFormData,
     form: Form,
     retrievals: MaterialisedRetrievals
@@ -125,7 +124,7 @@ class FormControllerRequestHandler(
     processData: ProcessData,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    validatePageModel: ValidatePageModel[Future],
     fastForward: List[FastForward],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] =
@@ -141,7 +140,7 @@ class FormControllerRequestHandler(
     processData: ProcessData,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    validatePageModel: ValidatePageModel[Future],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[Option[SectionNumber]] =
     formValidator.mustBeVisitedSectionNumber(

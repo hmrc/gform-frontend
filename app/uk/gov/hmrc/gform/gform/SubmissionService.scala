@@ -27,14 +27,14 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ Attachments, EnvelopeWithMapping, File, ObjectStoreService }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics, Signed }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsFileUpload, IsMultiFileUpload }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -52,11 +52,11 @@ class SubmissionService(
 
   import i18nSupport._
 
-  def submitForm[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+  def submitForm[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[D]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -78,7 +78,7 @@ class SubmissionService(
       Attachments(visibleFcIds.toList)
     }
 
-    val variadicFormData: VariadicFormData[SourceOrigin.Current] = formModelOptics.pageOpticsData
+    val variadicFormData: VariadicFormData = formModelOptics.variadicFormData
 
     val cacheUpd = cache.copy(form = cache.form.copy(formData = variadicFormData.toFormData))
 
@@ -134,10 +134,10 @@ class SubmissionService(
     }
   }
 
-  private def auditSubmissionEvent[D <: DataOrigin](
+  private def auditSubmissionEvent(
     cache: AuthCacheWithForm,
     customerId: CustomerId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     envelopeFiles: List[File],
     dmsSubmissions: List[DmsDestinationResponse],
     submissionRef: SubmissionRef

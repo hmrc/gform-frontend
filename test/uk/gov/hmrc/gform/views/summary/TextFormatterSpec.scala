@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.views.summary
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
 import play.api.test.Helpers
-import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
+import uk.gov.hmrc.gform.Helpers.{ mkData, toSmartString }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
@@ -78,7 +78,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
   val dummyFormModelVisibilityOptics = {
     implicit val l: LangADT = LangADT.En
     val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
-    val inputData = mkDataOutOfDate("dummy" -> "dummy")
+    val inputData = mkData("dummy" -> "dummy")
     mkFormModelOptics(mkFormTemplate(sections), inputData).formModelVisibilityOptics
   }
 
@@ -145,7 +145,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
   forAll(equalsCombinations) { (input, expectedSterling, expectedNumber) =>
     implicit val l: LangADT = LangADT.En
     val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
-    val inputData = mkDataOutOfDate("dummy" -> "dummy")
+    val inputData = mkData("dummy" -> "dummy")
 
     val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
     def formatForConstraint(constraint: TextConstraint) =
@@ -163,7 +163,7 @@ class TextFormatterSpec extends Spec with TableDrivenPropertyChecks with FormMod
   forAll(ukSortCodeCombinations) { (input, expected) =>
     implicit val l: LangADT = LangADT.En
     val sections = List(mkSection(List(mkFormComponent("dummy", Value))))
-    val inputData = mkDataOutOfDate("dummy" -> "dummy")
+    val inputData = mkData("dummy" -> "dummy")
 
     val formModelOptics = mkFormModelOptics(mkFormTemplate(sections), inputData)
     def formatForConstraint(constraint: TextConstraint) =

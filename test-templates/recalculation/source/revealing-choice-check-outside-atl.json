@@ -1,0 +1,98 @@
+{
+  "_id": "revealing-choice-check-outside-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "summaryName": "item",
+      "title": "Items",
+      "shortName": "Items",
+      "summaryDescription": "${choiceField}",
+      "description": "${choiceField}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "So you want to add another owner?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Item",
+          "fields": [
+            {
+              "id": "choiceField",
+              "type": "revealingChoice",
+              "label": "Trading Details",
+              "choices": [
+                "Address",
+                "Text",
+                "Choice",
+                "Date"
+              ],
+              "revealingFields": [
+                [],
+                [
+                  {
+                    "id": "text",
+                    "type": "text",
+                    "format": "text",
+                    "label": "Home Address",
+                    "notPII": true
+                  }
+                ],
+                [
+                  {
+                    "id": "dutyType",
+                    "type": "choice",
+                    "label": "Choice component with vertical format",
+                    "format": "vertical",
+                    "choices": [
+                      "Tax type 591 - Natural gas",
+                      "Tax type 591 - Other gas"
+                    ]
+                  }
+                ],
+                []
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text box ${text}",
+      "includeIf": "${(choiceField = 1 && text = 'FOO')}",
+      "fields": [
+        {
+          "id": "submissionReference",
+          "type": "text",
+          "format": "text",
+          "label": "Submission Reference",
+          "value": "${form.submissionReference}"
+        },
+        {
+          "includeIf": "${(choiceField = 2 && dutyType = 1)}",
+          "id": "submissionReference2",
+          "type": "text",
+          "format": "text",
+          "label": "Submission Reference"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

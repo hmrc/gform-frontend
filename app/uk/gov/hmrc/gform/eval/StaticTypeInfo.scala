@@ -17,9 +17,16 @@
 package uk.gov.hmrc.gform.eval
 
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExplicitExprType, Number, Sterling, TextConstraint, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ExplicitExprType, Number, PositiveNumber, Sterling, TextConstraint, WholeSterling }
 
 case class StaticTypeInfo(lookup: Map[BaseComponentId, StaticTypeData]) extends AnyVal {
+  def apply(baseComponentId: BaseComponentId): StaticTypeData = lookup
+    .get(baseComponentId)
+    .getOrElse(
+      throw new Exception(
+        s"Form component with baseComponentId: '$baseComponentId' not found when trying to deteremine static type."
+      )
+    )
   def get(baseComponentId: BaseComponentId): Option[StaticTypeData] = lookup.get(baseComponentId)
 
   def ++(staticTypeInfo: StaticTypeInfo): StaticTypeInfo =
@@ -31,19 +38,26 @@ object StaticTypeInfo {
 
 }
 
-case class StaticTypeData(exprType: ExprType, textConstraint: Option[TextConstraint])
+case class StaticTypeData(exprType: ExprType, textConstraint: Option[TextConstraint]) {
+  def defaultValue: String = textConstraint.fold("") {
+    case Sterling(_, _)             => "0"
+    case WholeSterling(_, _)        => "0"
+    case Number(_, _, _, _)         => "0"
+    case PositiveNumber(_, _, _, _) => "0"
+    case _                          => ""
+  }
+}
 
 object StaticTypeData {
-  val illegal: StaticTypeData = StaticTypeData(ExprType.illegal, None)
   def from(explicit: ExplicitExprType): StaticTypeData = explicit match {
-    case ExplicitExprType.Text => StaticTypeData(ExprType.string, None)
+    case ExplicitExprType.Text => StaticTypeData(ExprType.String, None)
     case ExplicitExprType.Sterling(roundingMode) =>
-      StaticTypeData(ExprType.number, Some(Sterling(roundingMode, false)))
+      StaticTypeData(ExprType.Number, Some(Sterling(roundingMode, false)))
     case ExplicitExprType.WholeSterling(roundingMode) =>
-      StaticTypeData(ExprType.number, Some(WholeSterling(false, roundingMode)))
+      StaticTypeData(ExprType.Number, Some(WholeSterling(false, roundingMode)))
     case ExplicitExprType.Number(fractionalDigits, roundingMode) =>
       StaticTypeData(
-        ExprType.number,
+        ExprType.Number,
         Some(
           Number(
             maxFractionalDigits = fractionalDigits,

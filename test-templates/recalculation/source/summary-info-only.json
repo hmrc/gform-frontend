@@ -1,0 +1,41 @@
+{
+  "_id": "summary-info-only",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "sections": [
+    {
+      "title": "User instruction ${auth.ctutr}",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "ctutrSummary",
+          "type": "text",
+          "format": "text",
+          "label": "Corporation Tax Unique Taxpayer reference",
+          "value": "${auth.ctutr}",
+          "submitMode": "summaryinfoonly"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page ",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

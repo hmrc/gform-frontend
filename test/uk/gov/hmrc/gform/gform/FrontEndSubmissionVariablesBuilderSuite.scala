@@ -22,10 +22,10 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
+import uk.gov.hmrc.gform.Helpers.{ mkData, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals, OtherRetrievals }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, FrontEndSubmissionVariables, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolmentAuth, EnrolmentOutcome, EnrolmentOutcomes, HmrcAgentWithEnrolmentModule, Never, ServiceId, ShortText, Text, UserCtx, UserField, Value }
@@ -50,12 +50,12 @@ class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSup
       )
     )
     val formTemplate = mkFormTemplate(sections)
-    val data = mkDataOutOfDate(
+    val data = mkData(
       "a" -> "test",
       "b" -> "123"
     )
 
-    val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+    val formModelVisibilityOptics: FormModelVisibilityOptics =
       mkFormModelOpticsMongo(formTemplate, data)
     val customerId = CustomerId("""\/324%@£$£%$^%*&^(_^&@$\@£%*^&(&~+\nnewline\ttab""")
 
@@ -104,12 +104,12 @@ class FrontEndSubmissionVariablesBuilderSuite extends FunSuite with FormModelSup
     val formTemplate =
       mkFormTemplate(sections).copy(authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
 
-    val data = mkDataOutOfDate(
+    val data = mkData(
       "a" -> "test",
       "b" -> "123"
     )
 
-    val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo] =
+    val formModelVisibilityOptics: FormModelVisibilityOptics =
       mkFormModelOpticsMongo(formTemplate, data)
     val customerId = CustomerId("""\/324%@£$£%$^%*&^(_^&@$\@£%*^&(&~+\nnewline\ttab""")
 

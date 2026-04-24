@@ -16,21 +16,18 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import java.time.{ Instant, LocalDate, LocalDateTime, LocalTime }
+import java.time.{ Instant, LocalDateTime, LocalTime }
 import cats.data.NonEmptyList
 import play.api.ApplicationLoader.Context
 import play.api.i18n.Lang
 import play.api.{ Environment, Mode }
 import uk.gov.hmrc.gform.auth.models.OtherRetrievals
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ Basic, DataRetrieveAll, PageMode }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolments }
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -41,12 +38,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
-import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
-import play.api.test.Helpers
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.email.LocalisedEmailTemplateId
-import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.HandlebarValue
 
 import java.time.temporal.ChronoUnit
@@ -57,46 +51,7 @@ trait ExampleData
     extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleSection
     with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext with ExampleInstruction with ExampleSubmissionRef with ExampleDmsMetaData
-    with ExampleCustomerId with ExampleSubmission with ExampleEvaluationContext with ExampleDestination
-
-trait ExampleEvaluationContext {
-  self: ExampleFormTemplate with ExampleAuthContext with ExampleAuthConfig with ExampleSubmissionRef =>
-
-  val evaluationContext: EvaluationContext =
-    EvaluationContext(
-      formTemplateId,
-      EnvelopeId(""),
-      Option.empty[CustomSubmissionRef],
-      None,
-      authContext,
-      ThirdPartyData.empty,
-      authConfig,
-      HeaderCarrier(),
-      Option.empty[FormPhase],
-      FileIdsWithMapping.empty,
-      Map.empty,
-      Map.empty,
-      Set.empty,
-      Set.empty,
-      Set.empty,
-      Map.empty,
-      LangADT.En,
-      Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty)),
-      Map.empty,
-      Set.empty,
-      FileSizeLimit(1),
-      DataRetrieveAll.empty,
-      Set.empty[ModelComponentId],
-      Map.empty,
-      Set.empty,
-      new LookupRegistry(Map()),
-      Map.empty,
-      Map.empty,
-      TaskIdTaskStatusMapping.empty,
-      LocalDate.now(),
-      Set.empty[ModelComponentId]
-    )
-}
+    with ExampleCustomerId with ExampleSubmission with ExampleDestination
 
 trait ExampleSubmission {
   self: ExampleForm with ExampleSubmissionRef with ExampleDmsMetaData with ExampleCustomerId =>
@@ -523,7 +478,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     None
   )
 
-  private def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
+  private def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
     xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None, None))
 
   private def toOptionData(s: String): OptionData.IndexBased =
@@ -533,7 +488,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     `fieldId - choice`,
     Choice(
       Radio,
-      toOptionData(NonEmptyList.of("u", "v")),
+      toOptionData(List("u", "v")),
       Vertical,
       List(),
       None,
@@ -633,7 +588,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       FormComponentId(addAnotherQuestionName),
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("yes", "no")),
+        toOptionData(List("yes", "no")),
         Vertical,
         List.empty,
         None,
@@ -763,11 +718,11 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     summaryName: String,
     addAnotherQuestion: FormComponent,
     instruction: Option[Instruction],
-    pages: List[Page[Basic]],
+    pages: List[Page],
     presentationHint: Option[PresentationHint] = None,
     infoMessage: Option[String] = None,
     errorMessage: Option[String] = None,
-    defaultPage: Option[Page[Basic]] = None,
+    defaultPage: Option[Page] = None,
     cyaPage: Option[CheckYourAnswersPage] = None
   ): Section.AddToList =
     Section.AddToList(
@@ -801,15 +756,15 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
     presentationHint: Option[PresentationHint] = None
-  ): Page[Basic] =
-    mkPage[Basic](title, instruction, formComponents, presentationHint)
+  ): Page =
+    mkPage(title, instruction, formComponents, presentationHint)
 
-  def mkPage[T <: PageMode](
+  def mkPage(
     title: String,
     instruction: Option[Instruction],
     formComponents: List[FormComponent],
     presentationHint: Option[PresentationHint] = None
-  ): Page[T] = Page[T](
+  ): Page = Page(
     toSmartString(title),
     None,
     None,
@@ -913,6 +868,7 @@ trait ExampleFormTemplate {
 
   def buildFormTemplateContext: FormTemplateContext =
     FormTemplateContext.basicContext(buildFormTemplate, None)
+
   def buildFormTemplate: FormTemplate = buildFormTemplate(destinationList, allSections)
 
   def buildFormTemplate(destinationList: DestinationList, sections: List[Section]): FormTemplate =

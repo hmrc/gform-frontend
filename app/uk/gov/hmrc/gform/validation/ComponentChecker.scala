@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -72,10 +71,10 @@ import scala.collection.mutable.LinkedHashSet
  * Process for creating a Checker:
  *
  * 1. Extend ComponentChecker: Create a class that extends ComponentChecker.
- *    Example: `class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[D] {...}`
+ *    Example: `class OverseasAddressChecker() extends ComponentChecker {...}`
  *
  * 2. Override checkProgram: This method will hold the core logic of the checker.
- *    Example: `override protected def checkProgram(context: CheckerDependency[D])...`
+ *    Example: `override protected def checkProgram(context: CheckerDependency)...`
  *
  * 3. Create Check Programs: Create a set of `CheckProgram` operations based on the business rules and the specific checks you want to perform.
  *
@@ -86,10 +85,10 @@ import scala.collection.mutable.LinkedHashSet
  *    It runs all checks and return a result that can be validated to reflect either a success or appropriate errors.
  */
 
-trait ComponentChecker[A, D <: DataOrigin] {
+trait ComponentChecker[A] {
   import ComponentChecker._
 
-  def runCheck(context: CheckerDependency[D])(implicit
+  def runCheck(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator,
@@ -101,7 +100,7 @@ trait ComponentChecker[A, D <: DataOrigin] {
       case Left(e)         => e.invalid
     }
 
-  protected def checkProgram(componentCheckerContext: CheckerDependency[D])(implicit
+  protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -400,8 +399,8 @@ object ComponentChecker {
   }
 }
 
-trait CheckerDependency[D <: DataOrigin] {
-  def formModelVisibilityOptics: FormModelVisibilityOptics[D]
+trait CheckerDependency {
+  def formModelVisibilityOptics: FormModelVisibilityOptics
   def formComponent: FormComponent
   def cache: CacheData
   def envelope: EnvelopeWithMapping
