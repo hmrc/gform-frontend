@@ -239,7 +239,8 @@ class AuthenticatedRequestActions(
             )
           }
         case None =>
-          authenticateAndProceed(formTemplateId, operation, f)
+          val redirect = authenticateAndProceed(formTemplateId, operation, f)
+          formTemplate.languages.mandatoryLanguage().fold(redirect)(lang => redirect.map(_.withLang(lang)))
       }
     }
 
@@ -447,10 +448,9 @@ class AuthenticatedRequestActions(
         result <- f(cache)(smartStringEvaluator)(formModelOptics)
       } yield result
 
-    val availableLang = formTemplate.languages.languages.headOption.getOrElse(LangADT.En).langADTToString
-
     if (!formTemplate.languages.languages.contains(l)) {
-      Redirect(request.uri).withLang(Lang(availableLang)).pure[Future]
+      val availableLang = formTemplate.languages.mandatoryLanguage().getOrElse(Lang(LangADT.En.langADTToString))
+      Redirect(request.uri).withLang(availableLang).pure[Future]
     } else {
       val formIdData = FormIdData(retrievals, formTemplate._id, maybeAccessCode)
       gformConnector.maybeForm(formIdData, formTemplate).flatMap(_.fold(formNotFound(formIdData))(whenFormExists))
