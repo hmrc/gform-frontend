@@ -370,6 +370,12 @@ class TestOnlyController(
         .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=DataLakehouse")
     )
 
+    val asyncWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View async-handlebars-work-item entry",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=AsyncHandlebars")
+    )
+
     val viewSDESLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View sdes submission",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -392,7 +398,13 @@ class TestOnlyController(
     }
 
     bulleted_list(
-      destinationLinks ++ List(dataStoreWorkItemLink, dataLakehouseWorkItemLink, dmsWorkItemLink, viewSDESLink)
+      destinationLinks ++ List(
+        dataStoreWorkItemLink,
+        dataLakehouseWorkItemLink,
+        dmsWorkItemLink,
+        asyncWorkItemLink,
+        viewSDESLink
+      )
     )
   }
 
