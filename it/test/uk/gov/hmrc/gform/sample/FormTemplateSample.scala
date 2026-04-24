@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.it.sample
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.email.{ EmailTemplateId, LocalisedEmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.CustomSubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputFormat, DestinationId, InstructionPdfFields, SdesDestination, TemplateType }
@@ -67,7 +66,7 @@ trait FormTemplateSample {
       .Classic(
         List(
           NonRepeatingPage(
-            Page[Basic](
+            Page(
               title = toSmartString("Page1"),
               id = None,
               noPIITitle = None,
