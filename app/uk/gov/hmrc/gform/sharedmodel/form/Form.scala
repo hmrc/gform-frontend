@@ -19,9 +19,13 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.Eq
 import cats.instances.string._
 import cats.syntax.eq._
+import java.time.temporal.ChronoUnit
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.addresslookup.AddressLookupResult
+import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
+import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits
@@ -52,6 +56,35 @@ final case class Form(
 }
 
 object Form {
+
+  def dummy(formTemplateId: FormTemplateId) = Form(
+    FormId("dummy-form-id"),
+    EnvelopeId("dummy-envelope-id"),
+    UserId("dummy-user-id"),
+    formTemplateId,
+    None,
+    FormData(List.empty[FormField]),
+    InProgress,
+    VisitIndex.empty,
+    ThirdPartyData(
+      NotChecked,
+      Map.empty[EmailFieldId, EmailAndCode],
+      QueryParams.empty,
+      Option.empty[Map[String, String]],
+      BooleanExprCache.empty,
+      Option.empty[Map[DataRetrieveId, DataRetrieveResult]],
+      Option.empty[Map[FormComponentId, AddressLookupResult]],
+      Option.empty[Map[FormComponentId, String]],
+      Option.empty[Map[FormComponentId, FormData]],
+      Option.empty[Set[FormComponentId]],
+      Option.empty[ItmpRetrievals],
+      Option.empty[Map[FormComponentId, List[String]]]
+    ),
+    Option.empty[EnvelopeExpiryDate],
+    FormComponentIdToFileIdMapping.empty,
+    TaskIdTaskStatusMapping.empty,
+    Instant.now.truncatedTo(ChronoUnit.MILLIS)
+  )
 
   private val thirdPartyData = "thirdPartyData"
   private val componentIdToFileId = "componentIdToFileId"

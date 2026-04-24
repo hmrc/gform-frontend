@@ -56,7 +56,7 @@ case class InitFormEvaluator(
       case And(l, r)                                      => evalBooleanExpr(l) && evalBooleanExpr(r)
       case Or(l, r)                                       => evalBooleanExpr(l) || evalBooleanExpr(r)
       case Not(be)                                        => !evalBooleanExpr(be)
-      case IsLogin(value)                                 => BooleanExprEval.evalIsLoginExpr(value, cache.retrievals)
+      case IsLogin(value)                                 => false // BooleanExprEval.evalIsLoginExpr(value, cache.retrievals)
       case DateAfter(DateValueExpr(l), DateValueExpr(r))  => l.toLocalDate(now).isAfter(r.toLocalDate(now))
       case DateBefore(DateValueExpr(l), DateValueExpr(r)) => l.toLocalDate(now).isBefore(r.toLocalDate(now))
       case IsTrue                                         => true
@@ -75,7 +75,7 @@ case class InitFormEvaluator(
     case AuthCtx(value: AuthInfo) =>
       AuthContextPrepop
         .values(value, cache.retrievals, itmpRetrievals)
-        .stringRepresentation(TypeInfo(e, StaticTypeData(ExprType.string, None)), messages)
+        .stringRepresentation(StaticTypeData(ExprType.String, None), messages)
     case d @ DataRetrieveCtx(_, _) =>
       cache.dataRetrieve.fold("") { dr =>
         DataRetrieveEval.getDataRetrieveAttribute(dr, d) match {

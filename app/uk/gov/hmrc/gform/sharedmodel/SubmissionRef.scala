@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import play.api.libs.json._
 
 import scala.math.pow
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 
@@ -50,10 +50,10 @@ object SubmissionRef {
   def fromEnvelopeId(envelopeId: EnvelopeId): SubmissionRef =
     fromSeed(envelopeId.value)
 
-  def apply[D <: DataOrigin](
+  def apply(
     formTemplate: FormTemplate,
     envelopeId: EnvelopeId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages): SubmissionRef = {
     val seed = formTemplate.customSubmissionRef
       .fold(envelopeId.value)(customSubmissionRef =>

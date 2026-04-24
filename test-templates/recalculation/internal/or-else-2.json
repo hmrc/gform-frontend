@@ -1,0 +1,1213 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "emailExpr": {
+    "Else": {
+      "field1": {
+        "FormCtx": {
+          "formComponentId": "emailAddressAgent"
+        }
+      },
+      "field2": {
+        "Else": {
+          "field1": {
+            "IfElse": {
+              "cond": {
+                "Contains": {
+                  "multiValueField": {
+                    "formComponentId": "agentEmail"
+                  },
+                  "value": {
+                    "Constant": {
+                      "value": "Known"
+                    }
+                  }
+                }
+              },
+              "field1": {
+                "DataRetrieveCtx": {
+                  "id": "agencyInfo",
+                  "attribute": {
+                    "name": "agencyEmail"
+                  }
+                }
+              },
+              "field2": {
+                "Constant": {
+                  "value": ""
+                }
+              }
+            }
+          },
+          "field2": {
+            "AuthCtx": {
+              "value": {
+                "EmailId": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Where should we send you an email if we need further information about this form?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "UserCtx": {
+                        "value": {
+                          "AffinityGroup": {}
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "agent"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Where should we send you an email if we need further information about this form?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "agentEmail",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "To {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AuthCtx": {
+                                        "value": {
+                                          "EmailId": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "Auth"
+                              }
+                            },
+                            "summaryValue": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "{0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "AuthCtx": {
+                                        "value": {
+                                          "EmailId": {}
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "To {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "agencyInfo",
+                                        "attribute": {
+                                          "name": "agencyEmail"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "includeIf": {
+                              "booleanExpr": {
+                                "Not": {
+                                  "e": {
+                                    "Equals": {
+                                      "left": {
+                                        "DataRetrieveCtx": {
+                                          "id": "agencyInfo",
+                                          "attribute": {
+                                            "name": "agencyEmail"
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "Constant": {
+                                          "value": ""
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "Known"
+                              }
+                            },
+                            "summaryValue": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "{0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "FormCtx": {
+                                        "formComponentId": "agentASemail"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "To a different email address"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "Different"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Where should we send you an email if we need further information about this form?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "And": {
+                    "left": {
+                      "And": {
+                        "left": {
+                          "Equals": {
+                            "left": {
+                              "UserCtx": {
+                                "value": {
+                                  "AffinityGroup": {}
+                                }
+                              }
+                            },
+                            "right": {
+                              "Constant": {
+                                "value": "agent"
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "Contains": {
+                            "multiValueField": {
+                              "formComponentId": "agentEmail"
+                            },
+                            "value": {
+                              "Constant": {
+                                "value": "Different"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Not": {
+                        "e": {
+                          "Contains": {
+                            "multiValueField": {
+                              "formComponentId": "agentEmail"
+                            },
+                            "value": {
+                              "Constant": {
+                                "value": "Known"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Where should we send you an email if we need further information about this form?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "emailAddressAgent",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "Email": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "table",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Calculation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "email = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Else": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "emailAddressAgent"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Else": {
+                                              "field1": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Contains": {
+                                                      "multiValueField": {
+                                                        "formComponentId": "agentEmail"
+                                                      },
+                                                      "value": {
+                                                        "Constant": {
+                                                          "value": "Known"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "DataRetrieveCtx": {
+                                                      "id": "agencyInfo",
+                                                      "attribute": {
+                                                        "name": "agencyEmail"
+                                                      }
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Constant": {
+                                                      "value": ""
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "AuthCtx": {
+                                                  "value": {
+                                                    "EmailId": {}
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "HmrcSimpleModule": {}
+  },
+  "originalId": "or-else-2",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "or-else-2",
+  "formCategory": "default",
+  "dataRetrieve": [
+    {
+      "tpe": {
+        "name": "agentDetails"
+      },
+      "if": {
+        "booleanExpr": {
+          "And": {
+            "left": {
+              "Equals": {
+                "left": {
+                  "UserCtx": {
+                    "value": {
+                      "AffinityGroup": {}
+                    }
+                  }
+                },
+                "right": {
+                  "Constant": {
+                    "value": "agent"
+                  }
+                }
+              }
+            },
+            "right": {
+              "Not": {
+                "e": {
+                  "Equals": {
+                    "left": {
+                      "UserCtx": {
+                        "value": {
+                          "Enrolment": {
+                            "serviceName": {
+                              "value": "HMRC-AS-AGENT"
+                            },
+                            "identifierName": {
+                              "value": "AgentReferenceNumber"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "params": [
+        {
+          "parameter": {
+            "name": "agentReferenceNumber",
+            "path": [],
+            "tpe": {
+              "String": {}
+            }
+          },
+          "expr": {
+            "UserCtx": {
+              "value": {
+                "Enrolment": {
+                  "serviceName": {
+                    "value": "HMRC-AS-AGENT"
+                  },
+                  "identifierName": {
+                    "value": "AgentReferenceNumber"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "attributes": {
+        "FromObject": {
+          "inst": [
+            {
+              "attribute": {
+                "name": "agencyName"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "agencyDetails",
+                      "agencyName"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "address_line_1"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine1"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine1"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "address_line_2"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine2"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine2"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "locality"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine3"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine3"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "region"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine4"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine4"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "postal_code"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "postalCode"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "postalCode"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "country"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "countryCode"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "countryCode"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "agencyAddress"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine1"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine2"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine3"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "addressLine4"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "UkAddress",
+                        "postalCode"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine1"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine2"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine3"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "addressLine4"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "postalCode"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "agencyDetails",
+                        "agencyAddress",
+                        "InternationalAddress",
+                        "countryCode"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "agencyEmail"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "agencyDetails",
+                      "agencyEmail"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "agencyPhone"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "contactDetails",
+                      "phoneNumber"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            }
+          ]
+        }
+      },
+      "attrTypeMapping": {},
+      "id": "agencyInfo",
+      "callOnNoChange": false
+    }
+  ],
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

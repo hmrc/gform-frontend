@@ -1,0 +1,61 @@
+{
+  "_id": "atl-sum-outside",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n. ${item}",
+      "summaryDescription": "${item}",
+      "addAnotherQuestion": {
+        "id": "anotherItem",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Item",
+          "fields": [
+            {
+              "id": "item",
+              "type": "text",
+              "label": "Item",
+              "format": "number"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Page A",
+      "includeIf": "${item.sum > 10}",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform
 import cats.Monad
 import cats.syntax.applicative._
 import uk.gov.hmrc.gform.auth.models.{ GovernmentGatewayId, IdentifierValue }
-import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.sharedmodel.dblookup.CollectionName
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataSource.DelegatedEnrolment
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,7 +34,4 @@ trait GraphSpec {
     identifierValue: IdentifierValue,
     hc: HeaderCarrier
   ): F[Boolean] = true.pure[F]
-
-  def booleanExprEval: BooleanExprEval = new BooleanExprEval()
-
 }

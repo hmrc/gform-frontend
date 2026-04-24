@@ -20,7 +20,7 @@ import cats.implicits._
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormIdData, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, SectionNumber }
@@ -31,7 +31,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 sealed trait AddressLookupService[F[_]] {
   def retrievePostcodeLookupData(
     formComponent: FormComponent,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     hc: HeaderCarrier
   ): F[Option[AddressLookupResult]]
@@ -66,7 +66,7 @@ sealed trait AddressLookupService[F[_]] {
     form: Form,
     maybeAccessCode: Option[AccessCode],
     formComponentId: FormComponentId,
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     sectionNumber: SectionNumber
   )(implicit
     hc: HeaderCarrier
@@ -90,7 +90,7 @@ object AddressLookupService {
   ): AddressLookupService[Future] = new AddressLookupService[Future] {
     def retrievePostcodeLookupData(
       formComponent: FormComponent,
-      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser]
+      formModelVisibilityOptics: FormModelVisibilityOptics
     )(implicit
       hc: HeaderCarrier
     ): Future[Option[AddressLookupResult]] = {
@@ -223,7 +223,7 @@ object AddressLookupService {
       form: Form,
       maybeAccessCode: Option[AccessCode],
       formComponentId: FormComponentId,
-      formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+      formModelVisibilityOptics: FormModelVisibilityOptics,
       sectionNumber: SectionNumber
     )(implicit
       hc: HeaderCarrier

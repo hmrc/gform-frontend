@@ -1,0 +1,3004 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Enter start and end dates"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Start date"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "accountingStart",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Date": {
+                      "constraintType": {
+                        "AnyDate": {}
+                      },
+                      "offset": {
+                        "value": 0
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0} - {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "productionStartDate"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "lossSurrendered"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Theater"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Production start date"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "productionStartDate",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "DateConstraints": {
+                            "constraints": [
+                              {
+                                "beforeAfterPrecisely": {
+                                  "Before": {}
+                                },
+                                "dateFormat": {
+                                  "Today": {}
+                                },
+                                "offset": {
+                                  "value": 1
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is the amount of loss surrendered?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "WholeSterling": {
+                            "positiveOnly": true,
+                            "roundingMode": "Down"
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "labelSize": {
+                      "Small": {}
+                    },
+                    "id": "lossSurrendered",
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating fields"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Result"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "table",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Equation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditTotalAnd = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Sum": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "And": {
+                                                          "left": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "productionStartDate"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2021,
+                                                                      "month": 10,
+                                                                      "day": 27
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "accountingStart"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2025,
+                                                                      "month": 4,
+                                                                      "day": 1
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.20"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.50"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditTotalAndSwapped = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Sum": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "And": {
+                                                          "left": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "accountingStart"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2025,
+                                                                      "month": 4,
+                                                                      "day": 1
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "productionStartDate"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2021,
+                                                                      "month": 10,
+                                                                      "day": 27
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.20"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.50"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditTotalOr = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Sum": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "Or": {
+                                                          "left": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "productionStartDate"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2021,
+                                                                      "month": 10,
+                                                                      "day": 27
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "accountingStart"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2025,
+                                                                      "month": 4,
+                                                                      "day": 1
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.20"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.50"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditTotalOrSwapped = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Sum": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "Or": {
+                                                          "left": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "accountingStart"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2025,
+                                                                      "month": 4,
+                                                                      "day": 1
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "DateBefore": {
+                                                              "left": {
+                                                                "DateFormCtxVar": {
+                                                                  "formCtx": {
+                                                                    "formComponentId": "productionStartDate"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "DateValueExpr": {
+                                                                  "value": {
+                                                                    "ExactDateExprValue": {
+                                                                      "year": 2021,
+                                                                      "month": 10,
+                                                                      "day": 27
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.20"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "Multiply": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "lossSurrendered"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "Constant": {
+                                                                  "value": "0.50"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditCalculationAnd = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "And": {
+                                                  "left": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "productionStartDate"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2021,
+                                                              "month": 10,
+                                                              "day": 27
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "accountingStart"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2025,
+                                                              "month": 4,
+                                                              "day": 1
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.20"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.50"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditCalculationAndSwapped = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "And": {
+                                                  "left": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "accountingStart"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2025,
+                                                              "month": 4,
+                                                              "day": 1
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "productionStartDate"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2021,
+                                                              "month": 10,
+                                                              "day": 27
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.20"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.50"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditCalculationOr = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Or": {
+                                                  "left": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "productionStartDate"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2021,
+                                                              "month": 10,
+                                                              "day": 27
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "accountingStart"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2025,
+                                                              "month": 4,
+                                                              "day": 1
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.20"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.50"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "creditCalculationOrSwapped = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Or": {
+                                                  "left": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "accountingStart"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2025,
+                                                              "month": 4,
+                                                              "day": 1
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateBefore": {
+                                                      "left": {
+                                                        "DateFormCtxVar": {
+                                                          "formCtx": {
+                                                            "formComponentId": "productionStartDate"
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "DateValueExpr": {
+                                                          "value": {
+                                                            "ExactDateExprValue": {
+                                                              "year": 2021,
+                                                              "month": 10,
+                                                              "day": 27
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.20"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "Multiply": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "lossSurrendered"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "0.50"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "loss20 = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Multiply": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "lossSurrendered"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "0.20"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "loss50 = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Typed": {
+                                          "expr": {
+                                            "Multiply": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "lossSurrendered"
+                                                }
+                                              },
+                                              "field2": {
+                                                "Constant": {
+                                                  "value": "0.50"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "productionStartDate = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "productionStartDate"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "accountingStartBefore01042025 = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "DateBefore": {
+                                              "left": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "accountingStart"
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "DateValueExpr": {
+                                                  "value": {
+                                                    "ExactDateExprValue": {
+                                                      "year": 2025,
+                                                      "month": 4,
+                                                      "day": 1
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "productionStartBefore27102021 = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "DateBefore": {
+                                              "left": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "productionStartDate"
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "DateValueExpr": {
+                                                  "value": {
+                                                    "ExactDateExprValue": {
+                                                      "year": 2021,
+                                                      "month": 10,
+                                                      "day": 27
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "lossSurrenderedAt20perCentAnd = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "And": {
+                                              "left": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "productionStartDate"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2021,
+                                                          "month": 10,
+                                                          "day": 27
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "accountingStart"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2025,
+                                                          "month": 4,
+                                                          "day": 1
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "lossSurrenderedAt20perCentAndSwapped = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "And": {
+                                              "left": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "accountingStart"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2025,
+                                                          "month": 4,
+                                                          "day": 1
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "productionStartDate"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2021,
+                                                          "month": 10,
+                                                          "day": 27
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "lossSurrenderedAt20perCentOr = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Or": {
+                                              "left": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "productionStartDate"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2021,
+                                                          "month": 10,
+                                                          "day": 27
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "accountingStart"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2025,
+                                                          "month": 4,
+                                                          "day": 1
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "lossSurrenderedAt20perCentOrSwapped = {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Or": {
+                                              "left": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "accountingStart"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2025,
+                                                          "month": 4,
+                                                          "day": 1
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "DateBefore": {
+                                                  "left": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "productionStartDate"
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "DateValueExpr": {
+                                                      "value": {
+                                                        "ExactDateExprValue": {
+                                                          "year": 2021,
+                                                          "month": 10,
+                                                          "day": 27
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Constant": {
+                                              "value": "Yes"
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "No"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret And"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Typed": {
+                        "expr": {
+                          "Sum": {
+                            "field1": {
+                              "Typed": {
+                                "expr": {
+                                  "IfElse": {
+                                    "cond": {
+                                      "And": {
+                                        "left": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "productionStartDate"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2021,
+                                                    "month": 10,
+                                                    "day": 27
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "accountingStart"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2025,
+                                                    "month": 4,
+                                                    "day": 1
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field1": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.20"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field2": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.50"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "tpe": {
+                                  "Sterling": {
+                                    "roundingMode": "Down"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "tpe": {
+                          "Sterling": {
+                            "roundingMode": "Down"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "87737.40"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secretAnd",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Found"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "found"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret And Swapped"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Typed": {
+                        "expr": {
+                          "Sum": {
+                            "field1": {
+                              "Typed": {
+                                "expr": {
+                                  "IfElse": {
+                                    "cond": {
+                                      "And": {
+                                        "left": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "accountingStart"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2025,
+                                                    "month": 4,
+                                                    "day": 1
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "productionStartDate"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2021,
+                                                    "month": 10,
+                                                    "day": 27
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field1": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.20"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field2": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.50"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "tpe": {
+                                  "Sterling": {
+                                    "roundingMode": "Down"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "tpe": {
+                          "Sterling": {
+                            "roundingMode": "Down"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "87737.40"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secretAndSwapped",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Found"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "found"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret Or"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Typed": {
+                        "expr": {
+                          "Sum": {
+                            "field1": {
+                              "Typed": {
+                                "expr": {
+                                  "IfElse": {
+                                    "cond": {
+                                      "Or": {
+                                        "left": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "productionStartDate"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2021,
+                                                    "month": 10,
+                                                    "day": 27
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "accountingStart"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2025,
+                                                    "month": 4,
+                                                    "day": 1
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field1": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.20"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field2": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.50"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "tpe": {
+                                  "Sterling": {
+                                    "roundingMode": "Down"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "tpe": {
+                          "Sterling": {
+                            "roundingMode": "Down"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "87737.40"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secretOr",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Found"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "found"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret Or Swapped"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "Typed": {
+                        "expr": {
+                          "Sum": {
+                            "field1": {
+                              "Typed": {
+                                "expr": {
+                                  "IfElse": {
+                                    "cond": {
+                                      "Or": {
+                                        "left": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "accountingStart"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2025,
+                                                    "month": 4,
+                                                    "day": 1
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "DateBefore": {
+                                            "left": {
+                                              "DateFormCtxVar": {
+                                                "formCtx": {
+                                                  "formComponentId": "productionStartDate"
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "DateValueExpr": {
+                                                "value": {
+                                                  "ExactDateExprValue": {
+                                                    "year": 2021,
+                                                    "month": 10,
+                                                    "day": 27
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field1": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.20"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field2": {
+                                      "Typed": {
+                                        "expr": {
+                                          "Multiply": {
+                                            "field1": {
+                                              "FormCtx": {
+                                                "formComponentId": "lossSurrendered"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Constant": {
+                                                "value": "0.50"
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Sterling": {
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "tpe": {
+                                  "Sterling": {
+                                    "roundingMode": "Down"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "tpe": {
+                          "Sterling": {
+                            "roundingMode": "Down"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "87737.40"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secretOrSwapped",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Found"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "found"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "boolean-expr-literal-and-list",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "boolean-expr-literal-and-list",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.eval.{ ExprType, RevealingChoiceInfo, StaticTypeData, StaticTypeInfo, SumInfo }
-import uk.gov.hmrc.gform.models.Basic
+import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, StaticTypeInfo }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils.nelFormat
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
@@ -37,17 +36,24 @@ sealed trait Section extends Product with Serializable {
   def getTitle: SmartString = fold(_.page.title)(_.page.title)(_.title)
   def getCaption: Option[SmartString] = fold(_.page.caption)(_.page.caption)(_ => None)
   def continueLabel: Option[SmartString] = fold(_.page.continueLabel)(_.page.continueLabel)(_ => None)
-  def staticTypeInfo: StaticTypeInfo = fold(_.page.staticTypeInfo)(_.page.staticTypeInfo)(_.staticInfo)
-  def revealingChoiceInfo: RevealingChoiceInfo =
-    fold(_.page.revealingChoiceInfo)(_.page.revealingChoiceInfo)(_.allRevealingChoiceInfo)
-  def sumInfo: SumInfo = fold(_.page.sumInfo)(_.page.sumInfo)(_.allSumInfo)
+  def allPages: List[Page] =
+    fold(nonRepeatingPage => List(nonRepeatingPage.page))(repeatingPage => List(repeatingPage.page))(addToList =>
+      addToList.pages.toList
+    )
+
+  def maybeAddToList: Option[Section.AddToList] =
+    fold(nonRepeatingPage => Option.empty[Section.AddToList])(repeatingPage => Option.empty[Section.AddToList])(
+      addToList => Some(addToList)
+    )
+
+  def maybeAddAnotherQuestion: Option[FormComponent] = maybeAddToList.map(_.addAnotherQuestion)
 
 }
 
 object Section {
-  case class NonRepeatingPage(page: Page[Basic]) extends Section
+  case class NonRepeatingPage(page: Page) extends Section
 
-  case class RepeatingPage(page: Page[Basic], repeats: Expr) extends Section {
+  case class RepeatingPage(page: Page, repeats: Expr) extends Section {
     val allIds: List[FormComponentId] = page.allIds
   }
 
@@ -60,7 +66,7 @@ object Section {
     shortName: SmartString,
     summaryName: SmartString,
     includeIf: Option[IncludeIf],
-    pages: NonEmptyList[Page[Basic]],
+    pages: NonEmptyList[Page],
     repeatsUntil: Option[IncludeIf],
     repeatsWhile: Option[IncludeIf],
     repeaterContinueLabel: Option[SmartString],
@@ -70,7 +76,7 @@ object Section {
     infoMessage: Option[SmartString],
     errorMessage: Option[SmartString],
     descriptionTotal: Option[AtlDescription.KeyValueBased],
-    defaultPage: Option[Page[Basic]] = None,
+    defaultPage: Option[Page] = None,
     cyaPage: Option[CheckYourAnswersPage] = None,
     fields: Option[NonEmptyList[FormComponent]] = None,
     pageIdToDisplayAfterRemove: Option[PageId] = None,
@@ -90,20 +96,8 @@ object Section {
       allPagesIds.map(fcId => (fcId, addAnotherQuestion.id)).toMap
 
     val addToListTypeInfo = StaticTypeInfo(
-      Map(addAnotherQuestion.baseComponentId -> StaticTypeData(ExprType.number, None))
+      Map(addAnotherQuestion.baseComponentId -> StaticTypeData(ExprType.Number, None))
     )
-
-    val staticInfo: StaticTypeInfo =
-      pages.toList.foldLeft(addToListTypeInfo) { case (acc, page) =>
-        acc ++ page.staticTypeInfo
-      }
-
-    val allRevealingChoiceInfo: RevealingChoiceInfo =
-      pages.toList.foldLeft(RevealingChoiceInfo.empty)(_ ++ _.revealingChoiceInfo)
-
-    val allSumInfo: SumInfo =
-      pages.toList.foldLeft(SumInfo.empty)(_ ++ _.sumInfo)
-
   }
 
   implicit val format: OFormat[Section] = derived.oformat()
@@ -131,7 +125,7 @@ case class DeclarationSection(
 ) {
   def toSection = Section.NonRepeatingPage(toPage)
 
-  def toPage: Page[Basic] =
+  def toPage: Page =
     Page(
       title = title,
       id = None,
@@ -139,7 +133,7 @@ case class DeclarationSection(
       description = description,
       shortName = shortName,
       caption = caption,
-      includeIf = None,
+      includeIf = includeIf,
       fields = fields,
       continueLabel = continueLabel,
       continueIf = None,
@@ -175,7 +169,7 @@ case class AcknowledgementSection(
 
   def toSection = Section.NonRepeatingPage(toPage)
 
-  def toPage: Page[Basic] =
+  def toPage: Page =
     Page(
       title = title.getOrElse(SmartString.empty),
       id = None,
@@ -215,7 +209,7 @@ case class EnrolmentSection(
 ) {
   def toSection = Section.NonRepeatingPage(toPage)
 
-  def toPage: Page[Basic] =
+  def toPage: Page =
     Page(
       title = title,
       id = None,

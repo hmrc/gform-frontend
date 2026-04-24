@@ -1,0 +1,54 @@
+{
+  "_id": "period-between-two-dates",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Dates",
+      "fields": [
+        {
+          "id": "dateA",
+          "type": "date",
+          "label": "Date A"
+        },
+        {
+          "id": "dateB",
+          "type": "date",
+          "label": "Date B"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Date A: ${dateA}\n\nDate B: ${dateB}\n\nPeriod: ${period(dateA, dateB)}\n\nTotal months: ${period(dateA, dateB).totalMonths}\n\nTotal year: ${period(dateA, dateB).years}\n\nMonths: ${period(dateA, dateB).months}\n\nDays: ${period(dateA, dateB).days}\n\nSum: ${period(dateA, dateB).sum}\n\n${period(dateA, dateB)} is ${if P15Y > period(dateA, dateB) then 'less than 15 years' else 'more than 15 years'}\n\n${period(dateA, dateB)} is ${if P10Y > period(dateA, dateB) then 'less than 10 years' else 'more than 10 years'}\n\n${period(dateA, dateB)} - P-1M = ${period(dateA, dateB) - P-1M}\n\n${period(dateA, dateB)} + P-1M = ${period(dateA, dateB) + P-1M}\n\n${period(dateA, dateB)} - P1M = ${period(dateA, dateB) - P1M}\n\n${period(dateA, dateB)} + P1M = ${period(dateA, dateB) + P1M}\n\nP1Y - P1Y: ${P1Y - P1Y}\n\nP1Y + P1Y: ${P1Y + P1Y}\n\nperiod(dateA, dateB) = period(dateA, dateB) - P-1M: ${if period(dateA, dateB) = period(dateA, dateB) - P-1M then 'Equal' else 'Not equal'}\n\nperiod(dateA, dateB) = period(dateA, dateB): ${if period(dateA, dateB) = period(dateA, dateB) then 'Equal' else 'Not equal'}\n\nP1Y < P1Y: ${if P1Y < P1Y then 'True' else 'False'}\n\nP1Y <= P1Y: ${if P1Y <= P1Y then 'True' else 'False'}\n\nP1Y > P1Y: ${if P1Y > P1Y then 'True' else 'False'}\n\nP1Y >= P1Y: ${if P1Y >= P1Y then 'True' else 'False'}\n\n${P1Y-1M} < P1Y: ${if P1Y-1M < P1Y then 'True' else 'False'}\n\n${P1Y+1M} <= P1Y: ${if P1Y+1M <= P1Y then 'True' else 'False'}\n\n${P1Y+1M} > P1Y: ${if P1Y+1M > P1Y then 'True' else 'False'}\n\n${P1Y-1M} >= P1Y: ${if P1Y-1M >= P1Y then 'True' else 'False'}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

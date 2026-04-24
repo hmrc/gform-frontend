@@ -1,0 +1,79 @@
+{
+  "_id": "atl-outside-reference-index-of",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${name}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Enter name and tax $n",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "label": "Name",
+              "format": "text"
+            },
+            {
+              "id": "tax",
+              "type": "text",
+              "label": "Tax",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Name 1: ${name[1]}\n\nName 2: ${name[2]}",
+          "infoType": "noformat"
+        },
+        {
+          "id": "correction",
+          "type": "text",
+          "includeIf": "${tax[1] > 100 || tax[2] > 100}",
+          "label": "Correction",
+          "format": "sterling"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

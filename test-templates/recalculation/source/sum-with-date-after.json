@@ -1,0 +1,126 @@
+{
+  "_id": "sum-with-date-after",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "offset": "if startDate after 01012024 then 10 else 20",
+    "calculation": "pageA + offset"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Sum test: ${calculation.sum}",
+      "summaryName": "sum test",
+      "shortName": "Item $n",
+      "description": "Data: ${pageA}: ${startDate} : ${offset} : ${calculation} : ${calculation.sum}",
+      "summaryDescription": "external expression sum: ${calculation.sum }",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Page A",
+          "shortName": "Animal details",
+          "fields": [
+            {
+              "id": "pageA",
+              "label": "Apportion amount",
+              "type": "text",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Start date",
+          "includeIf": "${pageA >= 100}",
+          "fields": [
+            {
+              "id": "startDate",
+              "type": "date",
+              "label": "Page"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculation.sum = '153'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "calculation.sum = ${calculation.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculation = ${calculation}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "pageA: ${pageA}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

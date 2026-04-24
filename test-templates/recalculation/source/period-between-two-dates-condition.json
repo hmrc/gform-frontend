@@ -1,0 +1,48 @@
+{
+  "_id": "period-between-two-dates-condition",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Dates",
+      "fields": [
+        {
+          "id": "dateA",
+          "type": "date",
+          "label": "Date A"
+        },
+        {
+          "id": "dateB",
+          "type": "date",
+          "label": "Date B"
+        }
+      ]
+    },
+    {
+      "title": "Test ${period(dateA, dateB)}",
+      "includeIf": "${period(dateA, dateB) < P1Y}",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

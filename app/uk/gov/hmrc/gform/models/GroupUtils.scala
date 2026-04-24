@@ -22,7 +22,7 @@ import cats.syntax.foldable._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, FormComponentId, Group, IsFileUpload, IsGroup, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
 object GroupUtils {
@@ -32,7 +32,7 @@ object GroupUtils {
     modelComponentId: ModelComponentId,
     sectionNumber: SectionNumber,
     fileIdsWithMapping: FormComponentIdToFileIdMapping
-  ): (VariadicFormData[SourceOrigin.Current], FormComponentIdToFileIdMapping, Set[FileId]) = {
+  ): (VariadicFormData, FormComponentIdToFileIdMapping, Set[FileId]) = {
 
     val removingIndex = modelComponentId.maybeIndex.getOrElse(
       throw new IllegalArgumentException(s"Attempting to delete group, but no index found $modelComponentId")
@@ -56,10 +56,10 @@ object GroupUtils {
       })
       .toSet
 
-    val data = processData.formModelOptics.pageOpticsData
+    val data = processData.formModelOptics.variadicFormData
 
     val maybeFormComponent = formModelRenderPageOptics.find(modelComponentId)
-    val dataToRemove: VariadicFormData[SourceOrigin.Current] =
+    val dataToRemove: VariadicFormData =
       maybeFormComponent.map(data.by).getOrElse(VariadicFormData.empty)
     val indexedComponentId = modelComponentId.indexedComponentId
     val toToReindexed: List[FormComponent] = formModelRenderPageOptics.findBigger(indexedComponentId)
@@ -82,9 +82,9 @@ object GroupUtils {
       }
     }
 
-    val variadicFormDatas: VariadicFormData[SourceOrigin.Current] = toToReindexed.foldMap(data.by)
+    val variadicFormDatas: VariadicFormData = toToReindexed.foldMap(data.by)
 
-    val decrementedVariadicFormDatas: VariadicFormData[SourceOrigin.Current] =
+    val decrementedVariadicFormDatas: VariadicFormData =
       variadicFormDatas.mapKeys(_.decrement)
 
     val formComponentIdToFileIdMapping = fileIdsWithMapping
