@@ -1,0 +1,94 @@
+{
+  "_id": "overseas-address-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Overseas addresses where goods are processed",
+      "shortName": "Processing overseas address $n",
+      "summaryDescription": "${processingOverseasAddress}",
+      "summaryName": "Processing overseas addresses for goods",
+      "description": "Address $n: ${processingOverseasAddress}",
+      "addAnotherQuestion": {
+        "id": "addAnotherOverseasAddress",
+        "type": "choice",
+        "label": "Do you want to add another overseas address?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Overseas address visibility",
+          "fields": [
+            {
+              "id": "addressControl",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Show address",
+                  "value": "showAddress"
+                },
+                {
+                  "en": "Hide address",
+                  "value": "hideAddress"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "What is overseas address $n where goods are processed?",
+          "includeIf": "${addressControl contains 'showAddress'}",
+          "fields": [
+            {
+              "type": "overseasAddress",
+              "id": "processingOverseasAddress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "all addresses: ${processingOverseasAddress}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Alternative address details",
+      "includeIf": "${processingOverseasAddress = ''}",
+      "fields": [
+        {
+          "id": "details",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

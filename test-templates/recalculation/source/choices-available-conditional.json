@@ -1,0 +1,153 @@
+{
+  "_id": "choices-available-conditional",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Visibility options",
+      "fields": [
+        {
+          "id": "visibilityOptions",
+          "multivalue": true,
+          "type": "choice",
+          "noneChoice": "showAll",
+          "noneChoiceError": "To choose this option you need to deselect all other options",
+          "choices": [
+            {
+              "en": "Hide atl based",
+              "value": "hideAtlBased"
+            },
+            {
+              "en": "Hide Other option",
+              "value": "hideOther"
+            },
+            {
+              "en": "Show all",
+              "value": "showAll"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${employer}",
+      "addAnotherQuestion": {
+        "id": "addAnotherEmployer",
+        "type": "choice",
+        "label": "Do you want to add another employer?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer $n",
+          "fields": [
+            {
+              "id": "employer",
+              "label": "Employer",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${typeOfIncome} - ${choicesAvailable(typeOfIncome)}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "caption": "Other source of income $n / ${choicesAvailable(typeOfIncome)}",
+          "title": "What other source of income do you want to tell us about?",
+          "fields": [
+            {
+              "id": "typeOfIncome",
+              "type": "choice",
+              "multivalue": true,
+              "hideChoicesSelected": true,
+              "choices": [
+                {
+                  "en": "${employer}",
+                  "dynamic": "employer",
+                  "includeIf": "${!visibilityOptions contains 'hideAtlBased'}",
+                  "value": "employer"
+                },
+                {
+                  "en": "Other",
+                  "includeIf": "${!visibilityOptions contains 'hideOther'}",
+                  "value": "other"
+                },
+                {
+                  "en": "None",
+                  "value": "none"
+                }
+              ]
+            },
+            {
+              "id": "basicInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "Choices available: ${choicesAvailable(typeOfIncome)}",
+              "infoType": "noformat"
+            }
+          ]
+        },
+        {
+          "title": "Secret $n",
+          "includeIf": "${choicesAvailable(typeOfIncome) < 2}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            },
+            {
+              "id": "basic",
+              "type": "info",
+              "label": "",
+              "infoText": "Secret choices available: ${choicesAvailable(typeOfIncome)}",
+              "infoType": "noformat"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -27,7 +27,7 @@ import play.api.libs.typedmap.TypedMap
 import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.request.RequestAttrKey
 import play.api.test.{ FakeRequest, Helpers }
-import uk.gov.hmrc.gform.Helpers.{ mkDataOutOfDate, toSmartString }
+import uk.gov.hmrc.gform.Helpers.{ mkData, toSmartString }
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStor
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.{ PDFModel, PDFType }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent }
@@ -83,7 +83,7 @@ class PDFRenderServiceSpec
     val validationService = mock[ValidationService]
     val pdfRenderService = new PDFRenderService(fileUploadAlgebra, validationService)
 
-    lazy val variadicFormData = mkDataOutOfDate(
+    lazy val variadicFormData = mkData(
       "name" -> "name-value"
     )
 
@@ -119,8 +119,8 @@ class PDFRenderServiceSpec
       maybeAccessCode,
       new LookupRegistry(Map())
     )
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      mkFormModelOptics(formTemplate, variadicFormData).asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
+    lazy val formModelOptics: FormModelOptics =
+      mkFormModelOptics(formTemplate, variadicFormData)
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
@@ -131,7 +131,7 @@ class PDFRenderServiceSpec
     validationService.validateFormModel(
       *[CacheData],
       *[EnvelopeWithMapping],
-      *[FormModelVisibilityOptics[DataOrigin.Mongo]],
+      *[FormModelVisibilityOptics],
       *[Option[Coordinates]]
     )(
       *[HeaderCarrier],
@@ -144,7 +144,7 @@ class PDFRenderServiceSpec
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -162,7 +162,7 @@ class PDFRenderServiceSpec
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model as default format" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -182,7 +182,7 @@ class PDFRenderServiceSpec
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model as tabular format" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -202,7 +202,7 @@ class PDFRenderServiceSpec
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model with a signature box" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -222,7 +222,7 @@ class PDFRenderServiceSpec
   "createPDFHtml - PDFType.Summary" should "render summary PDF HTML for given form model with a signature box as tabular format" in new Fixture {
     implicit val now: LocalDateTime = LocalDateTime.now()
     whenReady(
-      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      pdfRenderService.createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         "PDF Title",
         Some("Page title"),
         cache,
@@ -255,7 +255,7 @@ class PDFRenderServiceSpec
     )
 
     whenReady(
-      pdfRenderService.createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Instruction](
+      pdfRenderService.createPDFContent[SectionSelectorType.Normal, PDFType.Instruction](
         "PDF Title",
         Some("Page title"),
         cache,

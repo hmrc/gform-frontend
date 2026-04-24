@@ -1,0 +1,254 @@
+{
+  "_id": "atl-data-in-table",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "deductionLessThanOrEquals": {
+      "value": "if coreExpenditure <= totalExpenditure then coreExpenditure else totalExpenditure",
+      "type": "wholeSterling"
+    },
+    "deductionLessThan": {
+      "value": "if coreExpenditure < totalExpenditure then coreExpenditure else totalExpenditure",
+      "type": "wholeSterling"
+    },
+    "deductionGreaterThanOrEquals": {
+      "value": "if coreExpenditure >= totalExpenditure then coreExpenditure else totalExpenditure",
+      "type": "wholeSterling"
+    },
+    "deductionGreaterThan": {
+      "value": "if coreExpenditure > totalExpenditure then coreExpenditure else totalExpenditure",
+      "type": "wholeSterling"
+    },
+    "deductionLessThanOrEqualsTotal": {
+      "value": "deductionLessThanOrEquals.sum",
+      "type": "wholeSterling"
+    },
+    "deductionLessThanTotal": {
+      "value": "deductionLessThan.sum",
+      "type": "wholeSterling"
+    },
+    "deductionGreaterThanOrEqualsTotal": {
+      "value": "deductionGreaterThanOrEquals.sum",
+      "type": "wholeSterling"
+    },
+    "deductionGreaterThanTotal": {
+      "value": "deductionGreaterThan.sum",
+      "type": "wholeSterling"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Film productions claiming tax relief",
+      "summaryName": "Film Tax Relief productions added",
+      "summaryDescription": "summaryDescription",
+      "shortName": "shortName",
+      "description": "$n - ${filmName} :: ${totalExpenditure} :: ${coreExpenditure}",
+      "addAnotherQuestion": {
+        "id": "addAnotherFilm",
+        "type": "choice",
+        "label": "Do you want to add another film?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Film name",
+          "fields": [
+            {
+              "id": "filmName",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Expenditures",
+          "fields": [
+            {
+              "id": "totalExpenditure",
+              "label": "Total expenditure",
+              "type": "text",
+              "format": "positiveWholeSterling"
+            },
+            {
+              "id": "coreExpenditure",
+              "label": "Core expenditure",
+              "type": "text",
+              "format": "positiveWholeSterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Film production totals",
+      "displayWidth": "xl",
+      "fields": [
+        {
+          "id": "calculations",
+          "type": "table",
+          "summaryValue": "Tax credit",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Film name",
+              "classes": "govuk-!-font-size-16"
+            },
+            {
+              "en": "Total additional deduction",
+              "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+            }
+          ],
+          "rows": [
+            {
+              "dynamic": "addAnotherFilm",
+              "values": [
+                {
+                  "value": {
+                    "en": "${filmName}"
+                  },
+                  "class": "govuk-!-font-size-16"
+                },
+                {
+                  "value": {
+                    "en": "${deductionLessThanOrEquals}"
+                  },
+                  "class": "govuk-!-font-size-16 govuk-table__header--numeric"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": {
+                    "en": "${'Total <='}"
+                  }
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": {
+                    "en": "${deductionLessThanOrEqualsTotal}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": {
+                    "en": "${'Total <'}"
+                  }
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": {
+                    "en": "${deductionLessThanTotal}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": {
+                    "en": "${'Total >='}"
+                  }
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": {
+                    "en": "${deductionGreaterThanOrEqualsTotal}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "class": "govuk-table__header",
+                  "value": {
+                    "en": "${'Total >'}"
+                  }
+                },
+                {
+                  "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                  "value": {
+                    "en": "${deductionGreaterThanTotal}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "colspan": 2,
+                  "value": {
+                    "en": "deductionLessThanOrEquals: ${deductionLessThanOrEquals}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "colspan": 2,
+                  "value": {
+                    "en": "deductionLessThan: ${deductionLessThan}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "colspan": 2,
+                  "value": {
+                    "en": "deductionGreaterThanOrEquals: ${deductionGreaterThanOrEquals}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "colspan": 2,
+                  "value": {
+                    "en": "deductionGreaterThan: ${deductionGreaterThan}"
+                  }
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "colspan": 2,
+                  "value": {
+                    "en": "Debug: ${coreExpenditure} <= ${totalExpenditure} then ${coreExpenditure} else ${totalExpenditure}"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

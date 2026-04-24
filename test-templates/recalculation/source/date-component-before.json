@@ -1,0 +1,43 @@
+{
+  "_id": "date-component-before",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "startTradingDate",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${startTradingDate before 31122024}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

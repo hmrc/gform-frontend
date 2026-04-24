@@ -24,20 +24,19 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.RefreshBooleanExprCacheService
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, FormComponentId, IsHmrcTaxPeriod }
 import uk.gov.hmrc.http.HeaderCarrier
 
 final case class ProcessData(
-  formModelOptics: FormModelOptics[DataOrigin.Browser],
+  formModelOptics: FormModelOptics,
   visitsIndex: VisitIndex,
   obligations: Obligations,
   cache: AuthCacheWithForm,
   confirmations: Option[Map[FormComponentId, List[String]]]
 ) {
-  val formModel: FormModel[DataExpanded] = formModelOptics.formModelRenderPageOptics.formModel
+  val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
 
   def removeConfirmation(confirmations: List[Confirmation]): ProcessData =
     this
@@ -59,7 +58,7 @@ class ProcessDataService[F[_]: Monad](
     }
 
   private def hmrcTaxPeriodWithEvaluatedIds(
-    browserFormModelOptics: FormModelOptics[DataOrigin.Browser]
+    browserFormModelOptics: FormModelOptics
   )(implicit messages: Messages): List[Option[HmrcTaxPeriodWithEvaluatedId]] = {
     val fmvo = browserFormModelOptics.formModelVisibilityOptics
     fmvo.allFormComponents.collect { case fc @ IsHmrcTaxPeriod(hmrcTaxPeriod) =>
@@ -73,11 +72,11 @@ class ProcessDataService[F[_]: Monad](
   }
 
   def getProcessData[U <: SectionSelectorType: SectionSelector](
-    dataRaw: VariadicFormData[SourceOrigin.OutOfDate],
+    dataRaw: VariadicFormData,
     cache: AuthCacheWithForm,
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     obligationsAction: ObligationsAction,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     lang: LangADT,
     messages: Messages,
@@ -100,7 +99,8 @@ class ProcessDataService[F[_]: Monad](
         )
 
         val browserFormModelOptics =
-          FormModelOptics.mkFormModelOptics[DataOrigin.Browser, U](dataRaw, cacheUpd)
+          FormModelOptics.mkFormModelOptics[U](dataRaw, cacheUpd)
+
         taxPeriodStateChecker
           .callDesIfNeeded(
             getAllTaxPeriods,
@@ -109,7 +109,7 @@ class ProcessDataService[F[_]: Monad](
             obligationsAction
           )
           .map { obligations =>
-            val dataUpd: FormModelOptics[DataOrigin.Browser] = new ObligationValidator {}
+            val dataUpd: FormModelOptics = new ObligationValidator {}
               .validateWithDes(browserFormModelOptics, cachedObligations, obligations)
 
             val cacheUpd: AuthCacheWithForm = cache

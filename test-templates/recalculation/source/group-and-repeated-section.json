@@ -1,0 +1,71 @@
+{
+  "_id": "group-and-repeated-section",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "This is the group page",
+      "fields": [
+        {
+          "id": "groupId",
+          "type": "group",
+          "label": "Group - section driver",
+          "repeatsMax": 5,
+          "repeatLabel": "Label $n",
+          "fields": [
+            {
+              "id": "tax",
+              "type": "text",
+              "label": "Tax $n",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Repeating section, instance $n",
+      "repeatsMax": "${groupId.count}",
+      "repeatsMin": "${groupId.count}",
+      "fields": [
+        {
+          "id": "repeatedField",
+          "type": "text",
+          "format": "text",
+          "label": "Description $n"
+        }
+      ]
+    },
+    {
+      "title": "Info page",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text",
+          "label": "Dummy"
+        },
+        {
+          "id": "standardInfoField",
+          "type": "info",
+          "label": "",
+          "infoText": "Descriptions: ${repeatedField}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

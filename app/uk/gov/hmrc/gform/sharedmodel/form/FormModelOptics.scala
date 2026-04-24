@@ -16,34 +16,27 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import com.softwaremill.quicklens._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, AuthCacheWithoutForm, CacheData }
-import uk.gov.hmrc.gform.eval.{ EvaluationContext, FileIdsWithMapping }
-import uk.gov.hmrc.gform.graph.{ RecData, RecalculationResult }
+import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FileComponentId, FileSizeLimit, FormPhase }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhase
 
-import java.time.{ Instant, LocalDate }
-
-case class FormModelOptics[D <: DataOrigin](
-  formModelRenderPageOptics: FormModelRenderPageOptics[D],
-  formModelVisibilityOptics: FormModelVisibilityOptics[D]
+final class FormModelOptics(
+  val formModelRenderPageOptics: FormModelRenderPageOptics,
+  val formModelVisibilityOptics: FormModelVisibilityOptics
 ) {
-  val pageOpticsData: VariadicFormData[SourceOrigin.Current] = formModelRenderPageOptics.recData.variadicFormData
+  val variadicFormData: VariadicFormData =
+    formModelVisibilityOptics.freeCalculator.variadicFormData
 
   def clearModelComponentIds(
     modelComponentIds: List[ModelComponentId]
-  ): FormModelOptics[D] =
-    this
-      .modify(_.formModelRenderPageOptics.recData.variadicFormData)
-      .setTo(formModelRenderPageOptics.recData.cleared(modelComponentIds))
-      .modify(_.formModelVisibilityOptics.recData.variadicFormData)
-      .setTo(formModelVisibilityOptics.recData.cleared(modelComponentIds))
+  ): FormModelOptics = new FormModelOptics(
+    formModelRenderPageOptics,
+    formModelVisibilityOptics.cleared(modelComponentIds)
+  )
 
   val dataLookup: Map[BaseComponentId, List[VariadicValue]] =
     formModelVisibilityOptics.data.all
@@ -56,100 +49,29 @@ case class FormModelOptics[D <: DataOrigin](
 
 object FormModelOptics {
 
-  def fromEnrolmentSection[D <: DataOrigin](enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(implicit
-    lang: LangADT,
-    messages: Messages,
-    hc: HeaderCarrier
-  ) = {
-    val evaluationContext =
-      EvaluationContext(
-        cache.formTemplate._id,
-        EnvelopeId(""),
-        cache.formTemplate.customSubmissionRef,
-        cache.accessCode,
-        cache.retrievals,
-        ThirdPartyData.empty,
-        cache.formTemplate.authConfig,
-        hc,
-        Option.empty[FormPhase],
-        FileIdsWithMapping.empty,
-        Map.empty[ModelComponentId, List[(FileComponentId, VariadicValue.One)]],
-        Map.empty,
-        Set.empty[BaseComponentId],
-        Set.empty[BaseComponentId],
-        Set.empty[BaseComponentId],
-        Map.empty,
-        lang,
-        messages,
-        Map.empty,
-        Set.empty[BaseComponentId],
-        FileSizeLimit(cache.formTemplate.fileSizeLimit.getOrElse(FileSizeLimit.defaultFileLimitSize)),
-        DataRetrieveAll.empty,
-        Set.empty[ModelComponentId],
-        Map.empty,
-        Set.empty,
-        cache.lookupRegistry,
-        Map.empty,
-        Map.empty,
-        TaskIdTaskStatusMapping.empty,
-        LocalDate.now(),
-        Set.empty[ModelComponentId]
-      )
-    FormModelOptics[D](
-      FormModelRenderPageOptics(FormModel.fromEnrolmentSection[DataExpanded](enrolmentSection), RecData.empty),
-      FormModelVisibilityOptics(
-        FormModel.fromEnrolmentSection[Visibility](enrolmentSection),
-        RecData.empty,
-        RecalculationResult.empty(evaluationContext),
-        BooleanExprCache.empty
-      )
-    )
-  }
-
-  def mkFormModelOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    data: VariadicFormData[SourceOrigin.OutOfDate],
+  def mkFormModelOptics[U <: SectionSelectorType: SectionSelector](
+    data: VariadicFormData,
     cache: AuthCache,
     cacheData: CacheData,
     phase: Option[FormPhase],
-    componentIdToFileId: FormComponentIdToFileIdMapping,
-    taskIdTaskStatusMapping: TaskIdTaskStatusMapping,
-    formStartDate: Instant,
-    booleanExprCache: BooleanExprCache
+    form: Form
   )(implicit
-    messages: Messages,
     lang: LangADT,
-    hc: HeaderCarrier
-  ): FormModelOptics[D] = {
-    val formModelBuilder =
-      FormModelBuilder.fromCache(
-        cache,
-        cacheData,
-        componentIdToFileId,
-        cache.lookupRegistry,
-        taskIdTaskStatusMapping
-      )
-    val formModelVisibilityOptics: FormModelVisibilityOptics[D] =
-      formModelBuilder.visibilityModel(data, phase, formStartDate, booleanExprCache)
-    formModelBuilder.renderPageModel(formModelVisibilityOptics, booleanExprCache, phase)
+    messages: Messages
+  ): FormModelOptics = {
+
+    val formModelBuilder = FormModelBuilder.fromCache(cache, cacheData, form.componentIdToFileId, form.taskIdTaskStatus)
+    formModelBuilder.visibilityModel(data, phase, form)
+
   }
 
-  def mkFormModelOptics[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
-    data: VariadicFormData[SourceOrigin.OutOfDate],
+  def mkFormModelOptics[U <: SectionSelectorType: SectionSelector](
+    data: VariadicFormData,
     cache: AuthCacheWithForm,
     phase: Option[FormPhase] = None
   )(implicit
-    messages: Messages,
     lang: LangADT,
-    hc: HeaderCarrier
-  ): FormModelOptics[D] =
-    mkFormModelOptics[D, U](
-      data,
-      cache,
-      cache.toCacheData,
-      phase,
-      cache.form.componentIdToFileId,
-      cache.form.taskIdTaskStatus,
-      cache.form.startDate,
-      cache.form.thirdPartyData.booleanExprCache
-    )
+    messages: Messages
+  ): FormModelOptics =
+    mkFormModelOptics[U](data, cache, cache.toCacheData, phase, cache.form)
 }

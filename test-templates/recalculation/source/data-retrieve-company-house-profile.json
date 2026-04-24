@@ -1,0 +1,90 @@
+{
+  "_id": "data-retrieve-company-house-profile",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "What is the insolvent trader's company number?",
+      "fields": [
+        {
+          "id": "crn",
+          "format": "companyRegistrationNumber",
+          "type": "text"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "companyHouseInsolvency",
+          "id": "companyHouseInsolvency",
+          "parameters": {
+            "companyNumber": "${crn}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "caseType",
+              "value": "${dataRetrieve.companyHouseInsolvency.caseType}"
+            },
+            {
+              "key": "caseNumber",
+              "value": "${dataRetrieve.companyHouseInsolvency.caseNumber}"
+            },
+            {
+              "key": "name",
+              "value": "${dataRetrieve.companyHouseInsolvency.name}"
+            },
+            {
+              "key": "role",
+              "value": "${dataRetrieve.companyHouseInsolvency.role}"
+            },
+            {
+              "key": "appointedOn",
+              "value": "${dataRetrieve.companyHouseInsolvency.appointedOn}"
+            },
+            {
+              "key": "Primary address",
+              "value": "${dataRetrieve.companyHouseInsolvency.primaryAddress}"
+            },
+            {
+              "key": "address_line_1",
+              "value": "${dataRetrieve.companyHouseInsolvency.address_line_1}"
+            },
+            {
+              "key": "address_line_2",
+              "value": "${dataRetrieve.companyHouseInsolvency.address_line_2}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

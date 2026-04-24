@@ -1,0 +1,107 @@
+{
+  "_id": "lookup-ops",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Nationality and company registration number",
+      "fields": [
+        {
+          "id": "nationality",
+          "type": "text",
+          "label": "Nationality",
+          "format": "lookup(nationality)"
+        },
+        {
+          "id": "crn",
+          "type": "text",
+          "label": "Company registration number",
+          "format": "companyRegistrationNumber",
+          "helpText": "This is 8 characters. For example, 01234567 or AC012345."
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "companyHouseProfile",
+          "id": "companyRepresentative",
+          "parameters": {
+            "companyNumber": "${crn}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "SicCode 1 - ${getSicDescription(dataRetrieve.companyRepresentative.sicCode1)}\n\nSicCode 2 - ${getSicDescription(dataRetrieve.companyRepresentative.sicCode2)}\n\nSicCode 3 - ${getSicDescription(dataRetrieve.companyRepresentative.sicCode3)}\n\nSicCode 4 - ${getSicDescription(dataRetrieve.companyRepresentative.sicCode4)}\n\nNationality ID: ${nationality.column.NationalityId}\n\nCountryCode: ${nationality.column.CountryCode}\n\ngetCountry: ${getCountry(nationality.column.CountryCode)}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Sic description secret",
+      "includeIf": "${substring(getSicDescription(dataRetrieve.companyRepresentative.sicCode1), 0, 5) = '01220'}",
+      "fields": [
+        {
+          "id": "getSicDescriptionSecret",
+          "type": "choice",
+          "label": "Sic description secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Get country secret",
+      "includeIf": "${getCountry(nationality.column.CountryCode) = 'Czech Republic'}",
+      "fields": [
+        {
+          "id": "getCountrySecret",
+          "type": "choice",
+          "label": "Country secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

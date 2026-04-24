@@ -1,0 +1,67 @@
+{
+  "_id": "atl-hidden-by-include-if",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "What types of tax relief are you claiming?",
+      "fields": [
+        {
+          "id": "trProjectType",
+          "type": "choice",
+          "multivalue": true,
+          "choices": [
+            {
+              "en": "Film Tax Relief",
+              "value": "filmTR"
+            },
+            {
+              "en": "Video Game Tax Relief",
+              "value": "videoGameTR"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "includeIf": "${trProjectType contains 'filmTR'}",
+      "title": "Film productions",
+      "summaryName": "Film added",
+      "shortName": "Film",
+      "summaryDescription": "Film",
+      "description": "$n. ${filmName}",
+      "addAnotherQuestion": {
+        "id": "filmAddAnother",
+        "type": "choice",
+        "label": "Do you want to add another Film?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Film name",
+          "fields": [
+            {
+              "id": "filmName",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "logit",
+      "type": "log"
+    }
+  ]
+}

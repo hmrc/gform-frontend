@@ -1,0 +1,80 @@
+{
+  "_id": "repeated-section-with-include-if-2",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Show repeating page",
+      "fields": [
+        {
+          "id": "showRepeatingPage",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Yes"
+            },
+            {
+              "en": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Number of repeats",
+      "includeIf": "${showRepeatingPage = 0}",
+      "fields": [
+        {
+          "id": "repeatsNumber",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Repeating $n",
+      "includeIf": "${showRepeatingPage = 0}",
+      "repeatsMax": "${repeatsNumber}",
+      "repeatsMin": "${repeatsNumber}",
+      "fields": [
+        {
+          "id": "repeating",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "repeating.sum : ${repeating.sum}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

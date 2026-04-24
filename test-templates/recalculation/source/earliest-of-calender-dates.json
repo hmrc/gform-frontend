@@ -1,0 +1,47 @@
+{
+  "_id": "earliest-of-calender-dates",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Calendar dates",
+      "fields": [
+        {
+          "id": "calendarDateA",
+          "label": "Calendar Date A",
+          "type": "calendarDate"
+        },
+        {
+          "id": "calendarDateB",
+          "label": "Calendar Date B",
+          "type": "calendarDate"
+        }
+      ]
+    },
+    {
+      "title": "Calendar dates test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "info",
+          "infoText": "calendar date A: ${calendarDateA}\n\ncalendar date B: ${calendarDateB}\n\nEarliest: ${earliestOf(calendarDateA, calendarDateB)}\n\nLatest: ${latestOf(calendarDateA, calendarDateB)}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

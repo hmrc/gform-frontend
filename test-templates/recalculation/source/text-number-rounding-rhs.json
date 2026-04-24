@@ -1,0 +1,358 @@
+{
+  "_id": "text-number-rounding-rhs",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "booleanExpressions": {
+    "showTextBoxA": "sixteenUp < number * 0.1",
+    "showTextBoxB": "sixteenDown < number * 0.1",
+    "showTextBoxC": "sixteenUp <= number * 0.1",
+    "showTextBoxD": "sixteenDown <= number * 0.1",
+    "showTextBoxE": "sixteenUp > number * 0.1",
+    "showTextBoxF": "sixteenDown > number * 0.1",
+    "showTextBoxG": "sixteenUp >= number * 0.1",
+    "showTextBoxH": "sixteenDown >= number * 0.1",
+    "showTextBoxI": "sixteenUp = number * 0.1",
+    "showTextBoxJ": "sixteenDown = number * 0.1"
+  },
+  "expressions": {
+    "sixteenUp": {
+      "value": "16",
+      "type": "number",
+      "round": "Up",
+      "fractionalDigits": 0
+    },
+    "sixteenDown": {
+      "value": "16",
+      "type": "number",
+      "round": "Down",
+      "fractionalDigits": 0
+    }
+  },
+  "sections": [
+    {
+      "title": "Data",
+      "fields": [
+        {
+          "id": "number",
+          "type": "text",
+          "format": "number",
+          "round": "Down",
+          "label": "Number"
+        }
+      ]
+    },
+    {
+      "title": "Include A",
+      "includeIf": "${showTextBoxA}",
+      "fields": [
+        {
+          "id": "textBoxA",
+          "type": "text",
+          "format": "text",
+          "value": "${'AAA'}"
+        }
+      ]
+    },
+    {
+      "title": "Include B",
+      "includeIf": "${showTextBoxB}",
+      "fields": [
+        {
+          "id": "textBoxB",
+          "type": "text",
+          "format": "text",
+          "value": "${'BBB'}"
+        }
+      ]
+    },
+    {
+      "title": "Include C",
+      "includeIf": "${showTextBoxC}",
+      "fields": [
+        {
+          "id": "textBoxC",
+          "type": "text",
+          "format": "text",
+          "value": "${'CCC'}"
+        }
+      ]
+    },
+    {
+      "title": "Include D",
+      "includeIf": "${showTextBoxD}",
+      "fields": [
+        {
+          "id": "textBoxD",
+          "type": "text",
+          "format": "text",
+          "value": "${'DDD'}"
+        }
+      ]
+    },
+    {
+      "title": "Include E",
+      "includeIf": "${showTextBoxE}",
+      "fields": [
+        {
+          "id": "textBoxE",
+          "type": "text",
+          "format": "text",
+          "value": "${'EEE'}"
+        }
+      ]
+    },
+    {
+      "title": "Include F",
+      "includeIf": "${showTextBoxF}",
+      "fields": [
+        {
+          "id": "textBoxF",
+          "type": "text",
+          "format": "text",
+          "value": "${'FFF'}"
+        }
+      ]
+    },
+    {
+      "title": "Include G",
+      "includeIf": "${showTextBoxG}",
+      "fields": [
+        {
+          "id": "textBoxG",
+          "type": "text",
+          "format": "text",
+          "value": "${'GGG'}"
+        }
+      ]
+    },
+    {
+      "title": "Include H",
+      "includeIf": "${showTextBoxH}",
+      "fields": [
+        {
+          "id": "textBoxH",
+          "type": "text",
+          "format": "text",
+          "value": "${'HHH'}"
+        }
+      ]
+    },
+    {
+      "title": "Include I",
+      "includeIf": "${showTextBoxI}",
+      "fields": [
+        {
+          "id": "textBoxI",
+          "type": "text",
+          "format": "text",
+          "value": "${'III'}"
+        }
+      ]
+    },
+    {
+      "title": "Include J",
+      "includeIf": "${showTextBoxJ}",
+      "fields": [
+        {
+          "id": "textBoxJ",
+          "type": "text",
+          "format": "text",
+          "value": "${'JJJ'}"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "number: ${number}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxA: ${textBoxA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxB: ${textBoxB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxC: ${textBoxC}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxD: ${textBoxD}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxE: ${textBoxE}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxF: ${textBoxF}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxG: ${textBoxG}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxH: ${textBoxH}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxI: ${textBoxI}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxJ: ${textBoxJ}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxA visible: ${if showTextBoxA then 'Yes' else 'No'} : sixteenUp < number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxB visible: ${if showTextBoxB then 'Yes' else 'No'} : sixteenDown < number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxC visible: ${if showTextBoxC then 'Yes' else 'No'} : sixteenUp <= number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxD visible: ${if showTextBoxD then 'Yes' else 'No'} : sixteenDown <= number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxE visible: ${if showTextBoxE then 'Yes' else 'No'} : sixteenUp > number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxF visible: ${if showTextBoxF then 'Yes' else 'No'} : sixteenDown > number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxG visible: ${if showTextBoxG then 'Yes' else 'No'} : sixteenUp >= number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxH visible: ${if showTextBoxH then 'Yes' else 'No'} : sixteenDown >= number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxI visible: ${if showTextBoxI then 'Yes' else 'No'} : sixteenUp = number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxJ visible: ${if showTextBoxJ then 'Yes' else 'No'} : sixteenDown = number * 0.1"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "number * 0.1 : ${number * 0.1}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "_id": "atl-page-without-enterable-field",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Film productions",
+      "summaryName": "Film added",
+      "shortName": "Film",
+      "summaryDescription": "Film",
+      "description": "$n. Film",
+      "addAnotherQuestion": {
+        "id": "filmAddAnother",
+        "type": "choice",
+        "label": "Do you want to add another Film?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Film choice?",
+          "fields": [
+            {
+              "id": "filmChoice",
+              "type": "choice",
+              "choices": [
+                "Yes",
+                "No"
+              ]
+            }
+          ]
+        },
+        {
+          "includeIf": "${filmChoice contains 1}",
+          "title": "Confirm the deduction",
+          "fields": [
+            {
+              "id": "filmDeductionInfo",
+              "type": "info",
+              "label": "",
+              "infoType": "noformat",
+              "infoText": "The additional deduction info"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "logit",
+      "type": "log"
+    }
+  ]
+}

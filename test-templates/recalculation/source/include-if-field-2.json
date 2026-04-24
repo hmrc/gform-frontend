@@ -1,0 +1,46 @@
+{
+  "_id": "include-if-field-2",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${pageA > 10}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "includeIf": "${pageA > 50}",
+          "label": "Page B",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

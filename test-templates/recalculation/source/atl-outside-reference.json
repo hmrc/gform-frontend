@@ -1,0 +1,65 @@
+{
+  "_id": "atl-outside-reference",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${repeatingField}",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Repeating field $n",
+          "fields": [
+            {
+              "id": "repeatingField",
+              "type": "text",
+              "format": "number"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "includeIf": "${repeatingField != ''}",
+      "fields": [
+        {
+          "id": "test",
+          "type": "text",
+          "format": "number"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "${concat('Basic info about ', repeatingField, ' sum of which is ', repeatingField.sum)}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

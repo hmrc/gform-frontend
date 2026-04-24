@@ -1,0 +1,68 @@
+{
+  "_id": "data-retrieve-agent-details",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "dataRetrieve": [
+    {
+      "type": "agentDetails",
+      "id": "agencyInfo",
+      "if": "${user.affinityGroup = 'agent' && user.enrolments.HMRC-AS-AGENT.AgentReferenceNumber != ''}",
+      "parameters": {
+        "agentReferenceNumber": "${user.enrolments.HMRC-AS-AGENT.AgentReferenceNumber}"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "title": "Enter date and ninos '${dataRetrieve.agencyInfo.country}'",
+      "fields": [
+        {
+          "id": "address",
+          "type": "address",
+          "label": "Address",
+          "value": "${dataRetrieve.agencyInfo.agencyAddress}",
+          "includeIf": "${dataRetrieve.agencyInfo.country = ''}"
+        },
+        {
+          "id": "overseasAddress",
+          "type": "overseasAddress",
+          "label": "Overseas address",
+          "countryLookup": false,
+          "value": "${dataRetrieve.agencyInfo.agencyAddress}",
+          "includeIf": "${dataRetrieve.agencyInfo.country != ''}"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "dataRetrieve.agencyInfo: ${dataRetrieve.agencyInfo.agencyAddress}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

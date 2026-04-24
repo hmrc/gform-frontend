@@ -1,0 +1,326 @@
+{
+  "_id": "boolean-expr-literal-and-list",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "creditTotalAnd": {
+      "value": "creditCalculationAnd.sum",
+      "type": "sterling"
+    },
+    "creditTotalAndSwapped": {
+      "value": "creditCalculationAndSwapped.sum",
+      "type": "sterling"
+    },
+    "creditTotalOr": {
+      "value": "creditCalculationOr.sum",
+      "type": "sterling"
+    },
+    "creditTotalOrSwapped": {
+      "value": "creditCalculationOrSwapped.sum",
+      "type": "sterling"
+    },
+    "creditCalculationAnd": {
+      "value": "if lossSurrenderedAt20perCentAnd then loss20 else loss50",
+      "type": "sterling"
+    },
+    "creditCalculationAndSwapped": {
+      "value": "if lossSurrenderedAt20perCentAndSwapped then loss20 else loss50",
+      "type": "sterling"
+    },
+    "creditCalculationOr": {
+      "value": "if lossSurrenderedAt20perCentOr then loss20 else loss50",
+      "type": "sterling"
+    },
+    "creditCalculationOrSwapped": {
+      "value": "if lossSurrenderedAt20perCentOrSwapped then loss20 else loss50",
+      "type": "sterling"
+    },
+    "loss20": {
+      "value": "lossSurrendered * 0.20",
+      "type": "sterling"
+    },
+    "loss50": {
+      "value": "lossSurrendered * 0.50",
+      "type": "sterling"
+    }
+  },
+  "booleanExpressions": {
+    "accountingStartBefore01042025": "accountingStart before 01042025",
+    "productionStartBefore27102021": "productionStartDate before 27102021",
+    "lossSurrenderedAt20perCentAnd": "productionStartBefore27102021 && accountingStartBefore01042025",
+    "lossSurrenderedAt20perCentAndSwapped": "accountingStartBefore01042025 && productionStartBefore27102021",
+    "lossSurrenderedAt20perCentOr": "productionStartBefore27102021 || accountingStartBefore01042025",
+    "lossSurrenderedAt20perCentOrSwapped": "accountingStartBefore01042025 || productionStartBefore27102021"
+  },
+  "sections": [
+    {
+      "title": "Enter start and end dates",
+      "fields": [
+        {
+          "id": "accountingStart",
+          "label": "Start date",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${productionStartDate} - ${lossSurrendered}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Theater",
+          "fields": [
+            {
+              "id": "productionStartDate",
+              "label": "Production start date",
+              "type": "date",
+              "format": "before today +1"
+            },
+            {
+              "id": "lossSurrendered",
+              "type": "text",
+              "labelSize": "s",
+              "label": "What is the amount of loss surrendered?",
+              "format": "positiveWholeSterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "creditTotalAnd = ${creditTotalAnd}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditTotalAndSwapped = ${creditTotalAndSwapped}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditTotalOr = ${creditTotalOr}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditTotalOrSwapped = ${creditTotalOrSwapped}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditCalculationAnd = ${creditCalculationAnd}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditCalculationAndSwapped = ${creditCalculationAndSwapped}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditCalculationOr = ${creditCalculationOr}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "creditCalculationOrSwapped = ${creditCalculationOrSwapped}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "loss20 = ${loss20}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "loss50 = ${loss50}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "productionStartDate = ${productionStartDate}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "accountingStartBefore01042025 = ${if accountingStartBefore01042025 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "productionStartBefore27102021 = ${if productionStartBefore27102021 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "lossSurrenderedAt20perCentAnd = ${if lossSurrenderedAt20perCentAnd then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "lossSurrenderedAt20perCentAndSwapped = ${if lossSurrenderedAt20perCentAndSwapped then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "lossSurrenderedAt20perCentOr = ${if lossSurrenderedAt20perCentOr then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "lossSurrenderedAt20perCentOrSwapped = ${if lossSurrenderedAt20perCentOrSwapped then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret And",
+      "includeIf": "${creditTotalAnd = '87737.40'}",
+      "fields": [
+        {
+          "id": "secretAnd",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret And Swapped",
+      "includeIf": "${creditTotalAndSwapped = '87737.40'}",
+      "fields": [
+        {
+          "id": "secretAndSwapped",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret Or",
+      "includeIf": "${creditTotalOr = '87737.40'}",
+      "fields": [
+        {
+          "id": "secretOr",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret Or Swapped",
+      "includeIf": "${creditTotalOrSwapped = '87737.40'}",
+      "fields": [
+        {
+          "id": "secretOrSwapped",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

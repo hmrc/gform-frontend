@@ -1,0 +1,245 @@
+{
+  "_id": "sum-with-and-and-two-atls",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "offset": "if offset then 10 else 20",
+    "calculation": "amountA + amountB + offset"
+  },
+  "booleanExpressions": {
+    "after2024": "dateA after 31122024",
+    "before2024": "dateB before 01012024",
+    "offset": "before2024 && after2024"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amountA} : ${dateA}",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnotherA",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount A",
+          "fields": [
+            {
+              "id": "amountA",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "controlA",
+              "type": "choice",
+              "label": "Offset date",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "offset"
+                },
+                {
+                  "en": "No",
+                  "value": "keep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Date A",
+          "includeIf": "${controlA contains 'offset'}",
+          "fields": [
+            {
+              "id": "dateA",
+              "type": "date"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amountB} : ${dateB}",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnotherB",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount B",
+          "fields": [
+            {
+              "id": "amountB",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "controlB",
+              "type": "choice",
+              "label": "Offset date",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "offset"
+                },
+                {
+                  "en": "No",
+                  "value": "keep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Date B",
+          "includeIf": "${controlB contains 'offset'}",
+          "fields": [
+            {
+              "id": "dateB",
+              "type": "date"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculation.sum = '70'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "calculation.sum = ${calculation.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculation = ${calculation}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA: ${amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountB: ${amountB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "dateA: ${dateA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "dateB: ${dateB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "dateA after 31122024: ${if after2024 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "dateB before 01012024: ${if before2024 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "dateA after 31122024 && dateB before 01012024: ${if after2024 && before2024  then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset: ${offset}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

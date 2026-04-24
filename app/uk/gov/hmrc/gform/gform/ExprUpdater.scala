@@ -59,8 +59,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case ParamCtx(_)                          => expr
     case LinkCtx(_)                           => expr
     case LangCtx                              => expr
-    case Period(_, _)                         => expr
-    case PeriodExt(_, _)                      => expr
+    case Period(_, _, _)                      => expr // TODO JoVl, why are we not expanding DateCtx like in Between ???
     case b @ Between(_, _, _) =>
       b match {
         case Between(DateCtx(dateExpr1), DateCtx(dateExpr2), m) =>
