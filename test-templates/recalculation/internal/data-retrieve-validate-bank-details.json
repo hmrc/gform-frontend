@@ -563,7 +563,7 @@
                               "SmartStringBase": {
                                 "internal": {
                                   "localised": {
-                                    "en": "nonStandardAccountDetailsRequiredForBacs"
+                                    "en": "nonStandardAccountDetailsRequiredForBacsX"
                                   },
                                   "interpolations": []
                                 }
