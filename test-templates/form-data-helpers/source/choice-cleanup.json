@@ -1,0 +1,71 @@
+{
+  "_id": "choice-cleanup",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page",
+      "fields": [
+        {
+          "id": "choice1",
+          "type": "choice",
+          "label": "Choice",
+          "choices": [
+            {
+              "en": "Choice label 1"
+            },
+            {
+              "en": "Choice label 2"
+            }
+          ]
+        },
+        {
+          "id": "revealingChoice1",
+          "type": "revealingChoice",
+          "label": "Revealing choice",
+          "choices": [
+            {
+              "en": "Revealing choice label 1"
+            },
+            {
+              "en": "Revealing choice label 2"
+            }
+          ],
+          "revealingFields": [
+            [
+              {
+                "id": "revealingChoiceField1",
+                "type": "text",
+                "label": "Revealing field 1",
+                "format": "text"
+              }
+            ],
+            [
+              {
+                "id": "revealingChoiceField2",
+                "type": "text",
+                "label": "Revealing field 2",
+                "format": "text"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

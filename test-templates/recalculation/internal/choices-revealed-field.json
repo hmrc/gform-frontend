@@ -1,0 +1,605 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Partners"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0} - {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "ChoicesRevealedField": {
+                            "formComponentId": "idType"
+                          }
+                        },
+                        {
+                          "StringOps": {
+                            "field1": {
+                              "ChoicesRevealedField": {
+                                "formComponentId": "idType"
+                              }
+                            },
+                            "stringFnc": {
+                              "LowerCase": {}
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What identifiaction do they hold?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Enter the partner''s name"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "idType",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "RevealingChoice": {
+                        "options": [
+                          {
+                            "choice": {
+                              "ValueBased": {
+                                "label": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "Passport"
+                                      },
+                                      "interpolations": []
+                                    }
+                                  }
+                                },
+                                "value": {
+                                  "StringBased": {
+                                    "value": "pass"
+                                  }
+                                }
+                              }
+                            },
+                            "revealingFields": [],
+                            "selected": false
+                          },
+                          {
+                            "choice": {
+                              "ValueBased": {
+                                "label": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "Driving licence"
+                                      },
+                                      "interpolations": []
+                                    }
+                                  }
+                                },
+                                "value": {
+                                  "StringBased": {
+                                    "value": "drive"
+                                  }
+                                }
+                              }
+                            },
+                            "revealingFields": [],
+                            "selected": false
+                          },
+                          {
+                            "choice": {
+                              "ValueBased": {
+                                "label": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "ID card"
+                                      },
+                                      "interpolations": []
+                                    }
+                                  }
+                                },
+                                "value": {
+                                  "StringBased": {
+                                    "value": "id"
+                                  }
+                                }
+                              }
+                            },
+                            "revealingFields": [],
+                            "selected": false
+                          },
+                          {
+                            "choice": {
+                              "ValueBased": {
+                                "label": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "Other"
+                                      },
+                                      "interpolations": []
+                                    }
+                                  }
+                                },
+                                "value": {
+                                  "StringBased": {
+                                    "value": "other"
+                                  }
+                                }
+                              }
+                            },
+                            "revealingFields": [
+                              {
+                                "mandatory": {
+                                  "booleanExpr": {
+                                    "IsTrue": {}
+                                  }
+                                },
+                                "notPII": false,
+                                "derived": false,
+                                "label": {
+                                  "SmartStringBase": {
+                                    "internal": {
+                                      "localised": {
+                                        "en": "Enter the other type"
+                                      },
+                                      "interpolations": []
+                                    }
+                                  }
+                                },
+                                "validators": [],
+                                "id": "otherType",
+                                "submissible": true,
+                                "isPageHeading": false,
+                                "type": {
+                                  "Text": {
+                                    "constraint": {
+                                      "TextWithRestrictions": {
+                                        "min": 0,
+                                        "max": 1000
+                                      }
+                                    },
+                                    "value": {
+                                      "Value": {}
+                                    },
+                                    "displayWidth": "DEFAULT",
+                                    "toUpperCase": {
+                                      "IsNotUpperCase": {}
+                                    }
+                                  }
+                                },
+                                "onlyShowOnSummary": false,
+                                "editable": true
+                              }
+                            ],
+                            "selected": false
+                          }
+                        ],
+                        "multiValue": true
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Secret $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "Equals": {
+                      "left": {
+                        "ChoicesRevealedField": {
+                          "formComponentId": "idType"
+                        }
+                      },
+                      "right": {
+                        "Constant": {
+                          "value": "other"
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Secret"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "secret",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Reveal"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "reveal"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Keep hidden"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "keepHidden"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "ChoicesRevealedField": {
+                        "formComponentId": "idType"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another partner?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "partnerList",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Vertical": {}
+                  },
+                  "type": {
+                    "Radio": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "errorMessage": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Select whether you want to add another partner?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "presentationHint": {
+              "InvisiblePageTitle": {}
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Lists of partners you have added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Partner"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "choices-revealed-field",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "choices-revealed-field",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

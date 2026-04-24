@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.cache
 
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+import uk.gov.hmrc.gform.recalculation.Recalculator
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateCache, FormTemplateId }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -32,6 +33,7 @@ class FormTemplateCacheController(
 
   def save(formTemplateId: FormTemplateId): Action[AnyContent] =
     messagesControllerComponents.actionBuilder.async { _ =>
+      Recalculator.cache.remove(formTemplateId) // Side effect
       formTemplateCacheService
         .save(FormTemplateCache(formTemplateId, Instant.now))
         .fold(

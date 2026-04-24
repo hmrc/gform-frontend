@@ -1,0 +1,123 @@
+{
+  "_id": "read-only-expressions",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "seed": "123.456"
+  },
+  "sections": [
+    {
+      "title": "Value",
+      "fields": [
+        {
+          "id": "value",
+          "type": "text",
+          "format": "number(3,0)"
+        },
+        {
+          "id": "decimals0",
+          "type": "text",
+          "format": "number(3,0)",
+          "label": "",
+          "value": "${seed}",
+          "presentationHint": "invisibleInSummary",
+          "submitMode": "summaryinfoonly"
+        },
+        {
+          "id": "decimals1",
+          "type": "text",
+          "format": "number(3,1)",
+          "label": "",
+          "value": "${seed}",
+          "presentationHint": "invisibleInSummary",
+          "submitMode": "summaryinfoonly"
+        },
+        {
+          "id": "decimals2",
+          "type": "text",
+          "format": "number(3,2)",
+          "label": "",
+          "value": "${seed}",
+          "presentationHint": "invisibleInSummary",
+          "submitMode": "summaryinfoonly"
+        },
+        {
+          "id": "decimals3",
+          "type": "text",
+          "format": "number(3,3)",
+          "label": "",
+          "value": "${seed}",
+          "presentationHint": "invisibleInSummary",
+          "submitMode": "summaryinfoonly"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "decimals0: ${decimals0}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "decimals1: ${decimals1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "decimals2: ${decimals2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "decimals3: ${decimals3}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

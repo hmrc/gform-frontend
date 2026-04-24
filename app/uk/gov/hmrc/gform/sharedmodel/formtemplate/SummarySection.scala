@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
 import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 case class SummarySection(
@@ -36,7 +35,7 @@ case class SummarySection(
   hideDefaultRows: Option[Boolean],
   includePrintPageButton: Option[Boolean]
 ) {
-  def toPage: Page[Basic] =
+  def toPage: Page =
     Page(
       title = title,
       id = None,

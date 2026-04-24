@@ -1,0 +1,73 @@
+{
+  "_id": "atl-data-retrieve-hmrc-tax-rates",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "summaryDescription": "${item} - ${startDate}",
+      "description": "$n. ${item} - ${startDate}",
+      "addAnotherQuestion": {
+        "id": "anotherItem",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Item",
+          "fields": [
+            {
+              "id": "startDate",
+              "type": "date",
+              "label": "Start date"
+            }
+          ],
+          "dataRetrieve": [
+            {
+              "type": "hmrcTaxRates",
+              "id": "ppt",
+              "parameters": {
+                "regime": "${'PPT'}",
+                "code": "${'RATE'}",
+                "date": "${startDate}"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Item",
+          "includeIf": "${dataRetrieve.ppt.rate > 210}",
+          "fields": [
+            {
+              "id": "item",
+              "type": "text",
+              "label": "Item",
+              "format": "text",
+              "submitMode": "readonly",
+              "value": "${dataRetrieve.ppt.rate}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.tasklist
 
 import cats.implicits._
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.{ BracketsWithSectionNumber, DataExpanded }
+import uk.gov.hmrc.gform.models.Brackets
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddressLens, Coordinates, Expr, FormCtx, Task }
 
@@ -82,11 +81,11 @@ final class CannotStartYetResolver(
 
 object CannotStartYetResolver {
   def create(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     taskCoordinatesLookup: Map[Task, Coordinates]
   ): CannotStartYetResolver = {
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
-    val taskList: BracketsWithSectionNumber.TaskList[DataExpanded] = formModel.brackets.unsafeToTaskList
+    val taskList: Brackets.TaskList = formModel.brackets.unsafeToTaskList
 
     val formComponentIdsLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets
       .map { case (coordinates, brackets) =>
@@ -106,13 +105,13 @@ object CannotStartYetResolver {
     val dependingFcIdLookup: Map[Coordinates, Set[BaseComponentId]] = taskList.brackets.toList.map {
       case (coordinates, brackets) =>
         val allExprs: List[Expr] =
-          brackets.toBracketsList.flatMap(_.allExprs(formModel))
+          brackets.toBracketsList.flatMap(_.allExprs())
 
         val baseComponentIds: List[BaseComponentId] =
-          allExprs.flatMap(_.leafs(formModel)).collect {
+          allExprs.flatMap(_.collect {
             case FormCtx(fcId)        => fcId.baseComponentId
             case AddressLens(fcId, _) => fcId.baseComponentId
-          }
+          })
 
         val ownBaseComponentIds = formComponentIdsLookup.getOrElse(coordinates, Set.empty[BaseComponentId])
 

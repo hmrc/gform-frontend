@@ -1,0 +1,210 @@
+{
+  "_id": "arithmetic-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "default": {
+      "type": "sterling",
+      "value": "12"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - A: ${amountA}, B: ${amountB}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amounts",
+          "fields": [
+            {
+              "id": "amountA",
+              "type": "text",
+              "format": "sterling",
+              "label": "Amount A"
+            },
+            {
+              "id": "amountB",
+              "type": "text",
+              "format": "sterling",
+              "label": "Amount B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "amountA: ${amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountB: ${amountB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA + ${default}: ${amountA + default}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${default} + amountA: ${default + amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA + amountB: ${amountA + amountB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountB + amountA: ${amountB + amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA - ${default}: ${amountA - default}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${default} - amountA: ${default - amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA - amountB: ${amountA - amountB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountB - amountA: ${amountB - amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA * ${default}: ${amountA * default}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${default} * amountA: ${default * amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA * amountB: ${amountA * amountB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountB * amountA: ${amountB * amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA / ${default}: ${amountA / default}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${default} / amountA: ${default / amountA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountA / amountB: ${amountA / amountB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amountB / amountA: ${amountB / amountA}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

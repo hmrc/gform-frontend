@@ -1,0 +1,317 @@
+{
+  "_id": "arithmetic",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "op1MulOp2Up": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "Up"
+    },
+    "op1MulOp2Down": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "Down"
+    },
+    "op1MulOp2Ceiling": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "Ceiling"
+    },
+    "op1MulOp2Floor": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "Floor"
+    },
+    "op1MulOp2HalfEven": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "HalfEven"
+    },
+    "op1MulOp2HalfUp": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "HalfUp"
+    },
+    "op1MulOp2HalfDown": {
+      "value": "op1 * op2",
+      "type": "sterling",
+      "round": "HalfDown"
+    },
+    "op1DivOp2Up": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "Up"
+    },
+    "op1DivOp2Down": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "Down"
+    },
+    "op1DivOp2Ceiling": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "Ceiling"
+    },
+    "op1DivOp2Floor": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "Floor"
+    },
+    "op1DivOp2HalfEven": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "HalfEven"
+    },
+    "op1DivOp2HalfUp": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "HalfUp"
+    },
+    "op1DivOp2HalfDown": {
+      "value": "op1 / op2",
+      "type": "sterling",
+      "round": "HalfDown"
+    }
+  },
+  "sections": [
+    {
+      "title": "Operands",
+      "fields": [
+        {
+          "id": "op1",
+          "label": "Operand 1",
+          "type": "text",
+          "format": "number"
+        },
+        {
+          "id": "op2",
+          "label": "Operand 2",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "${op1} + ${op2} = ${op1 + op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} + ${op1} = ${op2 + op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op1} - ${op2} = ${op1 - op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} - ${op1} = ${op2 - op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op1} * ${op2} = ${op1 * op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} = ${op2 * op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op1} / ${op2} = ${op1 / op2}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} = ${op2 / op1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (Up) = ${op1MulOp2Up}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (Down) = ${op1MulOp2Down}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (Ceiling) = ${op1MulOp2Ceiling}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (Floor) = ${op1MulOp2Floor}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (HalfEven) = ${op1MulOp2HalfEven}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (HalfUp) = ${op1MulOp2HalfUp}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} * ${op1} (HalfDown) = ${op1MulOp2HalfDown}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (Up) = ${op1DivOp2Up}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (Down) = ${op1DivOp2Down}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (Ceiling) = ${op1DivOp2Ceiling}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (Floor) = ${op1DivOp2Floor}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (HalfEven) = ${op1DivOp2HalfEven}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (HalfUp) = ${op1DivOp2HalfUp}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "${op2} / ${op1} (HalfDown) = ${op1DivOp2HalfDown}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "secretMul1",
+          "type": "text",
+          "label": "Secret Mul >",
+          "includeIf": "${op1MulOp2Up > 2.905}",
+          "format": "text"
+        },
+        {
+          "id": "secretMul2",
+          "type": "text",
+          "label": "Secret Mul <",
+          "includeIf": "${op1MulOp2Down < 2.905}",
+          "format": "text"
+        },
+        {
+          "id": "secretDiv1",
+          "type": "text",
+          "label": "Secret Div >",
+          "includeIf": "${op1DivOp2Up > 0.52}",
+          "format": "text"
+        },
+        {
+          "id": "secretDiv2",
+          "type": "text",
+          "label": "Secret Div <",
+          "includeIf": "${op1DivOp2Down < 0.52}",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

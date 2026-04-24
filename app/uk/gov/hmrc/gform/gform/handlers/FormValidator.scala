@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform.handlers
 import cats.Monoid
 import uk.gov.hmrc.gform.controllers.{ CacheData, Origin }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ EnteredVariadicFormData, FastForward, ProcessData }
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
@@ -31,12 +30,12 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class FormValidator(implicit ec: ExecutionContext) {
 
-  def validatePageModelBySectionNumbers[D <: DataOrigin](
-    formModelOptics: FormModelOptics[D],
+  def validatePageModelBySectionNumbers(
+    formModelOptics: FormModelOptics,
     sectionNumbers: List[SectionNumber],
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, D]
+    validatePageModel: ValidatePageModel[Future]
   ): Future[FormHandlerResult] =
     Future
       .traverse(sectionNumbers) { sectionNumber =>
@@ -51,12 +50,12 @@ class FormValidator(implicit ec: ExecutionContext) {
       .map(list => FormHandlerResult(Monoid[ValidationResult].combineAll(list), envelope))
 
   // This is abstract in DataOrigin, since this is used in FastForward logic and when we render a form page with a GET.
-  def validatePageModelBySectionNumber[D <: DataOrigin](
-    formModelOptics: FormModelOptics[D],
+  def validatePageModelBySectionNumber(
+    formModelOptics: FormModelOptics,
     sectionNumber: SectionNumber,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, D]
+    validatePageModel: ValidatePageModel[Future]
   ): Future[FormHandlerResult] = {
     val visibilityFormModel = formModelOptics.formModelVisibilityOptics.formModel
     val visibilityPageModel = visibilityFormModel(sectionNumber)
@@ -94,12 +93,13 @@ class FormValidator(implicit ec: ExecutionContext) {
     processData: ProcessData,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    validatePageModel: ValidatePageModel[Future],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[Option[SectionNumber]] = {
 
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
-    val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
+    val maybeCoordinates = maybeSectionNumber.flatMap(_.maybeCoordinates)
+    val formModelOptics: FormModelOptics = processData.formModelOptics
+    val availableSectionNumbers = getAvailableSectionNumbers(maybeCoordinates, formModelOptics)
     def isValidSectionNumberF(sn: SectionNumber): Future[Boolean] =
       validatePageModelBySectionNumber(
         formModelOptics,
@@ -125,7 +125,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               hasBeenVisited &&
               postcodeLookupHasAddress &&
               isValid &&
-              !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.booleanExprResolver)
+              !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.freeCalculator)
             ) None
             else Some(currentSn)
           case otherwise =>
@@ -139,11 +139,9 @@ class FormValidator(implicit ec: ExecutionContext) {
   }
 
   private def getAvailableSectionNumbers(
-    currentSectionNumber: Option[SectionNumber],
-    formModelOptics: FormModelOptics[DataOrigin.Browser]
+    maybeCoordinates: Option[Coordinates],
+    formModelOptics: FormModelOptics
   ): List[SectionNumber] = {
-    val maybeCoordinates = currentSectionNumber.flatMap(_.maybeCoordinates)
-
     val availableSectionNumbers: List[SectionNumber] = Origin(
       formModelOptics.formModelVisibilityOptics.formModel
     ).availableSectionNumbers
@@ -157,19 +155,19 @@ class FormValidator(implicit ec: ExecutionContext) {
     processData: ProcessData,
     cache: CacheData,
     envelope: EnvelopeWithMapping,
-    validatePageModel: ValidatePageModel[Future, DataOrigin.Browser],
+    validatePageModel: ValidatePageModel[Future],
     fastForward: List[FastForward],
     maybeSectionNumber: Option[SectionNumber]
   ): Future[SectionOrSummary] = {
 
     val maybeCoordinates = maybeSectionNumber.flatMap(_.maybeCoordinates)
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = processData.formModelOptics
+    val formModelOptics: FormModelOptics = processData.formModelOptics
 
     def atlHasSectionNumber(sectionNumber: SectionNumber): Boolean =
       formModelOptics.formModelVisibilityOptics.formModel.brackets.addToListBrackets
         .exists(_.hasSectionNumber(sectionNumber))
 
-    val availableSectionNumbers = getAvailableSectionNumbers(maybeSectionNumber, formModelOptics)
+    val availableSectionNumbers = getAvailableSectionNumbers(maybeCoordinates, formModelOptics)
 
     def findLastATLSectionNumber(sn: SectionNumber): SectionNumber = {
       val isAtlSection = atlHasSectionNumber(sn)
@@ -187,6 +185,7 @@ class FormValidator(implicit ec: ExecutionContext) {
           .getOrElse(availableSectionNumbers.lastOption.getOrElse(sn))
       } else sn
     }
+
     val ffYesSnF = mustBeVisitedSectionNumber(
       processData,
       cache,

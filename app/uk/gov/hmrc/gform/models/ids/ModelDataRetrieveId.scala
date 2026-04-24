@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models.ids
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 
 sealed trait ModelDataRetrieveId {
+  def id: String
   def baseId = this match {
     case ModelDataRetrieveId.Pure(id)       => DataRetrieveId(id)
     case ModelDataRetrieveId.Indexed(id, _) => DataRetrieveId(id)

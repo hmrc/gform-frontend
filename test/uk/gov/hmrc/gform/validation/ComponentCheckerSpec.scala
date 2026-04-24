@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.ids._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 import scala.collection.mutable.LinkedHashSet
@@ -37,7 +36,7 @@ import IndexedComponentId._
 
 class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticMockito {
 
-  val checkerDependencyMock: CheckerDependency[DataOrigin.Mongo] = mock[CheckerDependency[DataOrigin.Mongo]]
+  val checkerDependencyMock: CheckerDependency = mock[CheckerDependency]
   implicit val messages: Messages = mock[Messages]
   implicit val l: LangADT = mock[LangADT]
   implicit val smartStringEvaluator: SmartStringEvaluator = mock[SmartStringEvaluator]
@@ -67,8 +66,8 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
     elseProgram = successProgram(())
   )
 
-  val checkerWithFailure = new ComponentChecker[Unit, DataOrigin.Mongo] {
-    override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+  val checkerWithFailure = new ComponentChecker[Unit] {
+    override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
       langADT: LangADT,
       messages: Messages,
       sse: SmartStringEvaluator
@@ -79,8 +78,8 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
       ).nonShortCircuitProgram
   }
 
-  val checkerWithAllSuccesses = new ComponentChecker[Unit, DataOrigin.Mongo] {
-    override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+  val checkerWithAllSuccesses = new ComponentChecker[Unit] {
+    override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
       langADT: LangADT,
       messages: Messages,
       sse: SmartStringEvaluator
@@ -90,8 +89,8 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
         successfulOperation("atom2", "Error for atom2")
       ).nonShortCircuitProgram
   }
-  val checkerWithNoOperations = new ComponentChecker[Unit, DataOrigin.Mongo] {
-    override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+  val checkerWithNoOperations = new ComponentChecker[Unit] {
+    override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
       langADT: LangADT,
       messages: Messages,
       sse: SmartStringEvaluator
@@ -125,8 +124,8 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
   }
 
   it should "return the first error among multiple failures" in {
-    val checkerWithMultipleFailures = new ComponentChecker[Unit, DataOrigin.Mongo] {
-      override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+    val checkerWithMultipleFailures = new ComponentChecker[Unit] {
+      override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
         langADT: LangADT,
         messages: Messages,
         sse: SmartStringEvaluator
@@ -155,8 +154,8 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
 
   it should "work properly for nested operations" in {
 
-    val checkerWithMultipleFailures = new ComponentChecker[Unit, DataOrigin.Mongo] {
-      override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+    val checkerWithMultipleFailures = new ComponentChecker[Unit] {
+      override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
         langADT: LangADT,
         messages: Messages,
         sse: SmartStringEvaluator
@@ -208,8 +207,8 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
   it should "work properly for nested operations" in {
 
     implicit val checkInterpreter: ComponentChecker.CheckInterpreter = ComponentChecker.ErrorReportInterpreter
-    val checkerWithMultipleFailures = new ComponentChecker[Unit, DataOrigin.Mongo] {
-      override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+    val checkerWithMultipleFailures = new ComponentChecker[Unit] {
+      override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
         langADT: LangADT,
         messages: Messages,
         sse: SmartStringEvaluator
@@ -237,9 +236,9 @@ class ComponentCheckerSpec extends AnyFlatSpecLike with Matchers with IdiomaticM
 
   it should "work properly for shortCircuitProgram" in {
 
-    val checkerWithMultipleFailures = new ComponentChecker[Unit, DataOrigin.Mongo] {
+    val checkerWithMultipleFailures = new ComponentChecker[Unit] {
       implicit val checkInterpreter: ComponentChecker.CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
-      override protected def checkProgram(componentCheckerContext: CheckerDependency[DataOrigin.Mongo])(implicit
+      override protected def checkProgram(componentCheckerContext: CheckerDependency)(implicit
         langADT: LangADT,
         messages: Messages,
         sse: SmartStringEvaluator

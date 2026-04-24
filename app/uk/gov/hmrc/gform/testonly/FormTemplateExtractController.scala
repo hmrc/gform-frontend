@@ -20,13 +20,12 @@ import cats.implicits._
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, SmartString }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.testonly.extract.{ FormTemplateDetail, FormTemplateDetailRow, ReportTableRow }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ HeadCell, HtmlContent, Table, Text }
@@ -42,13 +41,6 @@ class FormTemplateExtractController(
   controllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(controllerComponents: MessagesControllerComponents) {
-
-  private def ignoredComponent(formComponent: FormComponent) = formComponent match {
-    case IsMiniSummaryList(_)    => true
-    case IsTableComp(_)          => true
-    case IsInformationMessage(_) => true
-    case _                       => false
-  }
 
   private val headers = List(
     "Section",
@@ -102,12 +94,10 @@ class FormTemplateExtractController(
 
   private def extractFormTemplate(
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     isCsv: Boolean
   )(implicit sse: SmartStringEvaluator) = {
     import uk.gov.hmrc.gform.testonly.extract.FormComponentHelpers._
-
-    val booleanExprResolver: BooleanExprResolver = formModelOptics.formModelVisibilityOptics.booleanExprResolver
 
     val pagesWithIndex = formModelOptics.formModelRenderPageOptics.formModel.pagesWithIndex
 
@@ -129,13 +119,13 @@ class FormTemplateExtractController(
               page.pages.toList.flatMap(_.allFieldsNested)
             )
           )
-          .filterNot(ignoredComponent)
+          .filter(_.isEnterableFormComponent)
           .size
 
         classic.sections.flatMap { section =>
           section.fold { nonRepeatingPage =>
             val page = nonRepeatingPage.page
-            val allFields = page.allFieldsNested.filterNot(ignoredComponent)
+            val allFields = page.allEnterableFormComponents
             val pageFieldCount = allFields.size
             allFields.map { field =>
               FormTemplateDetail(
@@ -145,7 +135,7 @@ class FormTemplateExtractController(
                 FormTemplateDetailRow(page.title, pageFieldCount),
                 page.includeIf,
                 field.id,
-                field.mandatory.eval(booleanExprResolver),
+                field.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator),
                 field.shortName.getOrElse(field.label),
                 field.showFormat,
                 showFormatExample(field),
@@ -159,7 +149,7 @@ class FormTemplateExtractController(
             }
           } { repeatingPage =>
             val page = repeatingPage.page
-            val allFields = page.allFieldsNested.filterNot(ignoredComponent)
+            val allFields = page.allEnterableFormComponents
             val pageFieldCount = allFields.size
             allFields.map(field =>
               FormTemplateDetail(
@@ -169,7 +159,7 @@ class FormTemplateExtractController(
                 FormTemplateDetailRow(page.title, pageFieldCount),
                 page.includeIf,
                 field.id,
-                field.mandatory.eval(booleanExprResolver),
+                field.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator),
                 field.shortName.getOrElse(field.label),
                 field.showFormat,
                 showFormatExample(field),
@@ -183,7 +173,7 @@ class FormTemplateExtractController(
             )
           } { atl =>
             atl.pages.toList.flatMap { page =>
-              val allFields = page.allFieldsNested.filterNot(ignoredComponent)
+              val allFields = page.allEnterableFormComponents
               val pageFieldCount = allFields.size
               allFields
                 .map(field =>
@@ -194,7 +184,7 @@ class FormTemplateExtractController(
                     FormTemplateDetailRow(page.title, pageFieldCount),
                     page.includeIf,
                     field.id,
-                    field.mandatory.eval(booleanExprResolver),
+                    field.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
                     showFormatExample(field),
@@ -220,7 +210,7 @@ class FormTemplateExtractController(
                     page.pages.toList.flatMap(_.allFieldsNested)
                   )
                 )
-                .filterNot(ignoredComponent)
+                .filter(_.isEnterableFormComponent)
             )
             .size
           taskSection.tasks.toList.flatMap { task =>
@@ -230,12 +220,12 @@ class FormTemplateExtractController(
                   page.pages.toList.flatMap(_.allFieldsNested)
                 )
               )
-              .filterNot(ignoredComponent)
+              .filter(_.isEnterableFormComponent)
               .size
             task.sections.toList.flatMap { section =>
               section.fold { nonRepeatingPage =>
                 val page = nonRepeatingPage.page
-                val allFields = page.allFieldsNested.filterNot(ignoredComponent)
+                val allFields = page.allEnterableFormComponents
                 val pageFieldCount = allFields.size
                 allFields.map { field =>
                   FormTemplateDetail(
@@ -245,7 +235,7 @@ class FormTemplateExtractController(
                     FormTemplateDetailRow(page.title, pageFieldCount),
                     page.includeIf,
                     field.id,
-                    field.mandatory.eval(booleanExprResolver),
+                    field.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
                     showFormatExample(field),
@@ -259,7 +249,7 @@ class FormTemplateExtractController(
                 }
               } { repeatingPage =>
                 val page = repeatingPage.page
-                val allFields = page.allFieldsNested.filterNot(ignoredComponent)
+                val allFields = page.allEnterableFormComponents
                 val pageFieldCount = allFields.size
                 allFields.map(field =>
                   FormTemplateDetail(
@@ -269,7 +259,7 @@ class FormTemplateExtractController(
                     FormTemplateDetailRow(page.title, pageFieldCount),
                     page.includeIf,
                     field.id,
-                    field.mandatory.eval(booleanExprResolver),
+                    field.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator),
                     field.shortName.getOrElse(field.label),
                     field.showFormat,
                     showFormatExample(field),
@@ -283,7 +273,7 @@ class FormTemplateExtractController(
                 )
               } { atl =>
                 atl.pages.toList.flatMap { page =>
-                  val allFields = page.allFieldsNested.filterNot(ignoredComponent)
+                  val allFields = page.allEnterableFormComponents
                   val pageFieldCount = allFields.size
                   allFields
                     .map(field =>
@@ -294,7 +284,7 @@ class FormTemplateExtractController(
                         FormTemplateDetailRow(page.title, pageFieldCount),
                         page.includeIf,
                         field.id,
-                        field.mandatory.eval(booleanExprResolver),
+                        field.mandatory.eval(formModelOptics.formModelVisibilityOptics.freeCalculator),
                         field.shortName.getOrElse(field.label),
                         field.showFormat,
                         showFormatExample(field),
@@ -316,7 +306,7 @@ class FormTemplateExtractController(
 
   private def makeReportTableRows(
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     isCsv: Boolean
   )(implicit lang: LangADT, sse: SmartStringEvaluator) = {
     val formTemplateDetails = extractFormTemplate(cache, formModelOptics, isCsv)

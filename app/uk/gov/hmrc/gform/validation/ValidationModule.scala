@@ -31,7 +31,6 @@ class ValidationModule(
 ) {
 
   val validationService = new ValidationService(
-    graphModule.booleanExprEval,
     gformBackendModule.gformConnector,
     lookupRegistry,
     ComponentChecker.NonShortCircuitInterpreter
