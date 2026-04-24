@@ -163,8 +163,6 @@ class ApplicationModule(context: Context)
   }
 
   private val graphModule = new GraphModule(
-    authModule,
-    gformBackendModule,
     englishMessages
   )
 

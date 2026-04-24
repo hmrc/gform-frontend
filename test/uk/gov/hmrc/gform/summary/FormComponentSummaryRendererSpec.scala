@@ -28,7 +28,6 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ FastForward, FormModelSupport, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.ExampleData.{ buildForm, buildFormComponent, buildFormTemplate, destinationList, envelopeWithMapping, nonRepeatingPageSection }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DisplayInSummary, Equals, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, IncludeIf, InformationMessage, IsFalse, IsTrue, KeyDisplayWidth, Mandatory, MiniSummaryList, MiniSummaryListValue, NoFormat, SectionNumber, SectionOrSummary, SectionTitle4Ga, TemplateSectionIndex, Value }
@@ -65,9 +64,12 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       new LookupRegistry(Map())
     )
 
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      mkFormModelOptics(formTemplate, cache.variadicFormData[SectionSelectorType.WithDeclaration])
-        .asInstanceOf[FormModelOptics[DataOrigin.Mongo]]
+    lazy val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cache.variadicFormData,
+          cache
+        )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
@@ -187,7 +189,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       }
       import testFixture._
       val rows: List[SummaryListRow] =
-        FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+        FormComponentSummaryRenderer.summaryListRows[SummaryRender](
           miniSummaryList,
           None,
           formTemplate._id,
@@ -245,7 +247,7 @@ class FormComponentSummaryRendererSpec extends FunSuite with FormModelSupport {
       }
       import testFixture._
       val rows: List[SummaryListRow] =
-        FormComponentSummaryRenderer.summaryListRows[DataOrigin.Mongo, SummaryRender](
+        FormComponentSummaryRenderer.summaryListRows[SummaryRender](
           infoMessage,
           None,
           formTemplate._id,

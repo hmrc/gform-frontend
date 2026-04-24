@@ -16,23 +16,29 @@
 
 package uk.gov.hmrc.gform.models.optics
 
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.models.{ DataExpanded, FormModel, PageModel }
+import uk.gov.hmrc.gform.models.{ FormModel, PageModel }
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin
-import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.testonly.RevealingChoiceLookup
 
-case class FormModelRenderPageOptics[D <: DataOrigin](
-  formModel: FormModel[DataExpanded],
-  recData: RecData[SourceOrigin.Current]
+// TODO: Investigate possibility of getting rid of
+// FormModelRenderPageOptics. All we don't have in
+// FormModelVisibilityOptics when rendering page are non revealed
+// options of RevealingChoice.
+//
+// Getting rid of FormModelRenderPageOptics would allow us not to
+// check visiblity of component when rendering the page.
+//
+// Counterpoint why is this needed!
+// This is used for example when switching language to translate all lookups (where we want to translate even the hidden ones)
+final class FormModelRenderPageOptics(
+  val formModel: FormModel
 ) {
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
 
   def allFormComponentIds: List[FormComponentId] = allFormComponents.map(_.id)
 
-  def allFormComponentsExceptFromPage(pageModel: PageModel[DataExpanded]): List[FormComponent] =
+  def allFormComponentsExceptFromPage(pageModel: PageModel): List[FormComponent] =
     formModel.allFormComponentsExceptFromPage(pageModel)
 
   def find(modelComponentId: ModelComponentId): Option[FormComponent] = formModel.find(modelComponentId)
@@ -40,8 +46,4 @@ case class FormModelRenderPageOptics[D <: DataOrigin](
   def findBigger(indexedComponentId: IndexedComponentId): List[FormComponent] = formModel.findBigger(indexedComponentId)
 
   val rcLookup: RevealingChoiceLookup = RevealingChoiceLookup(formModel)
-
-  def toFormField(modelComponentId: ModelComponentId): FormField =
-    recData.variadicFormData.toFormField(modelComponentId)
-
 }

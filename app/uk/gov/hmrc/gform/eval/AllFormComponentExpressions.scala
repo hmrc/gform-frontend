@@ -42,7 +42,9 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       toPlainExprs(exprs)
     }
 
-    def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = nel.toList.flatMap(_.allInterpolations)
+    def fromList(list: List[SmartString]): List[Expr] = list.flatMap(_.allInterpolations)
+
+    def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = fromList(nel.toList)
 
     val fcExprs: List[Expr] =
       fc.label.allInterpolations ++

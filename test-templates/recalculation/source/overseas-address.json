@@ -1,0 +1,48 @@
+{
+  "_id": "overseas-address",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Overseas address",
+      "fields": [
+        {
+          "id": "overseasAddress",
+          "type": "overseasAddress",
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "title": "Test ${overseasAddress}",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "overseas address: ${overseasAddress}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

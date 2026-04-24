@@ -46,6 +46,42 @@ sealed trait FormKind extends Product with Serializable {
       }
     }
 
+  val allEnterableFields: List[FormComponent] = fold[List[FormComponent]] { classic =>
+    classic.sections.toList.flatMap { s =>
+      s.allPages.flatMap(_.allEnterableFormComponents)
+    }
+  } { taskList =>
+    taskList.sections.toList.flatMap { taskSection =>
+      taskSection.tasks.toList.flatMap { task =>
+        task.allEnterableFormComponents()
+      }
+    }
+  }
+
+  val allGroups: List[FormComponent] = fold[List[FormComponent]] { classic =>
+    classic.sections.toList.flatMap { s =>
+      s.allPages.flatMap(_.allGroups)
+    }
+  } { taskList =>
+    taskList.sections.toList.flatMap { taskSection =>
+      taskSection.tasks.toList.flatMap { task =>
+        Nil
+      }
+    }
+  }
+
+  val allAddAnotherQuestions: List[FormComponent] = fold[List[FormComponent]] { classic =>
+    classic.sections.toList.flatMap { s =>
+      s.maybeAddAnotherQuestion.toList
+    }
+  } { taskList =>
+    taskList.sections.toList.flatMap { taskSection =>
+      taskSection.tasks.toList.flatMap { task =>
+        task.allAddAnotherQuestions()
+      }
+    }
+  }
+
   val allSections: AllSections = fold[AllSections] { classic =>
     AllSections.Classic(classic.sections.zipWithIndex.map { case (s, i) =>
       IndexedSection.SectionIndex(s, TemplateSectionIndex(i))
@@ -63,24 +99,6 @@ sealed trait FormKind extends Product with Serializable {
       }
     }
   }
-  private val atlMap = allSections.sections.flatMap {
-    case IndexedSection.SectionIndex(s: Section.AddToList, _) => s.atlMap
-    case _                                                    => Map.empty
-  }.toMap
-  private val repeatingMap =
-    allSections.sections
-      .collect { case IndexedSection.SectionIndex(Section.RepeatingPage(page, _), _) => page.allIds.map(i => (i, i)) }
-      .flatten
-      .toMap
-  private val groupMap = allSections.sections
-    .collect { case IndexedSection.SectionIndex(Section.NonRepeatingPage(page), _) => page.allFieldsNested }
-    .flatten
-    .collect { case fc @ IsGroup(_) => fc.childrenFormComponents.map(c => (c.id, fc.id)) }
-    .flatten
-    .toMap[FormComponentId, FormComponentId]
-  val repeatedComponentsDetails = RepeatedComponentsDetails(
-    atlMap ++ groupMap ++ repeatingMap
-  )
 
   private def updateIncludeIf(
     sections: List[Section],
@@ -154,7 +172,13 @@ final case class Task(
   startIf: Option[IncludeIf],
   notRequiredIf: Option[IncludeIf],
   hint: Option[SmartString]
-)
+) {
+  def allEnterableFormComponents(): List[FormComponent] =
+    sections.toList.flatMap(_.allPages).flatMap(_.allEnterableFormComponents)
+
+  def allAddAnotherQuestions(): List[FormComponent] =
+    sections.toList.flatMap(_.maybeAddAnotherQuestion)
+}
 
 object Task {
   implicit val format: OFormat[Task] = derived.oformat()
