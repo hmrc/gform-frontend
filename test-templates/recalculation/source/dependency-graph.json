@@ -1,0 +1,142 @@
+{
+  "_id": "dependency-graph",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "notPII": true,
+          "type": "text",
+          "label": "Page A",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${pageA < 50}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "number",
+          "value": "${111}"
+        }
+      ]
+    },
+    {
+      "title": "Page C",
+      "includeIf": "${pageA > 50}",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "label": "Page C",
+          "format": "number",
+          "value": "${222}"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Animals you have added",
+      "summaryName": "Animals",
+      "shortName": "Animal $n",
+      "description": "$n. **${offset}** ${offset.sum}",
+      "summaryDescription": "**${offset}** ${offset.sum}",
+      "addAnotherQuestion": {
+        "id": "animal",
+        "type": "choice",
+        "label": "Do you want to add another animal?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Animal details $n",
+          "shortName": "Animal details $n",
+          "fields": [
+            {
+              "id": "offset",
+              "label": "Apportion amount",
+              "type": "text",
+              "format": "positiveSterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Voiture A",
+      "includeIf": "${offset.sum > 10}",
+      "fields": [
+        {
+          "id": "voitureA",
+          "type": "text",
+          "label": "Voiture A",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Voiture B",
+      "includeIf": "${voitureA < 50}",
+      "fields": [
+        {
+          "id": "voitureB",
+          "type": "text",
+          "label": "Voiture B",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Voiture C",
+      "includeIf": "${voitureA > 50}",
+      "fields": [
+        {
+          "id": "voitureC",
+          "type": "text",
+          "label": "Voiture C",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Voiture D",
+      "includeIf": "${voitureC > 50 || voitureB > 10}",
+      "fields": [
+        {
+          "id": "voitureD1",
+          "type": "text",
+          "label": "Voiture D1",
+          "format": "number"
+        },
+        {
+          "id": "voitureD2",
+          "type": "text",
+          "label": "Voiture D2",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

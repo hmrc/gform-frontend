@@ -1,0 +1,634 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Items"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n. {0} - {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "enterDate"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "name"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Enter date $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Enter date $n"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "enterDate",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Date": {
+                        "constraintType": {
+                          "AnyDate": {}
+                        },
+                        "offset": {
+                          "value": 0
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ],
+                "dataRetrieve": [
+                  {
+                    "tpe": {
+                      "name": "hmrcTaxRates"
+                    },
+                    "params": [
+                      {
+                        "parameter": {
+                          "name": "regime",
+                          "path": [],
+                          "tpe": {
+                            "String": {}
+                          }
+                        },
+                        "expr": {
+                          "Constant": {
+                            "value": "APD"
+                          }
+                        }
+                      },
+                      {
+                        "parameter": {
+                          "name": "code",
+                          "path": [],
+                          "tpe": {
+                            "String": {}
+                          }
+                        },
+                        "expr": {
+                          "Constant": {
+                            "value": "DOM-RDCD"
+                          }
+                        }
+                      },
+                      {
+                        "parameter": {
+                          "name": "date",
+                          "path": [],
+                          "tpe": {
+                            "Date": {}
+                          }
+                        },
+                        "expr": {
+                          "FormCtx": {
+                            "formComponentId": "enterDate"
+                          }
+                        }
+                      }
+                    ],
+                    "attributes": {
+                      "FromObject": {
+                        "inst": [
+                          {
+                            "attribute": {
+                              "name": "regime"
+                            },
+                            "from": {
+                              "AsIs": {
+                                "value": {
+                                  "path": [
+                                    "regime"
+                                  ]
+                                }
+                              }
+                            },
+                            "allowedValues": {
+                              "values": [
+                                "*"
+                              ],
+                              "valueType": {
+                                "AnyValueType": {}
+                              },
+                              "isRequired": false
+                            }
+                          },
+                          {
+                            "attribute": {
+                              "name": "code"
+                            },
+                            "from": {
+                              "AsIs": {
+                                "value": {
+                                  "path": [
+                                    "code"
+                                  ]
+                                }
+                              }
+                            },
+                            "allowedValues": {
+                              "values": [
+                                "*"
+                              ],
+                              "valueType": {
+                                "AnyValueType": {}
+                              },
+                              "isRequired": false
+                            }
+                          },
+                          {
+                            "attribute": {
+                              "name": "rate"
+                            },
+                            "from": {
+                              "AsIs": {
+                                "value": {
+                                  "path": [
+                                    "rate"
+                                  ]
+                                }
+                              }
+                            },
+                            "allowedValues": {
+                              "values": [
+                                "*"
+                              ],
+                              "valueType": {
+                                "AnyValueType": {}
+                              },
+                              "isRequired": false
+                            }
+                          },
+                          {
+                            "attribute": {
+                              "name": "startDate"
+                            },
+                            "from": {
+                              "AsIs": {
+                                "value": {
+                                  "path": [
+                                    "startDate"
+                                  ]
+                                }
+                              }
+                            },
+                            "allowedValues": {
+                              "values": [
+                                "*"
+                              ],
+                              "valueType": {
+                                "AnyValueType": {}
+                              },
+                              "isRequired": false
+                            }
+                          },
+                          {
+                            "attribute": {
+                              "name": "endDate"
+                            },
+                            "from": {
+                              "AsIs": {
+                                "value": {
+                                  "path": [
+                                    "endDate"
+                                  ]
+                                }
+                              }
+                            },
+                            "allowedValues": {
+                              "values": [
+                                "*"
+                              ],
+                              "valueType": {
+                                "AnyValueType": {}
+                              },
+                              "isRequired": false
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "attrTypeMapping": {
+                      "rate": {
+                        "Number": {}
+                      },
+                      "endDate": {
+                        "Date": {}
+                      },
+                      "regime": {
+                        "String": {}
+                      },
+                      "code": {
+                        "String": {}
+                      },
+                      "startDate": {
+                        "Date": {}
+                      }
+                    },
+                    "id": "apdRate",
+                    "callOnNoChange": false
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Enter name $n {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "DateCtx": {
+                            "value": {
+                              "DataRetrieveDateCtx": {
+                                "id": "apdRate",
+                                "attribute": {
+                                  "name": "startDate"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "DateBefore": {
+                      "left": {
+                        "DataRetrieveDateCtx": {
+                          "id": "apdRate",
+                          "attribute": {
+                            "name": "startDate"
+                          }
+                        }
+                      },
+                      "right": {
+                        "DateValueExpr": {
+                          "value": {
+                            "ExactDateExprValue": {
+                              "year": 2024,
+                              "month": 3,
+                              "day": 31
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Enter name $n {0}"
+                          },
+                          "interpolations": [
+                            {
+                              "DateCtx": {
+                                "value": {
+                                  "DataRetrieveDateCtx": {
+                                    "id": "apdRate",
+                                    "attribute": {
+                                      "name": "startDate"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "name",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "FormCtx": {
+                        "formComponentId": "enterDate"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another item?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "anotherItem",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Items you have added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Item $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "date-expr-data-retrieve-hmrc-tax-rates-atl",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "date-expr-data-retrieve-hmrc-tax-rates-atl",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

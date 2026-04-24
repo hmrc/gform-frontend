@@ -34,10 +34,9 @@ import uk.gov.hmrc.gform.controllers.CookieNames._
 import uk.gov.hmrc.gform.controllers.GformSessionKeys.COMPOSITE_AUTH_DETAILS_SESSION_KEY
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.InitFormEvaluator
-import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel.LangADT.En
@@ -67,7 +66,7 @@ class NewFormController(
   messagesControllerComponents: MessagesControllerComponents,
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
-  englishMessages: Messages,
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
   acknowledgementPdfService: AcknowledgementPdfService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -234,7 +233,7 @@ class NewFormController(
 
   private def removeConfirmations(
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit m: Messages): AuthCacheWithForm = {
 
     val (confirmations, currentConfirmations) = ConfirmationService
@@ -883,8 +882,8 @@ class NewFormController(
     messages: Messages
   ): Future[Result] = {
     val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
-    val formModelOptics = FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, U](
-      cacheWithForm.variadicFormData[SectionSelectorType.Normal],
+    val formModelOptics = FormModelOptics.mkFormModelOptics[U](
+      cacheWithForm.variadicFormData,
       cacheWithForm
     )
     val cacheWithFormUpd = removeConfirmations(cacheWithForm, formModelOptics)
@@ -939,21 +938,17 @@ class NewFormController(
         }
 
         maybeExitPage.fold(continue(newCache, formTemplate, se)) { exitPage =>
-          implicit val sse = (new RealSmartStringEvaluatorFactory(englishMessages)).noForm(
-            initFormEvaluator.evalExpr
-          )
+          implicit val sse = smartStringEvaluatorFactory.noForm(initFormEvaluator.evalExpr)
           Ok(exit_page(cache.formTemplate, exitPage, frontendAppConfig)).pure[Future]
         }
       }
     } yield res
   }
 
-  private def evalItmpExpr(exprs: List[Expr], itmpAuthContexts: List[AuthCtx]) = {
-    val leafs = exprs.flatMap(_.leafs())
-    leafs.exists(itmpAuthContexts.contains)
-  }
+  private def evalItmpExpr(exprs: List[AuthCtx], itmpAuthContexts: List[AuthCtx]) =
+    exprs.exists(itmpAuthContexts.contains)
 
-  private def hasItmpExpr(exprs: List[Expr]) = {
+  private def hasItmpExpr(exprs: List[AuthCtx]) = {
     val itmpAuthContexts = List(
       AuthCtx(AuthInfo.ItmpAddress),
       AuthCtx(AuthInfo.ItmpName),
@@ -965,8 +960,8 @@ class NewFormController(
     evalItmpExpr(exprs, itmpAuthContexts)
   }
 
-  private def hasItmpNameExpr(exprs: List[Expr]) = {
-    val itmpAuthContexts = List(
+  private def hasItmpNameExpr(exprs: List[AuthCtx]) = {
+    val itmpAuthContexts: List[AuthCtx] = List(
       AuthCtx(AuthInfo.ItmpName),
       AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.GivenName)),
       AuthCtx(AuthInfo.ItmpNameLens(ItmpNameFocus.MiddleName)),
@@ -975,14 +970,14 @@ class NewFormController(
     evalItmpExpr(exprs, itmpAuthContexts)
   }
 
-  private def hasItmpDateOfBirthExpr(exprs: List[Expr]) = {
+  private def hasItmpDateOfBirthExpr(exprs: List[AuthCtx]) = {
     val itmpAuthContexts = List(
       AuthCtx(AuthInfo.ItmpDateOfBirth)
     )
     evalItmpExpr(exprs, itmpAuthContexts)
   }
 
-  private def hasItmpAddressExpr(exprs: List[Expr]) = {
+  private def hasItmpAddressExpr(exprs: List[AuthCtx]) = {
     val itmpAuthContexts = List(
       AuthCtx(AuthInfo.ItmpAddress)
     )
@@ -992,18 +987,18 @@ class NewFormController(
   private def maybeUpdateItmpCache(
     request: Request[AnyContent],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   ): Future[AuthCacheWithForm] = {
     def formHasAuthItmpReferences(): Boolean = {
       val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
-      val allBracketExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs(formModel))
+      val allBracketExprs = formModel.brackets.toBrackets.toList.flatMap(_.allExprs())
       val allCustomExprs = cache.formTemplateContext.formTemplate.formKind.allCustomExprs
       val expressionsOutExprs =
         cache.formTemplateContext.formTemplate.expressionsOutput.fold(List.empty[Expr])(_.lookup.values.toList)
       val allExprs = allBracketExprs ++ allCustomExprs ++ expressionsOutExprs
 
-      hasItmpExpr(allExprs)
+      hasItmpExpr(allExprs.flatMap(_.allAuthCtx()))
     }
 
     def modifyCacheItmpRetrievals(
@@ -1012,11 +1007,10 @@ class NewFormController(
     ): AuthCacheWithForm = {
       val cacheItmpRetrievals = c.form.thirdPartyData.itmpRetrievals
       if (cacheItmpRetrievals =!= Some(itmpRetrievals)) {
-
         val formModel = formModelOptics.formModelRenderPageOptics.formModel
         val modelComponentIds = formModel.confirmationPageMap.flatMap { case (sectionNumber, confirmation) =>
-          val allBracketExprs =
-            formModel.brackets.withSectionNumber(sectionNumber).allExprs(formModel)
+          val allBracketExprs: List[AuthCtx] =
+            formModel.brackets.withSectionNumber(sectionNumber).allExprs().flatMap(_.allAuthCtx())
 
           if (cacheItmpRetrievals.flatMap(_.itmpName) != itmpRetrievals.itmpName && hasItmpNameExpr(allBracketExprs)) {
             Some(confirmation.question.id.modelComponentId)
@@ -1036,7 +1030,7 @@ class NewFormController(
         c.modify(_.form.thirdPartyData.itmpRetrievals)
           .using(_ => Some(itmpRetrievals))
           .modify(_.form.formData)
-          .using(_ => formModelOptics.clearModelComponentIds(modelComponentIds).pageOpticsData.toFormData)
+          .using(_ => formModelOptics.clearModelComponentIds(modelComponentIds).variadicFormData.toFormData)
       } else c
     }
 

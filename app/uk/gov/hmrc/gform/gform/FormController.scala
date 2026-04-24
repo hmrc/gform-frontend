@@ -34,9 +34,8 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
@@ -97,7 +96,7 @@ class FormController(
           .getEnvelope(cache.form.envelopeId)
           .flatMap { envelope =>
             def renderSingleton(
-              singleton: Singleton[DataExpanded],
+              singleton: Singleton,
               sectionNumber: SectionNumber,
               handlerResult: FormHandlerResult
             ) = {
@@ -202,8 +201,8 @@ class FormController(
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)
                 )
-              case bracket @ Bracket.AddToList(iterations, _) =>
-                val iteration: Bracket.AddToListIteration[DataExpanded] =
+              case bracket @ Bracket.AddToList(_, iterations, _) =>
+                val iteration: Bracket.AddToListIteration =
                   bracket.iterationForSectionNumber(sectionNumber)
                 val (repeater, repeaterSectionNumber) =
                   (iteration.repeater.repeater, iteration.repeater.sectionNumber)
@@ -212,7 +211,7 @@ class FormController(
 
                 (iteration.checkYourAnswers, iteration.declarationSection) match {
                   case (Some(checkYourAnswers), _) if checkYourAnswers.sectionNumber == sectionNumber =>
-                    val visibleIteration: Bracket.AddToListIteration[Visibility] =
+                    val visibleIteration: Bracket.AddToListIteration =
                       formModelOptics.formModelVisibilityOptics.formModel
                         .bracket(sectionNumber)
                         .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
@@ -311,7 +310,7 @@ class FormController(
                       }
                     } else {
                       // display current singleton
-                      val visibleIteration: Bracket.AddToListIteration[Visibility] =
+                      val visibleIteration: Bracket.AddToListIteration =
                         formModelOptics.formModelVisibilityOptics.formModel
                           .bracket(sectionNumber)
                           .withAddToListBracket(a => a.iterationForSectionNumber(sectionNumber))
@@ -504,10 +503,10 @@ class FormController(
         bracket match {
           case Bracket.NonRepeatingPage(_, _) => goBack(toSectionNumber)
           case Bracket.RepeatingPage(_, _)    => goBack(toSectionNumber)
-          case bracket @ Bracket.AddToList(iterations, _) =>
-            val iteration: Bracket.AddToListIteration[DataExpanded] =
+          case bracket @ Bracket.AddToList(_, iterations, _) =>
+            val iteration: Bracket.AddToListIteration =
               bracket.iterationForSectionNumber(toSectionNumber)
-            val lastIteration: Bracket.AddToListIteration[DataExpanded] = iterations.last
+            val lastIteration: Bracket.AddToListIteration = iterations.last
             if (
               iteration.repeater.sectionNumber === toSectionNumber && iteration.repeater.sectionNumber < lastIteration.repeater.sectionNumber
             ) {
@@ -522,8 +521,7 @@ class FormController(
                 for {
                   processData <- processDataService
                                    .getProcessData[SectionSelectorType.Normal](
-                                     formModelOptics.formModelRenderPageOptics.recData.variadicFormData
-                                       .asInstanceOf[VariadicFormData[OutOfDate]],
+                                     formModelOptics.variadicFormData,
                                      cache,
                                      gformConnector.getAllTaxPeriods,
                                      NoSpecificAction,
@@ -569,7 +567,7 @@ class FormController(
           }
 
           def checkYourAnswersNavigation(
-            cya: CheckYourAnswersWithNumber[Visibility]
+            cya: CheckYourAnswersWithNumber
           ): (SectionNumber, List[FastForward]) =
             (cya.sectionNumber, FastForward.CYA(SectionOrSummary.Section(sectionNumber)) :: fastForward)
 
@@ -595,8 +593,7 @@ class FormController(
         for {
           processData <- processDataService
                            .getProcessData[SectionSelectorType.Normal](
-                             formModelOptics.formModelVisibilityOptics.recData.variadicFormData
-                               .asInstanceOf[VariadicFormData[OutOfDate]],
+                             formModelOptics.formModelVisibilityOptics.freeCalculator.variadicFormData,
                              cache,
                              gformConnector.getAllTaxPeriods,
                              NoSpecificAction,
@@ -636,14 +633,14 @@ class FormController(
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
-        val formModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
+        val formModel: FormModel = formModelOptics.formModelVisibilityOptics.formModel
         val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
 
         processResponseDataFromBody(
           request,
-          formModelOptics.formModelRenderPageOptics,
+          formModelOptics,
           Some(browserSectionNumber)
-        ) { requestRelatedData => variadicFormData => enteredVariadicFormData =>
+        ) { requestRelatedData => variadicFormData0 => enteredVariadicFormData =>
           val sectionNumber: SectionNumber =
             formModelOptics.formModelVisibilityOptics.formModel.visibleSectionNumber(browserSectionNumber)
 
@@ -680,9 +677,11 @@ class FormController(
                     val bracket = formModel.bracket(sectionNumber)
 
                     bracket match {
-                      case bracket @ Bracket.AddToList(_, _) =>
+                      case bracket @ Bracket.AddToList(_, _, _) =>
                         val iteration = bracket.iterationForSectionNumber(sectionNumber)
-                        val sectionNumbers = iteration.allSingletonSectionNumbers
+                        val sectionNumbers = iteration.allSingletonSectionNumbers ++ iteration.checkYourAnswers
+                          .map(_.sectionNumber)
+                          .toList
 
                         sectionNumbers.flatMap { sectionNumber =>
                           maybeAtlRemoveIteration(bracket, sectionNumber)
@@ -692,7 +691,7 @@ class FormController(
                   }
 
                   def maybeAtlRemoveIteration(
-                    bracket: Bracket[DataExpanded],
+                    bracket: Bracket,
                     sectionNumber: SectionNumber
                   ): Option[Result] =
                     bracket
@@ -750,7 +749,7 @@ class FormController(
                           val bracket = formModel.bracket(sectionNumber)
 
                           val isLastBracketIteration = bracket match {
-                            case bracket @ Bracket.AddToList(_, _) =>
+                            case bracket @ Bracket.AddToList(_, _, _) =>
                               val iteration = bracket.iterationForSectionNumber(sectionNumber)
                               sectionNumber === iteration.lastSectionNumber
                             case _ => false
@@ -896,7 +895,7 @@ class FormController(
 
             val incremented = modelComponentId.increment
 
-            def anchor(formModelOptics: FormModelOptics[DataOrigin.Browser]): Option[HtmlFieldId] = {
+            def anchor(formModelOptics: FormModelOptics): Option[HtmlFieldId] = {
               val childs: List[FormComponent] =
                 formModelOptics.formModelVisibilityOptics.fcLookup
                   .get(incremented.toFormComponentId)
@@ -917,12 +916,11 @@ class FormController(
                 }
             }
 
-            val variadicFormData = processData.formModelOptics.pageOpticsData
+            val variadicFormData = processData.formModelOptics.variadicFormData
             val updatedVariadicFormData = variadicFormData.addOne(incremented -> "")
             val updFormModelOptics = FormModelOptics
-              .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
-                updatedVariadicFormData
-                  .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+              .mkFormModelOptics[SectionSelectorType.Normal](
+                updatedVariadicFormData,
                 processData.cache
               )
             handleGroup(
@@ -944,8 +942,8 @@ class FormController(
             val cacheUpd =
               processData.cache.copy(form = processData.cache.form.copy(componentIdToFileId = componentIdToFileId))
             val updFormModelOptics = FormModelOptics
-              .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
-                updData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+              .mkFormModelOptics[SectionSelectorType.Normal](
+                updData,
                 processData.cache
               )
             for {
@@ -957,7 +955,7 @@ class FormController(
           for {
             processData <- processDataService
                              .getProcessData[SectionSelectorType.Normal](
-                               variadicFormData,
+                               variadicFormData0,
                                cache,
                                gformConnector.getAllTaxPeriods,
                                NoSpecificAction,
@@ -1005,7 +1003,7 @@ class FormController(
   private def filterFastForward(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],
-    formModel: FormModel[Visibility]
+    formModel: FormModel
   ): List[FastForward] = {
     val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
     val ff = rawFastForward
@@ -1040,9 +1038,9 @@ class FormController(
   private def filterTerminatedFastForward(
     browserSectionNumber: SectionNumber,
     rawFastForward: List[FastForward],
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   ): List[FastForward] = {
-    val formModel: FormModel[Visibility] = formModelVisibilityOptics.formModel
+    val formModel: FormModel = formModelVisibilityOptics.formModel
     def hasTerminationIn(fromSn: SectionNumber, toSn: Option[SectionNumber]): Boolean =
       formModel.availableSectionNumbers
         .filter(sn =>
@@ -1062,7 +1060,7 @@ class FormController(
             case None     => true
           }
         )
-        .exists(sn => formModel(sn).isTerminationPage(formModelVisibilityOptics.booleanExprResolver))
+        .exists(sn => formModel(sn).isTerminationPage(formModelVisibilityOptics.freeCalculator))
 
     val sectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
 

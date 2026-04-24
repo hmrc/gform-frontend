@@ -16,22 +16,19 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.Monoid
 import cats.data.NonEmptyList
 import play.api.libs.json.OFormat
 import cats.syntax.eq._
 import julienrf.json.derived
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.eval.{ RevealingChoiceData, RevealingChoiceInfo, StaticTypeInfo, SumInfo }
-import uk.gov.hmrc.gform.models.ids.BaseComponentId
+import uk.gov.hmrc.gform.recalculation.FreeCalculator
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId, SmartString }
 import uk.gov.hmrc.gform.gform.RenderUnit
-import uk.gov.hmrc.gform.models.{ Basic, PageMode, SectionHeader }
+import uk.gov.hmrc.gform.models.SectionHeader
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
-case class Page[A <: PageMode](
+case class Page(
   title: SmartString,
   id: Option[PageId],
   noPIITitle: Option[SmartString],
@@ -68,35 +65,26 @@ case class Page[A <: PageMode](
 
   val allDataRetriveIds: List[DataRetrieveId] = dataRetrieve.fold(List.empty[DataRetrieveId])(_.toList.map(_.id))
 
-  val staticTypeInfo: StaticTypeInfo = StaticTypeInfo {
-    (allFields ++ allFields
-      .flatMap(_.childrenFormComponents))
-      .map(fc => fc.baseComponentId -> fc.staticTypeData)
-      .toMap
-  }
-
-  val revealingChoiceInfo: RevealingChoiceInfo = RevealingChoiceInfo {
+  val allEnterableFormComponents: List[FormComponent] =
     allFields
-      .collect { case fc @ IsRevealingChoice(revealingChoice) =>
-        revealingChoice.options.zipWithIndex.flatMap { case (revealingChoiceElement, index) =>
-          revealingChoiceElement.revealingFields.map { rf =>
-            rf.id.baseComponentId -> RevealingChoiceData(
-              revealingChoiceElement.choice.value(index),
-              fc.id.baseComponentId
-            )
-          }
-        }.toMap
+      .flatMap { formComponent =>
+        formComponent match {
+          case IsGroup(group) => group.fields
+          case IsRevealingChoice(revealingChoice) =>
+            formComponent :: revealingChoice.options.toList.flatMap(_.allEnterableFormComponents)
+          case _ => formComponent :: Nil
+        }
       }
-      .foldLeft(Map.empty[BaseComponentId, RevealingChoiceData])(_ ++ _)
-  }
+      .filter(_.isEnterableFormComponent)
 
-  val sumInfo: SumInfo = implicitly[Monoid[SumInfo]].combineAll(
-    (allFields ++ allFields
-      .flatMap(_.childrenFormComponents)).collect {
-      case fc @ HasValueExpr(expr) if expr.sums.nonEmpty =>
-        SumInfo(expr.sums.map(sum => (sum, Set(fc.id))).toMap)
-    }
-  )
+  val allGroups: List[FormComponent] =
+    allFields
+      .flatMap { formComponent =>
+        formComponent match {
+          case IsGroup(_) => formComponent :: Nil
+          case _          => Nil
+        }
+      }
 
   def renderUnits: List[RenderUnit] =
     allFields.foldRight(List.empty[RenderUnit]) {
@@ -116,8 +104,8 @@ case class Page[A <: PageMode](
         }
         start :: acc
     }
-  def isTerminationPage(booleanExprResolver: BooleanExprResolver): Boolean =
-    continueIf.map(_.isTerminationPage(booleanExprResolver)).getOrElse(false)
+  def isTerminationPage(freeCalculator: FreeCalculator): Boolean =
+    continueIf.map(_.isTerminationPage(freeCalculator)).getOrElse(false)
   val isHideSaveAndComeBackButton: Boolean = hideSaveAndComeBackButton.getOrElse(false)
 
   def dataRetrieves(): List[DataRetrieve] = dataRetrieve.toList.flatMap(_.toList)
@@ -125,5 +113,5 @@ case class Page[A <: PageMode](
 
 object Page {
   import JsonUtils._
-  implicit val pageFormat: OFormat[Page[Basic]] = derived.oformat()
+  implicit val pageFormat: OFormat[Page] = derived.oformat()
 }

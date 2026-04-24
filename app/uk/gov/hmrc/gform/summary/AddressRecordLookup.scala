@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.gform.summary
 
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 final case class AddressRecordLookup(
-  lookup: FormComponentId => Option[List[String]],
+  lookup: FormComponentId => List[(Atom, String)],
   isEntered: FormComponentId => Boolean
 )
 

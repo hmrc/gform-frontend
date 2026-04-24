@@ -1,0 +1,81 @@
+{
+  "_id": "link-ctx",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "fileSizeLimit": 123,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Test",
+      "id": "firstPageId",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "printAcknowledgementPdf",
+              "value": "printAcknowledgementPdf: ${link.printAcknowledgementPdf}"
+            },
+            {
+              "key": "printSummaryPdf",
+              "value": "printSummaryPdf: ${link.printSummaryPdf}"
+            },
+            {
+              "key": "newForm.other-template-id",
+              "value": "newForm.other-template-id: ${link.newForm.othertemplateid}"
+            },
+            {
+              "key": "newForm",
+              "value": "newForm: ${link.newForm}"
+            },
+            {
+              "key": "newSession",
+              "value": "newSession: ${link.newSession}"
+            },
+            {
+              "key": "newSession",
+              "value": "newSession: ${link.newSession}"
+            },
+            {
+              "key": "download",
+              "value": "download: ${link.download.attachement.pdf}"
+            },
+            {
+              "key": "image",
+              "value": "image: ${link.image.nature.jpg}"
+            },
+            {
+              "key": "pageId",
+              "value": "pageId: ${link.firstPageId}"
+            },
+            {
+              "key": "link",
+              "value": "link: ${link.'https://www.hmrc.gov.uk/submissions'}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.eval
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, PrintSection }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
@@ -37,7 +36,7 @@ object AllFormTemplateExpressions extends ExprExtractorHelpers {
       }
     }
 
-    def fromPage(page: Page[Basic]): List[ExprMetadata] =
+    def fromPage(page: Page): List[ExprMetadata] =
       page.allFields.flatMap(AllFormComponentExpressions.unapply).flatten ++
         toPlainExprs(
           fromSmartStrings(page.title),

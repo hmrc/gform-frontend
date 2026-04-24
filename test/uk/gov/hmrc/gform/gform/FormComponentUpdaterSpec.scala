@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 
 import scala.language.implicitConversions
@@ -159,7 +158,7 @@ class FormComponentUpdaterSpec extends Spec {
     )
 
   private def mkChoiceOptions(dataRetrieveId: String) =
-    NonEmptyList.of(
+    List(
       OptionData.ValueBased(
         label = toSmartStringExpression(
           "{0}",

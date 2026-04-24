@@ -1,0 +1,47 @@
+{
+  "_id": "earliest-of-dates",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Dates",
+      "fields": [
+        {
+          "id": "dateA",
+          "label": "Date A",
+          "type": "date"
+        },
+        {
+          "id": "dateB",
+          "label": "Date B",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Dates test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "info",
+          "infoText": "date A: ${dateA}\n\ndate B: ${dateB}\n\nEarliest: ${earliestOf(dateA, dateB)}\n\nLatest: ${latestOf(dateA, dateB)}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

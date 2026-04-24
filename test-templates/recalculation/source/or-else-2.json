@@ -1,0 +1,109 @@
+{
+  "_id": "or-else-2",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "expressions": {
+    "email": "emailAddressAgent orElse knownEmailChoice orElse auth.email",
+    "knownEmailChoice": "if agentEmail contains 'Known' then agentASemail else ''",
+    "agentASemail": "dataRetrieve.agencyInfo.agencyEmail"
+  },
+  "booleanExpressions": {
+    "isAgency": "user.affinityGroup = 'agent'"
+  },
+  "dataRetrieve": [
+    {
+      "type": "agentDetails",
+      "id": "agencyInfo",
+      "if": "${user.affinityGroup = 'agent' && user.enrolments.HMRC-AS-AGENT.AgentReferenceNumber != ''}",
+      "parameters": {
+        "agentReferenceNumber": "${user.enrolments.HMRC-AS-AGENT.AgentReferenceNumber}"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "title": "Where should we send you an email if we need further information about this form?",
+      "includeIf": "${isAgency}",
+      "fields": [
+        {
+          "id": "agentEmail",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "To ${auth.email}",
+              "value": "Auth",
+              "summaryValue": "${auth.email}"
+            },
+            {
+              "en": "To ${agentASemail}",
+              "includeIf": "${agentASemail != ''}",
+              "value": "Known",
+              "summaryValue": "${agentASemail}"
+            },
+            {
+              "en": "To a different email address",
+              "value": "Different"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Where should we send you an email if we need further information about this form?",
+      "includeIf": "${isAgency && (agentEmail contains 'Different') && !(agentEmail contains 'Known')}",
+      "fields": [
+        {
+          "id": "emailAddressAgent",
+          "type": "text",
+          "format": "email"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Calculation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "email = ${email}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -1,0 +1,2560 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "employer"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Employer $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Employer"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "employer",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another employer?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating fields"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "No duplicates"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "No duplicates: FALSE"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "noDuplicatesFalse",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "{0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "FormCtx": {
+                                        "formComponentId": "employer"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "dynamic": {
+                              "ATLBased": {
+                                "formComponentId": "employer"
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "employer"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Checkbox": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "No duplicates: TRUE"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "noDuplicatesTrue",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "{0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "FormCtx": {
+                                        "formComponentId": "employer"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "dynamic": {
+                              "ATLBased": {
+                                "formComponentId": "employer"
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "employer"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Checkbox": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": true,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Calculations"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "table",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "Calculation"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Calculations"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - totalChoicesSelected(noDuplicatesTrue): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "field2": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue",
+                                              "insideAtl": false
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - totalChoicesSelected(noDuplicatesFalse): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "field2": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse",
+                                              "insideAtl": false
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesCount(noDuplicatesTrue): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesCount": {
+                                          "formComponentId": "noDuplicatesTrue"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesCount(noDuplicatesFalse): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesCount": {
+                                          "formComponentId": "noDuplicatesFalse"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesAvailable(noDuplicatesTrue): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesAvailable": {
+                                          "formComponentId": "noDuplicatesTrue",
+                                          "insideAtl": false
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesAvailable(noDuplicatesFalse): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesAvailable": {
+                                          "formComponentId": "noDuplicatesFalse",
+                                          "insideAtl": false
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesSelected(noDuplicatesTrue).count: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "CountSelectedChoices": {
+                                          "formComponentId": "noDuplicatesTrue"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesSelected(noDuplicatesFalse).count: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "CountSelectedChoices": {
+                                          "formComponentId": "noDuplicatesFalse"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesSelected(noDuplicatesTrue): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesSelected": {
+                                          "formComponentId": "noDuplicatesTrue"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "table - choicesSelected(noDuplicatesFalse): {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesSelected": {
+                                          "formComponentId": "noDuplicatesFalse"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "InludeIfs"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "includeIfs",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "TableComp": {
+                      "classes": "",
+                      "header": [
+                        {
+                          "label": {
+                            "SmartStringBase": {
+                              "internal": {
+                                "localised": {
+                                  "en": "IncludeIfs"
+                                },
+                                "interpolations": []
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "summaryValue": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "InludeIfs"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "rows": [
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesTrue) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesTrue) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesTrue) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesTrue) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesTrue) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesTrue"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesTrue) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "totalChoicesSelected(noDuplicatesTrue) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "field2": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue",
+                                              "insideAtl": false
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesFalse) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesFalse) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesFalse) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesFalse) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesFalse) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "Subtraction": {
+                                              "field1": {
+                                                "ChoicesCount": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              },
+                                              "field2": {
+                                                "ChoicesAvailable": {
+                                                  "formComponentId": "noDuplicatesFalse"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "totalChoicesSelected(noDuplicatesFalse) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "totalChoicesSelected(noDuplicatesFalse) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "field2": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse",
+                                              "insideAtl": false
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesTrue) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesTrue) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesTrue) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesTrue) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesTrue) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesTrue) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesCount(noDuplicatesTrue) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesCount": {
+                                          "formComponentId": "noDuplicatesTrue"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesFalse) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesFalse) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesFalse) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesFalse) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesFalse) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesCount": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesCount(noDuplicatesFalse) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesCount(noDuplicatesFalse) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesCount": {
+                                          "formComponentId": "noDuplicatesFalse"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesTrue) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesTrue) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesTrue) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesTrue) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesTrue) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesTrue) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesAvailable(noDuplicatesTrue) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesAvailable": {
+                                          "formComponentId": "noDuplicatesTrue",
+                                          "insideAtl": false
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesFalse) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesFalse) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesFalse) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesFalse) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesFalse) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesAvailable": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesAvailable(noDuplicatesFalse) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesAvailable(noDuplicatesFalse) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesAvailable": {
+                                          "formComponentId": "noDuplicatesFalse",
+                                          "insideAtl": false
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue).count = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue).count = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue).count = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue).count = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue).count = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue).count = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesSelected(noDuplicatesTrue).count out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "CountSelectedChoices": {
+                                          "formComponentId": "noDuplicatesTrue"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse).count = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse).count = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse).count = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse).count = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse).count = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "CountSelectedChoices": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse).count = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesSelected(noDuplicatesFalse).count out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "CountSelectedChoices": {
+                                          "formComponentId": "noDuplicatesFalse"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesTrue"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesTrue) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesSelected(noDuplicatesTrue) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesSelected": {
+                                          "formComponentId": "noDuplicatesTrue"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "values": [
+                            {
+                              "value": {
+                                "SmartStringCond": {
+                                  "ifConditions": [
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse) = 0"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "1"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse) = 1"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "2"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse) = 2"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "3"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse) = 3"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "4"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse) = 4"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ],
+                                    [
+                                      {
+                                        "Equals": {
+                                          "left": {
+                                            "ChoicesSelected": {
+                                              "formComponentId": "noDuplicatesFalse"
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "5"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "localised": {
+                                          "en": "choicesSelected(noDuplicatesFalse) = 5"
+                                        },
+                                        "interpolations": []
+                                      }
+                                    ]
+                                  ],
+                                  "elseCondition": {
+                                    "localised": {
+                                      "en": "choicesSelected(noDuplicatesFalse) out of bound: {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "ChoicesSelected": {
+                                          "formComponentId": "noDuplicatesFalse"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "captionClasses": "",
+                      "firstCellIsHeader": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "choices-no-duplicate",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "choices-no-duplicate",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

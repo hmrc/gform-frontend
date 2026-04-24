@@ -1,0 +1,55 @@
+{
+  "_id": "typed-expr",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "expenditureTotal": {
+      "value": "activeDays * 5",
+      "type": "sterling"
+    }
+  },
+  "sections": [
+    {
+      "title": "Active days",
+      "fields": [
+        {
+          "id": "activeDays",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Expenditure total: ${expenditureTotal}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

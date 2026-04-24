@@ -1,0 +1,66 @@
+{
+  "_id": "column-overseas-address",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "booleanExpressions": {
+    "euResidence": "overseasAddress.column.InEEA = '1'"
+  },
+  "sections": [
+    {
+      "title": "Overseas address",
+      "fields": [
+        {
+          "id": "overseasAddress",
+          "type": "overseasAddress"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "EU residency: ${if euResidence then 'Yes' else 'No'}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${euResidence}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

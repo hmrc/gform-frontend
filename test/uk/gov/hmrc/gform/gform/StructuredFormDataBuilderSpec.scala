@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -1260,12 +1260,12 @@ class StructuredFormDataBuilderSpec
     )
   )
 
-  private def validate[A](formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo], expected: A)(implicit
+  private def validate[A](formModelVisibilityOptics: FormModelVisibilityOptics, expected: A)(implicit
     position: Position,
     l: LangADT
   ): Assertion = {
     val objectStructure: StructuredFormValue.ObjectStructure =
-      StructuredFormDataBuilder[DataOrigin.Mongo](
+      StructuredFormDataBuilder(
         formModelVisibilityOptics,
         destinationList,
         None,
@@ -1347,12 +1347,12 @@ class StructuredFormDataBuilderSpec
 
   def createFormModelVisibilityOptics(
     sections: List[Section],
-    data: VariadicFormData[SourceOrigin.OutOfDate],
+    data: VariadicFormData,
     declarationSection: Option[DeclarationSection] = None
   ) = {
 
-    val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
+    val formModelOptics: FormModelOptics =
+      FormModelOptics.mkFormModelOptics[SectionSelectorType.WithDeclaration](
         data,
         mkAuthCacheWithForm(mkFormTemplate(sections, declarationSection))
       )
@@ -1457,7 +1457,7 @@ class StructuredFormDataBuilderSpec
       id,
       Choice(
         Checkbox,
-        toOptionData(NonEmptyList.of("One", "Two", "Three")),
+        toOptionData(List("One", "Two", "Three")),
         Vertical,
         Nil,
         None,
@@ -1476,7 +1476,7 @@ class StructuredFormDataBuilderSpec
       id,
       Choice(
         Radio,
-        toOptionData(NonEmptyList.of("One", "Two", "Three")),
+        toOptionData(List("One", "Two", "Three")),
         Vertical,
         Nil,
         None,

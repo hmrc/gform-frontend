@@ -1,0 +1,489 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Page A"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "You are completing a return for the registration:"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "GDreg",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "ShortText": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "UserCtx": {
+                          "value": {
+                            "EnrolledIdentifier": {}
+                          }
+                        }
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "presentationHint": [
+                    {
+                      "TotalValue": {}
+                    }
+                  ],
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Page B"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Select tax period"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "returnPeriod",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "HmrcTaxPeriod": {
+                      "idType": {
+                        "idType": "eeits"
+                      },
+                      "idNumber": {
+                        "FormCtx": {
+                          "formComponentId": "GDreg"
+                        }
+                      },
+                      "regimeType": {
+                        "regimeType": "GD"
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Page C"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "DateAfter": {
+                    "left": {
+                      "HmrcTaxPeriodCtx": {
+                        "formCtx": {
+                          "formComponentId": "returnPeriod"
+                        },
+                        "hmrcTaxPeriodInfo": {
+                          "PeriodTo": {}
+                        }
+                      }
+                    },
+                    "right": {
+                      "DateValueExpr": {
+                        "value": {
+                          "ExactDateExprValue": {
+                            "year": 2022,
+                            "month": 4,
+                            "day": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Page C"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "pageC",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "HmrcAgentWithEnrolmentModule": {
+      "agentAccess": "allowAnyAgentAffinityUser",
+      "enrolmentAuth": {
+        "serviceId": {
+          "value": "HMRC-OBTDS-ORG"
+        },
+        "enrolmentCheck": {
+          "DoCheck": {
+            "enrolmentCheckPredicate": {
+              "ForNonAgents": {}
+            },
+            "needEnrolment": {
+              "RejectAccess": {}
+            },
+            "check": {
+              "RegimeIdCheck": {
+                "regimeId": {
+                  "regimeId": "GD"
+                }
+              }
+            }
+          }
+        },
+        "enrolmentOutcomes": {
+          "notMatchedPage": {
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Title 2"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "content": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Content 2"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          },
+          "alreadyLinkedPage": {
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Title 3"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "content": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Content 3"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          },
+          "technicalFailurePage": {
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Title 4"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "content": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Content 4"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          },
+          "successPage": {
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Title 5"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "content": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Content 5"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          },
+          "insufficientCredentialsPage": {
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Title 1"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "content": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Content 1"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "originalId": "hmrc-tax-period-in-include-if",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "hmrc-tax-period-in-include-if",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

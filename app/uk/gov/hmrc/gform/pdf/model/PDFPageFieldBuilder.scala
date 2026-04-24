@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, ren
 import uk.gov.hmrc.gform.models.helpers.MiniSummaryListHelper.{ evaluateIncludeIf, getFormattedExprStr }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ HtmlFieldId, ValidationResult }
@@ -34,13 +34,13 @@ import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.pdf.model.TextFormatter._
 
 object PDFPageFieldBuilder {
-  def build[T <: PDFType, D <: DataOrigin](
+  def build[T <: PDFType](
     formComponent: FormComponent,
     cache: AuthCacheWithForm,
     sectionNumber: SectionNumber,
     validationResult: ValidationResult,
     envelopeWithMapping: EnvelopeWithMapping,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     l: LangADT,
@@ -107,7 +107,7 @@ object PDFPageFieldBuilder {
         val addressLines: List[String] =
           cache.form.thirdPartyData
             .addressLines(formComponent.id)
-            .getOrElse(Nil)
+            .map(_._2)
 
         List(
           SimpleField(
@@ -178,7 +178,7 @@ object PDFPageFieldBuilder {
         )
 
       case IsMiniSummaryList(msl) =>
-        if (msl.displayInSummary.displayInSummary(formModelVisibilityOptics.booleanExprResolver)) {
+        if (msl.displayInSummary.displayInSummary(formModelVisibilityOptics.freeCalculator)) {
           msl.rows
             .collect {
               case MiniSummaryRow.ValueRow(label, value, includeIf, _, _)
@@ -255,7 +255,7 @@ object PDFPageFieldBuilder {
             validationResult(formComponent)
               .getOptionalCurrentValue(HtmlFieldId.indexed(formComponent.id, index))
               .map { _ =>
-                val filteredFields = doFilter(element.revealingFields, formModelVisibilityOptics.booleanExprResolver)
+                val filteredFields = doFilter(element.revealingFields, formModelVisibilityOptics.freeCalculator)
                 val revealingFields = formComponentOrdering
                   .fold(filteredFields)(filteredFields.sorted(_))
                   .flatMap(f =>
