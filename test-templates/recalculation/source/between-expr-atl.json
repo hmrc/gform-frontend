@@ -1,0 +1,168 @@
+{
+  "_id": "between-expr-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${startDate} - ${endDate}",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "$n. Enter start and end dates",
+          "fields": [
+            {
+              "id": "startDate",
+              "label": "Start date",
+              "type": "date"
+            },
+            {
+              "id": "endDate",
+              "label": "End date",
+              "type": "date"
+            }
+          ]
+        },
+        {
+          "title": "Test",
+          "fields": [
+            {
+              "id": "dummy",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "info",
+              "type": "info",
+              "label": "",
+              "infoText": "startDate: ${startDate}\n\nendDate: ${endDate}\n\ndaysBetween: ${daysBetween(startDate, endDate)}\n\nweeksBetween: ${weeksBetween(startDate, endDate)}",
+              "infoType": "noformat"
+            }
+          ]
+        },
+        {
+          "title": "Secret days",
+          "includeIf": "${daysBetween(startDate, endDate) > 100}",
+          "fields": [
+            {
+              "id": "secretDays",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Secret weeks",
+          "includeIf": "${weeksBetween(startDate, endDate) > 100}",
+          "fields": [
+            {
+              "id": "secretWeeks",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "outside",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "outsideInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "startDate: ${startDate}\n\nendDate: ${endDate}\n\ndaysBetween: ${daysBetween(startDate, endDate)}\n\ndaysBetween.sum: ${daysBetween(startDate, endDate).sum}\n\nweeksBetween: ${weeksBetween(startDate, endDate)}\n\nweeksBetween.sum: ${weeksBetween(startDate, endDate).sum}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret days.sum",
+      "includeIf": "${daysBetween(startDate, endDate).sum > 100}",
+      "fields": [
+        {
+          "id": "secretDaysSum",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret weeks.sum",
+      "includeIf": "${weeksBetween(startDate, endDate).sum > 100}",
+      "fields": [
+        {
+          "id": "secretWeeksSum",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

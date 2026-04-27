@@ -1,0 +1,150 @@
+{
+  "_id": "date-expr-if-else-with-before-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "effectiveDate": "if 06062025 before importerDate then importerDate else 06062023",
+    "effectiveDateSwapped": "if importerDate before 06062025 then 06062023 else importerDate"
+  },
+  "booleanExpressions": {
+    "effectiveDateBefore06062026": "effectiveDate before 06062026",
+    "effectiveDateBefore06062026Swapped": "effectiveDateSwapped before 06062026"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${importerDate} - ${note} - ${noteSwapped} - ${if effectiveDateBefore06062026 then 'Yes' else 'No'} - ${if effectiveDateBefore06062026Swapped then 'Yes' else 'No'}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "$n - Importer date",
+          "fields": [
+            {
+              "id": "importerDate",
+              "type": "date"
+            }
+          ]
+        },
+        {
+          "title": "$n - Note",
+          "includeIf": "${effectiveDateBefore06062026}",
+          "fields": [
+            {
+              "id": "note",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "$n - Note Swapped",
+          "includeIf": "${effectiveDateBefore06062026Swapped}",
+          "fields": [
+            {
+              "id": "noteSwapped",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Calculations"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "importerDate: ${importerDate}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "effectiveDate: ${effectiveDate}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "effectiveDateSwapped: ${effectiveDateSwapped}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "note: ${note}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "note swapped: ${noteSwapped}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "effectiveDateBefore06062026: ${if effectiveDateBefore06062026 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "effectiveDateBefore06062026Swapped: ${if effectiveDateBefore06062026Swapped then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

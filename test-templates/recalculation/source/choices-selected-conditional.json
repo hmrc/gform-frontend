@@ -1,0 +1,171 @@
+{
+  "_id": "choices-selected-conditional",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Data",
+      "fields": [
+        {
+          "id": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "id": "nino",
+          "type": "text",
+          "label": "Nino",
+          "format": "nino"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "employments",
+          "id": "employments",
+          "parameters": {
+            "nino": "${nino}",
+            "taxYear": "${taxYear(date)}"
+          }
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${employer}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another employer?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer $n",
+          "fields": [
+            {
+              "id": "employer",
+              "label": "Employer",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Visibility options",
+      "fields": [
+        {
+          "id": "visibilityOptions",
+          "multivalue": true,
+          "type": "choice",
+          "noneChoice": "showAll",
+          "noneChoiceError": "To choose this option you need to deselect all other options",
+          "choices": [
+            {
+              "en": "Hide atl based",
+              "value": "hideAtlBased"
+            },
+            {
+              "en": "Hide data retrieve based",
+              "value": "hideDataRetrieveBased"
+            },
+            {
+              "en": "Hide Other option",
+              "value": "hideOther"
+            },
+            {
+              "en": "Show all",
+              "value": "showAll"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Which employer are you claiming pension tax relief for?",
+      "fields": [
+        {
+          "id": "selectedEmployer",
+          "type": "choice",
+          "multivalue": true,
+          "choices": [
+            {
+              "en": "${employer}",
+              "dynamic": "employer",
+              "includeIf": "${!visibilityOptions contains 'hideAtlBased'}",
+              "value": "employer"
+            },
+            {
+              "en": "${dataRetrieve.employments.employerName}",
+              "dynamic": "dataRetrieve.employments.employerName",
+              "includeIf": "${!visibilityOptions contains 'hideDataRetrieveBased'}",
+              "value": "employments"
+            },
+            {
+              "en": "Other",
+              "includeIf": "${!visibilityOptions contains 'hideOther'}",
+              "value": "other"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Choices selected: ${choicesSelected(selectedEmployer)}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${choicesSelected(selectedEmployer) > 5}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

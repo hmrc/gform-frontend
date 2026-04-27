@@ -18,8 +18,10 @@ package uk.gov.hmrc.gform.eval
 
 import cats.instances.list._
 import cats.syntax.traverse._
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ AddressResult, DateResult, Empty, ListResult, NumberResult, StringResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataRetrieveCtx
+import cats.syntax.eq._
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.recalculation.{ DateResultFlag, EvaluationStatus }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, DataRetrieveCtx }
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, RetrieveDataType }
@@ -29,58 +31,70 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 object DataRetrieveEval {
-  private[eval] def getDataRetrieveAttribute(
+  def getDataRetrieveAttribute(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
     dataRetrieveCtx: DataRetrieveCtx
   ): Option[List[String]] = {
     def getAttributes(id: DataRetrieveId) =
-      dataRetrieve
-        .get(id)
-        .flatMap { case DataRetrieveResult(_, data, _, _, _, _) =>
-          data match {
-            case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
-            case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
-          }
-        }
+      if (dataRetrieve.contains(id)) {
+        dataRetrieve
+          .get(id)
+          .flatMap(dataRetrieveResult => attributeValues(dataRetrieveResult, dataRetrieveCtx))
+      } else {
+        // Possible reference from outside ATL to dataRetrieve inside ATL
+        val dataRetrieveResults: List[DataRetrieveResult] =
+          dataRetrieve.view.filterKeys(key => key.modelPageId.id === id.modelPageId.id).values.toList
 
-    getAttributes(dataRetrieveCtx.id).orElse(
-      getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
-    )
+        val results: List[List[String]] =
+          dataRetrieveResults.flatMap(dataRetrieveResult => attributeValues(dataRetrieveResult, dataRetrieveCtx))
+        Some(results.flatten)
+      }
+
+    getAttributes(dataRetrieveCtx.id)
   }
 
-  private[eval] def getDataRetrieveAddressAttribute(
-    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+  private[eval] def attributeValues(
+    dataRetrieveResult: DataRetrieveResult,
     dataRetrieveCtx: DataRetrieveCtx
-  ): ExpressionResult = {
-    def getAddressResult(row: Map[Attribute, String]) = {
-      def getAttr(attr: String) = row.get(DataRetrieve.Attribute(attr))
-
-      AddressResult(
-        List(
-          getAttr("address_line_1"),
-          getAttr("address_line_2"),
-          getAttr("po_box"),
-          getAttr("locality"),
-          getAttr("region"),
-          getAttr("postal_code"),
-          getAttr("country").map(c => if (isInUK(c)) "" else c)
-        )
-          .map(_.getOrElse(""))
-          .filter(!_.isBlank)
-      )
+  ): Option[List[String]] =
+    dataRetrieveResult.data match {
+      case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
+      case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
     }
 
-    def getResult(id: DataRetrieveId) = dataRetrieve
+  def getDataRetrieveAddressAttribute(
+    dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
+    dataRetrieveCtx: DataRetrieveCtx
+  ): EvaluationStatus = {
+    def getAddressResult(row: Map[Attribute, String]): EvaluationStatus = {
+      def getAttr(attr: String): Option[String] = row.get(DataRetrieve.Attribute(attr))
+
+      val lines: List[(Atom, String)] = List(
+        getAttr("address_line_1").map(Address.street1                             -> _),
+        getAttr("address_line_2").map(Address.street2                             -> _),
+        getAttr("locality").map(Address.street3                                   -> _),
+        getAttr("region").map(Address.street4                                     -> _),
+        getAttr("postal_code").map(Address.postcode                               -> _),
+        getAttr("country").map(c => if (isInUK(c)) "" else c).map(Address.country -> _)
+      ).collect {
+        case Some((atom, value)) if value.trim.nonEmpty => atom -> value
+      }
+
+      EvaluationStatus.AddressResult(lines)
+    }
+
+    def getResult(id: DataRetrieveId): Option[EvaluationStatus] = dataRetrieve
       .get(id)
       .map { case DataRetrieveResult(_, data, _, _, _, _) =>
         data match {
           case RetrieveDataType.ObjectType(row) => getAddressResult(row)
-          case RetrieveDataType.ListType(xs)    => ListResult(xs.map(row => getAddressResult(row)))
+          case RetrieveDataType.ListType(xs) =>
+            EvaluationStatus.ListResult(xs.map(row => getAddressResult(row)))
         }
       }
 
     getResult(dataRetrieveCtx.id).getOrElse(
-      getResult(dataRetrieveCtx.id.modelPageId.baseId).getOrElse(Empty)
+      getResult(dataRetrieveCtx.id.modelPageId.baseId).getOrElse(EvaluationStatus.Empty)
     )
   }
 
@@ -117,10 +131,10 @@ object DataRetrieveEval {
     }
   }
 
-  private[eval] def getFailureCount(
+  def getFailureCount(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
     dataRetrieveCtx: DataRetrieveCtx
-  )(implicit now: Now[LocalDateTime]): ExpressionResult = {
+  )(implicit now: Now[LocalDateTime]): EvaluationStatus = {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
@@ -136,13 +150,13 @@ object DataRetrieveEval {
       .orElse(
         getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
       )
-      .fold(ExpressionResult.empty)(NumberResult(_))
+      .fold[EvaluationStatus](EvaluationStatus.Empty)(EvaluationStatus.NumberResult(_))
   }
 
-  private[eval] def getIsBlocked(
+  def getIsBlocked(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
     dataRetrieveCtx: DataRetrieveCtx
-  ): ExpressionResult = {
+  ): EvaluationStatus = {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
@@ -152,13 +166,13 @@ object DataRetrieveEval {
       .orElse(
         getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
       )
-      .fold(ExpressionResult.empty)(blocked => StringResult(blocked.toString))
+      .fold[EvaluationStatus](EvaluationStatus.Empty)(blocked => EvaluationStatus.StringResult(blocked.toString))
   }
 
-  private[eval] def getFailureResetTime(
+  def getFailureResetTime(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
     dataRetrieveCtx: DataRetrieveCtx
-  ): ExpressionResult = {
+  ): EvaluationStatus = {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
@@ -168,13 +182,13 @@ object DataRetrieveEval {
       .orElse(
         getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
       )
-      .fold(ExpressionResult.empty)(StringResult(_))
+      .fold[EvaluationStatus](EvaluationStatus.Empty)(EvaluationStatus.StringResult(_))
   }
 
-  private[eval] def getFailureResetDate(
+  def getFailureResetDate(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
     dataRetrieveCtx: DataRetrieveCtx
-  ): ExpressionResult = {
+  ): EvaluationStatus = {
     def getAttributes(id: DataRetrieveId) =
       dataRetrieve
         .get(id)
@@ -184,7 +198,7 @@ object DataRetrieveEval {
       .orElse(
         getAttributes(dataRetrieveCtx.id.modelPageId.baseId)
       )
-      .fold(ExpressionResult.empty)(DateResult(_))
+      .fold[EvaluationStatus](EvaluationStatus.Empty)(ld => EvaluationStatus.DateResult(ld, DateResultFlag.Date))
   }
 
   private def isInUK(country: String): Boolean = ukParts(country.toUpperCase)

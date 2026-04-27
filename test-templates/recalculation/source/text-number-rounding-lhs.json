@@ -1,0 +1,393 @@
+{
+  "_id": "text-number-rounding-lhs",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "booleanExpressions": {
+    "showTextBoxA": "numberA * 0.1 < 16",
+    "showTextBoxB": "numberB * 0.1 < 16",
+    "showTextBoxC": "numberA * 0.1 <= 16",
+    "showTextBoxD": "numberB * 0.1 <= 16",
+    "showTextBoxE": "numberA * 0.1 > 16",
+    "showTextBoxF": "numberB * 0.1 > 16",
+    "showTextBoxG": "numberA * 0.1 >= 16",
+    "showTextBoxH": "numberB * 0.1 >= 16",
+    "showTextBoxI": "numberA * 0.1 = 16",
+    "showTextBoxJ": "numberB * 0.1 = 16"
+  },
+  "sections": [
+    {
+      "title": "Data",
+      "fields": [
+        {
+          "id": "numberA",
+          "type": "text",
+          "format": "number(5,0)",
+          "round": "Down",
+          "label": "Number A"
+        },
+        {
+          "id": "numberB",
+          "type": "text",
+          "format": "number(5,0)",
+          "round": "Up",
+          "label": "Number B"
+        }
+      ]
+    },
+    {
+      "title": "Include A",
+      "includeIf": "${showTextBoxA}",
+      "fields": [
+        {
+          "id": "textBoxA",
+          "type": "text",
+          "format": "text",
+          "value": "${'AAA'}"
+        }
+      ]
+    },
+    {
+      "title": "Include B",
+      "includeIf": "${showTextBoxB}",
+      "fields": [
+        {
+          "id": "textBoxB",
+          "type": "text",
+          "format": "text",
+          "value": "${'BBB'}"
+        }
+      ]
+    },
+    {
+      "title": "Include C",
+      "includeIf": "${showTextBoxC}",
+      "fields": [
+        {
+          "id": "textBoxC",
+          "type": "text",
+          "format": "text",
+          "value": "${'CCC'}"
+        }
+      ]
+    },
+    {
+      "title": "Include D",
+      "includeIf": "${showTextBoxD}",
+      "fields": [
+        {
+          "id": "textBoxD",
+          "type": "text",
+          "format": "text",
+          "value": "${'DDD'}"
+        }
+      ]
+    },
+    {
+      "title": "Include E",
+      "includeIf": "${showTextBoxE}",
+      "fields": [
+        {
+          "id": "textBoxE",
+          "type": "text",
+          "format": "text",
+          "value": "${'EEE'}"
+        }
+      ]
+    },
+    {
+      "title": "Include F",
+      "includeIf": "${showTextBoxF}",
+      "fields": [
+        {
+          "id": "textBoxF",
+          "type": "text",
+          "format": "text",
+          "value": "${'FFF'}"
+        }
+      ]
+    },
+    {
+      "title": "Include G",
+      "includeIf": "${showTextBoxG}",
+      "fields": [
+        {
+          "id": "textBoxG",
+          "type": "text",
+          "format": "text",
+          "value": "${'GGG'}"
+        }
+      ]
+    },
+    {
+      "title": "Include H",
+      "includeIf": "${showTextBoxH}",
+      "fields": [
+        {
+          "id": "textBoxH",
+          "type": "text",
+          "format": "text",
+          "value": "${'HHH'}"
+        }
+      ]
+    },
+    {
+      "title": "Include I",
+      "includeIf": "${showTextBoxI}",
+      "fields": [
+        {
+          "id": "textBoxI",
+          "type": "text",
+          "format": "text",
+          "value": "${'III'}"
+        }
+      ]
+    },
+    {
+      "title": "Include J",
+      "includeIf": "${showTextBoxJ}",
+      "fields": [
+        {
+          "id": "textBoxJ",
+          "type": "text",
+          "format": "text",
+          "value": "${'JJJ'}"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "numberA - Down: ${numberA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "numberB - Up: ${numberB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxA: ${textBoxA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxB: ${textBoxB}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxC: ${textBoxC}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxD: ${textBoxD}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxE: ${textBoxE}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxF: ${textBoxF}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxG: ${textBoxG}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxH: ${textBoxH}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxI: ${textBoxI}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "textBoxJ: ${textBoxJ}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxA visible: ${if showTextBoxA then 'Yes' else 'No'} : numberA * 0.1 < 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxB visible: ${if showTextBoxB then 'Yes' else 'No'} : numberB * 0.1 < 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxC visible: ${if showTextBoxC then 'Yes' else 'No'} : numberA * 0.1 <= 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxD visible: ${if showTextBoxD then 'Yes' else 'No'} : numberB * 0.1 <= 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxE visible: ${if showTextBoxE then 'Yes' else 'No'} : numberA * 0.1 > 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxF visible: ${if showTextBoxF then 'Yes' else 'No'} : numberB * 0.1 > 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxG visible: ${if showTextBoxG then 'Yes' else 'No'} : numberA * 0.1 >= 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxH visible: ${if showTextBoxH then 'Yes' else 'No'} : numberB * 0.1 >= 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxI visible: ${if showTextBoxI then 'Yes' else 'No'} : numberA * 0.1 = 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Is textBoxJ visible: ${if showTextBoxJ then 'Yes' else 'No'} : numberB * 0.1 = 16"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "numberA * 0.1: ${numberA * 0.1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "numberB * 0.1: ${numberB * 0.1}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "numberA * 0.123: ${numberA * 0.123}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "numberB * 0.123: ${numberB * 0.123}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "0.123 * numberA: ${0.123 * numberA}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "0.123 * numberB: ${0.123 * numberB}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

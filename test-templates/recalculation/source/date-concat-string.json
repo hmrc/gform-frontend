@@ -1,0 +1,50 @@
+{
+  "_id": "date-concat-string",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "text"
+        },
+        {
+          "id": "startTradingDate",
+          "label": "Trading start date",
+          "type": "date"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${('Hello-' + startTradingDate + '-Hello') = pageA}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

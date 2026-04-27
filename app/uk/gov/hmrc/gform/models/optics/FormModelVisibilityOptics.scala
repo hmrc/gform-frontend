@@ -16,24 +16,22 @@
 
 package uk.gov.hmrc.gform.models.optics
 
-import com.softwaremill.quicklens._
-import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, EvaluationResults, ExpressionResultWithTypeInfo, TypeInfo }
-import uk.gov.hmrc.gform.graph.{ GraphData, RecData, RecalculationResult }
+import uk.gov.hmrc.gform.eval.{ ExprType, ExpressionResultWithTypeInfo, StaticTypeData, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, Visibility }
-import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
+import uk.gov.hmrc.gform.models.FormModel
+import uk.gov.hmrc.gform.recalculation.{ EvaluationContext, EvaluationStatus, FreeCalculator }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, VariadicValue }
 
-case class FormModelVisibilityOptics[D <: DataOrigin](
-  formModel: FormModel[Visibility],
-  recData: RecData[SourceOrigin.Current],
-  recalculationResult: RecalculationResult,
-  booleanExprCache: BooleanExprCache
+final class FormModelVisibilityOptics(
+  val formModel: FormModel,
+  val freeCalculator: FreeCalculator
 ) {
 
-  val evaluationResults: EvaluationResults = recalculationResult.evaluationResults
-  val graphData: GraphData = recalculationResult.graphData
+  def cleared(modelComponentIds: List[ModelComponentId]): FormModelVisibilityOptics = new FormModelVisibilityOptics(
+    formModel,
+    freeCalculator.cleared(modelComponentIds)
+  )
 
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
 
@@ -47,85 +45,104 @@ case class FormModelVisibilityOptics[D <: DataOrigin](
     allFormComponents.map(_.id)
 
   def collect[B](pf: PartialFunction[(ModelComponentId, VariadicValue), B]): Iterable[B] =
-    recData.variadicFormData.collect(pf)
+    freeCalculator.variadicFormData.collect(pf)
 
   def fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
 
+  def toStaticTypeData(formComponentId: FormComponentId): StaticTypeData =
+    freeCalculator.metadata.staticTypeInfo
+      .get(formComponentId.baseComponentId)
+      .getOrElse(StaticTypeData(ExprType.String, None))
+
+  private def explicitTypedExpr(expr: Expr, fcId: FormComponentId): TypeInfo = {
+    val staticTypeData = toStaticTypeData(fcId)
+    TypeInfo(expr, staticTypeData)
+  }
+
   def evalAndApplyTypeInfoExplicit(expr: Expr, fcId: FormComponentId): ExpressionResultWithTypeInfo = {
-    val typeInfo = formModel.explicitTypedExpr(expr, fcId)
+    val typeInfo = explicitTypedExpr(expr, fcId)
     evalAndApplyTypeInfo(typeInfo)
   }
 
   def evalAndApplyTypeInfoFirst(expr: Expr): ExpressionResultWithTypeInfo = {
-    val typeInfo = formModel.toFirstOperandTypeInfo(expr)
+    val typeInfo = TypeInfo(expr, freeCalculator.metadata.exprStaticType(expr))
     evalAndApplyTypeInfo(typeInfo)
   }
 
-  val booleanExprResolver: BooleanExprResolver = BooleanExprResolver(booleanExpr =>
-    evalIncludeIfExpr(IncludeIf(booleanExpr), recalculationResult.evaluationContext.formPhase)
-  )
-
   def evalAndApplyTypeInfo(typeInfo: TypeInfo): ExpressionResultWithTypeInfo =
     ExpressionResultWithTypeInfo(
-      recalculationResult.evaluationResults
-        .evalExprCurrent(typeInfo, recData, booleanExprResolver, recalculationResult.evaluationContext)
+      freeCalculator
+        .evalTypeInfo(typeInfo)
         .applyTypeInfo(typeInfo),
-      typeInfo
+      typeInfo.staticTypeData
     )
 
   def evalIncludeIfExpr(includeIf: IncludeIf, phase: Option[FormPhase]): Boolean =
-    FormModelBuilder.evalIncludeIf(includeIf, recalculationResult, recData, formModel, booleanExprCache, phase)
+    freeCalculator.evalIncludeIf(includeIf)
 
   def evalRemoveItemIf(removeItemIf: RemoveItemIf): Boolean =
-    FormModelBuilder.evalRemoveItemIf(removeItemIf, recalculationResult, recData, formModel, booleanExprCache)
+    freeCalculator.evalRemoveItemIf(removeItemIf)
+
+  def textResult(modelComponentId: ModelComponentId): Option[String] =
+    // This handles fields like:
+    //   "value": "${auth.ctutr}",
+    //   "submitMode": "summaryinfoonly"
+    freeCalculator.answerMapWithFallback.toStringResultOrOptionResult(modelComponentId) match {
+      case EvaluationStatus.StringResult(value) => Some(value)
+      case EvaluationStatus.NumberResult(value) => Some(value.toString)
+      case _                                    => None
+    }
 
   object data {
     def all: List[(ModelComponentId, VariadicValue)] =
       allFormComponents.flatMap(_.multiValueId.toModelComponentIds).flatMap { modelComponentId =>
         get(modelComponentId).map(modelComponentId -> _)
       }
+
     def one(modelComponentId: ModelComponentId): Option[String] =
       if (formModel.isDefinedAt(modelComponentId)) {
-        recData.variadicFormData.one(modelComponentId)
+        freeCalculator.variadicFormData.one(modelComponentId)
       } else None
 
     def many(modelComponentId: ModelComponentId): Option[Seq[String]] =
       if (formModel.isDefinedAt(modelComponentId)) {
-        recData.variadicFormData.many(modelComponentId)
+        freeCalculator.variadicFormData.many(modelComponentId)
       } else None
 
     def get(modelComponentId: ModelComponentId): Option[VariadicValue] =
       if (formModel.isDefinedAt(modelComponentId)) {
-        recData.variadicFormData.get(modelComponentId)
+        freeCalculator.variadicFormData.get(modelComponentId)
       } else None
-
-    def allWithSectionNumber[A](sectionNumber: SectionNumber): Set[(ModelComponentId, Option[VariadicValue])] =
-      formModel(sectionNumber).allModelComponentIds.map(cid => cid -> recData.variadicFormData.get(cid))
-
-    def withSectionNumber[A](sectionNumber: SectionNumber): Set[VariadicValue] =
-      formModel(sectionNumber).allModelComponentIds.flatMap(recData.variadicFormData.get)
 
     def forCoordinate[A](coordinates: Coordinates): Set[VariadicValue] = {
       val modelComponentIds: List[ModelComponentId] =
         allEditableFormComponentsForCoordinates(coordinates).map(_.multiValueId).flatMap(_.toModelComponentIds)
 
-      modelComponentIds.toSet.flatMap(recData.variadicFormData.get)
+      modelComponentIds.toSet.flatMap(freeCalculator.variadicFormData.get)
 
     }
   }
 
-  def addDataRetrieveResults(dataRetrieveResults: List[DataRetrieveResult]): FormModelVisibilityOptics[D] =
-    this
-      .modify(
-        _.recalculationResult.evaluationContext.thirdPartyData
-      )
-      .using(_.updateDataRetrieve(dataRetrieveResults))
+  def addDataRetrieveResults(dataRetrieveResults: List[DataRetrieveResult]): FormModelVisibilityOptics = {
+    val evaluationContext: EvaluationContext = freeCalculator.evaluationContext.copy(
+      thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.updateDataRetrieve(dataRetrieveResults)
+    )
 
-  def removeDataRetrieveResults(dataRetrieves: List[DataRetrieveId]): FormModelVisibilityOptics[D] =
-    this
-      .modify(
-        _.recalculationResult.evaluationContext.thirdPartyData
-      )
-      .using(_.removeDataRetrieves(dataRetrieves))
+    updateFreeCalculator(evaluationContext)
+  }
 
+  def removeDataRetrieveResults(dataRetrieves: List[DataRetrieveId]): FormModelVisibilityOptics = {
+    val evaluationContext: EvaluationContext = freeCalculator.evaluationContext.copy(
+      thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.removeDataRetrieves(dataRetrieves)
+    )
+
+    updateFreeCalculator(evaluationContext)
+
+  }
+
+  private def updateFreeCalculator(evaluationContext: EvaluationContext): FormModelVisibilityOptics =
+    new FormModelVisibilityOptics(
+      this.formModel,
+      freeCalculator.withEvaluationContext(evaluationContext)
+    )
 }

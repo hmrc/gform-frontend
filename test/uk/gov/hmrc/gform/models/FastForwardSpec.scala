@@ -23,13 +23,11 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkAddToListSection, mkFormComponent, page }
 import uk.gov.hmrc.gform.models.FastForward.StopAt
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Equals, FormComponentId, FormCtx, IncludeIf, SectionNumber, TemplateSectionIndex, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin }
-
-import java.time.Instant
 
 class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with VariadicFormDataSupport with Matchers {
 
@@ -87,14 +85,15 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
       forAll(table) { (description, sections, data, stopAt, expectedStopAt) =>
         description in {
           val fmb = mkFormModelFromSections(sections)
-          val variadicData = variadicFormData[SourceOrigin.OutOfDate](data: _*)
-          val fmvo = fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](
-            variadicData,
-            None,
-            Instant.now,
-            BooleanExprCache.empty
-          )
-          StopAt(stopAt).next(fmvo.formModel, stopAt) shouldBe StopAt(expectedStopAt)
+          val variadicData = variadicFormData(data: _*)
+          val fmvo = fmb
+            .visibilityModel[SectionSelectorType.Normal](
+              variadicData,
+              None,
+              Form.dummy(FormTemplateId(""))
+            )
+
+          StopAt(stopAt).next(fmvo.formModelVisibilityOptics.formModel, stopAt) shouldBe StopAt(expectedStopAt)
         }
       }
     }

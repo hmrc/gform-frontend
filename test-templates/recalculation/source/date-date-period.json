@@ -1,0 +1,54 @@
+{
+  "_id": "date-date-period",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "This is for AddToList Period sum : ${period(startDate,endDate).sum}\n\nPeriod totalMonths : ${period(startDate,endDate).totalMonths}\n\nPeriod years : ${period(startDate,endDate).years}\n\nPeriod months : ${period(startDate,endDate).months}\n\nPeriod days : ${period(startDate,endDate).days}",
+      "summaryName": "periods",
+      "shortName": "periods",
+      "description": "${startDate} ... ${endDate}",
+      "summaryDescription": "periods",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "So you want to add another period?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Period",
+          "fields": [
+            {
+              "id": "startDate",
+              "type": "date",
+              "label": "Start Date"
+            },
+            {
+              "id": "endDate",
+              "type": "date",
+              "label": "End Date"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page ",
+    "showReference": true,
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

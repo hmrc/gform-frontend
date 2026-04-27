@@ -21,6 +21,7 @@ import cats.implicits._
 import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, JsonUtils }
@@ -162,20 +163,27 @@ case class ThirdPartyData(
   ): Option[Either[FormData, PostcodeLookupRetrieve.AddressRecord]] =
     enteredAddressFor(formComponentId).map(Left(_)).orElse(addressRecordFor(formComponentId).map(Right(_)))
 
-  def addressLines(formComponentId: FormComponentId): Option[List[String]] = addressFor(formComponentId).map {
+  def addressLines(formComponentId: FormComponentId): List[(Atom, String)] =
+    addressFor(formComponentId).toList.flatMap {
 
-    case Left(formData) =>
-      val lookup = formData.toData
-      val lines: NonEmptyList[String] =
-        Address.summaryPageFields(formComponentId.modelComponentId.indexedComponentId).map { modelCompoentIdAtomic =>
-          lookup.getOrElse(modelCompoentIdAtomic, "")
-        }
-      lines.toList.filter(_.nonEmpty)
+      case Left(formData) =>
+        val lookup = formData.toData
+        val lines: NonEmptyList[(Atom, String)] =
+          Address.summaryPageFields(formComponentId.modelComponentId.indexedComponentId).map { modelComponentIdAtomic =>
+            modelComponentIdAtomic.atom -> lookup.getOrElse(modelComponentIdAtomic, "")
+          }
+        lines.toList.filter(_._2.nonEmpty)
 
-    case Right(addressRecord) =>
-      import addressRecord.address._
-      List(line1, line2, line3, line4, town, postcode).filter(_.nonEmpty)
-  }
+      case Right(addressRecord) =>
+        import addressRecord.address._
+        List(
+          Address.street1  -> line1,
+          Address.street2  -> line2,
+          Address.street3  -> (line3 + " " + line4).trim,
+          Address.street4  -> town,
+          Address.postcode -> postcode
+        ).filter(_._2.trim.nonEmpty)
+    }
 
   def enteredAddressDataForWithFallback(
     formComponentId: FormComponentId

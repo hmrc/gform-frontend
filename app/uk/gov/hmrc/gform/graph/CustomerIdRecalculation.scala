@@ -19,16 +19,16 @@ package uk.gov.hmrc.gform.graph
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.CustomerId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerCaseflow, DestinationWithCustomerId, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object CustomerIdRecalculation {
 
-  def evaluateCustomerId[D <: DataOrigin, U <: SectionSelectorType: SectionSelector](
+  def evaluateCustomerId[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages): CustomerId =
     customerIdExpressions(cache.formTemplate.destinations)
       .map { expr =>

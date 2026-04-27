@@ -1,0 +1,782 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "repeatsUntil": {
+              "booleanExpr": {
+                "GreaterThanOrEquals": {
+                  "left": {
+                    "Count": {
+                      "formComponentId": "addAnother"
+                    }
+                  },
+                  "right": {
+                    "Constant": {
+                      "value": "2"
+                    }
+                  }
+                }
+              }
+            },
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n: <strong>{0}</strong> - nino: {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personName"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personNino"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What is the full name $n?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": true,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is the full name $n?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personName",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What is the National Insurance number for {0}?"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personName"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "id": "personNinoPage",
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is the National Insurance number for {0}?"
+                          },
+                          "interpolations": [
+                            {
+                              "FormCtx": {
+                                "formComponentId": "personName"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personNino",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "NINO": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "removeItemIf": {
+                  "booleanExpr": {
+                    "Contains": {
+                      "multiValueField": {
+                        "formComponentId": "personChangeOrRemoveChoice"
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "removePerson"
+                        }
+                      }
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "DuplicateExists": {
+                      "fieldList": [
+                        {
+                          "formComponentId": "personNino"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Person you are adding"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "duplicatesMiniSummary",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "MiniSummaryList": {
+                        "rows": [
+                          {
+                            "ValueRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Name"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "AnyExpr": {
+                                  "expr": {
+                                    "FormCtx": {
+                                      "formComponentId": "personName"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Nino"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "AnyExpr": {
+                                  "expr": {
+                                    "FormCtx": {
+                                      "formComponentId": "personNino"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "displayInSummary": {
+                          "booleanExpression": {
+                            "IsFalse": {}
+                          }
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ],
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "You have already added a person with this nino"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "confirmation": {
+                  "question": {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What do you want to do next?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personChangeOrRemoveChoice",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Change the nino"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "includeIf": {
+                                "booleanExpr": {
+                                  "DuplicateExists": {
+                                    "fieldList": [
+                                      {
+                                        "formComponentId": "personNino"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "changeNino"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Remove {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "personName"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "removePerson"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  "redirects": [
+                    {
+                      "if": {
+                        "booleanExpr": {
+                          "Contains": {
+                            "multiValueField": {
+                              "formComponentId": "personChangeOrRemoveChoice"
+                            },
+                            "value": {
+                              "Constant": {
+                                "value": "changeNino"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "pageId": "personNinoPage"
+                    }
+                  ],
+                  "fieldsConfirmed": [
+                    "personName",
+                    "personNino"
+                  ]
+                }
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another person?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "repeatsWhile": {
+              "booleanExpr": {
+                "LessThan": {
+                  "left": {
+                    "Count": {
+                      "formComponentId": "addAnother"
+                    }
+                  },
+                  "right": {
+                    "Constant": {
+                      "value": "2"
+                    }
+                  }
+                }
+              }
+            },
+            "fields": [
+              {
+                "mandatory": {
+                  "booleanExpr": {
+                    "IsTrue": {}
+                  }
+                },
+                "notPII": false,
+                "derived": false,
+                "label": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": ""
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "validators": [],
+                "id": "minimumNotReachedInfo",
+                "submissible": false,
+                "isPageHeading": false,
+                "type": {
+                  "InformationMessage": {
+                    "infoType": {
+                      "NoFormat": {}
+                    },
+                    "infoText": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "You have told us about {0} of {1}. {2} persons."
+                          },
+                          "interpolations": [
+                            {
+                              "Count": {
+                                "formComponentId": "addAnother"
+                              }
+                            },
+                            {
+                              "Constant": {
+                                "value": "2"
+                              }
+                            },
+                            {
+                              "IfElse": {
+                                "cond": {
+                                  "LessThan": {
+                                    "left": {
+                                      "Count": {
+                                        "formComponentId": "addAnother"
+                                      }
+                                    },
+                                    "right": {
+                                      "Constant": {
+                                        "value": "2"
+                                      }
+                                    }
+                                  }
+                                },
+                                "field1": {
+                                  "Concat": {
+                                    "exprs": [
+                                      {
+                                        "Constant": {
+                                          "value": "You need to add the remaining"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                "field2": {
+                                  "Concat": {
+                                    "exprs": [
+                                      {
+                                        "Constant": {
+                                          "value": "You have provided the details of all the"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "onlyShowOnSummary": false,
+                "editable": false
+              }
+            ],
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People you have added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "duplicate-exists-confirmation",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "duplicate-exists-confirmation",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

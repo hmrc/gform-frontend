@@ -1,0 +1,41 @@
+{
+  "_id": "date-expr-calendar-date",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Enter calendar date",
+      "fields": [
+        {
+          "id": "startDate",
+          "type": "calendarDate"
+        }
+      ]
+    },
+    {
+      "title": "Enter name",
+      "includeIf": "${day(startDate) < 16}",
+      "fields": [
+        {
+          "id": "name",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "_id": "positive-whole-sterling",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "How much is it?",
+      "fields": [
+        {
+          "id": "cost",
+          "type": "text",
+          "format": "positiveWholeSterling"
+        }
+      ]
+    },
+    {
+      "title": "Summary",
+      "fields": [
+        {
+          "id": "summary",
+          "label": "",
+          "type": "info",
+          "infoType": "noformat",
+          "infoText": "Cost will be £${0+cost}"
+        },
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "positiveSterling",
+          "displayWidth": "xl"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

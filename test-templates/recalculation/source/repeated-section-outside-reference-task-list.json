@@ -1,0 +1,66 @@
+{
+  "_id": "repeated-section-outside-reference-task-list",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "submitSection": {
+    "label": "Submit",
+    "taskLabel": "Submit"
+  },
+  "sections": [
+    {
+      "title": "Section A",
+      "tasks": [
+        {
+          "title": "Task A 1",
+          "sections": [
+            {
+              "title": "Repeating page $n of 3",
+              "repeatsMax": "${3}",
+              "repeatsMin": "${3}",
+              "fields": [
+                {
+                  "id": "repeatingField",
+                  "type": "text",
+                  "format": "number"
+                }
+              ]
+            },
+            {
+              "title": "Text",
+              "includeIf": "${repeatingField != ''}",
+              "fields": [
+                {
+                  "id": "test",
+                  "type": "text",
+                  "format": "number"
+                },
+                {
+                  "id": "basicInfo",
+                  "type": "info",
+                  "label": "",
+                  "infoText": "${concat('Basic info about ', repeatingField, ' sum of which is ', repeatingField.sum)}",
+                  "infoType": "noformat"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

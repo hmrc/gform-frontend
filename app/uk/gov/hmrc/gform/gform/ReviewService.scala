@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormStatus, Returning }
@@ -60,7 +60,7 @@ class ReviewService[F[_]: Monad](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     reviewData: Map[String, String],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[AnyContent],
     messages: Messages,
@@ -74,7 +74,7 @@ class ReviewService[F[_]: Monad](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     reviewData: Map[String, String],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[AnyContent],
     messages: Messages,
@@ -112,7 +112,7 @@ class ReviewService[F[_]: Monad](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     formStatus: FormStatus,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[AnyContent],
     messages: Messages,
@@ -151,7 +151,7 @@ class ReviewService[F[_]: Monad](
       formTemplates <- getFormTemplates(forms)
     } yield buildBundledFormSubmissionData(forms, formTemplates)
 
-  private def buildBundledFormSubmissionData[D <: DataOrigin](
+  private def buildBundledFormSubmissionData(
     forms: NonEmptyList[Form],
     formTemplates: Map[FormTemplateId, FormTemplate]
   )(implicit
@@ -159,9 +159,9 @@ class ReviewService[F[_]: Monad](
     m: Messages
   ): NonEmptyList[BundledFormSubmissionData] =
     forms.map { form =>
-      val formModelVisibilityOptics: FormModelVisibilityOptics[D] = null
+      val formModelVisibilityOptics: FormModelVisibilityOptics = null
       val formTemplate = formTemplates(form.formTemplateId)
-      val sfd = StructuredFormDataBuilder[D](
+      val sfd = StructuredFormDataBuilder(
         formModelVisibilityOptics,
         formTemplate.destinations,
         formTemplate.expressionsOutput,

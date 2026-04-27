@@ -1,0 +1,94 @@
+{
+  "_id": "index-of-data-retrieve-ctx",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "selectedEmployer": "indexOf(EMP in employer)",
+    "selectedSequenceNumber": "dataRetrieve.employments.sequenceNumber[selectedEmployer]"
+  },
+  "sections": [
+    {
+      "title": "Data",
+      "fields": [
+        {
+          "id": "taxYear",
+          "type": "text",
+          "label": "Tax year",
+          "format": "text"
+        },
+        {
+          "id": "nino",
+          "type": "text",
+          "label": "Nino",
+          "format": "nino"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "employments",
+          "id": "employments",
+          "parameters": {
+            "nino": "${nino}",
+            "taxYear": "${taxYear}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Which employer are you claiming pension tax relief for?",
+      "fields": [
+        {
+          "id": "employer",
+          "type": "choice",
+          "dividerPosition": "NONE",
+          "choices": [
+            {
+              "en": "${dataRetrieve.employments.employerName}",
+              "dynamic": "dataRetrieve.employments.employerName",
+              "value": "EMP"
+            },
+            {
+              "en": "Different employer",
+              "value": "NONE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret ${selectedSequenceNumber}",
+      "includeIf": "${selectedSequenceNumber = '2345678'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

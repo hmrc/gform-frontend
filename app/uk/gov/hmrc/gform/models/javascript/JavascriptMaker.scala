@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models.javascript
 
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
@@ -24,7 +23,7 @@ object JavascriptMaker {
 
   def generateJs(
     sectionNumber: SectionNumber,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   ): String = {
     val formModel = formModelOptics.formModelRenderPageOptics.formModel
     val pageModel = formModel(sectionNumber)

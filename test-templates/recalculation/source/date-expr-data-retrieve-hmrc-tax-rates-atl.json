@@ -1,0 +1,68 @@
+{
+  "_id": "date-expr-data-retrieve-hmrc-tax-rates-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "summaryDescription": "${enterDate}",
+      "description": "$n. ${enterDate} - ${name}",
+      "addAnotherQuestion": {
+        "id": "anotherItem",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Enter date $n",
+          "fields": [
+            {
+              "id": "enterDate",
+              "type": "date"
+            }
+          ],
+          "dataRetrieve": [
+            {
+              "id": "apdRate",
+              "type": "hmrcTaxRates",
+              "parameters": {
+                "regime": "${'APD'}",
+                "code": "${'DOM-RDCD'}",
+                "date": "${enterDate}"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Enter name $n ${dataRetrieve.apdRate.startDate}",
+          "includeIf": "${dataRetrieve.apdRate.startDate before 31032024}",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

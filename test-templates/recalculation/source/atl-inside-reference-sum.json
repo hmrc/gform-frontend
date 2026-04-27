@@ -1,0 +1,68 @@
+{
+  "_id": "atl-inside-reference-sum",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${tax} - Sum: ${tax.sum}.",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Tax $n",
+          "fields": [
+            {
+              "id": "tax",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        },
+        {
+          "title": "Secret $n ${tax.sum}",
+          "includeIf": "${tax.sum > 10}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "choice",
+              "label": "Secret",
+              "choices": [
+                {
+                  "en": "Reveal",
+                  "value": "reveal"
+                },
+                {
+                  "en": "Keep hidden",
+                  "value": "keepHidden"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

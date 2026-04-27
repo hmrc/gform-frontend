@@ -16,73 +16,65 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.gform.ExprUpdater
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.recalculation.{ Calculator, EvaluationStatus }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData, OptionDataValue }
 
 object OptionDataUtils {
 
-  def expand[D <: DataOrigin](formComponent: FormComponent, choice: Choice)(implicit
-    fmvo: FormModelVisibilityOptics[D],
+  def expand(formComponent: FormComponent, choice: Choice, calculator: Calculator)(implicit
     messages: Messages
   ): FormComponent = {
-    val optionsUpdate = choice.options.flatMap {
+    val optionsUpdate = choice.options.toList.flatMap {
       case o @ OptionData.ValueBased(_, _, _, Some(d), _, _, _) =>
-        OptionDataUtils.expandValueBased(o, d)
+        OptionDataUtils.expandValueBased(o, d, calculator)
       case o @ OptionData.IndexBased(_, _, _, Some(d), _) =>
-        OptionDataUtils.expandIndexBased(o, d)
-      case otherwise => NonEmptyList.one(otherwise)
+        OptionDataUtils.expandIndexBased(o, d, calculator)
+      case otherwise => List(otherwise)
     }
 
-    val updChoice = choice.copy(options = optionsUpdate)
+    formComponent.copy(`type` = choice.copy(options = optionsUpdate))
 
-    formComponent.copy(`type` = updChoice)
   }
 
-  def determineBaseIds[D <: DataOrigin](optionData: OptionData)(implicit
-    fmvo: FormModelVisibilityOptics[D]
-  ): List[FormComponentId] =
+  def determineBaseIds(optionData: OptionData, calculator: Calculator): List[FormComponentId] =
     (optionData.label :: optionData.hint.toList)
-      .flatMap(_.interpolations(fmvo.booleanExprResolver.resolve(_)).flatMap(_.leafs(fmvo.formModel)).collect {
-        case FormCtx(fcId) =>
-          fcId
-      })
+      .flatMap(
+        _.interpolations(calculator.evalBooleanExpr(_))
+          .collect { case FormCtx(fcId) =>
+            fcId
+          }
+      )
 
-  def expandValueBased[D <: DataOrigin](valueBased: OptionData.ValueBased, dynamic: Dynamic)(implicit
-    fmvo: FormModelVisibilityOptics[D],
+  def expandValueBased(valueBased: OptionData.ValueBased, dynamic: Dynamic, calculator: Calculator)(implicit
     messages: Messages
-  ): NonEmptyList[OptionData] =
+  ): List[OptionData] =
     dynamic match {
       case Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
-        val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
-        val optionDatas: List[OptionData.ValueBased] = expressionResult.listRepresentation.zipWithIndex.map {
-          case (_, index) =>
-            updateDataRetrieveValueBased(index, valueBased)
+        val expressionResult: ExpressionResultWithTypeInfo = calculator.evalExpr(dataRetrieveCtx.ctx)
+        expressionResult.listRepresentation.zipWithIndex.map { case (_, index) =>
+          updateDataRetrieveValueBased(index, valueBased)
         }
-        NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(valueBased))
       case atl @ Dynamic.ATLBased(_) =>
-        val baseIds: List[FormComponentId] = determineBaseIds(valueBased)
-        expandOptionData(valueBased, atl, baseIds, updateValueBased)
+        val baseIds: List[FormComponentId] = determineBaseIds(valueBased, calculator)
+        expandOptionData(valueBased, atl, baseIds, calculator, updateValueBased)
     }
 
-  def expandIndexBased[D <: DataOrigin](indexBased: OptionData.IndexBased, dynamic: Dynamic)(implicit
-    fmvo: FormModelVisibilityOptics[D],
+  def expandIndexBased(indexBased: OptionData.IndexBased, dynamic: Dynamic, calculator: Calculator)(implicit
     messages: Messages
-  ): NonEmptyList[OptionData] =
+  ): List[OptionData] =
     dynamic match {
       case Dynamic.DataRetrieveBased(dataRetrieveCtx) =>
-        val expressionResult: ExpressionResultWithTypeInfo = fmvo.evalAndApplyTypeInfoFirst(dataRetrieveCtx.ctx)
-        val optionDatas = expressionResult.listRepresentation.zipWithIndex.map { case (answer, index) =>
+        val expressionResult: ExpressionResultWithTypeInfo = calculator.evalExpr(dataRetrieveCtx.ctx)
+        expressionResult.listRepresentation.zipWithIndex.map { case (answer, index) =>
           updateDataRetrieveIndexBased(index, indexBased)
         }
-        NonEmptyList.fromList(optionDatas).getOrElse(NonEmptyList.one(indexBased))
-
       case atl @ Dynamic.ATLBased(_) =>
-        val baseIds: List[FormComponentId] = determineBaseIds(indexBased)
-        expandOptionData(indexBased, atl, baseIds, updateIndexBased)
+        val baseIds: List[FormComponentId] = determineBaseIds(indexBased, calculator)
+        expandOptionData(indexBased, atl, baseIds, calculator, updateIndexBased)
     }
 
   private def updateIndexBased(
@@ -144,26 +136,26 @@ object OptionDataUtils {
       summaryValue = od.summaryValue.map(_.expandDataRetrieve(index))
     )
 
-  private def expandOptionData[A, D <: DataOrigin](
+  private def expandOptionData[A](
     valueBased: A,
     dynamic: Dynamic.ATLBased,
     baseIds: List[FormComponentId],
+    calculator: Calculator,
     f: (Int, List[FormComponentId], A) => A
-  )(implicit
-    fmvo: FormModelVisibilityOptics[D]
-  ): NonEmptyList[A] = {
-    val modelComponentIds =
-      fmvo.formModel.allIndexedComponentIds.get(dynamic.formComponentId.baseComponentId).toList.flatten
+  ): List[A] = {
+    val modelComponentIds: List[ModelComponentId] =
+      calculator.allModelComponentIds(dynamic.formComponentId.modelComponentId).collect {
+        case (modelComponentId, evaluationStatus) if evaluationStatus != EvaluationStatus.Hidden => modelComponentId
+      }
 
-    NonEmptyList.fromList(modelComponentIds) match {
-      case None => NonEmptyList.one(valueBased)
-      case Some(modelComponentIdsNel) =>
-        modelComponentIdsNel.map { modelComponentId =>
-          modelComponentId.maybeIndex match {
-            case Some(index) => f(index, baseIds, valueBased)
-            case None        => valueBased
-          }
-        }
+    if (modelComponentIds.isEmpty) {
+      List.empty[A]
+    } else {
+      val indices: List[Int] = modelComponentIds.flatMap(_.maybeIndex).distinct
+      if (indices.isEmpty) List(valueBased)
+      else {
+        indices.map(index => f(index, baseIds, valueBased))
+      }
     }
   }
 }

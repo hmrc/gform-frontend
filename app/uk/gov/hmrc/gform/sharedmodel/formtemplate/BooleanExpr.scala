@@ -19,8 +19,11 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 import scala.util.matching.Regex
+import uk.gov.hmrc.gform.recalculation.Metadata
 
 sealed trait BooleanExpr {
+  def containsRepeatingFieldRef(metadata: Metadata): Boolean =
+    allExpressions.flatMap(_.allFormComponentIds()).exists(fcId => metadata.isRepeatedField(fcId.baseComponentId))
   def allExpressions: List[Expr] = this match {
     case Equals(left, right)              => left :: right :: Nil
     case GreaterThan(left, right)         => left :: right :: Nil
@@ -36,12 +39,12 @@ sealed trait BooleanExpr {
     case IsFalse                          => Nil
     case Contains(multiValueField, value) => multiValueField :: value :: Nil
     case In(formCtx, _)                   => formCtx :: Nil
-    case HasAnswer(formCtx, atlFormCtx)   => List(formCtx) ++ atlFormCtx.allExpressions.toList
+    case HasAnswer(left, right)           => left :: right :: Nil
     case MatchRegex(expr, _)              => expr :: Nil
     case FormPhase(_)                     => Nil
     case First(formCtx)                   => formCtx :: Nil
     case IsLogin(_)                       => Nil
-    case DuplicateExists(_)               => Nil
+    case DuplicateExists(formCtxs)        => formCtxs.toList
   }
 
   def allIns: List[In] = this match {
@@ -67,7 +70,7 @@ final case object IsTrue extends BooleanExpr
 final case object IsFalse extends BooleanExpr
 final case class Contains(multiValueField: FormCtx, value: Expr) extends BooleanExpr
 final case class In(value: Expr, dataSource: DataSource) extends BooleanExpr
-final case class HasAnswer(formCtx: FormCtx, addToListRef: AddToListRef) extends BooleanExpr
+final case class HasAnswer(left: FormCtx, right: FormCtx) extends BooleanExpr
 final case class MatchRegex(expr: Expr, regex: Regex) extends BooleanExpr
 
 final case class DateBefore(left: DateExpr, right: DateExpr) extends BooleanExpr

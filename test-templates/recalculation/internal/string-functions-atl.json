@@ -1,0 +1,751 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n. {0} - {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "StringOps": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "name"
+                              }
+                            },
+                            "stringFnc": {
+                              "LowerCase": {}
+                            }
+                          }
+                        },
+                        {
+                          "StringOps": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "shout"
+                              }
+                            },
+                            "stringFnc": {
+                              "UpperCase": {}
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Name and shout $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Name"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "name",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Shout"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "shout",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another field?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnotherField",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating fields"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Repeating field"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Text"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "basicInfo",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Name: {0}\n\nShout: {1}\n\nUppercase name: {2}\n\nLowercase name: {3}\n\nCapitalize name: {4}\n\nCapitalizeAll name: {5}\n\nRemove spaces name: {6}\n\nLowercaseFirst shout: {7}\n\nSubstring(4) name: {8}\n\nSubstring(4, 10) name: {9}"
+                            },
+                            "interpolations": [
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "name"
+                                }
+                              },
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "shout"
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "UpperCase": {}
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "LowerCase": {}
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "Capitalize": {}
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "CapitalizeAll": {}
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "RemoveSpaces": {}
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "shout"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "LowerCaseFirst": {}
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "SubString": {
+                                      "beginIndex": 4,
+                                      "endIndex": 2147483647
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "StringOps": {
+                                  "field1": {
+                                    "FormCtx": {
+                                      "formComponentId": "name"
+                                    }
+                                  },
+                                  "stringFnc": {
+                                    "SubString": {
+                                      "beginIndex": 4,
+                                      "endIndex": 10
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "StringOps": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "name"
+                          }
+                        },
+                        "stringFnc": {
+                          "SubString": {
+                            "beginIndex": 5,
+                            "endIndex": 7
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "de"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secret",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Reveal"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "reveal"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Keep hidden"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "keepHidden"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "string-functions-atl",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "string-functions-atl",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

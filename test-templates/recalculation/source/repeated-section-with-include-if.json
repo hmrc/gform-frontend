@@ -1,0 +1,67 @@
+{
+  "_id": "repeated-section-with-include-if",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page C $n",
+      "includeIf": "${pageA > 10}",
+      "repeatsMax": "${pageB}",
+      "repeatsMin": "${pageB}",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "label": "Page C",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page D",
+      "includeIf": "${pageC.sum < 10}",
+      "fields": [
+        {
+          "id": "pageD",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

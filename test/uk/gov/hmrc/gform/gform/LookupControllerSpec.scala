@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ FormModelSupport, LookupQuery, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SelectionCriteriaValue.{ SelectionCriteriaExpr, SelectionCriteriaReference, SelectionCriteriaSimpleValue }
@@ -154,8 +153,8 @@ class LookupControllerSpec
 
   it should "lookup options for given query and SelectionCriteriaExpr" in new TestFixture {
 
-    override lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
-      VariadicFormData[SourceOrigin.OutOfDate](
+    override lazy val variadicFormData: VariadicFormData =
+      VariadicFormData(
         Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One("US"))
       )
     override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(
@@ -180,8 +179,8 @@ class LookupControllerSpec
 
   it should "lookup options for given query and SelectionCriteriaReference" in new TestFixture {
 
-    override lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] =
-      VariadicFormData[SourceOrigin.OutOfDate](
+    override lazy val variadicFormData: VariadicFormData =
+      VariadicFormData(
         Map(
           ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One(
             "United Kingdom"
@@ -337,10 +336,10 @@ class LookupControllerSpec
         mkFormComponent("port", Text(Lookup(Register.Port, portLookupSelectionCriteria), Value)) :: Nil
       ) :: Nil
     lazy val authCacheWithForm: AuthCacheWithForm = mkAuthCacheWithForm(mkFormTemplate(sections))
-    lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] = VariadicFormData.empty[SourceOrigin.OutOfDate]
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
+    lazy val variadicFormData: VariadicFormData = VariadicFormData.empty
+    lazy val formModelOptics: FormModelOptics =
       FormModelOptics
-        .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
+        .mkFormModelOptics[SectionSelectorType.Normal](
           variadicFormData,
           authCacheWithForm
         )
@@ -348,14 +347,14 @@ class LookupControllerSpec
     val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()
     mockAuth
       .authAndRetrieveForm[SectionSelectorType.Normal](*[FormTemplateId], *[Option[AccessCode]], *[OperationWithForm])(
-        *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-          DataOrigin.Mongo
-        ] => Future[Result]]
+        *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
+          Result
+        ]]
       ) answers (
       (
         _: FormTemplateId, _: Option[AccessCode], _: OperationWithForm, f: Request[
           AnyContent
-        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[Result]
+        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[Result]
       ) =>
         messagesControllerComponents.actionBuilder.async { request =>
           f(request)(LangADT.En)(authCacheWithForm)(null)(formModelOptics)

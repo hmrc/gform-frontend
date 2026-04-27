@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.gform.routes.SummaryController
 import uk.gov.hmrc.gform.gform.{ FastForwardService, SectionRenderingService }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -82,7 +81,7 @@ class TaskListController(
 
           def getSectionNumber: SectionNumber = {
             val coordinates: Coordinates = Coordinates(taskSectionNumber, taskNumber)
-            val formModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
+            val formModel: FormModel = formModelOptics.formModelVisibilityOptics.formModel
 
             val maybeSn: Option[SectionNumber] = formModel.availableSectionNumbers.collectFirst {
               case sectionNumber if sectionNumber.maybeCoordinates.contains(coordinates) => sectionNumber
@@ -94,8 +93,8 @@ class TaskListController(
               )
 
             formModel.bracket(firstAvailableSn) match {
-              case Bracket.AddToList(iterations, _) =>
-                val lastIteration: Bracket.AddToListIteration[_] = iterations.last
+              case Bracket.AddToList(_, iterations, _) =>
+                val lastIteration: Bracket.AddToListIteration = iterations.last
 
                 if (lastIteration.isCommited(cache.form.visitsIndex)) {
                   lastIteration.repeater.sectionNumber
@@ -183,15 +182,15 @@ class TaskListController(
       maybeAccessCode,
       OperationWithForm.ViewDeclaration
     ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
-      val maybeDeclarationPage: Option[Singleton[DataExpanded]] =
+      val maybeDeclarationPage: Option[Singleton] =
         TaskListUtils.withTask(cache.formTemplate, coordinates.taskSectionNumber, coordinates.taskNumber) { task =>
-          implicit val fmvo: FormModelVisibilityOptics[DataOrigin.Mongo] = formModelOptics.formModelVisibilityOptics
+          //implicit val fmvo: FormModelVisibilityOptics[DataOrigin.Mongo] = formModelOptics.formModelVisibilityOptics
           task.declarationSection
             .map { ds =>
-              val pageBasic: Page[Basic] = ds.toPage
-              val data = SourceOrigin.changeSourceToOutOfDate(fmvo.recData.variadicFormData)
-              val page = implicitly[FormModelExpander[DataExpanded]].lift(pageBasic, data)
-              Singleton(page)
+              val pageBasic: Page = ds.toPage
+              //val data = SourceOrigin.changeSourceToOutOfDate(fmvo.recData.variadicFormData)
+              //val page = implicitly[FormModelExpander[DataExpanded]].lift(pageBasic, data)
+              Singleton(pageBasic)
             }
         }
       maybeDeclarationPage.fold[Future[Result]](

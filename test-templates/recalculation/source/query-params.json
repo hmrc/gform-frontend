@@ -1,0 +1,79 @@
+{
+  "_id": "query-params",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "userName": "if param.requestType = 2 then param.pspName else param.psaName"
+  },
+  "sections": [
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text",
+          "label": "Dummy"
+        },
+        {
+          "id": "name",
+          "type": "info",
+          "label": "",
+          "infoText": "user name: ${userName}",
+          "infoType": "noformat"
+        },
+        {
+          "id": "utr",
+          "type": "info",
+          "label": "",
+          "includeIf": "${param.utr != ''}",
+          "infoText": "param.utr: ${param.utr}",
+          "infoType": "noformat"
+        },
+        {
+          "id": "nino",
+          "type": "info",
+          "label": "",
+          "includeIf": "${param.nino != ''}",
+          "infoText": "param.nino: ${param.nino}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${param.requestType = 3}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

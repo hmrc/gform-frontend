@@ -1,0 +1,93 @@
+{
+  "_id": "or-else",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Operands",
+      "fields": [
+        {
+          "id": "op1",
+          "label": "Operand 1",
+          "type": "text",
+          "format": "number",
+          "mandatory": false
+        },
+        {
+          "id": "op2",
+          "label": "Operand 2",
+          "type": "text",
+          "format": "number",
+          "mandatory": false
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "tableOutside",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Equation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "'${op1}' orElse '${op2}' orElse 'Fallback' = ${op1 orElse op2 orElse 'Fallback'}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "secretOp1",
+          "type": "text",
+          "label": "Op1",
+          "includeIf": "${op1 orElse op2 orElse 'Fallback' = op1}",
+          "format": "text"
+        },
+        {
+          "id": "secretOp2",
+          "type": "text",
+          "label": "Op2",
+          "includeIf": "${op1 orElse op2 orElse 'Fallback' = op2}",
+          "format": "text"
+        },
+        {
+          "id": "secretFallback",
+          "type": "text",
+          "label": "Fallback",
+          "includeIf": "${op1 orElse op2 orElse 'Fallback' = 'Fallback'}",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

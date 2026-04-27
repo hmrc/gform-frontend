@@ -18,12 +18,12 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
-case class SingletonWithNumber[A <: PageMode](
-  singleton: Singleton[A],
+case class SingletonWithNumber(
+  singleton: Singleton,
   sectionNumber: SectionNumber
 ) {
-  def map[B <: PageMode](f: Singleton[A] => Singleton[B]): SingletonWithNumber[B] =
+  def map(f: Singleton => Singleton): SingletonWithNumber =
     SingletonWithNumber(f(singleton), sectionNumber)
 
-  def toPageModelWithNumber: (PageModel[A], SectionNumber) = (singleton, sectionNumber)
+  def toPageModelWithNumber: (PageModel, SectionNumber) = (singleton, sectionNumber)
 }

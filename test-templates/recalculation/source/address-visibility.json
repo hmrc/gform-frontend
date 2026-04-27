@@ -1,0 +1,78 @@
+{
+  "_id": "address-visibility",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Address visibility",
+      "fields": [
+        {
+          "id": "addressControl",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Show address",
+              "value": "showAddress"
+            },
+            {
+              "en": "Hide address",
+              "value": "hideAddress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Address",
+      "includeIf": "${addressControl contains 'showAddress'}",
+      "fields": [
+        {
+          "id": "address",
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "Address: '${address}'\n\nAddress is (=) ${if address = '' then 'hidden' else 'visible'}\n\nAddress is (!=) ${if address != '' then  'visible' else 'hidden'}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Address details",
+      "includeIf": "${address != ''}",
+      "fields": [
+        {
+          "id": "details",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

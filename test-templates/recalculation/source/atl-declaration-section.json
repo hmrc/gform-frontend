@@ -1,0 +1,106 @@
+{
+  "_id": "atl-declaration-section",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Visibility options",
+      "fields": [
+        {
+          "id": "visibilityOptions",
+          "type": "choice",
+          "multivalue": true,
+          "noneChoice": "showNothing",
+          "noneChoiceError": "To choose this option you need to deselect all other options",
+          "choices": [
+            {
+              "en": "Show Add To List",
+              "value": "showATL"
+            },
+            {
+              "en": "Show declaration section",
+              "value": "showDeclarationSection"
+            },
+            {
+              "en": "Show additional info in declaration section",
+              "value": "showAdditionalInfo"
+            },
+            {
+              "en": "Show nothing",
+              "value": "showNothing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Names you have added",
+      "includeIf": "${visibilityOptions contains 'showATL'}",
+      "summaryName": "Names",
+      "shortName": "Name $n",
+      "summaryDescription": "${name}",
+      "description": "$n. ${name}",
+      "addAnotherQuestion": {
+        "id": "addAnotherName",
+        "type": "choice",
+        "label": "Do you want to add another name?",
+        "format": "yesno"
+      },
+      "cyaPage": {
+        "title": "Check your answers for this applicant",
+        "updateTitle": "Check your answers for this applicant",
+        "header": "This applicant is eligible",
+        "footer": "Change answers by clicking change link"
+      },
+      "declarationSection": {
+        "title": "Check your calculation",
+        "continueLabel": "Agree",
+        "includeIf": "${visibilityOptions contains 'showDeclarationSection'}",
+        "fields": [
+          {
+            "id": "basicInfo",
+            "type": "info",
+            "label": "",
+            "infoText": "${concat('Basic info about ', name)}",
+            "infoType": "noformat"
+          },
+          {
+            "id": "additionalInfo",
+            "includeIf": "${visibilityOptions contains 'showAdditionalInfo'}",
+            "type": "info",
+            "label": "",
+            "infoText": "${concat('Additional info about ', name)}",
+            "infoType": "noformat"
+          }
+        ]
+      },
+      "pages": [
+        {
+          "title": "Enter name $n",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

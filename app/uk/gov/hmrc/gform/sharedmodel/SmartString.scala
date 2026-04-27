@@ -93,6 +93,7 @@ sealed trait SmartString {
 
   def rawValue(resolver: BooleanExpr => Boolean)(implicit l: LangADT): String =
     resolvedInternal(resolver).rawValue(l)
+
   def rawDefaultValue(implicit l: LangADT): String = resolvedInternal(_ => false).rawValue(l)
 
   def transform(fEn: String => String, fCy: String => String): SmartString =

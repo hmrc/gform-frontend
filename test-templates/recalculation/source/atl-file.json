@@ -1,0 +1,99 @@
+{
+  "_id": "atl-file",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "summaryName": "File",
+      "shortName": "File",
+      "title": "File",
+      "description": "$n - ${file} ${secret}",
+      "summaryDescription": "File",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another file?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "File",
+          "fields": [
+            {
+              "id": "file",
+              "type": "file"
+            }
+          ]
+        },
+        {
+          "title": "Secret",
+          "includeIf": "${file = 'passport.jpg'}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        },
+        {
+          "title": "Check",
+          "fields": [
+            {
+              "id": "check",
+              "type": "info",
+              "label": "",
+              "infoText": "Files: ${secret}",
+              "infoType": "noformat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dummy",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "Files: ${file}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Outside secret",
+      "includeIf": "${file = 'passport.jpg'}",
+      "fields": [
+        {
+          "id": "outsideSecret",
+          "type": "text",
+          "format": "sterling"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

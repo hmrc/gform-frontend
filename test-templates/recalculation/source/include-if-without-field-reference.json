@@ -1,0 +1,48 @@
+{
+  "_id": "include-if-without-field-reference",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "booleanExpressions": {
+    "isIndividual": "user.affinityGroup = 'individual'"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${isIndividual}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

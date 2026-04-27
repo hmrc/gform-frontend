@@ -1,0 +1,77 @@
+{
+  "_id": "atl-outside-reference-choice",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${repeatingField}",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Repeating field $n",
+          "fields": [
+            {
+              "id": "repeatingField",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Film",
+                  "value": "film"
+                },
+                {
+                  "en": "Game",
+                  "value": "game"
+                },
+                {
+                  "en": "Book",
+                  "value": "book"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Text",
+      "fields": [
+        {
+          "id": "test",
+          "type": "text",
+          "format": "number"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "Selected choices: ${if repeatingField contains 'film' then repeatingField else choice(repeatingField)}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

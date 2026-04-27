@@ -19,16 +19,16 @@ import org.apache.commons.text.StringEscapeUtils
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
 
-  def apply[D <: DataOrigin](
+  def apply(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     customerId: CustomerId
   ): FrontEndSubmissionVariables = {
 

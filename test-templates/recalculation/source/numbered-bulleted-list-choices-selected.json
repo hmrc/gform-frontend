@@ -1,0 +1,119 @@
+{
+  "_id": "numbered-bulleted-list-choices-selected",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items entered",
+      "summaryName": "Items entered",
+      "shortName": "Items $n",
+      "description": "$n - ${item}",
+      "summaryDescription": "summary",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Item",
+          "fields": [
+            {
+              "id": "item",
+              "type": "choice",
+              "hideChoicesSelected": true,
+              "choices": [
+                {
+                  "en": "Film",
+                  "value": "film"
+                },
+                {
+                  "en": "Game",
+                  "value": "game"
+                },
+                {
+                  "en": "Other",
+                  "value": "other"
+                },
+                {
+                  "en": "None",
+                  "value": "none"
+                }
+              ]
+            },
+            {
+              "id": "numberedInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "numbered list choices selected: ${numberedListChoicesSelected(item)}",
+              "infoType": "noformat"
+            },
+            {
+              "id": "bulletedInfo",
+              "type": "info",
+              "label": "",
+              "infoText": "bulleted list choices selected: ${bulletedListChoicesSelected(item)}",
+              "infoType": "noformat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Outside ATL",
+      "fields": [
+        {
+          "id": "numberedInfoOutside",
+          "type": "info",
+          "label": "",
+          "infoText": "numbered list choices selected outside ATL: ${numberedListChoicesSelected(item)}",
+          "infoType": "noformat"
+        },
+        {
+          "id": "bulletedInfoOutside",
+          "type": "info",
+          "label": "",
+          "infoText": "bulleted list choices selected outside ATL: ${bulletedListChoicesSelected(item)}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${numberedListChoicesSelected(item) = '' || bulletedListChoicesSelected(item) = ''}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

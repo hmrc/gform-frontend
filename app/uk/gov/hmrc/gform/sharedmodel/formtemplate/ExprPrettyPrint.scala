@@ -33,7 +33,7 @@ object ExprPrettyPrint {
     case IsFalse                          => "false"
     case Contains(multiValueField, value) => multiValueField.prettyPrint + " contains " + value.prettyPrint
     case In(formCtx, _)                   => "In"
-    case HasAnswer(formCtx, atlRef)       => formCtx.prettyPrint + " in " + atlRef.allExpressions.head.prettyPrint
+    case HasAnswer(formCtx, atlRef)       => formCtx.prettyPrint + " in " + formCtx.prettyPrint
     case MatchRegex(expr, _)              => "Regex"
     case FormPhase(value)                 => s"Form phase is $value"
     case First(formCtx)                   => "First"
@@ -71,8 +71,7 @@ object ExprPrettyPrint {
     case LangCtx                                 => "Lang"
     case DateCtx(dateExpr)                       => ExprPrettyPrint.prettyPrintDateExpr(dateExpr)
     case DateFunction(dateProjection)            => ExprPrettyPrint.prettyPrintDateFunction(dateProjection)
-    case Period(dateCtx1, dateCtx2)              => "period(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
-    case PeriodExt(period, func)                 => period.prettyPrint
+    case Period(dateCtx1, dateCtx2, func)        => "period(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"
     case Between(dateCtx1, dateCtx2, m) =>
       m match {
         case MeasurementType.Weeks => "weeksBetween(" + dateCtx1.prettyPrint + ", " + dateCtx2.prettyPrint + ")"

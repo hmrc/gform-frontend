@@ -22,21 +22,10 @@ sealed trait ExprType extends Product with Serializable
 
 object ExprType {
 
-  val number: ExprType = Number
-  val string: ExprType = String
-  val dateString: ExprType = DateString
-  val period: ExprType = Period
-  val address: ExprType = AddressString
-  val illegal: ExprType = Illegal
-  val choiceSelection: ExprType = ChoiceSelection
-
   case object Number extends ExprType
   case object String extends ExprType
-  case object DateString extends ExprType
-  case object Period extends ExprType
-  case object TaxPeriod extends ExprType
-  case object AddressString extends ExprType
-  case object Illegal extends ExprType
+  case object Date extends ExprType
+  case object Address extends ExprType
   case object ChoiceSelection extends ExprType
 
   implicit val equal: Eq[ExprType] = Eq.fromUniversalEquals

@@ -1,0 +1,69 @@
+{
+  "_id": "revealing-choice-value-with-expr-based",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "repayReasonChoice",
+          "type": "revealingChoice",
+          "label": "What is the main reason you are repaying the grant money?",
+          "choices": [
+            {
+              "en": "I am not eligible",
+              "value": "${taxYear(01062026) + 1}"
+            },
+            {
+              "en": "I would prefer to repay it, or part of it",
+              "value": "${taxYear(01062026) + 2}"
+            },
+            {
+              "en": "I believe HMRC has paid me too much in error",
+              "value": "${taxYear(01062026) + 3}"
+            }
+          ],
+          "revealingFields": [
+            [],
+            [
+              {
+                "id": "pageA",
+                "type": "text",
+                "label": "Page A",
+                "format": "number"
+              }
+            ],
+            []
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${pageA > 10}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

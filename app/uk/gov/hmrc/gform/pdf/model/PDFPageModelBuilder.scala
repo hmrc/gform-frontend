@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -31,8 +31,8 @@ import uk.gov.hmrc.gform.validation.ValidationResult
 
 object PDFPageModelBuilder {
 
-  def makeModel[D <: DataOrigin, T <: PDFType](
-    formModelOptics: FormModelOptics[D],
+  def makeModel[T <: PDFType](
+    formModelOptics: FormModelOptics,
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
     validationResult: ValidationResult,
@@ -46,9 +46,9 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    def brackets: List[Bracket[Visibility]] =
+    def brackets: List[Bracket] =
       formModelOptics.formModelVisibilityOptics.formModel.brackets.fold(_.brackets)(_.allBrackets).toList
-    val bracketsSorted: List[Bracket[Visibility]] = bracketOrdering.fold(brackets)(brackets.sorted(_))
+    val bracketsSorted: List[Bracket] = bracketOrdering.fold(brackets)(brackets.sorted(_))
 
     bracketsSorted.flatMap {
       _.fold { nonRepeatingPage =>
@@ -128,14 +128,14 @@ object PDFPageModelBuilder {
     }
   }
 
-  private def buildFromSingleton[A <: PageMode, T <: PDFType, D <: DataOrigin](
+  private def buildFromSingleton[T <: PDFType](
     cache: AuthCacheWithForm,
     envelopeWithMapping: EnvelopeWithMapping,
-    singleton: Singleton[A],
+    singleton: Singleton,
     sectionNumber: SectionNumber,
     source: Section,
     validationResult: ValidationResult,
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     maybeFilterFieldIds: Option[List[BaseComponentId]]
   )(implicit
     messages: Messages,
@@ -146,7 +146,7 @@ object PDFPageModelBuilder {
 
     import pdfFunctions._
 
-    val filteredFields = doFilter(singleton.page.fields, formModelVisibilityOptics.booleanExprResolver).filter(fc =>
+    val filteredFields = doFilter(singleton.page.fields, formModelVisibilityOptics.freeCalculator).filter(fc =>
       maybeFilterFieldIds.fold(true)(_.contains(fc.id.baseComponentId))
     )
     val pageFields: List[PageField] = formComponentOrdering

@@ -1,0 +1,65 @@
+{
+  "_id": "group-with-include-if",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Group Component",
+      "includeIf": "${pageA <= 300}",
+      "fields": [
+        {
+          "id": "additional",
+          "type": "group",
+          "label": "",
+          "repeatsMax": 5,
+          "fields": [
+            {
+              "id": "pageB",
+              "includeIf": "${pageA <= 200}",
+              "type": "text",
+              "format": "number",
+              "label": "Page B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Page C",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "includeIf": "${pageA <= 100}",
+          "format": "number",
+          "value": "${pageB.sum}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

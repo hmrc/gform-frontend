@@ -67,7 +67,6 @@ class TestOnlyModule(
   )
 
   val validationReportService = new ValidationService(
-    graphModule.booleanExprEval,
     gformBackendModule.gformConnector,
     lookupRegistry,
     ComponentChecker.ErrorReportInterpreter
@@ -95,15 +94,15 @@ class TestOnlyModule(
     authLoginApiService,
     gformModule.summaryController,
     gformModule.acknowledgementPdfService,
-    sessionCookieCrypto,
-    englishMessages
+    sessionCookieCrypto
   )
   val testOnlyErrorMessageController = new TestOnlyErrorMessageController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     controllersModule.messagesControllerComponents,
     validationReportService,
-    lookupRegistry
+    lookupRegistry,
+    graphModule.smartStringEvaluatorFactory
   )
 
   val translationController = new TranslationController(

@@ -1,0 +1,81 @@
+
+{
+  "_id": "is-login",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Login info",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Login info",
+          "label": "Login info",
+          "header": [
+            {
+              "en": "Login info"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "GG login: ${if auth.ggLogin then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Email login: ${if auth.emailLogin then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "Unknown login: ${if auth.ggLogin || auth.emailLogin then 'No' else 'Yes'}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "emailSecret",
+          "includeIf": "${auth.emailLogin}",
+          "label": "Email secret",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "ggSecret",
+          "includeIf": "${auth.ggLogin}",
+          "label": "Email secret",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

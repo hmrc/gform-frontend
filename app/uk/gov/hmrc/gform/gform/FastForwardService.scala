@@ -29,9 +29,10 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.gform.{ ForceReload, NoSpecificAction }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.gform.NoSpecificAction
+import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -57,7 +58,7 @@ class FastForwardService(
   def redirectFastForward[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     maybeSectionNumber: Option[SectionNumber],
     suppressErrors: SuppressErrors,
     fastForward: List[FastForward] = Nil
@@ -79,7 +80,7 @@ class FastForwardService(
     sectionNumber: SectionNumber,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     suppressErrors: SuppressErrors
   )(implicit
     messages: Messages,
@@ -99,7 +100,7 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     fastForward: List[FastForward],
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     maybeSectionNumber: Option[SectionNumber],
     suppressErrors: SuppressErrors
   )(implicit
@@ -108,14 +109,18 @@ class FastForwardService(
     l: LangADT
   ): Future[Result] =
     processDataService
-      .getProcessData(cache.variadicFormData, cache, gformConnector.getAllTaxPeriods, ForceReload, formModelOptics)
+      .getProcessData(
+        cache.variadicFormData,
+        cache,
+        gformConnector.getAllTaxPeriods,
+        ForceReload,
+        formModelOptics
+      )
       .flatMap { processData =>
         // This formModelVisibilityOptics comes from Mongo, not from Browser
-        val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser] =
+        val formModelVisibilityOptics: FormModelVisibilityOptics =
           processData.formModelOptics.formModelVisibilityOptics
-        implicit val sse: SmartStringEvaluator = smartStringEvaluatorFactory(
-          DataOrigin.swapDataOrigin(formModelVisibilityOptics)
-        )
+        implicit val sse: SmartStringEvaluator = smartStringEvaluatorFactory(formModelVisibilityOptics)
         for {
           envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
           envelopeWithMapping = EnvelopeWithMapping(envelope, cache.form)
@@ -124,7 +129,7 @@ class FastForwardService(
                                        TaskListUtils.evalTaskIdTaskStatus(
                                          cache,
                                          envelopeWithMapping,
-                                         DataOrigin.swapDataOrigin(processData.formModelOptics),
+                                         processData.formModelOptics,
                                          validationService
                                        )
                                      } else TaskIdTaskStatusMapping.empty.pure[Future]
@@ -257,7 +262,7 @@ class FastForwardService(
   def maybeInvalidSectionNumber(
     lastSectionNumber: Option[SectionNumber],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     messages: Messages,
     hc: HeaderCarrier,
@@ -267,8 +272,7 @@ class FastForwardService(
     envelope <- objectStoreService.getEnvelope(cache.form.envelopeId)
     processData <- processDataService
                      .getProcessData[SectionSelectorType.Normal](
-                       formModelOptics.formModelRenderPageOptics.recData.variadicFormData
-                         .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+                       formModelOptics.variadicFormData,
                        cache,
                        gformConnector.getAllTaxPeriods,
                        NoSpecificAction,

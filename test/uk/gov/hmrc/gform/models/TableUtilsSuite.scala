@@ -23,7 +23,6 @@ import play.api.http.HttpConfiguration
 import play.api.i18n._
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -102,14 +101,11 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
   private def buildFmvo(
     tableComponent: FormComponent,
     tpd: ThirdPartyData
-  ): FormModelOptics[DataOrigin.Browser] = {
+  ): FormModelOptics = {
     val section = mkSection(List(tableComponent))
     val formTemplate = mkFormTemplate(List(section))
-    val data = VariadicFormData[SourceOrigin.OutOfDate](Map.empty)
-    val authCache = mkAuthCacheWithForm(formTemplate).copy(
-      form = mkForm(formTemplate._id).copy(thirdPartyData = tpd)
-    )
-    mkFormModelOptics(formTemplate, data, Some(authCache))
+    val data = VariadicFormData(Map.empty)
+    mkFormModelOptics(formTemplate, data, tpd)
   }
 
   test("expand - DataRetrieveBased row is expanded into one row per DataRetrieve result") {
@@ -124,9 +120,9 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     )
 
     val optics = buildFmvo(tableComponent, tpd)
-    implicit val fmvo = optics.formModelVisibilityOptics
+    val freeCalculator = optics.formModelVisibilityOptics.freeCalculator
 
-    val result = TableUtils.expand(tableComponent, tableComponent.`type`.asInstanceOf[TableComp])
+    val result = TableUtils.expand(tableComponent, tableComponent.`type`.asInstanceOf[TableComp], freeCalculator)
     val resultTable = result.`type`.asInstanceOf[TableComp]
 
     assertEquals(resultTable.rows.size, 3)
@@ -179,9 +175,9 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     val tpd = ThirdPartyData.empty
 
     val optics = buildFmvo(tableComponent, tpd)
-    implicit val fmvo = optics.formModelVisibilityOptics
+    val freeCalculator = optics.formModelVisibilityOptics.freeCalculator
 
-    val result = TableUtils.expand(tableComponent, tableComponent.`type`.asInstanceOf[TableComp])
+    val result = TableUtils.expand(tableComponent, tableComponent.`type`.asInstanceOf[TableComp], freeCalculator)
     val resultTable = result.`type`.asInstanceOf[TableComp]
 
     assertEquals(resultTable.rows.size, 1)
@@ -212,9 +208,9 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     val staticComponent = mkFormComponent("staticTable", table)
 
     val optics = buildFmvo(staticComponent, ThirdPartyData.empty)
-    implicit val fmvo = optics.formModelVisibilityOptics
+    val freeCalculator = optics.formModelVisibilityOptics.freeCalculator
 
-    val result = TableUtils.expand(staticComponent, table)
+    val result = TableUtils.expand(staticComponent, table, freeCalculator)
     val resultTable = result.`type`.asInstanceOf[TableComp]
 
     assertEquals(resultTable.rows.size, 1)
@@ -247,8 +243,8 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
 
   private def buildAtlFmvo(
     tableComponent: FormComponent,
-    atlData: VariadicFormData[SourceOrigin.OutOfDate]
-  ): FormModelOptics[DataOrigin.Browser] = {
+    atlData: VariadicFormData
+  ): FormModelOptics = {
     val personNameFc = mkFormComponent("personName", Value)
     val personAgeFc = mkFormComponent("personAge", Value)
     val atlSection = mkAddToListSection(
@@ -265,7 +261,7 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     val table = mkAtlTableComp
     val tableComponent = mkFormComponent("personsTable", table)
 
-    val data = mkVariadicFormData[SourceOrigin.OutOfDate](
+    val data = mkVariadicFormData(
       "1_personName"       -> VariadicValue.One("nameValue1"),
       "1_personAge"        -> VariadicValue.One("3"),
       "2_personName"       -> VariadicValue.One("nameValue2"),
@@ -275,9 +271,9 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     )
 
     val optics = buildAtlFmvo(tableComponent, data)
-    implicit val fmvo = optics.formModelVisibilityOptics
+    val freeCalculator = optics.formModelVisibilityOptics.freeCalculator
 
-    val result = TableUtils.expand(tableComponent, table)
+    val result = TableUtils.expand(tableComponent, table, freeCalculator)
     val resultTable = result.`type`.asInstanceOf[TableComp]
 
     assertEquals(resultTable.rows.size, 2)
@@ -315,16 +311,16 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     val table = mkAtlTableComp
     val tableComponent = mkFormComponent("personsTable", table)
 
-    val data = mkVariadicFormData[SourceOrigin.OutOfDate](
+    val data = mkVariadicFormData(
       "1_personName"       -> VariadicValue.One("nameValue1"),
       "1_personAge"        -> VariadicValue.One("3"),
       "1_addAnotherPerson" -> VariadicValue.Many(List("1"))
     )
 
     val optics = buildAtlFmvo(tableComponent, data)
-    implicit val fmvo = optics.formModelVisibilityOptics
+    val freeCalculator = optics.formModelVisibilityOptics.freeCalculator
 
-    val result = TableUtils.expand(tableComponent, table)
+    val result = TableUtils.expand(tableComponent, table, freeCalculator)
     val resultTable = result.`type`.asInstanceOf[TableComp]
 
     assertEquals(resultTable.rows.size, 1)
@@ -348,7 +344,7 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     val table = mkAtlTableComp
     val tableComponent = mkFormComponent("personsTable", table)
 
-    val data = mkVariadicFormData[SourceOrigin.OutOfDate](
+    val data = mkVariadicFormData(
       "1_personName"       -> VariadicValue.One("nameValue1"),
       "1_personAge"        -> VariadicValue.One("3"),
       "2_personName"       -> VariadicValue.One("nameValue2"),
@@ -361,9 +357,9 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
     )
 
     val optics = buildAtlFmvo(tableComponent, data)
-    implicit val fmvo = optics.formModelVisibilityOptics
+    val freeCalculator = optics.formModelVisibilityOptics.freeCalculator
 
-    val result = TableUtils.expand(tableComponent, table)
+    val result = TableUtils.expand(tableComponent, table, freeCalculator)
     val resultTable = result.`type`.asInstanceOf[TableComp]
 
     assertEquals(resultTable.rows.size, 3)

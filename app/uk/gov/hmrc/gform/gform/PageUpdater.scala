@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.gform
 
-import uk.gov.hmrc.gform.models.PageMode
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import cats.data.NonEmptyList
 
-class PageUpdater[A <: PageMode](
-  page: Page[A],
+class PageUpdater(
+  page: Page,
   index: Int,
   baseIds: List[FormComponentId],
   dataRetrieveIds: List[DataRetrieveId]
@@ -53,7 +52,7 @@ class PageUpdater[A <: PageMode](
     })
   )
 
-  def updated: Page[A] =
+  def updated: Page =
     page.copy(
       title = expandSmartString(page.title),
       id = page.id.map(id => id.withIndex(index)),
@@ -74,11 +73,11 @@ class PageUpdater[A <: PageMode](
 }
 
 object PageUpdater {
-  def apply[A <: PageMode](
-    page: Page[A],
+  def apply(
+    page: Page,
     index: Int,
     baseIds: List[FormComponentId],
     dataRetrieveIds: List[DataRetrieveId]
-  ): Page[A] =
-    new PageUpdater[A](page, index, baseIds, dataRetrieveIds).updated
+  ): Page =
+    new PageUpdater(page, index, baseIds, dataRetrieveIds).updated
 }

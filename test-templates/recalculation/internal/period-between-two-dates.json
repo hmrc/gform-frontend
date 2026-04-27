@@ -1,0 +1,1377 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Dates"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Date A"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dateA",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Date": {
+                      "constraintType": {
+                        "AnyDate": {}
+                      },
+                      "offset": {
+                        "value": 0
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Date B"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dateB",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Date": {
+                      "constraintType": {
+                        "AnyDate": {}
+                      },
+                      "offset": {
+                        "value": 0
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Test"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "basicInfo",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Date A: {0}\n\nDate B: {1}\n\nPeriod: {2}\n\nTotal months: {3}\n\nTotal year: {4}\n\nMonths: {5}\n\nDays: {6}\n\nSum: {7}\n\n{8} is {9}\n\n{10} is {11}\n\n{12} - P-1M = {13}\n\n{14} + P-1M = {15}\n\n{16} - P1M = {17}\n\n{18} + P1M = {19}\n\nP1Y - P1Y: {20}\n\nP1Y + P1Y: {21}\n\nperiod(dateA, dateB) = period(dateA, dateB) - P-1M: {22}\n\nperiod(dateA, dateB) = period(dateA, dateB): {23}\n\nP1Y < P1Y: {24}\n\nP1Y <= P1Y: {25}\n\nP1Y > P1Y: {26}\n\nP1Y >= P1Y: {27}\n\n{28} < P1Y: {29}\n\n{30} <= P1Y: {31}\n\n{32} > P1Y: {33}\n\n{34} >= P1Y: {35}"
+                            },
+                            "interpolations": [
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "dateA"
+                                }
+                              },
+                              {
+                                "FormCtx": {
+                                  "formComponentId": "dateB"
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "TotalMonths": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Years": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Months": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Days": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Sum": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "GreaterThan": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P15Y"
+                                        }
+                                      },
+                                      "right": {
+                                        "Period": {
+                                          "dateCtx1": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateA"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "dateCtx2": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateB"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "func": {
+                                            "Identity": {}
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "less than 15 years"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "more than 15 years"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "GreaterThan": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P10Y"
+                                        }
+                                      },
+                                      "right": {
+                                        "Period": {
+                                          "dateCtx1": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateA"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "dateCtx2": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateB"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "func": {
+                                            "Identity": {}
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "less than 10 years"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "more than 10 years"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Subtraction": {
+                                  "field1": {
+                                    "Period": {
+                                      "dateCtx1": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateA"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "dateCtx2": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateB"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "func": {
+                                        "Identity": {}
+                                      }
+                                    }
+                                  },
+                                  "field2": {
+                                    "PeriodValue": {
+                                      "value": "P-1M"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Add": {
+                                  "field1": {
+                                    "Period": {
+                                      "dateCtx1": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateA"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "dateCtx2": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateB"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "func": {
+                                        "Identity": {}
+                                      }
+                                    }
+                                  },
+                                  "field2": {
+                                    "PeriodValue": {
+                                      "value": "P-1M"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Subtraction": {
+                                  "field1": {
+                                    "Period": {
+                                      "dateCtx1": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateA"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "dateCtx2": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateB"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "func": {
+                                        "Identity": {}
+                                      }
+                                    }
+                                  },
+                                  "field2": {
+                                    "PeriodValue": {
+                                      "value": "P1M"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Period": {
+                                  "dateCtx1": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateA"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dateCtx2": {
+                                    "DateCtx": {
+                                      "value": {
+                                        "DateFormCtxVar": {
+                                          "formCtx": {
+                                            "formComponentId": "dateB"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "func": {
+                                    "Identity": {}
+                                  }
+                                }
+                              },
+                              {
+                                "Add": {
+                                  "field1": {
+                                    "Period": {
+                                      "dateCtx1": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateA"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "dateCtx2": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DateFormCtxVar": {
+                                              "formCtx": {
+                                                "formComponentId": "dateB"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "func": {
+                                        "Identity": {}
+                                      }
+                                    }
+                                  },
+                                  "field2": {
+                                    "PeriodValue": {
+                                      "value": "P1M"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Subtraction": {
+                                  "field1": {
+                                    "PeriodValue": {
+                                      "value": "P1Y"
+                                    }
+                                  },
+                                  "field2": {
+                                    "PeriodValue": {
+                                      "value": "P1Y"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Add": {
+                                  "field1": {
+                                    "PeriodValue": {
+                                      "value": "P1Y"
+                                    }
+                                  },
+                                  "field2": {
+                                    "PeriodValue": {
+                                      "value": "P1Y"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "Equals": {
+                                      "left": {
+                                        "Period": {
+                                          "dateCtx1": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateA"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "dateCtx2": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateB"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "func": {
+                                            "Identity": {}
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "Subtraction": {
+                                          "field1": {
+                                            "Period": {
+                                              "dateCtx1": {
+                                                "DateCtx": {
+                                                  "value": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "dateA"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "dateCtx2": {
+                                                "DateCtx": {
+                                                  "value": {
+                                                    "DateFormCtxVar": {
+                                                      "formCtx": {
+                                                        "formComponentId": "dateB"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "func": {
+                                                "Identity": {}
+                                              }
+                                            }
+                                          },
+                                          "field2": {
+                                            "PeriodValue": {
+                                              "value": "P-1M"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "Equal"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "Not equal"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "Equals": {
+                                      "left": {
+                                        "Period": {
+                                          "dateCtx1": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateA"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "dateCtx2": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateB"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "func": {
+                                            "Identity": {}
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "Period": {
+                                          "dateCtx1": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateA"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "dateCtx2": {
+                                            "DateCtx": {
+                                              "value": {
+                                                "DateFormCtxVar": {
+                                                  "formCtx": {
+                                                    "formComponentId": "dateB"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "func": {
+                                            "Identity": {}
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "Equal"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "Not equal"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "LessThan": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "LessThanOrEquals": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "GreaterThan": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "GreaterThanOrEquals": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "PeriodValue": {
+                                  "value": "P1Y-1M"
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "LessThan": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y-1M"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "PeriodValue": {
+                                  "value": "P1Y+1M"
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "LessThanOrEquals": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y+1M"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "PeriodValue": {
+                                  "value": "P1Y+1M"
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "GreaterThan": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y+1M"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "PeriodValue": {
+                                  "value": "P1Y-1M"
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "GreaterThanOrEquals": {
+                                      "left": {
+                                        "PeriodValue": {
+                                          "value": "P1Y-1M"
+                                        }
+                                      },
+                                      "right": {
+                                        "PeriodValue": {
+                                          "value": "P1Y"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Constant": {
+                                      "value": "True"
+                                    }
+                                  },
+                                  "field2": {
+                                    "Constant": {
+                                      "value": "False"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "period-between-two-dates",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "period-between-two-dates",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

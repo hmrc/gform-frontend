@@ -17,47 +17,31 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, FormComponent, FormComponentId, FormCtx, IndexOfDataRetrieveCtx, TableComp, TableValue, TableValueRow }
+import uk.gov.hmrc.gform.recalculation.{ EvaluationStatus, FreeCalculator }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, FormComponent, FormComponentId, IndexOfDataRetrieveCtx, TableComp, TableValue, TableValueRow }
 
 object TableUtils {
 
-  def expand[D <: DataOrigin](formComponent: FormComponent, table: TableComp)(implicit
-    fmvo: FormModelVisibilityOptics[D],
-    messages: Messages
-  ): FormComponent = {
+  def expand(formComponent: FormComponent, table: TableComp, freeCalculator: FreeCalculator): FormComponent = {
     val rows: List[TableValueRow] = table.rows.flatMap { row =>
       row.dynamic.fold(List(row)) {
         case d @ Dynamic.ATLBased(_) =>
-          val allAddToListBrackets: List[Bracket.AddToList[Visibility]] = fmvo.formModel.brackets.addToListBrackets
-
-          val addToListComponentBaseIds: Set[BaseComponentId] =
-            allAddToListBrackets
-              .flatMap(
-                _.iterations.toList.flatMap(_.toPageModel.toList.flatMap(_.allFormComponentIds.map(_.baseComponentId)))
-              )
-              .toSet
-          // Expand only addToList's components
-          val baseIds = determineBaseIds(row).filter(baseId => addToListComponentBaseIds(baseId.baseComponentId))
-          expandTable[D](row, d, baseIds).toList
+          val addToListComponentBaseIds: Set[BaseComponentId] = freeCalculator.metadata.addToListComponentIds
+          val baseIds =
+            determineBaseIds(row, freeCalculator).filter(baseId => addToListComponentBaseIds(baseId.baseComponentId))
+          expandTable(row, d, baseIds, freeCalculator).toList
         case Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx) =>
-          expandDataRetrieveTable(row, indexOfDataRetrieveCtx)
+          expandDataRetrieveTable(row, indexOfDataRetrieveCtx, freeCalculator)
       }
     }
     val updTable = table.copy(rows = rows)
     formComponent.copy(`type` = updTable)
   }
 
-  def determineBaseIds[D <: DataOrigin](tableValueRow: TableValueRow)(implicit
-    fmvo: FormModelVisibilityOptics[D]
-  ): List[FormComponentId] =
+  def determineBaseIds(tableValueRow: TableValueRow, freeCalculator: FreeCalculator): List[FormComponentId] =
     tableValueRow.values.flatMap { tableValue =>
-      tableValue.value.interpolations(fmvo.booleanExprResolver.resolve(_)).flatMap(_.leafs(fmvo.formModel)).collect {
-        case FormCtx(fcId) =>
-          fcId
-      }
+      tableValue.value.interpolations(freeCalculator.evalBooleanExpr(_)).flatMap(_.allFormComponentIds())
     }
 
   private def expandTableValue(index: Int, baseIds: List[FormComponentId], tableValue: TableValue): TableValue =
@@ -75,15 +59,17 @@ object TableUtils {
       dynamic = tableValueRow.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _))
     )
 
-  private def expandTable[D <: DataOrigin](
+  private def expandTable(
     tableValueRow: TableValueRow,
     dynamic: Dynamic.ATLBased,
-    baseIds: List[FormComponentId]
-  )(implicit
-    fmvo: FormModelVisibilityOptics[D]
+    baseIds: List[FormComponentId],
+    freeCalculator: FreeCalculator
   ): NonEmptyList[TableValueRow] = {
+
     val modelComponentIds =
-      fmvo.formModel.allIndexedComponentIds.get(dynamic.formComponentId.baseComponentId).toList.flatten
+      freeCalculator.answerMapWithFallback.allModelComponentIds(dynamic.formComponentId.modelComponentId).collect {
+        case (modelComponentId, evaluationStatus) if evaluationStatus != EvaluationStatus.Hidden => modelComponentId
+      }
 
     NonEmptyList.fromList(modelComponentIds) match {
       case None => NonEmptyList.one(tableValueRow)
@@ -112,19 +98,16 @@ object TableUtils {
       dynamic = tableValueRow.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _))
     )
 
-  private def expandDataRetrieveTable[D <: DataOrigin](
+  private def expandDataRetrieveTable(
     tableValueRow: TableValueRow,
-    indexOfDataRetrieveCtx: IndexOfDataRetrieveCtx
-  )(implicit
-    fmvo: FormModelVisibilityOptics[D],
-    messages: Messages
+    indexOfDataRetrieveCtx: IndexOfDataRetrieveCtx,
+    freeCalculator: FreeCalculator
   ): List[TableValueRow] = {
-    val expressionResult = fmvo.evalAndApplyTypeInfoFirst(indexOfDataRetrieveCtx.ctx)
-    val results = expressionResult.listRepresentation
-    if (results.isEmpty) {
-      List(tableValueRow)
-    } else {
-      results.zipWithIndex.map { case (_, index) => updateDataRetrieveTableValueRow(index, tableValueRow) }
+    val evaluationStatus = freeCalculator.evalExpr(indexOfDataRetrieveCtx.ctx).evaluationStatus
+    evaluationStatus match {
+      case EvaluationStatus.ListResult(statuses) =>
+        statuses.zipWithIndex.map { case (_, index) => updateDataRetrieveTableValueRow(index, tableValueRow) }
+      case _ => List(tableValueRow)
     }
   }
 }

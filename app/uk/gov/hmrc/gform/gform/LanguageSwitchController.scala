@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, RadioLookup }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 
 class LanguageSwitchController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
@@ -100,7 +99,9 @@ class LanguageSwitchController(
             val switchedLabel: List[(ModelComponentId, LookupLabel)] =
               lookups.flatMap { case (modelComponentId, register) =>
                 val formField: FormField =
-                  formModelOptics.formModelRenderPageOptics.toFormField(modelComponentId)
+                  formModelOptics.formModelVisibilityOptics.freeCalculator.variadicFormData.toFormField(
+                    modelComponentId
+                  )
 
                 switchLookupLabelLanguage(register, LookupLabel(formField.value), l, languageToSwitchTo).map(
                   modelComponentId -> _
@@ -136,7 +137,7 @@ class LanguageSwitchController(
       }
 
   private def resetAllConfirmationPages(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     formData: FormData
   ): FormData = {
     val confirmationPages = formModelOptics.formModelRenderPageOptics.formModel.confirmationPageMap.map(_._2)

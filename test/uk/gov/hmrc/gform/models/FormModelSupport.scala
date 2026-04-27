@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.Monad
 import cats.syntax.applicative._
-import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.toSmartString
@@ -27,7 +26,8 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, SeissEligibilityChecker }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.recalculation.Metadata
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber }
@@ -58,7 +58,9 @@ trait FormModelSupport extends GraphSpec {
     mkFormModelBuilder(formTemplate)
   }
 
-  def mkForm(formTemplateId: FormTemplateId): Form = Form(
+  def mkForm(formTemplateId: FormTemplateId): Form = mkForm(formTemplateId, thirdPartyData)
+
+  def mkForm(formTemplateId: FormTemplateId, thirdPartyData: ThirdPartyData): Form = Form(
     _id = FormId("form-id"),
     envelopeId = envelopeId,
     userId = UserId("user-id"),
@@ -74,19 +76,24 @@ trait FormModelSupport extends GraphSpec {
     startDate = Instant.now
   )
 
-  def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm = AuthCacheWithForm(
-    retrievals = retrievals,
-    form = mkForm(formTemplate._id),
-    formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
-    role = Role.Customer,
-    accessCode = maybeAccessCode,
-    new LookupRegistry(Map())
-  )
+  def mkAuthCacheWithForm(formTemplate: FormTemplate): AuthCacheWithForm =
+    mkAuthCacheWithForm(formTemplate, thirdPartyData)
+
+  def mkAuthCacheWithForm(formTemplate: FormTemplate, thirdPartyData: ThirdPartyData): AuthCacheWithForm =
+    AuthCacheWithForm(
+      retrievals = retrievals,
+      form = mkForm(formTemplate._id, thirdPartyData),
+      formTemplateContext = FormTemplateContext.basicContext(formTemplate, None),
+      role = Role.Customer,
+      accessCode = maybeAccessCode,
+      new LookupRegistry(Map())
+    )
 
   def mkFormModelBuilder(formTemplate: FormTemplate): FormModelBuilder =
     new FormModelBuilder(
       retrievals,
       formTemplate,
+      Metadata.from(formTemplate),
       thirdPartyData,
       envelopeId,
       maybeAccessCode,
@@ -97,31 +104,35 @@ trait FormModelSupport extends GraphSpec {
 
   def mkFormModelOptics(
     formTemplate: FormTemplate,
-    data: VariadicFormData[SourceOrigin.OutOfDate],
-    authCache: Option[AuthCacheWithForm] = None
-  )(implicit messages: Messages, lang: LangADT): FormModelOptics[DataOrigin.Browser] =
+    data: VariadicFormData
+  )(implicit messages: Messages, lang: LangADT): FormModelOptics =
+    mkFormModelOptics(formTemplate, data, ThirdPartyData.empty)
+
+  def mkFormModelOptics(
+    formTemplate: FormTemplate,
+    data: VariadicFormData,
+    thirdPartyData: ThirdPartyData
+  )(implicit messages: Messages, lang: LangADT): FormModelOptics = {
+    val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate, thirdPartyData)
+
     FormModelOptics
-      .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
-        data,
-        authCache.fold(mkAuthCacheWithForm(formTemplate))(ac => ac)
-      )
+      .mkFormModelOptics[SectionSelectorType.Normal](data, authCache)
+  }
 
   def mkFormModelOpticsMongo(
     formTemplate: FormTemplate,
-    data: VariadicFormData[SourceOrigin.OutOfDate]
-  )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics[DataOrigin.Mongo] = {
-    val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
-      FormModelOptics.mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
+    data: VariadicFormData
+  )(implicit messages: Messages, lang: LangADT): FormModelVisibilityOptics =
+    FormModelOptics
+      .mkFormModelOptics[SectionSelectorType.WithDeclaration](
         data,
         mkAuthCacheWithForm(formTemplate)
       )
-
-    formModelOptics.formModelVisibilityOptics
-  }
+      .formModelVisibilityOptics
 
   def mkProcessData(
     formTemplate: FormTemplate,
-    formModelOptics: FormModelOptics[DataOrigin.Browser]
+    formModelOptics: FormModelOptics
   ): ProcessData = {
 
     val visitsIndex: VisitIndex = VisitIndex.Classic(Set.empty[SectionNumber.Classic])
@@ -131,7 +142,7 @@ trait FormModelSupport extends GraphSpec {
     ProcessData(formModelOptics, visitsIndex, obligations, cache, None)
   }
 
-  def toOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.IndexBased] =
+  def toOptionData(xs: List[String]): List[OptionData.IndexBased] =
     xs.map(l => OptionData.IndexBased(toSmartString(l), None, None, None, None))
 
   def toOptionData(s: String): OptionData.IndexBased = OptionData.IndexBased(toSmartString(s), None, None, None, None)

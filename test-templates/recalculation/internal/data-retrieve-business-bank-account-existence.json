@@ -1,0 +1,1240 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Bank details"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Account number"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "accountNumber",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "UkBankAccountNumber": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Sort code"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "sortCode",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "UkSortCodeFormat": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Company name"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "companyName",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ],
+              "dataRetrieve": [
+                {
+                  "tpe": {
+                    "name": "businessBankAccountExistence"
+                  },
+                  "failureCountResetMinutes": 10,
+                  "attributes": {
+                    "FromObject": {
+                      "inst": [
+                        {
+                          "attribute": {
+                            "name": "accountNumberIsWellFormatted"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "accountNumberIsWellFormatted"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "no",
+                              "indeterminate"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": true
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sortCodeIsPresentOnEISCD"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "sortCodeIsPresentOnEISCD"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "no",
+                              "error"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": true
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sortCodeBankName"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "sortCodeBankName"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "nonStandardAccountDetailsRequiredForBacs"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "nonStandardAccountDetailsRequiredForBacs"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "no",
+                              "inapplicable"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": true
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "accountExists"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "accountExists"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "no",
+                              "inapplicable",
+                              "indeterminate",
+                              "error"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": true
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "nameMatches"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "nameMatches"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "partial",
+                              "no",
+                              "inapplicable",
+                              "indeterminate",
+                              "error"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": true
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sortCodeSupportsDirectDebit"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "sortCodeSupportsDirectDebit"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "no",
+                              "error"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sortCodeSupportsDirectCredit"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "sortCodeSupportsDirectCredit"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "yes",
+                              "no",
+                              "error"
+                            ],
+                            "valueType": {
+                              "JsStringType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "accountName"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "accountName"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "iban"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "iban"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "attrTypeMapping": {},
+                  "id": "bankDetails",
+                  "callOnNoChange": false,
+                  "maxFailedAttempts": 3,
+                  "params": [
+                    {
+                      "parameter": {
+                        "name": "sortCode",
+                        "path": [
+                          "account"
+                        ],
+                        "tpe": {
+                          "String": {}
+                        }
+                      },
+                      "expr": {
+                        "FormCtx": {
+                          "formComponentId": "sortCode"
+                        }
+                      }
+                    },
+                    {
+                      "parameter": {
+                        "name": "accountNumber",
+                        "path": [
+                          "account"
+                        ],
+                        "tpe": {
+                          "String": {}
+                        }
+                      },
+                      "expr": {
+                        "FormCtx": {
+                          "formComponentId": "accountNumber"
+                        }
+                      }
+                    },
+                    {
+                      "parameter": {
+                        "name": "companyName",
+                        "path": [
+                          "business"
+                        ],
+                        "tpe": {
+                          "String": {}
+                        }
+                      },
+                      "expr": {
+                        "FormCtx": {
+                          "formComponentId": "companyName"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "miniSummary",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "MiniSummaryList": {
+                      "rows": [
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "accountNumberIsWellFormatted"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "accountNumberIsWellFormatted: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "accountNumberIsWellFormatted"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeIsPresentOnEISCD"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeIsPresentOnEISCD: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "sortCodeIsPresentOnEISCD"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeBankName"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeBankName: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "sortCodeBankName"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "nonStandardAccountDetailsRequiredForBacsX"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "nonStandardAccountDetailsRequiredForBacs: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "nonStandardAccountDetailsRequiredForBacs"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "accountExists"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "accountExists: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "accountExists"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "nameMatches"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "nameMatches: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "nameMatches"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeSupportsDirectDebit"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeSupportsDirectDebit: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "sortCodeSupportsDirectDebit"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeSupportsDirectCredit"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "sortCodeSupportsDirectCredit: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "sortCodeSupportsDirectCredit"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "accountName"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "accountName: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "accountName"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "failedCount"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "failedCount: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "failedCount"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "isBlocked"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "isBlocked: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "isBlocked"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "unblockTime"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "unblockTime: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "unblockTime"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "SmartStringRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "unblockDate"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "unblockDate: {0}"
+                                  },
+                                  "interpolations": [
+                                    {
+                                      "DataRetrieveCtx": {
+                                        "id": "bankDetails",
+                                        "attribute": {
+                                          "name": "unblockDate"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "displayInSummary": {
+                        "booleanExpression": {
+                          "IsTrue": {}
+                        }
+                      }
+                    }
+                  },
+                  "displayInSummary": {
+                    "booleanExpression": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Secret"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "DataRetrieveCtx": {
+                        "id": "bankDetails",
+                        "attribute": {
+                          "name": "isBlocked"
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": "true"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Secret"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "secret",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Reveal"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "reveal"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Keep hidden"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "StringBased": {
+                                "value": "keepHidden"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "data-retrieve-business-bank-account-existence",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "data-retrieve-business-bank-account-existence",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

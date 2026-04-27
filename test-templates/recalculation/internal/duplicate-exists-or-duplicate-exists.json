@@ -1,0 +1,1051 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People in charge of the business"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0} - {1} {2}{3}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personName"
+                          }
+                        },
+                        {
+                          "IfElse": {
+                            "cond": {
+                              "Contains": {
+                                "multiValueField": {
+                                  "formComponentId": "personLocationChoice"
+                                },
+                                "value": {
+                                  "Constant": {
+                                    "value": "0"
+                                  }
+                                }
+                              }
+                            },
+                            "field1": {
+                              "Constant": {
+                                "value": "National Insurance number:"
+                              }
+                            },
+                            "field2": {
+                              "Constant": {
+                                "value": "National Identification number:"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personNino"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personNationalId"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What is your full name?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is your full name?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personName",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Is your residential address in the UK?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Is your residential address in the UK?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personLocationChoice",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Yes",
+                                      "cy": "Iawn"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "IndexBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "No",
+                                      "cy": "Na"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Horizontal": {}
+                        },
+                        "type": {
+                          "YesNo": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What is your National Insurance number?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "id": "personNinoPage",
+                "includeIf": {
+                  "booleanExpr": {
+                    "Contains": {
+                      "multiValueField": {
+                        "formComponentId": "personLocationChoice"
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "0"
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is your National Insurance number?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personNino",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "NINO": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "What is your national identification number?"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "id": "personNationalIdPage",
+                "includeIf": {
+                  "booleanExpr": {
+                    "Contains": {
+                      "multiValueField": {
+                        "formComponentId": "personLocationChoice"
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "1"
+                        }
+                      }
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What is your national identification number?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personNationalId",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "TextWithRestrictions": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              },
+              {
+                "removeItemIf": {
+                  "booleanExpr": {
+                    "Contains": {
+                      "multiValueField": {
+                        "formComponentId": "personChangeOrRemoveChoice"
+                      },
+                      "value": {
+                        "Constant": {
+                          "value": "removePerson"
+                        }
+                      }
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "Or": {
+                      "left": {
+                        "DuplicateExists": {
+                          "fieldList": [
+                            {
+                              "formComponentId": "personNino"
+                            }
+                          ]
+                        }
+                      },
+                      "right": {
+                        "DuplicateExists": {
+                          "fieldList": [
+                            {
+                              "formComponentId": "personNationalId"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "title": {
+                  "SmartStringCond": {
+                    "ifConditions": [
+                      [
+                        {
+                          "Contains": {
+                            "multiValueField": {
+                              "formComponentId": "personLocationChoice"
+                            },
+                            "value": {
+                              "Constant": {
+                                "value": "0"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "localised": {
+                            "en": "You have already added a person with this National Insurance number"
+                          },
+                          "interpolations": []
+                        }
+                      ]
+                    ],
+                    "elseCondition": {
+                      "localised": {
+                        "en": "You have already added a person with this national identification number"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "confirmation": {
+                  "question": {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "What do you want to do next?"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "personChangeOrRemoveChoice",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Change the National Insurance number"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "includeIf": {
+                                "booleanExpr": {
+                                  "DuplicateExists": {
+                                    "fieldList": [
+                                      {
+                                        "formComponentId": "personNino"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "changeNino"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Change the National Identity number"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "includeIf": {
+                                "booleanExpr": {
+                                  "DuplicateExists": {
+                                    "fieldList": [
+                                      {
+                                        "formComponentId": "personNationalId"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "changeNID"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Remove {0}"
+                                    },
+                                    "interpolations": [
+                                      {
+                                        "FormCtx": {
+                                          "formComponentId": "personName"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "removePerson"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
+                      }
+                    },
+                    "displayInSummary": {
+                      "booleanExpression": {
+                        "IsFalse": {}
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  "redirects": [
+                    {
+                      "if": {
+                        "booleanExpr": {
+                          "Contains": {
+                            "multiValueField": {
+                              "formComponentId": "personChangeOrRemoveChoice"
+                            },
+                            "value": {
+                              "Constant": {
+                                "value": "changeNino"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "pageId": "personNinoPage"
+                    },
+                    {
+                      "if": {
+                        "booleanExpr": {
+                          "Contains": {
+                            "multiValueField": {
+                              "formComponentId": "personChangeOrRemoveChoice"
+                            },
+                            "value": {
+                              "Constant": {
+                                "value": "changeNID"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "pageId": "personNationalIdPage"
+                    }
+                  ],
+                  "fieldsConfirmed": [
+                    "personName",
+                    "personNino",
+                    "personNationalId"
+                  ]
+                },
+                "caption": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "People in charge of the business"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": ""
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "duplicateInfo",
+                    "submissible": false,
+                    "isPageHeading": false,
+                    "type": {
+                      "InformationMessage": {
+                        "infoType": {
+                          "NoFormat": {}
+                        },
+                        "infoText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "<h2 class=''govuk-heading-m''>Details of the person you are trying to add</h2>"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": false
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Person you are adding"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "duplicatesMiniSummary",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "MiniSummaryList": {
+                        "rows": [
+                          {
+                            "ValueRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Full name"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "AnyExpr": {
+                                  "expr": {
+                                    "FormCtx": {
+                                      "formComponentId": "personName"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "National Insurance number"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "AnyExpr": {
+                                  "expr": {
+                                    "FormCtx": {
+                                      "formComponentId": "personNino"
+                                    }
+                                  }
+                                }
+                              },
+                              "includeIf": {
+                                "booleanExpr": {
+                                  "Contains": {
+                                    "multiValueField": {
+                                      "formComponentId": "personLocationChoice"
+                                    },
+                                    "value": {
+                                      "Constant": {
+                                        "value": "0"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "ValueRow": {
+                              "key": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "National Identification number"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "AnyExpr": {
+                                  "expr": {
+                                    "FormCtx": {
+                                      "formComponentId": "personNationalId"
+                                    }
+                                  }
+                                }
+                              },
+                              "includeIf": {
+                                "booleanExpr": {
+                                  "Contains": {
+                                    "multiValueField": {
+                                      "formComponentId": "personLocationChoice"
+                                    },
+                                    "value": {
+                                      "Constant": {
+                                        "value": "1"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "displayInSummary": {
+                          "booleanExpression": {
+                            "IsFalse": {}
+                          }
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "FormCtx": {
+                        "formComponentId": "personName"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another person?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnother",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People in charge of the business you have added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "People"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "duplicate-exists-or-duplicate-exists",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "duplicate-exists-or-duplicate-exists",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

@@ -25,12 +25,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.gform.NoSpecificAction
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.models.{ ProcessDataService, SectionSelectorType }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, TaskIdTaskStatusMapping, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
@@ -45,14 +44,15 @@ class TaskListRenderingService(
   frontendAppConfig: FrontendAppConfig,
   validationService: ValidationService,
   gformConnector: GformConnector,
-  processDataService: ProcessDataService[Future]
+  processDataService: ProcessDataService[Future],
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext) {
   def renderTaskList(
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[_],
     hc: HeaderCarrier,
@@ -81,7 +81,7 @@ class TaskListRenderingService(
           )
         )
       cacheUpd = cache.copy(form = cache.form.copy(taskIdTaskStatus = taskIdTaskStatusMapping))
-      newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]
+      newDataRaw = cacheUpd.variadicFormData
       processData <- processDataService
                        .getProcessData[SectionSelectorType.Normal](
                          newDataRaw,
@@ -97,11 +97,10 @@ class TaskListRenderingService(
           coordinates
       }.toList
 
-      val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
       val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
 
       implicit val sse: SmartStringEvaluator =
-        smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, l)
+        smartStringEvaluatorFactory(formModelVisibilityOptics)(messages, l)
 
       val visibleTaskStatusesLookup = statusesLookup.filter { case (coord, _) =>
         visibleTaskCoordinates.contains(coord)

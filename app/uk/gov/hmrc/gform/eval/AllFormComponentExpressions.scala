@@ -42,7 +42,9 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       toPlainExprs(exprs)
     }
 
-    def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = nel.toList.flatMap(_.allInterpolations)
+    def fromList(list: List[SmartString]): List[Expr] = list.flatMap(_.allInterpolations)
+
+    def fromNel(nel: NonEmptyList[SmartString]): List[Expr] = fromList(nel.toList)
 
     val fcExprs: List[Expr] =
       fc.label.allInterpolations ++
@@ -75,7 +77,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
       case IsChoice(Choice(_, options, _, _, hints, optionHelpText, _, _, _, _, _, _)) =>
         toPlainExprs(
-          fromNel(options.map(_.label)),
+          fromList(options.map(_.label)),
           hints.fold(List.empty[Expr])(fromNel),
           optionHelpText.fold(List.empty[Expr])(fromNel)
         )

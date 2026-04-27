@@ -34,6 +34,11 @@ import java.time.LocalDate
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
 
+  def maybeAffinityGroup: Option[AffinityGroup] = this match {
+    case ar: AuthenticatedRetrievals => Some(ar.affinityGroup)
+    case _                           => None
+  }
+
   def groupId = this match {
     case AnonymousRetrievals(sessionId) => sessionId.value
     case EmailRetrievals(EmailId(email)) =>

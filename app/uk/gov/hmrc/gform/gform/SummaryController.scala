@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStor
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.pdf.PDFRenderService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfContent }
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -158,26 +157,25 @@ class SummaryController(
       maybeAccessCode,
       OperationWithForm.AcceptSummary
     ) { implicit request: Request[AnyContent] => implicit l => cache => implicit sse => formModelOptics =>
-      processResponseDataFromBody(request, formModelOptics.formModelRenderPageOptics) {
-        requestRelatedData => variadicFormData => _ =>
-          save match {
-            case Exit =>
-              Redirect(
-                gform.routes.SaveAcknowledgementController
-                  .saveAndExitFromSummary(cache.formTemplateContext.formTemplate._id, maybeAccessCode, maybeCoordinates)
-              ).pure[Future]
-            case SummaryContinue =>
-              handleSummaryContinue(
-                cache.form.formTemplateId,
-                maybeAccessCode,
-                cache,
-                formModelOptics,
-                formDataFingerprint,
-                maybeCoordinates,
-                taskCompleted
-              )
-            case _ => BadRequest("Cannot determine action").pure[Future]
-          }
+      processResponseDataFromBody(request, formModelOptics) { requestRelatedData => variadicFormData => _ =>
+        save match {
+          case Exit =>
+            Redirect(
+              gform.routes.SaveAcknowledgementController
+                .saveAndExitFromSummary(cache.formTemplateContext.formTemplate._id, maybeAccessCode, maybeCoordinates)
+            ).pure[Future]
+          case SummaryContinue =>
+            handleSummaryContinue(
+              cache.form.formTemplateId,
+              maybeAccessCode,
+              cache,
+              formModelOptics,
+              formDataFingerprint,
+              maybeCoordinates,
+              taskCompleted
+            )
+          case _ => BadRequest("Cannot determine action").pure[Future]
+        }
       }
     }
 
@@ -185,7 +183,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     formDataFingerprint: String,
     maybeCoordinates: Option[Coordinates],
     taskCompleted: Option[Boolean]
@@ -338,7 +336,7 @@ class SummaryController(
   private def processSubmission(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,
@@ -355,7 +353,7 @@ class SummaryController(
                            )
       result <- if (validationResult.isFormValid) {
                   for {
-                    customerId <- submissionService.submitForm[DataOrigin.Mongo, SectionSelectorType.Normal](
+                    customerId <- submissionService.submitForm[SectionSelectorType.Normal](
                                     cache,
                                     maybeAccessCode,
                                     EnvelopeWithMapping(envelope, cache.form),
@@ -377,7 +375,7 @@ class SummaryController(
                 }
     } yield result
 
-  def createPDFContent(cache: AuthCacheWithForm, formModelOptics: FormModelOptics[DataOrigin.Mongo])(implicit
+  def createPDFContent(cache: AuthCacheWithForm, formModelOptics: FormModelOptics)(implicit
     request: Request[_],
     l: LangADT,
     ss: SmartStringEvaluator
@@ -400,7 +398,7 @@ class SummaryController(
     val pdfOptions = summarySection.pdf.map(pdf => PDFModel.Options(pdf.tabularFormat, None))
 
     pdfRenderService
-      .createPDFContent[DataOrigin.Mongo, SectionSelectorType.Normal, PDFType.Summary](
+      .createPDFContent[SectionSelectorType.Normal, PDFType.Summary](
         request.messages.messages(
           "summary.checkYourAnswers"
         ) + " - " + cache.formTemplate.formName.value + " - GOV.UK",
@@ -445,7 +443,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+    formModelOptics: FormModelOptics
   )(implicit
     request: Request[AnyContent],
     hc: HeaderCarrier,

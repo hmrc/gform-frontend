@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
-case class EnteredVariadicFormData(userData: VariadicFormData[SourceOrigin.OutOfDate]) extends AnyVal
+case class EnteredVariadicFormData(userData: VariadicFormData) extends AnyVal
 
 object EnteredVariadicFormData {
-  def empty: EnteredVariadicFormData = EnteredVariadicFormData(VariadicFormData.empty[SourceOrigin.OutOfDate])
+  def empty: EnteredVariadicFormData = EnteredVariadicFormData(VariadicFormData.empty)
 }

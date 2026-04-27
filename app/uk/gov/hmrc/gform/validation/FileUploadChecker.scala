@@ -21,16 +21,15 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.FileStatus
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.objectStore.File
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsMultiFileUpload }
 import ComponentChecker._
 
-class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class FileUploadChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -50,7 +49,7 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
 
   }
 
-  def validate(context: CheckerDependency[D])(implicit
+  def validate(context: CheckerDependency)(implicit
     messages: Messages,
     sse: SmartStringEvaluator
   ): CheckProgram[Unit] = {
@@ -69,7 +68,7 @@ class FileUploadChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
     }
     file.foldProgram(
       onNone = ifProgram(
-        andCond = formComponent.mandatory.eval(context.formModelVisibilityOptics.booleanExprResolver),
+        andCond = formComponent.mandatory.eval(context.formModelVisibilityOptics.freeCalculator),
         thenProgram = CheckerServiceHelper.validationFailure(formComponent, "generic.error.upload", None),
         elseProgram = successProgram(())
       ),

@@ -1,0 +1,58 @@
+{
+  "_id": "repeated-section",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page B $n",
+      "repeatsMax": "${pageA}",
+      "repeatsMin": "${pageA}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page C",
+      "includeIf": "${pageB.sum < 5}",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "label": "Page C",
+          "format": "number"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

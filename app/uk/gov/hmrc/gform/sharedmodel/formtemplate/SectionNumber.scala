@@ -20,7 +20,7 @@ import cats.Eq
 import cats.implicits._
 import play.api.libs.json._
 import scala.util.Try
-import uk.gov.hmrc.gform.models.{ FormModel, Visibility }
+import uk.gov.hmrc.gform.models.FormModel
 import SectionNumber.Classic.AddToListPage.TerminalPageKind
 
 sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Serializable {
@@ -79,7 +79,7 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
 
   def contains(coordinates: Coordinates): Boolean = maybeCoordinates.fold(false)(_ === coordinates)
 
-  def increment(formModel: FormModel[Visibility]): SectionNumber = {
+  def increment(formModel: FormModel): SectionNumber = {
     val as = formModel.availableSectionNumbers
     val indexOfThis: Int = as.indexOf(this)
     val nextIndex = indexOfThis + 1

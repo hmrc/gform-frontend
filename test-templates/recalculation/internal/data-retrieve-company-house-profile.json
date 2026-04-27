@@ -1,0 +1,902 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "What is the insolvent trader''s company number?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "What is the insolvent trader''s company number?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "crn",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "CompanyRegistrationNumber": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ],
+              "dataRetrieve": [
+                {
+                  "tpe": {
+                    "name": "companyHouseInsolvency"
+                  },
+                  "params": [
+                    {
+                      "parameter": {
+                        "name": "companyNumber",
+                        "path": [],
+                        "tpe": {
+                          "String": {}
+                        }
+                      },
+                      "expr": {
+                        "FormCtx": {
+                          "formComponentId": "crn"
+                        }
+                      }
+                    }
+                  ],
+                  "attributes": {
+                    "FromArray": {
+                      "inst": [
+                        {
+                          "attribute": {
+                            "name": "caseType"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "caseType"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "caseNumber"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "caseNumber"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "name"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "name"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "role"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "role"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "address_line_1"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "address",
+                                  "address_line_1"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "address_line_2"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "address",
+                                  "address_line_2"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "locality"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "address",
+                                  "locality"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "region"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "address",
+                                  "region"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "postal_code"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "address",
+                                  "postal_code"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "country"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "address",
+                                  "country"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "primaryAddress"
+                          },
+                          "from": {
+                            "Combine": {
+                              "value": [
+                                [
+                                  {
+                                    "name": "address_line_1"
+                                  },
+                                  {
+                                    "path": [
+                                      "address",
+                                      "address_line_1"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "address_line_2"
+                                  },
+                                  {
+                                    "path": [
+                                      "address",
+                                      "address_line_2"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "locality"
+                                  },
+                                  {
+                                    "path": [
+                                      "address",
+                                      "locality"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "region"
+                                  },
+                                  {
+                                    "path": [
+                                      "address",
+                                      "region"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "postal_code"
+                                  },
+                                  {
+                                    "path": [
+                                      "address",
+                                      "postal_code"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "country"
+                                  },
+                                  {
+                                    "path": [
+                                      "address",
+                                      "country"
+                                    ]
+                                  }
+                                ]
+                              ]
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "appointedOn"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "appointedOn"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "attrTypeMapping": {
+                    "name": {
+                      "String": {}
+                    },
+                    "role": {
+                      "String": {}
+                    },
+                    "caseNumber": {
+                      "String": {}
+                    },
+                    "country": {
+                      "String": {}
+                    },
+                    "appointedOn": {
+                      "Date": {}
+                    },
+                    "postal_code": {
+                      "String": {}
+                    },
+                    "region": {
+                      "String": {}
+                    },
+                    "caseType": {
+                      "String": {}
+                    },
+                    "locality": {
+                      "String": {}
+                    },
+                    "address_line_1": {
+                      "String": {}
+                    }
+                  },
+                  "id": "companyHouseInsolvency",
+                  "callOnNoChange": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "miniSummary",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "MiniSummaryList": {
+                      "rows": [
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "caseType"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "caseType"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "caseNumber"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "caseNumber"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "name"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "name"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "role"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "role"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "appointedOn"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DateCtx": {
+                                    "value": {
+                                      "DataRetrieveDateCtx": {
+                                        "id": "companyHouseInsolvency",
+                                        "attribute": {
+                                          "name": "appointedOn"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Primary address"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "primaryAddress"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address_line_1"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "address_line_1"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "address_line_2"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyHouseInsolvency",
+                                    "attribute": {
+                                      "name": "address_line_2"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "displayInSummary": {
+                        "booleanExpression": {
+                          "IsFalse": {}
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "data-retrieve-company-house-profile",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "data-retrieve-company-house-profile",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

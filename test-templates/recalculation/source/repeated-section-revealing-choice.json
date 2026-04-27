@@ -1,0 +1,75 @@
+{
+  "_id": "repeated-section-revealing-choice",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Page B $n",
+      "repeatsMax": "${pageA}",
+      "repeatsMin": "${pageA}",
+      "fields": [
+        {
+          "id": "repayReasonChoice",
+          "type": "revealingChoice",
+          "label": "What is the main reason you are repaying the grant money?",
+          "choices": [
+            "I am not eligible",
+            "I would prefer to repay it, or part of it",
+            "I believe HMRC has paid me too much in error"
+          ],
+          "revealingFields": [
+            [],
+            [
+              {
+                "id": "pageB",
+                "type": "text",
+                "label": "Page B",
+                "format": "number"
+              }
+            ],
+            []
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Page C",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "label": "Page C",
+          "submitMode": "readonly",
+          "value": "${pageB.sum}",
+          "format": "number(11, 0)"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

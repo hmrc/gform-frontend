@@ -37,11 +37,10 @@ import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -343,9 +342,9 @@ class NewFormControllerSpec
         *[Option[AccessCode]],
         *[OperationWithForm]
       )(
-        *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-          DataOrigin.Mongo
-        ] => Future[Result]]
+        *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
+          Result
+        ]]
       ) answers {
       (
         _: FormTemplateId,
@@ -353,7 +352,7 @@ class NewFormControllerSpec
         _: OperationWithForm,
         f: Request[
           AnyContent
-        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[
+        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
           Result
         ]
       ) =>
@@ -481,10 +480,10 @@ class NewFormControllerSpec
     lazy val formTemplate: FormTemplate = mkFormTemplate(sections)
     lazy val authCacheWithForm: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate)
     lazy val authCacheWithoutForm: AuthCacheWithoutForm = authCacheWithForm.toAuthCacheWithoutForm
-    lazy val variadicFormData: VariadicFormData[SourceOrigin.OutOfDate] = VariadicFormData.empty[SourceOrigin.OutOfDate]
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] =
+    lazy val variadicFormData: VariadicFormData = VariadicFormData.empty
+    lazy val formModelOptics: FormModelOptics =
       FormModelOptics
-        .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.Normal](
+        .mkFormModelOptics[SectionSelectorType.Normal](
           variadicFormData,
           authCacheWithForm
         )
@@ -500,7 +499,9 @@ class NewFormControllerSpec
     lazy val mockNinoInsightsConnector: NinoInsightsConnector[Future] = mock[NinoInsightsConnector[Future]]
     lazy val mockAcknowledgementPdfService: AcknowledgementPdfService = mock[AcknowledgementPdfService]
 
-    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    lazy val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
+
+    lazy val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
       override def evalEnglish(s: SmartString, markDown: Boolean): String = s.rawDefaultValue(LangADT.En)
     }
@@ -518,7 +519,7 @@ class NewFormControllerSpec
         messagesControllerComponents,
         mockGformBackend,
         mockNinoInsightsConnector,
-        messages,
+        smartStringEvaluatorFactory,
         mockAcknowledgementPdfService
       )
 
@@ -549,9 +550,9 @@ class NewFormControllerSpec
           *[Option[AccessCode]],
           *[OperationWithForm]
         )(
-          *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[
-            DataOrigin.Mongo
-          ] => Future[Result]]
+          *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
+            Result
+          ]]
         ) answers {
         (
           _: FormTemplateId,
@@ -559,7 +560,7 @@ class NewFormControllerSpec
           _: OperationWithForm,
           f: Request[
             AnyContent
-          ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics[DataOrigin.Mongo] => Future[
+          ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
             Result
           ]
         ) =>
@@ -588,7 +589,7 @@ class NewFormControllerSpec
         mockFastForwardService.redirectFastForward[SectionSelectorType.Normal](
           *[AuthCacheWithForm],
           *[Option[AccessCode]],
-          *[FormModelOptics[DataOrigin.Mongo]],
+          *[FormModelOptics],
           *[Option[SectionNumber]],
           *[SuppressErrors],
           *[List[FastForward]]
@@ -624,7 +625,7 @@ class NewFormControllerSpec
         mockAcknowledgementPdfService.getRenderedPdfSize(
           *[AuthCacheWithForm],
           *[Option[AccessCode]],
-          *[FormModelOptics[DataOrigin.Mongo]]
+          *[FormModelOptics]
         )(*[Request[_]], *[LangADT], *[SmartStringEvaluator])
       ).thenReturn(Future.successful(35000))
 

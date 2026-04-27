@@ -1,0 +1,128 @@
+{
+  "_id": "hmrc-tax-period",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc",
+    "agentAccess": "allowAnyAgentAffinityUser",
+    "enrolmentCheck": "forNonAgents",
+    "serviceId": "HMRC-OBTDS-ORG",
+    "regimeId": "GD",
+    "enrolmentOutcomes": {
+      "insufficientCredentialsPage": {
+        "title": "Title 1",
+        "content": "Content 1"
+      },
+      "notMatchedPage": {
+        "title": "Title 2",
+        "content": "Content 2"
+      },
+      "alreadyLinkedPage": {
+        "title": "Title 3",
+        "content": "Content 3"
+      },
+      "technicalFailurePage": {
+        "title": "Title 4",
+        "content": "Content 4"
+      },
+      "successPage": {
+        "title": "Title 5",
+        "content": "Content 5"
+      }
+    }
+  },
+  "expressions": {
+    "effectiveReturnDate": "if user.affinityGroup = 'agent' then endDate else returnPeriod.periodTo"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "endDate",
+          "type": "date",
+          "label": "Return end date"
+        },
+        {
+          "id": "GDreg",
+          "type": "text",
+          "format": "shortText",
+          "label": "You are completing a return for the registration:",
+          "value": "${user.enrolledIdentifier}",
+          "submitMode": "readonly",
+          "presentationHint": "totalValue"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "fields": [
+        {
+          "id": "returnPeriod",
+          "type": "hmrcTaxPeriod",
+          "label": "Select tax period",
+          "idType": "eeits",
+          "idNumber": "${GDreg}",
+          "regimeType": "GD"
+        }
+      ]
+    },
+    {
+      "title": "Page C",
+      "fields": [
+        {
+          "id": "pageC",
+          "type": "text",
+          "label": "Page C",
+          "format": "text"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "hmrcTaxRates",
+          "id": "band15",
+          "parameters": {
+            "regime": "${'GD'}",
+            "code": "${'BAND-15'}",
+            "date": "${effectiveReturnDate}"
+          }
+        },
+        {
+          "type": "hmrcTaxRates",
+          "id": "band20",
+          "parameters": {
+            "regime": "${'GD'}",
+            "code": "${'BAND-20'}",
+            "date": "${effectiveReturnDate}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Page D",
+      "includeIf": "${dataRetrieve.band15.rate > 10}",
+      "fields": [
+        {
+          "id": "pageD",
+          "type": "text",
+          "label": "Page D",
+          "format": "text",
+          "submitMode": "readonly",
+          "value": "${dataRetrieve.band20.rate}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

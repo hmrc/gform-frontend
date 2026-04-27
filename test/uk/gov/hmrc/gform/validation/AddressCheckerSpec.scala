@@ -35,14 +35,14 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.{ Atom, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId, FormTemplate, Mandatory }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-
-import java.time.Instant
 
 class AddressCheckerSpec
     extends AnyFlatSpecLike with Matchers with EitherMatchers with ScalaFutures with GraphSpec
@@ -104,13 +104,13 @@ class AddressCheckerSpec
   private def componentsValidator(
     formTemplate: FormTemplate,
     formComponent: FormComponent,
-    data: VariadicFormData[SourceOrigin.OutOfDate]
+    data: VariadicFormData
   ) = {
 
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
-    val fmvo =
-      fmb.visibilityModel[DataOrigin.Mongo, SectionSelectorType.Normal](data, None, Instant.now, BooleanExprCache.empty)
+    val formModelOptics =
+      fmb.visibilityModel[SectionSelectorType.Normal](data, None, Form.dummy(FormTemplateId("")))
 
     val cacheData = new CacheData(
       EnvelopeId(""),
@@ -118,21 +118,20 @@ class AddressCheckerSpec
       formTemplate
     )
 
-    mkComponentsValidator(fmvo, formComponent, cacheData)
+    mkComponentsValidator(formModelOptics.formModelVisibilityOptics, formComponent, cacheData)
   }
 
   private def mkComponentsValidator(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     formComponent: FormComponent,
     cacheData: CacheData
-  ): ComponentsValidator[DataOrigin.Mongo] =
+  ): ComponentsValidator =
     new ComponentsValidator(
       formModelVisibilityOptics,
       formComponent,
       cacheData,
       EnvelopeWithMapping.empty,
       lookupRegistry,
-      booleanExprEval,
       ComponentChecker.NonShortCircuitInterpreter,
       true
     )
@@ -141,7 +140,7 @@ class AddressCheckerSpec
     val speccedAddress = baseAddress.copy(international = false)
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street2"  -> "S2",
@@ -160,7 +159,7 @@ class AddressCheckerSpec
     val speccedAddress = baseAddress.copy(international = false)
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S",
       "x-postcode" -> "RG1 1AA"
@@ -176,7 +175,7 @@ class AddressCheckerSpec
     val speccedAddress = baseAddress.copy(international = false)
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street2"  -> "S2",
@@ -206,7 +205,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, None, errorExample = Some("like AA1 1AA"))
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street2"  -> "S2",
@@ -235,7 +234,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-postcode" -> "RG1 1AA"
     )
@@ -261,7 +260,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(errorShortName = Some("business address"), None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-postcode" -> "RG1 1AA"
     )
@@ -287,7 +286,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-postcode" -> "RG1 1AA"
@@ -315,7 +314,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(errorShortName = Some("business address"), None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-postcode" -> "RG1 1AA"
@@ -342,7 +341,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
     // .withErrorFields(errorShortName = Some("business address"), None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"      -> "true",
       "x-street1" -> "S"
     )
@@ -367,7 +366,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(errorShortName = Some("business address"), None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"      -> "true",
       "x-street1" -> "S"
     )
@@ -394,7 +393,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
       "x-postcode" -> "RG1 1AA"
@@ -422,7 +421,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
       "x-postcode" -> "RG1 1AA"
@@ -450,7 +449,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street2"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
@@ -479,7 +478,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street2"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
@@ -508,7 +507,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street3"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
@@ -537,7 +536,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street3"  -> List.fill(ValidationValues.addressLine + 1)("a").mkString,
@@ -566,7 +565,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, None, None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street4"  -> List.fill(ValidationValues.addressLine4 + 1)("a").mkString,
@@ -595,7 +594,7 @@ class AddressCheckerSpec
       .copy(`type` = speccedAddress)
       .withErrorFields(None, errorShortNameStart = Some("Business address"), None)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> "S1",
       "x-street4"  -> List.fill(ValidationValues.addressLine4 + 1)("a").mkString,
@@ -622,7 +621,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"      -> "false",
       "x-street1" -> "S",
       "x-country" -> "C"
@@ -639,7 +638,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"      -> "false",
       "x-street1" -> "S"
     )
@@ -664,7 +663,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "false",
       "x-street1"  -> "S",
       "x-postcode" -> "P1 1P",
@@ -691,7 +690,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"      -> "true",
       "x-street1" -> "S",
       "x-country" -> "C"
@@ -721,7 +720,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x@uk"       -> "true",
       "x@street1"  -> "S",
       "x@postcode" -> "C"
@@ -751,7 +750,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> List.fill(ValidationValues.addressLine)("a").mkString,
       "x-street2"  -> List.fill(ValidationValues.addressLine)("a").mkString,
@@ -771,7 +770,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> List.fill(ValidationValues.addressLine)("a").mkString,
       "x-postcode" -> "RG1 1PQ"
@@ -788,7 +787,7 @@ class AddressCheckerSpec
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
 
-    val data = variadicFormData[SourceOrigin.OutOfDate](
+    val data = variadicFormData(
       "x-uk"       -> "true",
       "x-street1"  -> List.fill(36)("a").mkString,
       "x-street2"  -> List.fill(36)("a").mkString,

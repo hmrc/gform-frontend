@@ -1,0 +1,47 @@
+{
+  "_id": "earliest-of-tax-period-dates",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Tax period dates",
+      "fields": [
+        {
+          "id": "taxPeriodDateA",
+          "label": "Tax period date A",
+          "type": "taxPeriodDate"
+        },
+        {
+          "id": "taxPeriodDateB",
+          "label": "Tax period date B",
+          "type": "taxPeriodDate"
+        }
+      ]
+    },
+    {
+      "title": "Tax period dates test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "info",
+          "infoText": "tax period date A: ${taxPeriodDateA}\n\ntax period date B: ${taxPeriodDateB}\n\nEarliest: ${earliestOf(taxPeriodDateA, taxPeriodDateB)}\n\nLatest: ${latestOf(taxPeriodDateA, taxPeriodDateB)}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.list._
 import cats.syntax.eq._
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.{ Obligation, TaxResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 
@@ -29,7 +28,7 @@ case object GoBackToTaxPeriodSelection extends TaxSelectionNavigation
 trait TaxSelectionNavigator {
 
   def taxSelectionNavigator(
-    formModelOptics: FormModelOptics[DataOrigin.Browser],
+    formModelOptics: FormModelOptics,
     cachedObligation: Obligation,
     taxResponse: TaxResponse
   ): TaxSelectionNavigation = {
@@ -54,11 +53,11 @@ trait TaxSelectionNavigator {
     else GoBackToTaxPeriodSelection
 
   private def selectedPeriodStillAvailable(
-    formModelOptics: FormModelOptics[DataOrigin.Browser],
+    formModelOptics: FormModelOptics,
     taxResponse: TaxResponse
   ): TaxSelectionNavigation = {
     val desPeriods: List[String] = taxResponse.obligation.obligations.flatMap(_.obligationDetails).map(_.periodKey)
-    formModelOptics.pageOpticsData
+    formModelOptics.variadicFormData
       .one(taxResponse.id.recalculatedTaxPeriodKey.fcId.modelComponentId)
       .fold[TaxSelectionNavigation](GoBackToTaxPeriodSelection) { period =>
         goBackIf(!desPeriods.contains(period))
