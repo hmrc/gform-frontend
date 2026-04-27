@@ -82,13 +82,13 @@ class TranslationController(
           val downloadUntranslatedEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
             "Download untranslated sentences (xlsx)",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
+              .proxyToGform(s"gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
           )
 
           val downloadAllEn = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
             "Download all English sentences (xlsx)",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=true")
+              .proxyToGform(s"gform/translation-excel/${formTemplateId.value}/brief?allEnglish=true")
           )
 
           val insetUntranslated = InsetText(content =
@@ -198,7 +198,7 @@ class TranslationController(
           val downloadFormTranslations = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
             "Download as xlsx",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}")
+              .proxyToGform(s"gform/translation-excel/${formTemplateId.value}")
           )
 
           def stats(rowsCount: Int) = uk.gov.hmrc.gform.views.html.hardcoded.pages.p(
@@ -221,7 +221,7 @@ class TranslationController(
           val downloadUntranslatedEnOnly = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
             "Download as xlsx",
             uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-              .proxyToGform(s"/gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
+              .proxyToGform(s"gform/translation-excel/${formTemplateId.value}/brief?allEnglish=false")
           )
 
           val tableBrief = Table(
