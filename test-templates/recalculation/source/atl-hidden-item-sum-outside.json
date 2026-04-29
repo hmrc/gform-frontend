@@ -1,0 +1,91 @@
+{
+  "_id": "atl-hidden-item-sum-outside",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "itemPlusOne": {
+      "value": "1 + item",
+      "type": "sterling"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - ${item}",
+      "summaryDescription": "${item}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Show item",
+          "fields": [
+            {
+              "id": "showItem",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Show Item",
+                  "value": "yes"
+                },
+                {
+                  "en": "Skip item",
+                  "value": "no"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Item",
+          "includeIf": "${showItem = 'yes'}",
+          "fields": [
+            {
+              "id": "item",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dummy",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "number"
+        },
+        {
+          "type": "info",
+          "id": "results",
+          "label": "",
+          "infoType": "noformat",
+          "infoText": "item.sum ${item.sum} <br/>itemPlusOne.sum: ${itemPlusOne.sum}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
