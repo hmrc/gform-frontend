@@ -128,7 +128,18 @@ object BootstrapCalculator {
             EvaluationStatus.ListResult(allIndexEvaluationStatuses(formComponentId))
           case Left(rfcId) => evalModelComponentId(rfcId)
           case Right(rfcIds) =>
-            EvaluationStatus.ListResult(rfcIds.map(evalModelComponentId).toList)
+            val statuses = metadata.addToListIdFor(formComponentId.baseComponentId) match {
+              case Some(addToListId) =>
+                val atlVisible = answerMap(addToListId.formComponentId.withIndex(1).modelComponentId)
+                if (atlVisible == EvaluationStatus.Hidden) {
+                  List.empty[EvaluationStatus]
+                } else {
+                  rfcIds.map(evalModelComponentId).toList
+                }
+              case None =>
+                rfcIds.map(evalModelComponentId).toList
+            }
+            EvaluationStatus.ListResult(statuses)
         }
       }
       def maybeIndex(formComponentId: FormComponentId): Option[Int] = index

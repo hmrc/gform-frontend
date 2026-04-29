@@ -1,0 +1,93 @@
+{
+  "_id": "atl-hidden-sum-outside",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "itemPlusOne": {
+      "value": "1 + item",
+      "type": "sterling"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "includeIf": "${1 > 100}",
+      "description": "$n - ${item}",
+      "summaryDescription": "${item}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Item",
+          "fields": [
+            {
+              "id": "item",
+              "type": "text",
+              "label": "Item",
+              "format": "sterling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${itemPlusOne.sum = 0}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dummy",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "number"
+        },
+        {
+          "type": "info",
+          "id": "results",
+          "label": "",
+          "infoType": "noformat",
+          "infoText": "item.sum ${item.sum} <br/>itemPlusOne.sum: ${itemPlusOne.sum}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
