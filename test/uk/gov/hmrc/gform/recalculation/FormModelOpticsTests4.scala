@@ -29,6 +29,57 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
 
   val data = List(
     (
+      MongoUserData(),
+      List(),
+      EvaluationContext.empty,
+      AnswerMap(
+        "1_addAnother" -> Hidden,
+        "1_item"       -> Hidden,
+        "secret"       -> Empty
+      ),
+      List(
+        "item.sum £0.00 <br/>itemPlusOne.sum: £0.00",
+        """|<p>item.sum £0.00 <br>
+           | itemPlusOne.sum: £0.00</p>""".stripMargin
+      ),
+      "atl-hidden-sum-outside.json Generated"
+    ),
+    (
+      MongoUserData(
+        "1_addAnother" -> Many(List("0")),
+        "1_showItem"   -> Many(List("no")),
+        "2_addAnother" -> Many(List("1")),
+        "2_item"       -> One("1"),
+        "2_showItem"   -> Many(List("yes"))
+      ),
+      List(
+        "ap0.1.0",
+        "ar0.1",
+        "ap0.2.0",
+        "ap0.2.1",
+        "ar0.2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "1_item"     -> Hidden,
+        "1_showItem" -> OptionResult(List("no")),
+        "2_item"     -> NumberResult(1),
+        "2_showItem" -> OptionResult(List("yes"))
+      ),
+      List(
+        "£0.00",
+        "1 - £0.00",
+        "<p>1 - £0.00</p>",
+        "£1.00",
+        "2 - £1.00",
+        "<p>2 - £1.00</p>",
+        "item.sum £1.00 <br/>itemPlusOne.sum: £3.00",
+        """|<p>item.sum £1.00 <br>
+           | itemPlusOne.sum: £3.00</p>""".stripMargin
+      ),
+      "atl-hidden-item-sum-outside.json Generated"
+    ),
+    (
       MongoUserData(
         "1_addAnother" -> Many(List("0")),
         "1_amountA"    -> One("1"),
