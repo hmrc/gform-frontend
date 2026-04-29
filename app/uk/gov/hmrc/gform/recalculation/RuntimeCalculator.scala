@@ -102,6 +102,8 @@ object RuntimeCalculator {
       EvaluationStatus.ListResult(List.fill(n)(EvaluationStatus.StringResult("")))
     }
 
+    val ATL_IS_HIDDEN = -1
+
     val dataBridge = new DataBridge {
       val name = "RuntimeCalculator"
       val valueValue: EvaluationStatus = EvaluationStatus.Empty
@@ -127,17 +129,23 @@ object RuntimeCalculator {
 
         val res = if (computeList) {
 
-          val maybeMaxIndex = behaviour match {
+          val maybeMaxIndex: Option[Int] = behaviour match {
             case Behaviour.LessThanCurrent if formComponentId.modelComponentId.maybeIndex.isDefined =>
               formComponentId.modelComponentId.maybeIndex
             case Behaviour.All => answerMapWithFallback.maxIndexOf(baseComponentId)
             case _ =>
               metadata.addToListIdFor(baseComponentId) match {
                 case Some(addToListId) =>
-                  List(addToListId.formComponentId.baseComponentId, baseComponentId)
-                    .map(answerMapWithFallback.maxIndexOf)
-                    .flatten
-                    .maxOption
+                  val atlVisible =
+                    answerMapWithFallback.answerMap(addToListId.formComponentId.withIndex(1).modelComponentId)
+                  if (atlVisible === EvaluationStatus.Hidden) {
+                    Some(ATL_IS_HIDDEN) // ATL is hidden
+                  } else {
+                    List(addToListId.formComponentId.baseComponentId, baseComponentId)
+                      .map(answerMapWithFallback.maxIndexOf)
+                      .flatten
+                      .maxOption
+                  }
                 case None =>
                   answerMapWithFallback.maxIndexOf(
                     baseComponentId
@@ -146,9 +154,14 @@ object RuntimeCalculator {
           }
 
           val baseComponentIds =
-            maybeMaxIndex.fold(List(if (refInfo.isRepeatedField()) formComponentId.withIndex(1) else formComponentId))(
-              maxIndex => (1 to maxIndex).toList.map(index => formComponentId.noIndex.withIndex(index))
-            )
+            maybeMaxIndex.fold(List(if (refInfo.isRepeatedField()) formComponentId.withIndex(1) else formComponentId)) {
+              maxIndex =>
+                if (maxIndex === ATL_IS_HIDDEN) {
+                  List.empty[FormComponentId]
+                } else {
+                  (1 to maxIndex).toList.map(index => formComponentId.noIndex.withIndex(index))
+                }
+            }
 
           val results: List[EvaluationStatus] =
             componentType match {

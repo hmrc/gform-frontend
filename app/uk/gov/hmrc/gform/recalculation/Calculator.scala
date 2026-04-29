@@ -786,7 +786,10 @@ final class RealCalculator(
       case Sum(expr) =>
         evalExpr(expr, staticTypeData, Behaviour.LessThanCurrent) match {
           case EvaluationStatus.ListResult(statuses) =>
-            statuses.foldLeft[EvaluationStatus](EvaluationStatus.Empty)(_ + _)
+            if (statuses.isEmpty) {
+              EvaluationStatus.NumberResult(0)
+            } else
+              statuses.foldLeft[EvaluationStatus](EvaluationStatus.Empty)(_ + _)
           case otherwise => otherwise
         }
       case DateCtx(dateExpr) => evalDateExpr(dateExpr, staticTypeData, behaviour)
