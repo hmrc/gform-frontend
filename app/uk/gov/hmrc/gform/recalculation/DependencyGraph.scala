@@ -284,20 +284,17 @@ class Recalculator(
   // FormModelMetadata of FreeCalculator will be made available by calling withFormModelMetadata method
   val formModelMetadata = FormModelMetadata.notAvailable
 
-  def recalculate(): FreeCalculator =
-    Recalculator.measured(
-      "Recalculation ", {
-        graph.nodes.foreach { node =>
-          evalNode(node)
-        }
-        new FreeCalculator(
-          metadata,
-          formModelMetadata,
-          answerMapWithFallback,
-          evaluationContext
-        )
-      }
+  def recalculate(): FreeCalculator = {
+    graph.nodes.foreach { node =>
+      evalNode(node)
+    }
+    new FreeCalculator(
+      metadata,
+      formModelMetadata,
+      answerMapWithFallback,
+      evaluationContext
     )
+  }
 
   private val answerMapWithFallback = AnswerMapWithFallback(
     answerMap,
@@ -518,7 +515,7 @@ object Recalculator {
   )(implicit messages: Messages): Recalculator = {
     val graph = cache.getOrElseUpdate(
       formTemplate._id,
-      measured("Graph creation", DependencyGraph.toGraph(formTemplate, metadata))
+      DependencyGraph.toGraph(formTemplate, metadata)
     )
 
     val dependencyGraph = new DependencyGraph(graph)
@@ -618,29 +615,21 @@ object DependencyGraph {
     }
 
     val addToListRelations: List[Relation] = addToLists.flatMap { addToList =>
-      // val defaultPageRelation: Option[Relation] = addToList.defaultPage.flatMap { dp =>
-      //   dp.includeIf.fold(Option.empty[Relation]) { includeIf =>
-      //     val includeIfRefs: List[FormComponentId] = includeIfReferences(includeIf)
-      //     val formComponentIds: List[FormComponentId] = List(FormComponentId.leaf)
-      //     toRelation(includeIfRefs, formComponentIds, RelationKind.Condition(includeIf))
-      //   }
-      // }
-      // val declarationSectionRelation: Option[Relation] = addToList.declarationSection.flatMap { ds =>
-      //   ds.includeIf.fold(Option.empty[Relation]) { includeIf =>
-      //     val includeIfRefs: List[FormComponentId] = includeIfReferences(includeIf)
-      //     val formComponentIds: List[FormComponentId] = List(FormComponentId.leaf)
-      //     toRelation(includeIfRefs, formComponentIds, RelationKind.Condition(includeIf))
-      //   }
-      // }
-      val addToListRelation: Option[Relation] = addToList.includeIf.fold(Option.empty[Relation]) { includeIf =>
+      addToList.includeIf.fold(List.empty[Relation]) { includeIf =>
         val includeIfRefs: List[FormComponentId] = includeIfReferences(includeIf)
 
         val formComponentIds: List[FormComponentId] =
-          addToList.addAnotherQuestion.id :: addToList.pages.toList.flatMap(_.allEnterableFormComponents.map(_.id))
+          addToList.pages.toList.flatMap(_.allEnterableFormComponents.map(_.id))
 
-        toRelation(includeIfRefs, formComponentIds, RelationKind.Condition(includeIf))
+        List(
+          toRelation(includeIfRefs, List(addToList.addAnotherQuestion.id), RelationKind.Condition(includeIf)),
+          toRelation(
+            List(addToList.addAnotherQuestion.id),
+            formComponentIds,
+            RelationKind.Condition(includeIf)
+          )
+        ).flatten
       }
-      addToListRelation.toList
     }
 
     val repeatingSectionEdges: List[Relation] = formTemplate.formKind.allSections.sections.flatMap { section =>
