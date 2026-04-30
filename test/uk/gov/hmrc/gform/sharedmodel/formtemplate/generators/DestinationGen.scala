@@ -71,7 +71,6 @@ trait DestinationGen {
         None,
         None,
         None,
-        None,
         None
       )
 

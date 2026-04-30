@@ -385,7 +385,7 @@ class TestOnlyController(
     val dmsSubs: List[String] = formTemplate.destinations match {
       case Destinations.DestinationList(destinations, _, _) =>
         destinations.collect {
-          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _, _) =>
+          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _) =>
             submissionPrefix
         }
       case _ => List.empty[String]
@@ -417,15 +417,17 @@ class TestOnlyController(
     val envelope = inputWrapper("Envelope ID", envelopeId.value)
 
     val govukTable = formTemplate.destinations.fold { destinationList =>
-      val ids: List[(DestinationId, String, Boolean)] = destinationList.destinations.collect {
-        case d: Destination.DataStore         => (d.id, "hmrcIlluminate", d.convertSingleQuotes.getOrElse(false))
-        case d: Destination.HandlebarsHttpApi => (d.id, "handlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
+      val ids: List[(DestinationId, String, String, Boolean)] = destinationList.destinations.collect {
+        case d: Destination.DataStore =>
+          (d.id, "hmrcIlluminate", d.routing.description, d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.HandlebarsHttpApi =>
+          (d.id, "handlebarsHttpApi", "N/A", d.convertSingleQuotes.getOrElse(false))
         case d: Destination.AsyncHandlebarsHttpApi =>
-          (d.id, "asyncHandlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
-        case d: Destination.HmrcDms => (d.id, "hmrcDms", d.convertSingleQuotes.getOrElse(false))
+          (d.id, "asyncHandlebarsHttpApi", "N/A", d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.HmrcDms => (d.id, "hmrcDms", d.routing.description, d.convertSingleQuotes.getOrElse(false))
       }
 
-      val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, convertSingleQuotes) =>
+      val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, routing, convertSingleQuotes) =>
         val processPayloadLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
           destinationId.id,
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -449,6 +451,9 @@ class TestOnlyController(
             content = Text(destinationType)
           ),
           TableRow(
+            content = Text(routing)
+          ),
+          TableRow(
             content = HtmlContent(embeddedLink)
           ),
           TableRow(
@@ -466,7 +471,10 @@ class TestOnlyController(
             content = Text("Output json")
           ),
           HeadCell(
-            content = Text("Destination type")
+            content = Text("Type")
+          ),
+          HeadCell(
+            content = Text("Routing")
           ),
           HeadCell(
             content = Text("Embedded")

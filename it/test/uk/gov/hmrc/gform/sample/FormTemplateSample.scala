@@ -131,8 +131,7 @@ trait FormTemplateSample {
           roboticsAsAttachment = None,
           includeAttachmentNames = None,
           submissionPrefix = None,
-          caseId = None,
-          postalCode = None
+          caseId = None
         )
       ),
       acknowledgementSection = AcknowledgementSection(
