@@ -176,8 +176,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
           roboticsAsAttachment = None,
           includeAttachmentNames = None,
           submissionPrefix = None,
-          caseId = None,
-          postalCode = None
+          caseId = None
         )
       ),
       acknowledgementSection = AcknowledgementSection(

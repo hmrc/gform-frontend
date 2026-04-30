@@ -44,9 +44,6 @@ object DestinationEvaluator {
             val customerId =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(d.customerId()).stringRepresentation.take(32)
 
-            val postalCode =
-              d.postalCode().map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
-
             val caseId = d.caseId().map(formModelVisibilityOptics.evalAndApplyTypeInfoFirst(_).stringRepresentation)
 
             DestinationResult(
@@ -57,7 +54,7 @@ object DestinationEvaluator {
               None,
               None,
               None,
-              postalCode,
+              None,
               caseId,
               None,
               None,
