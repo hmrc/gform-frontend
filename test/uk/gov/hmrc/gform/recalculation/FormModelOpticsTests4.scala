@@ -29,6 +29,48 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
 
   val data = List(
     (
+      MongoUserData(
+        "1_addAnother" -> Many(List("0")),
+        "1_nameToName" -> One("Foo to Foo"),
+        "1_name"       -> One("Foo"),
+        "2_addAnother" -> Many(List("0")),
+        "2_nameToName" -> One("Bar to Bar"),
+        "2_name"       -> One("Bar"),
+        "3_addAnother" -> Many(List("1")),
+        "3_nameToName" -> One("Baz to Baz"),
+        "3_name"       -> One("Baz")
+      ),
+      List(
+        "ap0.1.0",
+        "ap0.1.1",
+        "ar0.1",
+        "ap0.2.0",
+        "ap0.2.1",
+        "ar0.2",
+        "ap0.3.0",
+        "ap0.3.1",
+        "ar0.3"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "1_nameToName" -> StringResult("Foo to Foo"),
+        "1_name"       -> StringResult("Foo"),
+        "2_nameToName" -> StringResult("Bar to Bar"),
+        "2_name"       -> StringResult("Bar"),
+        "3_nameToName" -> StringResult("Baz to Baz"),
+        "3_name"       -> StringResult("Baz")
+      ),
+      List(
+        "1 - Foo",
+        "<p>1 - Foo</p>",
+        "2 - Bar",
+        "<p>2 - Bar</p>",
+        "3 - Baz",
+        "<p>3 - Baz</p>"
+      ),
+      "atl-text-with-value.json Generated"
+    ),
+    (
       MongoUserData(),
       List(),
       EvaluationContext.empty,
