@@ -18,10 +18,8 @@ package uk.gov.hmrc.gform.recalculation
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import java.util.concurrent.TimeUnit
 import play.api.i18n.Messages
 import scala.collection.mutable
-import scala.concurrent.duration.Duration
 import scalax.collection.OneOrMore
 import scalax.collection.immutable.Graph
 import scalax.collection.hyperedges.multilabeled.LDiHyperEdge
@@ -59,17 +57,17 @@ class DependencyGraph(val graph: Graph[FormComponentId, Relation]) {
   def edges: graph.EdgeSetT = graph.edges
   def find(formComponentId: FormComponentId): Option[graph.NodeT] = graph.find(formComponentId)
 
-  def pretty(): Unit = {
-    println("graph : " + graph)
+  def pretty(): String = {
+    val nodes = graph.nodes.toList.map(_.toString).sorted
+    val edges = graph.edges.toList.map(_.toString).sorted
 
-    val nodes: graph.NodeSetT = graph.nodes
-
-    println(s"nodes (${nodes.size}):")
-    nodes.toList.map(_.toString).sorted.foreach(n => println("  " + n))
-    val edges: graph.EdgeSetT = graph.edges
-
-    println(s"edges (${edges.size}):")
-    edges.toList.map(_.toString).sorted.foreach(n => println("  " + n))
+    List(
+      List(s"graph : $graph"),
+      List(s"nodes (${nodes.size}):"),
+      nodes.map("  " + _),
+      List(s"edges (${edges.size}):"),
+      edges.map("  " + _)
+    ).flatten.mkString("\n")
   }
 }
 
@@ -554,44 +552,6 @@ object Recalculator {
       answerMap,
       evaluationContext
     )
-  }
-
-  def measured[A](tag: String, run: => A): A = {
-    val before = System.nanoTime;
-
-    val result = run
-
-    val after = System.nanoTime
-    val difference = after - before
-
-    val duration = Duration(difference, TimeUnit.NANOSECONDS)
-    println(tag + " " + formatDurationDetailed(duration))
-    result
-  }
-
-  def formatDurationDetailed(duration: Duration): String = {
-    val nanos = duration.toNanos
-    val totalMicros = TimeUnit.NANOSECONDS.toMicros(nanos)
-    val totalMillis = TimeUnit.NANOSECONDS.toMillis(nanos)
-    val totalSeconds = TimeUnit.NANOSECONDS.toSeconds(nanos)
-
-    val result = if (totalSeconds > 0) {
-      val remainingMillis = totalMillis % 1000
-      val remainingMicros = totalMicros % 1000
-      val remainingNanos = nanos        % 1000
-      f"${totalSeconds}s ${remainingMillis}ms ${remainingMicros}μs ${remainingNanos}ns"
-    } else if (totalMillis > 0) {
-      val remainingMicros = totalMicros % 1000
-      val remainingNanos = nanos        % 1000
-      f"${totalMillis}ms ${remainingMicros}μs ${remainingNanos}ns"
-    } else if (totalMicros > 0) {
-      val remainingNanos = nanos % 1000
-      f"${totalMicros}μs ${remainingNanos}ns"
-    } else {
-      f"${nanos}ns"
-    }
-
-    f"$result ($nanos%,d nanos)"
   }
 }
 
