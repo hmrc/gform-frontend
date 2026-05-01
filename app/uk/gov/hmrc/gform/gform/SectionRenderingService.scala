@@ -1661,7 +1661,6 @@ class SectionRenderingService(
                 hideChoicesSelected,
                 noDuplicates
               ) =>
-            println("HeRe 515151")
             htmlForChoice(
               formComponent,
               choice,

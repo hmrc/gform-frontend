@@ -40,7 +40,6 @@ class AnswerMap(val answerMap: mutable.Map[ModelComponentId, EvaluationStatus]) 
 
   def addOne(tuple: (ModelComponentId, EvaluationStatus)): Unit =
     answerMap.addOne(tuple)
-  //addOneTraced(tuple)
 
   def isManaging(modelComponentId: ModelComponentId): Boolean =
     modelComponentId.fold { pure =>
@@ -57,22 +56,8 @@ class AnswerMap(val answerMap: mutable.Map[ModelComponentId, EvaluationStatus]) 
       }
     }
 
-  @scala.annotation.nowarn
-  private def addOneTraced(tuple: (ModelComponentId, EvaluationStatus)): Unit = {
-    val before = pretty()
-    answerMap.addOne(tuple)
-    val after = pretty()
-    println("Updating answerMap " + tuple)
-    println("before:")
-    println("  " + before.replace("\n", "\n  "))
-    println("after:")
-    println("  " + after.replace("\n", "\n  "))
-  }
-
   def pretty(): String =
     answerMap.toList.sortBy { case (k, v) => k.toMongoIdentifier }.mkString("\n")
-
-  def prettyPrint(): Unit = println(pretty())
 
   override def toString(): String =
     answerMap.toString
