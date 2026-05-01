@@ -405,7 +405,7 @@ class FormModelBuilder(
 
     val freeCalculator: FreeCalculator = recalculator.recalculate()
 
-    // recalculator.graph.pretty()
+    // println(recalculator.graph.pretty())
 
     val allSections: AllSections = sectionIncluder.getSections(formTemplate)
 
