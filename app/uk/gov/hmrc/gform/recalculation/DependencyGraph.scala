@@ -28,6 +28,7 @@ import scalax.collection.hyperedges.multilabeled.LDiHyperEdge
 import uk.gov.hmrc.gform.commons.BigDecimalUtil
 import uk.gov.hmrc.gform.controllers.AuthCacheWithoutForm
 import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
+import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
@@ -39,7 +40,7 @@ sealed trait RelationKind
 object RelationKind {
   case class Condition(includeIf: IncludeIf) extends RelationKind
   case class IncludeOptionIf(includeIf: IncludeIf, expr: Expr) extends RelationKind
-  case class Value(expr: Expr) extends RelationKind
+  case class Value(expr: Expr, section: Section) extends RelationKind
   case class Repeats(expr: Expr) extends RelationKind
   case class LinkOnly() extends RelationKind
 }
@@ -370,8 +371,11 @@ class Recalculator(
           if (isVisible && isVisibleByRepeatExpr) {
 
             val computedValueExpr: Option[Expr] = labels
-              .collectFirst { case RelationKind.Value(expr) =>
-                expr
+              .collectFirst { case RelationKind.Value(expr, section) =>
+                modelComponentId.maybeIndex.fold(expr) { index =>
+                  val baseIds = section.maybeAddToList.fold(List.empty[FormComponentId])(_.allIds)
+                  ExprUpdater(expr, index, baseIds)
+                }
               }
 
             val answer = computedValueExpr match {
@@ -606,12 +610,10 @@ object DependencyGraph {
     }
 
   def toGraph(formTemplate: FormTemplate, metadata: Metadata): Graph[FormComponentId, Relation] = {
-    val pages: List[Page] = formTemplate.formKind.allSections.sections.flatMap { section =>
-      section.section.allPages
-    }
+    val sections: List[Section] = formTemplate.formKind.allSections.sections.map(_.section)
 
-    val addToLists: List[Section.AddToList] = formTemplate.formKind.allSections.sections.flatMap { section =>
-      section.section.maybeAddToList
+    val addToLists: List[Section.AddToList] = sections.flatMap { section =>
+      section.maybeAddToList
     }
 
     val addToListRelations: List[Relation] = addToLists.flatMap { addToList =>
@@ -658,7 +660,7 @@ object DependencyGraph {
       }
     }
 
-    graphFromPages(pages, repeatingSectionEdges, taskEdges, addToListRelations, metadata)
+    graphFromPages(sections, repeatingSectionEdges, taskEdges, addToListRelations, metadata)
   }
 
   private def toPageRelations(page: Page): Option[Relation] =
@@ -677,7 +679,7 @@ object DependencyGraph {
 
     }
 
-  private def toValueRefs(formComponent: FormComponent, metadata: Metadata): Option[Relation] =
+  private def toValueRefs(formComponent: FormComponent, section: Section, metadata: Metadata): Option[Relation] =
     formComponent match {
       case IsText(text) =>
         text.value match {
@@ -699,7 +701,7 @@ object DependencyGraph {
             val expr2 = maybeExplicitExprType.fold(expr)(explicitExprType => Typed(expr, explicitExprType))
 
             Some(
-              Relation(parents, OneOrMore.one(formComponent.id), RelationKind.Value(expr2))
+              Relation(parents, OneOrMore.one(formComponent.id), RelationKind.Value(expr2, section))
             )
         }
       // Prepopulation of address and overseas address is handled on page rendering not here
@@ -827,22 +829,24 @@ object DependencyGraph {
   }
 
   def graphFromPages(
-    pages: List[Page],
+    sections: List[Section],
     repeatingSectionEdges: List[Relation],
     taskEdges: List[Relation],
     addToListRelations: List[Relation],
     metadata: Metadata
   ): Graph[FormComponentId, Relation] = {
-    val edges: List[Relation] = pages.flatMap { page =>
-      val fieldsRelations: List[Relation] = page.allEnterableFormComponents.flatMap { field =>
-        val fieldRelation: Option[Relation] = toFieldRelations(field)
-        val valueRelation: Option[Relation] = toValueRefs(field, metadata)
-        val revealingChoiceRelation: List[Relation] = toRevealingChoiceRelations(field)
-        fieldRelation ++ valueRelation ++ revealingChoiceRelation
-      }
-      val pageRelations: Option[Relation] = toPageRelations(page)
+    val edges: List[Relation] = sections.flatMap { section =>
+      section.allPages.flatMap { page =>
+        val fieldsRelations: List[Relation] = page.allEnterableFormComponents.flatMap { field =>
+          val fieldRelation: Option[Relation] = toFieldRelations(field)
+          val valueRelation: Option[Relation] = toValueRefs(field, section, metadata)
+          val revealingChoiceRelation: List[Relation] = toRevealingChoiceRelations(field)
+          fieldRelation ++ valueRelation ++ revealingChoiceRelation
+        }
+        val pageRelations: Option[Relation] = toPageRelations(page)
 
-      fieldsRelations ++ pageRelations ++ repeatingSectionEdges ++ taskEdges ++ addToListRelations
+        fieldsRelations ++ pageRelations ++ repeatingSectionEdges ++ taskEdges ++ addToListRelations
+      }
     }
 
     Graph.from(nodes = Nil, edges = edges)
