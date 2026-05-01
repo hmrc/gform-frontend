@@ -24,6 +24,11 @@ sealed trait ModelDataRetrieveId {
     case ModelDataRetrieveId.Pure(id)       => DataRetrieveId(id)
     case ModelDataRetrieveId.Indexed(id, _) => DataRetrieveId(id)
   }
+  def isIndexed: Boolean = this match {
+    case ModelDataRetrieveId.Pure(_)       => false
+    case ModelDataRetrieveId.Indexed(_, _) => true
+  }
+
 }
 
 object ModelDataRetrieveId {
