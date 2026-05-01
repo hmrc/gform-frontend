@@ -127,7 +127,7 @@ object RuntimeCalculator {
             ) || behaviour == Behaviour.LessThanCurrent || behaviour == Behaviour.All
         }
 
-        val res = if (computeList) {
+        if (computeList) {
 
           val maybeMaxIndex: Option[Int] = behaviour match {
             case Behaviour.LessThanCurrent if formComponentId.modelComponentId.maybeIndex.isDefined =>
@@ -196,10 +196,6 @@ object RuntimeCalculator {
             case todo               => throw new Exception(s"TODO implemented support for SINGLE $todo")
           }
         }
-        // println("HeRe 181181181 " + fcId)
-        // println("      computeList: " + computeList)
-        // println("              res: " + res)
-        res
       }
     }
 
