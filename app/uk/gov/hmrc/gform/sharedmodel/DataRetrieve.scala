@@ -93,7 +93,11 @@ object Attr {
 final case class DataRetrieveId(value: String) {
   val modelPageId = ModelDataRetrieveId.fromId(this)
   def withIndex(index: Int): DataRetrieveId =
-    DataRetrieveId(s"${index}_$value")
+    if (modelPageId.isIndexed) {
+      this
+    } else {
+      DataRetrieveId(s"${index}_$value")
+    }
 }
 
 object DataRetrieveId {
