@@ -224,8 +224,7 @@
 @feedbackContent = {
   @maybeFormTemplate.fold(HtmlFormat.empty){formTemplate =>
     @messages("feedback.before")
-      <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${urlEncode(deskProServiceCode)}")}'>@messages("feedback.link")</a>
-    @messages("feedback.after")
+    <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${urlEncode(deskProServiceCode)}")}' target="_blank">@messages("feedback.link")</a>@messages("feedback.after")
   }
 }
 
