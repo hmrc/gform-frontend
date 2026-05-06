@@ -30,6 +30,44 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+        "1_addAnimal"              -> Many(List("1")),
+        "1_animal"                 -> One("Cat"),
+        "alreadyInUKAnimal"        -> Many(List("0")),
+        "shipmentDateAnimal-day"   -> One("1"),
+        "shipmentDateAnimal-month" -> One("5"),
+        "shipmentDateAnimal-year"  -> One("2026"),
+        "whatToAdd"                -> Many(List("1"))
+      ),
+      List(
+        "n0",
+        "ap2.1.0",
+        "ar2.1",
+        "n3",
+        "n4"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "1_addAnimal"              -> OptionResult(List("1")),
+        "1_addVehicle"             -> Hidden,
+        "1_animal"                 -> StringResult("Cat"),
+        "1_vehicle"                -> Hidden,
+        "alreadyInUKAnimal"        -> OptionResult(List("0")),
+        "shipmentDateAnimal-day"   -> NumberResult(1),
+        "shipmentDateAnimal-month" -> NumberResult(5),
+        "shipmentDateAnimal-year"  -> NumberResult(2026),
+        "whatToAdd"                -> OptionResult(List("1"))
+      ),
+      List(
+        "Cat",
+        "1 - Cat",
+        "<p>1 - Cat</p>",
+        "addAnimal.count = 1, addVehicle.count = 0",
+        "<p>addAnimal.count = 1, addVehicle.count = 0</p>"
+      ),
+      "atl-count-empty.json Generated"
+    ),
+    (
+      MongoUserData(
         "1_addAnother" -> Many(List("0")),
         "1_nameToName" -> One("Foo to Foo"),
         "1_name"       -> One("Foo"),
