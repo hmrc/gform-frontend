@@ -49,7 +49,6 @@ class FormValidator(implicit ec: ExecutionContext) {
       }
       .map(list => FormHandlerResult(Monoid[ValidationResult].combineAll(list), envelope))
 
-  // This is abstract in DataOrigin, since this is used in FastForward logic and when we render a form page with a GET.
   def validatePageModelBySectionNumber(
     formModelOptics: FormModelOptics,
     sectionNumber: SectionNumber,

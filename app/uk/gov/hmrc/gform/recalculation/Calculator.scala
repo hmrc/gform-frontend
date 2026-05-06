@@ -408,7 +408,7 @@ final class RealCalculator(
     statuses: List[EvaluationStatus]
   ): EvaluationStatus = {
     val size = if (metadata.addToListIds(baseComponentId)) {
-      if (statuses.contains(EvaluationStatus.Hidden)) {
+      if (statuses.contains(EvaluationStatus.Hidden) || statuses.isEmpty) {
         0
       } else {
         statuses.filter {
