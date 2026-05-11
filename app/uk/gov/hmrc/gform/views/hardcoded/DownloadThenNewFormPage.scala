@@ -57,7 +57,7 @@ class DownloadThenNewFormPage(
   val filename: String = submission.pdfName
 
   val downloadUrl: String =
-    uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(maybeAccessCode, formTemplate._id).url
+    uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(maybeAccessCode, formTemplate._id, None).url
 
   val errorSummary: ErrorSummary = {
 

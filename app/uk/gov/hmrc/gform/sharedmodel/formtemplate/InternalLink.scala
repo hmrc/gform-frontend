@@ -33,6 +33,7 @@ object InternalLink {
   case class Image(fileName: String) extends InternalLink
   case class UrlLink(url: String) extends InternalLink
   case object PrintSectionPdf extends InternalLink
+  case object PrintSectionNotificationPdf extends InternalLink
   case object SummaryPage extends InternalLink
 
   val printAcknowledgementPdf: InternalLink = PrintAcknowledgementPdf
