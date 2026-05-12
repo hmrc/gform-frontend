@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.lookup.{ ChoiceRuntimeIndexService, LookupRegistry }
 import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
-import uk.gov.hmrc.gform.recalculation.Recalculator
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
@@ -60,8 +59,6 @@ class SummaryRenderingServiceSpec
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
-
-  override protected def afterEach(): Unit = Recalculator.cache.clear()
 
   trait TestFixture {
 
