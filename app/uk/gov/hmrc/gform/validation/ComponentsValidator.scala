@@ -216,7 +216,7 @@ class ComponentsValidator(
             new OverseasAddressChecker().runCheck(checkerDependency)
           )
         case Choice(_, _, _, _, _, _, _, _, _, _, _) =>
-          validIf(new ChoiceChecker[D]().runCheck(checkerDependency))
+          validIf(new ChoiceChecker().runCheck(checkerDependency))
         case _: RevealingChoice =>
           validIf(new ChoiceChecker().runCheck(checkerDependency))
         case Group(_, _, _, _, _) => validationSuccess
