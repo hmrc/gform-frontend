@@ -29,6 +29,7 @@ import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintA
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class DownloadThenNewFormPage(
   val formTemplate: FormTemplate,
@@ -57,7 +58,9 @@ class DownloadThenNewFormPage(
   val filename: String = submission.pdfName
 
   val downloadUrl: String =
-    uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(maybeAccessCode, formTemplate._id, None).url
+    uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+      .downloadPDF(maybeAccessCode, formTemplate._id, UUID.randomUUID().toString)
+      .url
 
   val errorSummary: ErrorSummary = {
 

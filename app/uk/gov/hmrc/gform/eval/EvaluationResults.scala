@@ -641,7 +641,7 @@ case class EvaluationResults(
       nonEmptyExpressionResult(exprResult)
     }
 
-    def cacheBuster: Option[String] = Some(UUID.randomUUID().toString)
+    def cacheBuster: String = UUID.randomUUID().toString
 
     def loop(expr: Expr): ExpressionResult = expr match {
       case Add(field1: Expr, field2: Expr)         => loop(field1) + loop(field2)

@@ -80,7 +80,7 @@ class PrintSectionController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     maybeCoordinates: Option[Coordinates],
-    cacheBuster: Option[String]
+    cacheBuster: String
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
@@ -124,7 +124,7 @@ class PrintSectionController(
   def downloadNotificationPDF(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    cacheBuster: Option[String]
+    cacheBuster: String
   ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
