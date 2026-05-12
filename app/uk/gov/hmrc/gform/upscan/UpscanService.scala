@@ -82,13 +82,16 @@ class UpscanService(
     formIdData: FormIdData,
     formIdDataCrypted: Crypted,
     maxFileSizeMB: Int
-  ): UpscanInitiateRequest = {
+  )(implicit hc: HeaderCarrier): UpscanInitiateRequest = {
 
     val baseUrl = appConfig.`gform-frontend-base-url`
     val codec = new URLCodec("UTF-8")
     val callback0 = codec.encode(formIdDataCrypted.value)
+    val sessionIdParam = hc.sessionId.fold("") { sid =>
+      "&sessionId=" + codec.encode(sid.value)
+    }
     val callback: String =
-      gformBaseUrl + s"/upscan/callback/${formComponentId.value}/${envelopeId.value}?formIdDataCrypted=$callback0"
+      gformBaseUrl + s"/upscan/callback/${formComponentId.value}/${envelopeId.value}?formIdDataCrypted=$callback0$sessionIdParam"
 
     val successRedirect: String =
       baseUrl + UpscanController.success(formTemplateId, sectionNumber, formIdData.maybeAccessCode, formComponentId).url

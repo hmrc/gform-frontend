@@ -616,13 +616,9 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   def upscanEncrypt(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Crypted] = {
     val url = s"$baseUrl/upscan/encrypt"
-    val payload = Json.obj(
-      "formIdData" -> Json.toJson(formIdData),
-      "sessionId"  -> hc.sessionId.map(_.value)
-    )
     httpClient
       .post(url"$url")
-      .withBody(payload)
+      .withBody(Json.toJson(formIdData))
       .execute[HttpResponse]
       .map(httpResponse => Crypted(httpResponse.body))
   }
