@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfN
 import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
+import uk.gov.hmrc.gform.views.html.summary.submissionReceipt
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ Card, CardTitle, SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -79,7 +80,7 @@ class SummaryRenderingService(
   ): Future[PdfContent] =
     for {
       summaryHtml <-
-        getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None, None)
+        getSummaryHTML(maybeAccessCode, cache, summaryPagePurpose, formModelOptics, maybeCoordinates, None, None, None)
     } yield {
       val (headerStr, footerStr) = addDataToPrintPdfHTML(pdf.header, pdf.footer)
       PdfContent(
@@ -156,7 +157,8 @@ class SummaryRenderingService(
     formModelOptics: FormModelOptics[DataOrigin.Mongo],
     maybeCoordinates: Option[Coordinates],
     maybeSummarySection: Option[SummarySection],
-    taskCompleted: Option[Boolean]
+    taskCompleted: Option[Boolean],
+    maybeSubmissionDetails: Option[SubmissionDetails]
   )(implicit
     request: Request[_],
     l: LangADT,
@@ -200,7 +202,8 @@ class SummaryRenderingService(
         AddressRecordLookup.from(cache.form.thirdPartyData),
         maybeCoordinates,
         summarySection,
-        taskCompleted
+        taskCompleted,
+        maybeSubmissionDetails
       )
     }
 
@@ -266,7 +269,8 @@ object SummaryRenderingService {
     addressRecordLookup: AddressRecordLookup,
     maybeCoordinates: Option[Coordinates],
     summarySection: SummarySection,
-    taskCompleted: Option[Boolean]
+    taskCompleted: Option[Boolean],
+    maybeSubmissionDetails: Option[SubmissionDetails]
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
@@ -304,33 +308,38 @@ object SummaryRenderingService {
         maybeCoordinates,
         summarySection.keyDisplayWidth
       )
-    summary(
-      ExtraInfoSummary(
-        formTemplate,
-        sfr,
-        maybeAccessCode,
-        lastSectionNumber,
-        renderComeBackLater,
-        determineContinueLabelKey(
-          retrievals.continueLabelKey,
-          DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
-          summarySection.continueLabel
-        ),
-        frontendAppConfig,
-        summaryPagePurpose,
-        title,
-        caption,
-        headerHtml,
-        summaryDeclaration,
-        footerHtml,
-        formDataFingerprint,
-        summarySection.displayWidth,
-        pageLevelErrorHtml,
-        maybeCoordinates,
-        taskCompleted,
-        summarySection.hideDefaultRows.getOrElse(false)
-      )
+
+    val summaryInfo = ExtraInfoSummary(
+      formTemplate,
+      sfr,
+      maybeAccessCode,
+      lastSectionNumber,
+      renderComeBackLater,
+      determineContinueLabelKey(
+        retrievals.continueLabelKey,
+        DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals),
+        summarySection.continueLabel
+      ),
+      frontendAppConfig,
+      summaryPagePurpose,
+      title,
+      caption,
+      headerHtml,
+      summaryDeclaration,
+      footerHtml,
+      formDataFingerprint,
+      summarySection.displayWidth,
+      pageLevelErrorHtml,
+      maybeCoordinates,
+      taskCompleted,
+      summarySection.hideDefaultRows.getOrElse(false)
     )
+
+    if (maybeSubmissionDetails.isDefined) {
+      submissionReceipt(summaryInfo, maybeSubmissionDetails)
+    } else {
+      summary(summaryInfo)
+    }
   }
 
   def renderNotificationPdfSummary(

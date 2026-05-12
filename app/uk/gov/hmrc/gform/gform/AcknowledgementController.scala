@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
@@ -42,7 +43,8 @@ class AcknowledgementController(
   acknowledgementPdfService: AcknowledgementPdfService,
   renderer: SectionRenderingService,
   messagesControllerComponents: MessagesControllerComponents,
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  summaryRenderingService: SummaryRenderingService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -141,6 +143,31 @@ class AcknowledgementController(
           frontendAppConfig.getBasGatewayFrontendSignOutUrl(Option(s"/feedback/${formTemplateId.value}"))
         )
       )
+    }
+
+  def htmlReceipt(
+    maybeAccessCode: Option[AccessCode],
+    formTemplateId: FormTemplateId
+  ): Action[AnyContent] =
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewAcknowledgement
+    ) { implicit request => implicit l => cache => implicit sse => formModelOptics =>
+      for {
+        submissionDetails <- acknowledgementPdfService.getSubmissionDetails(cache, maybeAccessCode, true)
+        summaryHtml <- summaryRenderingService
+                         .getSummaryHTML(
+                           maybeAccessCode,
+                           cache,
+                           SummaryPagePurpose.ForUser,
+                           formModelOptics,
+                           None,
+                           None,
+                           Some(true),
+                           Some(submissionDetails)
+                         )
+      } yield Ok(summaryHtml)
     }
 
 }

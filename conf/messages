@@ -557,6 +557,7 @@ submission.date=Submission date
 submission.reference=Submission reference
 submission.mark=Submission mark
 submission.details=Submission details
+submission.receipt=Submission receipt
 
 # Save4later
 save4later.saved.title=Your {0} has been saved

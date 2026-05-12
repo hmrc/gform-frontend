@@ -110,7 +110,8 @@ class SummaryController(
               formModelOptics,
               None,
               None,
-              Some(true)
+              Some(true),
+              None
             )
             .map(Ok(_))
 
@@ -122,7 +123,8 @@ class SummaryController(
               formModelOptics,
               maybeCoordinates,
               maybeTaskSummarySection,
-              taskCompleted
+              taskCompleted,
+              None
             )
             .map(Ok(_))
 

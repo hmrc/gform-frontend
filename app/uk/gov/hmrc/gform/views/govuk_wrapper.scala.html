@@ -150,7 +150,7 @@
     @linkElement
     @appConfig.trackingConsentSnippet()
     <!--[if lte IE 8]><link @{CSPNonce.attr} href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
-    <!--[if gt IE 8]><!--><link @{CSPNonce.attr} href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
+    <!--[if gt IE 8]><!--><link @{CSPNonce.attr} href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="all" rel="stylesheet" type="text/css" /><!--<![endif]-->
     <script @{CSPNonce.attr}>
           window.getCookie = function (name) {
             var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
