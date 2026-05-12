@@ -296,21 +296,12 @@ class RecalculationSpec extends AnyFlatSpecLike with Matchers with GraphSpec wit
   //     "d" -> "200"
   //   )
 
-<<<<<<< variant A
-    val expectedOutputData = mkDataCurrent(
-      "a" -> "100",
-      "b" -> "110.00",
-      "c" -> "200",
-      "d" -> "220.00"
-    )
->>>>>>> variant B
   //   val expectedOutputData = mkDataCurrent(
   //     "a" -> "100",
   //     "b" -> "110.00",
   //     "c" -> "200",
   //     "d" -> "220.00"
   //   )
-======= end
 
   //   val sections = List(
   //     mkSection(mkFormComponent("a", Value, sterling) :: Nil),

@@ -507,7 +507,6 @@ object RefInfo {
 }
 
 object Recalculator {
-  val cache: mutable.Map[FormTemplateId, Graph[FormComponentId, Relation]] = mutable.Map.empty
   def from(
     formTemplate: FormTemplate,
     metadata: Metadata,
@@ -515,10 +514,7 @@ object Recalculator {
     visitIndex: VisitIndex,
     evaluationContext: EvaluationContext
   )(implicit messages: Messages): Recalculator = {
-    val graph = cache.getOrElseUpdate(
-      formTemplate._id,
-      DependencyGraph.toGraph(formTemplate, metadata)
-    )
+    val graph = DependencyGraph.toGraph(formTemplate, metadata)
 
     val dependencyGraph = new DependencyGraph(graph)
     val runtime = Runtime(visitIndex, mongoUserData, metadata)
