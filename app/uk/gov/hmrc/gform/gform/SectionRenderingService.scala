@@ -2712,7 +2712,7 @@ class SectionRenderingService(
         )
         .getOrElse(optionsData.map(option => (option, None)))
 
-    val optionsWithHintAndHelpText: NonEmptyList[(OptionData, Option[Hint], Option[Html])] =
+    val optionsWithHintAndHelpText: List[(OptionData, Option[Hint], Option[Html])] =
       optionsWithHelpText.map { case (option, helpText) => (option, toHint(option.hint), helpText) }
 
     val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
