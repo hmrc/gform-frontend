@@ -77,7 +77,7 @@ object AllFormComponentExpressions extends ExprExtractorHelpers {
       case IsRevealingChoice(RevealingChoice(options, _)) => fromRcElements(options)
       case IsChoice(Choice(_, options, _, _, optionHelpText, _, _, _, _, _, _)) =>
         toPlainExprs(
-          fromNel(options.map(_.label)),
+          fromList(options.map(_.label)),
           options.toList.flatMap(_.hint.toList.flatMap(_.allInterpolations)),
           optionHelpText.fold(List.empty[Expr])(fromNel)
         )
