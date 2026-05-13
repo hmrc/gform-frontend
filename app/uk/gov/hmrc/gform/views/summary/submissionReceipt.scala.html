@@ -15,19 +15,13 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.gform.routes.SummaryController
 @import uk.gov.hmrc.gform.summary.SubmissionDetails
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 @import uk.gov.hmrc.gform.summary.ExtraInfoSummary
 @import uk.gov.hmrc.gform.views.html.{page_heading, main_template}
 @import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
-@import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components._
-@import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
-@import uk.gov.hmrc.gform.controllers.{Exit, SummaryContinue}
-@import views.html.helper.CSRF
-@import uk.gov.hmrc.gform.FormTemplateKey
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
@@ -36,13 +30,21 @@
     maybeSubmissionDetails: Option[SubmissionDetails]
 )(implicit request: Request[_], messages: Messages, l: LangADT, sse: SmartStringEvaluator)
 
-<style type="text/css">
+<style>
+    @@media all {
+        .govuk-summary-list__actions,
+        .govuk-phase-banner {
+            display: none!important;
+        }
+    }
     @@media print {
         * {
             color: #000!important;
             background-color: transparent!important;
+            -webkit-print-color-adjust: exact!important;   /* Chrome, Safari 6 – 15.3, Edge */
+            color-adjust: exact!important;                 /* Firefox 48 – 96 */
+            print-color-adjust: exact!important;
         }
-
         .govuk-service-navigation__container,
         .hmrc-service-navigation-language-select,
         .hmrc-sign-out-nav,
@@ -50,27 +52,25 @@
         .govuk-footer__inline-list {
             display: none!important;
         }
-
+        .govuk-header__container,
+        footer > .govuk-width-container {
+            margin-left: 0!important;
+            margin-right: 0!important;
+        }
         .govuk-service-navigation {
-            border-bottom: 1px solid #b1b4b6!important;
+            border-bottom: 2px solid #000!important;
         }
-
+        .govuk-summary-card__title-wrapper {
+            background-color: #f3f2f1!important;
+        }
         footer.govuk-footer {
-            border-top: 2px solid #b1b4b6!important;
-        }
-    }
-    @@media all {
-        .govuk-summary-list__actions,
-        .govuk-phase-banner {
-            display: none!important;
+            border-top: 2px solid #000!important;
+            font-size: 16px!important;
         }
     }
 </style>
 
 @import extraInfoSummary._
-
-@formWithCSRF = @{new FormWithCSRF()}
-@govukButton = @{new GovukButton()}
 
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
@@ -91,19 +91,13 @@
   accessCode = extraInfoSummary.maybeAccessCode
 ) {
 
-    @request.attrs(FormTemplateKey).notificationBanner.fold(HtmlFormat.empty)(notificationBanner => globalGovukNotificationBanner(notificationBanner.toViewNotificationBanner))
-
     @fullMainContent {
         @page_heading(formTemplate.formName.value, None)
     }
 
     @mainContent {
-        @if(summaryPagePurpose.forUser) {
-            @CSRF.formField
-        }
-
         @snippets
-
+        <br/>
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
     }
 
