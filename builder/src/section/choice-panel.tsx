@@ -149,14 +149,10 @@ const getRevealingFields = (formComponent: FormComponent): string[] => {
 
 const getChoiceHints = (formComponent: FormComponent): string[] => {
   if (formComponent.choices instanceof Array) {
-    const standaloneHints: string | string[] | undefined = formComponent.hints;
-    return formComponent.choices.map((choice, index) => {
-      const standaloneHint = standaloneHints instanceof Array ? standaloneHints[index] : undefined;
-      return typeof standaloneHint === "string"
-        ? standaloneHint
-        : typeof choice === "string"
-          ? "" // choice is only text
-          : replaceWithEnglishValue(choice.hint);
+    return formComponent.choices.map((choice) => {
+      return typeof choice === "string"
+        ? "" // choice is only text
+        : replaceWithEnglishValue(choice.hint);
     });
   } else {
     return [];

@@ -417,7 +417,11 @@ class SummaryController(
       )
   }
 
-  def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def downloadPDF(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    cacheBuster: String
+  ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](
       formTemplateId,
       maybeAccessCode,

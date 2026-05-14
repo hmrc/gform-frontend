@@ -97,7 +97,11 @@ class AcknowledgementController(
       }
     }
 
-  def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
+  def downloadPDF(
+    maybeAccessCode: Option[AccessCode],
+    formTemplateId: FormTemplateId,
+    cacheBuster: String
+  ): Action[AnyContent] =
     auth.authAndRetrieveForm[SectionSelectorType.WithAcknowledgement](
       formTemplateId,
       maybeAccessCode,
