@@ -543,6 +543,23 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       case ListType(_) => throw new IllegalStateException("List type is illegal for caseflow get case details response")
     }
 
+  private val urlFTAManageEmails = s"$baseUrl/if/fta/manageemails/v1?eori={{eori}}"
+  private val ftaManageEmailsB =
+    new DataRetrieveConnectorBlueprint(
+      httpClient,
+      urlFTAManageEmails,
+      "fta manage emails"
+    )
+
+  def ftaManageEmails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaManageEmailsB.getEmptyIfNotFound(
+    dataRetrieve,
+    request,
+    request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
+  )
+
   /** **** Tax Period *****
     */
   def getAllTaxPeriods(

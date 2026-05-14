@@ -336,6 +336,9 @@ class FormProcessor(
             Some(fileSystemConnector),
             Some(delegatedAgentAuthConnector)
           )
+          maybeRetrieveResultF.foreach { case Some(dataRetrieveResult) =>
+            dataRetrieve
+          }
           maybeRetrieveResultF.map(r => r -> visibilityOptics.addDataRetrieveResults(r.toList))
         }
 
