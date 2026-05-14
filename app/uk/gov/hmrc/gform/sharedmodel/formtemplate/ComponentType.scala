@@ -411,7 +411,6 @@ case class Choice(
   options: NonEmptyList[OptionData],
   orientation: Orientation,
   selections: List[Int],
-  hints: Option[NonEmptyList[SmartString]],
   optionHelpText: Option[NonEmptyList[SmartString]],
   dividerPosition: Option[DividerPosition],
   dividerText: SmartString,
@@ -459,7 +458,6 @@ object ChoiceType {
 case class RevealingChoiceElement(
   choice: OptionData,
   revealingFields: List[FormComponent],
-  hint: Option[SmartString],
   selected: Boolean
 )
 object RevealingChoiceElement {
