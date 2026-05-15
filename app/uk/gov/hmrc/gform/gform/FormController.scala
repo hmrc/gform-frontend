@@ -91,7 +91,7 @@ class FormController(
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val formModel = formModelOptics.formModelVisibilityOptics.formModel
-        println(cache.form.formData)
+        println("formData:" + cache.form.formData)
         val fastForward = filterFastForward(browserSectionNumber, rawFastForward, formModel)
         val sectionNumber: SectionNumber = formModel.visibleSectionNumber(browserSectionNumber)
         objectStoreAlgebra

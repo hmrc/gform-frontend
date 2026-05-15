@@ -101,6 +101,15 @@ object DataRetrieveId {
     JsonUtils.valueClassFormat[DataRetrieveId, String](DataRetrieveId.apply, _.value)
 }
 
+case class PopulateATL(
+  id: String,
+  mapping: Map[String, Expr]
+)
+
+object PopulateATL {
+  implicit val format: Format[PopulateATL] = Json.format
+}
+
 case class DataRetrieve(
   tpe: DataRetrieve.Type,
   id: DataRetrieveId,
@@ -110,7 +119,8 @@ case class DataRetrieve(
   `if`: Option[IncludeIf],
   maxFailedAttempts: Option[Int],
   failureCountResetMinutes: Option[Int],
-  callOnNoChange: Boolean
+  callOnNoChange: Boolean,
+  populateATL: Option[PopulateATL]
 ) {
 
   def prepareRequest(
@@ -269,6 +279,7 @@ object DataRetrieve {
     failureResetTime: Option[LocalDateTime],
     correlationId: Option[String]
   ) {
+    println("request params: " + params)
     def paramsAsJson(): JsValue = Json.toJson(params.toMap)
 
     def notReady(): Boolean = params.exists { case (_, value) => value.isEmpty }
