@@ -49,6 +49,7 @@ import uk.gov.hmrc.gform.validation.HtmlFieldId.Indexed
 import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, ValidationResult, ValidationService }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -206,6 +207,7 @@ class SummaryRenderingServiceSpec
               formModelOptics,
               Option.empty[Coordinates],
               Option.empty[SummarySection],
+              None,
               None
             )
             .futureValue
@@ -213,6 +215,57 @@ class SummaryRenderingServiceSpec
           val pageButton = Jsoup.parse(generatedHtml.body).select("button[type=submit][value=SummaryContinue]").first()
 
           pageButton.text shouldBe "Summary ContinueLabel"
+        }
+      }
+
+      "summary page" should {
+
+        "include submission details section if SubmissionDetails supplied" in {
+          implicit val localDateTime: LocalDateTime = LocalDateTime.now()
+          val testFixture: TestFixture = new TestFixture {
+            override lazy val formTemplate: FormTemplate = buildFormTemplate(
+              destinationList,
+              List(
+                nonRepeatingPageSection(
+                  title = "Some page title",
+                  fields = List(page1Field),
+                  presentationHint = None
+                )
+              )
+            )
+            override lazy val form: Form =
+              buildForm(FormData(List(FormField(page1Field.modelComponentId, "page1Field-value"))))
+            override lazy val validationResult: ValidationResult = new ValidationResult(
+              Map(
+                page1Field.id -> FieldOk(page1Field, "page1Field-value")
+              ),
+              None
+            )
+          }
+
+          import testFixture._
+
+          val generatedHtml = summaryRenderingService
+            .getSummaryHTML(
+              maybeAccessCode,
+              cache,
+              SummaryPagePurpose.ForDms,
+              formModelOptics,
+              Option.empty[Coordinates],
+              Option.empty[SummarySection],
+              None,
+              Some(
+                SubmissionDetails(
+                  submission,
+                  "hashedValue"
+                )
+              )
+            )
+            .futureValue
+
+          generatedHtml.body.contains("""<h3 class="govuk-heading-m">
+                                        |  submission.details
+                                        |</h3>""".stripMargin) shouldBe true
         }
       }
 
@@ -279,6 +332,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
+                None,
                 None
               )
               .futureValue
@@ -370,6 +424,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
+                None,
                 None
               )
               .futureValue
@@ -443,6 +498,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
+                None,
                 None
               )
               .futureValue
@@ -525,6 +581,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
+                None,
                 None
               )
               .futureValue
@@ -618,6 +675,7 @@ class SummaryRenderingServiceSpec
                 formModelOptics,
                 Option.empty[Coordinates],
                 Option.empty[SummarySection],
+                None,
                 None
               )
               .futureValue
