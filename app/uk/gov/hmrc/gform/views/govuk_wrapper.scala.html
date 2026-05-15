@@ -250,7 +250,7 @@
 }
 @serviceNavigation = @{
     val serviceNavTemp = ServiceNavigation(serviceName = Some(serviceTitle), serviceUrl = if (serviceLink.isEmpty) None else Some(serviceLink))
-    if(formSupportsLanguages) serviceNavTemp.withLanguageToggle() else serviceNavTemp
+    if(formSupportsLanguages) withLanguageToggle(serviceNavTemp, appConfig, maybeFormTemplate, accessCode) else serviceNavTemp
 }
 
 @headerBlock = {
