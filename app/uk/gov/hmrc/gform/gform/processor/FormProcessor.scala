@@ -146,7 +146,7 @@ class FormProcessor(
         formModelOptics,
         EnteredVariadicFormData.empty,
         true
-      ) { _ => _ => _ =>
+      ) { _ => _ => _ => _ =>
         val pageIdToRemove = updFormModel.brackets.addToListBracket(addToListId).source.pageIdToDisplayAfterRemove
         val pageIdSectionNumberMap = updFormModel.pageIdSectionNumberMap
         val sectionNumber =
@@ -284,8 +284,13 @@ class FormProcessor(
 
   private def populateAtlWithFormData(
     populateATL: PopulateATL,
-    formModelVisibilityOptics: FormModelVisibilityOptics[Browser]
-  ): PopulateAtlData = {
+    formModelVisibilityOptics: FormModelVisibilityOptics[Browser],
+    authCacheWithForm: AuthCacheWithForm
+  )(implicit
+    messages: Messages,
+    langADT: LangADT,
+    hc: HeaderCarrier
+  ): (PopulateAtlData, FormModelVisibilityOptics[Browser]) = {
     val seq = populateATL.mapping.toSeq
 
     val fields = seq.map { case (atlComponentName, expr) =>
@@ -337,7 +342,20 @@ class FormProcessor(
         PopulateAtlData(accFields ++ fields, accCount + count)
     }
 
-    populateAtlData
+    val updatedVariadicFormData = populateAtlData.fields
+      .foldLeft(formModelVisibilityOptics.recData.variadicFormData) { case (acc, field) =>
+        acc.addMany(field.id -> Seq(field.value))
+      }
+
+    val newVisOptics = FormModelOptics
+      .mkFormModelOptics[Browser, SectionSelectorType.Normal](
+        updatedVariadicFormData
+          .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+        authCacheWithForm
+      )
+      .formModelVisibilityOptics
+
+    populateAtlData -> newVisOptics
   }
 
   private def retrieveWithState(
@@ -346,12 +364,13 @@ class FormProcessor(
     cache: AuthCacheWithForm
   )(implicit
     message: Messages,
-    hc: HeaderCarrier
+    hc: HeaderCarrier,
+    langADT: LangADT
   ): Future[(Option[DataRetrieveResult], FormModelVisibilityOptics[DataOrigin.Browser], Option[PopulateAtlData])] = {
     val maybePreviousResult: Option[DataRetrieveResult] =
       cache.form.thirdPartyData.dataRetrieve.flatMap(_.get(dataRetrieve.id))
     val request: DataRetrieve.Request =
-      dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult, Some(cache.form.envelopeId.value))
+      dataRetrieve.prepareRequest(visibilityOptics, maybePreviousResult, Some(cache.form.envelopeId.value))(message)
     val maybeRetrieveResultF = DataRetrieveService.retrieveDataResult(
       dataRetrieve,
       Some(cache.form),
@@ -368,9 +387,14 @@ class FormProcessor(
     maybeRetrieveResultF.map { r =>
       val visOptics = visibilityOptics.addDataRetrieveResults(r.toList)
       val populateAtlData = dataRetrieve.populateATL
-        .map(populateAtl => populateAtlWithFormData(populateAtl, visOptics))
+        .map(populateAtl => populateAtlWithFormData(populateAtl, visOptics, cache)(message, langADT, hc))
 
-      (r, visOptics, populateAtlData)
+      val populateAtlVisOptics = populateAtlData match {
+        case Some(value) => value._2
+        case None        => visOptics
+      }
+
+      (r, populateAtlVisOptics, populateAtlData.map(_._1))
     }
   }
 
@@ -383,7 +407,8 @@ class FormProcessor(
     cache: AuthCacheWithForm
   )(implicit
     hc: HeaderCarrier,
-    messages: Messages
+    messages: Messages,
+    langADT: LangADT
   ): Future[(List[DataRetrieveResult], FormModelVisibilityOptics[Browser], Seq[PopulateAtlData])] =
     if (isValid) {
       val updatedComponents: Set[BaseComponentId] = {
@@ -426,7 +451,7 @@ class FormProcessor(
         ) { case (acc, r) =>
           acc.flatMap {
             case (results, optics, populateAtlDataSeq) if r.`if`.forall(optics.evalIncludeIfExpr(_, None)) =>
-              retrieveWithState(r, optics, cache).map {
+              retrieveWithState(r, optics, cache)(messages, implicitly, implicitly).map {
                 case (Some(result), updatedOptics, populateAtlData) =>
                   (results :+ result, updatedOptics, populateAtlDataSeq ++ populateAtlData)
                 case (None, _, _) =>
@@ -448,7 +473,9 @@ class FormProcessor(
     enteredVariadicFormData: EnteredVariadicFormData,
     visitPage: Boolean
   )(
-    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[String] => SectionOrSummary => Result
+    toResult: Option[(FormComponentId, AddressLookupResult)] => Option[
+      String
+    ] => SectionOrSummary => FormModelVisibilityOptics[Browser] => Result
   )(implicit hc: HeaderCarrier, l: LangADT, sse: SmartStringEvaluator, messages: Messages): Future[Result] = {
 
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
@@ -545,7 +572,7 @@ class FormProcessor(
           checkForRevisits(pageModel, visitsIndex, formModelOptics, enteredVariadicFormData, sectionNumber)
 
         val populateAtlDataWithTemplateIndex = populateAtlData.map { populateAtlData =>
-          val fm = formModelOptics.formModelRenderPageOptics.formModel
+          val fm = updatedFormVisibilityOptics.formModel
           populateAtlData -> populateAtlData.fields
             .flatMap { case FormField(mcId, value) =>
               fm.sectionNumberLookup.get(mcId.toFormComponentId).map(_.templateSectionIndex)
@@ -557,7 +584,7 @@ class FormProcessor(
         val visitedPopulateAtlPagesVisitsIndex =
           populateAtlDataWithTemplateIndex.foldLeft(updatedVisitsIndex) { case (acc, (atlData, atlSection)) =>
             val visitedDefault = acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
-            val fm = formModelOptics.formModelRenderPageOptics.formModel
+            val fm = updatedFormVisibilityOptics.formModel
             val numberOfAtlPages = fm.addToListSectionNumbers.count {
               case classic: SectionNumber.Classic                     => classic.sectionIndex == atlSection
               case SectionNumber.TaskList(coordinates, sectionNumber) => sectionNumber.sectionIndex == atlSection
@@ -612,7 +639,11 @@ class FormProcessor(
                 fastForward,
                 envelopeWithMapping,
                 Some(sectionNumber)
-              )((sectionOrSummary, _) => toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(sectionOrSummary))
+              )((sectionOrSummary, _) =>
+                toResult(updatePostcodeLookup)(redirectUrl.map(_.value()))(sectionOrSummary)(
+                  updatedFormVisibilityOptics
+                )
+              )
         } yield res
       }
     } yield res
@@ -629,17 +660,25 @@ class FormProcessor(
     )
   }
 
-  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
+  def getSectionTitle4Ga(
+    formModelVisibilityOptics: FormModelVisibilityOptics[Browser],
+    formModel: FormModel[DataExpanded],
+    sectionNumber: SectionNumber
+  )(implicit
     messages: Messages
   ): SectionTitle4Ga = {
 
     val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(englishMessages)
-    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
 
     val sse: SmartStringEvaluator =
       smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelVisibilityOptics))(messages, LangADT.En)
-    sectionTitle4GaFactory(processData.formModel(sectionNumber), sectionNumber)(sse)
+    sectionTitle4GaFactory(formModel(sectionNumber), sectionNumber)(sse)
   }
+
+  def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
+    messages: Messages
+  ): SectionTitle4Ga =
+    getSectionTitle4Ga(processData.formModelOptics.formModelVisibilityOptics, processData.formModel, sectionNumber)
 
   private def maybeRemoveVerifiedCode(
     validatorsResult: Option[ValidatorsResult],
