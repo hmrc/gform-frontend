@@ -535,7 +535,7 @@ submission.date=Dyddiad y cyflwyniad
 submission.reference=Cyfeirnod y cyflwyniad
 submission.mark=Marc y cyflwyniad
 submission.details=Manylion y cyflwyniad
-submission.receipt=Derbynneb cyflwyniad
+submission.receipt=Derbynneb y cyflwyniad
 
 # Save4later
 save4later.saved.title=Cadwyd eich {0}
