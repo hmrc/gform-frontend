@@ -196,7 +196,8 @@ class DelegatedAgentAuthConnectorSpec
       None,
       None,
       None,
-      false
+      false,
+      None
     )
 
     val authPayeDataRetrieve: DataRetrieve = DataRetrieve(
@@ -222,7 +223,8 @@ class DelegatedAgentAuthConnectorSpec
       None,
       None,
       None,
-      false
+      false,
+      None
     )
 
     val mtdAuthRequest: DataRetrieve.Request = DataRetrieve.Request(
