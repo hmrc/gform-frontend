@@ -312,7 +312,6 @@ class FormProcessor(
       }
 
       val atlId = FormComponentId("1_" + populateATL.id)
-      println(formModelVisibilityOptics.formModel.fcLookup)
       val addAnotherQuestionFormComponent = formModelVisibilityOptics.formModel.fcLookup(atlId)
       val defaultPageBcs = formModelVisibilityOptics.formModel.addToListBrackets
         .collectFirst { case atl if atl.source.id.formComponentId == FormComponentId(populateATL.id) => atl.source }
