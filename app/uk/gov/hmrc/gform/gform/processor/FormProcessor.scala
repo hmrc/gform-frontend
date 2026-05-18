@@ -590,13 +590,9 @@ class FormProcessor(
               case SectionNumber.TaskList(coordinates, sectionNumber) => sectionNumber.sectionIndex == atlSection
             }
 
-            println("number of atl pages: " + numberOfAtlPages)
-            println("atlDataCount: " + atlData.count)
-
             (0 until numberOfAtlPages - 2) //-2 excludes default and add another question pages.
               .foldLeft(visitedDefault) { case (acc, atlPageIndex) =>
                 (1 to atlData.count).foldLeft(acc) { case (acc, iterationNumber) =>
-                  println("iteration number: " + iterationNumber)
                   acc
                     .visit(SectionNumber.Classic.AddToListPage.Page(atlSection, iterationNumber, atlPageIndex))
                     .visit(
@@ -606,8 +602,6 @@ class FormProcessor(
                 }
               }
           }
-
-        println("visitedPopulateAtlPagesVisitsIndex: " + visitedPopulateAtlPagesVisitsIndex)
 
         val cacheUpd =
           cache.copy(

@@ -279,7 +279,6 @@ object DataRetrieve {
     failureResetTime: Option[LocalDateTime],
     correlationId: Option[String]
   ) {
-    println("request params: " + params)
     def paramsAsJson(): JsValue = Json.toJson(params.toMap)
 
     def notReady(): Boolean = params.exists { case (_, value) => value.isEmpty }
