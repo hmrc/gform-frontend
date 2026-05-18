@@ -311,17 +311,29 @@ class FormProcessor(
         case _ => throw new RuntimeException(s"$expr did not match for populateATL evaluation")
       }
 
-      val defaultPageBaseComponentId = BaseComponentId("dp1") //TODO: Lookup properly
-      val addAnotherQuestionBaseComponentId = BaseComponentId("ownerFc") //TODO: Lookup properly
+      val atlId = FormComponentId("1_" + populateATL.id)
+      println(formModelVisibilityOptics.formModel.fcLookup)
+      val addAnotherQuestionFormComponent = formModelVisibilityOptics.formModel.fcLookup(atlId)
+      val defaultPageBcs = formModelVisibilityOptics.formModel.addToListBrackets
+        .collectFirst { case atl if atl.source.id.formComponentId == FormComponentId(populateATL.id) => atl.source }
+        .getOrElse(throw new RuntimeException(s"Could not find an ATL with id ${populateATL.id}"))
+        .defaultPage
+        .toList
+        .flatMap(page => page.fields)
+        .map(_.id.baseComponentId)
+
+      val defaultPageFormFields = defaultPageBcs.map { bc =>
+        FormField(
+          ModelComponentId.pure(IndexedComponentId.indexed(bc, 1)),
+          ""
+        )
+      }
+
+      val addAnotherQuestionBaseComponentId = addAnotherQuestionFormComponent.baseComponentId
 
       val atlsToPopulateCount = atlValues.length
       val defaultAndAAQFormFields = (1 until atlsToPopulateCount).foldLeft(
-        Seq(
-          FormField(
-            ModelComponentId.pure(IndexedComponentId.indexed(defaultPageBaseComponentId, 1)),
-            ""
-          )
-        )
+        defaultPageFormFields
       ) { case (acc, i) =>
         acc :+ FormField(
           ModelComponentId.pure(IndexedComponentId.indexed(addAnotherQuestionBaseComponentId, i)),
