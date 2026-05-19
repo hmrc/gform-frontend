@@ -275,7 +275,8 @@ class Recalculator(
   val metadata: Metadata,
   runtime: Runtime,
   val answerMap: AnswerMap,
-  evaluationContext: EvaluationContext
+  evaluationContext: EvaluationContext,
+  cacheBuster: CacheBuster
 )(implicit messages: Messages) {
 
   // FormModel doesn't exists at this moment, so FormModelMetadata are not available.
@@ -291,7 +292,8 @@ class Recalculator(
       metadata,
       formModelMetadata,
       answerMapWithFallback,
-      evaluationContext
+      evaluationContext,
+      cacheBuster
     )
   }
 
@@ -333,7 +335,8 @@ class Recalculator(
             metadata,
             evaluationContext,
             formModelMetadata,
-            Lifter.getLifter(modelComponentId, runtime)
+            Lifter.getLifter(modelComponentId, runtime),
+            cacheBuster
           )
 
           val labels: Set[RelationKind] = relations.map(_.label)
@@ -512,7 +515,8 @@ object Recalculator {
     metadata: Metadata,
     mongoUserData: MongoUserData,
     visitIndex: VisitIndex,
-    evaluationContext: EvaluationContext
+    evaluationContext: EvaluationContext,
+    cacheBuster: CacheBuster
   )(implicit messages: Messages): Recalculator = {
     val graph = DependencyGraph.toGraph(formTemplate, metadata)
 
@@ -525,12 +529,13 @@ object Recalculator {
       metadata,
       runtime,
       answerMap,
-      evaluationContext
+      evaluationContext,
+      cacheBuster
     )
   }
 
-  def fromEnrolmentSection(enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm)(implicit
-    messages: Messages
+  def fromEnrolmentSection(enrolmentSection: EnrolmentSection, cache: AuthCacheWithoutForm, cacheBuster: CacheBuster)(
+    implicit messages: Messages
   ): Recalculator = {
     val graph = Graph.empty[FormComponentId, Relation]
     val dependencyGraph = new DependencyGraph(graph)
@@ -546,7 +551,8 @@ object Recalculator {
       metadata,
       runtime,
       answerMap,
-      evaluationContext
+      evaluationContext,
+      cacheBuster
     )
   }
 }

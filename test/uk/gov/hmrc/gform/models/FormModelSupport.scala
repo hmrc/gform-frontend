@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.eval.{ DbLookupChecker, DelegatedEnrolmentChecker, Seis
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.recalculation.Metadata
+import uk.gov.hmrc.gform.recalculation.{ CacheBuster, Metadata }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateContext, FormTemplateId, IncludeIf, OptionData, Section, SectionNumber }
@@ -99,7 +99,8 @@ trait FormModelSupport extends GraphSpec {
       maybeAccessCode,
       FormComponentIdToFileIdMapping.empty,
       new LookupRegistry(Map()),
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      CacheBuster.static
     )
 
   def mkFormModelOptics(
