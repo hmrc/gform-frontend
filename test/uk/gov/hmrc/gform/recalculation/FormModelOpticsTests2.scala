@@ -3575,8 +3575,8 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       EvaluationContext.empty,
       AnswerMap(),
       List(
-        "printAcknowledgementPdf: /acknowledgement/pdf/link-ctx",
-        "printSummaryPdf: /summary/pdf/link-ctx",
+        "printAcknowledgementPdf: /acknowledgement/pdf/link-ctx?v=static-value",
+        "printSummaryPdf: /summary/pdf/link-ctx?v=static-value",
         "newForm.other-template-id: /new-form/othertemplateid/clean",
         "newForm: /new-form/link-ctx",
         "newSession: /new-form/link-ctx/session",

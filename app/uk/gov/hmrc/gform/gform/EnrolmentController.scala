@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.{ SectionSelectorType, Singleton }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
-import uk.gov.hmrc.gform.recalculation.{ FreeCalculator, Recalculator }
+import uk.gov.hmrc.gform.recalculation.{ CacheBuster, FreeCalculator, Recalculator }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
@@ -358,7 +358,7 @@ class EnrolmentController(
   )(implicit messages: Messages): FormModelOptics = {
     val formModel: FormModel = FormModel.fromEnrolmentSection(enrolmentSection)
 
-    val recalculator: Recalculator = Recalculator.fromEnrolmentSection(enrolmentSection, cache)
+    val recalculator: Recalculator = Recalculator.fromEnrolmentSection(enrolmentSection, cache, CacheBuster.random)
     val freeCalculator: FreeCalculator = recalculator.recalculate()
 
     val formModelRenderPageOptics = new FormModelRenderPageOptics(formModel)
@@ -438,7 +438,8 @@ class EnrolmentController(
                 cache,
                 cache.toCacheData,
                 None,
-                uk.gov.hmrc.gform.sharedmodel.form.Form.dummy(formTemplateId)
+                uk.gov.hmrc.gform.sharedmodel.form.Form.dummy(formTemplateId),
+                CacheBuster.random
               )
             def handleContinueWithData(formModelOptics: FormModelOptics) = {
               val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics

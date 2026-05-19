@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.recalculation.CacheBuster
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhase
 
@@ -54,13 +55,15 @@ object FormModelOptics {
     cache: AuthCache,
     cacheData: CacheData,
     phase: Option[FormPhase],
-    form: Form
+    form: Form,
+    cacheBuster: CacheBuster
   )(implicit
     lang: LangADT,
     messages: Messages
   ): FormModelOptics = {
 
-    val formModelBuilder = FormModelBuilder.fromCache(cache, cacheData, form.componentIdToFileId, form.taskIdTaskStatus)
+    val formModelBuilder =
+      FormModelBuilder.fromCache(cache, cacheData, form.componentIdToFileId, form.taskIdTaskStatus, cacheBuster)
     formModelBuilder.visibilityModel(data, phase, form)
 
   }
@@ -68,10 +71,11 @@ object FormModelOptics {
   def mkFormModelOptics[U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData,
     cache: AuthCacheWithForm,
-    phase: Option[FormPhase] = None
+    phase: Option[FormPhase] = None,
+    cacheBuster: CacheBuster = CacheBuster.random
   )(implicit
     lang: LangADT,
     messages: Messages
   ): FormModelOptics =
-    mkFormModelOptics[U](data, cache, cache.toCacheData, phase, cache.form)
+    mkFormModelOptics[U](data, cache, cache.toCacheData, phase, cache.form, cacheBuster)
 }
