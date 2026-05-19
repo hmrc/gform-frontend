@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageU
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.recalculation.{ DependencyGraph, EvaluationContext, EvaluationStatus, FreeCalculator, Metadata, MongoUserData, Recalculator }
+import uk.gov.hmrc.gform.recalculation.{ CacheBuster, DependencyGraph, EvaluationContext, EvaluationStatus, FreeCalculator, Metadata, MongoUserData, Recalculator }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
@@ -37,7 +37,8 @@ object FormModelBuilder {
     cache: AuthCache,
     cacheData: CacheData,
     componentIdToFileId: FormComponentIdToFileIdMapping,
-    taskIdTaskStatus: TaskIdTaskStatusMapping
+    taskIdTaskStatus: TaskIdTaskStatusMapping,
+    cacheBuster: CacheBuster
   ): FormModelBuilder =
     new FormModelBuilder(
       cache.retrievals,
@@ -48,7 +49,8 @@ object FormModelBuilder {
       cache.accessCode,
       componentIdToFileId,
       cache.lookupRegistry,
-      taskIdTaskStatus
+      taskIdTaskStatus,
+      cacheBuster
     )
 }
 
@@ -61,7 +63,8 @@ class FormModelBuilder(
   maybeAccessCode: Option[AccessCode],
   componentIdToFileId: FormComponentIdToFileIdMapping,
   lookupRegistry: LookupRegistry,
-  taskIdTaskStatus: TaskIdTaskStatusMapping
+  taskIdTaskStatus: TaskIdTaskStatusMapping,
+  cacheBuster: CacheBuster
 ) {
 
   def visibilityModel[U <: SectionSelectorType: SectionSelector](
@@ -400,7 +403,8 @@ class FormModelBuilder(
         metadata,
         mongoUserData,
         visitIndex,
-        evaluationContext
+        evaluationContext,
+        cacheBuster
       )
 
     val freeCalculator: FreeCalculator = recalculator.recalculate()

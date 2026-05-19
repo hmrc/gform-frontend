@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.recalculation
 
 import cats.syntax.all._
 import java.time.LocalDate
-import java.util.UUID
 import play.api.i18n.Messages
 import scala.util.Try
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberSetScale }
@@ -46,7 +45,8 @@ final class RealCalculator(
   metadata: Metadata,
   evaluationContext: EvaluationContext,
   formModelMetadata: FormModelMetadata,
-  dataBridge: DataBridge
+  dataBridge: DataBridge,
+  cacheBuster: CacheBuster
 )(implicit messages: Messages)
     extends Calculator {
 
@@ -203,8 +203,6 @@ final class RealCalculator(
   private def evalQueryParam(queryParam: QueryParam): EvaluationStatus =
     EvaluationStatus.StringResult(evaluationContext.thirdPartyData.queryParams(queryParam))
 
-  private def cacheBuster: String = UUID.randomUUID().toString
-
   private def evalLink(
     internalLink: InternalLink,
     formModelMetadata: FormModelMetadata
@@ -213,11 +211,19 @@ final class RealCalculator(
       internalLink match {
         case InternalLink.PrintSummaryPdf =>
           uk.gov.hmrc.gform.gform.routes.SummaryController
-            .downloadPDF(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, cacheBuster)
+            .downloadPDF(
+              evaluationContext.formTemplateId,
+              evaluationContext.maybeAccessCode,
+              cacheBuster.generateValue()
+            )
             .url
         case InternalLink.PrintAcknowledgementPdf =>
           uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-            .downloadPDF(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId, cacheBuster)
+            .downloadPDF(
+              evaluationContext.maybeAccessCode,
+              evaluationContext.formTemplateId,
+              cacheBuster.generateValue()
+            )
             .url
         case InternalLink.NewFormForTemplate(formTemplateId) =>
           uk.gov.hmrc.gform.gform.routes.NewFormController
@@ -253,14 +259,18 @@ final class RealCalculator(
           uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
         case InternalLink.PrintSectionPdf =>
           uk.gov.hmrc.gform.gform.routes.PrintSectionController
-            .downloadNotificationPDF(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, cacheBuster)
+            .downloadNotificationPDF(
+              evaluationContext.formTemplateId,
+              evaluationContext.maybeAccessCode,
+              cacheBuster.generateValue()
+            )
             .url
         case InternalLink.PrintSectionNotificationPdf =>
           uk.gov.hmrc.gform.gform.routes.PrintSectionController
             .downloadNotificationPDF(
               evaluationContext.formTemplateId,
               evaluationContext.maybeAccessCode,
-              cacheBuster
+              cacheBuster.generateValue()
             )
             .url
         case InternalLink.SummaryPage =>

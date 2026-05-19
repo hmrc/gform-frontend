@@ -31,7 +31,8 @@ object RuntimeCalculator {
     metadata: Metadata,
     answerMapWithFallback: AnswerMapWithFallback,
     evaluationContext: EvaluationContext,
-    formModelMetadata: FormModelMetadata
+    formModelMetadata: FormModelMetadata,
+    cacheBuster: CacheBuster
   )(implicit messages: Messages): Calculator = {
     def evalDate(fcId: FormComponentId): EvaluationStatus = {
       val day = answerMapWithFallback.expectNumberResult(fcId, Date.day)
@@ -199,6 +200,6 @@ object RuntimeCalculator {
       }
     }
 
-    new RealCalculator(metadata, evaluationContext, formModelMetadata, dataBridge)
+    new RealCalculator(metadata, evaluationContext, formModelMetadata, dataBridge, cacheBuster)
   }
 }
