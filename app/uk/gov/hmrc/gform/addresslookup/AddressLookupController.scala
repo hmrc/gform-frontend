@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.gform.ConfirmationService
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping }
-import uk.gov.hmrc.gform.recalculation.Metadata
+import uk.gov.hmrc.gform.recalculation.{ CacheBuster, Metadata }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormComponentIdToFileIdMapping, FormData, FormModelOptics, TaskIdTaskStatusMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, SmartString }
@@ -806,7 +806,8 @@ class AddressLookupController(
       maybeAccessCode,
       FormComponentIdToFileIdMapping.empty,
       lookupRegistry,
-      TaskIdTaskStatusMapping.empty
+      TaskIdTaskStatusMapping.empty,
+      CacheBuster.random
     )
 
     val data = syntheticCache.variadicFormData

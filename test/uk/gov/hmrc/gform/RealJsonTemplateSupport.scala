@@ -31,7 +31,7 @@ import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.recalculation.{ EvaluationContext, MongoUserData }
+import uk.gov.hmrc.gform.recalculation.{ CacheBuster, EvaluationContext, MongoUserData }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeExpiryDate, FormData, FormField, InProgress, TaskIdTaskStatusMapping }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateContext, FormTemplateVersion, TaskId }
@@ -96,7 +96,8 @@ object RealJsonTemplateSupport {
     FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
       data = mongoUserData.lookup,
       cache = cache,
-      phase = evaluationContext.formPhase
+      phase = evaluationContext.formPhase,
+      cacheBuster = CacheBuster.static
     )
 
   }

@@ -33,7 +33,8 @@ object BootstrapCalculator {
     metadata: Metadata,
     evaluationContext: EvaluationContext,
     formModelMetadata: FormModelMetadata,
-    lifter: Lifter
+    lifter: Lifter,
+    cacheBuster: CacheBuster
   )(implicit messages: Messages): Calculator = {
     def allIndexEvaluationStatuses(fcId: FormComponentId): List[EvaluationStatus] = {
       val allFcIds: Set[ModelComponentId] = runtime.toIndexedFormComponentIds(fcId)
@@ -150,6 +151,6 @@ object BootstrapCalculator {
         answerMap.forBaseComponentId(modelComponentId.baseComponentId)
     }
 
-    new RealCalculator(metadata, evaluationContext, formModelMetadata, dataBridge)
+    new RealCalculator(metadata, evaluationContext, formModelMetadata, dataBridge, cacheBuster)
   }
 }

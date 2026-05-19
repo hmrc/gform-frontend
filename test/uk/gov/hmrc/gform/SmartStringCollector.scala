@@ -212,8 +212,7 @@ object SmartStringCollector {
     revealingChoiceElement: RevealingChoiceElement
   ): List[(SmartString, Boolean)] =
     smartStringForOptionData(revealingChoiceElement.choice) ++
-      revealingChoiceElement.revealingFields.flatMap(smartStringForFormComponent) ++
-      revealingChoiceElement.hint.map(_ -> false).toList
+      revealingChoiceElement.revealingFields.flatMap(smartStringForFormComponent)
 
   private def smartStringForMiniSummaryRow(miniSummaryRow: MiniSummaryRow): List[(SmartString, Boolean)] =
     miniSummaryRow match {
@@ -253,7 +252,6 @@ object SmartStringCollector {
         ).flatten
       case c: Choice =>
         c.options.toList.flatMap(smartStringForOptionData) ++
-          c.hints.toList.flatMap(_.map(_ -> false).toList) ++
           c.optionHelpText.toList.flatMap(_.map(_ -> true).toList) ++
           List(c.dividerText -> false)
       case r: RevealingChoice =>
