@@ -29,23 +29,25 @@ final class FreeCalculator(
   val metadata: Metadata,
   val formModelMetadata: FormModelMetadata,
   val answerMapWithFallback: AnswerMapWithFallback,
-  val evaluationContext: EvaluationContext
+  val evaluationContext: EvaluationContext,
+  val cacheBuster: CacheBuster
 )(implicit messages: Messages) {
 
   def cleared(modelComponentIds: List[ModelComponentId]): FreeCalculator = new FreeCalculator(
     metadata,
     formModelMetadata,
     answerMapWithFallback.cleared(modelComponentIds),
-    evaluationContext
+    evaluationContext,
+    cacheBuster
   )
 
-  val calc = RuntimeCalculator(metadata, answerMapWithFallback, evaluationContext, formModelMetadata)
+  val calc = RuntimeCalculator(metadata, answerMapWithFallback, evaluationContext, formModelMetadata, cacheBuster)
 
   def withEvaluationContext(evaluationContext: EvaluationContext): FreeCalculator =
-    new FreeCalculator(metadata, formModelMetadata, answerMapWithFallback, evaluationContext)
+    new FreeCalculator(metadata, formModelMetadata, answerMapWithFallback, evaluationContext, cacheBuster)
 
   def withFormModelMetadata(formModelMetadata: FormModelMetadata): FreeCalculator =
-    new FreeCalculator(metadata, formModelMetadata, answerMapWithFallback, evaluationContext)
+    new FreeCalculator(metadata, formModelMetadata, answerMapWithFallback, evaluationContext, cacheBuster)
 
   val answerMap = answerMapWithFallback.answerMap
 
