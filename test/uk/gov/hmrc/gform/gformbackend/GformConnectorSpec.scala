@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, ExampleData, Fetch, ServiceResponse }
 import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
 import uk.gov.hmrc.http._
 
@@ -184,6 +184,125 @@ class GformConnectorSpec extends Spec {
       case _                                            => false
     }
     isUpstream400Response shouldBe true
+  }
+
+  behavior of "GformConnector.getHipAgentDetails - happy path"
+
+  it should "return ServiceResponse with processed attributes on a 200 response" in new Fixture {
+    val status = 200
+    val responseJson = Some(
+      Json.obj(
+        "det" -> Json.obj(
+          "success" -> Json.obj(
+            "name"     -> "Test Agency",
+            "addr1"    -> "1 Test Street",
+            "addr2"    -> "",
+            "addr3"    -> "",
+            "addr4"    -> "",
+            "postcode" -> "TE1 1ST",
+            "country"  -> "GB",
+            "email"    -> "test@example.com",
+            "phone"    -> "01234567890"
+          )
+        )
+      )
+    )
+
+    val dataRetrieve = DataRetrieve(
+      tpe = DataRetrieve.Type("agentDetails"),
+      id = DataRetrieveId("agencyInfo"),
+      attributes = Attr.FromObject(
+        List(
+          AttributeInstruction(
+            DataRetrieve.Attribute("agencyName"),
+            ConstructAttribute.AsIs(Fetch(List("det", "success", "name")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("agencyEmail"),
+            ConstructAttribute.AsIs(Fetch(List("det", "success", "email")))
+          )
+        )
+      ),
+      attrTypeMapping = Map.empty,
+      params = List.empty,
+      `if` = None,
+      maxFailedAttempts = None,
+      failureCountResetMinutes = None,
+      callOnNoChange = false
+    )
+
+    val request = DataRetrieve.Request(
+      json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
+      params = List("agentReferenceNumber" -> "XARN1234567"),
+      previousFailureCount = None,
+      failureResetTime = None,
+      correlationId = Some("test-correlation-id")
+    )
+
+    connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe ServiceResponse(
+      DataRetrieve.Response.Object(
+        Map(
+          DataRetrieve.Attribute("agencyName")  -> "Test Agency",
+          DataRetrieve.Attribute("agencyEmail") -> "test@example.com"
+        )
+      )
+    )
+  }
+
+  behavior of "GformConnector.getHipAgentDetails - error scenarios"
+
+  it should "return CannotRetrieveResponse when backend returns 500" in new Fixture {
+    val status = 500
+    val responseJson = None
+
+    val dataRetrieve = DataRetrieve(
+      tpe = DataRetrieve.Type("agentDetails"),
+      id = DataRetrieveId("agencyInfo"),
+      attributes = Attr.FromObject(List.empty),
+      attrTypeMapping = Map.empty,
+      params = List.empty,
+      `if` = None,
+      maxFailedAttempts = None,
+      failureCountResetMinutes = None,
+      callOnNoChange = false
+    )
+
+    val request = DataRetrieve.Request(
+      json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
+      params = List("agentReferenceNumber" -> "XARN1234567"),
+      previousFailureCount = None,
+      failureResetTime = None,
+      correlationId = None
+    )
+
+    connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+  }
+
+  it should "return CannotRetrieveResponse when backend returns 401" in new Fixture {
+    val status = 401
+    val responseJson = None
+
+    val dataRetrieve = DataRetrieve(
+      tpe = DataRetrieve.Type("agentDetails"),
+      id = DataRetrieveId("agencyInfo"),
+      attributes = Attr.FromObject(List.empty),
+      attrTypeMapping = Map.empty,
+      params = List.empty,
+      `if` = None,
+      maxFailedAttempts = None,
+      failureCountResetMinutes = None,
+      callOnNoChange = false
+    )
+
+    val request = DataRetrieve.Request(
+      json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
+      params = List("agentReferenceNumber" -> "XARN1234567"),
+      previousFailureCount = None,
+      failureResetTime = None,
+      correlationId = None
+    )
+
+    connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
   }
 
   trait Fixture extends ExampleData {
