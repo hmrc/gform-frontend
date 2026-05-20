@@ -178,6 +178,10 @@ class SummaryRenderingService(
     } yield {
       val summarySection = maybeSummarySection.getOrElse(cache.formTemplate.summarySection)
 
+      // Only populate from summary section if task summary is not being rendered, as task summary should not have print page button
+      val includePrintPageButton =
+        maybeSummarySection.fold(summarySection.includePrintPageButton.getOrElse(false))(_ => false)
+
       val summaryDeclaration: Html =
         renderer.renderSummarySectionDeclaration(
           cache,
@@ -203,7 +207,8 @@ class SummaryRenderingService(
         maybeCoordinates,
         summarySection,
         taskCompleted,
-        maybeSubmissionDetails
+        maybeSubmissionDetails,
+        includePrintPageButton = includePrintPageButton
       )
     }
 
@@ -270,7 +275,8 @@ object SummaryRenderingService {
     maybeCoordinates: Option[Coordinates],
     summarySection: SummarySection,
     taskCompleted: Option[Boolean],
-    maybeSubmissionDetails: Option[SubmissionDetails]
+    maybeSubmissionDetails: Option[SubmissionDetails],
+    includePrintPageButton: Boolean
   )(implicit request: Request[_], messages: Messages, l: LangADT, lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(summarySection.header)
     val footerHtml = markDownParser(summarySection.footer)
@@ -332,7 +338,8 @@ object SummaryRenderingService {
       pageLevelErrorHtml,
       maybeCoordinates,
       taskCompleted,
-      summarySection.hideDefaultRows.getOrElse(false)
+      summarySection.hideDefaultRows.getOrElse(false),
+      includePrintPageButton
     )
 
     if (maybeSubmissionDetails.isDefined) {
@@ -402,7 +409,8 @@ object SummaryRenderingService {
         NoErrors,
         None,
         None,
-        hideDefaultRows = false
+        hideDefaultRows = false,
+        false
       )
     )
   }

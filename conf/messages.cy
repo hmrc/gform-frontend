@@ -537,6 +537,8 @@ submission.mark=Marc y cyflwyniad
 submission.details=Manylion y cyflwyniad
 submission.receipt=Derbynneb y cyflwyniad
 
+button.print=Argraffu’r dudalen hon
+
 # Save4later
 save4later.saved.title=Cadwyd eich {0}
 save4later.weWillKeepYourAnswersFor=Byddwn yn cadw’ch atebion am {0} o ddiwrnodau

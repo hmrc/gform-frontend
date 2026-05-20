@@ -32,40 +32,8 @@
 
 <style>
     @@media all {
-        .govuk-summary-list__actions,
-        .govuk-phase-banner {
+        .govuk-summary-list__actions {
             display: none!important;
-        }
-    }
-    @@media print {
-        * {
-            color: #000!important;
-            background-color: transparent!important;
-            -webkit-print-color-adjust: exact!important;   /* Chrome, Safari 6 – 15.3, Edge */
-            color-adjust: exact!important;                 /* Firefox 48 – 96 */
-            print-color-adjust: exact!important;
-        }
-        .govuk-service-navigation__container,
-        .hmrc-service-navigation-language-select,
-        .hmrc-sign-out-nav,
-        .hmrc-report-technical-issue,
-        .govuk-footer__inline-list {
-            display: none!important;
-        }
-        .govuk-header__container,
-        footer > .govuk-width-container {
-            margin-left: 0!important;
-            margin-right: 0!important;
-        }
-        .govuk-service-navigation {
-            border-bottom: 2px solid #000!important;
-        }
-        .govuk-summary-card__title-wrapper {
-            background-color: #f3f2f1!important;
-        }
-        footer.govuk-footer {
-            border-top: 2px solid #000!important;
-            font-size: 16px!important;
         }
     }
 </style>
@@ -95,10 +63,14 @@
         @page_heading(formTemplate.formName.value, None)
     }
 
+    @printPageButton("printButtonTop")
+
     @mainContent {
         @snippets
         <br/>
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
     }
 
+    @printPageButton("printButtonBottom")
 }
+

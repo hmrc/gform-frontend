@@ -102,6 +102,7 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
       None,
       None,
       None,
+      None,
       None
     ),
     submitSection = None,

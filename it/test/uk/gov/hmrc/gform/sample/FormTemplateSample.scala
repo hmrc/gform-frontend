@@ -57,6 +57,7 @@ trait FormTemplateSample {
       None,
       None,
       None,
+      None,
       None
     ),
     submitSection = None,
