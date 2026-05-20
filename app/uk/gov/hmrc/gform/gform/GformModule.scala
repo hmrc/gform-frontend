@@ -304,7 +304,8 @@ class GformModule(
     acknowledgementPdfService,
     sectionRenderingService,
     controllersModule.messagesControllerComponents,
-    configModule.frontendAppConfig
+    configModule.frontendAppConfig,
+    summaryRenderingService
   )
 
   val errorController = new ErrorController(

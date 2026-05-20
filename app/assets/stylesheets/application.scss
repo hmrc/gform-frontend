@@ -226,3 +226,79 @@ button.defaultsink {
     height: 93px;
   }
 }
+
+.print-link__button {
+    border: 1px solid #505a5f;
+    color: #1d70b8;
+    cursor: pointer;
+    margin: 0;
+    font-family: "GDS Transport", arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.25;
+    background-size: 16px 18px;
+    padding: 10px 10px 10px 36px;
+    text-decoration: none;
+    background: transparent no-repeat 0 50%;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAASAgMAAAAvVbb5AAAACVBMVEX///////8KDAwmYEUdAAAAAXRSTlMAQObYZgAAADBJREFUCFtjYOBa1cDAoBkKJFYCCSYwEYpCrAICZCI0FEhkrURmQRRnrYRpW7WqAQAlGR86Ip1rwwAAAABJRU5ErkJggg==");
+    background-position: 10px 50%;
+    zoom: 1;
+}
+
+.print-link__button:hover {
+    background-color: #f3f2f1;
+}
+
+.print-link__button:focus {
+    background-color: #fd0;
+    border-color: rgba(0, 0, 0, 0);
+    outline: 3px solid rgba(0, 0, 0, 0);
+    color: #0b0c0c;
+    background-color: #fd0;
+    box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+    text-decoration: none;
+}
+
+@media print {
+    * {
+        color: #000!important;
+        background-color: transparent!important;
+        -webkit-print-color-adjust: exact!important;   /* Chrome, Safari 6 – 15.3, Edge */
+        color-adjust: exact!important;                 /* Firefox 48 – 96 */
+        print-color-adjust: exact!important;
+    }
+    .govuk-grid-column-two-thirds,
+    .govuk-grid-column-three-quarters{
+        width: 100%!important;
+    }
+    .hmrc-user-research-banner,
+    .govuk-phase-banner,
+    .govuk-service-navigation__container,
+    .hmrc-service-navigation-language-select,
+    .hmrc-sign-out-nav,
+    .hmrc-report-technical-issue,
+    .govuk-footer__inline-list {
+        display: none!important;
+    }
+    .govuk-header__container,
+    footer > .govuk-width-container {
+        margin-left: 0!important;
+        margin-right: 0!important;
+    }
+    .govuk-service-navigation {
+        border-bottom: 2px solid #000!important;
+    }
+    .govuk-summary-card__title-wrapper {
+        background-color: #f3f2f1!important;
+    }
+    footer.govuk-footer {
+        border-top: 2px solid #000!important;
+        font-size: 16px!important;
+    }
+    .govuk-summary-list__actions,
+    .govuk-phase-banner {
+        display: none!important;
+    }
+}

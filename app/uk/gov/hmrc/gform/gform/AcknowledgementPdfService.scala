@@ -96,8 +96,6 @@ class AcknowledgementPdfService(
   ): Future[PdfContent] = {
     import i18nSupport._
     val messages: Messages = request2Messages(request)
-    val formString = nonRepudiationHelpers.formDataToJson(cache.form)
-    val hashedValue = nonRepudiationHelpers.computeHash(formString)
 
     val maybePDFHeaderFooter = cache.formTemplate.destinations match {
       case d: DestinationList => d.acknowledgementSection.pdf.map(p => (p.header, p.footer))
@@ -119,11 +117,7 @@ class AcknowledgementPdfService(
     )
 
     for {
-      _ <- if (sendAuditEvent) {
-             nonRepudiationHelpers.sendAuditEvent(hashedValue, formString)
-             Future.unit
-           } else Future.unit
-      submission <- getSubmission(cache, maybeAccessCode)
+      submissionDetails <- getSubmissionDetails(cache, maybeAccessCode, sendAuditEvent)
       pdfContent <-
         pdfRenderService
           .createPDFContent[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement, PDFType.Summary](
@@ -134,7 +128,7 @@ class AcknowledgementPdfService(
             maybePDFHeaderFooter.map { case (maybeHeader, maybeFooter) =>
               PDFModel.HeaderFooter(maybeHeader, maybeFooter)
             },
-            Some(SubmissionDetails(submission, hashedValue)),
+            Some(submissionDetails),
             SummaryPagePurpose.ForUser,
             Some(summarySectionDeclaration),
             None,
@@ -158,4 +152,19 @@ class AcknowledgementPdfService(
           throw new NotFoundException(s"Submission for envelope id ${cache.form.envelopeId} not found.")
         )
       )
+
+  def getSubmissionDetails(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], sendAuditEvent: Boolean)(
+    implicit hc: HeaderCarrier
+  ): Future[SubmissionDetails] = {
+    val formString = nonRepudiationHelpers.formDataToJson(cache.form)
+    val hashedValue = nonRepudiationHelpers.computeHash(formString)
+
+    for {
+      _ <- if (sendAuditEvent) {
+             nonRepudiationHelpers.sendAuditEvent(hashedValue, formString)
+             Future.unit
+           } else Future.unit
+      submission <- getSubmission(cache, maybeAccessCode)
+    } yield SubmissionDetails(submission, hashedValue)
+  }
 }
