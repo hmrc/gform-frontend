@@ -188,7 +188,8 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       None,
       resetMinutes.map(_ => 3),
       resetMinutes,
-      false
+      false,
+      None
     )
 
     def mkRequest(count: Option[Int], resetTime: Option[LocalDateTime]) = DataRetrieve.Request(

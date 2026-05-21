@@ -674,7 +674,7 @@ class FormController(
                   formModelOptics,
                   enteredVariadicFormData,
                   true
-                ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn =>
+                ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn => updatedFormVisibilityOptics =>
                   def processRemoveItemIf() = {
                     val formModel = formModelOptics.formModelRenderPageOptics.formModel
                     val bracket = formModel.bracket(sectionNumber)
@@ -744,7 +744,12 @@ class FormController(
                           logger.info(
                             s"envelope id: ${cache.form.envelopeId.value}, form id: ${cache.form._id.value}, user-agent: ${request.headers.get("User-Agent").getOrElse("")}"
                           )
-                          val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processDataUpd, sn)
+                          val sectionTitle4Ga =
+                            formProcessor.getSectionTitle4Ga(
+                              updatedFormVisibilityOptics,
+                              updatedFormVisibilityOptics.formModel.asInstanceOf[FormModel[DataExpanded]],
+                              sn
+                            )
 
                           val formModel = formModelOptics.formModelRenderPageOptics.formModel
                           val bracket = formModel.bracket(sectionNumber)
@@ -848,7 +853,7 @@ class FormController(
               formModelOptics,
               purgeConfirmationData.enteredVariadicFormData,
               false
-            ) { _ => _ => maybeSn =>
+            ) { _ => _ => maybeSn => _ =>
               val (sectionTitle4Ga, sectionNumber) = maybeSn match {
                 case SectionOrSummary.Section(sn) =>
                   (
@@ -876,7 +881,7 @@ class FormController(
               formModelOptics,
               enteredVariadicFormData,
               true
-            ) { _ => _ => _ =>
+            ) { _ => _ => _ => _ =>
               val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
               Redirect(
                 routes.FormController
