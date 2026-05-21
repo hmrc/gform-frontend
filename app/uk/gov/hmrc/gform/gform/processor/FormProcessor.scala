@@ -280,7 +280,7 @@ class FormProcessor(
     }
   }
 
-  private case class PopulateAtlData(fields: Seq[FormField], count: Int)
+  private case class PopulateAtlData(fields: Seq[FormField], count: Int, baseIds: Set[BaseComponentId])
 
   private def populateAtlWithFormData(
     populateATL: PopulateATL,
@@ -339,18 +339,23 @@ class FormProcessor(
           "0"
         )
       }
-      defaultAndAAQFormFields ++ atlValues.zipWithIndex
-        .map { case (value, i) =>
-          FormField(
-            ModelComponentId.pure(IndexedComponentId.indexed(bcId, i + 1)),
-            value
-          )
-        } -> atlsToPopulateCount
+      (
+        defaultAndAAQFormFields ++ atlValues.zipWithIndex
+          .map { case (value, i) =>
+            FormField(
+              ModelComponentId.pure(IndexedComponentId.indexed(bcId, i + 1)),
+              value
+            )
+          },
+        atlsToPopulateCount,
+        Set(bcId, addAnotherQuestionBaseComponentId)
+      )
+
     }
 
-    val populateAtlData = fields.foldLeft(PopulateAtlData(Seq(), 0)) {
-      case (PopulateAtlData(accFields, accCount), (fields, count)) =>
-        PopulateAtlData(accFields ++ fields, accCount + count)
+    val populateAtlData = fields.foldLeft(PopulateAtlData(Seq(), 0, Set())) {
+      case (PopulateAtlData(accFields, accCount, seq), (fields, count, baseIds)) =>
+        PopulateAtlData(accFields ++ fields, accCount + count, baseIds ++ seq)
     }
 
     val updatedVariadicFormData = populateAtlData.fields
@@ -559,7 +564,14 @@ class FormProcessor(
           }
         val populateAtlFields = populateAtlData.flatMap(_.fields)
         val populateAtlFormData = FormData(populateAtlFields.toList)
-        val formDataU = oldData.toFormData ++ formData ++ populateAtlFormData
+        val oldPopulateAtlFieldsToClean = populateAtlData.flatMap(_.baseIds).toSet
+        val oldDataWithoutPopulateAtl = oldPopulateAtlFieldsToClean.foldLeft(oldData) { case (acc, bcId) =>
+          acc.forBaseComponentId(bcId).foldLeft(acc) { case (acc, (mcId, value)) =>
+            acc.-(mcId)
+          }
+        }
+
+        val formDataU = oldDataWithoutPopulateAtl.toFormData ++ formData ++ populateAtlFormData
         val updatedThirdPartyData: ThirdPartyData = updatedCache.form.thirdPartyData
           .updateFrom(validatorsResult)
           .updateDataRetrieve(dataRetrieveResult)
@@ -594,7 +606,13 @@ class FormProcessor(
 
         val visitedPopulateAtlPagesVisitsIndex =
           populateAtlDataWithTemplateIndex.foldLeft(updatedVisitsIndex) { case (acc, (atlData, atlSection)) =>
-            val visitedDefault = acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
+            val visitedDefault = {
+              if (atlData.fields.isDefinedAt(1)) { // index 0 will the default page
+                acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
+              } else {
+                acc
+              }
+            }
             val fm = updatedFormVisibilityOptics.formModel
             val numberOfAtlPages = fm.addToListSectionNumbers.count {
               case classic: SectionNumber.Classic                     => classic.sectionIndex == atlSection
@@ -609,6 +627,10 @@ class FormProcessor(
                     .visit(
                       SectionNumber.Classic.AddToListPage
                         .TerminalPage(atlSection, iterationNumber, TerminalPageKind.RepeaterPage)
+                    )
+                    .visit(
+                      SectionNumber.Classic.AddToListPage
+                        .TerminalPage(atlSection, iterationNumber, TerminalPageKind.CyaPage)
                     )
                 }
               }
