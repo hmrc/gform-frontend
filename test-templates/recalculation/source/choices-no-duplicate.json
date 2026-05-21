@@ -1,0 +1,527 @@
+{
+  "_id": "choices-no-duplicate",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${employer}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another employer?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Employer $n",
+          "fields": [
+            {
+              "id": "employer",
+              "label": "Employer",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "No duplicates",
+      "fields": [
+        {
+          "id": "noDuplicatesFalse",
+          "type": "choice",
+          "label": "No duplicates: FALSE",
+          "multivalue": true,
+          "noDuplicates": false,
+          "choices": [
+            {
+              "en": "${employer}",
+              "dynamic": "employer",
+              "value": "employer"
+            }
+          ]
+        },
+        {
+          "id": "noDuplicatesTrue",
+          "type": "choice",
+          "label": "No duplicates: TRUE",
+          "multivalue": true,
+          "noDuplicates": true,
+          "choices": [
+            {
+              "en": "${employer}",
+              "dynamic": "employer",
+              "value": "employer"
+            }
+          ]
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Calculation"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "table - totalChoicesSelected(noDuplicatesTrue): ${totalChoicesSelected(noDuplicatesTrue)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - totalChoicesSelected(noDuplicatesFalse): ${totalChoicesSelected(noDuplicatesFalse)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesCount(noDuplicatesTrue): ${choicesCount(noDuplicatesTrue)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesCount(noDuplicatesFalse): ${choicesCount(noDuplicatesFalse)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesAvailable(noDuplicatesTrue): ${choicesAvailable(noDuplicatesTrue)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesAvailable(noDuplicatesFalse): ${choicesAvailable(noDuplicatesFalse)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesSelected(noDuplicatesTrue).count: ${choicesSelected(noDuplicatesTrue).count}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesSelected(noDuplicatesFalse).count: ${choicesSelected(noDuplicatesFalse).count}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesSelected(noDuplicatesTrue): ${choicesSelected(noDuplicatesTrue)}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "table - choicesSelected(noDuplicatesFalse): ${choicesSelected(noDuplicatesFalse)}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "includeIfs",
+          "type": "table",
+          "summaryValue": "InludeIfs",
+          "label": "InludeIfs",
+          "header": [
+            {
+              "en": "IncludeIfs"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesTrue) = 0}",
+                      "en": "totalChoicesSelected(noDuplicatesTrue) = 0"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesTrue) = 1}",
+                      "en": "totalChoicesSelected(noDuplicatesTrue) = 1"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesTrue) = 2}",
+                      "en": "totalChoicesSelected(noDuplicatesTrue) = 2"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesTrue) = 3}",
+                      "en": "totalChoicesSelected(noDuplicatesTrue) = 3"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesTrue) = 4}",
+                      "en": "totalChoicesSelected(noDuplicatesTrue) = 4"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesTrue) = 5}",
+                      "en": "totalChoicesSelected(noDuplicatesTrue) = 5"
+                    },
+                    {
+                      "en": "totalChoicesSelected(noDuplicatesTrue) out of bound: ${totalChoicesSelected(noDuplicatesTrue)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesFalse) = 0}",
+                      "en": "totalChoicesSelected(noDuplicatesFalse) = 0"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesFalse) = 1}",
+                      "en": "totalChoicesSelected(noDuplicatesFalse) = 1"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesFalse) = 2}",
+                      "en": "totalChoicesSelected(noDuplicatesFalse) = 2"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesFalse) = 3}",
+                      "en": "totalChoicesSelected(noDuplicatesFalse) = 3"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesFalse) = 4}",
+                      "en": "totalChoicesSelected(noDuplicatesFalse) = 4"
+                    },
+                    {
+                      "includeIf": "${totalChoicesSelected(noDuplicatesFalse) = 5}",
+                      "en": "totalChoicesSelected(noDuplicatesFalse) = 5"
+                    },
+                    {
+                      "en": "totalChoicesSelected(noDuplicatesFalse) out of bound: ${totalChoicesSelected(noDuplicatesFalse)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesTrue) = 0}",
+                      "en": "choicesCount(noDuplicatesTrue) = 0"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesTrue) = 1}",
+                      "en": "choicesCount(noDuplicatesTrue) = 1"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesTrue) = 2}",
+                      "en": "choicesCount(noDuplicatesTrue) = 2"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesTrue) = 3}",
+                      "en": "choicesCount(noDuplicatesTrue) = 3"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesTrue) = 4}",
+                      "en": "choicesCount(noDuplicatesTrue) = 4"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesTrue) = 5}",
+                      "en": "choicesCount(noDuplicatesTrue) = 5"
+                    },
+                    {
+                      "en": "choicesCount(noDuplicatesTrue) out of bound: ${choicesCount(noDuplicatesTrue)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesFalse) = 0}",
+                      "en": "choicesCount(noDuplicatesFalse) = 0"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesFalse) = 1}",
+                      "en": "choicesCount(noDuplicatesFalse) = 1"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesFalse) = 2}",
+                      "en": "choicesCount(noDuplicatesFalse) = 2"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesFalse) = 3}",
+                      "en": "choicesCount(noDuplicatesFalse) = 3"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesFalse) = 4}",
+                      "en": "choicesCount(noDuplicatesFalse) = 4"
+                    },
+                    {
+                      "includeIf": "${choicesCount(noDuplicatesFalse) = 5}",
+                      "en": "choicesCount(noDuplicatesFalse) = 5"
+                    },
+                    {
+                      "en": "choicesCount(noDuplicatesFalse) out of bound: ${choicesCount(noDuplicatesFalse)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesTrue) = 0}",
+                      "en": "choicesAvailable(noDuplicatesTrue) = 0"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesTrue) = 1}",
+                      "en": "choicesAvailable(noDuplicatesTrue) = 1"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesTrue) = 2}",
+                      "en": "choicesAvailable(noDuplicatesTrue) = 2"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesTrue) = 3}",
+                      "en": "choicesAvailable(noDuplicatesTrue) = 3"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesTrue) = 4}",
+                      "en": "choicesAvailable(noDuplicatesTrue) = 4"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesTrue) = 5}",
+                      "en": "choicesAvailable(noDuplicatesTrue) = 5"
+                    },
+                    {
+                      "en": "choicesAvailable(noDuplicatesTrue) out of bound: ${choicesAvailable(noDuplicatesTrue)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesFalse) = 0}",
+                      "en": "choicesAvailable(noDuplicatesFalse) = 0"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesFalse) = 1}",
+                      "en": "choicesAvailable(noDuplicatesFalse) = 1"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesFalse) = 2}",
+                      "en": "choicesAvailable(noDuplicatesFalse) = 2"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesFalse) = 3}",
+                      "en": "choicesAvailable(noDuplicatesFalse) = 3"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesFalse) = 4}",
+                      "en": "choicesAvailable(noDuplicatesFalse) = 4"
+                    },
+                    {
+                      "includeIf": "${choicesAvailable(noDuplicatesFalse) = 5}",
+                      "en": "choicesAvailable(noDuplicatesFalse) = 5"
+                    },
+                    {
+                      "en": "choicesAvailable(noDuplicatesFalse) out of bound: ${choicesAvailable(noDuplicatesFalse)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue).count = 0}",
+                      "en": "choicesSelected(noDuplicatesTrue).count = 0"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue).count = 1}",
+                      "en": "choicesSelected(noDuplicatesTrue).count = 1"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue).count = 2}",
+                      "en": "choicesSelected(noDuplicatesTrue).count = 2"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue).count = 3}",
+                      "en": "choicesSelected(noDuplicatesTrue).count = 3"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue).count = 4}",
+                      "en": "choicesSelected(noDuplicatesTrue).count = 4"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue).count = 5}",
+                      "en": "choicesSelected(noDuplicatesTrue).count = 5"
+                    },
+                    {
+                      "en": "choicesSelected(noDuplicatesTrue).count out of bound: ${choicesSelected(noDuplicatesTrue).count}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse).count = 0}",
+                      "en": "choicesSelected(noDuplicatesFalse).count = 0"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse).count = 1}",
+                      "en": "choicesSelected(noDuplicatesFalse).count = 1"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse).count = 2}",
+                      "en": "choicesSelected(noDuplicatesFalse).count = 2"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse).count = 3}",
+                      "en": "choicesSelected(noDuplicatesFalse).count = 3"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse).count = 4}",
+                      "en": "choicesSelected(noDuplicatesFalse).count = 4"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse).count = 5}",
+                      "en": "choicesSelected(noDuplicatesFalse).count = 5"
+                    },
+                    {
+                      "en": "choicesSelected(noDuplicatesFalse).count out of bound: ${choicesSelected(noDuplicatesFalse).count}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue) = 0}",
+                      "en": "choicesSelected(noDuplicatesTrue) = 0"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue) = 1}",
+                      "en": "choicesSelected(noDuplicatesTrue) = 1"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue) = 2}",
+                      "en": "choicesSelected(noDuplicatesTrue) = 2"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue) = 3}",
+                      "en": "choicesSelected(noDuplicatesTrue) = 3"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue) = 4}",
+                      "en": "choicesSelected(noDuplicatesTrue) = 4"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesTrue) = 5}",
+                      "en": "choicesSelected(noDuplicatesTrue) = 5"
+                    },
+                    {
+                      "en": "choicesSelected(noDuplicatesTrue) out of bound: ${choicesSelected(noDuplicatesTrue)}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": [
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse) = 0}",
+                      "en": "choicesSelected(noDuplicatesFalse) = 0"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse) = 1}",
+                      "en": "choicesSelected(noDuplicatesFalse) = 1"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse) = 2}",
+                      "en": "choicesSelected(noDuplicatesFalse) = 2"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse) = 3}",
+                      "en": "choicesSelected(noDuplicatesFalse) = 3"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse) = 4}",
+                      "en": "choicesSelected(noDuplicatesFalse) = 4"
+                    },
+                    {
+                      "includeIf": "${choicesSelected(noDuplicatesFalse) = 5}",
+                      "en": "choicesSelected(noDuplicatesFalse) = 5"
+                    },
+                    {
+                      "en": "choicesSelected(noDuplicatesFalse) out of bound: ${choicesSelected(noDuplicatesFalse)}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

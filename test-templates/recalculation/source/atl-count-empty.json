@@ -1,0 +1,124 @@
+{
+  "_id": "atl-count-empty",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "What to add",
+      "fields": [
+        {
+          "id": "whatToAdd",
+          "type": "choice",
+          "choices": [
+            "Vehicle",
+            "Animal"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Vehicle ATL",
+      "includeIf": "${whatToAdd contains 0}",
+      "shortName": "Vehicles",
+      "summaryName": "Vehicles",
+      "description": "$n - ${vehicle}",
+      "summaryDescription": "${vehicle}",
+      "addAnotherQuestion": {
+        "id": "addVehicle",
+        "type": "choice",
+        "label": "Add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Vehicle $n",
+          "fields": [
+            {
+              "id": "vehicle",
+              "type": "text",
+              "format": "shortText"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "includeIf": "${whatToAdd contains 1}",
+      "title": "Animal ATL",
+      "shortName": "Animals",
+      "summaryName": "Animals",
+      "description": "$n - ${animal}",
+      "summaryDescription": "${animal}",
+      "addAnotherQuestion": {
+        "id": "addAnimal",
+        "type": "choice",
+        "label": "Add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Animal $n",
+          "fields": [
+            {
+              "id": "animal",
+              "type": "text",
+              "format": "shortText"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Has your animal already arrived in the UK?",
+      "includeIf": "${addAnimal.count = 1 && addVehicle.count = 0}",
+      "fields": [
+        {
+          "id": "alreadyInUKAnimal",
+          "type": "choice",
+          "choices": [
+            "Yes",
+            "No"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Date your animal arrived",
+      "fields": [
+        {
+          "id": "shipmentDateAnimal",
+          "label": "Enter the date your animal arrived in the UK",
+          "includeIf": "${alreadyInUKAnimal contains 0}",
+          "shortName": "Date animal arrived",
+          "helpText": "For example, 24 1 2021",
+          "type": "date",
+          "format": "before today +1"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "addAnimal.count = ${addAnimal.count}, addVehicle.count = ${addVehicle.count}",
+          "infoType": "noformat"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

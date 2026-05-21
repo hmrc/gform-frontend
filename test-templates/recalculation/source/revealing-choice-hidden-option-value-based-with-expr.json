@@ -1,0 +1,71 @@
+{
+  "_id": "revealing-choice-hidden-option-value-based-with-expr",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "pageA",
+          "type": "text",
+          "label": "Page A",
+          "format": "sterling"
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "fields": [
+        {
+          "id": "fooChoice",
+          "type": "revealingChoice",
+          "label": "Select an item",
+          "multivalue": true,
+          "choices": [
+            {
+              "en": "Foo",
+              "value": "${taxYear(01062026) + 1}"
+            },
+            {
+              "en": "Bar",
+              "includeIf": "${pageA < 50}",
+              "value": "${taxYear(01062026) + 2}"
+            },
+            {
+              "en": "Baz",
+              "value": "${taxYear(01062026) + 3}"
+            }
+          ],
+          "revealingFields": [
+            [],
+            [
+              {
+                "id": "pageB",
+                "type": "text",
+                "label": "Page B",
+                "format": "number"
+              }
+            ],
+            []
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

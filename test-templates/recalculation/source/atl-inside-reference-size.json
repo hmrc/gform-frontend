@@ -1,0 +1,56 @@
+{
+  "_id": "atl-inside-reference-size",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n. ${genre} - Total films: ${genre.film.size}. Total games: ${genre.game.size}.",
+      "addAnotherQuestion": {
+        "id": "addAnotherField",
+        "type": "choice",
+        "label": "Do you want to add another field?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Genre $n",
+          "fields": [
+            {
+              "id": "genre",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Film",
+                  "value": "film"
+                },
+                {
+                  "en": "Game",
+                  "value": "game"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

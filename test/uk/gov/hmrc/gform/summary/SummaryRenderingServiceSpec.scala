@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.summary
 import org.jsoup.Jsoup
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
@@ -35,9 +36,9 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.gform.{ SectionRenderingService, SummaryPagePurpose }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.lookup._
+import uk.gov.hmrc.gform.lookup.{ ChoiceRuntimeIndexService, LookupRegistry }
 import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.objectStore.{ Envelope, EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -53,8 +54,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class SummaryRenderingServiceSpec
-    extends AnyWordSpecLike with Matchers with ScalaFutures with ExampleData with ArgumentMatchersSugar
-    with IdiomaticMockito with HtmlSupport {
+    extends AnyWordSpecLike with BeforeAndAfterEach with Matchers with ScalaFutures with ExampleData
+    with ArgumentMatchersSugar with IdiomaticMockito with HtmlSupport {
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(15000, Millis)), interval = scaled(Span(15, Millis)))
@@ -103,7 +104,7 @@ class SummaryRenderingServiceSpec
       .validateFormModel(
         *[CacheData],
         *[EnvelopeWithMapping],
-        *[FormModelVisibilityOptics[DataOrigin.Mongo]],
+        *[FormModelVisibilityOptics],
         *[Option[Coordinates]]
       )(
         *[HeaderCarrier],
@@ -112,11 +113,12 @@ class SummaryRenderingServiceSpec
         *[SmartStringEvaluator]
       ) returns Future.successful(validationResult)
 
-    val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
-        cache
-      )
+    val formModelOptics: FormModelOptics =
+      FormModelOptics
+        .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cache.variadicFormData,
+          cache
+        )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)

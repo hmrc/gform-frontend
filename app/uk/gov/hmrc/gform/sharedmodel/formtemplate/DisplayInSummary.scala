@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
 import julienrf.json.derived
-import uk.gov.hmrc.gform.eval.BooleanExprResolver
+import uk.gov.hmrc.gform.recalculation.FreeCalculator
 
 final case class DisplayInSummary(booleanExpression: BooleanExpr) extends AnyVal {
-  def displayInSummary(booleanExprResolver: BooleanExprResolver): Boolean =
-    booleanExprResolver.resolve(booleanExpression)
+  def displayInSummary(freeCalculator: FreeCalculator): Boolean =
+    freeCalculator.evalBooleanExpr(booleanExpression)
 }
 
 object DisplayInSummary {

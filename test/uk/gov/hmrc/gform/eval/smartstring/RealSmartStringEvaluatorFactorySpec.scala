@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.eval.smartstring
 
-import cats.data.NonEmptyList
 import org.mockito.ArgumentMatchersSugar
 import org.mockito.scalatest.IdiomaticMockito
 import org.scalatest.concurrent.ScalaFutures
@@ -28,21 +27,22 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.eval.ExpressionResult._
-import uk.gov.hmrc.gform.eval.ExpressionResult
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormModelOptics }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.IncludeIf
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OptionDataValue.StringBased
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BulletedList, Checkbox, Choice, Concat, Constant, Expr, FormComponent, FormComponentId, FormCtx, FormTemplate, FormTemplateContext, HideZeroDecimals, Horizontal, IfElse, IndexOf, InformationMessage, IsFalse, NoFormat, Number, NumberedList, NumberedListChoicesSelected, OptionData, PositiveNumber, Radio, RevealingChoice, RevealingChoiceElement, RoundingMode, Sterling, Value, Vertical, YesNo }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionId }
+import org.scalatest.BeforeAndAfterEach
 
 class RealSmartStringEvaluatorFactorySpec
-    extends AnyWordSpecLike with ExampleData with ArgumentMatchersSugar with IdiomaticMockito with ScalaFutures
-    with Matchers {
+    extends AnyWordSpecLike with BeforeAndAfterEach with ExampleData with ArgumentMatchersSugar with IdiomaticMockito
+    with ScalaFutures with Matchers {
 
   private val divider = toSmartString("or", "neu")
 
@@ -50,9 +50,9 @@ class RealSmartStringEvaluatorFactorySpec
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
 
   private def toOptionData(
-    xs: NonEmptyList[String],
+    xs: List[String],
     setSummaryValue: Boolean = false
-  ): NonEmptyList[OptionData.IndexBased] =
+  ): List[OptionData.IndexBased] =
     xs.map(l =>
       OptionData
         .IndexBased(toSmartString(l), None, None, None, if (setSummaryValue) Option(toSmartString(l + "-SV")) else None)
@@ -61,7 +61,7 @@ class RealSmartStringEvaluatorFactorySpec
   private def toOptionData(s: String): OptionData.IndexBased =
     OptionData.IndexBased(toSmartString(s), None, None, None, None)
 
-  private def toValueBasedOptionData(xs: NonEmptyList[String]): NonEmptyList[OptionData.ValueBased] =
+  private def toValueBasedOptionData(xs: List[String]): List[OptionData.ValueBased] =
     xs.map(l => OptionData.ValueBased(toSmartString(l), None, None, None, StringBased(l), None, None))
 
   "SmartStringEvaluator" should {
@@ -120,7 +120,7 @@ class RealSmartStringEvaluatorFactorySpec
         sections = List(repeatingSection(title = "page1", fields = List(textField), None, Constant("2")))
       )
 
-      override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+      override lazy val exprMap: Map[Expr, EvaluationStatus] = Map(
         FormCtx(modelCompId1.toFormComponentId) -> StringResult("value1"),
         FormCtx(modelCompId2.toFormComponentId) -> StringResult("value2")
       )
@@ -132,10 +132,10 @@ class RealSmartStringEvaluatorFactorySpec
     }
 
     "evaluate SmartString with FormCtx, even when the component is not visible" in new TestFixture {
-      lazy val textField: FormComponent = buildFormComponent(
-        "textField",
-        Value
-      )
+      val textField: FormComponent = buildFormComponent("textField", Value)
+      val textFieldInvisible: FormComponent = buildFormComponent("textFieldInvisible", Value)
+        .copy(includeIf = Some(IncludeIf(IsFalse)))
+
       override lazy val form: Form =
         buildForm(
           FormData(
@@ -146,7 +146,9 @@ class RealSmartStringEvaluatorFactorySpec
         )
       override lazy val formTemplate: FormTemplate = buildFormTemplate(
         destinationList,
-        sections = List(nonRepeatingPageSection(title = "page1", fields = List(textField)))
+        sections = List(
+          nonRepeatingPageSection(title = "page1", fields = List(textField, textFieldInvisible))
+        )
       )
 
       val result: String = smartStringEvaluator
@@ -161,7 +163,7 @@ class RealSmartStringEvaluatorFactorySpec
         "choiceField",
         Choice(
           Radio,
-          toOptionData(NonEmptyList.of("Yes", "No")),
+          toOptionData(List("Yes", "No")),
           Horizontal,
           List.empty,
           None,
@@ -204,11 +206,10 @@ class RealSmartStringEvaluatorFactorySpec
         "choiceField",
         Choice(
           Radio,
-          NonEmptyList
-            .of(
-              toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
-              toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
-            )
+          List(
+            toSmartStringExpression("Yes {0}", FormCtx(FormComponentId("textField"))),
+            toSmartStringExpression("No {0}", FormCtx(FormComponentId("textField")))
+          )
             .map(l => OptionData.IndexBased(l, None, None, None, None)),
           Horizontal,
           List.empty,
@@ -248,7 +249,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          toOptionData(NonEmptyList.of("Choice1", "Choice2")),
+          toOptionData(List("Choice1", "Choice2")),
           Horizontal,
           List.empty,
           None,
@@ -286,7 +287,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          toOptionData(NonEmptyList.of("Choice1", "Choice2")),
+          toOptionData(List("Choice1", "Choice2")),
           Horizontal,
           List.empty,
           None,
@@ -324,7 +325,7 @@ class RealSmartStringEvaluatorFactorySpec
         "multiChoiceField",
         Choice(
           Checkbox,
-          toOptionData(NonEmptyList.of("Choice1", "Choice2"), true),
+          toOptionData(List("Choice1", "Choice2"), true),
           Horizontal,
           List.empty,
           None,
@@ -457,11 +458,11 @@ class RealSmartStringEvaluatorFactorySpec
       )
     lazy val indexedComponentIds: List[ModelComponentId] = List.empty
 
-    lazy val exprMap: Map[Expr, ExpressionResult] = Map.empty
+    lazy val exprMap: Map[Expr, EvaluationStatus] = Map.empty
 
-    lazy val formModelOptics: FormModelOptics[DataOrigin.Mongo] = FormModelOptics
-      .mkFormModelOptics[DataOrigin.Mongo, SectionSelectorType.WithDeclaration](
-        cache.variadicFormData[SectionSelectorType.WithDeclaration],
+    lazy val formModelOptics: FormModelOptics = FormModelOptics
+      .mkFormModelOptics[SectionSelectorType.WithDeclaration](
+        cache.variadicFormData,
         cache
       )
 
@@ -628,7 +629,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Checkbox,
-        toOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        toOptionData(List("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
         None,
@@ -671,7 +672,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Checkbox,
-        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        toValueBasedOptionData(List("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
         None,
@@ -754,7 +755,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Radio,
-        toOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        toOptionData(List("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
         None,
@@ -784,7 +785,7 @@ class RealSmartStringEvaluatorFactorySpec
       destinationList,
       sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
     )
-    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+    override lazy val exprMap: Map[Expr, EvaluationStatus] = Map(
       FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("1")),
       FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("2"))
     )
@@ -806,7 +807,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Checkbox,
-        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        toValueBasedOptionData(List("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
         None,
@@ -836,7 +837,7 @@ class RealSmartStringEvaluatorFactorySpec
       destinationList,
       sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
     )
-    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+    override lazy val exprMap: Map[Expr, EvaluationStatus] = Map(
       FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("Choice 2", "Choice 3")),
       FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("Choice 1"))
     )
@@ -858,7 +859,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Checkbox,
-        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        toValueBasedOptionData(List("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
         None,
@@ -888,7 +889,7 @@ class RealSmartStringEvaluatorFactorySpec
       destinationList,
       sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
     )
-    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+    override lazy val exprMap: Map[Expr, EvaluationStatus] = Map(
       FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("Choice 2", "Choice 3")),
       FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("Choice 1"))
     )
@@ -910,7 +911,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Checkbox,
-        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3")),
+        toValueBasedOptionData(List("Choice 1", "Choice 2", "Choice 3")),
         Vertical,
         List.empty,
         None,
@@ -940,7 +941,7 @@ class RealSmartStringEvaluatorFactorySpec
       destinationList,
       sections = List(repeatingSection(title = "page1", fields = List(choiceField), None, Constant("2")))
     )
-    override lazy val exprMap: Map[Expr, ExpressionResult] = Map(
+    override lazy val exprMap: Map[Expr, EvaluationStatus] = Map(
       FormCtx(modelCompId1.toFormComponentId) -> OptionResult(List("Choice 2", "Choice 3")),
       FormCtx(modelCompId2.toFormComponentId) -> OptionResult(List("Choice 1"))
     )
@@ -962,7 +963,7 @@ class RealSmartStringEvaluatorFactorySpec
       "choiceField",
       Choice(
         Checkbox,
-        toValueBasedOptionData(NonEmptyList.of("Choice 1", "Choice 2", "Choice 3", "Choice 4")),
+        toValueBasedOptionData(List("Choice 1", "Choice 2", "Choice 3", "Choice 4")),
         Vertical,
         List.empty,
         None,
@@ -980,7 +981,7 @@ class RealSmartStringEvaluatorFactorySpec
       "addAnother",
       Choice(
         YesNo,
-        toOptionData(NonEmptyList.of("Yes", "No")),
+        toOptionData(List("Yes", "No")),
         Vertical,
         List.empty,
         None,

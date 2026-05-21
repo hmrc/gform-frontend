@@ -1,0 +1,73 @@
+{
+  "_id": "itmp-address",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "sections": [
+    {
+      "title": "Check your address",
+      "includeIf": "${auth.itmpAddress != ''}",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "label": "",
+          "infoText": "itmp address: ${auth.itmpAddress}",
+          "infoType": "noformat"
+        },
+        {
+          "id": "itmpAddressUk",
+          "type": "address",
+          "label": "Address",
+          "includeIf": "${auth.itmpAddress.country = ''}",
+          "value": "${auth.itmpAddress}"
+        },
+        {
+          "id": "itmpAddressOverseas",
+          "type": "overseasAddress",
+          "label": "Overseas address",
+          "includeIf": "${auth.itmpAddress.country != ''}",
+          "value": "${auth.itmpAddress}"
+        }
+      ]
+    },
+    {
+      "title": "Is your current address in the UK?",
+      "includeIf": "${auth.itmpAddress = ''}",
+      "shortName": "Address",
+      "fields": [
+        {
+          "id": "addressInUK",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Yes"
+            },
+            {
+              "en": "No"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

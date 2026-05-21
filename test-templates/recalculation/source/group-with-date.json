@@ -1,0 +1,72 @@
+{
+  "_id": "group-with-date",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Type of business",
+      "fields": [
+        {
+          "id": "businessType",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Limited company"
+            },
+            {
+              "en": "Sole trader"
+            },
+            {
+              "en": "Other"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Details",
+      "includeIf": "${businessType = 0}",
+      "fields": [
+        {
+          "id": "group",
+          "type": "group",
+          "label": "",
+          "repeatsMin": 1,
+          "repeatsMax": 10,
+          "repeatLabel": "Director $n",
+          "repeatAddAnotherText": "Add another director",
+          "fields": [
+            {
+              "id": "director",
+              "type": "text",
+              "format": "text",
+              "label": "Director's full name"
+            },
+            {
+              "id": "directorDOB",
+              "type": "date",
+              "label": "Director’s date of birth",
+              "format": "before today -6573",
+              "offset": "+0d"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

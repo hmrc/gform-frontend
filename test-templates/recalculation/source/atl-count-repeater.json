@@ -1,0 +1,64 @@
+{
+  "_id": "atl-count-repeater",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Names",
+      "shortName": "Names",
+      "summaryDescription": "summaryDescription",
+      "summaryName": "Names",
+      "description": "$n: ${name}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another name?",
+        "format": "yesno"
+      },
+      "fields": [
+        {
+          "id": "countInfo",
+          "type": "info",
+          "infoType": "noformat",
+          "label": "",
+          "infoText": "You have told us about ${addAnother.count} names."
+        }
+      ],
+      "pages": [
+        {
+          "title": "Name $n",
+          "fields": [
+            {
+              "id": "name",
+              "label": "Name",
+              "type": "text",
+              "format": "text"
+            },
+            {
+              "id": "age",
+              "includeIf": "${addAnother.count > 2}",
+              "label": "Age",
+              "type": "text",
+              "format": "number"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

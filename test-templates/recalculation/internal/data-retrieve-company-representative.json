@@ -1,0 +1,942 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "What is the new representative member’s company or UK establishment number?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "What is the new representative member’s company or UK establishment number?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "crnRepresentative",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "CompanyRegistrationNumber": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ],
+              "dataRetrieve": [
+                {
+                  "tpe": {
+                    "name": "companyHouseProfile"
+                  },
+                  "params": [
+                    {
+                      "parameter": {
+                        "name": "companyNumber",
+                        "path": [],
+                        "tpe": {
+                          "String": {}
+                        }
+                      },
+                      "expr": {
+                        "FormCtx": {
+                          "formComponentId": "crnRepresentative"
+                        }
+                      }
+                    }
+                  ],
+                  "attributes": {
+                    "FromObject": {
+                      "inst": [
+                        {
+                          "attribute": {
+                            "name": "companyName"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "company_name"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "companyStatus"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "company_status"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "address_line_1"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "address_line_1"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "address_line_2"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "address_line_2"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "po_box"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "po_box"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "locality"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "locality"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "region"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "region"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "postal_code"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "postal_code"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "country"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "country"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "registeredOfficeAddress"
+                          },
+                          "from": {
+                            "Combine": {
+                              "value": [
+                                [
+                                  {
+                                    "name": "address_line_1"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "address_line_1"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "address_line_2"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "address_line_2"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "po_box"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "po_box"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "locality"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "locality"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "region"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "region"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "postal_code"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "postal_code"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "country"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "country"
+                                    ]
+                                  }
+                                ]
+                              ]
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "dateOfCreation"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "date_of_creation"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode1"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 0
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode2"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 1
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode3"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 2
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode4"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 3
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "attrTypeMapping": {
+                    "dateOfCreation": {
+                      "Date": {}
+                    }
+                  },
+                  "id": "companyRepresentative",
+                  "callOnNoChange": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Test"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Dummy"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "dummy",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "",
+                          "cy": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "CRNrepresentativeMiniSummary",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "MiniSummaryList": {
+                      "rows": [
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Company number"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "FormCtx": {
+                                    "formComponentId": "crnRepresentative"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Company name"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyRepresentative",
+                                    "attribute": {
+                                      "name": "companyName"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Registered office address"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DataRetrieveCtx": {
+                                    "id": "companyRepresentative",
+                                    "attribute": {
+                                      "name": "registeredOfficeAddress"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Incorporated on"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "DateCtx": {
+                                    "value": {
+                                      "DataRetrieveDateCtx": {
+                                        "id": "companyRepresentative",
+                                        "attribute": {
+                                          "name": "dateOfCreation"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "includeIf": {
+                              "booleanExpr": {
+                                "Not": {
+                                  "e": {
+                                    "Equals": {
+                                      "left": {
+                                        "DateCtx": {
+                                          "value": {
+                                            "DataRetrieveDateCtx": {
+                                              "id": "companyRepresentative",
+                                              "attribute": {
+                                                "name": "dateOfCreation"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "Constant": {
+                                          "value": ""
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "ValueRow": {
+                            "key": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Nature of business (SIC)"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            },
+                            "value": {
+                              "AnyExpr": {
+                                "expr": {
+                                  "LookupOps": {
+                                    "expr": {
+                                      "DataRetrieveCtx": {
+                                        "id": "companyRepresentative",
+                                        "attribute": {
+                                          "name": "sicCode1"
+                                        }
+                                      }
+                                    },
+                                    "lookupFnc": {
+                                      "SicDescription": {}
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "includeIf": {
+                              "booleanExpr": {
+                                "Not": {
+                                  "e": {
+                                    "Equals": {
+                                      "left": {
+                                        "DataRetrieveCtx": {
+                                          "id": "companyRepresentative",
+                                          "attribute": {
+                                            "name": "sicCode1"
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "Constant": {
+                                          "value": ""
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "displayInSummary": {
+                        "booleanExpression": {
+                          "IsTrue": {}
+                        }
+                      }
+                    }
+                  },
+                  "displayInSummary": {
+                    "booleanExpression": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "data-retrieve-company-representative",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "data-retrieve-company-representative",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

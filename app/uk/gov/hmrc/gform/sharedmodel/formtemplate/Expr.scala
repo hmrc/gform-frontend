@@ -21,259 +21,96 @@ import cats.Eq
 import java.time.LocalDate
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.{ FormModel, PageMode }
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 sealed trait Expr extends Product with Serializable {
 
-  def firstExprForTypeResolution[T <: PageMode](formModel: FormModel[T]): Option[Expr] = {
-    def loop(expr: Expr): List[Expr] = expr match {
-      case Add(field1: Expr, field2: Expr)         => loop(field1) ++ loop(field2)
-      case Multiply(field1: Expr, field2: Expr)    => loop(field1) ++ loop(field2)
-      case Subtraction(field1: Expr, field2: Expr) => loop(field1) ++ loop(field2)
-      case Divide(field1: Expr, field2: Expr)      => loop(field1) ++ loop(field2)
-      case HideZeroDecimals(field1: Expr)          => loop(field1)
-      case IfElse(_, field1: Expr, field2: Expr)   => loop(field1) ++ loop(field2)
-      case Else(field1: Expr, field2: Expr)        => loop(field1) ++ loop(field2)
-      case FormCtx(_)                              => expr :: Nil
-      case Sum(field1: Expr) =>
-        field1 match {
-          case FormCtx(formComponentId) =>
-            val exprs = formModel.allFormComponents.collect {
-              case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
-            }
-            if (exprs.isEmpty) {
-              // Indicates that the specified formComponentId does not exist within the form model, implying no instances across iterations.
-              // Therefore, the original formComponentId is utilized for type resolution.
-              FormCtx(formComponentId) :: Nil
-            } else {
-              exprs
-            }
-          case _ => loop(field1)
-        }
-      case Count(formComponentId: FormComponentId) => expr :: Nil
-      case Index(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
-      case AuthCtx(_)                              => expr :: Nil
-      case UserCtx(_)                              => expr :: Nil
-      case Constant(_)                             => expr :: Nil
-      case PeriodValue(_)                          => expr :: Nil
-      case Value                                   => expr :: Nil
-      case FormTemplateCtx(_)                      => expr :: Nil
-      case ParamCtx(_)                             => expr :: Nil
-      case LinkCtx(_)                              => expr :: Nil
-      case LangCtx                                 => expr :: Nil
-      case DateCtx(dateExpr)                       => dateExpr.leafExprs
-      case DateFunction(_)                         => expr :: Nil
-      case Period(_, _)                            => expr :: Nil
-      case Between(_, _, _)                        => expr :: Nil
-      case PeriodExt(_, _)                         => expr :: Nil
-      case AddressLens(_, _)                       => expr :: Nil
-      case DataRetrieveCtx(_, _)                   => expr :: Nil
-      case DataRetrieveCount(_)                    => expr :: Nil
-      case LookupColumn(_, _)                      => expr :: Nil
-      case CsvCountryCountCheck(_, _, _)           => expr :: Nil
-      case Size(_, _)                              => expr :: Nil
-      case Typed(e, _)                             => expr :: Nil
-      case IndexOf(_, _)                           => expr :: Nil
-      case IndexOfInChoice(_, _)                   => expr :: Nil
-      case IndexOfDataRetrieveCtx(_, _)            => expr :: Nil
-      case NumberedList(_)                         => expr :: Nil
-      case BulletedList(_)                         => expr :: Nil
-      case NumberedListChoicesSelected(_, _)       => expr :: Nil
-      case BulletedListChoicesSelected(_, _)       => expr :: Nil
-      case StringOps(_, _)                         => expr :: Nil
-      case Concat(_)                               => expr :: Nil
-      case CountryOfItmpAddress                    => expr :: Nil
-      case ChoicesRevealedField(_)                 => expr :: Nil
-      case ChoicesSelected(_)                      => expr :: Nil
-      case ChoicesAvailable(_, _)                  => expr :: Nil
-      case CountSelectedChoices(_)                 => expr :: Nil
-      case ChoicesCount(_)                         => expr :: Nil
-      case TaskStatus(_)                           => expr :: Nil
-      case LookupOps(_, _)                         => expr :: Nil
-      case DisplayAsEntered(_)                     => expr :: Nil
-
-    }
-    loop(this).headOption
-  }
+  def booleanExprs(): List[BooleanExpr] = collect {
+    case Add(field1: Expr, field2: Expr)          => field1.booleanExprs() ++ field2.booleanExprs()
+    case Multiply(field1: Expr, field2: Expr)     => field1.booleanExprs() ++ field2.booleanExprs()
+    case Subtraction(field1: Expr, field2: Expr)  => field1.booleanExprs() ++ field2.booleanExprs()
+    case Divide(field1: Expr, field2: Expr)       => field1.booleanExprs() ++ field2.booleanExprs()
+    case HideZeroDecimals(field1: Expr)           => field1.booleanExprs()
+    case IfElse(cond, field1: Expr, field2: Expr) => cond :: field1.booleanExprs() ++ field2.booleanExprs()
+    case Else(field1: Expr, field2: Expr)         => field1.booleanExprs() ++ field2.booleanExprs()
+    case Sum(field1: Expr)                        => field1.booleanExprs()
+    case DateCtx(dateExpr)                        => dateExpr.booleanExprs()
+    case DateFunction(dateFunc)                   => dateFunc.dateExpr.booleanExprs()
+    case Period(dateCtx1, dateCtx2, _)            => dateCtx1.booleanExprs() ::: dateCtx2.booleanExprs()
+    case Between(dateCtx1, dateCtx2, _)           => dateCtx1.booleanExprs() ::: dateCtx2.booleanExprs()
+    case Typed(expr, _)                           => expr.booleanExprs()
+    case IndexOfDataRetrieveCtx(_, expr)          => expr.booleanExprs()
+    case StringOps(expr, _)                       => expr.booleanExprs()
+    case Concat(exprs)                            => exprs.flatMap(_.booleanExprs())
+    case LookupOps(expr, _)                       => expr.booleanExprs()
+  }.flatten
 
   def prettyPrint: String = ExprPrettyPrint.prettyPrintExpr(this)
 
-  def leafs[T <: PageMode](formModel: FormModel[T]): List[Expr] = this match {
-    case Add(field1: Expr, field2: Expr)         => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Multiply(field1: Expr, field2: Expr)    => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Subtraction(field1: Expr, field2: Expr) => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Divide(field1: Expr, field2: Expr)      => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case HideZeroDecimals(field1: Expr)          => field1.leafs(formModel)
-    case IfElse(cond, field1: Expr, field2: Expr) =>
-      cond.allExpressions.flatMap(_.leafs(formModel)) ++
-        field1.leafs(formModel) ++ field2.leafs(formModel)
-    case Else(field1: Expr, field2: Expr)          => field1.leafs(formModel) ++ field2.leafs(formModel)
-    case FormCtx(formComponentId: FormComponentId) => this :: Nil
-    case Sum(field1: Expr) =>
-      field1 match {
-        case FormCtx(formComponentId) =>
-          formModel.allFormComponents.collect {
-            case fc if fc.baseComponentId == formComponentId.baseComponentId => FormCtx(fc.id)
-          }
-        case _ => field1.leafs(formModel)
-      }
-    case Count(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
-    case Index(formComponentId: FormComponentId) => FormCtx(formComponentId.withFirstIndex) :: Nil
-    case AuthCtx(value: AuthInfo)                => this :: Nil
-    case UserCtx(value: UserField)               => this :: Nil
-    case Constant(value: String)                 => this :: Nil
-    case PeriodValue(value: String)              => this :: Nil
-    // case HmrcRosmRegistrationCheck(value: RosmProp) => this :: Nil
-    case Value                                           => this :: Nil
-    case LangCtx                                         => this :: Nil
-    case FormTemplateCtx(value: FormTemplateProp)        => this :: Nil
-    case ParamCtx(_)                                     => this :: Nil
-    case LinkCtx(_)                                      => this :: Nil
-    case DateCtx(dateExpr)                               => dateExpr.leafExprs
-    case DateFunction(dateFunc)                          => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2)                      => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
-    case PeriodExt(periodFun, _)                         => periodFun.leafs(formModel)
-    case Between(dateCtx1, dateCtx2, _)                  => dateCtx1.leafs(formModel) ::: dateCtx2.leafs(formModel)
-    case AddressLens(formComponentId, _)                 => this :: Nil
-    case DataRetrieveCtx(_, _)                           => this :: Nil
-    case DataRetrieveCount(_)                            => this :: Nil
-    case LookupColumn(_, _)                              => this :: Nil
-    case CsvCountryCountCheck(_, _, _)                   => this :: Nil
-    case Size(_, _)                                      => this :: Nil
-    case Typed(expr, _)                                  => expr.leafs(formModel)
-    case IndexOf(formComponentId, _)                     => FormCtx(formComponentId) :: Nil
-    case IndexOfInChoice(_, formComponentId)             => FormCtx(formComponentId) :: Nil
-    case IndexOfDataRetrieveCtx(_, _)                    => this :: Nil
-    case NumberedList(formComponentId)                   => FormCtx(formComponentId) :: Nil
-    case BulletedList(formComponentId)                   => FormCtx(formComponentId) :: Nil
-    case NumberedListChoicesSelected(formComponentId, _) => FormCtx(formComponentId) :: Nil
-    case BulletedListChoicesSelected(formComponentId, _) => FormCtx(formComponentId) :: Nil
-    case StringOps(expr, _)                              => expr.leafs(formModel)
-    case Concat(exprs)                                   => exprs.flatMap(_.leafs(formModel))
-    case CountryOfItmpAddress                            => this :: Nil
-    case ChoicesRevealedField(formComponentId)           => FormCtx(formComponentId) :: Nil
-    case ChoicesSelected(formComponentId)                => FormCtx(formComponentId) :: Nil
-    case ChoicesAvailable(formComponentId, _)            => FormCtx(formComponentId) :: Nil
-    case CountSelectedChoices(formComponentId)           => FormCtx(formComponentId) :: Nil
-    case ChoicesCount(formComponentId)                   => FormCtx(formComponentId) :: Nil
-    case TaskStatus(_)                                   => this :: Nil
-    case LookupOps(expr, _)                              => expr.leafs(formModel)
-    case DisplayAsEntered(formComponentId)               => FormCtx(formComponentId) :: Nil
+  def staticType(): Expr = this match {
+    case Add(field1: Expr, field2: Expr)         => field1.staticType()
+    case Multiply(field1: Expr, field2: Expr)    => field1.staticType()
+    case Subtraction(field1: Expr, field2: Expr) => field1.staticType()
+    case Divide(field1: Expr, field2: Expr)      => field1.staticType()
+    case HideZeroDecimals(field1: Expr)          => field1.staticType()
+    case IfElse(_, field1: Expr, field2: Expr)   => field1.staticType()
+    case Else(field1: Expr, field2: Expr)        => field1.staticType()
+    case _                                       => this
   }
 
-  def sums: List[Sum] = this match {
-    case Add(field1: Expr, field2: Expr)           => field1.sums ++ field2.sums
-    case Multiply(field1: Expr, field2: Expr)      => field1.sums ++ field2.sums
-    case Subtraction(field1: Expr, field2: Expr)   => field1.sums ++ field2.sums
-    case Divide(field1: Expr, field2: Expr)        => field1.sums ++ field2.sums
-    case HideZeroDecimals(field1: Expr)            => field1.sums
-    case IfElse(cond, field1: Expr, field2: Expr)  => cond.allExpressions.flatMap(_.sums) ++ field1.sums ++ field2.sums
-    case Else(field1: Expr, field2: Expr)          => field1.sums ++ field2.sums
-    case FormCtx(formComponentId: FormComponentId) => Nil
-    case sum @ Sum(field1: Expr)                   => sum :: Nil
-    case Count(field1: FormComponentId)            => Nil
-    case Index(field1: FormComponentId)            => Nil
-    case AuthCtx(value: AuthInfo)                  => Nil
-    case UserCtx(value: UserField)                 => Nil
-    case Constant(value: String)                   => Nil
-    case PeriodValue(value: String)                => Nil
-    // case HmrcRosmRegistrationCheck(value: RosmProp) => Nil
-    case Value                                    => Nil
-    case FormTemplateCtx(value: FormTemplateProp) => Nil
-    case ParamCtx(_)                              => Nil
-    case LinkCtx(_)                               => Nil
-    case LangCtx                                  => Nil
-    case DateCtx(_)                               => Nil
-    case DateFunction(_)                          => Nil
-    case Period(_, _)                             => Nil
-    case PeriodExt(_, _)                          => Nil
-    case Between(_, _, _)                         => Nil
-    case AddressLens(_, _)                        => Nil
-    case DataRetrieveCtx(_, _)                    => Nil
-    case DataRetrieveCount(_)                     => Nil
-    case LookupColumn(_, _)                       => Nil
-    case CsvCountryCountCheck(_, _, _)            => Nil
-    case Size(_, _)                               => Nil
-    case Typed(expr, _)                           => expr.sums
-    case IndexOf(_, _)                            => Nil
-    case IndexOfInChoice(_, _)                    => Nil
-    case IndexOfDataRetrieveCtx(_, _)             => Nil
-    case NumberedList(_)                          => Nil
-    case BulletedList(_)                          => Nil
-    case NumberedListChoicesSelected(_, _)        => Nil
-    case BulletedListChoicesSelected(_, _)        => Nil
-    case StringOps(_, _)                          => Nil
-    case Concat(_)                                => Nil
-    case CountryOfItmpAddress                     => Nil
-    case ChoicesRevealedField(_)                  => Nil
-    case ChoicesSelected(_)                       => Nil
-    case ChoicesAvailable(_, _)                   => Nil
-    case CountSelectedChoices(_)                  => Nil
-    case ChoicesCount(_)                          => Nil
-    case TaskStatus(_)                            => Nil
-    case LookupOps(_, _)                          => Nil
-    case DisplayAsEntered(_)                      => Nil
+  def collect[T](pf: PartialFunction[Expr, T]): List[T] = this match {
+    case expr if pf.isDefinedAt(expr)            => List(pf(expr))
+    case Add(field1: Expr, field2: Expr)         => field1.collect(pf) ++ field2.collect(pf)
+    case Multiply(field1: Expr, field2: Expr)    => field1.collect(pf) ++ field2.collect(pf)
+    case Subtraction(field1: Expr, field2: Expr) => field1.collect(pf) ++ field2.collect(pf)
+    case Divide(field1: Expr, field2: Expr)      => field1.collect(pf) ++ field2.collect(pf)
+    case HideZeroDecimals(field1: Expr)          => field1.collect(pf)
+    case Sum(field1: Expr)                       => field1.collect(pf)
+    case IfElse(cond, field1, field2) =>
+      cond.allExpressions.flatMap(_.collect(pf)) ++ field1.collect(pf) ++ field2.collect(pf)
+    case Else(field1: Expr, field2: Expr)    => field1.collect(pf) ++ field2.collect(pf)
+    case Period(dateCtx1, dateCtx2, _)       => dateCtx1.collect(pf) ::: dateCtx2.collect(pf)
+    case Between(dateCtx1, dateCtx2, _)      => dateCtx1.collect(pf) ::: dateCtx2.collect(pf)
+    case Typed(expr, _)                      => expr.collect(pf)
+    case IndexOfDataRetrieveCtx(_, expr)     => expr.collect(pf)
+    case StringOps(expr, _)                  => expr.collect(pf)
+    case Concat(exprs)                       => exprs.flatMap(_.collect(pf))
+    case LookupOps(expr, _)                  => expr.collect(pf)
+    case DateCtx(value: DateExpr)            => value.collect(pf)
+    case DateFunction(value: DateProjection) => value.dateExpr.collect(pf)
+    case _                                   => Nil
   }
 
-  def leafs(): List[Expr] = this match {
-    case Add(field1: Expr, field2: Expr)         => field1.leafs() ++ field2.leafs()
-    case Multiply(field1: Expr, field2: Expr)    => field1.leafs() ++ field2.leafs()
-    case Subtraction(field1: Expr, field2: Expr) => field1.leafs() ++ field2.leafs()
-    case Divide(field1: Expr, field2: Expr)      => field1.leafs() ++ field2.leafs()
-    case HideZeroDecimals(field1: Expr)          => field1.leafs()
-    case IfElse(cond, field1: Expr, field2: Expr) =>
-      cond.allExpressions.flatMap(_.leafs()) ++
-        field1.leafs() ++ field2.leafs()
-    case Else(field1: Expr, field2: Expr)                => field1.leafs() ++ field2.leafs()
-    case FormCtx(formComponentId: FormComponentId)       => this :: Nil
-    case Sum(field1: Expr)                               => field1.leafs()
-    case Count(formComponentId: FormComponentId)         => FormCtx(formComponentId.withFirstIndex) :: Nil
-    case Index(formComponentId: FormComponentId)         => FormCtx(formComponentId.withFirstIndex) :: Nil
-    case AuthCtx(value: AuthInfo)                        => this :: Nil
-    case UserCtx(value: UserField)                       => this :: Nil
-    case Constant(value: String)                         => this :: Nil
-    case PeriodValue(value: String)                      => this :: Nil
-    case Value                                           => this :: Nil
-    case LangCtx                                         => this :: Nil
-    case FormTemplateCtx(value: FormTemplateProp)        => this :: Nil
-    case ParamCtx(_)                                     => this :: Nil
-    case LinkCtx(_)                                      => this :: Nil
-    case DateCtx(dateExpr)                               => dateExpr.leafExprs
-    case DateFunction(dateFunc)                          => dateFunc.dateExpr.leafExprs
-    case Period(dateCtx1, dateCtx2)                      => dateCtx1.leafs() ::: dateCtx2.leafs()
-    case PeriodExt(periodFun, _)                         => periodFun.leafs()
-    case Between(dateCtx1, dateCtx2, _)                  => dateCtx1.leafs() ::: dateCtx2.leafs()
-    case AddressLens(formComponentId, _)                 => this :: Nil
-    case DataRetrieveCtx(_, _)                           => this :: Nil
-    case DataRetrieveCount(_)                            => this :: Nil
-    case LookupColumn(_, _)                              => this :: Nil
-    case CsvCountryCountCheck(_, _, _)                   => this :: Nil
-    case Size(_, _)                                      => this :: Nil
-    case Typed(expr, _)                                  => expr.leafs()
-    case IndexOf(formComponentId, _)                     => FormCtx(formComponentId) :: Nil
-    case IndexOfInChoice(_, formComponentId)             => FormCtx(formComponentId) :: Nil
-    case IndexOfDataRetrieveCtx(_, _)                    => this :: Nil
-    case NumberedList(formComponentId)                   => FormCtx(formComponentId) :: Nil
-    case BulletedList(formComponentId)                   => FormCtx(formComponentId) :: Nil
-    case NumberedListChoicesSelected(formComponentId, _) => FormCtx(formComponentId) :: Nil
-    case BulletedListChoicesSelected(formComponentId, _) => FormCtx(formComponentId) :: Nil
-    case StringOps(expr, _)                              => expr.leafs()
-    case Concat(exprs)                                   => exprs.flatMap(_.leafs())
-    case CountryOfItmpAddress                            => this :: Nil
-    case ChoicesRevealedField(formComponentId)           => FormCtx(formComponentId) :: Nil
-    case ChoicesSelected(formComponentId)                => FormCtx(formComponentId) :: Nil
-    case ChoicesAvailable(formComponentId, _)            => FormCtx(formComponentId) :: Nil
-    case CountSelectedChoices(formComponentId)           => FormCtx(formComponentId) :: Nil
-    case ChoicesCount(formComponentId)                   => FormCtx(formComponentId) :: Nil
-    case TaskStatus(_)                                   => this :: Nil
-    case LookupOps(expr, _)                              => expr.leafs()
-    case DisplayAsEntered(formComponentId)               => FormCtx(formComponentId) :: Nil
+  def allAuthCtx(): List[AuthCtx] = collect { case e: AuthCtx => e }.collect { case e: AuthCtx => e }
+  def allAddressLens(): List[AddressLens] = collect { case e: AddressLens => e }.collect { case e: AddressLens => e }
+  def allTaskStatuses(): List[TaskStatus] = collect { case e: TaskStatus => e }.collect { case e: TaskStatus => e }
+
+  def allFormComponentIds(): List[FormComponentId] = collect {
+    case FormCtx(formComponentId)                        => formComponentId
+    case Count(formComponentId)                          => formComponentId
+    case Index(formComponentId)                          => formComponentId
+    case AddressLens(formComponentId, _)                 => formComponentId
+    case LookupColumn(formComponentId, _)                => formComponentId
+    case CsvCountryCountCheck(formComponentId, _, _)     => formComponentId
+    case Size(formComponentId, _)                        => formComponentId
+    case IndexOf(formComponentId, _)                     => formComponentId
+    case IndexOfInChoice(_, formComponentId)             => formComponentId
+    case NumberedList(formComponentId)                   => formComponentId
+    case BulletedList(formComponentId)                   => formComponentId
+    case NumberedListChoicesSelected(formComponentId, _) => formComponentId
+    case BulletedListChoicesSelected(formComponentId, _) => formComponentId
+    case ChoicesRevealedField(formComponentId)           => formComponentId
+    case ChoicesSelected(formComponentId)                => formComponentId
+    case ChoicesAvailable(formComponentId, _)            => formComponentId
+    case CountSelectedChoices(formComponentId)           => formComponentId
+    case ChoicesCount(formComponentId)                   => formComponentId
+    case DisplayAsEntered(formComponentId)               => formComponentId
   }
 
-  def allFormComponentIds(): List[FormComponentId] =
-    this.leafs().collect { case FormCtx(formComponentId) => formComponentId }
+  def allFormCtxIds(): List[FormComponentId] = collect { case FormCtx(formComponentId) =>
+    formComponentId
+  }
 }
 
 final case class Add(field1: Expr, field2: Expr) extends Expr
@@ -291,14 +128,14 @@ final case class ParamCtx(queryParam: QueryParam) extends Expr
 final case class AuthCtx(value: AuthInfo) extends Expr
 final case class UserCtx(value: UserField) extends Expr
 final case class Constant(value: String) extends Expr
-final case class PeriodValue(value: String) extends Expr
 final case class LinkCtx(link: InternalLink) extends Expr
 final case object Value extends Expr
 final case class FormTemplateCtx(value: FormTemplateProp) extends Expr
 final case class DateCtx(value: DateExpr) extends Expr
 final case class DateFunction(value: DateProjection) extends Expr
 final case class AddressLens(formComponentId: FormComponentId, detail: AddressDetail) extends Expr
-final case class Period(dateCtx1: Expr, dateCtx2: Expr) extends Expr
+final case class PeriodValue(value: String) extends Expr
+final case class Period(dateCtx1: Expr, dateCtx2: Expr, func: PeriodFn) extends Expr
 final case class Between(dateCtx1: Expr, dateCtx2: Expr, measurementType: MeasurementType) extends Expr
 final case object LangCtx extends Expr
 final case class DataRetrieveCtx(id: DataRetrieveId, attribute: DataRetrieve.Attribute) extends Expr
@@ -380,6 +217,7 @@ object ExplicitExprType {
 
 sealed trait PeriodFn
 object PeriodFn {
+  case object Identity extends PeriodFn
   case object Sum extends PeriodFn
   case object TotalMonths extends PeriodFn
   case object Years extends PeriodFn
@@ -395,7 +233,19 @@ object MeasurementType {
   implicit val format: OFormat[MeasurementType] = derived.oformat()
 }
 
-sealed trait StringFnc
+sealed trait StringFnc {
+  def eval(s: String): String = this match {
+    case StringFnc.Capitalize     => s.capitalize
+    case StringFnc.CapitalizeAll  => s.split(' ').map(_.capitalize).mkString(" ")
+    case StringFnc.LowerCase      => s.toLowerCase
+    case StringFnc.UpperCase      => s.toUpperCase
+    case StringFnc.RemoveSpaces   => s.replaceAll(" ", "")
+    case StringFnc.LowerCaseFirst => s.headOption.map(c => s"${c.toLower}${s.tail}").getOrElse("")
+    case StringFnc.SubString(beginIndex, endIndex) =>
+      s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+  }
+}
+
 object StringFnc {
   case object Capitalize extends StringFnc
   case object CapitalizeAll extends StringFnc
@@ -406,8 +256,6 @@ object StringFnc {
   case class SubString(beginIndex: Int, endIndex: Int) extends StringFnc
   implicit val format: OFormat[StringFnc] = derived.oformat()
 }
-
-final case class PeriodExt(period: Expr, func: PeriodFn) extends Expr
 
 sealed trait UserFieldFunc
 object UserFieldFunc {

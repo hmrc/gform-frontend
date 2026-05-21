@@ -1,0 +1,95 @@
+{
+  "_id": "atl-outside-reference-index-of-date",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Repeating fields",
+      "summaryName": "Repeating field added",
+      "shortName": "Repeating field",
+      "summaryDescription": "Repeating field",
+      "description": "$n - ${date}.",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Date $n",
+          "fields": [
+            {
+              "id": "date",
+              "type": "date",
+              "label": "Date"
+            },
+            {
+              "id": "calendarDate",
+              "type": "calendarDate",
+              "label": "Calendar date"
+            },
+            {
+              "id": "taxPeriodDate",
+              "type": "taxPeriodDate",
+              "label": "Tax period date"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "basicInfo",
+          "type": "info",
+          "label": "",
+          "infoText": "All dates: ${date}\n\ndate[1]: ${date[1]}\n\ndate[2] = '' : ${if date[2] = '' then 'yes' else date[2]}\n\n'' = date[2] : ${if '' = date[2] then 'yes' else date[2]}\n\nAll calendar dates: ${calendarDate}\n\ncalendarDate[1]: ${calendarDate[1]}\n\ncalendarDate[2] = '' : ${if calendarDate[2] = '' then 'yes' else calendarDate[2]}\n\n'' = calendarDate[2] : ${if '' = calendarDate[2] then 'yes' else calendarDate[2]}\n\nAll tax period dates: ${taxPeriodDate}\n\ntaxPeriodDate[1]: ${taxPeriodDate[1]}\n\ntaxPeriodDate[2] = '' : ${if taxPeriodDate[2] = '' then 'yes' else taxPeriodDate[2]}\n\n'' = taxPeriodDate[2] : ${if '' = taxPeriodDate[2] then 'yes' else taxPeriodDate[2]}",
+          "infoType": "noformat"
+        }
+      ]
+    },
+    {
+      "title": "Secret $n",
+      "includeIf": "${date[2] != ''}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

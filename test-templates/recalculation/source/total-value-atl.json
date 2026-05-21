@@ -1,0 +1,74 @@
+{
+  "_id": "total-value-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "grossedTaxA": {
+      "type": "sterling",
+      "value": "taxA * 0.2 * 1.25",
+      "round": "HalfUp"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "summaryName": "Taxes",
+      "title": "Taxes",
+      "shortName": "Tax $n of ${addAnother.count}",
+      "description": "${taxA}",
+      "summaryDescription": "${taxA}",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "taxA",
+          "fields": [
+            {
+              "id": "taxA",
+              "type": "text",
+              "format": "sterling"
+            }
+          ]
+        },
+        {
+          "title": "taxB",
+          "fields": [
+            {
+              "id": "taxB",
+              "type": "text",
+              "label": "taxB",
+              "format": "sterling"
+            },
+            {
+              "id": "taxPayed",
+              "type": "text",
+              "value": "${grossedTaxA * taxB}",
+              "label": "Tax payed:",
+              "format": "sterling",
+              "submitMode": "readonly",
+              "presentationHint": "totalValue"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

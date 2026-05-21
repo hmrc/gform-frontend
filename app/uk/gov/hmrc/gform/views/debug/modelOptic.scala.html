@@ -14,10 +14,10 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.models.{FormModel, PageMode}
+@import uk.gov.hmrc.gform.models.FormModel
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-@(modelName: String, formModel: FormModel[_ <: PageMode], totalColumns: Int)
+@(modelName: String, formModel: FormModel, totalColumns: Int)
 
 <thead>
     <tr>
@@ -27,70 +27,56 @@
     </tr>
 </thead>
 <tbody>
+  @formModel.brackets.fold { classic =>
     <tr>
-      @formModel.brackets.fold { classic =>
-        @classic.brackets.toList.map { bracket =>
-          @bracket.fold { nonRepeatingPage =>
-            <td>@nonRepeatingPage.singleton.sectionNumber.value</td>
-          } { repeatingPage =>
-            @repeatingPage.singletons.toList.map{ singleton =>
-              <td>@singleton.sectionNumber.value</td>
-            }
-          } { addToList =>
-            @addToList.iterations.toList.map { it =>
-              @it.defaultPage.map { dp => <td>@dp.sectionNumber.value</td>}.getOrElse("")
-              @it.singletons.toList.map{singleton => <td>@singleton.sectionNumber.value</td>}
-              @it.checkYourAnswers.map{cya => <td>@cya.sectionNumber.value</td>}.getOrElse("")
-              <td>@it.repeater.sectionNumber.value</td>
-            }
-          }
-        }
-      } { taskList =>
-        <td>TaskList TODO implement me</td>
+      @classic.brackets.toList.map { bracket =>
+        @bracketSectionNumber(bracket)
       }
     </tr>
     <tr>
-      @formModel.brackets.fold { classic =>
-        @classic.brackets.toList.map { bracket =>
-          @bracket.fold { nonRepeatingPage =>
-            @pageModelHeader(nonRepeatingPage.singleton.singleton)
-          } { repeatingPage =>
-            @repeatingPage.singletons.toList.map{ singleton =>
-              @pageModelHeader(singleton.singleton)
-            }
-          } { addToList =>
-            @addToList.iterations.toList.map { it =>
-              @it.defaultPage.map { dp => @pageModelHeader(dp.singleton)}.getOrElse("")
-              @it.singletons.toList.map{singleton => @pageModelHeader(singleton.singleton)}
-              @it.checkYourAnswers.map{cya => @pageModelHeader(cya.checkYourAnswers)}.getOrElse("")
-                @pageModelHeader(it.repeater.repeater)
-            }
-          }
-        }
-      } { taskList =>
-        <td>TaskList TODO implement me</td>
+      @classic.brackets.toList.map { bracket =>
+        @bracketTitle(bracket)
       }
     </tr>
     <tr>
-      @formModel.brackets.fold { classic =>
-        @classic.brackets.toList.map { bracket =>
-          @bracket.fold { nonRepeatingPage =>
-            @pageModelBody(nonRepeatingPage.singleton.singleton)
-          } { repeatingPage =>
-            @repeatingPage.singletons.toList.map{ singleton =>
-              @pageModelBody(singleton.singleton)
-            }
-          } { addToList =>
-            @addToList.iterations.toList.map { it =>
-              @it.defaultPage.map { dp => @pageModelBody(dp.singleton)}.getOrElse("")
-              @it.singletons.toList.map{singleton => @pageModelBody(singleton.singleton)}
-              @it.checkYourAnswers.map{cya => @pageModelBody(cya.checkYourAnswers)}.getOrElse("")
-                @pageModelBody(it.repeater.repeater)
-            }
-          }
-        }
-      } { taskList =>
-        <td>TaskList TODO implement me</td>
+      @classic.brackets.toList.map { bracket =>
+        @bracketFormComponents(bracket)
       }
     </tr>
+  } { taskList =>
+    @taskList.brackets.toList.map { case (coordinates, taskModel) =>
+      <tr>
+        <th>
+          @coordinates.value
+        </th>
+      </tr>
+      <tr>
+        @taskModel.fold{ allHidden =>
+         <td>All Hidden</td>
+        } { editable =>
+          @editable.brackets.toList.map { bracket =>
+            @bracketSectionNumber(bracket)
+          }
+        }
+      </tr>
+      <tr>
+        @taskModel.fold{ allHidden =>
+         <td>---</td>
+        } { editable =>
+          @editable.brackets.toList.map { bracket =>
+            @bracketTitle(bracket)
+          }
+        }
+      </tr>
+      <tr>
+        @taskModel.fold{ allHidden =>
+         <td>---</td>
+        } { editable =>
+          @editable.brackets.toList.map { bracket =>
+            @bracketFormComponents(bracket)
+          }
+        }
+      </tr>
+    }
+  }
 </tbody>

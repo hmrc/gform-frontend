@@ -35,8 +35,6 @@ import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -112,15 +110,14 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   private val lookupRegistry: LookupRegistry = mock[LookupRegistry]
 
   private val validationService: ValidationService = new ValidationService(
-    booleanExprEval,
     gformConnector,
     lookupRegistry,
     ComponentChecker.NonShortCircuitInterpreter
   )
 
   "validatePageModel" should "send 1 email to user@test.com when validating first page" in {
-    val variadicFormData: VariadicFormData[OutOfDate] =
-      VariadicFormData.create[OutOfDate]((emailField.modelComponentId, VariadicValue.One(emailStr)))
+    val variadicFormData: VariadicFormData =
+      VariadicFormData.create((emailField.modelComponentId, VariadicValue.One(emailStr)))
 
     val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, false, 0)
 
@@ -137,8 +134,8 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   }
 
   it should "not attempt to send any emails when validating first page if email already sent" in {
-    val variadicFormData: VariadicFormData[OutOfDate] =
-      VariadicFormData.create[OutOfDate]((emailField.modelComponentId, VariadicValue.One(emailStr)))
+    val variadicFormData: VariadicFormData =
+      VariadicFormData.create((emailField.modelComponentId, VariadicValue.One(emailStr)))
 
     val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, true, 0)
 
@@ -152,8 +149,8 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   }
 
   it should "fail validation for invalid verification code on second page" in {
-    val variadicFormData: VariadicFormData[OutOfDate] =
-      VariadicFormData.create[OutOfDate](
+    val variadicFormData: VariadicFormData =
+      VariadicFormData.create(
         (emailField.modelComponentId, VariadicValue.One(emailStr)),
         (verifyField.modelComponentId, VariadicValue.One("WXYZ"))
       )
@@ -167,8 +164,8 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   }
 
   it should "successfully validate correct verification code on second page" in {
-    val variadicFormData: VariadicFormData[OutOfDate] =
-      VariadicFormData.create[OutOfDate](
+    val variadicFormData: VariadicFormData =
+      VariadicFormData.create(
         (emailField.modelComponentId, VariadicValue.One(emailStr)),
         (verifyField.modelComponentId, VariadicValue.One(confirmationCode))
       )
@@ -182,13 +179,13 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   }
 
   private def setupAndRunWithEvaluation(
-    variadicFormData: VariadicFormData[OutOfDate],
+    variadicFormData: VariadicFormData,
     icludeEmailAndCodeMap: Boolean,
     pageToValidate: Int
   ): ValidationResult = {
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, variadicFormData)
-    val visibilityFormModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
-    val visibilityPageModel: PageModel[Visibility] = visibilityFormModel(
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, variadicFormData)
+    val visibilityFormModel: FormModel = formModelOptics.formModelVisibilityOptics.formModel
+    val visibilityPageModel: PageModel = visibilityFormModel(
       Classic.NormalPage(TemplateSectionIndex(pageToValidate))
     )
     val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, icludeEmailAndCodeMap, pageToValidate)
@@ -202,7 +199,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
   }
 
   private def setupAndRun(
-    variadicFormData: VariadicFormData[OutOfDate],
+    variadicFormData: VariadicFormData,
     includeEmailAndCodeMap: Boolean,
     pageToValidate: Int
   ): ValidatedType[ValidatorsResult] = {
@@ -211,9 +208,9 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
       gformConnector.sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
     ).thenReturn(Future.successful(()))
 
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, variadicFormData)
-    val visibilityFormModel: FormModel[Visibility] = formModelOptics.formModelVisibilityOptics.formModel
-    val visibilityPageModel: PageModel[Visibility] = visibilityFormModel(
+    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, variadicFormData)
+    val visibilityFormModel: FormModel = formModelOptics.formModelVisibilityOptics.formModel
+    val visibilityPageModel: PageModel = visibilityFormModel(
       Classic.NormalPage(TemplateSectionIndex(pageToValidate))
     )
 

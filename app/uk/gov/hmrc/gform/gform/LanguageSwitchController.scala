@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.implicits._
-import play.api.i18n.{ I18nSupport, Lang }
+import play.api.i18n.Lang
 import play.api.mvc.{ Action, ActionBuilder, AnyContent, ControllerComponents, Request }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
-import uk.gov.hmrc.gform.models.SectionSelectorType
+import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, FormModelOptics, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IsOverseasAddress, IsText, Lookup, OverseasAddress, Register, Text }
@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, RadioLookup }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import play.api.i18n.LangImplicits
 
 class LanguageSwitchController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
@@ -46,7 +46,7 @@ class LanguageSwitchController(
   actionBuilder: ActionBuilder[Request, AnyContent]
 )(implicit ec: ExecutionContext)
     extends LanguageController(languageUtils, controllerComponents) with FrontendHeaderCarrierProvider
-    with I18nSupport {
+    with LangImplicits {
 
   protected def fallbackURL: String = "/"
 
@@ -95,12 +95,37 @@ class LanguageSwitchController(
         val maybeLanguageToSwitchTo: Option[LangADT] =
           languageMap.get(language).map(l => LangADT.stringToLangADT(l.code))
 
+        import uk.gov.hmrc.gform.sharedmodel.formtemplate.HasValueExpr
         maybeLanguageToSwitchTo
           .map { languageToSwitchTo =>
+            val lang: Lang = Lang(languageToSwitchTo.langADTToString)
+            val messages = lang2Messages(lang)
+
+            val formModelOpticsSwitchTo =
+              FormModelOptics.mkFormModelOptics(cache.variadicFormData, cache)(
+                implicitly[SectionSelector[SectionSelectorType.Normal]],
+                languageToSwitchTo,
+                messages
+              )
+
+            val answerMap =
+              formModelOpticsSwitchTo.formModelVisibilityOptics.freeCalculator.answerMapWithFallback.answerMap
+
+            val exprsSwitchedTo: List[FormField] =
+              formModelOpticsSwitchTo.formModelRenderPageOptics.allFormComponents.collect { case fc @ HasValueExpr(_) =>
+                val modelComponentId = fc.id.modelComponentId
+                val answer: String =
+                  answerMap.answerMap(modelComponentId).stringRepresentation(fc.staticTypeData, messages)
+
+                FormField(modelComponentId, answer)
+              }
+
             val switchedLabel: List[(ModelComponentId, LookupLabel)] =
               lookups.flatMap { case (modelComponentId, register) =>
                 val formField: FormField =
-                  formModelOptics.formModelRenderPageOptics.toFormField(modelComponentId)
+                  formModelOptics.formModelVisibilityOptics.freeCalculator.variadicFormData.toFormField(
+                    modelComponentId
+                  )
 
                 switchLookupLabelLanguage(register, LookupLabel(formField.value), l, languageToSwitchTo).map(
                   modelComponentId -> _
@@ -109,7 +134,7 @@ class LanguageSwitchController(
 
             val newFormData: List[FormField] = switchedLabel.map { case (modelComponentId, lookupLabel) =>
               FormField(modelComponentId, lookupLabel.label)
-            }
+            } ++ exprsSwitchedTo
 
             val form = cache.form
             val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
@@ -136,7 +161,7 @@ class LanguageSwitchController(
       }
 
   private def resetAllConfirmationPages(
-    formModelOptics: FormModelOptics[DataOrigin.Mongo],
+    formModelOptics: FormModelOptics,
     formData: FormData
   ): FormData = {
     val confirmationPages = formModelOptics.formModelRenderPageOptics.formModel.confirmationPageMap.map(_._2)

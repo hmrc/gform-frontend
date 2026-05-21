@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.eval
 
-import uk.gov.hmrc.gform.models.{ Bracket, PageMode, Repeater, SingletonWithNumber }
+import uk.gov.hmrc.gform.models.{ Bracket, Repeater, SingletonWithNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Expr }
 
 /*
@@ -24,9 +24,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AtlDescription, Expr }
  * This doesn't include expressions in fields
  */
 object AllPageModelExpressions extends ExprExtractorHelpers {
-  def unapply[A <: PageMode](bracket: Bracket[A]): Option[List[ExprMetadata]] = {
+  def unapply(bracket: Bracket): Option[List[ExprMetadata]] = {
 
-    def fromSingleton(singleton: SingletonWithNumber[_]): List[Expr] = {
+    def fromSingleton(singleton: SingletonWithNumber): List[Expr] = {
       val page = singleton.singleton.page
       val pageExprs = page.title.allInterpolations ++ fromOption(
         page.description,
@@ -43,7 +43,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
       pageExprs ++ dataRetrieveExpressions
     }
 
-    def fromRepeater(repeater: Repeater[_]): List[Expr] =
+    def fromRepeater(repeater: Repeater): List[Expr] =
       fromSmartStrings(
         repeater.expandedTitle,
         repeater.expandedShortName,
@@ -56,13 +56,13 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         case None          => None
       })
 
-    def fromNonRepeatingBracket(bracket: Bracket.NonRepeatingPage[A]): List[Expr] =
+    def fromNonRepeatingBracket(bracket: Bracket.NonRepeatingPage): List[Expr] =
       fromSingleton(bracket.singleton)
 
-    def fromRepeatedBracket(bracket: Bracket.RepeatingPage[A]): List[Expr] =
+    def fromRepeatedBracket(bracket: Bracket.RepeatingPage): List[Expr] =
       bracket.source.repeats :: bracket.singletons.toList.flatMap(fromSingleton)
 
-    def fromAddToListBracket(bracket: Bracket.AddToList[A]): List[Expr] =
+    def fromAddToListBracket(bracket: Bracket.AddToList): List[Expr] =
       fromSmartStrings(
         bracket.source.summaryName,
         bracket.source.addAnotherQuestion.label,
