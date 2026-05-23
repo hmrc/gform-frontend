@@ -30,6 +30,28 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+        "declaration"       -> One("100"),
+        "declarationChoice" -> Many(List("0")),
+        "taxPayable"        -> One("100.00")
+      ),
+      List(
+        "n0",
+        "n1",
+        "n2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "declaration"       -> NumberResult(100),
+        "declarationChoice" -> OptionResult(List("0")),
+        "taxPayable"        -> NumberResult(BigDecimal("100.00"))
+      ),
+      List(
+        "Tax payable: £100.00"
+      ),
+      "constant-to-number.json Generated"
+    ),
+    (
+      MongoUserData(
         "1_addAnimal"              -> Many(List("1")),
         "1_animal"                 -> One("Cat"),
         "alreadyInUKAnimal"        -> Many(List("0")),
