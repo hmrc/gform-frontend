@@ -793,13 +793,12 @@ final class RealCalculator(
       case FormCtx(fcId) => dataBridge.evalFormCtx(fcId, behaviour)
       case Constant(c) =>
         staticTypeData.exprType match {
-          case ExprType.Number =>
+          case ExprType.String => EvaluationStatus.StringResult(c)
+          case _ =>
             if (c.trim.isEmpty)
               EvaluationStatus.Empty
             else
               BigDecimalUtil.toBigDecimalOrString(c)
-          case ExprType.String => EvaluationStatus.StringResult(c)
-          case _               => EvaluationStatus.StringResult(c)
         }
       case IfElse(cond, expr1, expr2) =>
         evalIfElse(cond, expr1, expr2, staticTypeData, behaviour)
