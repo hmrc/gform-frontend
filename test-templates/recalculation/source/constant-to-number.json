@@ -1,0 +1,75 @@
+{
+  "_id": "constant-to-number",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Do you wish to declare?",
+      "fields": [
+        {
+          "id": "declarationChoice",
+          "type": "choice",
+          "notPII": true,
+          "choices": [
+            {
+              "en": "Yes"
+            },
+            {
+              "en": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Declaration",
+      "fields": [
+        {
+          "id": "declaration",
+          "type": "text",
+          "format": "positiveSterling"
+        }
+      ]
+    },
+    {
+      "title": "Your balance",
+      "includeIf": "${declarationChoice contains 0 && declaration >= 0}",
+      "fields": [
+        {
+          "id": "taxPayable",
+          "type": "text",
+          "label": "Tax payable",
+          "format": "sterling",
+          "value": "${declaration}",
+          "submitMode": "readonly",
+          "presentationHint": "totalValue"
+        }
+      ]
+    },
+    {
+      "title": "Test page",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Tax payable: ${taxPayable}",
+          "format": "sterling"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -768,8 +768,8 @@
                   "value": {
                     "path": [
                       "det",
-                      "agencyDetails",
-                      "agencyName"
+                      "success",
+                      "name"
                     ]
                   }
                 }
@@ -789,27 +789,14 @@
                 "name": "address_line_1"
               },
               "from": {
-                "Concat": {
-                  "value": [
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine1"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine1"
-                      ]
-                    }
-                  ]
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr1"
+                    ]
+                  }
                 }
               },
               "allowedValues": {
@@ -827,27 +814,14 @@
                 "name": "address_line_2"
               },
               "from": {
-                "Concat": {
-                  "value": [
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine2"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine2"
-                      ]
-                    }
-                  ]
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr2"
+                    ]
+                  }
                 }
               },
               "allowedValues": {
@@ -865,27 +839,14 @@
                 "name": "locality"
               },
               "from": {
-                "Concat": {
-                  "value": [
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine3"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine3"
-                      ]
-                    }
-                  ]
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr3"
+                    ]
+                  }
                 }
               },
               "allowedValues": {
@@ -903,27 +864,14 @@
                 "name": "region"
               },
               "from": {
-                "Concat": {
-                  "value": [
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine4"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine4"
-                      ]
-                    }
-                  ]
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr4"
+                    ]
+                  }
                 }
               },
               "allowedValues": {
@@ -941,27 +889,14 @@
                 "name": "postal_code"
               },
               "from": {
-                "Concat": {
-                  "value": [
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "postalCode"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "postalCode"
-                      ]
-                    }
-                  ]
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "postcode"
+                    ]
+                  }
                 }
               },
               "allowedValues": {
@@ -979,27 +914,14 @@
                 "name": "country"
               },
               "from": {
-                "Concat": {
-                  "value": [
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "countryCode"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "countryCode"
-                      ]
-                    }
-                  ]
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "country"
+                    ]
+                  }
                 }
               },
               "allowedValues": {
@@ -1022,100 +944,43 @@
                     {
                       "path": [
                         "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine1"
+                        "success",
+                        "addr1"
                       ]
                     },
                     {
                       "path": [
                         "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine2"
+                        "success",
+                        "addr2"
                       ]
                     },
                     {
                       "path": [
                         "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine3"
+                        "success",
+                        "addr3"
                       ]
                     },
                     {
                       "path": [
                         "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "addressLine4"
+                        "success",
+                        "addr4"
                       ]
                     },
                     {
                       "path": [
                         "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "UkAddress",
-                        "postalCode"
+                        "success",
+                        "postcode"
                       ]
                     },
                     {
                       "path": [
                         "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine1"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine2"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine3"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "addressLine4"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "postalCode"
-                      ]
-                    },
-                    {
-                      "path": [
-                        "det",
-                        "agencyDetails",
-                        "agencyAddress",
-                        "InternationalAddress",
-                        "countryCode"
+                        "success",
+                        "country"
                       ]
                     }
                   ]
@@ -1140,8 +1005,8 @@
                   "value": {
                     "path": [
                       "det",
-                      "agencyDetails",
-                      "agencyEmail"
+                      "success",
+                      "email"
                     ]
                   }
                 }
@@ -1165,8 +1030,8 @@
                   "value": {
                     "path": [
                       "det",
-                      "contactDetails",
-                      "phoneNumber"
+                      "success",
+                      "phone"
                     ]
                   }
                 }
