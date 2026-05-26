@@ -1,0 +1,54 @@
+{
+  "_id": "query-params-number",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "type": "info",
+          "id": "amountInfo",
+          "label": "",
+          "infoType": "noformat",
+          "infoText": "There is <strong>£${param.availAmt}</strong> available."
+        },
+        {
+          "id": "availableAmount",
+          "label": "Amount",
+          "type": "text",
+          "format": "sterling",
+          "value": "${param.availAmt}",
+          "submitMode": "derived",
+          "presentationHint": "invisibleInSummary"
+        },
+        {
+          "id": "amount",
+          "type": "text",
+          "label": "Enter amount",
+          "format": "positiveSterling",
+          "validators": [
+            {
+              "validIf": "${amount <= availableAmount}",
+              "errorMessage": "Enter an amount lower or equal to £${param.availAmt}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
