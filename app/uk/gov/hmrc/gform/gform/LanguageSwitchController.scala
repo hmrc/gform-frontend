@@ -95,7 +95,6 @@ class LanguageSwitchController(
         val maybeLanguageToSwitchTo: Option[LangADT] =
           languageMap.get(language).map(l => LangADT.stringToLangADT(l.code))
 
-        import uk.gov.hmrc.gform.sharedmodel.formtemplate.HasValueExpr
         maybeLanguageToSwitchTo
           .map { languageToSwitchTo =>
             val lang: Lang = Lang(languageToSwitchTo.langADTToString)
@@ -108,17 +107,7 @@ class LanguageSwitchController(
                 messages
               )
 
-            val answerMap =
-              formModelOpticsSwitchTo.formModelVisibilityOptics.freeCalculator.answerMapWithFallback.answerMap
-
-            val exprsSwitchedTo: List[FormField] =
-              formModelOpticsSwitchTo.formModelRenderPageOptics.allFormComponents.collect { case fc @ HasValueExpr(_) =>
-                val modelComponentId = fc.id.modelComponentId
-                val answer: String =
-                  answerMap.answerMap(modelComponentId).stringRepresentation(fc.staticTypeData, messages)
-
-                FormField(modelComponentId, answer)
-              }
+            val exprsSwitchedTo: FormData = formModelOpticsSwitchTo.recalculateDependenciesWithValue()
 
             val switchedLabel: List[(ModelComponentId, LookupLabel)] =
               lookups.flatMap { case (modelComponentId, register) =>
@@ -134,7 +123,7 @@ class LanguageSwitchController(
 
             val newFormData: List[FormField] = switchedLabel.map { case (modelComponentId, lookupLabel) =>
               FormField(modelComponentId, lookupLabel.label)
-            } ++ exprsSwitchedTo
+            } ++ exprsSwitchedTo.fields
 
             val form = cache.form
             val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)

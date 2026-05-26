@@ -111,7 +111,11 @@ final class FormModelVisibilityOptics(
 
     def get(modelComponentId: ModelComponentId): Option[VariadicValue] =
       if (formModel.isDefinedAt(modelComponentId)) {
-        freeCalculator.variadicFormData.get(modelComponentId)
+        freeCalculator.answerMap.get(modelComponentId) match {
+          case Some(EvaluationStatus.StringResult(value)) =>
+            Some(VariadicValue.One(value)) // This handles computed fields for instruction pdf
+          case _ => freeCalculator.variadicFormData.get(modelComponentId)
+        }
       } else None
 
     def forCoordinate[A](coordinates: Coordinates): Set[VariadicValue] = {
