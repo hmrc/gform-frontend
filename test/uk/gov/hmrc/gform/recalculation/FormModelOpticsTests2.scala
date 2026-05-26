@@ -1315,6 +1315,33 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
     ),
     (
       MongoUserData(
+        "amount"          -> One("12346"),
+        "amountInfo"      -> One(""),
+        "availableAmount" -> One("12345.99")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty.copy(
+        thirdPartyData = ThirdPartyData.empty.copy(
+          queryParams = QueryParams(
+            Map(
+              QueryParam("availAmt") -> QueryParamValue("12345.99")
+            )
+          )
+        )
+      ),
+      AnswerMap(
+        "availableAmount" -> NumberResult(12345.99)
+      ),
+      List(
+        "There is <strong>£12345.99</strong> available.",
+        "<p>There is <strong>£12345.99</strong> available.</p>"
+      ),
+      "query-params-number.json Generated"
+    ),
+    (
+      MongoUserData(
         "pageA"     -> One("1"),
         "fooChoice" -> Many(List("1"))
       ),
