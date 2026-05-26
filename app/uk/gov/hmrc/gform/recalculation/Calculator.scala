@@ -200,8 +200,10 @@ final class RealCalculator(
   private def evalFormPhase(value: FormPhaseValue): Boolean =
     evaluationContext.formPhase.fold(false)(_.value == value)
 
-  private def evalQueryParam(queryParam: QueryParam): EvaluationStatus =
-    EvaluationStatus.StringResult(evaluationContext.thirdPartyData.queryParams(queryParam))
+  private def evalQueryParam(queryParam: QueryParam): EvaluationStatus = {
+    val paramValue = evaluationContext.thirdPartyData.queryParams(queryParam)
+    BigDecimalUtil.toBigDecimalOrString(paramValue)
+  }
 
   private def evalLink(
     internalLink: InternalLink,
