@@ -227,8 +227,7 @@ class GformConnectorSpec extends Spec {
       params = List.empty,
       `if` = None,
       maxFailedAttempts = None,
-      failureCountResetMinutes = None,
-      callOnNoChange = false
+      failureCountResetMinutes = None
     )
 
     val request = DataRetrieve.Request(
@@ -263,8 +262,7 @@ class GformConnectorSpec extends Spec {
       params = List.empty,
       `if` = None,
       maxFailedAttempts = None,
-      failureCountResetMinutes = None,
-      callOnNoChange = false
+      failureCountResetMinutes = None
     )
 
     val request = DataRetrieve.Request(
@@ -290,8 +288,7 @@ class GformConnectorSpec extends Spec {
       params = List.empty,
       `if` = None,
       maxFailedAttempts = None,
-      failureCountResetMinutes = None,
-      callOnNoChange = false
+      failureCountResetMinutes = None
     )
 
     val request = DataRetrieve.Request(
