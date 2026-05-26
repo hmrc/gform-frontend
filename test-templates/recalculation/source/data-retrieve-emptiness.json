@@ -1,0 +1,87 @@
+{
+  "_id": "data-retrieve-emptiness",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "ASAphone": "dataRetrieve.agencyInfo.agencyPhone"
+  },
+  "booleanExpressions": {
+    "isAgent": "user.affinityGroup = 'agent'",
+    "isASA": "user.enrolments.HMRC-AS-AGENT.AgentReferenceNumber != ''"
+  },
+  "dataRetrieve": [
+    {
+      "type": "agentDetails",
+      "id": "agencyInfo",
+      "if": "${isAgent && isASA}",
+      "parameters": {
+        "agentReferenceNumber": "${user.enrolments.HMRC-AS-AGENT.AgentReferenceNumber}"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "title": "Is business registered with Companies House?",
+      "fields": [
+        {
+          "id": "crnChoice",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Yes"
+            },
+            {
+              "en": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "includeIf": "${crnChoice contains 0}",
+      "title": "Company registration number",
+      "fields": [
+        {
+          "id": "crn",
+          "format": "companyRegistrationNumber",
+          "label": "Businesss company registration number",
+          "type": "text"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "companyHouseProfile",
+          "id": "company",
+          "parameters": {
+            "companyNumber": "${crn}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "What is your telephone number?",
+      "includeIf": "${ASAphone = ''}",
+      "fields": [
+        {
+          "id": "telephoneNumber",
+          "type": "text",
+          "format": "telephoneNumber"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
