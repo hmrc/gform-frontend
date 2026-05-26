@@ -488,7 +488,7 @@ class FormProcessor(
         //    "presentationHint": "invisibleInSummary",
         //    "submitMode": "summaryinfoonly"
         // whose values needs to be recomputed on every data change.
-        val recalculatedDependencies = recalculateDependenciesWithValue(processData.formModelOptics)
+        val recalculatedDependencies = processData.formModelOptics.recalculateDependenciesWithValue()
 
         val formDataU: FormData = oldData.toFormData ++ formData ++ recalculatedDependencies
 
@@ -613,31 +613,5 @@ class FormProcessor(
     }
 
     maybeVerifiedBy.map(fcId => oldData - fcId.modelComponentId).getOrElse(oldData)
-  }
-
-  private def recalculateDependenciesWithValue(
-    formModelOptics: FormModelOptics
-  )(implicit messages: Messages): FormData = {
-
-    val answerMap = formModelOptics.formModelVisibilityOptics.freeCalculator.answerMap
-
-    val formModelVisibilityOptics: FormModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
-
-    val fcToRecalculate: List[FormComponent] =
-      formModelOptics.formModelRenderPageOptics.formModel.allFormComponents.collect {
-        case fc @ HasValueExpr(_) if !fc.editable => fc
-      }
-
-    val dependentComponentIds: List[FormField] = fcToRecalculate.map { formComponent =>
-      val formComponentId = formComponent.id
-      val modelComponentId = formComponent.modelComponentId
-
-      val evaluationStatus = answerMap(modelComponentId)
-      val staticTypeData = formModelVisibilityOptics.toStaticTypeData(formComponentId)
-      val value = evaluationStatus.handlebarRepresentation(staticTypeData, messages)
-      FormField(modelComponentId, value)
-    }
-
-    FormData(dependentComponentIds)
   }
 }
