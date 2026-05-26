@@ -224,8 +224,7 @@
 @feedbackContent = {
   @maybeFormTemplate.fold(HtmlFormat.empty){formTemplate =>
     @messages("feedback.before")
-      <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${urlEncode(deskProServiceCode)}")}'>@messages("feedback.link")</a>
-    @messages("feedback.after")
+    <a class='govuk-link' href='@{Some(s"${appConfig.betaFeedbackUrlNoAuth}${urlEncode(deskProServiceCode)}")}' target="_blank">@messages("feedback.link")</a>@messages("feedback.after")
   }
 }
 
@@ -251,7 +250,7 @@
 }
 @serviceNavigation = @{
     val serviceNavTemp = ServiceNavigation(serviceName = Some(serviceTitle), serviceUrl = if (serviceLink.isEmpty) None else Some(serviceLink))
-    if(formSupportsLanguages) serviceNavTemp.withLanguageToggle() else serviceNavTemp
+    if(formSupportsLanguages) withLanguageToggle(serviceNavTemp, appConfig, maybeFormTemplate, accessCode) else serviceNavTemp
 }
 
 @headerBlock = {

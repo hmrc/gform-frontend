@@ -46,8 +46,8 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
     val fcA = mkFormComponent("a", Value)
     val fcB = mkFormComponent("b", Value)
 
-    val rcElementA = RevealingChoiceElement(toOptionData("Yes"), fcA :: Nil, None, false)
-    val rcElementB = RevealingChoiceElement(toOptionData("No"), fcB :: Nil, None, false)
+    val rcElementA = RevealingChoiceElement(toOptionData("Yes"), fcA :: Nil, false)
+    val rcElementB = RevealingChoiceElement(toOptionData("No"), fcB :: Nil, false)
 
     val sliceA = mkFormComponent("rc", RevealingChoice(Nil, true))
     val sliceB = mkFormComponent("rc", RevealingChoice(List(rcElementA), true))
@@ -381,7 +381,6 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           List.empty[Int],
           None,
           None,
-          None,
           divider,
           None,
           None,
@@ -506,7 +505,6 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           List.empty[Int],
           None,
           None,
-          None,
           divider,
           None,
           None,
@@ -614,7 +612,6 @@ class FormModelSpec extends AnyFlatSpecLike with Matchers with FormModelSupport 
           toOptionData(NonEmptyList.one("Option A")),
           Vertical,
           List.empty[Int],
-          None,
           None,
           None,
           divider,

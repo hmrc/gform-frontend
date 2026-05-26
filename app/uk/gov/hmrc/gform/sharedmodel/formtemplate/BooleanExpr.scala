@@ -44,6 +44,14 @@ sealed trait BooleanExpr {
     case DuplicateExists(_)               => Nil
   }
 
+  def allIns: List[In] = this match {
+    case Not(e)           => e.allIns
+    case Or(left, right)  => left.allIns ++ right.allIns
+    case And(left, right) => left.allIns ++ right.allIns
+    case in @ In(_, _)    => in :: Nil
+    case _                => Nil
+  }
+
   def prettyPrint: String = ExprPrettyPrint.prettyPrintBooleanExpr(this)
 }
 

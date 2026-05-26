@@ -16,10 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import play.api.i18n.Lang
 import play.api.libs.json.{ OFormat, Reads, __ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OFormatWithTemplateReadFallback
 
-case class AvailableLanguages(languages: Set[LangADT]) extends AnyVal
+case class AvailableLanguages(languages: Set[LangADT]) extends AnyVal {
+  def mandatoryLanguage(): Option[Lang] = languages.toList match {
+    case LangADT.En :: Nil => Some(Lang(LangADT.En.langADTToString))
+    case LangADT.Cy :: Nil => Some(Lang(LangADT.Cy.langADTToString))
+    case _                 => Option.empty[Lang]
+  }
+}
 
 object AvailableLanguages {
 

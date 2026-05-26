@@ -71,9 +71,9 @@ signedOut.title=Rydych wedi cael eich allgofnodi
 error.summary.heading=Mae problem wedi codi
 
 # BETA Banner
-feedback.before =Mae hwn yn wasanaeth newydd – bydd eich
-feedback.link =adborth
-feedback.after =yn ein helpu i’w wella.
+feedback.before = Gwasanaeth newydd yw hwn. Helpwch ni i’w wella a
+feedback.link = rhoi eich adborth (yn agor tab newydd)
+feedback.after = .
 
 # Generic words
 generic.From=O

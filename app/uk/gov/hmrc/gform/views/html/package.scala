@@ -21,9 +21,11 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.footer.FooterItem
 import uk.gov.hmrc.gform.testonly.routes.TestOnlyController
 
@@ -100,6 +102,44 @@ package object html {
       text = Some("Quick save"),
       href = Some(createSnapshotUrl),
       attributes = Map("target" -> "_blank")
+    )
+  }
+
+  import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{ Cy, En, LanguageSelect }
+  import uk.gov.hmrc.govukfrontend.views.Aliases.ServiceNavigation
+  import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcServiceNavigationLanguageSelect
+  import uk.gov.hmrc.govukfrontend.views.viewmodels.servicenavigation.ServiceNavigationSlot
+  import uk.gov.hmrc.hmrcfrontend.config.SupportedLanguagesConfig
+
+  // This is variation of RichServiceNavigationSupport.scala
+  // https://github.com/hmrc/play-frontend-hmrc/blob/034abab2c1b68625d5032341a07b5de9b5ee61a7/play-frontend-hmrc-play-30/src/main/scala/uk/gov/hmrc/govukfrontend/views/implicits/RichServiceNavigationSupport.scala#L31
+  def withLanguageToggle(
+    serviceNavigation: ServiceNavigation,
+    appConfig: FrontendAppConfig,
+    maybeFormTemplate: Option[FormTemplate],
+    accessCode: Option[AccessCode]
+  )(implicit
+    messages: Messages
+  ): ServiceNavigation = {
+
+    val enLink = appConfig.languageSwitchCall(maybeFormTemplate, accessCode, SupportedLanguagesConfig.en)
+    val cyLink = appConfig.languageSwitchCall(maybeFormTemplate, accessCode, SupportedLanguagesConfig.cy)
+
+    val languageSelect: LanguageSelect =
+      LanguageSelect(
+        if (messages.lang.code == SupportedLanguagesConfig.cy) Cy else En,
+        (En, enLink.url),
+        (Cy, cyLink.url)
+      )
+
+    val languageSelectHtml = new HmrcServiceNavigationLanguageSelect()(languageSelect)
+
+    val slots: Option[ServiceNavigationSlot] = serviceNavigation.slots
+      .map(_.copy(end = HtmlContent(languageSelectHtml)))
+      .orElse(Some(ServiceNavigationSlot(end = HtmlContent(languageSelectHtml))))
+    serviceNavigation.copy(
+      slots = slots,
+      classes = s"${serviceNavigation.classes} hmrc-service-navigation--with-language-select".trim
     )
   }
 
