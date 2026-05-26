@@ -1,0 +1,1230 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Is business registered with Companies House?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Is business registered with Companies House?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "crnChoice",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Yes"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "No"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Company registration number"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Contains": {
+                    "multiValueField": {
+                      "formComponentId": "crnChoice"
+                    },
+                    "value": {
+                      "Constant": {
+                        "value": "0"
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Businesss company registration number"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "crn",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "CompanyRegistrationNumber": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ],
+              "dataRetrieve": [
+                {
+                  "tpe": {
+                    "name": "companyHouseProfile"
+                  },
+                  "if": {
+                    "booleanExpr": {
+                      "Contains": {
+                        "multiValueField": {
+                          "formComponentId": "crnChoice"
+                        },
+                        "value": {
+                          "Constant": {
+                            "value": "0"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "params": [
+                    {
+                      "parameter": {
+                        "name": "companyNumber",
+                        "path": [],
+                        "tpe": {
+                          "String": {}
+                        }
+                      },
+                      "expr": {
+                        "FormCtx": {
+                          "formComponentId": "crn"
+                        }
+                      }
+                    }
+                  ],
+                  "attributes": {
+                    "FromObject": {
+                      "inst": [
+                        {
+                          "attribute": {
+                            "name": "companyName"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "company_name"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "companyStatus"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "company_status"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "address_line_1"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "address_line_1"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "address_line_2"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "address_line_2"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "po_box"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "po_box"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "locality"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "locality"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "region"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "region"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "postal_code"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "postal_code"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "country"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "registered_office_address",
+                                  "country"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "registeredOfficeAddress"
+                          },
+                          "from": {
+                            "Combine": {
+                              "value": [
+                                [
+                                  {
+                                    "name": "address_line_1"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "address_line_1"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "address_line_2"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "address_line_2"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "po_box"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "po_box"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "locality"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "locality"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "region"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "region"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "postal_code"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "postal_code"
+                                    ]
+                                  }
+                                ],
+                                [
+                                  {
+                                    "name": "country"
+                                  },
+                                  {
+                                    "path": [
+                                      "registered_office_address",
+                                      "country"
+                                    ]
+                                  }
+                                ]
+                              ]
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "dateOfCreation"
+                          },
+                          "from": {
+                            "AsIs": {
+                              "value": {
+                                "path": [
+                                  "date_of_creation"
+                                ]
+                              }
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode1"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 0
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode2"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 1
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode3"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 2
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        },
+                        {
+                          "attribute": {
+                            "name": "sicCode4"
+                          },
+                          "from": {
+                            "ExtractAtIndex": {
+                              "value": {
+                                "path": [
+                                  "sic_codes"
+                                ]
+                              },
+                              "index": 3
+                            }
+                          },
+                          "allowedValues": {
+                            "values": [
+                              "*"
+                            ],
+                            "valueType": {
+                              "AnyValueType": {}
+                            },
+                            "isRequired": false
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "attrTypeMapping": {
+                    "dateOfCreation": {
+                      "Date": {}
+                    }
+                  },
+                  "id": "company",
+                  "callOnNoChange": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "What is your telephone number?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "Equals": {
+                    "left": {
+                      "DataRetrieveCtx": {
+                        "id": "agencyInfo",
+                        "attribute": {
+                          "name": "agencyPhone"
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "What is your telephone number?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "telephoneNumber",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Text": {
+                      "constraint": {
+                        "TelephoneNumber": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      },
+                      "displayWidth": "DEFAULT",
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "data-retrieve-emptiness",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "fields": [],
+        "showReference": true,
+        "displayFeedbackLink": true,
+        "showBanner": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "data-retrieve-emptiness",
+  "formCategory": "default",
+  "dataRetrieve": [
+    {
+      "tpe": {
+        "name": "agentDetails"
+      },
+      "if": {
+        "booleanExpr": {
+          "And": {
+            "left": {
+              "Equals": {
+                "left": {
+                  "UserCtx": {
+                    "value": {
+                      "AffinityGroup": {}
+                    }
+                  }
+                },
+                "right": {
+                  "Constant": {
+                    "value": "agent"
+                  }
+                }
+              }
+            },
+            "right": {
+              "Not": {
+                "e": {
+                  "Equals": {
+                    "left": {
+                      "UserCtx": {
+                        "value": {
+                          "Enrolment": {
+                            "serviceName": {
+                              "value": "HMRC-AS-AGENT"
+                            },
+                            "identifierName": {
+                              "value": "AgentReferenceNumber"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Constant": {
+                        "value": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "params": [
+        {
+          "parameter": {
+            "name": "agentReferenceNumber",
+            "path": [],
+            "tpe": {
+              "String": {}
+            }
+          },
+          "expr": {
+            "UserCtx": {
+              "value": {
+                "Enrolment": {
+                  "serviceName": {
+                    "value": "HMRC-AS-AGENT"
+                  },
+                  "identifierName": {
+                    "value": "AgentReferenceNumber"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "attributes": {
+        "FromObject": {
+          "inst": [
+            {
+              "attribute": {
+                "name": "agencyName"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "name"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "address_line_1"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr1"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "address_line_2"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr2"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "locality"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr3"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "region"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "addr4"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "postal_code"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "postcode"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "country"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "country"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "agencyAddress"
+              },
+              "from": {
+                "Concat": {
+                  "value": [
+                    {
+                      "path": [
+                        "det",
+                        "success",
+                        "addr1"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "success",
+                        "addr2"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "success",
+                        "addr3"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "success",
+                        "addr4"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "success",
+                        "postcode"
+                      ]
+                    },
+                    {
+                      "path": [
+                        "det",
+                        "success",
+                        "country"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "agencyEmail"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "email"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            },
+            {
+              "attribute": {
+                "name": "agencyPhone"
+              },
+              "from": {
+                "AsIs": {
+                  "value": {
+                    "path": [
+                      "det",
+                      "success",
+                      "phone"
+                    ]
+                  }
+                }
+              },
+              "allowedValues": {
+                "values": [
+                  "*"
+                ],
+                "valueType": {
+                  "AnyValueType": {}
+                },
+                "isRequired": false
+              }
+            }
+          ]
+        }
+      },
+      "attrTypeMapping": {},
+      "id": "agencyInfo",
+      "callOnNoChange": false
+    }
+  ],
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}
