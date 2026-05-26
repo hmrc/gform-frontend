@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.recalculation
 
 import uk.gov.hmrc.auth.core.{ ConfidenceLevel, Enrolments, User }
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, OtherRetrievals }
-import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, DataRetrieve }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataSource, IdentifierName, ServiceName }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
@@ -28,6 +28,48 @@ import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 object FormModelOpticsTests4 extends DependencyGraphFixture {
 
   val data = List(
+    (
+      MongoUserData(
+        "crn"       -> One("11111111"),
+        "crnChoice" -> Many(List("0"))
+      ),
+      List(
+        "n0",
+        "n1"
+      ),
+      EvaluationContext.empty.copy(
+        thirdPartyData = ThirdPartyData.empty.copy(
+          dataRetrieve = mkDataRetrievesList(
+            "company" ->
+              List(
+                Map(
+                  DataRetrieve.Attribute("address_line_1") -> "1 Main Street",
+                  DataRetrieve.Attribute("address_line_2") -> "Office 234",
+                  DataRetrieve.Attribute("companyName")    -> "Acme Limited",
+                  DataRetrieve.Attribute("companyStatus")  -> "active",
+                  DataRetrieve.Attribute("country")        -> "UK",
+                  DataRetrieve.Attribute("dateOfCreation") -> "2020-02-01",
+                  DataRetrieve.Attribute("locality")       -> "London",
+                  DataRetrieve.Attribute("postal_code")    -> "E14 5AB",
+                  DataRetrieve.Attribute("region")         -> "London",
+                  DataRetrieve.Attribute("sicCode1")       -> "",
+                  DataRetrieve.Attribute("sicCode2")       -> "",
+                  DataRetrieve.Attribute("sicCode3")       -> "",
+                  DataRetrieve.Attribute("sicCode4")       -> "",
+                  DataRetrieve.Attribute("po_box")         -> ""
+                )
+              )
+          )
+        )
+      ),
+      AnswerMap(
+        "crn"             -> StringResult("11111111"),
+        "crnChoice"       -> OptionResult(List("0")),
+        "telephoneNumber" -> Empty
+      ),
+      List.empty[String],
+      "data-retrieve-emptiness.json Generated"
+    ),
     (
       MongoUserData(
         "declaration"       -> One("100"),

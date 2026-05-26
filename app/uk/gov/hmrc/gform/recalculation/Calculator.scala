@@ -397,8 +397,8 @@ final class RealCalculator(
                     EvaluationStatus.Invalid(s"Number - cannot convert '$value' to number")
                   )(value => EvaluationStatus.NumberResult(value))
               } else EvaluationStatus.StringResult(value)
-            case Some(xs) => EvaluationStatus.ListResult(xs.map(EvaluationStatus.StringResult))
-            case None     => EvaluationStatus.Empty
+            case Some(xs) if xs.nonEmpty => EvaluationStatus.ListResult(xs.map(EvaluationStatus.StringResult))
+            case _                       => EvaluationStatus.Empty
           }
 
       }
