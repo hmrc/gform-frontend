@@ -223,7 +223,6 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
             List.empty[Int],
             None,
             None,
-            None,
             toSmartString("or", "neu"),
             None,
             None,

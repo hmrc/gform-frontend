@@ -203,7 +203,7 @@ class FormProcessor(
       .toPageModel
       .toList
       .flatMap(_.dataRetrieves)
-      .collect { case DataRetrieve(_, id, _, _, _, _, _, _) =>
+      .collect { case DataRetrieve(_, id, _, _, _, _, _, _, _) =>
         id
       }
       .toSet
@@ -350,21 +350,22 @@ class FormProcessor(
             .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
           val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)
           val dataRetrievesRequiringReeval: List[DataRetrieve] =
-            processData.formModel.dataRetrieveAll.lookup.toList.flatMap { case (drId, dataRetrieve) =>
-              val ifLeafs = dataRetrieve.`if`.map(_.booleanExpr.allExpressions.flatMap(_.leafs())).toList.flatten
-              val paramLeafs = dataRetrieve.params.flatMap(_.expr.leafs())
+            processData.formModel.dataRetrieveAll.lookup.toList.filterNot(_._2.callOnNoChange).flatMap {
+              case (drId, dataRetrieve) =>
+                val ifLeafs = dataRetrieve.`if`.map(_.booleanExpr.allExpressions.flatMap(_.leafs())).toList.flatten
+                val paramLeafs = dataRetrieve.params.flatMap(_.expr.leafs())
 
-              (ifLeafs ++ paramLeafs)
-                .map {
-                  case FormCtx(fcId)         => Some(fcId)
-                  case LookupColumn(fcId, _) => Some(fcId)
-                  case _                     => None
-                }
-                .collect {
-                  case Some(fcId)
-                      if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(drId) =>
-                    dataRetrieve
-                }
+                (ifLeafs ++ paramLeafs)
+                  .map {
+                    case FormCtx(fcId)         => Some(fcId)
+                    case LookupColumn(fcId, _) => Some(fcId)
+                    case _                     => None
+                  }
+                  .collect {
+                    case Some(fcId)
+                        if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(drId) =>
+                      dataRetrieve
+                  }
             }
 
           (dataRetrievesOnThisPage ++ dataRetrievesRequiringReeval)

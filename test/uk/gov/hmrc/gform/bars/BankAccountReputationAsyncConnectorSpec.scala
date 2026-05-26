@@ -110,7 +110,8 @@ class BankAccountReputationAsyncConnectorSpec
       List.empty[DataRetrieve.ParamExpr],
       None,
       None,
-      None
+      None,
+      false
     )
 
     val dataRetrieveCompanyHouseProfile = DataRetrieve(
@@ -144,7 +145,8 @@ class BankAccountReputationAsyncConnectorSpec
       List.empty[DataRetrieve.ParamExpr],
       None,
       None,
-      None
+      None,
+      false
     )
 
     val dataRetrieveEmployments = DataRetrieve(
@@ -179,7 +181,8 @@ class BankAccountReputationAsyncConnectorSpec
       List.empty[DataRetrieve.ParamExpr],
       None,
       None,
-      None
+      None,
+      false
     )
 
     val request = DataRetrieve.Request(

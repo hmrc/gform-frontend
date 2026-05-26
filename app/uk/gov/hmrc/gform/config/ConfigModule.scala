@@ -27,7 +27,7 @@ import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
+import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, SupportedLanguagesConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfig, ControllerConfigs, ServicesConfig }
@@ -58,7 +58,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
 
   val auditingConfig: AuditingConfig = AuditingConfig.fromConfig(playConfiguration)
 
-  val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
+  val availableLanguages: Map[String, Lang] =
+    Map(SupportedLanguagesConfig.en -> Lang("en"), SupportedLanguagesConfig.cy -> Lang("cy"))
   def routeToSwitchLanguageNoDataChange: String => Call =
     (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguageNoDataChange(lang)
 

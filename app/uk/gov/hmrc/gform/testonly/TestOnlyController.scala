@@ -47,7 +47,7 @@ import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive, PegaCaseflow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Caseflow, DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
@@ -348,7 +348,7 @@ class TestOnlyController(
     )
 
     val startingLinks =
-      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive, PegaCaseflow, DataLakehouse).map(
+      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive, Caseflow, DataLakehouse).map(
         createDownloadContent(_, None)
       )
 
@@ -370,6 +370,12 @@ class TestOnlyController(
         .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=DataLakehouse")
     )
 
+    val asyncWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View async-handlebars-work-item entry",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
+        .proxyToGform("gform/destination-work-item/envelopeId/" + envelopeId.value + "?destination=AsyncHandlebars")
+    )
+
     val viewSDESLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View sdes submission",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -379,7 +385,7 @@ class TestOnlyController(
     val dmsSubs: List[String] = formTemplate.destinations match {
       case Destinations.DestinationList(destinations, _, _) =>
         destinations.collect {
-          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _, _) =>
+          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _) =>
             submissionPrefix
         }
       case _ => List.empty[String]
@@ -392,7 +398,13 @@ class TestOnlyController(
     }
 
     bulleted_list(
-      destinationLinks ++ List(dataStoreWorkItemLink, dataLakehouseWorkItemLink, dmsWorkItemLink, viewSDESLink)
+      destinationLinks ++ List(
+        dataStoreWorkItemLink,
+        dataLakehouseWorkItemLink,
+        dmsWorkItemLink,
+        asyncWorkItemLink,
+        viewSDESLink
+      )
     )
   }
 
@@ -405,13 +417,17 @@ class TestOnlyController(
     val envelope = inputWrapper("Envelope ID", envelopeId.value)
 
     val govukTable = formTemplate.destinations.fold { destinationList =>
-      val ids: List[(DestinationId, String, Boolean)] = destinationList.destinations.collect {
-        case d: Destination.DataStore         => (d.id, "hmrcIlluminate", d.convertSingleQuotes.getOrElse(false))
-        case d: Destination.HandlebarsHttpApi => (d.id, "handlebarsHttpApi", d.convertSingleQuotes.getOrElse(false))
-        case d: Destination.HmrcDms           => (d.id, "hmrcDms", d.convertSingleQuotes.getOrElse(false))
+      val ids: List[(DestinationId, String, String, Boolean)] = destinationList.destinations.collect {
+        case d: Destination.DataStore =>
+          (d.id, "hmrcIlluminate", d.routing.description, d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.HandlebarsHttpApi =>
+          (d.id, "handlebarsHttpApi", "N/A", d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.AsyncHandlebarsHttpApi =>
+          (d.id, "asyncHandlebarsHttpApi", "N/A", d.convertSingleQuotes.getOrElse(false))
+        case d: Destination.HmrcDms => (d.id, "hmrcDms", d.routing.description, d.convertSingleQuotes.getOrElse(false))
       }
 
-      val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, convertSingleQuotes) =>
+      val rows: List[List[TableRow]] = ids.map { case (destinationId, destinationType, routing, convertSingleQuotes) =>
         val processPayloadLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
           destinationId.id,
           uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -435,6 +451,9 @@ class TestOnlyController(
             content = Text(destinationType)
           ),
           TableRow(
+            content = Text(routing)
+          ),
+          TableRow(
             content = HtmlContent(embeddedLink)
           ),
           TableRow(
@@ -452,7 +471,10 @@ class TestOnlyController(
             content = Text("Output json")
           ),
           HeadCell(
-            content = Text("Destination type")
+            content = Text("Type")
+          ),
+          HeadCell(
+            content = Text("Routing")
           ),
           HeadCell(
             content = Text("Embedded")
@@ -927,9 +949,10 @@ class TestOnlyController(
       request => lang => cache => _ => formModelOptics =>
         val res: Result = cache.formTemplate.destinations.fold { destinationList =>
           val ids: Option[Option[String]] = destinationList.destinations.collectFirst {
-            case d: Destination.DataStore if d.id === destinationId         => d.payload
-            case d: Destination.HandlebarsHttpApi if d.id === destinationId => d.payload
-            case h: Destination.HmrcDms if h.id === destinationId           => h.payload
+            case d: Destination.DataStore if d.id === destinationId              => d.payload
+            case d: Destination.HandlebarsHttpApi if d.id === destinationId      => d.payload
+            case d: Destination.AsyncHandlebarsHttpApi if d.id === destinationId => d.payload
+            case h: Destination.HmrcDms if h.id === destinationId                => h.payload
           }
           ids.flatten match {
             case None          => BadRequest(s"No payload found on destination $destinationId")
