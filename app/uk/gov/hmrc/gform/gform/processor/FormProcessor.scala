@@ -403,7 +403,7 @@ class FormProcessor(
     maybeRetrieveResultF.map { r =>
       val visOptics = visibilityOptics.addDataRetrieveResults(r.toList)
       val populateAtlData = dataRetrieve.populateATL
-        .map(populateAtl => populateAtlWithFormData(populateAtl, visOptics, cache)(message, langADT, hc))
+        .map(populateAtl => populateAtlWithFormData(populateAtl, visOptics, cache))
 
       val populateAtlVisOptics = populateAtlData match {
         case Some(value) => value._2
@@ -437,8 +437,11 @@ class FormProcessor(
         .fold(singleton => singleton.page.dataRetrieves())(_ => List())(_ => List())
       val alreadyPresentInList: List[DataRetrieveId] = dataRetrievesOnThisPage.map(_.id)
       val dataRetrievesRequiringReeval: List[DataRetrieve] =
-        processData.formModel.dataRetrieveAll.lookup.toList.filterNot(_._2.callOnNoChange).flatMap {
-          case (drId, dataRetrieve) =>
+        processData.formModel.dataRetrieveAll.lookup.toList
+          .filterNot { case (drId, dr) =>
+            dr.callOnNoChange || dr.populateATL.isDefined
+          }
+          .flatMap { case (drId, dataRetrieve) =>
             val ifLeafs = dataRetrieve.`if`.map(_.booleanExpr.allExpressions.flatMap(_.leafs())).toList.flatten
             val paramLeafs = dataRetrieve.params.flatMap(_.expr.leafs())
 
@@ -453,7 +456,7 @@ class FormProcessor(
                     if updatedComponents.contains(fcId.baseComponentId) && !alreadyPresentInList.contains(drId) =>
                   dataRetrieve
               }
-        }
+          }
 
       (dataRetrievesOnThisPage ++ dataRetrievesRequiringReeval)
         .foldLeft(
