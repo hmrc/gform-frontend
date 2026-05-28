@@ -48,7 +48,7 @@
               "id": "check",
               "type": "info",
               "label": "",
-              "infoText": "Files: ${secret}",
+              "infoText": "Secret value: ${secret}",
               "infoType": "noformat"
             }
           ]

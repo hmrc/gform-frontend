@@ -1,0 +1,67 @@
+{
+  "_id": "multi-file-count",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": [
+        {
+          "includeIf": "${documentUpload.count < 1}",
+          "en": "Upload the supporting documents"
+        },
+        {
+          "en": "You have uploaded ${documentUpload.count} ${if documentUpload.count = 1 then 'supporting document' else 'supporting documents'}"
+        }
+      ],
+      "description": "You have uploaded: ${documentUpload}",
+      "fields": [
+        {
+          "id": "documentUpload",
+          "type": "multiFile",
+          "label": "Upload a file",
+          "continueText": [
+            {
+              "en": "If you have finished uploading your files you can continue to the next page.",
+              "includeIf": "${documentUpload.count < 3}"
+            },
+            {
+              "en": "You have uploaded the maximum number of files."
+            }
+          ],
+          "maxFiles": 3
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${documentUpload.count > 2}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
