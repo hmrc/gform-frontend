@@ -1,0 +1,118 @@
+{
+  "_id": "multi-file-count-atl",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": [
+        {
+          "en": "You have told us about $n properties",
+          "includeIf": "${addAnotherProperty.count > 1}"
+        },
+        {
+          "en": "You have told us about one property"
+        }
+      ],
+      "summaryName": "Properties you have added",
+      "summaryDescription": "summaryDescription",
+      "shortName": "shortName",
+      "description": "Uploaded files: ${documentUpload} :: ${secret}",
+      "addAnotherQuestion": {
+        "id": "addAnotherProperty",
+        "type": "choice",
+        "label": "Do you want to add another property?",
+        "format": "yesno"
+      },
+      "defaultPage": {
+        "title": "Tell us about each property one at a time",
+        "fields": [
+          {
+            "id": "welcome",
+            "type": "info",
+            "infoType": "noformat",
+            "label": "",
+            "infoText": "Welcome to Add to list"
+          }
+        ]
+      },
+      "cyaPage": {
+        "title": "Check your answers for property $n",
+        "updateTitle": "Check your answers for property $n"
+      },
+      "pages": [
+        {
+          "title": [
+            {
+              "includeIf": "${documentUpload.count < 1}",
+              "en": "Upload the supporting documents"
+            },
+            {
+              "en": "You have uploaded ${documentUpload.count} ${if documentUpload.count = 1 then 'supporting document' else 'supporting documents'}"
+            }
+          ],
+          "description": "You have uploaded: ${documentUpload}",
+          "fields": [
+            {
+              "id": "documentUpload",
+              "type": "multiFile",
+              "label": "Upload a file",
+              "continueText": [
+                {
+                  "en": "If you have finished uploading your files you can continue to the next page.",
+                  "includeIf": "${documentUpload.count < 3}"
+                },
+                {
+                  "en": "You have uploaded the maximum number of files."
+                }
+              ],
+              "maxFiles": 3
+            }
+          ]
+        },
+        {
+          "title": "Secret",
+          "includeIf": "${documentUpload.count > 2}",
+          "fields": [
+            {
+              "id": "secret",
+              "type": "choice",
+              "choices": [
+                {
+                  "en": "Found",
+                  "value": "found"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "allFiles",
+          "type": "text",
+          "label": "All files (${documentUpload.count}): ${documentUpload}",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

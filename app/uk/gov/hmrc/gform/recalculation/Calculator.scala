@@ -830,9 +830,25 @@ final class RealCalculator(
           evaluationStatuses.map(_.stringRepresentation(staticTypeData, messages)).mkString("")
         )
       case Count(fcId) =>
-        evalExpr(FormCtx(fcId), staticTypeData, Behaviour.All) match {
-          case EvaluationStatus.ListResult(statuses) => evalCount(metadata, fcId.baseComponentId, statuses)
-          case otherwise                             => otherwise
+        val isMultiFileUpload = metadata.allMultiFileUploads(fcId.baseComponentId)
+        val behaviour =
+          if (
+            isMultiFileUpload &&
+            (dataBridge.maybeIndex(fcId).isDefined || !metadata.isRepeatedField(fcId.baseComponentId))
+          ) {
+            Behaviour.Default
+          } else {
+            Behaviour.All
+          }
+        evalExpr(FormCtx(fcId), staticTypeData, behaviour) match {
+          case lr: EvaluationStatus.ListResult if isMultiFileUpload && behaviour == Behaviour.All =>
+            val statuses = lr.flatten().list
+            evalCount(metadata, fcId.baseComponentId, statuses)
+          case EvaluationStatus.ListResult(statuses) =>
+            evalCount(metadata, fcId.baseComponentId, statuses)
+          case EvaluationStatus.Empty if isMultiFileUpload =>
+            EvaluationStatus.NumberResult(0)
+          case otherwise => otherwise
         }
       case Size(fcId, sizeRefType) =>
         evalExpr(FormCtx(fcId), staticTypeData, Behaviour.LessThanCurrent) match {
