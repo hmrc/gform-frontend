@@ -149,6 +149,13 @@ class FormComponentUpdater(
       enterAddressLabel = postcodeLookup.enterAddressLabel.map(expandSmartString)
     )
 
+  private def expandMultiFileUpload(multiFileUpload: MultiFileUpload): MultiFileUpload =
+    multiFileUpload.copy(
+      hint = multiFileUpload.hint.map(expandSmartString),
+      uploadAnotherLabel = multiFileUpload.uploadAnotherLabel.map(expandSmartString),
+      continueText = multiFileUpload.continueText.map(expandSmartString)
+    )
+
   private def expandTableHeaderCell(cell: TableHeadCell): TableHeadCell =
     cell.copy(label = expandSmartString(cell.label))
 
@@ -182,6 +189,7 @@ class FormComponentUpdater(
       case t: MiniSummaryList => expandSummaryList(t)
       case t: TableComp       => expandTableComp(t)
       case t: PostcodeLookup  => expandPostcodeLookup(t)
+      case t: MultiFileUpload => expandMultiFileUpload(t)
       case otherwise          => otherwise
     },
     label = expandSmartString(formComponent.label),

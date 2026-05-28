@@ -62,11 +62,67 @@
       "sections": [
         {
           "AddToList": {
+            "defaultPage": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Tell us about each property one at a time"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "welcome",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "Welcome to Add to list"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            },
             "summaryName": {
               "SmartStringBase": {
                 "internal": {
                   "localised": {
-                    "en": "File"
+                    "en": "Properties you have added"
                   },
                   "interpolations": []
                 }
@@ -78,12 +134,12 @@
                   "SmartStringBase": {
                     "internal": {
                       "localised": {
-                        "en": "$n - {0} {1}"
+                        "en": "Uploaded files: {0} :: {1}"
                       },
                       "interpolations": [
                         {
                           "FormCtx": {
-                            "formComponentId": "file"
+                            "formComponentId": "documentUpload"
                           }
                         },
                         {
@@ -100,12 +156,86 @@
             "pages": [
               {
                 "title": {
+                  "SmartStringCond": {
+                    "ifConditions": [
+                      [
+                        {
+                          "LessThan": {
+                            "left": {
+                              "Count": {
+                                "formComponentId": "documentUpload"
+                              }
+                            },
+                            "right": {
+                              "Constant": {
+                                "value": "1"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "localised": {
+                            "en": "Upload the supporting documents"
+                          },
+                          "interpolations": []
+                        }
+                      ]
+                    ],
+                    "elseCondition": {
+                      "localised": {
+                        "en": "You have uploaded {0} {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "Count": {
+                            "formComponentId": "documentUpload"
+                          }
+                        },
+                        {
+                          "IfElse": {
+                            "cond": {
+                              "Equals": {
+                                "left": {
+                                  "Count": {
+                                    "formComponentId": "documentUpload"
+                                  }
+                                },
+                                "right": {
+                                  "Constant": {
+                                    "value": "1"
+                                  }
+                                }
+                              }
+                            },
+                            "field1": {
+                              "Constant": {
+                                "value": "supporting document"
+                              }
+                            },
+                            "field2": {
+                              "Constant": {
+                                "value": "supporting documents"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "description": {
                   "SmartStringBase": {
                     "internal": {
                       "localised": {
-                        "en": "File"
+                        "en": "You have uploaded: {0}"
                       },
-                      "interpolations": []
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "documentUpload"
+                          }
+                        }
+                      ]
                     }
                   }
                 },
@@ -122,18 +252,58 @@
                       "SmartStringBase": {
                         "internal": {
                           "localised": {
-                            "en": "File"
+                            "en": "Upload a file"
                           },
                           "interpolations": []
                         }
                       }
                     },
                     "validators": [],
-                    "id": "file",
+                    "id": "documentUpload",
                     "submissible": true,
-                    "isPageHeading": true,
+                    "isPageHeading": false,
                     "type": {
-                      "MultiFileUpload": {}
+                      "MultiFileUpload": {
+                        "continueText": {
+                          "SmartStringCond": {
+                            "ifConditions": [
+                              [
+                                {
+                                  "LessThan": {
+                                    "left": {
+                                      "Count": {
+                                        "formComponentId": "documentUpload"
+                                      }
+                                    },
+                                    "right": {
+                                      "Constant": {
+                                        "value": "3"
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "localised": {
+                                    "en": "If you have finished uploading your files you can continue to the next page."
+                                  },
+                                  "interpolations": []
+                                }
+                              ]
+                            ],
+                            "elseCondition": {
+                              "localised": {
+                                "en": "You have uploaded the maximum number of files."
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "maxFiles": {
+                          "Constant": {
+                            "value": "3"
+                          }
+                        }
+                      }
                     },
                     "onlyShowOnSummary": false,
                     "editable": true
@@ -153,15 +323,15 @@
                 },
                 "includeIf": {
                   "booleanExpr": {
-                    "Equals": {
+                    "GreaterThan": {
                       "left": {
-                        "FormCtx": {
-                          "formComponentId": "file"
+                        "Count": {
+                          "formComponentId": "documentUpload"
                         }
                       },
                       "right": {
                         "Constant": {
-                          "value": "passport.jpg"
+                          "value": "2"
                         }
                       }
                     }
@@ -191,86 +361,52 @@
                     "submissible": true,
                     "isPageHeading": true,
                     "type": {
-                      "Text": {
-                        "constraint": {
-                          "Sterling": {
-                            "roundingMode": "Down",
-                            "positiveOnly": false
+                      "Choice": {
+                        "selections": [],
+                        "options": [
+                          {
+                            "ValueBased": {
+                              "label": {
+                                "SmartStringBase": {
+                                  "internal": {
+                                    "localised": {
+                                      "en": "Found"
+                                    },
+                                    "interpolations": []
+                                  }
+                                }
+                              },
+                              "value": {
+                                "StringBased": {
+                                  "value": "found"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "orientation": {
+                          "Vertical": {}
+                        },
+                        "type": {
+                          "Radio": {}
+                        },
+                        "dividerText": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "or",
+                                "cy": "neu"
+                              },
+                              "interpolations": []
+                            }
                           }
                         },
-                        "value": {
-                          "Value": {}
-                        },
-                        "displayWidth": "DEFAULT",
-                        "toUpperCase": {
-                          "IsNotUpperCase": {}
-                        }
+                        "noDuplicates": false,
+                        "hideChoicesSelected": false
                       }
                     },
                     "onlyShowOnSummary": false,
                     "editable": true
-                  }
-                ]
-              },
-              {
-                "title": {
-                  "SmartStringBase": {
-                    "internal": {
-                      "localised": {
-                        "en": "Check"
-                      },
-                      "interpolations": []
-                    }
-                  }
-                },
-                "fields": [
-                  {
-                    "mandatory": {
-                      "booleanExpr": {
-                        "IsTrue": {}
-                      }
-                    },
-                    "notPII": false,
-                    "derived": false,
-                    "label": {
-                      "SmartStringBase": {
-                        "internal": {
-                          "localised": {
-                            "en": ""
-                          },
-                          "interpolations": []
-                        }
-                      }
-                    },
-                    "validators": [],
-                    "id": "check",
-                    "submissible": false,
-                    "isPageHeading": false,
-                    "type": {
-                      "InformationMessage": {
-                        "infoType": {
-                          "NoFormat": {}
-                        },
-                        "infoText": {
-                          "SmartStringBase": {
-                            "internal": {
-                              "localised": {
-                                "en": "Secret value: {0}"
-                              },
-                              "interpolations": [
-                                {
-                                  "FormCtx": {
-                                    "formComponentId": "secret"
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "onlyShowOnSummary": false,
-                    "editable": false
                   }
                 ]
               }
@@ -279,9 +415,31 @@
               "SmartStringBase": {
                 "internal": {
                   "localised": {
-                    "en": "File"
+                    "en": "summaryDescription"
                   },
                   "interpolations": []
+                }
+              }
+            },
+            "cyaPage": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Check your answers for property $n"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "updateTitle": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Check your answers for property $n"
+                    },
+                    "interpolations": []
+                  }
                 }
               }
             },
@@ -297,14 +455,14 @@
                 "SmartStringBase": {
                   "internal": {
                     "localised": {
-                      "en": "Do you want to add another file?"
+                      "en": "Do you want to add another property?"
                     },
                     "interpolations": []
                   }
                 }
               },
               "validators": [],
-              "id": "addAnother",
+              "id": "addAnotherProperty",
               "submissible": true,
               "isPageHeading": false,
               "type": {
@@ -367,10 +525,34 @@
               "editable": true
             },
             "title": {
-              "SmartStringBase": {
-                "internal": {
+              "SmartStringCond": {
+                "ifConditions": [
+                  [
+                    {
+                      "GreaterThan": {
+                        "left": {
+                          "Count": {
+                            "formComponentId": "addAnotherProperty"
+                          }
+                        },
+                        "right": {
+                          "Constant": {
+                            "value": "1"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "localised": {
+                        "en": "You have told us about $n properties"
+                      },
+                      "interpolations": []
+                    }
+                  ]
+                ],
+                "elseCondition": {
                   "localised": {
-                    "en": "File"
+                    "en": "You have told us about one property"
                   },
                   "interpolations": []
                 }
@@ -380,7 +562,7 @@
               "SmartStringBase": {
                 "internal": {
                   "localised": {
-                    "en": "File"
+                    "en": "shortName"
                   },
                   "interpolations": []
                 }
@@ -395,7 +577,7 @@
                 "SmartStringBase": {
                   "internal": {
                     "localised": {
-                      "en": "Dummy"
+                      "en": "Test"
                     },
                     "interpolations": []
                   }
@@ -414,14 +596,25 @@
                     "SmartStringBase": {
                       "internal": {
                         "localised": {
-                          "en": "Text"
+                          "en": "All files ({0}): {1}"
                         },
-                        "interpolations": []
+                        "interpolations": [
+                          {
+                            "Count": {
+                              "formComponentId": "documentUpload"
+                            }
+                          },
+                          {
+                            "FormCtx": {
+                              "formComponentId": "documentUpload"
+                            }
+                          }
+                        ]
                       }
                     }
                   },
                   "validators": [],
-                  "id": "dummy",
+                  "id": "allFiles",
                   "submissible": true,
                   "isPageHeading": false,
                   "type": {
@@ -430,130 +623,6 @@
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
-                        }
-                      },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
-                      }
-                    }
-                  },
-                  "onlyShowOnSummary": false,
-                  "editable": true
-                },
-                {
-                  "mandatory": {
-                    "booleanExpr": {
-                      "IsTrue": {}
-                    }
-                  },
-                  "notPII": false,
-                  "derived": false,
-                  "label": {
-                    "SmartStringBase": {
-                      "internal": {
-                        "localised": {
-                          "en": ""
-                        },
-                        "interpolations": []
-                      }
-                    }
-                  },
-                  "validators": [],
-                  "id": "info",
-                  "submissible": false,
-                  "isPageHeading": false,
-                  "type": {
-                    "InformationMessage": {
-                      "infoType": {
-                        "NoFormat": {}
-                      },
-                      "infoText": {
-                        "SmartStringBase": {
-                          "internal": {
-                            "localised": {
-                              "en": "Files: {0}"
-                            },
-                            "interpolations": [
-                              {
-                                "FormCtx": {
-                                  "formComponentId": "file"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "onlyShowOnSummary": false,
-                  "editable": false
-                }
-              ]
-            }
-          }
-        },
-        {
-          "NonRepeatingPage": {
-            "page": {
-              "title": {
-                "SmartStringBase": {
-                  "internal": {
-                    "localised": {
-                      "en": "Outside secret"
-                    },
-                    "interpolations": []
-                  }
-                }
-              },
-              "includeIf": {
-                "booleanExpr": {
-                  "Equals": {
-                    "left": {
-                      "FormCtx": {
-                        "formComponentId": "file"
-                      }
-                    },
-                    "right": {
-                      "Constant": {
-                        "value": "passport.jpg"
-                      }
-                    }
-                  }
-                }
-              },
-              "fields": [
-                {
-                  "mandatory": {
-                    "booleanExpr": {
-                      "IsTrue": {}
-                    }
-                  },
-                  "notPII": false,
-                  "derived": false,
-                  "label": {
-                    "SmartStringBase": {
-                      "internal": {
-                        "localised": {
-                          "en": "Outside secret"
-                        },
-                        "interpolations": []
-                      }
-                    }
-                  },
-                  "validators": [],
-                  "id": "outsideSecret",
-                  "submissible": true,
-                  "isPageHeading": true,
-                  "type": {
-                    "Text": {
-                      "constraint": {
-                        "Sterling": {
-                          "roundingMode": "Down",
-                          "positiveOnly": false
                         }
                       },
                       "value": {
@@ -578,7 +647,7 @@
   "authConfig": {
     "Anonymous": {}
   },
-  "originalId": "atl-multi-file",
+  "originalId": "multi-file-count-atl",
   "downloadPreviousSubmissionPdf": true,
   "displayHMRCLogo": false,
   "destinations": {
@@ -625,7 +694,7 @@
       }
     }
   },
-  "_id": "atl-multi-file",
+  "_id": "multi-file-count-atl",
   "formCategory": "default",
   "displayAccountHeader": false,
   "allowedFileTypes": {

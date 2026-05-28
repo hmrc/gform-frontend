@@ -597,6 +597,11 @@ object EvaluationStatus {
   final case class ListResult(list: List[EvaluationStatus]) extends EvaluationStatus {
     def map(f: EvaluationStatus => EvaluationStatus): ListResult = ListResult(list.map(f))
 
+    def flatten(): ListResult = ListResult(list.flatMap {
+      case ListResult(list) => list
+      case otherwise        => otherwise :: Nil
+    })
+
     def zipOther(other: ListResult, f: (EvaluationStatus, EvaluationStatus) => EvaluationStatus): ListResult =
       ListResult(list.zipAll(other.list, Empty, Empty).map { case (l, r) => f(l, r) })
   }
@@ -668,17 +673,15 @@ object EvaluationStatus {
 
     }
 
-  def evalMultiFile(modelComponentId: ModelComponentId, evaluationContext: EvaluationContext): EvaluationStatus = {
-    val value: String = evaluationContext.multiFilesData.get(modelComponentId).fold("") { xs =>
-      xs.map { case (fileComponentId, variadicValue) =>
+  def evalMultiFile(modelComponentId: ModelComponentId, evaluationContext: EvaluationContext): EvaluationStatus =
+    evaluationContext.multiFilesData.get(modelComponentId).fold[EvaluationStatus](EvaluationStatus.Empty) { xs =>
+      val statuses = xs.map { case (fileComponentId, variadicValue) =>
         val fileIdPrefix: String = evaluationContext.componentIdToFileId.fileIdFor(fileComponentId).value
-        variadicValue.value.replace(fileIdPrefix + "_", "")
-      }.mkString(", ")
+        EvaluationStatus.StringResult(variadicValue.value.replace(fileIdPrefix + "_", ""))
+      }
+
+      EvaluationStatus.ListResult(statuses)
     }
-
-    EvaluationStatus.StringResult(value)
-  }
-
 }
 
 sealed trait DateResultFlag extends Product with Serializable {
