@@ -609,11 +609,17 @@ case class AuthCacheWithForm(
     formTemplate
   )
 
+  val declarationSectionFields: List[FormComponent] = formTemplate.destinations.fold(destinationList =>
+    destinationList.declarationSection.fold(List.empty[FormComponent])(declarationSection => declarationSection.fields)
+  )(destinationPrint => List.empty[FormComponent])
+
   val multiValueIds: Set[BaseComponentId] =
-    formTemplate.formKind.allEnterableFields.collect {
+    (formTemplate.formKind.allEnterableFields ++
+      formTemplate.formKind.allAddAnotherQuestions ++
+      declarationSectionFields).collect {
       case c @ IsChoice(_)          => c.id.baseComponentId
       case c @ IsRevealingChoice(_) => c.id.baseComponentId
-    }.toSet ++ formTemplate.formKind.allAddAnotherQuestions.map(_.id.baseComponentId).toSet
+    }.toSet
 
   val variadicFormData: VariadicFormData =
     VariadicFormData.buildFromMongoData(multiValueIds, form.formData.toData)
