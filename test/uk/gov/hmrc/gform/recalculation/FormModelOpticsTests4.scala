@@ -30,6 +30,131 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+        "1_addAnotherProperty" -> Many(List("0")),
+        "1_documentUpload"     -> One("1"),
+        "1_welcome"            -> One(""),
+        "2_addAnotherProperty" -> Many(List("1")),
+        "2_documentUpload"     -> One("1,2,3"),
+        "2_secret"             -> Many(List("found")),
+        "m1_1_documentUpload"  -> One("m1_1_documentUpload_pdfExample.pdf"),
+        "m1_2_documentUpload"  -> One("m1_2_documentUpload_pdfExample.pdf"),
+        "m2_2_documentUpload"  -> One("m2_2_documentUpload_pdfExample1.pdf"),
+        "m3_2_documentUpload"  -> One("m3_2_documentUpload_pdfExample2.pdf")
+      ),
+      List(
+        "ad0",
+        "ap0.1.0",
+        "ac0.1",
+        "ar0.1",
+        "ap0.2.0",
+        "ap0.2.1",
+        "ac0.2",
+        "ar0.2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "1_documentUpload" -> StringResult("1"),
+        "1_secret"         -> Hidden,
+        "2_documentUpload" -> StringResult("1,2,3"),
+        "2_secret"         -> OptionResult(List("found"))
+      ),
+      List(
+        "You have uploaded 1 supporting document",
+        "You have uploaded: pdfExample.pdf",
+        "If you have finished uploading your files you can continue to the next page.",
+        "You have told us about 1 properties",
+        "Uploaded files: pdfExample.pdf :: ",
+        "<p>Uploaded files: pdfExample.pdf ::</p>",
+        "You have uploaded 3 supporting documents",
+        "You have uploaded: pdfExample.pdf, pdfExample1.pdf, pdfExample2.pdf",
+        "You have uploaded the maximum number of files.",
+        "You have told us about 2 properties",
+        "Uploaded files: pdfExample.pdf, pdfExample1.pdf, pdfExample2.pdf :: Found",
+        "<p>Uploaded files: pdfExample.pdf, pdfExample1.pdf, pdfExample2.pdf :: Found</p>",
+        "All files (4): pdfExample.pdf, pdfExample.pdf, pdfExample1.pdf, pdfExample2.pdf"
+      ),
+      "multi-file-count-atl.json Generated"
+    ),
+    (
+      MongoUserData(),
+      List(),
+      EvaluationContext.empty,
+      AnswerMap(
+        "documentUpload" -> Empty,
+        "secret"         -> Hidden
+      ),
+      List(
+        "Upload the supporting documents",
+        "You have uploaded: ",
+        "If you have finished uploading your files you can continue to the next page."
+      ),
+      "multi-file-count.json zero files uploaded"
+    ),
+    (
+      MongoUserData(
+        "documentUpload"    -> One("1"),
+        "m1_documentUpload" -> One("m1_documentUpload_pdfExample.pdf")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "documentUpload" -> StringResult("1"),
+        "secret"         -> Hidden
+      ),
+      List(
+        "You have uploaded 1 supporting document",
+        "You have uploaded: pdfExample.pdf",
+        "If you have finished uploading your files you can continue to the next page."
+      ),
+      "multi-file-count.json one file uploaded"
+    ),
+    (
+      MongoUserData(
+        "documentUpload"    -> One("1,2"),
+        "m1_documentUpload" -> One("m1_documentUpload_pdfExample.pdf"),
+        "m2_documentUpload" -> One("m2_documentUpload_pdfExample1.pdf")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "documentUpload" -> StringResult("1,2"),
+        "secret"         -> Hidden
+      ),
+      List(
+        "You have uploaded 2 supporting documents",
+        "You have uploaded: pdfExample.pdf, pdfExample1.pdf",
+        "If you have finished uploading your files you can continue to the next page."
+      ),
+      "multi-file-count.json two files uploaded"
+    ),
+    (
+      MongoUserData(
+        "documentUpload"    -> One("1,2,3"),
+        "m1_documentUpload" -> One("m1_documentUpload_pdfExample.pdf"),
+        "m2_documentUpload" -> One("m2_documentUpload_pdfExample1.pdf"),
+        "m3_documentUpload" -> One("m3_documentUpload_pdfExample2.pdf")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "documentUpload" -> StringResult("1,2,3"),
+        "secret"         -> Empty
+      ),
+      List(
+        "You have uploaded 3 supporting documents",
+        "You have uploaded: pdfExample.pdf, pdfExample1.pdf, pdfExample2.pdf",
+        "You have uploaded the maximum number of files."
+      ),
+      "multi-file-count.json three files uploaded"
+    ),
+    (
+      MongoUserData(
         "crn"       -> One("11111111"),
         "crnChoice" -> Many(List("0"))
       ),

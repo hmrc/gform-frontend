@@ -1651,8 +1651,8 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
         "outsideSecret" -> NumberResult(500)
       ),
       List(
-        "Files: £123.00",
-        "<p>Files: £123.00</p>",
+        "Secret value: £123.00",
+        "<p>Secret value: £123.00</p>",
         "1 - passport.jpg £123.00",
         "<p>1 - passport.jpg £123.00</p>",
         "Files: passport.jpg",
@@ -1684,18 +1684,55 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
       ),
       AnswerMap(
         "1_file"        -> StringResult("1,2"),
-        "1_secret"      -> Hidden,
-        "outsideSecret" -> Hidden
+        "1_secret"      -> Empty,
+        "outsideSecret" -> Empty
       ),
       List(
-        "Files: £0.00",
-        "<p>Files: £0.00</p>",
+        "Secret value: £0.00",
+        "<p>Secret value: £0.00</p>",
         "1 - passport.jpg, rust_logo.jpg £0.00",
         "<p>1 - passport.jpg, rust_logo.jpg £0.00</p>",
         "Files: passport.jpg, rust_logo.jpg",
         "<p>Files: passport.jpg, rust_logo.jpg</p>"
       ),
-      "atl-multi-file.json two files"
+      "atl-multi-file.json two files - one matching"
+    ),
+    (
+      MongoUserData(
+        "1_addAnother" -> Many(List("1")),
+        "1_file"       -> One("1,2"),
+        "dummy"        -> One("dummy"),
+        "m1_1_file"    -> One("m1_1_file_scala_logo.jpg"),
+        "m2_1_file"    -> One("m2_1_file_rust_logo.jpg")
+      ),
+      List(
+        "ap0.1.0",
+        "ap0.1.2",
+        "ar0.1",
+        "n1"
+      ),
+      EvaluationContext.empty.copy(
+        componentIdToFileId = FormComponentIdToFileIdMapping(
+          Map(
+            FileComponentId.Multi(FormComponentId("1_file"), 1) -> FileId("m1_1_file"),
+            FileComponentId.Multi(FormComponentId("1_file"), 2) -> FileId("m2_1_file")
+          )
+        )
+      ),
+      AnswerMap(
+        "1_file"        -> StringResult("1,2"),
+        "1_secret"      -> Hidden,
+        "outsideSecret" -> Hidden
+      ),
+      List(
+        "Secret value: £0.00",
+        "<p>Secret value: £0.00</p>",
+        "1 - scala_logo.jpg, rust_logo.jpg £0.00",
+        "<p>1 - scala_logo.jpg, rust_logo.jpg £0.00</p>",
+        "Files: scala_logo.jpg, rust_logo.jpg",
+        "<p>Files: scala_logo.jpg, rust_logo.jpg</p>"
+      ),
+      "atl-multi-file.json two files - none matching"
     ),
     (
       MongoUserData(
