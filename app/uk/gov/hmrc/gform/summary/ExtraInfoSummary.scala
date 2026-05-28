@@ -41,5 +41,6 @@ final case class ExtraInfoSummary(
   pageLevelError: HasErrors,
   maybeCoordinates: Option[Coordinates],
   taskCompleted: Option[Boolean],
-  hideDefaultRows: Boolean
+  hideDefaultRows: Boolean,
+  includePrintPageButton: Boolean
 )

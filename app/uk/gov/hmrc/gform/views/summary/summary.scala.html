@@ -33,6 +33,14 @@
     extraInfoSummary: ExtraInfoSummary
 )(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
+<style>
+    @@media print {
+        body {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='400px' width='400px'><text transform='translate(40, 400) rotate(-40)' stroke='rgb(245,45,45,0.1)' stroke-width='3px' fill='rgb(245,45,45,0.03)' font-family='GDS Transport, arial, sans-serif' font-size='100' font-weight='900'>DRAFT</text></svg>");
+        }
+    }
+</style>
+
 @import extraInfoSummary._
 
 @formWithCSRF = @{new FormWithCSRF()}
@@ -80,6 +88,9 @@
 
     @twoThirdsMainContent {
         @page_heading(title, caption)
+        @if(includePrintPageButton) {
+            @printPageButton("printButton")
+        }
         @if(header.body.nonEmpty) {
             <div class="govuk-body">@header</div>
         }
@@ -104,8 +115,7 @@
             <div class="govuk-body">
                 @footer
             </div>
-
-            <div class="govuk-button-group">
+            <div class="govuk-button-group govuk-!-margin-bottom-8 govuk-!-display-none-print">
                 @govukButton(Button(content = Text(messages(continueLabelKey)),
                     inputType=Some("submit"),
                     value=Some("SummaryContinue"),
@@ -121,7 +131,6 @@
                     )
                 }
             </div>
-
         }
     }
 }

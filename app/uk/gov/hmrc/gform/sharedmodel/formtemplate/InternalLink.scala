@@ -35,6 +35,7 @@ object InternalLink {
   case object PrintSectionPdf extends InternalLink
   case object PrintSectionNotificationPdf extends InternalLink
   case object SummaryPage extends InternalLink
+  case object PrintAcknowledgementHtml extends InternalLink
 
   val printAcknowledgementPdf: InternalLink = PrintAcknowledgementPdf
   val printSummaryPdf: InternalLink = PrintSummaryPdf
