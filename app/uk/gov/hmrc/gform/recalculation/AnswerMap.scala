@@ -29,6 +29,9 @@ class AnswerMap(val answerMap: mutable.Map[ModelComponentId, EvaluationStatus]) 
   def cleared(modelComponentIds: List[ModelComponentId]): Unit =
     modelComponentIds.foreach(modelComponentId => answerMap.remove(modelComponentId))
 
+  def markForRecalculation(modelComponentIds: List[ModelComponentId]): Unit =
+    modelComponentIds.foreach(modelComponentId => answerMap.addOne(modelComponentId -> EvaluationStatus.Dirty))
+
   def apply(formComponentId: ModelComponentId): EvaluationStatus =
     answerMap
       .get(formComponentId)
@@ -57,10 +60,10 @@ class AnswerMap(val answerMap: mutable.Map[ModelComponentId, EvaluationStatus]) 
     }
 
   def pretty(): String =
-    answerMap.toList.sortBy { case (k, v) => k.toMongoIdentifier }.mkString("\n")
+    "\n" + answerMap.toList.sortBy { case (k, v) => k.toMongoIdentifier }.mkString("\n")
 
   override def toString(): String =
-    answerMap.toString
+    pretty()
 
   def forBaseComponentIdLessThanEqual(
     modelComponentId: ModelComponentId
