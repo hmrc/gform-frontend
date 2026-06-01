@@ -206,11 +206,11 @@ case class ThirdPartyData(
 
   def updateDataRetrieve(dataRetrieveResult: List[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
     case (drd @ DataRetrieveResult(id, _, _, _, _, _)) :: drs =>
-      val updatedTirdPartyData = this.copy(dataRetrieve = dataRetrieve match {
+      val updatedThirdPartyData = this.copy(dataRetrieve = dataRetrieve match {
         case None      => Some(Map(id -> drd))
         case Some(map) => Some(map + (id -> drd))
       })
-      updatedTirdPartyData.updateDataRetrieve(drs)
+      updatedThirdPartyData.updateDataRetrieve(drs)
     case Nil => this
   }
 

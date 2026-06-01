@@ -359,7 +359,7 @@ class EnrolmentController(
     val formModel: FormModel = FormModel.fromEnrolmentSection(enrolmentSection)
 
     val recalculator: Recalculator = Recalculator.fromEnrolmentSection(enrolmentSection, cache, CacheBuster.random)
-    val freeCalculator: FreeCalculator = recalculator.recalculate()
+    val freeCalculator: FreeCalculator = recalculator.mkFreeCalculator()
 
     val formModelRenderPageOptics = new FormModelRenderPageOptics(formModel)
     val formModelVisibilityOptics = new FormModelVisibilityOptics(formModel, freeCalculator)

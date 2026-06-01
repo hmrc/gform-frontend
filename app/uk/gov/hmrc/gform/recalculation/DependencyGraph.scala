@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
 import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -270,34 +271,42 @@ class Runtime(
 }
 
 class Recalculator(
-  val graph: DependencyGraph,
+  graph: DependencyGraph,
   mongoUserData: MongoUserData,
   val metadata: Metadata,
   runtime: Runtime,
   val answerMap: AnswerMap,
-  evaluationContext: EvaluationContext,
-  cacheBuster: CacheBuster
+  var evaluationContext: EvaluationContext,
+  val cacheBuster: CacheBuster
 )(implicit messages: Messages) {
+
+  def updateThirdPartyData(thirdPartyData: ThirdPartyData): Unit =
+    evaluationContext = evaluationContext.copy(
+      thirdPartyData = thirdPartyData
+    )
+
+  def markForRecalculation(modelComponentIds: List[ModelComponentId]): Unit =
+    answerMap.markForRecalculation(modelComponentIds)
+
+  def recalculate(): Unit =
+    graph.nodes.foreach { node =>
+      evalNode(node)
+    }
 
   // FormModel doesn't exists at this moment, so FormModelMetadata are not available.
   // This is ok because links in general should not contribute to visibility calculation.
   // FormModelMetadata of FreeCalculator will be made available by calling withFormModelMetadata method
   val formModelMetadata = FormModelMetadata.notAvailable
 
-  def recalculate(): FreeCalculator = {
-    graph.nodes.foreach { node =>
-      evalNode(node)
-    }
+  def mkFreeCalculator(): FreeCalculator = {
+    recalculate()
     new FreeCalculator(
-      metadata,
-      formModelMetadata,
-      answerMapWithFallback,
-      evaluationContext,
-      cacheBuster
+      this,
+      formModelMetadata
     )
   }
 
-  private val answerMapWithFallback = AnswerMapWithFallback(
+  val answerMapWithFallback = AnswerMapWithFallback(
     answerMap,
     mongoUserData,
     metadata.staticTypeInfo
