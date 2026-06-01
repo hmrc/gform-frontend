@@ -279,6 +279,11 @@ final class RealCalculator(
           uk.gov.hmrc.gform.gform.routes.SummaryController
             .summaryById(evaluationContext.formTemplateId, evaluationContext.maybeAccessCode, None, None)
             .url
+        case InternalLink.PrintAcknowledgementHtml =>
+          uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+            .htmlReceipt(evaluationContext.maybeAccessCode, evaluationContext.formTemplateId)
+            .url
+
       }
     EvaluationStatus.StringResult(link)
   }
