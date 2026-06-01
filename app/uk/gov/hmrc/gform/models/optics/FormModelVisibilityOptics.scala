@@ -28,10 +28,7 @@ final class FormModelVisibilityOptics(
   val freeCalculator: FreeCalculator
 ) {
 
-  def cleared(modelComponentIds: List[ModelComponentId]): FormModelVisibilityOptics = new FormModelVisibilityOptics(
-    formModel,
-    freeCalculator.cleared(modelComponentIds)
-  )
+  def cleared(modelComponentIds: List[ModelComponentId]): Unit = freeCalculator.cleared(modelComponentIds)
 
   def allFormComponents: List[FormComponent] = formModel.allFormComponents
 

@@ -22,6 +22,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.http.HttpConfiguration
 import play.api.i18n._
+import scala.collection.mutable
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
@@ -39,8 +40,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
-
-import scala.collection.mutable
 
 class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with VariadicFormDataSupport {
 
@@ -81,7 +80,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   test("validate should return valid when calendarDate atoms are correct") {
 
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateDayAtom   -> VariadicValue.One("1"),
         dateMonthAtom -> VariadicValue.One("1")
       )
@@ -96,7 +95,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   }
 
   test("validate should return invalid when all calendarDate atoms are missing") {
-    val data = VariadicFormData(Map.empty)
+    val data = VariadicFormData(mutable.Map.empty)
     val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
 
     assertEquals(
@@ -113,7 +112,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   test("validate should return invalid when calendarDate month atom missing") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateDayAtom   -> VariadicValue.One("1"),
         dateMonthAtom -> VariadicValue.One("")
       )
@@ -129,7 +128,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
 
   test("validate should return invalid when calendarDate day atom missing") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateDayAtom   -> VariadicValue.One(""),
         dateMonthAtom -> VariadicValue.One("1")
       )
@@ -146,7 +145,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   test("validate should return invalid when calendarDate atoms have length > 2") {
 
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateDayAtom   -> VariadicValue.One("111"),
         dateMonthAtom -> VariadicValue.One("222")
       )
@@ -168,7 +167,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   test("validate should return invalid when some calendarDate atoms are not integers") {
 
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateDayAtom   -> VariadicValue.One("a"),
         dateMonthAtom -> VariadicValue.One("b")
       )
@@ -190,7 +189,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   val table: List[(VariadicFormData, ModelComponentId, String, String)] = List(
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateDayAtom   -> VariadicValue.One("0"),
           dateMonthAtom -> VariadicValue.One("1")
         )
@@ -201,7 +200,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     ),
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateDayAtom   -> VariadicValue.One("1"),
           dateMonthAtom -> VariadicValue.One("0")
         )
@@ -212,7 +211,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
     ),
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateDayAtom   -> VariadicValue.One("30"),
           dateMonthAtom -> VariadicValue.One("2")
         )
@@ -241,7 +240,7 @@ class CalendarDateCheckerSpec extends FunSuite with FormModelSupport with Variad
   val table1: List[(VariadicFormData, ModelComponentId, ModelComponentId, String, String, String)] = List(
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateDayAtom   -> VariadicValue.One("0"),
           dateMonthAtom -> VariadicValue.One("0")
         )

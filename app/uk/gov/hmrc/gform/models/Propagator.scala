@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import scala.collection.mutable
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormCtx, IsChoice, OptionData, OptionDataValue }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
@@ -102,7 +103,8 @@ class Propagator private (
         }
     }
 
-    variadicFormData ++ VariadicFormData(updatedChoices.toList.flatten.toMap)
+    variadicFormData ++ VariadicFormData(mutable.Map(updatedChoices.toList.flatten: _*))
+
   }
 }
 

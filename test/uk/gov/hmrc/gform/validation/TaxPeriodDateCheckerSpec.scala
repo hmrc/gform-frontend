@@ -73,7 +73,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   test("validate should return valid when taxPeriodDate atoms are correct") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateMonthAtom -> VariadicValue.One("1"),
         dateYearAtom  -> VariadicValue.One("2000")
       )
@@ -90,7 +90,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   }
 
   test("validate should return invalid when all taxPeriodDate atoms are missing") {
-    val data = VariadicFormData(Map.empty)
+    val data = VariadicFormData(mutable.Map.empty)
     val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
     val taxPeriodDateValidation = new TaxPeriodDateChecker()
 
@@ -109,7 +109,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   test("validate should return invalid when taxPeriodDate year atom is missing") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateMonthAtom -> VariadicValue.One("1"),
         dateYearAtom  -> VariadicValue.One("")
       )
@@ -127,7 +127,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   test("validate should return invalid when taxPeriodDate month atom is missing") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateMonthAtom -> VariadicValue.One(""),
         dateYearAtom  -> VariadicValue.One("2000")
       )
@@ -145,7 +145,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   test("validate should return invalid when taxPeriodDate atoms have abnormal lengths") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateMonthAtom -> VariadicValue.One("123"),
         dateYearAtom  -> VariadicValue.One("20000")
       )
@@ -168,7 +168,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
 
   test("validate should return invalid when taxPeriodDate atoms are not integers") {
     val data = VariadicFormData(
-      Map(
+      mutable.Map(
         dateMonthAtom -> VariadicValue.One("a"),
         dateYearAtom  -> VariadicValue.One("b")
       )
@@ -192,7 +192,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   val table: List[(VariadicFormData, ModelComponentId, String, String)] = List(
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateMonthAtom -> VariadicValue.One("1"),
           dateYearAtom  -> VariadicValue.One("0")
         )
@@ -203,7 +203,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
     ),
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateMonthAtom -> VariadicValue.One("0"),
           dateYearAtom  -> VariadicValue.One("2000")
         )
@@ -214,7 +214,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
     ),
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateMonthAtom -> VariadicValue.One("13"),
           dateYearAtom  -> VariadicValue.One("2000")
         )
@@ -245,7 +245,7 @@ class TaxPeriodDateCheckerSpec extends FunSuite with FormModelSupport with Varia
   val table1: List[(VariadicFormData, ModelComponentId, ModelComponentId, String, String, String)] = List(
     (
       VariadicFormData(
-        Map(
+        mutable.Map(
           dateMonthAtom -> VariadicValue.One("0"),
           dateYearAtom  -> VariadicValue.One("0")
         )
