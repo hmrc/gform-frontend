@@ -35,37 +35,6 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "AddToListUtils.removeRecord" should "remove instance by its index" in {
-    val data: VariadicFormData = mkVariadicFormData(
-      "regular" -> One("r"),
-      // Owner data
-      "1_a"     -> One("a_1"),
-      "1_b"     -> One("b_1"),
-      "1_c"     -> One("c_1"),
-      "1_d"     -> One("d_1"),
-      "1_e"     -> One("e_1"),
-      "1_f"     -> One("f_1"),
-      "2_a"     -> One("a_2"),
-      "2_b"     -> One("b_2"),
-      "2_c"     -> One("c_2"),
-      "2_d"     -> One("d_2"),
-      "2_e"     -> One("e_2"),
-      "2_f"     -> One("f_2"),
-      "3_a"     -> One("a_3"),
-      "3_b"     -> One("b_3"),
-      "3_c"     -> One("c_3"),
-      "3_d"     -> One("d_3"),
-      "3_e"     -> One("e_3"),
-      "3_f"     -> One("f_3"),
-      "1_owner" -> Many("0" :: Nil),
-      "2_owner" -> Many("0" :: Nil),
-      "3_owner" -> Many("1" :: Nil),
-      // Fruit data
-      "1_fruitA" -> One("apple_1"),
-      "1_fruitB" -> One("banana_1"),
-      "2_fruitA" -> One("apple_2"),
-      "2_fruitB" -> One("banana_2"),
-      "1_fruit"  -> Many("0" :: Nil)
-    )
 
     val expectedData1: VariadicFormData = mkVariadicFormData(
       "regular"  -> One("r"),
@@ -217,9 +186,6 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
         ) :: Nil
 
     val formTemplate = mkFormTemplate(sections)
-    val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
-
-    val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
 
     val ownerAddToListId: AddToListId = AddToListId(FormComponentId("owner"))
     val fruitAddToListId: AddToListId = AddToListId(FormComponentId("fruit"))
@@ -248,6 +214,39 @@ class AddToListUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSup
     )
 
     forAll(variations) { case (index, addToListId, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) =>
+      val data: VariadicFormData = mkVariadicFormData(
+        "regular" -> One("r"),
+        // Owner data
+        "1_a"     -> One("a_1"),
+        "1_b"     -> One("b_1"),
+        "1_c"     -> One("c_1"),
+        "1_d"     -> One("d_1"),
+        "1_e"     -> One("e_1"),
+        "1_f"     -> One("f_1"),
+        "2_a"     -> One("a_2"),
+        "2_b"     -> One("b_2"),
+        "2_c"     -> One("c_2"),
+        "2_d"     -> One("d_2"),
+        "2_e"     -> One("e_2"),
+        "2_f"     -> One("f_2"),
+        "3_a"     -> One("a_3"),
+        "3_b"     -> One("b_3"),
+        "3_c"     -> One("c_3"),
+        "3_d"     -> One("d_3"),
+        "3_e"     -> One("e_3"),
+        "3_f"     -> One("f_3"),
+        "1_owner" -> Many("0" :: Nil),
+        "2_owner" -> Many("0" :: Nil),
+        "3_owner" -> Many("1" :: Nil),
+        // Fruit data
+        "1_fruitA" -> One("apple_1"),
+        "1_fruitB" -> One("banana_1"),
+        "2_fruitA" -> One("apple_2"),
+        "2_fruitB" -> One("banana_2"),
+        "1_fruit"  -> Many("0" :: Nil)
+      )
+      val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+      val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
       val bracket: Bracket.AddToList =
         formModelOptics.formModelRenderPageOptics.formModel.brackets.addToListBracket(addToListId)
       val (updatedVariadicData, updatedMapping, filesToDelete) =

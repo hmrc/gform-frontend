@@ -25,6 +25,7 @@ import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.json.{ Json, Reads }
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request, Result }
 import play.api.test.{ FakeRequest, Helpers }
+import scala.collection.mutable
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
@@ -155,7 +156,9 @@ class LookupControllerSpec
 
     override lazy val variadicFormData: VariadicFormData =
       VariadicFormData(
-        Map(ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One("US"))
+        mutable.Map(
+          ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One("US")
+        )
       )
     override lazy val portLookupSelectionCriteria: Option[List[SelectionCriteria]] = Some(
       SelectionCriteria(CsvColumnName("CountryCode"), SelectionCriteriaExpr(FormCtx(FormComponentId("country")))) :: Nil
@@ -181,7 +184,7 @@ class LookupControllerSpec
 
     override lazy val variadicFormData: VariadicFormData =
       VariadicFormData(
-        Map(
+        mutable.Map(
           ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("country"))) -> VariadicValue.One(
             "United Kingdom"
           )

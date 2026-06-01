@@ -46,10 +46,8 @@ final class FreeCalculator(
     recalculator.recalculate()
   }
 
-  def cleared(modelComponentIds: List[ModelComponentId]): FreeCalculator = {
-    answerMapWithFallback.cleared(modelComponentIds)
-    this
-  }
+  def cleared(modelComponentIds: List[ModelComponentId]): Unit =
+    answerMapWithFallback.cleared(modelComponentIds) // Side effect !!!
 
   def recalculateDependenciesWithValue(formComponents: List[FormComponent])(implicit messages: Messages): FormData = {
 

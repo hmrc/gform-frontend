@@ -20,6 +20,7 @@ import munit.FunSuite
 import play.api.i18n.Messages
 import play.api.mvc.{ AnyContentAsFormUrlEncoded, Result, Results }
 import play.api.test.{ FakeRequest, Helpers }
+import scala.collection.mutable
 import scala.concurrent.Future
 import uk.gov.hmrc.gform.RealJsonTemplateSupport
 import uk.gov.hmrc.gform.controllers.RequestRelatedData
@@ -41,7 +42,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("formField1" -> Seq("value1"), "actionField" -> Seq("save")),
       RequestRelatedData(Map("actionField" -> List("save"))),
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("formField1") -> VariadicValue.One("value1")
         )
       ),
@@ -53,7 +54,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("amountField" -> Seq("£111")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("amountField") -> VariadicValue.One("111")
         )
       ),
@@ -65,7 +66,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("amountField" -> Seq("£111")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("amountField") -> VariadicValue.One("111")
         )
       ),
@@ -77,7 +78,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("vatField" -> Seq("GB 123  456   789")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("vatField") -> VariadicValue.One("123456789")
         )
       ),
@@ -89,7 +90,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("ninoField" -> Seq("Ab123456C")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("ninoField") -> VariadicValue.One("AB123456C")
         )
       ),
@@ -101,7 +102,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("eoriField" -> Seq("fr1234567")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("eoriField") -> VariadicValue.One("FR1234567")
         )
       ),
@@ -113,7 +114,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("ukEoriField" -> Seq("gb123456789123")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("ukEoriField") -> VariadicValue.One("GB123456789123")
         )
       ),
@@ -125,7 +126,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("formField1" -> Seq("value1\r\n23 ")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("formField1") -> VariadicValue.One("value1\n23")
         )
       ),
@@ -137,7 +138,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map("utrField" -> Seq("11 11 11 11 11")),
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("utrField") -> VariadicValue.One("1111111111")
         )
       ),
@@ -154,7 +155,7 @@ class FormDataHelpersSuite extends FunSuite {
       Map.empty[String, Seq[String]],
       RequestRelatedData.empty,
       VariadicFormData(
-        Map(
+        mutable.Map(
           purePure("formField1") -> VariadicValue.One("value1")
         )
       ),

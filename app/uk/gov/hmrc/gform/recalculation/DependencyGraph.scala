@@ -77,8 +77,10 @@ class MongoUserData(
   val lookup: VariadicFormData
 ) {
 
-  def cleared(modelComponentIds: List[ModelComponentId]): MongoUserData =
-    new MongoUserData(lookup -- modelComponentIds)
+  def cleared(modelComponentIds: List[ModelComponentId]): Unit = {
+    lookup -- modelComponentIds
+    ()
+  }
 
   def getEvalStatus(fcId: ModelComponentId, metadata: Metadata): EvaluationStatus =
     lookup
@@ -116,10 +118,10 @@ object MongoUserData {
   def apply(answers: (String, VariadicValue)*): MongoUserData =
     new MongoUserData(
       VariadicFormData(
-        answers.map { case (key, value) =>
+        mutable.Map(answers: _*).map { case (key, value) =>
           val runtimeKey = ExpandUtils.toModelComponentId(key)
           runtimeKey -> value
-        }.toMap
+        }
       )
     )
 }

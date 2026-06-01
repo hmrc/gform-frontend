@@ -30,13 +30,9 @@ class AnswerMapWithFallback(
   staticTypeInfo: StaticTypeInfo
 ) {
 
-  def cleared(modelComponentIds: List[ModelComponentId]): AnswerMapWithFallback = {
+  def cleared(modelComponentIds: List[ModelComponentId]): Unit = {
     answerMap.cleared(modelComponentIds) // Side effect
-    new AnswerMapWithFallback(
-      answerMap,
-      mongoUserData.cleared(modelComponentIds),
-      staticTypeInfo
-    )
+    mongoUserData.cleared(modelComponentIds) // Side effect
   }
 
   def toStringResultOrOptionResult(modelComponentId: ModelComponentId): EvaluationStatus =
