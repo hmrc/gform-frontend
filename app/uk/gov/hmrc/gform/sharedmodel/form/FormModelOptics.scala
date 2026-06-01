@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVis
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.recalculation.CacheBuster
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormPhase, HasValueExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormPhase
 
 final class FormModelOptics(
   val formModelRenderPageOptics: FormModelRenderPageOptics,
@@ -45,28 +45,6 @@ final class FormModelOptics(
         modelComponentId.baseComponentId
       }
       .map { case (k, v) => k -> v.map(_._2) }
-
-  def recalculateDependenciesWithValue()(implicit messages: Messages): FormData = {
-
-    val answerMap = formModelVisibilityOptics.freeCalculator.answerMap
-
-    val fcToRecalculate: List[FormComponent] =
-      formModelRenderPageOptics.allFormComponents.collect {
-        case fc @ HasValueExpr(_) if !fc.editable => fc
-      }
-
-    val dependentComponentIds: List[FormField] = fcToRecalculate.map { formComponent =>
-      val formComponentId = formComponent.id
-      val modelComponentId = formComponent.modelComponentId
-
-      val evaluationStatus = answerMap(modelComponentId)
-      val staticTypeData = formModelVisibilityOptics.toStaticTypeData(formComponentId)
-      val value = evaluationStatus.handlebarRepresentation(staticTypeData, messages)
-      FormField(modelComponentId, value)
-    }
-
-    FormData(dependentComponentIds)
-  }
 
 }
 

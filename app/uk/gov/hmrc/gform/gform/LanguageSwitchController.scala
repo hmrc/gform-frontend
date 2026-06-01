@@ -107,7 +107,10 @@ class LanguageSwitchController(
                 messages
               )
 
-            val exprsSwitchedTo: FormData = formModelOpticsSwitchTo.recalculateDependenciesWithValue()
+            val exprsSwitchedTo: FormData =
+              formModelOpticsSwitchTo.formModelVisibilityOptics.freeCalculator.recalculateDependenciesWithValue(
+                formModelOpticsSwitchTo.formModelRenderPageOptics.allFormComponents
+              )
 
             val switchedLabel: List[(ModelComponentId, LookupLabel)] =
               lookups.flatMap { case (modelComponentId, register) =>

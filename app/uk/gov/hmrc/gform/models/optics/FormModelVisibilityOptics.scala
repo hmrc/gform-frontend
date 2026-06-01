@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models.optics
 import uk.gov.hmrc.gform.eval.{ ExprType, ExpressionResultWithTypeInfo, StaticTypeData, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.FormModel
-import uk.gov.hmrc.gform.recalculation.{ EvaluationContext, EvaluationStatus, FreeCalculator }
+import uk.gov.hmrc.gform.recalculation.{ EvaluationStatus, FreeCalculator }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, VariadicValue }
 
@@ -127,26 +127,17 @@ final class FormModelVisibilityOptics(
     }
   }
 
+  // TODO implement this as side effect
   def addDataRetrieveResults(dataRetrieveResults: List[DataRetrieveResult]): FormModelVisibilityOptics = {
-    val evaluationContext: EvaluationContext = freeCalculator.evaluationContext.copy(
-      thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.updateDataRetrieve(dataRetrieveResults)
-    )
-
-    updateFreeCalculator(evaluationContext)
+    val thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.updateDataRetrieve(dataRetrieveResults)
+    freeCalculator.updateThirdPartyData(thirdPartyData)
+    this
   }
 
+  // TODO implement this as side effect
   def removeDataRetrieveResults(dataRetrieves: List[DataRetrieveId]): FormModelVisibilityOptics = {
-    val evaluationContext: EvaluationContext = freeCalculator.evaluationContext.copy(
-      thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.removeDataRetrieves(dataRetrieves)
-    )
-
-    updateFreeCalculator(evaluationContext)
-
+    val thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.removeDataRetrieves(dataRetrieves)
+    freeCalculator.updateThirdPartyData(thirdPartyData)
+    this
   }
-
-  private def updateFreeCalculator(evaluationContext: EvaluationContext): FormModelVisibilityOptics =
-    new FormModelVisibilityOptics(
-      this.formModel,
-      freeCalculator.withEvaluationContext(evaluationContext)
-    )
 }
