@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import scala.collection.mutable
 import uk.gov.hmrc.gform.models.FormModelSupport
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import VariadicValue.{ Many, One }
@@ -39,7 +40,7 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   }
 
   it should "return Some(value) if a value can be found" in {
-    val data = VariadicFormData(Map(aFormComponentId -> One("x"), bFormComponentId -> Many(Seq("y"))))
+    val data = VariadicFormData(mutable.Map(aFormComponentId -> One("x"), bFormComponentId -> Many(Seq("y"))))
 
     data.get(aFormComponentId) shouldBe Some(One("x"))
     data.get(bFormComponentId) shouldBe Some(Many(Seq("y")))
@@ -50,11 +51,11 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   }
 
   it should "return Some(value) if the value can be found and is a One" in {
-    VariadicFormData(Map(aFormComponentId -> One("x"))).one(aFormComponentId) shouldBe Some("x")
+    VariadicFormData(mutable.Map(aFormComponentId -> One("x"))).one(aFormComponentId) shouldBe Some("x")
   }
 
   it should "throw an exception if the value can be found but is a Many" in {
-    Try(VariadicFormData(Map(aFormComponentId -> Many(Seq("x")))).one(aFormComponentId)) match {
+    Try(VariadicFormData(mutable.Map(aFormComponentId -> Many(Seq("x")))).one(aFormComponentId)) match {
       case Failure(_) =>
       case Success(_) => fail()
     }
@@ -80,11 +81,11 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   }
 
   it should "return Some(value) if the value can be found and is a Many" in {
-    VariadicFormData(Map(aFormComponentId -> Many(Seq("x")))).many(aFormComponentId) shouldBe Some(Seq("x"))
+    VariadicFormData(mutable.Map(aFormComponentId -> Many(Seq("x")))).many(aFormComponentId) shouldBe Some(Seq("x"))
   }
 
   it should "throw an exception if the value can be found but is a One" in {
-    Try(VariadicFormData(Map(aFormComponentId -> One("x"))).many(aFormComponentId)) match {
+    Try(VariadicFormData(mutable.Map(aFormComponentId -> One("x"))).many(aFormComponentId)) match {
       case Failure(_) =>
       case Success(_) => fail()
     }
@@ -168,11 +169,9 @@ class VariadicFormDataSpec extends AnyFlatSpecLike with Matchers with FormModelS
   }
 
   "--" should "remove all bindings with the given keys" in {
-    val data = ones(aFormComponentId -> "x") ++
-      manys(bFormComponentId         -> Seq("y"))
-
+    val data = ones(aFormComponentId -> "x") ++ manys(bFormComponentId -> Seq("y"))
     data -- Set(aFormComponentId) shouldBe manys(bFormComponentId -> Seq("y"))
-    data -- Set(bFormComponentId) shouldBe ones(aFormComponentId -> "x")
+    data -- Set(bFormComponentId) shouldBe VariadicFormData.empty
   }
 
   it should "do nothing if the key doesn't have a binding" in {

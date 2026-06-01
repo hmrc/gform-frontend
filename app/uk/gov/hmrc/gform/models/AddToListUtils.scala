@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import scala.collection.mutable
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
@@ -87,8 +88,8 @@ object AddToListUtils {
         }
       }.toSet
 
-    val toReindexMultiFile: VariadicFormData = VariadicFormData(
-      toReindex.toList.flatMap { modelComponentId =>
+    val toReindexMultiFile: VariadicFormData = {
+      val data = toReindex.toList.flatMap { modelComponentId =>
         if (multiFileUploads(modelComponentId)) {
           val res: List[(ModelComponentId, VariadicValue.One)] =
             variadicFormData.filesOfMultiFileComponent(modelComponentId).map { case (fileComponentId, fileName) =>
@@ -103,8 +104,9 @@ object AddToListUtils {
         } else {
           List.empty
         }
-      }.toMap
-    )
+      }
+      VariadicFormData(mutable.Map(data: _*))
+    }
 
     val toKeep: Set[ModelComponentId] = toModelComponentIds(iterationsToKeep) -- toBeRemovedIds
 

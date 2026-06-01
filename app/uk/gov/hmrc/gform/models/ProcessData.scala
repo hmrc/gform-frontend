@@ -38,10 +38,11 @@ final case class ProcessData(
 ) {
   val formModel: FormModel = formModelOptics.formModelRenderPageOptics.formModel
 
-  def removeConfirmation(confirmations: List[Confirmation]): ProcessData =
+  def removeConfirmation(confirmations: List[Confirmation]): ProcessData = {
+    formModelOptics.clearModelComponentIds(confirmations.map(_.question.id.modelComponentId))
     this
-      .modify(_.formModelOptics)
-      .using(_.clearModelComponentIds(confirmations.map(_.question.id.modelComponentId)))
+  }
+
 }
 
 class ProcessDataService[F[_]: Monad](

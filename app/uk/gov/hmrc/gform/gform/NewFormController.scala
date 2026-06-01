@@ -1035,10 +1035,12 @@ class NewFormController(
           } else None
         }
 
+        formModelOptics.clearModelComponentIds(modelComponentIds) // Side effect !!!
+
         c.modify(_.form.thirdPartyData.itmpRetrievals)
           .using(_ => Some(itmpRetrievals))
           .modify(_.form.formData)
-          .using(_ => formModelOptics.clearModelComponentIds(modelComponentIds).variadicFormData.toFormData)
+          .using(_ => formModelOptics.variadicFormData.toFormData)
       } else c
     }
 

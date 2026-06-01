@@ -34,10 +34,7 @@ final class FormModelOptics(
 
   def clearModelComponentIds(
     modelComponentIds: List[ModelComponentId]
-  ): FormModelOptics = new FormModelOptics(
-    formModelRenderPageOptics,
-    formModelVisibilityOptics.cleared(modelComponentIds)
-  )
+  ): Unit = formModelVisibilityOptics.cleared(modelComponentIds)
 
   val dataLookup: Map[BaseComponentId, List[VariadicValue]] =
     formModelVisibilityOptics.data.all
