@@ -29,17 +29,16 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
-import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, FileSystemConnector, routes }
+import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, FileSystemConnector, PopulateAtlData, PopulateAtlService, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, ModelPageId }
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, ModelPageId }
 import uk.gov.hmrc.gform.models.optics.DataOrigin.{ Browser, Mongo }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
@@ -280,100 +279,6 @@ class FormProcessor(
     }
   }
 
-  private case class PopulateAtlData(fields: Seq[FormField], count: Int, baseIds: Set[BaseComponentId])
-
-  private def populateAtlWithFormData(
-    populateATL: PopulateATL,
-    formModelVisibilityOptics: FormModelVisibilityOptics[Browser],
-    authCacheWithForm: AuthCacheWithForm
-  )(implicit
-    messages: Messages,
-    langADT: LangADT,
-    hc: HeaderCarrier
-  ): (PopulateAtlData, FormModelVisibilityOptics[Browser]) = {
-    val seq = populateATL.mapping.toSeq
-
-    val fields = seq.map { case (atlComponentName, expr) =>
-      val bcId = BaseComponentId(atlComponentName)
-
-      val atlValues = expr match {
-        case DataRetrieveCtx(dataRetrieveId, attribute) =>
-          val dataRetrieveData =
-            formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve.get
-              .getOrElse(
-                dataRetrieveId,
-                throw new RuntimeException("Could not retrieve dataRetrieve data for populateATL")
-              )
-          dataRetrieveData.data match {
-            case RetrieveDataType.ObjectType(data) => Seq(data(attribute))
-            case RetrieveDataType.ListType(data)   => data.map(attrToValue => attrToValue(attribute))
-          }
-        case _ => throw new RuntimeException(s"$expr did not match for populateATL evaluation")
-      }
-
-      val atlId = FormComponentId("1_" + populateATL.id)
-      val addAnotherQuestionFormComponent = formModelVisibilityOptics.formModel.fcLookup(atlId)
-      val defaultPageBcs = formModelVisibilityOptics.formModel.addToListBrackets
-        .collectFirst { case atl if atl.source.id.formComponentId == FormComponentId(populateATL.id) => atl.source }
-        .getOrElse(throw new RuntimeException(s"Could not find an ATL with id ${populateATL.id}"))
-        .defaultPage
-        .toList
-        .flatMap(page => page.fields)
-        .map(_.id.baseComponentId)
-
-      val defaultPageFormFields = defaultPageBcs.map { bc =>
-        FormField(
-          ModelComponentId.pure(IndexedComponentId.indexed(bc, 1)),
-          ""
-        )
-      }
-
-      val addAnotherQuestionBaseComponentId = addAnotherQuestionFormComponent.baseComponentId
-
-      val atlsToPopulateCount = atlValues.length
-      val defaultAndAAQFormFields = (1 until atlsToPopulateCount).foldLeft(
-        defaultPageFormFields
-      ) { case (acc, i) =>
-        acc :+ FormField(
-          ModelComponentId.pure(IndexedComponentId.indexed(addAnotherQuestionBaseComponentId, i)),
-          "0"
-        )
-      }
-      (
-        defaultAndAAQFormFields ++ atlValues.zipWithIndex
-          .map { case (value, i) =>
-            FormField(
-              ModelComponentId.pure(IndexedComponentId.indexed(bcId, i + 1)),
-              value
-            )
-          },
-        atlsToPopulateCount,
-        Set(bcId, addAnotherQuestionBaseComponentId)
-      )
-
-    }
-
-    val populateAtlData = fields.foldLeft(PopulateAtlData(Seq(), 0, Set())) {
-      case (PopulateAtlData(accFields, accCount, seq), (fields, count, baseIds)) =>
-        PopulateAtlData(accFields ++ fields, accCount + count, baseIds ++ seq)
-    }
-
-    val updatedVariadicFormData = populateAtlData.fields
-      .foldLeft(formModelVisibilityOptics.recData.variadicFormData) { case (acc, field) =>
-        acc.addMany(field.id -> Seq(field.value))
-      }
-
-    val newVisOptics = FormModelOptics
-      .mkFormModelOptics[Browser, SectionSelectorType.Normal](
-        updatedVariadicFormData
-          .asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
-        authCacheWithForm
-      )
-      .formModelVisibilityOptics
-
-    populateAtlData -> newVisOptics
-  }
-
   private def retrieveWithState(
     dataRetrieve: DataRetrieve,
     visibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser],
@@ -403,11 +308,17 @@ class FormProcessor(
     maybeRetrieveResultF.map { r =>
       val visOptics = visibilityOptics.addDataRetrieveResults(r.toList)
       val populateAtlData = dataRetrieve.populateATL
-        .map(populateAtl => populateAtlWithFormData(populateAtl, visOptics, cache))
+        .map(populateAtl => PopulateAtlService.getPopulateAtlData(populateAtl, visOptics))
 
       val populateAtlVisOptics = populateAtlData match {
-        case Some(value) => value._2
-        case None        => visOptics
+        case Some(value) =>
+          FormModelOptics
+            .mkFormModelOptics[DataOrigin.Browser, SectionSelectorType.Normal](
+              value._2.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+              cache
+            )
+            .formModelVisibilityOptics
+        case None => visOptics
       }
 
       (r, populateAtlVisOptics, populateAtlData.map(_._1))
@@ -565,16 +476,8 @@ class FormProcessor(
               optics.removeDataRetrieveResults(List(drId)) -> (removeList :+ drId)
             else optics                                    -> removeList
           }
-        val populateAtlFields = populateAtlData.flatMap(_.fields)
-        val populateAtlFormData = FormData(populateAtlFields.toList)
-        val oldPopulateAtlFieldsToClean = populateAtlData.flatMap(_.baseIds).toSet
-        val oldDataWithoutPopulateAtl = oldPopulateAtlFieldsToClean.foldLeft(oldData) { case (acc, bcId) =>
-          acc.forBaseComponentId(bcId).foldLeft(acc) { case (acc, (mcId, value)) =>
-            acc.-(mcId)
-          }
-        }
 
-        val formDataU = oldDataWithoutPopulateAtl.toFormData ++ formData ++ populateAtlFormData
+        val formDataU = oldData.toFormData ++ formData
         val updatedThirdPartyData: ThirdPartyData = updatedCache.form.thirdPartyData
           .updateFrom(validatorsResult)
           .updateDataRetrieve(dataRetrieveResult)
@@ -597,57 +500,20 @@ class FormProcessor(
         val updatedVisitsIndex =
           checkForRevisits(pageModel, visitsIndex, formModelOptics, enteredVariadicFormData, sectionNumber)
 
-        val populateAtlDataWithTemplateIndex = populateAtlData.map { populateAtlData =>
-          val fm = updatedFormVisibilityOptics.formModel
-          populateAtlData -> populateAtlData.fields
-            .flatMap { case FormField(mcId, value) =>
-              fm.sectionNumberLookup.get(mcId.toFormComponentId).map(_.templateSectionIndex)
-            }
-            .headOption
-            .head
-        }
-
-        val visitedPopulateAtlPagesVisitsIndex =
-          populateAtlDataWithTemplateIndex.foldLeft(updatedVisitsIndex) { case (acc, (atlData, atlSection)) =>
-            val visitedDefault = {
-              if (atlData.fields.isDefinedAt(1)) { // index 0 will the default page
-                acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
-              } else {
-                acc
-              }
-            }
-            val fm = updatedFormVisibilityOptics.formModel
-            val numberOfAtlPages = fm.addToListSectionNumbers.count {
-              case classic: SectionNumber.Classic                     => classic.sectionIndex == atlSection
-              case SectionNumber.TaskList(coordinates, sectionNumber) => sectionNumber.sectionIndex == atlSection
-            }
-
-            (0 until numberOfAtlPages - 2) //-2 excludes default and add another question pages.
-              .foldLeft(visitedDefault) { case (acc, atlPageIndex) =>
-                (1 to atlData.count).foldLeft(acc) { case (acc, iterationNumber) =>
-                  acc
-                    .visit(SectionNumber.Classic.AddToListPage.Page(atlSection, iterationNumber, atlPageIndex))
-                    .visit(
-                      SectionNumber.Classic.AddToListPage
-                        .TerminalPage(atlSection, iterationNumber, TerminalPageKind.RepeaterPage)
-                    )
-                    .visit(
-                      SectionNumber.Classic.AddToListPage
-                        .TerminalPage(atlSection, iterationNumber, TerminalPageKind.CyaPage)
-                    )
-                }
-              }
-          }
-
         val cacheUpd =
-          cache.copy(
-            form = cache.form
-              .copy(
-                thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
-                formData = formDataU,
-                visitsIndex = visitedPopulateAtlPagesVisitsIndex,
-                taskIdTaskStatus = taskIdTaskStatusMapping
-              )
+          PopulateAtlService.updateCache(
+            cache.copy(
+              form = cache.form
+                .copy(
+                  thirdPartyData = updatedThirdPartyData.copy(obligations = processData.obligations),
+                  formData = formDataU,
+                  visitsIndex = updatedVisitsIndex,
+                  taskIdTaskStatus = taskIdTaskStatusMapping
+                )
+            ),
+            populateAtlData,
+            updatedFormVisibilityOptics,
+            updatedVisitsIndex
           )
 
         val newDataRaw = cacheUpd.variadicFormData[SectionSelectorType.Normal]

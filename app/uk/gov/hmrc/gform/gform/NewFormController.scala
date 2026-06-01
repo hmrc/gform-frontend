@@ -475,6 +475,36 @@ class NewFormController(
     )
   )
 
+//  private def populateAtlCache[U <: SectionSelectorType: SectionSelector](
+//    formModelVisibilityOptics: FormModelVisibilityOptics[_],
+//    cacheWithForm: AuthCacheWithForm
+//  )(implicit hc: HeaderCarrier, l: LangADT, messages: Messages) = {
+//    val populateAtls = formModelVisibilityOptics.formModel.dataRetrieveAll.lookup.values.collect {
+//      case dr if dr.populateATL.isDefined => dr.populateATL.get
+//    }
+//    val (populateAtlData, populateFormDataSeq) = populateAtls.map { populateAtl =>
+//      PopulateAtlService.getPopulateAtlData(populateAtl, formModelVisibilityOptics)
+//    }.unzip
+//
+//    val populateAtlFormData = populateFormDataSeq.foldLeft(VariadicFormData.empty[SourceOrigin.Current]) {
+//      case (acc, formData) => acc.++(formData)
+//    }
+//
+//    val populateAtlVisOptics = FormModelOptics
+//      .mkFormModelOptics[DataOrigin.Mongo, U](
+//        populateAtlFormData.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
+//        cacheWithForm
+//      )
+//      .formModelVisibilityOptics
+//
+//    PopulateAtlService.updateCache(
+//      cacheWithForm,
+//      populateAtlData.toList,
+//      populateAtlVisOptics,
+//      cacheWithForm.form.visitsIndex
+//    )
+//  }
+
   def newOrSignout(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>

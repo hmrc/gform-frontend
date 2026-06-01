@@ -667,7 +667,7 @@ case class AuthCacheWithoutForm(
     ThirdPartyData.empty,
     formTemplate
   )
-  def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]) =
+  def toAuthCacheWithForm(form: Form, accessCode: Option[AccessCode]): AuthCacheWithForm =
     AuthCacheWithForm(
       retrievals,
       dataRetrieve.fold(form) { dr =>

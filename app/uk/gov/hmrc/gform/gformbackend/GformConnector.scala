@@ -52,6 +52,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse }
 
+import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
@@ -557,7 +558,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaManageEmailsB.getEmptyIfNotFound(
     dataRetrieve,
     request,
-    request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
+    request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
   )
 
   /** **** Tax Period *****
