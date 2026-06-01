@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, FormComponentUpdater, PageU
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.recalculation.{ CacheBuster, DependencyGraph, EvaluationContext, EvaluationStatus, FreeCalculator, Metadata, MongoUserData, Recalculator }
+import uk.gov.hmrc.gform.recalculation.{ CacheBuster, EvaluationContext, EvaluationStatus, FreeCalculator, Metadata, MongoUserData, Recalculator }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
@@ -73,10 +73,10 @@ class FormModelBuilder(
     form: Form
   )(implicit lang: LangADT, messages: Messages): FormModelOptics = {
 
-    val (formModel, freeCalculator, graph): (FormModel, FreeCalculator, DependencyGraph) = fastModel(data, form, phase)
+    val (formModel, freeCalculator): (FormModel, FreeCalculator) = fastModel(data, form, phase)
 
     val formModelVisibilityOptics: FormModelVisibilityOptics =
-      buildFormModelVisibilityOptics(formModel, freeCalculator, graph)
+      buildFormModelVisibilityOptics(formModel, freeCalculator)
     val formModelRenderPageOptics = new FormModelRenderPageOptics(formModel)
 
     new FormModelOptics(formModelRenderPageOptics, formModelVisibilityOptics)
@@ -252,8 +252,7 @@ class FormModelBuilder(
 
   private def buildFormModelVisibilityOptics[U <: SectionSelectorType: SectionSelector](
     formModel: FormModel,
-    freeCalculator: FreeCalculator,
-    graph: DependencyGraph
+    freeCalculator: FreeCalculator
   )(implicit messages: Messages): FormModelVisibilityOptics = {
 
     val bracketsWithSectionNumbers = formModel.brackets.fold[Brackets] { classic =>
@@ -368,7 +367,7 @@ class FormModelBuilder(
     lang: LangADT,
     messages: Messages,
     sectionIncluder: SectionSelector[U]
-  ): (FormModel, FreeCalculator, DependencyGraph) = {
+  ): (FormModel, FreeCalculator) = {
     val mongoUserData = new MongoUserData(variadiFormData)
 
     val multiFilesData: Map[ModelComponentId, List[(FileComponentId, VariadicValue.One)]] =
@@ -407,7 +406,7 @@ class FormModelBuilder(
         cacheBuster
       )
 
-    val freeCalculator: FreeCalculator = recalculator.recalculate()
+    val freeCalculator: FreeCalculator = recalculator.mkFreeCalculator()
 
     // println(recalculator.graph.pretty())
 
@@ -532,6 +531,6 @@ class FormModelBuilder(
 
     val formModel = new FormModel(brackets)
 
-    (formModel, freeCalculator.withFormModelMetadata(formModel.metadata), recalculator.graph)
+    (formModel, freeCalculator.withFormModelMetadata(formModel.metadata))
   }
 }

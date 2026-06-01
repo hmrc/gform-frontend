@@ -444,21 +444,25 @@ class FormProcessor(
             else optics                                    -> removeList
           }
 
-        // These are fields typically defined like:
-        //    "value": "${someCalculation orElse 0}",
-        //    "presentationHint": "invisibleInSummary",
-        //    "submitMode": "summaryinfoonly"
-        // whose values needs to be recomputed on every data change.
-        val recalculatedDependencies = processData.formModelOptics.recalculateDependenciesWithValue()
-
-        val formDataU: FormData = oldData.toFormData ++ formData ++ recalculatedDependencies
-
         val updatedThirdPartyData: ThirdPartyData = updatedCache.form.thirdPartyData
           .updateFrom(validatorsResult)
           .updateDataRetrieve(dataRetrieveResult)
           .removeDataRetrieves(dataRetrievesToRemove)
           .updatePostcodeLookup(updatePostcodeLookup)
           .updateConfirmations(processData.confirmations)
+
+        // These are fields typically defined like:
+        //    "value": "${someCalculation orElse 0}",
+        //    "presentationHint": "invisibleInSummary",
+        //    "submitMode": "summaryinfoonly"
+        // whose values needs to be recomputed on every data change.
+        upToDateOptics.freeCalculator.updateThirdPartyData(updatedThirdPartyData) // Side effect !!!
+        val recalculatedDependencies =
+          upToDateOptics.freeCalculator.recalculateDependenciesWithValue(
+            processData.formModelOptics.formModelRenderPageOptics.allFormComponents
+          )
+
+        val formDataU: FormData = oldData.toFormData ++ formData ++ recalculatedDependencies
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {
