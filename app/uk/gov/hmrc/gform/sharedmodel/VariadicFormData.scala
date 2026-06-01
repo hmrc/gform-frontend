@@ -21,13 +21,12 @@ import cats.syntax.eq._
 import cats.syntax.foldable._
 import cats.{ Monoid, Show }
 import cats.syntax.show._
+import scala.collection.mutable
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.models.ids.IndexedComponentId
 import uk.gov.hmrc.gform.models.Atom
-
-import scala.collection.{ immutable, mutable }
 
 sealed trait VariadicValue extends Product with Serializable {
   def toSeq: Seq[String] = this match {
@@ -76,7 +75,7 @@ object VariadicValue {
   }
 }
 
-case class VariadicFormData(data: collection.Map[ModelComponentId, VariadicValue]) {
+case class VariadicFormData(data: mutable.Map[ModelComponentId, VariadicValue]) {
 
   def get(id: ModelComponentId): Option[VariadicValue] = data.get(id)
 
@@ -109,8 +108,8 @@ case class VariadicFormData(data: collection.Map[ModelComponentId, VariadicValue
             .get(modelComponentId)
             .map(modelComponentId -> _)
         }
-    val childrenData = formComponent.childrenFormComponents.foldMap(by)
-    VariadicFormData(dataList.toMap) ++ childrenData
+    val childrenData: VariadicFormData = formComponent.childrenFormComponents.foldMap(by)
+    VariadicFormData(mutable.Map(dataList: _*)) ++ childrenData
   }
 
   def forBaseComponentId(baseComponentId: BaseComponentId): List[(ModelComponentId, VariadicValue)] =
@@ -148,10 +147,9 @@ case class VariadicFormData(data: collection.Map[ModelComponentId, VariadicValue
   def keySet(): collection.Set[ModelComponentId] = data.keySet
 
   def ++(addend: VariadicFormData): VariadicFormData = VariadicFormData(data ++ addend.data)
-  def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData = fold { mutableMap =>
-    mutableMap.addOne(entry)
-  } { immutableMap =>
-    immutableMap + entry
+  def addValue(entry: (ModelComponentId, VariadicValue)): VariadicFormData = {
+    data.addOne(entry)
+    this
   }
   def addOne(entry: (ModelComponentId, String)): VariadicFormData =
     this addValue (entry._1 -> VariadicValue.One(entry._2))
@@ -162,21 +160,9 @@ case class VariadicFormData(data: collection.Map[ModelComponentId, VariadicValue
 
   def --(remove: VariadicFormData): VariadicFormData = --(remove.keySet())
 
-  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData =
-    fold { mutableMap =>
-      formComponents.iterator.foreach(x => mutableMap.remove(x))
-    } { immutableMap =>
-      immutableMap -- formComponents
-    }
-
-  private def fold(f: mutable.Map[ModelComponentId, VariadicValue] => Unit)(
-    g: immutable.Map[ModelComponentId, VariadicValue] => immutable.Map[ModelComponentId, VariadicValue]
-  ): VariadicFormData = data match {
-    case map: mutable.Map[ModelComponentId, VariadicValue] =>
-      f(map)
-      this
-    case map: immutable.Map[ModelComponentId, VariadicValue] => VariadicFormData(g(map))
-    case _                                                   => throw new RuntimeException("Unknown map type")
+  def --(formComponents: IterableOnce[ModelComponentId]): VariadicFormData = {
+    formComponents.iterator.foreach(x => data.remove(x))
+    this
   }
 
   def subset(ids: Set[ModelComponentId]): VariadicFormData =
@@ -228,19 +214,19 @@ case class VariadicFormData(data: collection.Map[ModelComponentId, VariadicValue
 }
 
 object VariadicFormData {
-  def empty: VariadicFormData = VariadicFormData(Map.empty)
+  def empty: VariadicFormData = VariadicFormData(mutable.Map.empty)
 
   def create(idAndValue: (ModelComponentId, VariadicValue)*): VariadicFormData =
-    VariadicFormData(idAndValue.toMap)
+    VariadicFormData(mutable.Map(idAndValue: _*))
 
   def one(formComponentId: ModelComponentId, value: String): VariadicFormData =
-    VariadicFormData(Map(formComponentId -> VariadicValue.One(value)))
+    VariadicFormData(mutable.Map(formComponentId -> VariadicValue.One(value)))
 
   def ones(idAndValue: (ModelComponentId, String)*): VariadicFormData =
     idAndValue.toList.foldMap { case (id, value) => one(id, value) }
 
   def many(formComponentId: ModelComponentId, value: Seq[String]): VariadicFormData =
-    VariadicFormData(Map(formComponentId -> VariadicValue.Many(value)))
+    VariadicFormData(mutable.Map(formComponentId -> VariadicValue.Many(value)))
 
   def manys(idAndValue: (ModelComponentId, Seq[String])*): VariadicFormData =
     idAndValue.toList.foldMap { case (id, value) => many(id, value) }
@@ -261,7 +247,7 @@ object VariadicFormData {
     data: Map[ModelComponentId, String]
   ): VariadicFormData =
     VariadicFormData(
-      data.map { case (id, s) =>
+      mutable.Map(data.toSeq: _*).map { case (id, s) =>
         if (multiValueIds(id.baseComponentId))
           (id, VariadicValue.Many(s.split(",").map(_.trim).filterNot(_.isEmpty).toSeq))
         else (id, VariadicValue.One(s))

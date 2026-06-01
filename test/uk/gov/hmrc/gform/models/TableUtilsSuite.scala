@@ -21,6 +21,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.http.HttpConfiguration
 import play.api.i18n._
+import scala.collection.mutable
 import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -104,7 +105,7 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
   ): FormModelOptics = {
     val section = mkSection(List(tableComponent))
     val formTemplate = mkFormTemplate(List(section))
-    val data = VariadicFormData(Map.empty)
+    val data = VariadicFormData(mutable.Map.empty)
     mkFormModelOptics(formTemplate, data, tpd)
   }
 

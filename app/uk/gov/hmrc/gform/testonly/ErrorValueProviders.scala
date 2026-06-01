@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.testonly
 
+import scala.collection.mutable
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
@@ -43,7 +44,7 @@ class TextWithTimeConstraintErrorProvider extends ErrorValueProvider {
   ): List[VariadicFormData] =
     rawValues.map { time =>
       VariadicFormData(
-        Map(fc.id.modelComponentId -> VariadicValue.One(time))
+        mutable.Map(fc.id.modelComponentId -> VariadicValue.One(time))
       )
     }
 }
@@ -121,13 +122,12 @@ class DateErrorProvider extends ErrorValueProvider {
 
     rawValues.map { case (dayValue, monthValue, yearValue) =>
       val (day, month, year) = atoms(fc.id)
-      VariadicFormData(
-        Map(
-          day   -> VariadicValue.One(dayValue),
-          month -> VariadicValue.One(monthValue),
-          year  -> VariadicValue.One(yearValue)
-        ) ++ otherFieldValues
-      )
+      val data = Map(
+        day   -> VariadicValue.One(dayValue),
+        month -> VariadicValue.One(monthValue),
+        year  -> VariadicValue.One(yearValue)
+      ) ++ otherFieldValues
+      VariadicFormData(mutable.Map(data.toSeq: _*))
     }
   }
 }

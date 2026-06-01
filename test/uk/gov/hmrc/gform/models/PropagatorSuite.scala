@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import munit.FunSuite
+import scala.collection.mutable
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Checkbox, Choice, FormComponent, FormComponentId, FormCtx, Horizontal, Mandatory, OptionData, OptionDataValue }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
@@ -32,14 +33,14 @@ class PropagatorSuite extends FunSuite {
 
     val newData: VariadicFormData =
       VariadicFormData(
-        Map(
+        mutable.Map(
           FormComponentId("cake").modelComponentId -> VariadicValue.One("new_value") // Data from POST request
         )
       )
 
     val oldData: VariadicFormData =
       VariadicFormData(
-        Map(
+        mutable.Map(
           FormComponentId("cake").modelComponentId   -> VariadicValue.One("old_value"),
           FormComponentId("forWho").modelComponentId -> VariadicValue.Many(List("cake_old_value"))
         )
@@ -47,7 +48,7 @@ class PropagatorSuite extends FunSuite {
 
     val expected: VariadicFormData =
       VariadicFormData(
-        Map(
+        mutable.Map(
           FormComponentId("cake").modelComponentId   -> VariadicValue.One("new_value"),
           FormComponentId("forWho").modelComponentId -> VariadicValue.Many(List("cake_new_value"))
         )
