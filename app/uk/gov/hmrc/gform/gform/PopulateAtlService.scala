@@ -138,13 +138,13 @@ object PopulateAtlService {
 
     val visitedPopulateAtlPagesVisitsIndex =
       populateAtlDataWithTemplateIndex.foldLeft(visitsIndex) { case (acc, (atlData, atlSection)) =>
-        val visitedDefault = {
-          if (atlData.fields.isDefinedAt(1)) { // index 0 will the default page
-            acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
-          } else {
-            acc
-          }
-        }
+//        val visitedDefault = {
+//          if (atlData.fields.isDefinedAt(1)) { // index 0 will be the default page
+//            acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
+//          } else {
+//            acc
+//          }
+//        }
         val fm = visOptics.formModel
         val numberOfAtlPages = fm.addToListSectionNumbers.count {
           case classic: SectionNumber.Classic                     => classic.sectionIndex == atlSection
@@ -152,7 +152,7 @@ object PopulateAtlService {
         }
 
         (0 until numberOfAtlPages - 2) //-2 excludes default and add another question pages.
-          .foldLeft(visitedDefault) { case (acc, atlPageIndex) =>
+          .foldLeft(VisitIndex.empty) { case (acc, atlPageIndex) =>
             (1 to atlData.count).foldLeft(acc) { case (acc, iterationNumber) =>
               acc
                 .visit(SectionNumber.Classic.AddToListPage.Page(atlSection, iterationNumber, atlPageIndex))
