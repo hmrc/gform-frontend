@@ -410,8 +410,7 @@ class FormProcessor(
   )(implicit hc: HeaderCarrier, l: LangADT, sse: SmartStringEvaluator, messages: Messages): Future[Result] = {
 
     val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-    val pageModel: PageModel =
-      formModelVisibilityOptics.formModel(sectionNumber)
+    val pageModel: PageModel = formModelVisibilityOptics.formModel(sectionNumber)
 
     val allDataRetrieves: List[(DataRetrieveId, DataRetrieve)] =
       DataRetrieveAll.from(processData.formModel, cache.formTemplateContext.formTemplate).lookup.toList
@@ -495,9 +494,9 @@ class FormProcessor(
         //    "presentationHint": "invisibleInSummary",
         //    "submitMode": "summaryinfoonly"
         // whose values needs to be recomputed on every data change.
-        upToDateOptics.freeCalculator.updateThirdPartyData(updatedThirdPartyData) // Side effect !!!
+        formModelVisibilityOptics.freeCalculator.updateThirdPartyData(updatedThirdPartyData) // Side effect !!!
         val recalculatedDependencies =
-          upToDateOptics.freeCalculator.recalculateDependenciesWithValue(
+          formModelVisibilityOptics.freeCalculator.recalculateDependenciesWithValue(
             processData.formModelOptics.formModelRenderPageOptics.allFormComponents
           )
 

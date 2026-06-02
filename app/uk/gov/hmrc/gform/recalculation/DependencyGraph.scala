@@ -278,14 +278,12 @@ class Recalculator(
   val metadata: Metadata,
   runtime: Runtime,
   val answerMap: AnswerMap,
-  var evaluationContext: EvaluationContext,
+  val evaluationContext: EvaluationContext,
   val cacheBuster: CacheBuster
 )(implicit messages: Messages) {
 
   def updateThirdPartyData(thirdPartyData: ThirdPartyData): Unit =
-    evaluationContext = evaluationContext.copy(
-      thirdPartyData = thirdPartyData
-    )
+    evaluationContext.thirdPartyData = thirdPartyData
 
   def markForRecalculation(modelComponentIds: List[ModelComponentId]): Unit =
     answerMap.markForRecalculation(modelComponentIds)
