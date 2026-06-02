@@ -211,8 +211,7 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
               nextFrom
                 .map { nextFrom =>
-                  val lastAtlSectionNumber = findLastATLSectionNumber(nextFrom)
-                  SectionOrSummary.Section(lastAtlSectionNumber)
+                  SectionOrSummary.Section(findLastATLSectionNumber(nextFrom))
                 }
                 .getOrElse(SectionOrSummary.FormSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>

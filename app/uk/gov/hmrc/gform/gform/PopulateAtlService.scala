@@ -21,12 +21,11 @@ import uk.gov.hmrc.gform.models.SectionSelector
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, FormComponentId, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ PopulateATL, RetrieveDataType, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
-case class PopulateAtlData(fields: Seq[FormField], count: Int, baseIds: Set[BaseComponentId])
+case class PopulateAtlData(fields: Seq[FormField], baseIds: Set[BaseComponentId])
 
 object PopulateAtlService {
   def getPopulateAtlData(
@@ -89,15 +88,14 @@ object PopulateAtlService {
               value
             )
           },
-        atlsToPopulateCount,
         Set(bcId, addAnotherQuestionBaseComponentId)
       )
 
     }
 
-    val populateAtlData = fields.foldLeft(PopulateAtlData(Seq(), 0, Set())) {
-      case (PopulateAtlData(accFields, accCount, seq), (fields, count, baseIds)) =>
-        PopulateAtlData(accFields ++ fields, accCount + count, baseIds ++ seq)
+    val populateAtlData = fields.foldLeft(PopulateAtlData(Seq(), Set())) {
+      case (PopulateAtlData(accFields, seq), (fields, baseIds)) =>
+        PopulateAtlData(accFields ++ fields, baseIds ++ seq)
     }
 
     val updatedVariadicFormData = populateAtlData.fields
@@ -128,7 +126,7 @@ object PopulateAtlService {
 
     val populateAtlDataWithTemplateIndex = populateAtlData.map { populateAtlData =>
       val fm = visOptics.formModel
-      populateAtlData -> populateAtlData.fields
+      populateAtlData.fields
         .flatMap { case FormField(mcId, value) =>
           fm.sectionNumberLookup.get(mcId.toFormComponentId).map(_.templateSectionIndex)
         }
@@ -137,35 +135,17 @@ object PopulateAtlService {
     }
 
     val visitedPopulateAtlPagesVisitsIndex =
-      populateAtlDataWithTemplateIndex.foldLeft(visitsIndex) { case (acc, (atlData, atlSection)) =>
-//        val visitedDefault = {
-//          if (atlData.fields.isDefinedAt(1)) { // index 0 will be the default page
-//            acc.visit(SectionNumber.Classic.AddToListPage.DefaultPage(atlSection))
-//          } else {
-//            acc
-//          }
-//        }
+      populateAtlDataWithTemplateIndex.foldLeft(visitsIndex) { case (acc, atlSection) =>
         val fm = visOptics.formModel
-        val numberOfAtlPages = fm.addToListSectionNumbers.count {
-          case classic: SectionNumber.Classic                     => classic.sectionIndex == atlSection
-          case SectionNumber.TaskList(coordinates, sectionNumber) => sectionNumber.sectionIndex == atlSection
-        }
-
-        (0 until numberOfAtlPages - 2) //-2 excludes default and add another question pages.
-          .foldLeft(visitsIndex) { case (acc, atlPageIndex) =>
-            (1 to atlData.count).foldLeft(acc) { case (acc, iterationNumber) =>
-              acc
-                .visit(SectionNumber.Classic.AddToListPage.Page(atlSection, iterationNumber, atlPageIndex))
-                .visit(
-                  SectionNumber.Classic.AddToListPage
-                    .TerminalPage(atlSection, iterationNumber, TerminalPageKind.RepeaterPage)
-                )
-                .visit(
-                  SectionNumber.Classic.AddToListPage
-                    .TerminalPage(atlSection, iterationNumber, TerminalPageKind.CyaPage)
-                )
-            }
+        fm.addToListSectionNumbers.foldLeft(acc) { case (visitIndexAcc, sectionNumber) =>
+          sectionNumber match {
+            case classic: SectionNumber.Classic if classic.sectionIndex == atlSection =>
+              visitIndexAcc.visit(classic)
+            case SectionNumber.TaskList(coordinates, classic) if classic.sectionIndex == atlSection =>
+              visitIndexAcc.visit(classic)
+            case _ => visitIndexAcc
           }
+        }
       }
 
     authCacheWithForm.copy(
