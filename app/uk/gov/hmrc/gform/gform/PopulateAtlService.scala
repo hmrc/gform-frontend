@@ -52,10 +52,10 @@ object PopulateAtlService {
         case _ => throw new RuntimeException(s"$expr did not match for populateATL evaluation")
       }
 
-      val atlId = FormComponentId("1_" + populateATL.id)
+      val atlId = FormComponentId("1_" + populateATL.id.formComponentId.value)
       val addAnotherQuestionFormComponent = formModelVisibilityOptics.formModel.fcLookup(atlId)
       val defaultPageBcs = formModelVisibilityOptics.formModel.addToListBrackets
-        .collectFirst { case atl if atl.source.id.formComponentId == FormComponentId(populateATL.id) => atl.source }
+        .collectFirst { case atl if atl.source.id.formComponentId == populateATL.id.formComponentId => atl.source }
         .getOrElse(throw new RuntimeException(s"Could not find an ATL with id ${populateATL.id}"))
         .defaultPage
         .toList

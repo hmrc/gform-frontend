@@ -25,5 +25,4 @@ case class AddToListId(formComponentId: FormComponentId)
 object AddToListId {
   implicit val format: OFormat[AddToListId] = derived.oformat()
   implicit val equal: Eq[AddToListId] = Eq.fromUniversalEquals
-
 }
