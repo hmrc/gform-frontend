@@ -152,7 +152,7 @@ object PopulateAtlService {
         }
 
         (0 until numberOfAtlPages - 2) //-2 excludes default and add another question pages.
-          .foldLeft(VisitIndex.empty) { case (acc, atlPageIndex) =>
+          .foldLeft(visitsIndex) { case (acc, atlPageIndex) =>
             (1 to atlData.count).foldLeft(acc) { case (acc, iterationNumber) =>
               acc
                 .visit(SectionNumber.Classic.AddToListPage.Page(atlSection, iterationNumber, atlPageIndex))

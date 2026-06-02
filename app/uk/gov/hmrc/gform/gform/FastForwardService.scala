@@ -224,14 +224,15 @@ class FastForwardService(
     sse: SmartStringEvaluator
   ): Future[Result] =
     for {
-      maybeSn <- handler.handleFastForwardValidate(
-                   processData,
-                   cache.toCacheData,
-                   envelope,
-                   validationService.validatePageModel,
-                   fastForward,
-                   maybeSectionNumber
-                 )
+      maybeSn <- handler
+                   .handleFastForwardValidate(
+                     processData,
+                     cache.toCacheData,
+                     envelope,
+                     validationService.validatePageModel,
+                     fastForward,
+                     maybeSectionNumber
+                   )
 
       formStatus = maybeSn match {
                      case SectionOrSummary.Section(_) => cache.form.deleteBlockedOrInProgress()

@@ -209,7 +209,12 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (None, SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)
             case (Some(yesTo), _, Some(sn)) if yesTo <= sn  => SectionOrSummary.Section(yesTo)
             case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
-              nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.FormSummary)
+              nextFrom
+                .map { nextFrom =>
+                  val lastAtlSectionNumber = findLastATLSectionNumber(nextFrom)
+                  SectionOrSummary.Section(lastAtlSectionNumber)
+                }
+                .getOrElse(SectionOrSummary.FormSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>
               nextFrom.map(SectionOrSummary.Section(_)).getOrElse(SectionOrSummary.TaskSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) => SectionOrSummary.Section(cyaTo)

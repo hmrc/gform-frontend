@@ -524,7 +524,9 @@ class FormProcessor(
                                 cacheUpd,
                                 gformConnector.getAllTaxPeriods,
                                 NoSpecificAction,
-                                formModelOptics
+                                formModelOptics.copy(formModelVisibilityOptics =
+                                  updatedFormVisibilityOptics.asInstanceOf[FormModelVisibilityOptics[Mongo]]
+                                )
                               )
           res <-
             fastForwardService
