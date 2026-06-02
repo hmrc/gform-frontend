@@ -38,7 +38,7 @@ final case class EvaluationContext(
   maybeAccessCode: Option[AccessCode],
   authConfig: AuthConfig,
   retrievals: MaterialisedRetrievals,
-  thirdPartyData: ThirdPartyData,
+  var thirdPartyData: ThirdPartyData,
   taskIdTaskStatus: TaskIdTaskStatusMapping,
   formStartDate: LocalDate,
   lookupRegistry: LookupRegistry,

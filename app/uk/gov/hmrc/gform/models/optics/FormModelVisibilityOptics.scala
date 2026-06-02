@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.FormModel
 import uk.gov.hmrc.gform.recalculation.{ EvaluationStatus, FreeCalculator }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 
 final class FormModelVisibilityOptics(
   val formModel: FormModel,
@@ -122,19 +122,5 @@ final class FormModelVisibilityOptics(
       modelComponentIds.toSet.flatMap(freeCalculator.variadicFormData.get)
 
     }
-  }
-
-  // TODO implement this as side effect
-  def addDataRetrieveResults(dataRetrieveResults: List[DataRetrieveResult]): FormModelVisibilityOptics = {
-    val thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.updateDataRetrieve(dataRetrieveResults)
-    freeCalculator.updateThirdPartyData(thirdPartyData)
-    this
-  }
-
-  // TODO implement this as side effect
-  def removeDataRetrieveResults(dataRetrieves: List[DataRetrieveId]): FormModelVisibilityOptics = {
-    val thirdPartyData = freeCalculator.evaluationContext.thirdPartyData.removeDataRetrieves(dataRetrieves)
-    freeCalculator.updateThirdPartyData(thirdPartyData)
-    this
   }
 }
