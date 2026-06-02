@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, FormComponentId, IncludeIf, JsonUtils }
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
@@ -103,7 +103,7 @@ object DataRetrieveId {
 
 case class PopulateATL(
   id: AddToListId,
-  mapping: Map[String, Expr]
+  mapping: Map[FormComponentId, Expr]
 )
 
 object PopulateATL {

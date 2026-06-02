@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.models.SectionSelector
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, VisitIndex }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, FormComponentId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ PopulateATL, RetrieveDataType, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -35,7 +35,7 @@ object PopulateAtlService {
     val seq = populateATL.mapping.toSeq
 
     val fields = seq.map { case (atlComponentName, expr) =>
-      val bcId = BaseComponentId(atlComponentName)
+      val bcId = atlComponentName.baseComponentId
 
       val atlValues = expr match {
         case DataRetrieveCtx(dataRetrieveId, attribute) =>
@@ -52,7 +52,7 @@ object PopulateAtlService {
         case _ => throw new RuntimeException(s"$expr did not match for populateATL evaluation")
       }
 
-      val atlId = FormComponentId("1_" + populateATL.id.formComponentId.value)
+      val atlId = populateATL.id.formComponentId.withIndex(1)
       val addAnotherQuestionFormComponent = formModelVisibilityOptics.formModel.fcLookup(atlId)
       val defaultPageBcs = formModelVisibilityOptics.formModel.addToListBrackets
         .collectFirst { case atl if atl.source.id.formComponentId == populateATL.id.formComponentId => atl.source }
