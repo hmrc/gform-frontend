@@ -674,7 +674,7 @@ class FormController(
                   formModelOptics,
                   enteredVariadicFormData,
                   true
-                ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn => updatedFormVisibilityOptics =>
+                ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn => updatedFormOptics =>
                   def processRemoveItemIf() = {
                     val formModel = formModelOptics.formModelRenderPageOptics.formModel
                     val bracket = formModel.bracket(sectionNumber)
@@ -744,14 +744,15 @@ class FormController(
                           logger.info(
                             s"envelope id: ${cache.form.envelopeId.value}, form id: ${cache.form._id.value}, user-agent: ${request.headers.get("User-Agent").getOrElse("")}"
                           )
+
+                          val formModel = updatedFormOptics.formModelRenderPageOptics.formModel
+
                           val sectionTitle4Ga =
                             formProcessor.getSectionTitle4Ga(
-                              updatedFormVisibilityOptics,
-                              updatedFormVisibilityOptics.formModel.asInstanceOf[FormModel[DataExpanded]],
+                              updatedFormOptics,
                               sn
                             )
 
-                          val formModel = formModelOptics.formModelRenderPageOptics.formModel
                           val bracket = formModel.bracket(sectionNumber)
 
                           val isLastBracketIteration = bracket match {
