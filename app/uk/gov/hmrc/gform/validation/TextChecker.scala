@@ -163,6 +163,8 @@ object TextChecker {
   private def textData(
     formModelVisibilityOptics: FormModelVisibilityOptics,
     fieldValue: FormComponent
+  )(implicit
+    messages: Messages
   ): Option[String] =
     formModelVisibilityOptics
       .textResult(fieldValue.modelComponentId)

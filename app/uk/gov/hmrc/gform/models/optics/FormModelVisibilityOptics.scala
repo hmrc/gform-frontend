@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models.optics
 
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.{ ExprType, ExpressionResultWithTypeInfo, StaticTypeData, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.FormModel
@@ -80,13 +81,14 @@ final class FormModelVisibilityOptics(
   def evalRemoveItemIf(removeItemIf: RemoveItemIf): Boolean =
     freeCalculator.evalRemoveItemIf(removeItemIf)
 
-  def textResult(modelComponentId: ModelComponentId): Option[String] =
+  def textResult(modelComponentId: ModelComponentId)(implicit messages: Messages): Option[String] =
     // This handles fields like:
     //   "value": "${auth.ctutr}",
     //   "submitMode": "summaryinfoonly"
     freeCalculator.answerMapWithFallback.toStringResultOrOptionResult(modelComponentId) match {
       case EvaluationStatus.StringResult(value) => Some(value)
       case EvaluationStatus.NumberResult(value) => Some(value.toString)
+      case dr: EvaluationStatus.DateResult      => Some(dr.asString)
       case _                                    => None
     }
 
