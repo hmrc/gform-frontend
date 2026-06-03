@@ -33,7 +33,8 @@ case class SummarySection(
   includeIf: Option[IncludeIf],
   pdf: Option[PdfCxt],
   excludeFromPdf: Option[List[FormComponentId]],
-  hideDefaultRows: Option[Boolean]
+  hideDefaultRows: Option[Boolean],
+  includePrintPageButton: Option[Boolean]
 ) {
   def toPage: Page[Basic] =
     Page(

@@ -482,15 +482,19 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
     organisationB.post(dataRetrieve, request)
 
-  private val desAgentDetailsWithPlaceholders = s"$baseUrl/des/personal-details/arn/{{agentReferenceNumber}}"
-  private val agentDetailsB =
-    new DataRetrieveConnectorBlueprint(httpClient, desAgentDetailsWithPlaceholders, "personal-details")
+  private val hipAgentDetailsWithPlaceholders = s"$baseUrl/hip/agent-details/{{agentReferenceNumber}}"
+  private val hipAgentDetailsB =
+    new DataRetrieveConnectorBlueprint(httpClient, hipAgentDetailsWithPlaceholders, "hip-agent-details")
 
-  def getDesAgentDetails(
+  def getHipAgentDetails(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    agentDetailsB.get(dataRetrieve, request)
+    hipAgentDetailsB.get(
+      dataRetrieve,
+      request,
+      request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
+    )
 
   private val urlNiClaimValidation = s"$baseUrl/hip/ni-claim-validation/{{nino}}/{{claimReference}}"
   private val claimValidationB =

@@ -47,7 +47,7 @@ import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive, PegaCaseflow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Caseflow, DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
@@ -348,7 +348,7 @@ class TestOnlyController(
     )
 
     val startingLinks =
-      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive, PegaCaseflow, DataLakehouse).map(
+      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive, Caseflow, DataLakehouse).map(
         createDownloadContent(_, None)
       )
 
