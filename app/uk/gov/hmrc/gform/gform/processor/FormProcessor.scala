@@ -569,7 +569,10 @@ class FormProcessor(
     val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(englishMessages)
 
     val sse: SmartStringEvaluator =
-      smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelOptics.formModelVisibilityOptics))(messages, LangADT.En)
+      smartStringEvaluatorFactory(DataOrigin.swapDataOrigin(formModelOptics.formModelVisibilityOptics))(
+        messages,
+        LangADT.En
+      )
     sectionTitle4GaFactory(formModelOptics.formModelRenderPageOptics.formModel(sectionNumber), sectionNumber)(sse)
   }
 
