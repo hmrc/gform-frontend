@@ -426,8 +426,11 @@ class FormModelBuilder(
           )
         case IndexedSection.SectionIndex(s: Section.RepeatingPage, index) =>
           freeCalculator.evalExpr(s.repeats).evaluationStatus match {
-            case EvaluationStatus.NumberResult(repeats) =>
-              val repeatingPages = (1 to repeats.toInt).map { iterationIndex =>
+            case EvaluationStatus.NumberResult(repeatsCandidate) =>
+              // Repeated section must be limited since repeatsMax expression has not been validated at this point
+              val repeats = Math.min(repeatsCandidate.toInt, 99)
+
+              val repeatingPages = (1 to repeats).map { iterationIndex =>
                 val pageUpdated = PageUpdater(s.page, iterationIndex, s.allIds, s.page.allDataRetriveIds)
                 SingletonWithNumber(
                   Singleton(pageUpdated),
