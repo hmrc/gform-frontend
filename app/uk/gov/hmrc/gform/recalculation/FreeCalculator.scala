@@ -62,7 +62,8 @@ final class FreeCalculator(
   def recalculateDependenciesWithValue(formComponents: List[FormComponent])(implicit messages: Messages): FormData = {
 
     val fcToRecalculate: List[(FormComponent, Expr)] = formComponents.collect {
-      case fc @ HasValueExpr(expr) if !fc.editable => fc -> expr
+      case fc @ HasValueExpr(expr) if !fc.editable && variadicFormData.get(fc.id.modelComponentId).isDefined =>
+        fc -> expr
     }
 
     val modelComponentIds: List[ModelComponentId] = fcToRecalculate.map { case (fc, _) => fc.id.modelComponentId }
