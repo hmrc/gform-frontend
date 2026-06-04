@@ -261,6 +261,13 @@ button.defaultsink {
     text-decoration: none;
 }
 
+.gform-print-only {
+    display: none;
+}
+.gform-screen-only {
+    display: block;
+}
+
 @media print {
     * {
         color: #000!important;
@@ -268,6 +275,12 @@ button.defaultsink {
         -webkit-print-color-adjust: exact!important;   /* Chrome, Safari 6 – 15.3, Edge */
         color-adjust: exact!important;                 /* Firefox 48 – 96 */
         print-color-adjust: exact!important;
+    }
+    .gform-print-only {
+        display: block!important;
+    }
+    .gform-screen-only {
+        display: none!important;
     }
     .govuk-grid-column-two-thirds,
     .govuk-grid-column-three-quarters{

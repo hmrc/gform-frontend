@@ -20,7 +20,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gform.{ HasErrors, SummaryPagePurpose }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, LayoutDisplayWidth, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Coordinates, FormTemplate, LayoutDisplayWidth, PdfCxt, SectionNumber }
 
 final case class ExtraInfoSummary(
   formTemplate: FormTemplate,
@@ -42,5 +42,6 @@ final case class ExtraInfoSummary(
   maybeCoordinates: Option[Coordinates],
   taskCompleted: Option[Boolean],
   hideDefaultRows: Boolean,
-  includePrintPageButton: Boolean
+  includePrintPageButton: Boolean,
+  maybePdf: Option[PdfCxt]
 )

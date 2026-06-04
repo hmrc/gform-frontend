@@ -20,13 +20,29 @@
 @(
     heading: String,
     caption: Option[String],
+    maybeHeadingClasses: Option[String] = None,
+    maybeCaptionClasses: Option[String] = None
 )
 
 @hmrcPageHeading = @{new HmrcPageHeading()}
 
+@headingClasses = @{
+    maybeHeadingClasses match {
+        case Some(classes) => "govuk-heading-l " + classes
+        case None => "govuk-heading-l"
+    }
+}
+
+@captionClasses = @{
+    maybeCaptionClasses match {
+        case Some(classes) => "govuk-caption-l " + classes
+        case None => "govuk-caption-l"
+    }
+}
+
 @hmrcPageHeading(PageHeading(
     text = heading,
-    headingClasses = Some("govuk-heading-l"),
+    headingClasses = Some(headingClasses),
     section = caption,
-    captionClasses = Some("govuk-caption-l")
+    captionClasses = Some(captionClasses)
 ))

@@ -19,11 +19,13 @@
 @import uk.gov.hmrc.gform.summary.SummaryRenderingService
 @import uk.gov.hmrc.gform.summary.ExtraInfoSummary
 @import uk.gov.hmrc.gform.views.html.{page_heading, main_template}
-@import uk.gov.hmrc.gform.views.html.summary.{ FullMainContent, ThreeQuartersMainContent }
+@import uk.gov.hmrc.gform.views.html.summary.snippets.signature_section
+@import uk.gov.hmrc.gform.views.html.summary.FullMainContent
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 
 @(
     extraInfoSummary: ExtraInfoSummary,
@@ -35,14 +37,17 @@
         .govuk-summary-list__actions {
             display: none!important;
         }
+        .signature-date-field {
+            width:25px;
+            height:35px;
+            border:0.5px solid #000;
+        }
     }
 </style>
 
 @import extraInfoSummary._
 
-@twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
-@threeQuartersMainContent = @{new ThreeQuartersMainContent}
 @globalGovukNotificationBanner = @{new GovukNotificationBanner()}
 
 @mainContent = @{
@@ -66,9 +71,30 @@
     @printPageButton("printButtonTop")
 
     @mainContent {
+        @maybePdf.map { pdf =>
+            @pdf.header.map { hdr =>
+                <div class="govuk-body">@markDownParser(hdr)</div>
+            }
+        }
+
         @snippets
-        <br/>
+        <div class="govuk-body govuk-!-margin-bottom-8">
+            @summaryDeclaration
+        </div>
+        @maybePdf.map { pdf =>
+            @pdf.footer.map { ftr =>
+                <div class="govuk-body govuk-!-margin-bottom-8">@markDownParser(ftr)</div>
+            }
+        }
+
         @{SummaryRenderingService.submissionDetailsAsHTML(maybeSubmissionDetails)}
+
+        @maybePdf.map { pdf =>
+            @if(pdf.includeSignatureBox.contains(true)) {
+                <div class="govuk-body govuk-!-margin-bottom-8">@signature_section()</div>
+            }
+        }
+
     }
 
     @printPageButton("printButtonBottom")
