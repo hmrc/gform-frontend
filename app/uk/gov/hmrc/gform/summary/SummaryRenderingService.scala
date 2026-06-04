@@ -49,6 +49,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.gform.views.xml.summary.pdf._
 import uk.gov.hmrc.gform.pdf.model.PDFModel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper
 import uk.gov.hmrc.gform.views.summary.pdf.PdfHelper
 
@@ -315,6 +316,11 @@ object SummaryRenderingService {
         summarySection.keyDisplayWidth
       )
 
+    val maybePdfCtx: Option[PdfCxt] = formTemplate.destinations match {
+      case d: DestinationList if maybeSubmissionDetails.isDefined => d.acknowledgementSection.pdf
+      case _                                                      => summarySection.pdf
+    }
+
     val summaryInfo = ExtraInfoSummary(
       formTemplate,
       sfr,
@@ -340,7 +346,7 @@ object SummaryRenderingService {
       taskCompleted,
       summarySection.hideDefaultRows.getOrElse(false),
       includePrintPageButton,
-      summarySection.pdf
+      maybePdfCtx
     )
 
     if (maybeSubmissionDetails.isDefined) {
