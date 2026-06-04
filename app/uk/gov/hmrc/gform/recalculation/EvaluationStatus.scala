@@ -59,7 +59,12 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case Hidden          => false :: Nil
     case Empty           => false :: Nil
     case t: NumberResult => that.ifNumberResult(t.value > _) :: Nil
-    case t: StringResult => that.ifStringResult(t.value > _) :: Nil
+    case t: StringResult =>
+      (that match {
+        case NumberResult(nr) => toBigDecimalSafe(t.value).map(_ > nr).getOrElse(false)
+        case StringResult(sr) => t.value > sr
+        case _                => false
+      }) :: Nil
     case t: OptionResult =>
       (that.ifOptionResult(t.value.min > _.min) ||
         that.ifNumberResult { numberResult =>
@@ -82,7 +87,12 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case Hidden          => false :: Nil
     case Empty           => false :: Nil
     case t: NumberResult => that.ifNumberResult(t.value < _) :: Nil
-    case t: StringResult => that.ifStringResult(t.value < _) :: Nil
+    case t: StringResult =>
+      (that match {
+        case NumberResult(nr) => toBigDecimalSafe(t.value).map(_ < nr).getOrElse(false)
+        case StringResult(sr) => t.value < sr
+        case _                => false
+      }) :: Nil
     case t: OptionResult =>
       (that.ifOptionResult(t.value.min < _.min) ||
         that.ifNumberResult { numberResult =>
@@ -104,7 +114,12 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case Hidden          => false :: Nil
     case Empty           => false :: Nil
     case t: NumberResult => that.ifNumberResult(t.value <= _) :: Nil
-    case t: StringResult => that.ifStringResult(t.value <= _) :: Nil
+    case t: StringResult =>
+      (that match {
+        case NumberResult(nr) => toBigDecimalSafe(t.value).map(_ <= nr).getOrElse(false)
+        case StringResult(sr) => t.value <= sr
+        case _                => false
+      }) :: Nil
     case t: OptionResult =>
       (that.ifOptionResult(t.value.min <= _.min) ||
         that.ifNumberResult { numberResult =>
@@ -126,7 +141,13 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case Hidden          => false :: Nil
     case Empty           => false :: Nil
     case t: NumberResult => that.ifNumberResult(t.value >= _) :: Nil
-    case t: StringResult => that.ifStringResult(t.value >= _) :: Nil
+    case t: StringResult =>
+      (that match {
+        case NumberResult(nr) => toBigDecimalSafe(t.value).map(_ >= nr).getOrElse(false)
+        case StringResult(sr) => t.value >= sr
+        case _                => false
+      }) :: Nil
+
     case t: OptionResult =>
       (that.ifOptionResult(t.value.min >= _.min) ||
         that.ifNumberResult { numberResult =>
@@ -454,9 +475,9 @@ sealed trait EvaluationStatus extends Product with Serializable {
     )(_ => false)(_.lines.isEmpty)(_ => false)
 
   private def ifNumberResult(f: BigDecimal => Boolean): Boolean =
-    fold[Boolean](_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)(
-      _ => false
-    )(_ => false)
+    fold[Boolean](_ => false)(_ => false)(r => f(r.value))(r => toBigDecimalSafe(r.value).map(f).getOrElse(false))(_ =>
+      false
+    )(_ => false)(_ => false)(_ => false)(_ => false)(_ => false)
 
   private def ifStringResult(f: String => Boolean): Boolean =
     fold[Boolean](_ => false)(_ => false)(_ => false)(r => f(r.value))(_ => false)(_ => false)(_ => false)(_ => false)(
