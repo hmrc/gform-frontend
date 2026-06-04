@@ -55,7 +55,8 @@
       }
     },
     "displayWidth": "M",
-    "keyDisplayWidth": "S"
+    "keyDisplayWidth": "S",
+    "includePrintPageButton": false
   },
   "formKind": {
     "Classic": {
