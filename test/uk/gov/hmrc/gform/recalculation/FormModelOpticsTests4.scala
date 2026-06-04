@@ -30,6 +30,50 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+        "activeDays" -> One("7")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "activeDays"           -> NumberResult(7),
+        "greaterThanA"         -> Empty,
+        "greaterThanB"         -> Empty,
+        "greaterThanOrEqualsA" -> Empty,
+        "greaterThanOrEqualsB" -> Empty,
+        "lessThanA"            -> Empty,
+        "lessThanB"            -> Hidden,
+        "lessThanOrEqualsA"    -> Empty,
+        "lessThanOrEqualsB"    -> Hidden
+      ),
+      List.empty[String],
+      "comparison-string-and-number.json 7 active days"
+    ),
+    (
+      MongoUserData(
+        "activeDays" -> One("12")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "activeDays"           -> NumberResult(12),
+        "greaterThanA"         -> Empty,
+        "greaterThanB"         -> Hidden,
+        "greaterThanOrEqualsA" -> Empty,
+        "greaterThanOrEqualsB" -> Hidden,
+        "lessThanA"            -> Hidden,
+        "lessThanB"            -> Empty,
+        "lessThanOrEqualsA"    -> Hidden,
+        "lessThanOrEqualsB"    -> Empty
+      ),
+      List.empty[String],
+      "comparison-string-and-number.json 12 active days"
+    ),
+    (
+      MongoUserData(
         "1_addAnotherProperty" -> Many(List("0")),
         "1_documentUpload"     -> One("1"),
         "1_welcome"            -> One(""),
