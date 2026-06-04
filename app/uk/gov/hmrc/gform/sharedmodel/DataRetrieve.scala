@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, FormComponentId, IncludeIf, JsonUtils }
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
@@ -101,6 +101,15 @@ object DataRetrieveId {
     JsonUtils.valueClassFormat[DataRetrieveId, String](DataRetrieveId.apply, _.value)
 }
 
+case class PopulateATL(
+  id: AddToListId,
+  mapping: Map[FormComponentId, Expr]
+)
+
+object PopulateATL {
+  implicit val format: Format[PopulateATL] = Json.format
+}
+
 case class DataRetrieve(
   tpe: DataRetrieve.Type,
   id: DataRetrieveId,
@@ -110,7 +119,8 @@ case class DataRetrieve(
   `if`: Option[IncludeIf],
   maxFailedAttempts: Option[Int],
   failureCountResetMinutes: Option[Int],
-  callOnNoChange: Boolean
+  callOnNoChange: Boolean,
+  populateATL: Option[PopulateATL]
 ) {
 
   def prepareRequest(

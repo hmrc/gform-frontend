@@ -119,7 +119,8 @@ class CompanyInformationConnectorSpec
       None,
       None,
       None,
-      false
+      false,
+      None
     )
 
     val dataRetrieveCompanyHouseActiveOfficers = DataRetrieve(
@@ -150,7 +151,8 @@ class CompanyInformationConnectorSpec
       None,
       None,
       None,
-      false
+      false,
+      None
     )
 
     val dataRetrieveCompanyHouseInsolvency =
@@ -235,7 +237,8 @@ class CompanyInformationConnectorSpec
         None,
         None,
         None,
-        false
+        false,
+        None
       )
 
     val request = DataRetrieve.Request(
