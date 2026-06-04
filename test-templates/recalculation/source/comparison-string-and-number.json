@@ -1,0 +1,92 @@
+{
+  "_id": "comparison-string-and-number",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Active days",
+      "fields": [
+        {
+          "id": "activeDays",
+          "type": "text",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "greaterThanA",
+          "label": "activeDays > 5",
+          "includeIf": "${user.affinityGroup != 'agent' && activeDays > 5}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "greaterThanB",
+          "label": "10 > activeDays",
+          "includeIf": "${user.affinityGroup != 'agent' && 10 > activeDays}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "lessThanA",
+          "label": "activeDays < 10",
+          "includeIf": "${user.affinityGroup != 'agent' && activeDays < 10}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "lessThanB",
+          "label": "10 < activeDays",
+          "includeIf": "${user.affinityGroup != 'agent' && 10 < activeDays}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "greaterThanOrEqualsA",
+          "label": "activeDays >= 5",
+          "includeIf": "${user.affinityGroup != 'agent' && activeDays >= 5}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "greaterThanOrEqualsB",
+          "label": "10 >= activeDays",
+          "includeIf": "${user.affinityGroup != 'agent' && 10 >= activeDays}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "lessThanOrEqualsA",
+          "label": "activeDays <= 10",
+          "includeIf": "${user.affinityGroup != 'agent' && activeDays <= 10}",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "lessThanOrEqualsB",
+          "label": "10 <= activeDays",
+          "includeIf": "${user.affinityGroup != 'agent' && 10 <= activeDays}",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
