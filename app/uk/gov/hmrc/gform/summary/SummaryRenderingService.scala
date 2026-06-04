@@ -339,7 +339,8 @@ object SummaryRenderingService {
       maybeCoordinates,
       taskCompleted,
       summarySection.hideDefaultRows.getOrElse(false),
-      includePrintPageButton
+      includePrintPageButton,
+      summarySection.pdf
     )
 
     if (maybeSubmissionDetails.isDefined) {
@@ -410,7 +411,8 @@ object SummaryRenderingService {
         None,
         None,
         hideDefaultRows = false,
-        false
+        false,
+        formTemplate.summarySection.pdf
       )
     )
   }

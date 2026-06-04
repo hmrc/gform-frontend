@@ -28,6 +28,7 @@
 @import uk.gov.hmrc.gform.FormTemplateKey
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+@import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 
 @(
     extraInfoSummary: ExtraInfoSummary
@@ -72,6 +73,20 @@
   }
 }
 
+@draftText = @{
+    formTemplate.formCategory match {
+        case HMRCReturnForm => Messages("summary.pdf.formCategory.return")
+        case HMRCClaimForm  => Messages("summary.pdf.formCategory.claim")
+        case _              => Messages("summary.pdf.formCategory.form")
+    }
+}
+
+@formHeaderClass = @{
+    maybePdf.fold("") { pdf =>
+        if (pdf.header.isDefined) "gform-screen-only" else ""
+    }
+}
+
 @main_template(
   title = extraInfoSummary.title,
   formTemplate = formTemplate,
@@ -87,12 +102,22 @@
     @extraInfoSummary.pageLevelError.render
 
     @twoThirdsMainContent {
-        @page_heading(title, caption)
+        @page_heading(title, caption, Some("gform-screen-only"), Some("gform-screen-only"))
         @if(includePrintPageButton) {
             @printPageButton("printButton")
         }
+
+        <h1 class="govuk-heading-l govuk-!-margin-bottom-8 gform-print-only">@formTemplate.formName.value</h1>
+
+        <h3 class="govuk-heading-m govuk-!-margin-bottom-8 gform-print-only">@draftText</h3>
+
         @if(header.body.nonEmpty) {
-            <div class="govuk-body">@header</div>
+            <div class="govuk-body @formHeaderClass">@header</div>
+        }
+        @maybePdf.map { pdf =>
+            @pdf.header.map { hdr =>
+                <div class="govuk-body gform-print-only">@markDownParser(hdr)</div>
+            }
         }
     }
 
@@ -109,12 +134,18 @@
         }
 
         @twoThirdsMainContent {
-            <div class="govuk-body">
+            <div class="govuk-body gform-screen-only">
                 @summaryDeclaration
             </div>
-            <div class="govuk-body">
+            <div class="govuk-body gform-screen-only">
                 @footer
             </div>
+            @maybePdf.map { pdf =>
+                @pdf.footer.map { ftr =>
+                    <div class="govuk-body gform-print-only">@markDownParser(ftr)</div>
+                }
+            }
+
             <div class="govuk-button-group govuk-!-margin-bottom-8 govuk-!-display-none-print">
                 @govukButton(Button(content = Text(messages(continueLabelKey)),
                     inputType=Some("submit"),
