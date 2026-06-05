@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.models.SectionSelector
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ PopulateATL, RetrieveDataType, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -140,7 +141,12 @@ object PopulateAtlService {
         fm.addToListSectionNumbers.foldLeft(acc) { case (visitIndexAcc, sectionNumber) =>
           sectionNumber match {
             case classic: SectionNumber.Classic if classic.sectionIndex == atlSection =>
-              visitIndexAcc.visit(classic)
+              if (classic.isInstanceOf[AddToListPage.DefaultPage]) {
+                visitIndexAcc
+              } else {
+                visitIndexAcc.visit(classic)
+              }
+
             case SectionNumber.TaskList(coordinates, classic) if classic.sectionIndex == atlSection =>
               visitIndexAcc.visit(classic)
             case _ => visitIndexAcc
