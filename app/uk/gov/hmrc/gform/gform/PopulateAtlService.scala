@@ -140,13 +140,10 @@ object PopulateAtlService {
         val fm = visOptics.formModel
         fm.addToListSectionNumbers.foldLeft(acc) { case (visitIndexAcc, sectionNumber) =>
           sectionNumber match {
+            case defaultPage: AddToListPage.DefaultPage if defaultPage.sectionIndex == atlSection =>
+              visitIndexAcc
             case classic: SectionNumber.Classic if classic.sectionIndex == atlSection =>
-              if (classic.isInstanceOf[AddToListPage.DefaultPage]) {
-                visitIndexAcc
-              } else {
-                visitIndexAcc.visit(classic)
-              }
-
+              visitIndexAcc.visit(classic)
             case SectionNumber.TaskList(coordinates, classic) if classic.sectionIndex == atlSection =>
               visitIndexAcc.visit(classic)
             case _ => visitIndexAcc
