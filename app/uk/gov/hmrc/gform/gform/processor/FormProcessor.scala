@@ -20,16 +20,16 @@ import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.all._
 import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.Results.Redirect
 import play.api.mvc.Result
+import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, AddressLookupService }
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, DelegatedAgentAuthConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluationSyntax, SmartStringEvaluator, SmartStringEvaluatorFactory }
+import uk.gov.hmrc.gform.gform._
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
-import uk.gov.hmrc.gform.gform.{ DataRetrieveService, FastForwardService, FileSystemConnector, PopulateAtlData, PopulateAtlService, routes }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
@@ -308,8 +308,9 @@ class FormProcessor(
 
     maybeRetrieveResultF.map { r =>
       val visOptics = visibilityOptics.addDataRetrieveResults(r.toList)
+      val newFormModelOptics = formModelOptics.copy(formModelVisibilityOptics = visOptics)
       val populateAtlData = dataRetrieve.populateATL
-        .map(populateAtl => PopulateAtlService.getPopulateAtlData(populateAtl, visOptics))
+        .map(populateAtl => PopulateAtlService.getPopulateAtlData(populateAtl, newFormModelOptics))
 
       val populateAtlVisOptics = populateAtlData match {
         case Some(value) =>
@@ -318,7 +319,7 @@ class FormProcessor(
               value._2.asInstanceOf[VariadicFormData[SourceOrigin.OutOfDate]],
               cache
             )
-        case None => formModelOptics.copy(formModelVisibilityOptics = visOptics)
+        case None => newFormModelOptics
       }
 
       (r, populateAtlVisOptics, populateAtlData.map(_._1))
@@ -515,7 +516,7 @@ class FormProcessor(
                 )
             ),
             populateAtlData,
-            updatedFormOptics.formModelVisibilityOptics,
+            updatedFormOptics.formModelRenderPageOptics,
             updatedVisitsIndex
           )
 
