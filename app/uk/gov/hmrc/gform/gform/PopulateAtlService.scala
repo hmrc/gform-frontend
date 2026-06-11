@@ -19,8 +19,9 @@ package uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.models.SectionSelector
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, VisitIndex }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelRenderPageOptics }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormModelOptics, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DataRetrieveCtx, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ PopulateATL, RetrieveDataType, SourceOrigin, VariadicFormData }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,9 +31,11 @@ case class PopulateAtlData(fields: Seq[FormField], baseIds: Set[BaseComponentId]
 object PopulateAtlService {
   def getPopulateAtlData(
     populateATL: PopulateATL,
-    formModelVisibilityOptics: FormModelVisibilityOptics[_]
+    formModelOptics: FormModelOptics[_]
   ): (PopulateAtlData, VariadicFormData[SourceOrigin.Current]) = {
     val seq = populateATL.mapping.toSeq
+    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+    val formModelRenderPageOptics = formModelOptics.formModelRenderPageOptics
 
     val fields = seq.map { case (atlComponentName, expr) =>
       val bcId = atlComponentName.baseComponentId
@@ -53,8 +56,8 @@ object PopulateAtlService {
       }
 
       val atlId = populateATL.id.formComponentId.withIndex(1)
-      val addAnotherQuestionFormComponent = formModelVisibilityOptics.formModel.fcLookup(atlId)
-      val defaultPageBcs = formModelVisibilityOptics.formModel.addToListBrackets
+      val addAnotherQuestionFormComponent = formModelRenderPageOptics.formModel.fcLookup(atlId)
+      val defaultPageBcs = formModelRenderPageOptics.formModel.addToListBrackets
         .collectFirst { case atl if atl.source.id.formComponentId == populateATL.id.formComponentId => atl.source }
         .getOrElse(throw new RuntimeException(s"Could not find an ATL with id ${populateATL.id}"))
         .defaultPage
@@ -99,7 +102,7 @@ object PopulateAtlService {
     }
 
     val updatedVariadicFormData = populateAtlData.fields
-      .foldLeft(formModelVisibilityOptics.recData.variadicFormData) { case (acc, field) =>
+      .foldLeft(formModelRenderPageOptics.recData.variadicFormData) { case (acc, field) =>
         acc.addMany(field.id -> Seq(field.value))
       }
 
@@ -109,7 +112,7 @@ object PopulateAtlService {
   def updateCache[T <: DataOrigin](
     authCacheWithForm: AuthCacheWithForm,
     populateAtlData: Seq[PopulateAtlData],
-    visOptics: FormModelVisibilityOptics[T],
+    renderPageOptics: FormModelRenderPageOptics[T],
     visitsIndex: VisitIndex
   )(implicit hc: HeaderCarrier): AuthCacheWithForm = {
     val populateAtlFields = populateAtlData.flatMap(_.fields)
@@ -125,7 +128,7 @@ object PopulateAtlService {
     val formDataU = oldDataWithoutPopulateAtl.toFormData ++ populateAtlFormData
 
     val populateAtlDataWithTemplateIndex = populateAtlData.map { populateAtlData =>
-      val fm = visOptics.formModel
+      val fm = renderPageOptics.formModel
       populateAtlData.fields
         .flatMap { case FormField(mcId, value) =>
           fm.sectionNumberLookup.get(mcId.toFormComponentId).map(_.templateSectionIndex)
@@ -136,9 +139,11 @@ object PopulateAtlService {
 
     val visitedPopulateAtlPagesVisitsIndex =
       populateAtlDataWithTemplateIndex.foldLeft(visitsIndex) { case (acc, atlSection) =>
-        val fm = visOptics.formModel
+        val fm = renderPageOptics.formModel
         fm.addToListSectionNumbers.foldLeft(acc) { case (visitIndexAcc, sectionNumber) =>
           sectionNumber match {
+            case defaultPage: AddToListPage.DefaultPage if defaultPage.sectionIndex == atlSection =>
+              visitIndexAcc
             case classic: SectionNumber.Classic if classic.sectionIndex == atlSection =>
               visitIndexAcc.visit(classic)
             case SectionNumber.TaskList(coordinates, classic) if classic.sectionIndex == atlSection =>
