@@ -2,15 +2,15 @@
 
 ->            /hmrc-frontend                                                                                     hmrcfrontend.Routes
 
-GET           /email-auth/email-form/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.emailIdForm(formTemplateId: FormTemplateId, continue: String)
-POST          /email-auth/send-email/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.sendEmail(formTemplateId: FormTemplateId, continue: String)
-GET           /email-auth/confirm-code-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.EmailAuthController.confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean], continue: String, maybeCodeLength: Option[Int])
-POST          /email-auth/confirm-code/:formTemplateId                                                           uk.gov.hmrc.gform.gform.EmailAuthController.confirmCode(formTemplateId: FormTemplateId, continue: String)
-GET           /email-auth/email-confirmed-form/:formTemplateId                                                   uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedForm(formTemplateId: FormTemplateId, continue: String)
-POST          /email-auth/email-confirmed-continue                                                               uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedContinue(continue: String)
+GET           /email-auth/email-form/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.emailIdForm(formTemplateId: FormTemplateId, continue: RedirectUrl)
+POST          /email-auth/send-email/:formTemplateId                                                             uk.gov.hmrc.gform.gform.EmailAuthController.sendEmail(formTemplateId: FormTemplateId, continue: RedirectUrl)
+GET           /email-auth/confirm-code-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.EmailAuthController.confirmCodeForm(formTemplateId: FormTemplateId, error: Option[Boolean], continue: RedirectUrl, maybeCodeLength: Option[Int])
+POST          /email-auth/confirm-code/:formTemplateId                                                           uk.gov.hmrc.gform.gform.EmailAuthController.confirmCode(formTemplateId: FormTemplateId, continue: RedirectUrl)
+GET           /email-auth/email-confirmed-form/:formTemplateId                                                   uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedForm(formTemplateId: FormTemplateId, continue: RedirectUrl)
+POST          /email-auth/email-confirmed-continue                                                               uk.gov.hmrc.gform.gform.EmailAuthController.emailConfirmedContinue(continue: RedirectUrl)
 
-GET           /composite-auth/auth-selection-form/:formTemplateId                                                uk.gov.hmrc.gform.gform.CompositeAuthController.authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String, se: SuppressErrors ?= SuppressErrors.Yes)
-POST          /composite-auth/selected-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.CompositeAuthController.selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String)
+GET           /composite-auth/auth-selection-form/:formTemplateId                                                uk.gov.hmrc.gform.gform.CompositeAuthController.authSelectionForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: RedirectUrl, se: SuppressErrors ?= SuppressErrors.Yes)
+POST          /composite-auth/selected-form/:formTemplateId                                                      uk.gov.hmrc.gform.gform.CompositeAuthController.selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: RedirectUrl)
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId, se: SuppressErrors ?= SuppressErrors.Yes)
 GET           /new-form/:formTemplateId/clean                                                                    uk.gov.hmrc.gform.gform.NewFormController.dashboardClean(formTemplateId: FormTemplateId)

@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.gform.routes.EmailAuthController
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.{GovukFormGroup, GovukHintAndErrorMessage}
+@import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 @(
     formTemplate: FormTemplate,
@@ -30,7 +31,7 @@
     emailId: EmailId,
     maybeEmailCodeHelp: Option[String] = None,
     formAction: Call,
-    continue: String,
+    continue: RedirectUrl,
     pageLevelError: HasErrors = NoErrors,
     maybeCodeFieldError: Option[ErrorMessage] = None
 )(

@@ -32,6 +32,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode.toJsonStr
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplateId }
 import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
 import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -57,7 +59,7 @@ class CompositeAuthController(
   def authSelectionForm(
     formTemplateId: FormTemplateId,
     ggId: Option[String],
-    continue: String,
+    continue: RedirectUrl,
     se: SuppressErrors
   ) =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
@@ -87,7 +89,7 @@ class CompositeAuthController(
             val compositeAuthDetails: CompositeAuthDetails =
               jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
 
-            Redirect(continue)
+            Redirect(continue.get(OnlyRelative).url)
               .addingToSession(
                 COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
                   compositeAuthDetails.add(formTemplate, id)
@@ -107,7 +109,7 @@ class CompositeAuthController(
       }
     }
 
-  def selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: String) =
+  def selectedForm(formTemplateId: FormTemplateId, ggId: Option[String], continue: RedirectUrl) =
     nonAutheticatedRequestActions.async { implicit request => _ =>
       val compositeAuthDetails: CompositeAuthDetails =
         jsonFromSession(request, COMPOSITE_AUTH_DETAILS_SESSION_KEY, CompositeAuthDetails.empty)
@@ -154,7 +156,7 @@ class CompositeAuthController(
               logger.info(
                 s"For a template, ${formTemplate._id.value} user has selected ${AuthConfig.authConfigNameInLogs(selectedConfig)} config"
               )
-              Redirect(continue)
+              Redirect(continue.get(OnlyRelative).url)
                 .addingToSession(
                   COMPOSITE_AUTH_DETAILS_SESSION_KEY -> toJsonStr(
                     compositeAuthDetails.add(formTemplate, selectedConfig)

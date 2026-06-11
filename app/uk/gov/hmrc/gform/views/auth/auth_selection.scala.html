@@ -18,12 +18,13 @@
 @import uk.gov.hmrc.gform.views.hardcoded.CompositeAuthFormPage
 @import uk.gov.hmrc.govukfrontend.views.html.components.FormWithCSRF
 @import uk.gov.hmrc.gform.views.html.{main_template, page_heading}
+@import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 @(
   frontendAppConfig: FrontendAppConfig,
   compositeAuthFormPage: CompositeAuthFormPage,
   maybeGGId: Option[String],
-  continue: String
+  continue: RedirectUrl
 )(
   implicit
   request: Request[_],

@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroup
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 
 class AuthService(
   appConfig: AppConfig
@@ -94,12 +95,14 @@ class AuthService(
             AuthEmailRedirect(
               gform.routes.EmailAuthController.emailIdForm(
                 formTemplate._id,
-                addQueryParams(
-                  request.uri,
-                  request.attrs
-                    .get[String](emailSessionClearAttrKey)
-                    .map((emailSessionClearAttrKeyName, _))
-                    .toList: _*
+                RedirectUrl(
+                  addQueryParams(
+                    request.uri,
+                    request.attrs
+                      .get[String](emailSessionClearAttrKey)
+                      .map((emailSessionClearAttrKeyName, _))
+                      .toList: _*
+                  )
                 )
               )
             ).pure[Future]
@@ -148,7 +151,7 @@ class AuthService(
             }
 
           case unknown =>
-            val continueUrl = gform.routes.NewFormController.dashboard(formTemplate._id).url
+            val continueUrl = RedirectUrl(gform.routes.NewFormController.dashboard(formTemplate._id).url)
             logger.info(s"Composite auth - no active session. GG: $unknown. Redirecting user to: $continueUrl")
             AuthCustomRedirect(
               gform.routes.CompositeAuthController.authSelectionForm(
@@ -162,13 +165,15 @@ class AuthService(
     }
   }
 
-  private def compositeAuthUrlParameters(implicit request: Request[AnyContent]) =
-    addQueryParams(
-      request.uri,
-      request.attrs
-        .get[String](compositeAuthSessionClearAttrKey)
-        .map((compositeAuthSessionClearAttrKeyName, _))
-        .toList: _*
+  private def compositeAuthUrlParameters(implicit request: Request[AnyContent]): RedirectUrl =
+    RedirectUrl(
+      addQueryParams(
+        request.uri,
+        request.attrs
+          .get[String](compositeAuthSessionClearAttrKey)
+          .map((compositeAuthSessionClearAttrKeyName, _))
+          .toList: _*
+      )
     )
 
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
