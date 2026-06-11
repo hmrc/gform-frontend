@@ -46,9 +46,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.binders.{ OnlyRelative, RedirectUrl }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import org.typelevel.ci._
 import uk.gov.hmrc.gform.typeclasses.Rnd
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -78,7 +80,7 @@ class EmailAuthController(
     )
   )
 
-  def emailIdForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
+  def emailIdForm(formTemplateId: FormTemplateId, continue: RedirectUrl): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplateContext = request.attrs(FormTemplateKey)
       val formTemplate = formTemplateContext.formTemplate
@@ -146,7 +148,7 @@ class EmailAuthController(
       }
     }
 
-  def sendEmail(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
+  def sendEmail(formTemplateId: FormTemplateId, continue: RedirectUrl): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit l =>
       val emailAuthDetails: EmailAuthDetails =
         jsonFromSession(request, EMAIL_AUTH_DETAILS_SESSION_KEY, EmailAuthDetails.empty)
@@ -217,7 +219,7 @@ class EmailAuthController(
   def confirmCodeForm(
     formTemplateId: FormTemplateId,
     error: Option[Boolean],
-    continue: String,
+    continue: RedirectUrl,
     maybeCodeLength: Option[Int]
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
@@ -309,7 +311,7 @@ class EmailAuthController(
 
   def confirmCode(
     formTemplateId: FormTemplateId,
-    continue: String
+    continue: RedirectUrl
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => _ =>
       val formTemplateContext = request.attrs(FormTemplateKey)
@@ -348,7 +350,7 @@ class EmailAuthController(
                       EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
                     )
                   case _ =>
-                    Redirect(continue).addingToSession(
+                    Redirect(continue.get(OnlyRelative).url).addingToSession(
                       EMAIL_AUTH_DETAILS_SESSION_KEY -> confirmedEmailAuthDetailsStr
                     )
                 }
@@ -360,7 +362,7 @@ class EmailAuthController(
 
     }
 
-  def emailConfirmedForm(formTemplateId: FormTemplateId, continue: String): Action[AnyContent] =
+  def emailConfirmedForm(formTemplateId: FormTemplateId, continue: RedirectUrl): Action[AnyContent] =
     nonAutheticatedRequestActions.async { implicit request => implicit lang =>
       val formTemplateContext = request.attrs(FormTemplateKey)
       val formTemplate = formTemplateContext.formTemplate
@@ -383,11 +385,10 @@ class EmailAuthController(
     }
 
   def emailConfirmedContinue(
-    continue: String
+    continue: RedirectUrl
   ): Action[AnyContent] =
     nonAutheticatedRequestActions.async { _ => _ =>
-      Redirect(continue)
-        .pure[Future]
+      Redirect(continue.get(OnlyRelative).url).pure[Future]
     }
 
   private def sendEmailWithConfirmationCode[D <: DataOrigin](
