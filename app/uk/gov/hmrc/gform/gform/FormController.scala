@@ -665,13 +665,12 @@ class FormController(
                   processData.cache,
                   processDataUpd,
                   sectionNumber,
-                  sectionNumber,
                   maybeAccessCode,
                   fastForward,
                   formModelOptics,
                   enteredVariadicFormData,
                   true
-                ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn => updatedFormOptics =>
+                ) { updatePostcodeLookup => maybeRedirectUrl => maybeSn => maybeUpdatedFormOptics =>
                   def processRemoveItemIf() = {
                     val formModel = formModelOptics.formModelRenderPageOptics.formModel
                     val bracket = formModel.bracket(sectionNumber)
@@ -744,13 +743,13 @@ class FormController(
                             s"envelope id: ${cache.form.envelopeId.value}, form id: ${cache.form._id.value}, user-agent: ${request.headers.get("User-Agent").getOrElse("")}"
                           )
 
-                          val formModel = updatedFormOptics.formModelRenderPageOptics.formModel
-
                           val sectionTitle4Ga =
-                            formProcessor.getSectionTitle4Ga(
-                              updatedFormOptics,
-                              sn
-                            )
+                            maybeUpdatedFormOptics.fold(formProcessor.getSectionTitle4Ga(processDataUpd, sn)) {
+                              updatedFormOptics =>
+                                formProcessor.getSectionTitle4Ga(updatedFormOptics.formModelVisibilityOptics, sn)
+                            }
+
+                          val formModel = formModelOptics.formModelRenderPageOptics.formModel
 
                           val bracket = formModel.bracket(sectionNumber)
 
@@ -847,7 +846,6 @@ class FormController(
               processData.cache,
               purgeConfirmationData.f(processData),
               sectionNumber,
-              sectionNumber,
               maybeAccessCode,
               fastForward,
               formModelOptics,
@@ -874,7 +872,6 @@ class FormController(
             formProcessor.validateAndUpdateData(
               cacheUpd,
               processData,
-              sectionNumber,
               sectionNumber,
               maybeAccessCode,
               fastForward,

@@ -812,7 +812,7 @@ class AddressLookupController(
 
     val data = syntheticCache.variadicFormData
 
-    val formModelOptics2: FormModelOptics =
+    val formModelOpticsUpd: FormModelOptics =
       formModelBuilder
         .visibilityModel[SectionSelectorType.Normal](
           data,
@@ -820,6 +820,7 @@ class AddressLookupController(
           cache.form
         )
 
-    f(syntheticFormComponent)(syntheticCache)(formModelOptics2)
+    f(syntheticFormComponent)(syntheticCache)(formModelOpticsUpd)
+
   }
 }
