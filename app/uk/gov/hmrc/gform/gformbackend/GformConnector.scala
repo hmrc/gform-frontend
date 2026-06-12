@@ -553,7 +553,21 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     new DataRetrieveConnectorBlueprint(
       httpClient,
       urlFTAManageEmails,
-      "fta manage emails"
+      "fta manage emails",
+      Some(
+        List(
+          ExceptionalResponse(
+            500,
+            "with statusCode: 400", // Bad request from a GET?
+            """[{"primaryEmail": "","secondaryEmails": []}]"""
+          ),
+          ExceptionalResponse(
+            500,
+            "with statusCode: 404", // Not found should be the usual response from PDS
+            """[{"primaryEmail": "","secondaryEmails": []}]"""
+          )
+        )
+      )
     )
 
   def ftaManageEmails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
