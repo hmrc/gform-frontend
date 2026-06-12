@@ -35,6 +35,9 @@ class AnswerMapWithFallback(
     mongoUserData.cleared(modelComponentIds) // Side effect
   }
 
+  def addAnswer(modelComponentId: ModelComponentId, answer: VariadicValue): Unit =
+    mongoUserData.addAnswer(modelComponentId, answer)
+
   def toStringResultOrOptionResult(modelComponentId: ModelComponentId): EvaluationStatus =
     answerMap
       .get(modelComponentId)

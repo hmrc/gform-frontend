@@ -72,7 +72,7 @@ class DependencyGraph(val graph: Graph[FormComponentId, Relation]) {
   }
 }
 
-// Read Only! This represent user data.
+// This represent user data.
 class MongoUserData(
   val lookup: VariadicFormData
 ) {
@@ -81,6 +81,9 @@ class MongoUserData(
     lookup -- modelComponentIds
     ()
   }
+
+  def addAnswer(modelComponentId: ModelComponentId, answer: VariadicValue): Unit =
+    lookup.data.addOne(modelComponentId -> answer)
 
   def getEvalStatus(fcId: ModelComponentId, metadata: Metadata): EvaluationStatus =
     lookup

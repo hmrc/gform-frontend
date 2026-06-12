@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.recalculation
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.{ ExpressionResultWithTypeInfo, StaticTypeData, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -46,10 +46,14 @@ final class FreeCalculator(
     val thirdPartyData = evaluationContext.thirdPartyData.updateDataRetrieve(List(dataRetrieveResult))
     updateThirdPartyData(thirdPartyData)
   }
+
   def removeDataRetrieveResult(dataRetrieveId: DataRetrieveId): Unit = {
     val thirdPartyData = evaluationContext.thirdPartyData.removeDataRetrieves(List(dataRetrieveId))
     updateThirdPartyData(thirdPartyData)
   }
+
+  def addAnswer(modelComponentId: ModelComponentId, answer: VariadicValue): Unit =
+    answerMapWithFallback.addAnswer(modelComponentId, answer)
 
   private def recalculateModelComponentIds(modelComponentIds: List[ModelComponentId]): Unit = {
     recalculator.markForRecalculation(modelComponentIds)
@@ -57,7 +61,7 @@ final class FreeCalculator(
   }
 
   def cleared(modelComponentIds: List[ModelComponentId]): Unit =
-    answerMapWithFallback.cleared(modelComponentIds) // Side effect !!!
+    answerMapWithFallback.cleared(modelComponentIds)
 
   def recalculateDependenciesWithValue(formComponents: List[FormComponent])(implicit messages: Messages): FormData = {
 
