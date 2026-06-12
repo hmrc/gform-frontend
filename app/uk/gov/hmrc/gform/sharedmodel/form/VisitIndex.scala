@@ -50,6 +50,22 @@ sealed trait VisitIndex extends Product with Serializable {
   def visit(sectionNumber: SectionNumber): VisitIndex = sectionNumber.fold(visitClassic)(visitTaskList)
   def unvisit(sectionNumber: SectionNumber): VisitIndex = sectionNumber.fold(unvisitClassic)(unvisitTaskList)
 
+  def unvisitAllSectionIndex(sectionIndex: TemplateSectionIndex): VisitIndex =
+    fold[VisitIndex] { classic =>
+      VisitIndex.Classic(classic.visitsIndex.filter(_.templateSectionIndex != sectionIndex))
+    }(taskList =>
+      VisitIndex.TaskList(
+        taskList.visitsIndex.view.mapValues(classics => classics.filter(_.templateSectionIndex != sectionIndex)).toMap
+      )
+    )
+
+  def existsSectionIndex(sectionIndex: TemplateSectionIndex): Boolean =
+    fold[Boolean] { classic =>
+      classic.visitsIndex.exists(_.templateSectionIndex == sectionIndex)
+    }(taskList =>
+      taskList.visitsIndex.values.exists(classics => classics.exists(_.templateSectionIndex == sectionIndex))
+    )
+
   def removeIteration(
     sectionIndexToRemove: TemplateSectionIndex,
     iterationIndexToRemove: Int,
