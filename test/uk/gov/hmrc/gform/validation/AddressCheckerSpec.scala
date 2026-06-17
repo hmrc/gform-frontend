@@ -652,7 +652,7 @@ class AddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("country")) -> Set(
-            "L country must be entered"
+            "Enter l country"
           )
         )
       )
