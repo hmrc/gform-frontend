@@ -90,18 +90,15 @@ formCategory.return=return
 formCategory.claim=claim
 
 # Field labelled errors
-field.error.required={0} must be entered
-field.error.number={0} must be a number
-field.error.exactDigits={0} must be a {1} digit number
-field.error.notGreaterThan={0} must not be greater than {1}
-choice.error.required={0} must be selected
-time.error.required={0} must be selected
+field.error.required=Enter {0}
+choice.error.required=Select {0}
+time.error.required=Select {0}
 
 # Generic error prefix
 generic.error.title.prefix=Error:
 
 # Generic error suffixes
-generic.error.required={0} must be entered
+generic.error.required=Enter {0}
 generic.error.upload={0} must be uploaded
 generic.error.virus={0} has a virus detected
 generic.error.unknownUpload={0} has an unknown error from file upload
