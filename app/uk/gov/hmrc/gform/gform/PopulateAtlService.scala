@@ -101,8 +101,16 @@ object PopulateAtlService {
         PopulateAtlData(accFields ++ fields, baseIds ++ seq)
     }
 
+    val oldPopulateAtlFieldsToClean = populateAtlData.baseIds
+    val oldData = formModelRenderPageOptics.recData.variadicFormData
+    val oldDataWithoutPopulateAtl = oldPopulateAtlFieldsToClean.foldLeft(oldData) { case (acc, bcId) =>
+      acc.forBaseComponentId(bcId).foldLeft(acc) { case (acc, (mcId, value)) =>
+        acc.-(mcId)
+      }
+    }
+
     val updatedVariadicFormData = populateAtlData.fields
-      .foldLeft(formModelRenderPageOptics.recData.variadicFormData) { case (acc, field) =>
+      .foldLeft(oldDataWithoutPopulateAtl) { case (acc, field) =>
         acc.addMany(field.id -> Seq(field.value))
       }
 
@@ -136,9 +144,12 @@ object PopulateAtlService {
         .headOption
         .head
     }
+    val cleanVisitSection = populateAtlDataWithTemplateIndex.foldLeft(visitsIndex) { case (acc, atlSection) =>
+      acc.removeIterationFull(atlSection)
+    }
 
     val visitedPopulateAtlPagesVisitsIndex =
-      populateAtlDataWithTemplateIndex.foldLeft(visitsIndex) { case (acc, atlSection) =>
+      populateAtlDataWithTemplateIndex.foldLeft(cleanVisitSection) { case (acc, atlSection) =>
         val fm = renderPageOptics.formModel
         fm.addToListSectionNumbers.foldLeft(acc) { case (visitIndexAcc, sectionNumber) =>
           sectionNumber match {
