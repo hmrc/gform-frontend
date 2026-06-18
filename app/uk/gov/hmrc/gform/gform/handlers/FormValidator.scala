@@ -211,7 +211,11 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
               nextFrom
                 .map { nextFrom =>
-                  SectionOrSummary.Section(findLastATLSectionNumber(nextFrom))
+                  if (processData.visitsIndex.contains(nextFrom)) { //For populateAtl pre-filled data
+                    SectionOrSummary.Section(findLastATLSectionNumber(nextFrom))
+                  } else {
+                    SectionOrSummary.Section(nextFrom)
+                  }
                 }
                 .getOrElse(SectionOrSummary.FormSummary)
             case (Some(yesTo), SectionOrSummary.Section(cyaTo), _) if cyaTo > yesTo =>
