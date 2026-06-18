@@ -61,7 +61,7 @@ package object ops {
       case _                                           => false
     }
 
-    def isNumeric = formComponent.isNumber || formComponent.isPositiveNumber || formComponent.isSterling
+    def isNumeric = isNumber || isPositiveNumber || isSterling
 
     def isUkVrn = formComponent.`type` match {
       case Text(UkVrn, _, _, _, _, _, _) => true

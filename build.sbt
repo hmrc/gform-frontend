@@ -8,7 +8,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 lazy val IntegrationTest = config("it") extend Test
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "2.13.18"
 
 lazy val luceneSettings: Seq[Setting[_]] = LuceneIndexCreator.indexSettings
 

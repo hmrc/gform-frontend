@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DataOutputForma
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
-import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, TrackingConsentConfig }
+import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, ServiceNavigationCanBeControlledByConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.http.HeaderCarrier
 import org.typelevel.ci._
@@ -1094,6 +1094,8 @@ trait ExampleFrontendAppConfig {
   private val env: Environment = Environment.simple(mode = Mode.Test)
   private val context = Context.create(env)
 
+  val serviceNavigationUsage = new ServiceNavigationCanBeControlledByConfig(context.initialConfiguration)
+
   val frontendAppConfig = FrontendAppConfig(
     albAdminIssuerUrl = "",
     governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
@@ -1112,9 +1114,12 @@ trait ExampleFrontendAppConfig {
       uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguageDataChange,
     routeToSwitchLanguageNoDataChange =
       uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguageNoDataChange,
-    trackingConsentSnippet = new HmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration)),
+    trackingConsentSnippet =
+      new HmrcTrackingConsentSnippet(new TrackingConsentConfig(context.initialConfiguration), serviceNavigationUsage),
     emailAuthStaticCodeEmails = Some(NonEmptyList.of(ci"test1@test.com", ci"test2@test.com")),
-    accessibilityStatementConfig = new AccessibilityStatementConfig(context.initialConfiguration),
+    accessibilityStatementConfig =
+      new AccessibilityStatementConfig(context.initialConfiguration, serviceNavigationUsage),
+    serviceNavigationUsage = serviceNavigationUsage,
     refreshSessionUrl = "refreshSessionUrl",
     isProd = true,
     configuration = context.initialConfiguration,

@@ -22,8 +22,6 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
 
 import scala.concurrent.Future
-import scala.language.reflectiveCalls
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -33,28 +31,38 @@ class HttpAuditingService(appName: String, auditConnector: AuditConnector)(impli
   ec: ExecutionContext
 ) { self =>
 
-  def auditServerError(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
-    httpAuditEvent.dataEvent0(ServerInternalError, unexpectedError, requestHeader)
-  )
+  def auditServerError(requestHeader: RequestHeader): Future[AuditResult] = {
+    implicit val hc = HeaderCarrierConverter.fromRequest(requestHeader)
+    auditConnector.sendEvent(
+      httpAuditEvent.dataEvent(ServerInternalError, unexpectedError, requestHeader)
+    )
+  }
 
-  def auditNotFound(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
-    httpAuditEvent.dataEvent0(ResourceNotFound, notFoundError, requestHeader)
-  )
+  def auditNotFound(requestHeader: RequestHeader): Future[AuditResult] = {
+    implicit val hc = HeaderCarrierConverter.fromRequest(requestHeader)
+    auditConnector.sendEvent(
+      httpAuditEvent.dataEvent(ResourceNotFound, notFoundError, requestHeader)
+    )
+  }
 
-  def auditForbidden(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
-    httpAuditEvent.dataEvent0(ResourceForbidden, resourceForbiddenError, requestHeader)
-  )
+  def auditForbidden(requestHeader: RequestHeader): Future[AuditResult] = {
+    implicit val hc = HeaderCarrierConverter.fromRequest(requestHeader)
+    auditConnector.sendEvent(
+      httpAuditEvent.dataEvent(ResourceForbidden, resourceForbiddenError, requestHeader)
+    )
+  }
 
-  def auditBadRequest(requestHeaders: RequestHeader, error: String) = auditConnector.sendEvent(
-    httpAuditEvent.dataEvent0(ServerValidationError, badRequestError, requestHeaders)
-  )
+  def auditBadRequest(
+    requestHeader: RequestHeader,
+    error: String
+  ): Future[uk.gov.hmrc.play.audit.http.connector.AuditResult] = {
+    implicit val hc = HeaderCarrierConverter.fromRequest(requestHeader)
+    auditConnector.sendEvent(
+      httpAuditEvent.dataEvent(ServerValidationError, badRequestError, requestHeader)
+    )
+  }
 
   private val httpAuditEvent = new HttpAuditEvent {
-    //function dataEvent is protected, we need to access it this is why it's exposed in such way
-    def dataEvent0(eventType: String, transactionName: String, request: RequestHeader)(implicit
-      hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-    ) =
-      dataEvent(eventType, transactionName, request)
     override def appName = self.appName
   }
   private val unexpectedError = "Unexpected error"
