@@ -156,7 +156,7 @@ object ValueClassBinder {
     def to(value: AccessCode): String = value.value
   }
 
-  implicit def optionAccessCodeBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCode]] =
+  implicit def optionAccessCodeBindable(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCode]] =
     new PathBindable[Option[AccessCode]] {
       override def bind(key: String, value: String): Either[String, Option[AccessCode]] =
         stringBinder.bind(key, value).flatMap(parseString[String]).map {

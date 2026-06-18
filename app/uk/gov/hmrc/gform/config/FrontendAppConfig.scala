@@ -22,7 +22,7 @@ import play.api.Configuration
 import play.api.i18n.{ Lang, Messages }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EmailAuthConfig, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.hmrcfrontend.config.AccessibilityStatementConfig
+import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, ServiceNavigationConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
@@ -40,6 +40,7 @@ case class FrontendAppConfig(
   trackingConsentSnippet: HmrcTrackingConsentSnippet,
   emailAuthStaticCodeEmails: Option[NonEmptyList[CIString]],
   accessibilityStatementConfig: AccessibilityStatementConfig,
+  serviceNavigationUsage: ServiceNavigationConfig,
   refreshSessionUrl: String,
   isProd: Boolean,
   configuration: Configuration,

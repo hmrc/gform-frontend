@@ -212,7 +212,7 @@
 @fullMainContent = @{new FullMainContent}
 
 @govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent, fixedWidthPageLayout)}
-@hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue()}
+@hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue(appConfig.serviceNavigationUsage)}
 
 @language = @{l.toLanguage}
 
@@ -286,7 +286,7 @@
     )
 }
 
-@hmrcFooterItems = @{new HmrcFooterItems(appConfig.accessibilityStatementConfig)}
+@hmrcFooterItems = @{new HmrcFooterItems(appConfig.accessibilityStatementConfig, appConfig.serviceNavigationUsage)}
 @hmrcStandardFooter = @{new helpers.HmrcStandardFooter(hmrcFooter, hmrcFooterItems)}
 @accessibilityUrl = @{
     maybeFormTemplate
