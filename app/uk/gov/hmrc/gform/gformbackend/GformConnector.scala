@@ -30,7 +30,6 @@ import org.typelevel.ci.CIString
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.auth.models.{ EmailRetrievals, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.cache.DataRetrieveCache
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
@@ -47,7 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.retrieval.{ AuthRetrievals, AuthRetrievalsB
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.testonly.translation.TranslationAuditOverview
-import uk.gov.hmrc.gform.testonly.{ EnTextBreakdowns, ExpressionsLookup }
+import uk.gov.hmrc.gform.testonly.{ DataRetrieveDescription, EnTextBreakdowns, ExpressionsLookup }
 import uk.gov.hmrc.gform.upscan.{ UpscanConfirmation, UpscanReference }
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -56,7 +55,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps, Upstrea
 import java.util.UUID
 import scala.concurrent.{ ExecutionContext, Future }
 
-class GformConnector(httpClient: HttpClientV2, baseUrl: String, dataRetrieveCache: => DataRetrieveCache) {
+class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -549,9 +548,8 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String, dataRetrieveCach
       case ListType(_) => throw new IllegalStateException("List type is illegal for caseflow get case details response")
     }
 
-  private lazy val urlFragment = dataRetrieveCache.getUrlFragment("ftaManageEmails", UrlDestination.GForm)
-  private lazy val urlFTAManageEmails = s"$baseUrl$urlFragment"
-  private lazy val ftaManageEmailsB =
+  private val urlFTAManageEmails = s"$baseUrl/if/fta/manageemails/v1?eori={{eori}}"
+  private val ftaManageEmailsB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       urlFTAManageEmails,
@@ -752,7 +750,6 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String, dataRetrieveCach
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[List[DataRetrieveDescription]] = {
-    println(s"\n*************\nCM: Getting ALL DATA RETRIEVES\n*************\n")
     val url = s"$baseUrl/test-only/dataretrieves"
     httpClient
       .get(url"$url")
