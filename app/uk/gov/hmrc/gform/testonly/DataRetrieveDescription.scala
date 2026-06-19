@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.testonly
 
 import julienrf.json.derived
 import play.api.libs.json.{ Format, JsObject, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
+import uk.gov.hmrc.gform.sharedmodel.UrlDescriptor
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
 case class DataRetrieveDescription(
@@ -27,7 +27,8 @@ case class DataRetrieveDescription(
   attributeReferences: List[String],
   documentationUrl: Option[String],
   isArrayResult: Boolean,
-  urlDescriptors: List[UrlDescriptor]
+  urlFrontend: UrlDescriptor,
+  urlBackend: Option[UrlDescriptor]
 )
 
 object DataRetrieveDescription {
@@ -41,6 +42,7 @@ object UrlDestination {
   case object MDTP extends UrlDestination
   case object DES extends UrlDestination
   case object HIP extends UrlDestination
+  case object IF extends UrlDestination
   case object CompaniesHouse extends UrlDestination
 
   val companiesHouse = "Companies House"
@@ -51,6 +53,7 @@ object UrlDestination {
       "MDTP"         -> MDTP,
       "DES"          -> DES,
       "HIP"          -> HIP,
+      "IF"           -> IF,
       companiesHouse -> CompaniesHouse
     )
 
@@ -58,14 +61,4 @@ object UrlDestination {
     case CompaniesHouse => companiesHouse
     case other          => other.toString
   }
-}
-
-final case class UrlDescriptor(
-  urlPath: String,
-  pathParameters: List[DataRetrieve.Parameter],
-  destination: UrlDestination
-)
-
-object UrlDescriptor {
-  implicit val format: OFormat[UrlDescriptor] = derived.oformat()
 }

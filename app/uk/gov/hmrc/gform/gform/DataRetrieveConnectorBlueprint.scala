@@ -28,7 +28,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
 
 class DataRetrieveConnectorBlueprint(
   httpClient: HttpClientV2,
-  rawUrl: String,
+  baseUrl: String,
   identifier: String,
   exceptionalResponses: Option[List[ExceptionalResponse]] = None
 ) {
@@ -40,7 +40,7 @@ class DataRetrieveConnectorBlueprint(
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
 
-    val url = request.fillPlaceholders(rawUrl)
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
 
     httpClient
       .get(url"$url")
@@ -81,7 +81,7 @@ class DataRetrieveConnectorBlueprint(
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
 
-    val url = request.fillPlaceholders(rawUrl)
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
 
     httpClient
       .get(url"$url")
@@ -132,7 +132,7 @@ class DataRetrieveConnectorBlueprint(
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
 
-    val url = request.fillPlaceholders(rawUrl)
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
 
     httpClient
       .post(url"$url")

@@ -26,7 +26,8 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, FormComponentId, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.testonly.UrlDestination
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
@@ -110,6 +111,16 @@ object PopulateATL {
   implicit val format: Format[PopulateATL] = Json.format
 }
 
+final case class UrlDescriptor(
+  urlPath: String,
+  pathParameters: List[DataRetrieve.Parameter],
+  destination: UrlDestination
+)
+
+object UrlDescriptor {
+  implicit val format: OFormat[UrlDescriptor] = derived.oformat()
+}
+
 case class DataRetrieve(
   tpe: DataRetrieve.Type,
   id: DataRetrieveId,
@@ -120,7 +131,9 @@ case class DataRetrieve(
   maxFailedAttempts: Option[Int],
   failureCountResetMinutes: Option[Int],
   callOnNoChange: Boolean,
-  populateATL: Option[PopulateATL]
+  populateATL: Option[PopulateATL],
+  urlFrontend: UrlDescriptor,
+  urlBackend: Option[UrlDescriptor]
 ) {
 
   def prepareRequest(

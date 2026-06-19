@@ -49,18 +49,15 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
     extends CompanyInformationConnector[Future] {
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private val profileUrlWithPlaceholders = s"$baseUrl/companieshouse/company/{{companyNumber}}"
   private val profileIdentifier = "company profile"
-  private val officersUrlWithPlaceholders = s"$baseUrl/companieshouse/company/{{companyNumber}}/officers"
   private val officersIdentifier = "company officers"
-  private val insolvencyUrlWithPlaceholders = s"$baseUrl/companieshouse/company/{{companyNumber}}/insolvency"
   private val insolvencyIdentifier = "company insolvency details"
 
   override def companyInsolvency(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-    val url = request.fillPlaceholders(insolvencyUrlWithPlaceholders)
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
 
     httpClient
       .get(url"$url")
@@ -133,7 +130,7 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-    val url = request.fillPlaceholders(profileUrlWithPlaceholders)
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
 
     httpClient
       .get(url"$url")
@@ -172,7 +169,7 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
   override def companyOfficers(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-    val url = request.fillPlaceholders(officersUrlWithPlaceholders)
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
 
     httpClient
       .get(url"$url")

@@ -631,7 +631,7 @@ class TestOnlyController(
                 .find(_.tpe === dr.tpe.name)
                 .getOrElse(throw new RuntimeException(s"DataRetrieve definition not found for type ${dr.tpe.name}"))
 
-              val urlParamValues = drDescription.urlDescriptors.map { desc =>
+              val urlParamValues = (drDescription.urlFrontend +: drDescription.urlBackend.toList).map { desc =>
                 val params = desc.pathParameters.map { descriptorPathParm =>
                   val expr = dr.params
                     .find(_.parameter.name === descriptorPathParm.name)
