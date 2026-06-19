@@ -16,17 +16,28 @@
 
 package uk.gov.hmrc.gform.cache
 
+import com.github.benmanes.caffeine.cache.{ AsyncCache, Caffeine }
 import org.mongodb.scala.model.{ IndexModel, IndexOptions, Indexes }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.mongo.MongoModule
 import uk.gov.hmrc.gform.repo.Repo
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveDescription
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateCache
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{ Duration, HOURS }
+import scala.jdk.DurationConverters.ScalaDurationOps
 
-class CacheModule(controllersModule: ControllersModule, mongoModule: MongoModule, configModule: ConfigModule)(implicit
+class CacheModule(
+  controllersModule: ControllersModule,
+  mongoModule: MongoModule,
+  configModule: ConfigModule,
+  connector: => GformConnector
+)(implicit
   ex: ExecutionContext
 ) {
   private val formTemplateMetadataRepo: Repo[FormTemplateCache] =
@@ -49,4 +60,10 @@ class CacheModule(controllersModule: ControllersModule, mongoModule: MongoModule
 
   val formTemplateCacheController =
     new FormTemplateCacheController(controllersModule.messagesControllerComponents, formTemplateCacheService)
+
+  val cache: AsyncCache[String, DataRetrieveDescription] =
+    Caffeine.newBuilder.maximumSize(50).expireAfterAccess(Duration.apply(24L, HOURS).toJava).buildAsync
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  val dataRetrieveCache = new DataRetrieveCache(cache, connector)
 }

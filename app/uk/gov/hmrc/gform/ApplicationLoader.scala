@@ -37,12 +37,12 @@ import _root_.controllers.AssetsComponents
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import play.filters.csrf.{ CSRF, CSRFComponents }
-import uk.gov.hmrc.gform.cache.CacheModule
+import uk.gov.hmrc.gform.cache.{ CacheModule, DataRetrieveCache }
 import uk.gov.hmrc.gform.eval.EvalModule
 import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.gformbackend.{ GformBackendModule, GformConnector }
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
@@ -129,7 +129,8 @@ class ApplicationModule(context: Context)
 
   protected lazy val wSHttpModule = new WSHttpModule(httpClientV2)
 
-  private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
+  def getDataRetrieveCache: DataRetrieveCache = cacheModule.dataRetrieveCache
+  private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule, getDataRetrieveCache)
 
   private val authModule = new AuthModule(configModule, wSHttpModule)
 
@@ -257,7 +258,9 @@ class ApplicationModule(context: Context)
   )
 
   private val formTemplateContextCacheManager = new FormTemplateContextCacheManager()
-  private val cacheModule = new CacheModule(controllersModule, mongoModule, configModule)
+
+  def getGformConnector: GformConnector = gformBackendModule.gformConnector
+  private val cacheModule = new CacheModule(controllersModule, mongoModule, configModule, getGformConnector)
 
   private val requestHeaderService =
     new RequestHeaderService(

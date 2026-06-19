@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.testonly
+package uk.gov.hmrc.gform.sharedmodel
 
+import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json.{ Format, JsObject, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
 case class DataRetrieveDescription(
@@ -41,6 +41,7 @@ object UrlDestination {
   case object MDTP extends UrlDestination
   case object DES extends UrlDestination
   case object HIP extends UrlDestination
+  case object IF extends UrlDestination
   case object CompaniesHouse extends UrlDestination
 
   val companiesHouse = "Companies House"
@@ -51,6 +52,7 @@ object UrlDestination {
       "MDTP"         -> MDTP,
       "DES"          -> DES,
       "HIP"          -> HIP,
+      "IF"           -> IF,
       companiesHouse -> CompaniesHouse
     )
 
@@ -58,13 +60,19 @@ object UrlDestination {
     case CompaniesHouse => companiesHouse
     case other          => other.toString
   }
+
+  implicit val equal: Eq[UrlDestination] = Eq.fromUniversalEquals
+
 }
 
 final case class UrlDescriptor(
   urlPath: String,
   pathParameters: List[DataRetrieve.Parameter],
   destination: UrlDestination
-)
+) {
+  def destinationForConnector: String =
+    urlPath.replaceAll("\\{\\{([^}]+)}}", "$1")
+}
 
 object UrlDescriptor {
   implicit val format: OFormat[UrlDescriptor] = derived.oformat()

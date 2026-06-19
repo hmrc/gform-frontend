@@ -16,12 +16,18 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import uk.gov.hmrc.gform.cache.DataRetrieveCache
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class GformBackendModule(wSHttpModule: WSHttpModule, configModule: ConfigModule) {
+class GformBackendModule(
+  wSHttpModule: WSHttpModule,
+  configModule: ConfigModule,
+  getDataRetrieveCache: => DataRetrieveCache
+) {
 
-  lazy val gformConnector: GformConnector = new GformConnector(wSHttpModule.httpClient, gformBaseUrl)
+  lazy val gformConnector: GformConnector =
+    new GformConnector(wSHttpModule.httpClient, gformBaseUrl, getDataRetrieveCache)
 
   lazy val gformBaseUrl = s"${configModule.serviceConfig.baseUrl("gform")}/gform"
 }
