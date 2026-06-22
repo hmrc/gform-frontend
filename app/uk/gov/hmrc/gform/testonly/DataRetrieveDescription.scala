@@ -17,48 +17,16 @@
 package uk.gov.hmrc.gform.testonly
 
 import julienrf.json.derived
-import play.api.libs.json.{ Format, JsObject, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.UrlDescriptor
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
+import play.api.libs.json.{ JsObject, OFormat }
 
 case class DataRetrieveDescription(
   tpe: String,
   exampleJson: JsObject,
   attributeReferences: List[String],
   documentationUrl: Option[String],
-  isArrayResult: Boolean,
-  urlFrontend: UrlDescriptor,
-  urlBackend: Option[UrlDescriptor]
+  isArrayResult: Boolean
 )
 
 object DataRetrieveDescription {
   implicit val format: OFormat[DataRetrieveDescription] = derived.oformat()
-}
-
-sealed trait UrlDestination extends Product with Serializable
-
-object UrlDestination {
-  case object GForm extends UrlDestination
-  case object MDTP extends UrlDestination
-  case object DES extends UrlDestination
-  case object HIP extends UrlDestination
-  case object IF extends UrlDestination
-  case object CompaniesHouse extends UrlDestination
-
-  val companiesHouse = "Companies House"
-
-  implicit val format: Format[UrlDestination] =
-    ADTFormat.formatEnumeration(
-      "GForm"        -> GForm,
-      "MDTP"         -> MDTP,
-      "DES"          -> DES,
-      "HIP"          -> HIP,
-      "IF"           -> IF,
-      companiesHouse -> CompaniesHouse
-    )
-
-  def asString(urlDestination: UrlDestination): String = urlDestination match {
-    case CompaniesHouse => companiesHouse
-    case other          => other.toString
-  }
 }

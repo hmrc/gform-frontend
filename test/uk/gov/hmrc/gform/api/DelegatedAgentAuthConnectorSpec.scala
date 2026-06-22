@@ -29,8 +29,8 @@ import play.api.{ Configuration, Environment }
 import uk.gov.hmrc.gform.WiremockSupport
 import uk.gov.hmrc.gform.auth.AuthConnector
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.{ Attribute, Response }
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.wshttp.HttpTestUtils
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ Authorization, HeaderCarrier }
@@ -197,6 +197,11 @@ class DelegatedAgentAuthConnectorSpec
       None,
       None,
       false,
+      None,
+      UrlDescriptor(
+        urlPath = "/auth/authorise",
+        destination = UrlDestination.MDTP
+      ),
       None
     )
 
@@ -224,6 +229,11 @@ class DelegatedAgentAuthConnectorSpec
       None,
       None,
       false,
+      None,
+      UrlDescriptor(
+        urlPath = "/auth/authorise",
+        destination = UrlDestination.MDTP
+      ),
       None
     )
 

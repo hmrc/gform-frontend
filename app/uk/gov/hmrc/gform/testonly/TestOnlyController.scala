@@ -615,7 +615,7 @@ class TestOnlyController(
         def displayIncludeIf(ifExpr: IncludeIf): String = {
           val res = formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(ifExpr, None)
           val clazz = if (res) "param-filled" else "param-empty"
-          s"""<code>${ifExpr.booleanExpr.prettyPrint}</code> evaluates to <span class="$clazz">$res</span>"""
+          s"""<code>${ifExpr.booleanExpr.prettyPrint}</code> (evaluates to <span class="$clazz">$res</span>)"""
         }
 
         val sections: List[Section] = cache.formTemplate.formKind.foldNested(_.flatMap(_.sections).toList)(identity)
@@ -624,138 +624,126 @@ class TestOnlyController(
         val allDataRetrieves =
           cache.formTemplate.dataRetrieve.fold(pageDataRetrieves)(drs => pageDataRetrieves ++ drs.toList)
 
-        gformConnector.getDataRetrieveDefinitions().map { dataRetrieveDefinitions =>
-          val drTables = allDataRetrieves
-            .map { dr =>
-              val drDescription = dataRetrieveDefinitions
-                .find(_.tpe === dr.tpe.name)
-                .getOrElse(throw new RuntimeException(s"DataRetrieve definition not found for type ${dr.tpe.name}"))
+        val drTables = allDataRetrieves
+          .map { dr =>
+            val urlParamValues = (dr.urlFrontend +: dr.urlBackend.toList).map { desc =>
+              val params = dr.params.map { param =>
+                val value =
+                  formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(param.expr).stringRepresentation
 
-              val urlParamValues = (drDescription.urlFrontend +: drDescription.urlBackend.toList).map { desc =>
-                val params = desc.pathParameters.map { descriptorPathParm =>
-                  val expr = dr.params
-                    .find(_.parameter.name === descriptorPathParm.name)
-                    .map(_.expr)
-                    .getOrElse(
-                      throw new RuntimeException(
-                        s"Expression not found for path parameter ${descriptorPathParm.name} in DataRetrieve ${dr.tpe.name}"
-                      )
-                    )
-                  val value =
-                    formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr).stringRepresentation
-
-                  descriptorPathParm.name -> value
-                }
-
-                displayUri(params, desc.urlPath) -> UrlDestination.asString(desc.destination)
+                param.parameter.name -> value
               }
 
-              dr -> urlParamValues
+              displayUri(params, desc.urlPath) -> UrlDestination.asString(desc.destination)
             }
-            .map { case (dr, calls) =>
-              val includeIfForDisplay = dr.`if`
-                .map(displayIncludeIf)
-                .getOrElse(s"""N/A = <span class="param-filled">true</span>""")
 
-              new GovukTable()(
-                Table(
-                  caption = None,
-                  classes = "govuk-!-margin-bottom-8",
-                  head = Some(
-                    Seq(
-                      HeadCell(Text("Type"), classes = "gformNarrow"),
-                      HeadCell(Text(dr.tpe.name))
-                    )
+            dr -> urlParamValues
+          }
+          .map { case (dr, calls) =>
+            val includeIfForDisplay = dr.`if`
+              .map(displayIncludeIf)
+              .getOrElse(s"""N/A (evaluates to <span class="param-filled">true</span>)""")
+
+            new GovukTable()(
+              Table(
+                caption = None,
+                classes = "govuk-!-margin-bottom-8",
+                head = Some(
+                  Seq(
+                    HeadCell(Text("Type"), classes = "gformNarrow"),
+                    HeadCell(Text(dr.tpe.name))
+                  )
+                ),
+                rows = Seq(
+                  Seq(
+                    TableRow(Text("Id")),
+                    TableRow(Text(dr.id.value))
                   ),
-                  rows = Seq(
-                    Seq(
-                      TableRow(Text("Id")),
-                      TableRow(Text(dr.id.value))
-                    ),
-                    Seq(
-                      TableRow(Text("IncludeIf")),
-                      TableRow(HtmlContent(includeIfForDisplay))
-                    ),
-                    Seq(
-                      TableRow(Text("Destination"), classes = "govuk-table__header"),
-                      TableRow(Text("URI"), classes = "govuk-table__header")
-                    )
-                  ) ++ calls.zipWithIndex.map { case ((uri, destination), idx) =>
-                    Seq(
-                      TableRow(Text(s"${idx + 1}. $destination")),
-                      TableRow(HtmlContent(uri))
-                    )
-                  }
-                )
-              )
-            }
-
-          val destTables = cache.formTemplate.destinations match {
-            case Destinations.DestinationList(destinations, _, _) =>
-              destinations
-                .collect {
-                  case d: Destination.HandlebarsHttpApi      => (d.id, d.profile, d.uri, d.method, d.includeIf)
-                  case d: Destination.AsyncHandlebarsHttpApi => (d.id, d.profile, d.uri, d.method, d.includeIf)
+                  Seq(
+                    TableRow(Text("IncludeIf")),
+                    TableRow(HtmlContent(includeIfForDisplay))
+                  ),
+                  Seq(
+                    TableRow(Text("Destination"), classes = "govuk-table__header"),
+                    TableRow(Text("URI"), classes = "govuk-table__header")
+                  )
+                ) ++ calls.map { case (uri, destination) =>
+                  Seq(
+                    TableRow(Text(s"$destination")),
+                    TableRow(HtmlContent(uri))
+                  )
                 }
-                .map { case (destId, profile, uri, method, includeIf) =>
-                  // In the absence of handlebars processor in the frontend, let's attempt to extract any URL parameters
-                  // from the destination's routing and evaluate them as form components, doesn't matter if it doesn't
-                  // work as this is just for display purposes
-                  val params = """\{([a-zA-Z0-9_]+)}""".r
-                    .findAllIn(uri)
-                    .matchData
-                    .map { m =>
-                      val paramName = m.group(1)
-                      val value = formModelOptics.formModelVisibilityOptics
-                        .evalAndApplyTypeInfoFirst(FormCtx(FormComponentId(paramName)))
-                        .stringRepresentation
-                      paramName -> value
-                    }
-                    .toList
+              )
+            )
+          }
 
-                  val updatedUri = if (uri.startsWith("/")) uri else s"/$uri"
-                  val uriForDisplay = displayUri(params, updatedUri)
-
-                  val includeIfForDisplay: String = includeIf match {
-                    case DestinationIncludeIf.HandlebarValue(str) =>
-                      s"<code>$str</code> <i>[handlebars expression cannot be evaluated until submission]</i>"
-                    case DestinationIncludeIf.IncludeIfValue(ifExpr) => displayIncludeIf(ifExpr)
+        val destTables = cache.formTemplate.destinations match {
+          case Destinations.DestinationList(destinations, _, _) =>
+            destinations
+              .collect {
+                case d: Destination.HandlebarsHttpApi      => (d.id, d.profile, d.uri, d.method, d.includeIf)
+                case d: Destination.AsyncHandlebarsHttpApi => (d.id, d.profile, d.uri, d.method, d.includeIf)
+              }
+              .map { case (destId, profile, uri, method, includeIf) =>
+                // In the absence of handlebars processor in the frontend, let's attempt to extract any URL parameters
+                // from the destination's routing and evaluate them as form components, doesn't matter if it doesn't
+                // work as this is just for display purposes
+                val params = """\{([a-zA-Z0-9_]+)}""".r
+                  .findAllIn(uri)
+                  .matchData
+                  .map { m =>
+                    val paramName = m.group(1)
+                    val value = formModelOptics.formModelVisibilityOptics
+                      .evalAndApplyTypeInfoFirst(FormCtx(FormComponentId(paramName)))
+                      .stringRepresentation
+                    paramName -> value
                   }
+                  .toList
 
-                  new GovukTable()(
-                    Table(
-                      caption = None,
-                      classes = "govuk-!-margin-bottom-8",
-                      head = Some(
-                        Seq(
-                          HeadCell(Text("Id"), classes = "gformNarrow"),
-                          HeadCell(Text(destId.id))
-                        )
+                val updatedUri = if (uri.startsWith("/")) uri else s"/$uri"
+                val uriForDisplay = displayUri(params, updatedUri)
+
+                val includeIfForDisplay: String = includeIf match {
+                  case DestinationIncludeIf.HandlebarValue(str) =>
+                    s"<code>$str</code> <i>[handlebars expression cannot be evaluated until submission]</i>"
+                  case DestinationIncludeIf.IncludeIfValue(ifExpr) => displayIncludeIf(ifExpr)
+                }
+
+                new GovukTable()(
+                  Table(
+                    caption = None,
+                    classes = "govuk-!-margin-bottom-8",
+                    head = Some(
+                      Seq(
+                        HeadCell(Text("Id"), classes = "gformNarrow"),
+                        HeadCell(Text(destId.id))
+                      )
+                    ),
+                    rows = Seq(
+                      Seq(
+                        TableRow(Text("IncludeIf")),
+                        TableRow(HtmlContent(includeIfForDisplay))
                       ),
-                      rows = Seq(
-                        Seq(
-                          TableRow(Text("IncludeIf")),
-                          TableRow(HtmlContent(includeIfForDisplay))
-                        ),
-                        Seq(
-                          TableRow(Text("Method")),
-                          TableRow(Text(method.toString))
-                        ),
-                        Seq(
-                          TableRow(Text("Profile"), classes = "govuk-table__header"),
-                          TableRow(Text(profile.name.toUpperCase))
-                        ),
-                        Seq(
-                          TableRow(Text("URI"), classes = "govuk-table__header"),
-                          TableRow(HtmlContent(uriForDisplay))
-                        )
+                      Seq(
+                        TableRow(Text("Method")),
+                        TableRow(Text(method.toString))
+                      ),
+                      Seq(
+                        TableRow(Text("Profile"), classes = "govuk-table__header"),
+                        TableRow(Text(profile.name.toUpperCase))
+                      ),
+                      Seq(
+                        TableRow(Text("URI"), classes = "govuk-table__header"),
+                        TableRow(HtmlContent(uriForDisplay))
                       )
                     )
                   )
-                }
-            case _ => List.empty[Html]
-          }
+                )
+              }
+          case _ => List.empty[Html]
+        }
 
+        Future.successful(
           Ok(
             viewApiCalls(
               cache.formTemplate,
@@ -764,7 +752,7 @@ class TestOnlyController(
               frontendAppConfig
             )
           )
-        }
+        )
     }
 
   def showExpressions(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
