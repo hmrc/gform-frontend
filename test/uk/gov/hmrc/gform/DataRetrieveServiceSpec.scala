@@ -189,6 +189,11 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       resetMinutes.map(_ => 3),
       resetMinutes,
       false,
+      None,
+      UrlDescriptor(
+        urlPath = "/bank-details/validate",
+        destination = UrlDestination.MDTP
+      ),
       None
     )
 

@@ -472,9 +472,8 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     httpClient.delete(url"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").execute[HttpResponse].void
 
-  private val desOrganisationWithPlaceholders = s"$baseUrl/des/organisation/{{utr}}"
   private val organisationB =
-    new DataRetrieveConnectorBlueprint(httpClient, desOrganisationWithPlaceholders, "organisation")
+    new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "organisation")
 
   def getDesOrganisation(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier,
@@ -482,9 +481,8 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
     organisationB.post(dataRetrieve, request)
 
-  private val hipAgentDetailsWithPlaceholders = s"$baseUrl/hip/agent-details/{{agentReferenceNumber}}"
   private val hipAgentDetailsB =
-    new DataRetrieveConnectorBlueprint(httpClient, hipAgentDetailsWithPlaceholders, "hip-agent-details")
+    new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "hip-agent-details")
 
   def getHipAgentDetails(
     dataRetrieve: DataRetrieve,
@@ -496,9 +494,8 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
     )
 
-  private val urlNiClaimValidation = s"$baseUrl/hip/ni-claim-validation/{{nino}}/{{claimReference}}"
   private val claimValidationB =
-    new DataRetrieveConnectorBlueprint(httpClient, urlNiClaimValidation, "ni claim validation")
+    new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "ni claim validation")
 
   def getNiClaimValidation(
     dataRetrieve: DataRetrieve,
@@ -510,7 +507,6 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
     )
 
-  private val urlCaseflowCaseDetails = s"$baseUrl/hip/caseflow-case-details/{{caseId}}"
   private val caseflowExceptionalResponses = Some(
     List(
       ExceptionalResponse(
@@ -523,7 +519,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   private val caseflowCaseDetailsB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
-      urlCaseflowCaseDetails,
+      baseUrl,
       "caseflow case details",
       caseflowExceptionalResponses
     )
@@ -548,11 +544,10 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       case ListType(_) => throw new IllegalStateException("List type is illegal for caseflow get case details response")
     }
 
-  private val urlFTAManageEmails = s"$baseUrl/if/fta/manageemails/v1?eori={{eori}}"
   private val ftaManageEmailsB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
-      urlFTAManageEmails,
+      baseUrl,
       "fta manage emails",
       Some(
         List(
@@ -591,8 +586,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       .execute[NonEmptyList[ServiceCallResponse[TaxResponse]]]
   }
 
-  private val urlWithPlaceholders = s"$baseUrl/hip/ni-employments/{{nino}}/{{taxYear}}"
-  private val employmentsProfileB = new DataRetrieveConnectorBlueprint(httpClient, urlWithPlaceholders, "employments")
+  private val employmentsProfileB = new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "employments")
 
   def getEmployments(
     dataRetrieve: DataRetrieve,

@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, FormComponentId, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
@@ -110,6 +110,43 @@ object PopulateATL {
   implicit val format: Format[PopulateATL] = Json.format
 }
 
+sealed trait UrlDestination extends Product with Serializable
+
+object UrlDestination {
+  case object GForm extends UrlDestination
+  case object MDTP extends UrlDestination
+  case object DES extends UrlDestination
+  case object HIP extends UrlDestination
+  case object IF extends UrlDestination
+  case object CompaniesHouse extends UrlDestination
+
+  val companiesHouse = "Companies House"
+
+  implicit val format: Format[UrlDestination] =
+    ADTFormat.formatEnumeration(
+      "GForm"        -> GForm,
+      "MDTP"         -> MDTP,
+      "DES"          -> DES,
+      "HIP"          -> HIP,
+      "IF"           -> IF,
+      companiesHouse -> CompaniesHouse
+    )
+
+  def asString(urlDestination: UrlDestination): String = urlDestination match {
+    case CompaniesHouse => companiesHouse
+    case other          => other.toString
+  }
+}
+
+final case class UrlDescriptor(
+  urlPath: String,
+  destination: UrlDestination
+)
+
+object UrlDescriptor {
+  implicit val format: OFormat[UrlDescriptor] = derived.oformat()
+}
+
 case class DataRetrieve(
   tpe: DataRetrieve.Type,
   id: DataRetrieveId,
@@ -120,7 +157,9 @@ case class DataRetrieve(
   maxFailedAttempts: Option[Int],
   failureCountResetMinutes: Option[Int],
   callOnNoChange: Boolean,
-  populateATL: Option[PopulateATL]
+  populateATL: Option[PopulateATL],
+  urlFrontend: UrlDescriptor,
+  urlBackend: Option[UrlDescriptor]
 ) {
 
   def prepareRequest(
@@ -342,7 +381,7 @@ object DataRetrieve {
   final case class Type(name: String) extends AnyVal
 
   final case class Attribute(name: String)
-  final case class Parameter(name: String, path: List[String], tpe: ParamType)
+  final case class Parameter(name: String, path: List[String], tpe: ParamType = ParamType.String)
 
   object Type {
     implicit val format: OFormat[Type] = derived.oformat()
@@ -362,6 +401,7 @@ object DataRetrieve {
   }
 
   object Parameter {
+    def apply(name: String): Parameter = Parameter(name, List.empty[String])
     implicit val format: OFormat[Parameter] = derived.oformat()
   }
 

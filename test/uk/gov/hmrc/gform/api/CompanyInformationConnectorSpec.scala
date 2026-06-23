@@ -17,22 +17,21 @@
 package uk.gov.hmrc.gform.api
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.{ configureFor, notFound, ok, serverError, stubFor }
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.apache.pekko.actor.ActorSystem
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.WiremockSupport
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieve.Attribute
-import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, Fetch, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.wshttp.HttpTestUtils
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId }
 
-import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class CompanyInformationConnectorSpec
@@ -120,7 +119,17 @@ class CompanyInformationConnectorSpec
       None,
       None,
       false,
-      None
+      None,
+      UrlDescriptor(
+        urlPath = "/companieshouse/company/{{companyNumber}}",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/company/{{companyNumber}}",
+          destination = UrlDestination.CompaniesHouse
+        )
+      )
     )
 
     val dataRetrieveCompanyHouseActiveOfficers = DataRetrieve(
@@ -152,7 +161,17 @@ class CompanyInformationConnectorSpec
       None,
       None,
       false,
-      None
+      None,
+      UrlDescriptor(
+        urlPath = "/companieshouse/company/{{companyNumber}}/officers",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/company/{{companyNumber}}/officers",
+          destination = UrlDestination.CompaniesHouse
+        )
+      )
     )
 
     val dataRetrieveCompanyHouseInsolvency =
@@ -238,7 +257,17 @@ class CompanyInformationConnectorSpec
         None,
         None,
         false,
-        None
+        None,
+        UrlDescriptor(
+          urlPath = "/companieshouse/company/{{companyNumber}}/insolvency",
+          destination = UrlDestination.GForm
+        ),
+        Some(
+          UrlDescriptor(
+            urlPath = "/company/{{companyNumber}}/insolvency",
+            destination = UrlDestination.CompaniesHouse
+          )
+        )
       )
 
     val request = DataRetrieve.Request(

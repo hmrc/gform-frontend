@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import java.time.LocalDateTime
-
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.{ Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, ExampleData, Fetch, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
 import uk.gov.hmrc.http._
+
+import java.time.LocalDateTime
 
 class GformConnectorSpec extends Spec {
 
@@ -229,7 +229,17 @@ class GformConnectorSpec extends Spec {
       maxFailedAttempts = None,
       failureCountResetMinutes = None,
       callOnNoChange = false,
-      populateATL = None
+      populateATL = None,
+      UrlDescriptor(
+        urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+          destination = UrlDestination.HIP
+        )
+      )
     )
 
     val request = DataRetrieve.Request(
@@ -266,7 +276,17 @@ class GformConnectorSpec extends Spec {
       maxFailedAttempts = None,
       failureCountResetMinutes = None,
       callOnNoChange = false,
-      populateATL = None
+      populateATL = None,
+      UrlDescriptor(
+        urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+          destination = UrlDestination.HIP
+        )
+      )
     )
 
     val request = DataRetrieve.Request(
@@ -294,7 +314,17 @@ class GformConnectorSpec extends Spec {
       maxFailedAttempts = None,
       failureCountResetMinutes = None,
       callOnNoChange = false,
-      populateATL = None
+      populateATL = None,
+      UrlDescriptor(
+        urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+          destination = UrlDestination.HIP
+        )
+      )
     )
 
     val request = DataRetrieve.Request(

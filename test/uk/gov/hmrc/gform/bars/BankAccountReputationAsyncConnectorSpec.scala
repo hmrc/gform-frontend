@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.bars
 
-import org.apache.pekko.actor.ActorSystem
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.apache.pekko.actor.ActorSystem
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -27,7 +27,7 @@ import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.WiremockSupport
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
-import uk.gov.hmrc.gform.sharedmodel.{ AllowedValueType, AllowedValues, Attr, AttributeInstruction, CannotRetrieveResponse, ConstructAttribute, DataRetrieve, DataRetrieveId, Fetch, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.wshttp.HttpTestUtils
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, RequestId }
@@ -112,6 +112,11 @@ class BankAccountReputationAsyncConnectorSpec
       None,
       None,
       false,
+      None,
+      UrlDescriptor(
+        urlPath = "/validate/bank-details",
+        destination = UrlDestination.MDTP
+      ),
       None
     )
 
@@ -148,7 +153,17 @@ class BankAccountReputationAsyncConnectorSpec
       None,
       None,
       false,
-      None
+      None,
+      UrlDescriptor(
+        urlPath = "/companieshouse/company/{{companyNumber}}",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/company/{{companyNumber}}",
+          destination = UrlDestination.CompaniesHouse
+        )
+      )
     )
 
     val dataRetrieveEmployments = DataRetrieve(
@@ -185,7 +200,17 @@ class BankAccountReputationAsyncConnectorSpec
       None,
       None,
       false,
-      None
+      None,
+      UrlDescriptor(
+        urlPath = "/hip/ni-employments/{{nino}}/{{taxYear}}",
+        destination = UrlDestination.GForm
+      ),
+      Some(
+        UrlDescriptor(
+          urlPath = "/paye/employment/employee/{{nino}}/tax-year/{{taxYear}}/employment-details",
+          destination = UrlDestination.HIP
+        )
+      )
     )
 
     val request = DataRetrieve.Request(
@@ -403,7 +428,7 @@ class BankAccountReputationAsyncConnectorSpec
 
     stubFor(
       WireMock
-        .post(s"/validate/bank-details")
+        .post(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
         .withHeader("Content-Type", equalTo("application/json"))
         .willReturn(
           ok(
@@ -447,7 +472,7 @@ class BankAccountReputationAsyncConnectorSpec
 
     stubFor(
       WireMock
-        .post(s"/validate/bank-details")
+        .post(s"/hip/ni-employments/%7B%7Bnino%7D%7D/%7B%7BtaxYear%7D%7D")
         .withHeader("Content-Type", equalTo("application/json"))
         .willReturn(
           ok(

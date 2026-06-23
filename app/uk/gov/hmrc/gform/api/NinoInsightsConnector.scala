@@ -34,7 +34,7 @@ class NinoInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String, auth
   ex: ExecutionContext
 ) extends NinoInsightsConnector[Future] {
 
-  val insightsB = new DataRetrieveConnectorBlueprint(httpClient, s"$baseUrl/check/insights", "nino insights")
+  val insightsB = new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "nino insights")
 
   override def insights(
     dataRetrieve: DataRetrieve,

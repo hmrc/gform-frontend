@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.testonly
 
-import cats.data.EitherT
+import cats.data.{ EitherT, NonEmptyList }
 import cats.data.Validated.Valid
 import cats.implicits._
 import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
@@ -42,17 +42,17 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
-import uk.gov.hmrc.gform.models.{ SectionSelectorType, UserSession }
+import uk.gov.hmrc.gform.models.{ Basic, SectionSelectorType, UserSession }
 import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Caseflow, DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, Destinations, SdesDestination }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, DestinationIncludeIf, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
 import uk.gov.hmrc.gform.views.html.debug.snippets.{ dataRetrieveSnippet, inputWrapper }
-import uk.gov.hmrc.gform.views.html.debug.{ toolbox, viewExpressions }
+import uk.gov.hmrc.gform.views.html.debug.{ toolbox, viewApiCalls, viewExpressions }
 import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
@@ -546,6 +546,11 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showExpressions(formTemplate._id, accessCode)
     )
 
+    val viewApiCallsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View destination/dataRetrieve API calls",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.showApiCalls(formTemplate._id, accessCode)
+    )
+
     val qaUrl =
       """https://kibana.mdtp-qa.telemetry.tax.service.gov.uk/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-60m,to:now))&_a=(columns:!(level,message),dataSource:(dataViewId:match_all_logstash_ingested_logs_kibana_index_pattern,type:dataView),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:match_all_logstash_ingested_logs_kibana_index_pattern,key:app,negate:!f,params:!(gform,gform-frontend),type:phrases,value:!(gform,gform-frontend)),query:(bool:(minimum_should_match:1,should:!((match_phrase:(app:gform)),(match_phrase:(app:gform-frontend)))))),('$state':(store:appState),meta:(alias:!n,disabled:!f,field:level,index:match_all_logstash_ingested_logs_kibana_index_pattern,key:level,negate:!f,params:(query:ERROR),type:phrase),query:(match_phrase:(level:ERROR)))),grid:(columns:(level:(width:123))),interval:auto,query:(language:lucene,query:''),sort:!(!('@timestamp',desc)))"""
     val viewErrorLogsLink = Html(
@@ -562,6 +567,7 @@ class TestOnlyController(
       viewExpressionsLink,
       viewAllExpressionsLink,
       viewFormModelLink,
+      viewApiCallsLink,
       viewErrorLogsLink
     )
 
@@ -583,6 +589,171 @@ class TestOnlyController(
 
     HtmlFormat.fill(List(envelope, br(), bulletedList, br(), govukTable, tableInset))
   }
+
+  def showApiCalls(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, accessCode) {
+      implicit request => implicit langADT => cache => _ => formModelOptics =>
+        import i18nSupport._
+
+        def pages(section: Section): NonEmptyList[Page[Basic]] =
+          section match {
+            case s: Section.NonRepeatingPage => NonEmptyList.of(s.page)
+            case s: Section.RepeatingPage    => NonEmptyList.of(s.page)
+            case s: Section.AddToList        => s.pages
+          }
+
+        def displayUri(params: List[(String, String)], uri: String): String = {
+          val prettyPrinted = params.foldLeft(uri) { case (acc, (k, v)) =>
+            if (v.isBlank)
+              acc.replace(s"{{$k}}", s"""<span class="param-empty">{{$k}}</span>""")
+            else
+              acc.replace(s"{{$k}}", s"""<span class="param-filled">$v</span>""")
+          }
+          s"<code>$prettyPrinted</code>"
+        }
+
+        def displayIncludeIf(ifExpr: IncludeIf): String = {
+          val res = formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(ifExpr, None)
+          val clazz = if (res) "param-filled" else "param-empty"
+          s"""<code>${ifExpr.booleanExpr.prettyPrint}</code> (evaluates to <span class="$clazz">$res</span>)"""
+        }
+
+        val sections: List[Section] = cache.formTemplate.formKind.foldNested(_.flatMap(_.sections).toList)(identity)
+        val allPages: List[Page[Basic]] = sections.flatMap(pages(_).toList)
+        val pageDataRetrieves = allPages.flatMap(_.dataRetrieves())
+        val allDataRetrieves =
+          cache.formTemplate.dataRetrieve.fold(pageDataRetrieves)(drs => pageDataRetrieves ++ drs.toList)
+
+        val drTables = allDataRetrieves
+          .map { dr =>
+            val urlParamValues = (dr.urlFrontend +: dr.urlBackend.toList).map { desc =>
+              val params = dr.params.map { param =>
+                val value =
+                  formModelOptics.formModelVisibilityOptics.evalAndApplyTypeInfoFirst(param.expr).stringRepresentation
+
+                param.parameter.name -> value
+              }
+
+              displayUri(params, desc.urlPath) -> UrlDestination.asString(desc.destination)
+            }
+
+            dr -> urlParamValues
+          }
+          .map { case (dr, calls) =>
+            val includeIfForDisplay = dr.`if`
+              .map(displayIncludeIf)
+              .getOrElse(s"""N/A (evaluates to <span class="param-filled">true</span>)""")
+
+            new GovukTable()(
+              Table(
+                caption = None,
+                classes = "govuk-!-margin-bottom-8",
+                head = Some(
+                  Seq(
+                    HeadCell(Text("Type"), classes = "gformNarrow"),
+                    HeadCell(Text(dr.tpe.name))
+                  )
+                ),
+                rows = Seq(
+                  Seq(
+                    TableRow(Text("Id")),
+                    TableRow(Text(dr.id.value))
+                  ),
+                  Seq(
+                    TableRow(Text("IncludeIf")),
+                    TableRow(HtmlContent(includeIfForDisplay))
+                  ),
+                  Seq(
+                    TableRow(Text("Destination"), classes = "govuk-table__header"),
+                    TableRow(Text("URI"), classes = "govuk-table__header")
+                  )
+                ) ++ calls.map { case (uri, destination) =>
+                  Seq(
+                    TableRow(Text(s"$destination")),
+                    TableRow(HtmlContent(uri))
+                  )
+                }
+              )
+            )
+          }
+
+        val destTables = cache.formTemplate.destinations match {
+          case Destinations.DestinationList(destinations, _, _) =>
+            destinations
+              .collect {
+                case d: Destination.HandlebarsHttpApi      => (d.id, d.profile, d.uri, d.method, d.includeIf)
+                case d: Destination.AsyncHandlebarsHttpApi => (d.id, d.profile, d.uri, d.method, d.includeIf)
+              }
+              .map { case (destId, profile, uri, method, includeIf) =>
+                // In the absence of handlebars processor in the frontend, let's attempt to extract any URL parameters
+                // from the destination's routing and evaluate them as form components, doesn't matter if it doesn't
+                // work as this is just for display purposes
+                val params = """\{([a-zA-Z0-9_]+)}""".r
+                  .findAllIn(uri)
+                  .matchData
+                  .map { m =>
+                    val paramName = m.group(1)
+                    val value = formModelOptics.formModelVisibilityOptics
+                      .evalAndApplyTypeInfoFirst(FormCtx(FormComponentId(paramName)))
+                      .stringRepresentation
+                    paramName -> value
+                  }
+                  .toList
+
+                val updatedUri = if (uri.startsWith("/")) uri else s"/$uri"
+                val uriForDisplay = displayUri(params, updatedUri)
+
+                val includeIfForDisplay: String = includeIf match {
+                  case DestinationIncludeIf.HandlebarValue(str) =>
+                    s"<code>$str</code> <i>[handlebars expression cannot be evaluated until submission]</i>"
+                  case DestinationIncludeIf.IncludeIfValue(ifExpr) => displayIncludeIf(ifExpr)
+                }
+
+                new GovukTable()(
+                  Table(
+                    caption = None,
+                    classes = "govuk-!-margin-bottom-8",
+                    head = Some(
+                      Seq(
+                        HeadCell(Text("Id"), classes = "gformNarrow"),
+                        HeadCell(Text(destId.id))
+                      )
+                    ),
+                    rows = Seq(
+                      Seq(
+                        TableRow(Text("IncludeIf")),
+                        TableRow(HtmlContent(includeIfForDisplay))
+                      ),
+                      Seq(
+                        TableRow(Text("Method")),
+                        TableRow(Text(method.toString))
+                      ),
+                      Seq(
+                        TableRow(Text("Profile"), classes = "govuk-table__header"),
+                        TableRow(Text(profile.name.toUpperCase))
+                      ),
+                      Seq(
+                        TableRow(Text("URI"), classes = "govuk-table__header"),
+                        TableRow(HtmlContent(uriForDisplay))
+                      )
+                    )
+                  )
+                )
+              }
+          case _ => List.empty[Html]
+        }
+
+        Future.successful(
+          Ok(
+            viewApiCalls(
+              cache.formTemplate,
+              drTables,
+              destTables,
+              frontendAppConfig
+            )
+          )
+        )
+    }
 
   def showExpressions(formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, accessCode) {

@@ -34,7 +34,7 @@ class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: Strin
   ex: ExecutionContext
 ) extends BankAccountInsightsConnector[Future] {
 
-  val insightsB = new DataRetrieveConnectorBlueprint(httpClient, s"$baseUrl/check/insights", "bankAccount insights")
+  val insightsB = new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "bankAccount insights")
 
   override def insights(
     dataRetrieve: DataRetrieve,
