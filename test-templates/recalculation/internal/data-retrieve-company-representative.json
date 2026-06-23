@@ -136,6 +136,10 @@
                       }
                     }
                   ],
+                  "urlFrontend": {
+                    "urlPath": "/companieshouse/company/{{companyNumber}}",
+                    "destination": "GForm"
+                  },
                   "attributes": {
                     "FromObject": {
                       "inst": [
@@ -578,6 +582,10 @@
                     }
                   },
                   "id": "companyRepresentative",
+                  "urlBackend": {
+                    "urlPath": "/company/{{companyNumber}}",
+                    "destination": "Companies House"
+                  },
                   "callOnNoChange": false
                 }
               ]

@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.ids.ModelDataRetrieveId
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.AllowedValueType.{ JsBooleanType, JsNumberType, JsStringType }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AddToListId, Expr, FormComponentId, IncludeIf, JsonUtils }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ADTFormat, AddToListId, Expr, FormComponentId, IncludeIf, JsonUtils }
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 

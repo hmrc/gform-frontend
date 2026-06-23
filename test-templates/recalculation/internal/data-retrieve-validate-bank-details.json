@@ -193,6 +193,10 @@
                       }
                     }
                   ],
+                  "urlFrontend": {
+                    "urlPath": "/validate/bank-details",
+                    "destination": "MDTP"
+                  },
                   "attributes": {
                     "FromObject": {
                       "inst": [

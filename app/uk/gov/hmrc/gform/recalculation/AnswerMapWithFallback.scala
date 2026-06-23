@@ -70,7 +70,7 @@ class AnswerMapWithFallback(
     val modelComponentId = fcId.toAtomicFormComponentId(atom)
     answerMap
       .get(modelComponentId)
-      .orElse(mongoUserData.lookup.get(modelComponentId).map(toOneNumber))
+      .orElse(mongoUserData.lookup.get(modelComponentId).flatMap(toOneNumber))
       .getOrElse(EvaluationStatus.Empty)
   }
 
@@ -105,11 +105,11 @@ class AnswerMapWithFallback(
         EvaluationStatus.OptionResult(vs)
     }
 
-  private def toOneNumber(variadicValue: VariadicValue): EvaluationStatus.NumberResult = {
+  private def toOneNumber(variadicValue: VariadicValue): Option[EvaluationStatus.NumberResult] = {
     val v = variadicValue.toOne.value
     Try(v.toLong)
       .map(EvaluationStatus.NumberResult(_))
-      .getOrElse(throw new RuntimeException(s"$v cannot be converted to number."))
+      .toOption
   }
 }
 

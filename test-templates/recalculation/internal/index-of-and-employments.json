@@ -192,6 +192,10 @@
                       }
                     }
                   ],
+                  "urlFrontend": {
+                    "urlPath": "/hip/ni-employments/{{nino}}/{{taxYear}}",
+                    "destination": "GForm"
+                  },
                   "attributes": {
                     "FromArray": {
                       "inst": [
@@ -342,6 +346,10 @@
                     }
                   },
                   "id": "employments",
+                  "urlBackend": {
+                    "urlPath": "/paye/employment/employee/{{nino}}/tax-year/{{taxYear}}/employment-details",
+                    "destination": "HIP"
+                  },
                   "callOnNoChange": false
                 }
               ]

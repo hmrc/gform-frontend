@@ -300,6 +300,10 @@
                         }
                       }
                     ],
+                    "urlFrontend": {
+                      "urlPath": "/hip/ni-employments/{{nino}}/{{taxYear}}",
+                      "destination": "GForm"
+                    },
                     "attributes": {
                       "FromArray": {
                         "inst": [
@@ -450,6 +454,10 @@
                       }
                     },
                     "id": "employmentsNinoA",
+                    "urlBackend": {
+                      "urlPath": "/paye/employment/employee/{{nino}}/tax-year/{{taxYear}}/employment-details",
+                      "destination": "HIP"
+                    },
                     "callOnNoChange": false
                   },
                   {
@@ -496,6 +504,10 @@
                         }
                       }
                     ],
+                    "urlFrontend": {
+                      "urlPath": "/hip/ni-employments/{{nino}}/{{taxYear}}",
+                      "destination": "GForm"
+                    },
                     "attributes": {
                       "FromArray": {
                         "inst": [
@@ -646,6 +658,10 @@
                       }
                     },
                     "id": "employmentsNinoB",
+                    "urlBackend": {
+                      "urlPath": "/paye/employment/employee/{{nino}}/tax-year/{{taxYear}}/employment-details",
+                      "destination": "HIP"
+                    },
                     "callOnNoChange": false
                   }
                 ]

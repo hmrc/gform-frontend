@@ -162,6 +162,8 @@ final class FormModel(
 
   def apply(sectionNumber: SectionNumber): PageModel = pageModelLookup(sectionNumber)
 
+  def maybePageModel(sectionNumber: SectionNumber): Option[PageModel] = pageModelLookup.get(sectionNumber)
+
   def bracket(sectionNumber: SectionNumber): Bracket =
     brackets.withSectionNumber(sectionNumber)
 

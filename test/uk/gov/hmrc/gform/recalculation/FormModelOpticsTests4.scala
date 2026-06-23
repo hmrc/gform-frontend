@@ -30,6 +30,66 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+        "EORI"   -> One("3333333"),
+        "1_name" -> One("AAA")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty.copy(
+        thirdPartyData = ThirdPartyData.empty.copy(
+          dataRetrieve = mkDataRetrievesList(
+            "emails" ->
+              List(
+                Map(
+                  DataRetrieve.Attribute("secondaryEmail") -> "secondary-1@domain.com"
+                ),
+                Map(
+                  DataRetrieve.Attribute("secondaryEmail") -> "secondary-2@domain.com"
+                ),
+                Map(
+                  DataRetrieve.Attribute("secondaryEmail") -> "secondary-3@domain.com"
+                )
+              )
+          )
+        )
+      ),
+      AnswerMap(
+        "1_addAnother" -> Empty,
+        "1_name"       -> StringResult("AAA")
+      ),
+      List(
+        "Name 1 out of 3",
+        "AAA",
+        "1 - AAA",
+        "<p>1 - AAA</p>"
+      ),
+      "data-retrieve-atl-reference.json atl is visible"
+    ),
+    (
+      MongoUserData(
+        "EORI"   -> One("3333333"),
+        "1_name" -> One("AAA")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty.copy(
+        thirdPartyData = ThirdPartyData.empty.copy(
+          dataRetrieve = mkDataRetrievesList(
+            "emails" -> List()
+          )
+        )
+      ),
+      AnswerMap(
+        "1_addAnother" -> Hidden,
+        "1_name"       -> Hidden
+      ),
+      List.empty[String],
+      "data-retrieve-atl-reference.json alt is hidden"
+    ),
+    (
+      MongoUserData(
         "activeDays" -> One("7")
       ),
       List(

@@ -1,0 +1,67 @@
+{
+  "_id": "data-retrieve-atl-reference",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "EORI number",
+      "fields": [
+        {
+          "id": "EORI",
+          "type": "text",
+          "format": "text"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "ftaManageEmails",
+          "id": "emails",
+          "parameters": {
+            "eori": "${EORI}"
+          }
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "includeIf": "${count(dataRetrieve.emails) > 0}",
+      "title": "Items",
+      "summaryName": "owner",
+      "shortName": "${name}",
+      "description": "$n - ${name}",
+      "summaryDescription": "summaryDescription",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Add another item?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Name $n out of ${count(dataRetrieve.emails)}",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -49,7 +49,7 @@ import uk.gov.hmrc.gform.objectStore.Attachments
 import uk.gov.hmrc.gform.recalculation.{ Behaviour, DateResultFlag, EvaluationStatus }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Page, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Caseflow, DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, DestinationIncludeIf, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
@@ -602,7 +602,7 @@ class TestOnlyController(
       implicit request => implicit langADT => cache => _ => formModelOptics =>
         import i18nSupport._
 
-        def pages(section: Section): NonEmptyList[Page[Basic]] =
+        def pages(section: Section): NonEmptyList[Page] =
           section match {
             case s: Section.NonRepeatingPage => NonEmptyList.of(s.page)
             case s: Section.RepeatingPage    => NonEmptyList.of(s.page)
@@ -626,7 +626,7 @@ class TestOnlyController(
         }
 
         val sections: List[Section] = cache.formTemplate.formKind.foldNested(_.flatMap(_.sections).toList)(identity)
-        val allPages: List[Page[Basic]] = sections.flatMap(pages(_).toList)
+        val allPages: List[Page] = sections.flatMap(pages(_).toList)
         val pageDataRetrieves = allPages.flatMap(_.dataRetrieves())
         val allDataRetrieves =
           cache.formTemplate.dataRetrieve.fold(pageDataRetrieves)(drs => pageDataRetrieves ++ drs.toList)

@@ -2170,24 +2170,27 @@ class SectionRenderingService(
             .filterNot(_.hideOnSummary(ei.formModelOptics.formModelVisibilityOptics.freeCalculator))
             .map(fId => FormComponentId(fId.baseComponentId.value))
         }
+        val baseDataRetrieveIds: List[DataRetrieveId] = iteration.singletons.toList.flatMap { singletonWithNumber =>
+          singletonWithNumber.singleton.page.dataRetrieve.fold(List.empty[DataRetrieveId])(_.toList.map(_.id))
+        }
         def updatedIncludeIf(mayBeIncludeIf: Option[IncludeIf]) =
-          mayBeIncludeIf.map(iIf => IncludeIf(BooleanExprUpdater(iIf.booleanExpr, index, baseIds)))
+          mayBeIncludeIf.map(iIf => IncludeIf(BooleanExprUpdater(iIf.booleanExpr, index, baseIds, baseDataRetrieveIds)))
 
         val updatedATLRows = atlRows.map {
           case ValueRow(key, MiniSummaryListValue.Reference(fCtx), includeIf, pageId, taskId) =>
             ValueRow(
-              key.map(_.expand(index, baseIds)),
-              MiniSummaryListValue.Reference(ExprUpdater.formCtx(fCtx, index, baseIds)),
+              key.map(_.expand(index, baseIds, baseDataRetrieveIds)),
+              MiniSummaryListValue.Reference(ExprUpdater.formCtx(fCtx, index, baseIds, baseDataRetrieveIds)),
               updatedIncludeIf(includeIf),
               pageId,
               taskId
             )
 
-          case HeaderRow(h) => HeaderRow(h.expand(index, baseIds))
+          case HeaderRow(h) => HeaderRow(h.expand(index, baseIds, baseDataRetrieveIds))
           case ValueRow(key, MiniSummaryListValue.AnyExpr(expr), includeIf, pageId, taskId) =>
             ValueRow(
-              key.map(_.expand(index, baseIds)),
-              MiniSummaryListValue.AnyExpr(ExprUpdater(expr, index, baseIds)),
+              key.map(_.expand(index, baseIds, baseDataRetrieveIds)),
+              MiniSummaryListValue.AnyExpr(ExprUpdater(expr, index, baseIds, baseDataRetrieveIds)),
               updatedIncludeIf(includeIf),
               pageId,
               taskId

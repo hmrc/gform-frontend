@@ -363,6 +363,10 @@
                       }
                     }
                   ],
+                  "urlFrontend": {
+                    "urlPath": "HMRCTaxRates.csv",
+                    "destination": "GForm"
+                  },
                   "attributes": {
                     "FromObject": {
                       "inst": [
@@ -586,6 +590,10 @@
                       }
                     }
                   ],
+                  "urlFrontend": {
+                    "urlPath": "HMRCTaxRates.csv",
+                    "destination": "GForm"
+                  },
                   "attributes": {
                     "FromObject": {
                       "inst": [

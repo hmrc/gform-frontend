@@ -280,6 +280,7 @@ class FormProcessor(
 
   private def retrieveWithState(
     dataRetrieve: DataRetrieve,
+    formModelOptics: FormModelOptics,
     formModelVisibilityOptics: FormModelVisibilityOptics,
     cache: AuthCacheWithForm
   )(implicit hc: HeaderCarrier, message: Messages): Future[(Option[DataRetrieveResult], Option[PopulateAtlData])] = {
@@ -308,7 +309,12 @@ class FormProcessor(
       val populateAtlData: Option[PopulateAtlData] = r.flatMap { dataRetrieveResult =>
         dataRetrieve.populateATL
           .map(populateAtl =>
-            PopulateAtlService.getPopulateAtlData(populateAtl, dataRetrieveResult, formModelVisibilityOptics)
+            PopulateAtlService.getPopulateAtlData(
+              populateAtl,
+              dataRetrieveResult,
+              formModelOptics,
+              formModelVisibilityOptics
+            )
           )
       }
       (r, populateAtlData)
@@ -373,7 +379,7 @@ class FormProcessor(
           acc.flatMap {
             case (results, populateAtlDataSeq)
                 if r.`if`.forall(includeIf => formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None)) =>
-              retrieveWithState(r, formModelVisibilityOptics, cache).map {
+              retrieveWithState(r, formModelOptics, formModelVisibilityOptics, cache).map {
                 case (Some(result), populateAtlData) =>
                   (results :+ result, populateAtlDataSeq ++ populateAtlData)
                 case (None, _) =>
@@ -400,7 +406,8 @@ class FormProcessor(
     ] => Result
   )(implicit hc: HeaderCarrier, l: LangADT, sse: SmartStringEvaluator, messages: Messages): Future[Result] = {
 
-    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
+    val formModelOptics = processData.formModelOptics
+    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
     val pageModel: PageModel = formModelVisibilityOptics.formModel(sectionNumber)
 
     val allDataRetrieves: List[(DataRetrieveId, DataRetrieve)] =
@@ -572,21 +579,23 @@ class FormProcessor(
     )
   }
 
-  def getSectionTitle4Ga(formModelVisibilityOptics: FormModelVisibilityOptics, sectionNumber: SectionNumber)(implicit
+  def getSectionTitle4Ga(formModelOptics: FormModelOptics, sectionNumber: SectionNumber)(implicit
     messages: Messages
   ): SectionTitle4Ga = {
     val sse: SmartStringEvaluator =
-      smartStringEvaluatorFactory(formModelVisibilityOptics)(messages, LangADT.En)
-    sectionTitle4GaFactory(formModelVisibilityOptics.formModel(sectionNumber), sectionNumber)(sse)
+      smartStringEvaluatorFactory(formModelOptics.formModelVisibilityOptics)(messages, LangADT.En)
+    sectionTitle4GaFactory(
+      formModelOptics.formModelVisibilityOptics.formModel
+        .maybePageModel(sectionNumber)
+        .getOrElse(formModelOptics.formModelRenderPageOptics.formModel(sectionNumber)),
+      sectionNumber
+    )(sse)
   }
 
   def getSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber)(implicit
     messages: Messages
-  ): SectionTitle4Ga = {
-    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
-    getSectionTitle4Ga(formModelVisibilityOptics, sectionNumber)
-
-  }
+  ): SectionTitle4Ga =
+    getSectionTitle4Ga(processData.formModelOptics, sectionNumber)
 
   private def maybeRemoveVerifiedCode(
     validatorsResult: Option[ValidatorsResult],

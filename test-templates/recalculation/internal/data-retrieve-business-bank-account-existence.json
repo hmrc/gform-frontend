@@ -201,6 +201,10 @@
                   "tpe": {
                     "name": "businessBankAccountExistence"
                   },
+                  "urlFrontend": {
+                    "urlPath": "/verify/business",
+                    "destination": "MDTP"
+                  },
                   "failureCountResetMinutes": 10,
                   "attributes": {
                     "FromObject": {

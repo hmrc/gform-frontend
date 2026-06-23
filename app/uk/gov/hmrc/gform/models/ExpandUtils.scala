@@ -47,9 +47,17 @@ object ExpandUtils {
   def modelComponentIdFromFormComponentId(formComponentId: FormComponentId): ModelComponentId =
     toModelComponentId(formComponentId.value)
 
-  def expandSmartString(smartString: SmartString, index: Int, ids: List[FormComponentId]): SmartString =
+  def expandSmartString(
+    smartString: SmartString,
+    index: Int,
+    ids: List[FormComponentId],
+    dataRetrieveIds: List[DataRetrieveId]
+  ): SmartString =
     smartString
-      .updateInterpolations(expr => ExprUpdater(expr, index, ids), boolExpr => BooleanExprUpdater(boolExpr, index, ids))
+      .updateInterpolations(
+        expr => ExprUpdater(expr, index, ids, dataRetrieveIds),
+        boolExpr => BooleanExprUpdater(boolExpr, index, ids, dataRetrieveIds)
+      )
       .replace("$n", index.toString)
 
   def expandDataRetrieve(smartString: SmartString, index: Int): SmartString =
@@ -59,7 +67,7 @@ object ExpandUtils {
           case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, Constant(index.toString))
           case otherwise                   => otherwise
         },
-        boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId])
+        boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId], List.empty[DataRetrieveId])
       )
       .replace("$n", index.toString)
 

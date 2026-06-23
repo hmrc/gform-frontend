@@ -746,7 +746,7 @@ class FormController(
                           val sectionTitle4Ga =
                             maybeUpdatedFormOptics.fold(formProcessor.getSectionTitle4Ga(processDataUpd, sn)) {
                               updatedFormOptics =>
-                                formProcessor.getSectionTitle4Ga(updatedFormOptics.formModelVisibilityOptics, sn)
+                                formProcessor.getSectionTitle4Ga(updatedFormOptics, sn)
                             }
 
                           val formModel = formModelOptics.formModelRenderPageOptics.formModel

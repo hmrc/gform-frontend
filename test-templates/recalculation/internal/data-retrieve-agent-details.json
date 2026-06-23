@@ -446,6 +446,10 @@
           }
         }
       ],
+      "urlFrontend": {
+        "urlPath": "/hip/agent-details/{{agentReferenceNumber}}",
+        "destination": "GForm"
+      },
       "attributes": {
         "FromObject": {
           "inst": [
@@ -741,6 +745,10 @@
       },
       "attrTypeMapping": {},
       "id": "agencyInfo",
+      "urlBackend": {
+        "urlPath": "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+        "destination": "HIP"
+      },
       "callOnNoChange": false
     }
   ],

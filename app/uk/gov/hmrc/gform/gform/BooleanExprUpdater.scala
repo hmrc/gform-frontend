@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.gform.gform
 
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
+class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId], baseDataRetrieveIds: List[DataRetrieveId]) {
 
-  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
-  private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
+  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds, baseDataRetrieveIds)
+  private def expandFormCtx(formCtx: FormCtx): FormCtx =
+    ExprUpdater.formCtx(formCtx, index, baseIds, baseDataRetrieveIds)
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
     case de @ DateValueExpr(value: DateExprValue)               => de
     case DateFormCtxVar(formCtx: FormCtx)                       => DateFormCtxVar(expandFormCtx(formCtx))
@@ -56,6 +58,11 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
 }
 
 object BooleanExprUpdater {
-  def apply(booleanExpr: BooleanExpr, index: Int, baseIds: List[FormComponentId]): BooleanExpr =
-    new BooleanExprUpdater(index, baseIds)(booleanExpr)
+  def apply(
+    booleanExpr: BooleanExpr,
+    index: Int,
+    baseIds: List[FormComponentId],
+    baseDataRetrieveIds: List[DataRetrieveId]
+  ): BooleanExpr =
+    new BooleanExprUpdater(index, baseIds, baseDataRetrieveIds)(booleanExpr)
 }

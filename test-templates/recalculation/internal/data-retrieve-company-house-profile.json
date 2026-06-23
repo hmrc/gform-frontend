@@ -136,6 +136,10 @@
                       }
                     }
                   ],
+                  "urlFrontend": {
+                    "urlPath": "/companieshouse/company/{{companyNumber}}/insolvency",
+                    "destination": "GForm"
+                  },
                   "attributes": {
                     "FromArray": {
                       "inst": [
@@ -520,6 +524,10 @@
                     }
                   },
                   "id": "companyHouseInsolvency",
+                  "urlBackend": {
+                    "urlPath": "/company/{{companyNumber}}/insolvency",
+                    "destination": "Companies House"
+                  },
                   "callOnNoChange": false
                 }
               ]

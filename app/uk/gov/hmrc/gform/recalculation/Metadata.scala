@@ -36,6 +36,7 @@ class Metadata(
   val dataRetrieveAll: DataRetrieveAll,
   val staticTypeInfo: StaticTypeInfo,
   val lookupRegister: Map[BaseComponentId, Register],
+  val addToListDataRetrieveIds: Set[DataRetrieveId],
   val addToListComponentIds: Set[BaseComponentId],
   val addToListComponentIds2: Map[AddToListId, Set[BaseComponentId]],
   val hideChoicesSelected: Set[BaseComponentId], // ids of choices with "hideChoicesSelected": true
@@ -146,6 +147,7 @@ object Metadata {
       dataRetrieveAll = DataRetrieveAll.empty,
       staticTypeInfo = StaticTypeInfo.empty,
       lookupRegister = Map.empty[BaseComponentId, Register],
+      addToListDataRetrieveIds = Set.empty[DataRetrieveId],
       addToListComponentIds = Set.empty[BaseComponentId],
       addToListComponentIds2 = Map.empty[AddToListId, Set[BaseComponentId]],
       hideChoicesSelected = Set.empty[BaseComponentId],
@@ -241,6 +243,12 @@ object Metadata {
         fc.id.baseComponentId -> register
     }.toMap
 
+    val addToListDataRetrieveIds: Set[DataRetrieveId] = formKind.allSections.sections.flatMap { section =>
+      section.section.fold[Set[DataRetrieveId]](_ => Set.empty)(_ => Set.empty) { addToList =>
+        addToList.allDataRetriveIds.toSet
+      }
+    }.toSet
+
     val addToListComponentIds: Set[BaseComponentId] = formKind.allSections.sections.flatMap { section =>
       section.section.fold[Set[BaseComponentId]](_ => Set.empty)(_ => Set.empty) { addToList =>
         addToList.allIds.map(_.baseComponentId).toSet
@@ -285,6 +293,7 @@ object Metadata {
       dataRetrieveAll,
       StaticTypeInfo(staticTypeInfo),
       lookupRegister,
+      addToListDataRetrieveIds,
       addToListComponentIds,
       addToListComponentIds2,
       hideChoicesSelected,

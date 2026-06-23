@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.recalculation.{ Calculator, EvaluationStatus }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData, OptionDataValue }
 
 object OptionDataUtils {
@@ -81,15 +82,17 @@ object OptionDataUtils {
     index: Int,
     baseIds: List[FormComponentId],
     od: OptionData.IndexBased
-  ): OptionData.IndexBased =
+  ): OptionData.IndexBased = {
+    val baseDataRetrieveIds = List.empty[DataRetrieveId] // TODO Empty for now, it is not clear when this occurs.
     od.copy(
-      label = od.label.expand(index, baseIds),
-      hint = od.hint.map(_.expand(index, baseIds)),
+      label = od.label.expand(index, baseIds, baseDataRetrieveIds),
+      hint = od.hint.map(_.expand(index, baseIds, baseDataRetrieveIds)),
       dynamic = od.dynamic.map(
         ExpandUtils.expandOptionDataDynamic(index, _)
       ), // We need dynamic with index for StructuredFormData model
-      summaryValue = od.summaryValue.map(_.expand(index, baseIds))
+      summaryValue = od.summaryValue.map(_.expand(index, baseIds, baseDataRetrieveIds))
     )
+  }
 
   private def updateDataRetrieveIndexBased(
     index: Int,
@@ -108,18 +111,20 @@ object OptionDataUtils {
     index: Int,
     baseIds: List[FormComponentId],
     od: OptionData.ValueBased
-  ): OptionData.ValueBased =
+  ): OptionData.ValueBased = {
+    val baseDataRetrieveIds = List.empty[DataRetrieveId] // TODO Empty for now, it is not clear when this occurs.
     od.copy(
-      label = od.label.expand(index, baseIds),
-      hint = od.hint.map(_.expand(index, baseIds)),
+      label = od.label.expand(index, baseIds, baseDataRetrieveIds),
+      hint = od.hint.map(_.expand(index, baseIds, baseDataRetrieveIds)),
       dynamic = od.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _)),
       value = od.value match {
         case OptionDataValue.StringBased(value) => OptionDataValue.StringBased(value + "_" + index)
         case OptionDataValue.ExprBased(expr) =>
-          OptionDataValue.ExprBased(new ExprUpdater(index, baseIds).expandExpr(expr))
+          OptionDataValue.ExprBased(new ExprUpdater(index, baseIds, baseDataRetrieveIds).expandExpr(expr))
       },
-      summaryValue = od.summaryValue.map(_.expand(index, baseIds))
+      summaryValue = od.summaryValue.map(_.expand(index, baseIds, baseDataRetrieveIds))
     )
+  }
 
   private def updateDataRetrieveValueBased(
     index: Int,

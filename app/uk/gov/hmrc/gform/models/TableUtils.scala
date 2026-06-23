@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.recalculation.{ EvaluationStatus, FreeCalculator }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, FormComponent, FormComponentId, IndexOfDataRetrieveCtx, TableComp, TableValue, TableValueRow }
 
 object TableUtils {
@@ -30,7 +31,8 @@ object TableUtils {
           val addToListComponentBaseIds: Set[BaseComponentId] = freeCalculator.metadata.addToListComponentIds
           val baseIds =
             determineBaseIds(row, freeCalculator).filter(baseId => addToListComponentBaseIds(baseId.baseComponentId))
-          expandTable(row, d, baseIds, freeCalculator).toList
+          val baseDataRetrieveIds = List.empty[DataRetrieveId] // TODO Empty for now, it is not clear when this occurs.
+          expandTable(row, d, baseIds, baseDataRetrieveIds, freeCalculator).toList
         case Dynamic.DataRetrieveBased(indexOfDataRetrieveCtx) =>
           expandDataRetrieveTable(row, indexOfDataRetrieveCtx, freeCalculator)
       }
@@ -44,18 +46,24 @@ object TableUtils {
       tableValue.value.interpolations(freeCalculator.evalBooleanExpr(_)).flatMap(_.allFormComponentIds())
     }
 
-  private def expandTableValue(index: Int, baseIds: List[FormComponentId], tableValue: TableValue): TableValue =
+  private def expandTableValue(
+    index: Int,
+    baseIds: List[FormComponentId],
+    baseDataRetrieveIds: List[DataRetrieveId],
+    tableValue: TableValue
+  ): TableValue =
     tableValue.copy(
-      value = tableValue.value.expand(index, baseIds)
+      value = tableValue.value.expand(index, baseIds, baseDataRetrieveIds)
     )
 
   private def updateTableValueRow(
     index: Int,
     baseIds: List[FormComponentId],
+    baseDataRetrieveIds: List[DataRetrieveId],
     tableValueRow: TableValueRow
   ): TableValueRow =
     tableValueRow.copy(
-      values = tableValueRow.values.map(expandTableValue(index, baseIds, _)),
+      values = tableValueRow.values.map(expandTableValue(index, baseIds, baseDataRetrieveIds, _)),
       dynamic = tableValueRow.dynamic.map(ExpandUtils.expandOptionDataDynamic(index, _))
     )
 
@@ -63,6 +71,7 @@ object TableUtils {
     tableValueRow: TableValueRow,
     dynamic: Dynamic.ATLBased,
     baseIds: List[FormComponentId],
+    baseDataRetrieveIds: List[DataRetrieveId],
     freeCalculator: FreeCalculator
   ): NonEmptyList[TableValueRow] = {
 
@@ -77,7 +86,7 @@ object TableUtils {
         modelComponentIdsNel.map { modelComponentId =>
           modelComponentId.maybeIndex match {
             case Some(index) =>
-              updateTableValueRow(index, baseIds, tableValueRow)
+              updateTableValueRow(index, baseIds, baseDataRetrieveIds, tableValueRow)
             case None => tableValueRow
           }
         }

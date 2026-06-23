@@ -54,7 +54,8 @@ sealed trait SmartString {
     ssc.ifConditions.find { case (b, _) => resolver(b) }.map(_._2).getOrElse(ssc.elseCondition)
   )
 
-  def expand(index: Int, baseIds: List[FormComponentId]) = ExpandUtils.expandSmartString(this, index, baseIds)
+  def expand(index: Int, baseIds: List[FormComponentId], baseDataRetrieveIds: List[DataRetrieveId]) =
+    ExpandUtils.expandSmartString(this, index, baseIds, baseDataRetrieveIds)
 
   def expandDataRetrieve(index: Int) = ExpandUtils.expandDataRetrieve(this, index)
 

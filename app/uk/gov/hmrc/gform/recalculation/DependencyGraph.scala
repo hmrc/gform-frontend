@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
 import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
@@ -387,7 +388,8 @@ class Recalculator(
               .collectFirst { case RelationKind.Value(expr, section) =>
                 modelComponentId.maybeIndex.fold(expr) { index =>
                   val baseIds = section.maybeAddToList.fold(List.empty[FormComponentId])(_.allIds)
-                  ExprUpdater(expr, index, baseIds)
+                  val baseDataRetrieveIds = section.maybeAddToList.fold(List.empty[DataRetrieveId])(_.allDataRetriveIds)
+                  ExprUpdater(expr, index, baseIds, baseDataRetrieveIds)
                 }
               }
 

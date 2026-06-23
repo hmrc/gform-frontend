@@ -144,7 +144,8 @@ object BootstrapCalculator {
         }
       }
       def maybeIndex(formComponentId: FormComponentId): Option[Int] = index
-      def liftDataRetrieveId(id: DataRetrieveId): DataRetrieveId = index.fold(id)(id.withIndex)
+      def liftDataRetrieveId(id: DataRetrieveId): DataRetrieveId =
+        index.fold(id)(i => if (metadata.addToListDataRetrieveIds(id)) id.withIndex(i) else id)
       def insideAtl(formCtx: FormCtx): Boolean = index.isDefined
       def outsideAtl(formCtx: FormCtx): Boolean = !index.isDefined
       def allModelComponentIds(modelComponentId: ModelComponentId): List[(ModelComponentId, EvaluationStatus)] =

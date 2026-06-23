@@ -294,17 +294,17 @@ class FormModelBuilder(
 
     CheckYourAnswers(
       s.pageId.withIndex(index),
-      c.title.map(_.expand(index, s.allIds)),
-      c.caption.map(_.expand(index, s.allIds)),
-      c.updateTitle.expand(index, s.allIds),
-      c.noPIITitle.map(_.expand(index, s.allIds)),
-      c.noPIIUpdateTitle.map(_.expand(index, s.allIds)),
-      c.header.map(_.expand(index, s.allIds)),
-      c.footer.map(_.expand(index, s.allIds)),
-      c.continueLabel.map(_.expand(index, s.allIds)),
+      c.title.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
+      c.caption.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
+      c.updateTitle.expand(index, s.allIds, s.allDataRetriveIds),
+      c.noPIITitle.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
+      c.noPIIUpdateTitle.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
+      c.header.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
+      c.footer.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
+      c.continueLabel.map(_.expand(index, s.allIds, s.allDataRetriveIds)),
       index,
       c.presentationHint,
-      c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
+      c.removeItemIf.map(c => RemoveItemIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
       expandedFields,
       c.displayWidth,
       c.keyDisplayWidth
@@ -312,7 +312,7 @@ class FormModelBuilder(
   }
 
   private def mkRepeater(s: Section.AddToList, index: Int): Repeater = {
-    val expand: SmartString => SmartString = _.expand(index, s.allIds)
+    val expand: SmartString => SmartString = _.expand(index, s.allIds, s.allDataRetriveIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds, s.allDataRetriveIds).updatedWithId
 
     val expandedFields =
@@ -345,10 +345,10 @@ class FormModelBuilder(
       index,
       s.instruction,
       expandedFields,
-      s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
-      s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
+      s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
+      s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
       expandAtlDescriptionTotal(s.descriptionTotal),
-      s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds))),
+      s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
       s.displayWidth,
       s.removePageContent.map(expand)
     )
@@ -497,7 +497,7 @@ class FormModelBuilder(
             }
 
             val singletons: NonEmptyList[SingletonWithNumber] = s.pages.zipWithIndex.map { case (page, pageIndex) =>
-              val pageUpdated = PageUpdater(page, iterationIndex, s.allIds, page.allDataRetriveIds)
+              val pageUpdated = PageUpdater(page, iterationIndex, s.allIds, s.allDataRetriveIds)
 
               val sectionNumber = mkSectionNumber(
                 SectionNumber.Classic.AddToListPage.Page(templateSectionIndex, iterationIndex, pageIndex),

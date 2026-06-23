@@ -212,7 +212,8 @@ class FormValidator(implicit ec: ExecutionContext) {
                   val isPopulateATL: Boolean = processData.formModel
                     .bracket(nextFrom)
                     .fold(_ => false)(_ => false)(atl =>
-                      processData.formModel.dataRetrieveAll.isPopulateATL(atl.source.id)
+                      processData.formModelOptics.formModelVisibilityOptics.freeCalculator.metadata.dataRetrieveAll
+                        .isPopulateATL(atl.source.id)
                     )
                   if (processData.visitsIndex.contains(nextFrom) && isPopulateATL) { //For populateAtl pre-filled data
                     SectionOrSummary.Section(findLastATLSectionNumber(nextFrom))

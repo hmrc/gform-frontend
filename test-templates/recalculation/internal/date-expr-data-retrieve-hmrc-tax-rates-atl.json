@@ -196,6 +196,10 @@
                         }
                       }
                     ],
+                    "urlFrontend": {
+                      "urlPath": "HMRCTaxRates.csv",
+                      "destination": "GForm"
+                    },
                     "attributes": {
                       "FromObject": {
                         "inst": [

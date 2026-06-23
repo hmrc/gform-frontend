@@ -40,9 +40,10 @@ object PopulateAtlService {
   def getPopulateAtlData(
     populateATL: PopulateATL,
     dataRetrieveResult: DataRetrieveResult,
+    formModelOptics: FormModelOptics,
     formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages): PopulateAtlData = {
-    val addToList: Section.AddToList = formModelVisibilityOptics.formModel.addToListBrackets
+    val addToList: Section.AddToList = formModelOptics.formModelRenderPageOptics.formModel.addToListBrackets
       .collectFirst { case atl if atl.source.id.formComponentId == populateATL.id.formComponentId => atl.source }
       .getOrElse(throw new RuntimeException(s"Could not find an ATL with id ${populateATL.id}"))
 
@@ -53,7 +54,9 @@ object PopulateAtlService {
     val addAnotherQuestionBaseComponentId = addToList.addAnotherQuestion.baseComponentId
 
     val sectionNumber: SectionNumber =
-      formModelVisibilityOptics.formModel.sectionNumberLookup(addToList.addAnotherQuestion.id.withIndex(1))
+      formModelOptics.formModelRenderPageOptics.formModel.sectionNumberLookup(
+        addToList.addAnotherQuestion.id.withIndex(1)
+      )
 
     val fields: List[FormField] = populateATL.mapping.toList.flatMap { case (atlComponentName, expr) =>
       val atlValues: List[String] = formModelVisibilityOptics.freeCalculator.evalExpr(expr).listRepresentation
