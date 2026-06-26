@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AddToListId
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 import scala.collection.immutable.ListMap
@@ -33,6 +34,9 @@ final case class DataRetrieveAll(lookup: Map[DataRetrieveId, DataRetrieve]) exte
       case None     => false
       case Some(dr) => dr.attrTypeMapping.get(attribute).fold(false)(_ === DataRetrieve.AttrType.Date)
     }
+
+  def isPopulateATL(addToListId: AddToListId): Boolean =
+    lookup.values.exists(_.populateATL.fold(false)(_.id == addToListId))
 }
 
 object DataRetrieveAll {
