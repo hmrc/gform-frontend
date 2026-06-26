@@ -195,7 +195,7 @@ class FormValidator(implicit ec: ExecutionContext) {
       maybeSectionNumber
     )
 
-    val nextFrom = for {
+    val nextFrom: Option[SectionNumber] = for {
       sectionNumber <- maybeSectionNumber
       next          <- availableSectionNumbers.find(_ > sectionNumber)
     } yield next
@@ -211,7 +211,12 @@ class FormValidator(implicit ec: ExecutionContext) {
             case (Some(yesTo), SectionOrSummary.FormSummary, _) =>
               nextFrom
                 .map { nextFrom =>
-                  if (processData.visitsIndex.contains(nextFrom)) { //For populateAtl pre-filled data
+                  val isPopulateATL: Boolean = processData.formModel
+                    .bracket(nextFrom)
+                    .fold(_ => false)(_ => false)(atl =>
+                      processData.formModel.dataRetrieveAll.isPopulateATL(atl.source.id)
+                    )
+                  if (processData.visitsIndex.contains(nextFrom) && isPopulateATL) { //For populateAtl pre-filled data
                     SectionOrSummary.Section(findLastATLSectionNumber(nextFrom))
                   } else {
                     SectionOrSummary.Section(nextFrom)
