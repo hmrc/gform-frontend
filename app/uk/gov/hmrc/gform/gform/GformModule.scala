@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.objectStore.{ ObjectStoreController, ObjectStoreModule 
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
+import uk.gov.hmrc.gform.gformstats.GformStatsModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.{ ChoiceRuntimeIndexService, LookupRegistry }
 import uk.gov.hmrc.gform.models.ProcessDataService
@@ -59,6 +60,7 @@ class GformModule(
   controllersModule: ControllersModule,
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
+  gformStatsModule: GformStatsModule,
   objectStoreModule: ObjectStoreModule,
   taskListModule: TaskListModule,
   upscanModule: UpscanModule,
@@ -105,7 +107,8 @@ class GformModule(
     gformBackendModule.gformConnector,
     processDataService,
     formControllerRequestHandler,
-    graphModule.smartStringEvaluatorFactory
+    graphModule.smartStringEvaluatorFactory,
+    gformStatsModule.gformStatsConnector
   )
 
   val emailAuthController: EmailAuthController = new EmailAuthController(
@@ -349,7 +352,8 @@ class GformModule(
     gformBackEndService,
     ninoInsightsConnector,
     englishMessages,
-    acknowledgementPdfService
+    acknowledgementPdfService,
+    gformStatsModule.gformStatsConnector
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry)

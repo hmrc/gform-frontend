@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.eval.InitFormEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
+import uk.gov.hmrc.gform.gformstats.GformStatsConnector
 import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
@@ -68,7 +69,8 @@ class NewFormController(
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
   englishMessages: Messages,
-  acknowledgementPdfService: AcknowledgementPdfService
+  acknowledgementPdfService: AcknowledgementPdfService,
+  gformStatsConnector: GformStatsConnector
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -578,6 +580,12 @@ class NewFormController(
                handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
                  val submissionRef = SubmissionRef.noCustomReference(formTemplate, form.envelopeId)
                  auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef)
+                 gformStatsConnector.sendEvent(
+                   formTemplateId.value,
+                   formTemplate.formName.value(LangADT.En),
+                   "created",
+                   None
+                 )
                  redirectContinue[SectionSelectorType.Normal](
                    cache.copy(formTemplate = formTemplate),
                    form,

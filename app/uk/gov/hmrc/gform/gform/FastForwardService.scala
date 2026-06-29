@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, _ }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.gformstats.GformStatsConnector
 import uk.gov.hmrc.gform.models.gform.{ ForceReload, NoSpecificAction }
 import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
@@ -49,7 +50,8 @@ class FastForwardService(
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future],
   handler: FormControllerRequestHandler,
-  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
+  gformStatsConnector: GformStatsConnector
 )(implicit ec: ExecutionContext) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -202,9 +204,15 @@ class FastForwardService(
         logger.info("User decided not to continue in his form, deleting form(s): " + formsToDelete.mkString(", "))
         formsToDelete
           .traverse(formId => gformConnector.deleteForm(formId))
-          .map(_ =>
+          .map { _ =>
+            gformStatsConnector.sendEvent(
+              formTemplateId.value,
+              cache.formTemplate.formName.value(LangADT.En),
+              "deleted",
+              None
+            )
             Redirect(routes.NewFormController.dashboard(latestFormTemplate._id).url, queryParams.toPlayQueryParams)
-          )
+          }
       }
     } yield res
 

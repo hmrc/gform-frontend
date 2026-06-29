@@ -43,6 +43,7 @@ import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.objectStore.ObjectStoreModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.gformstats.GformStatsModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
@@ -130,6 +131,8 @@ class ApplicationModule(context: Context)
   protected lazy val wSHttpModule = new WSHttpModule(httpClientV2)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
+
+  private val gformStatsModule = new GformStatsModule(wSHttpModule, configModule)
 
   private val authModule = new AuthModule(configModule, wSHttpModule)
 
@@ -227,6 +230,7 @@ class ApplicationModule(context: Context)
     controllersModule,
     authModule,
     gformBackendModule,
+    gformStatsModule,
     objectStoreModule,
     taskListModule,
     upscanModule,
