@@ -19,10 +19,11 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.eval.{ BooleanExprResolver, ExprType, StaticTypeData }
+import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData }
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
+import uk.gov.hmrc.gform.recalculation.FreeCalculator
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.ops.FormComponentOps
 
@@ -95,16 +96,15 @@ case class FormComponent(
   def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
 
   private val exprType: ExprType = this match {
-    case IsText(Text(Sterling(_, _), _, _, _, _, _, _))             => ExprType.number
-    case IsText(Text(WholeSterling(_, _), _, _, _, _, _, _))        => ExprType.number
-    case IsText(Text(Number(_, _, _, _), _, _, _, _, _, _))         => ExprType.number
-    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => ExprType.number
-    case IsText(Text(YearFormat, _, _, _, _, _, _))                 => ExprType.number
+    case IsText(Text(Sterling(_, _), _, _, _, _, _, _))             => ExprType.Number
+    case IsText(Text(WholeSterling(_, _), _, _, _, _, _, _))        => ExprType.Number
+    case IsText(Text(Number(_, _, _, _), _, _, _, _, _, _))         => ExprType.Number
+    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _, _, _, _)) => ExprType.Number
+    case IsText(Text(YearFormat, _, _, _, _, _, _))                 => ExprType.Number
     case IsChoice(_)                                                => ExprType.ChoiceSelection
     case IsRevealingChoice(_)                                       => ExprType.ChoiceSelection
-    case IsDate(_)                                                  => ExprType.DateString
-    case IsAddress(_) | IsOverseasAddress(_)                        => ExprType.AddressString
-    case IsTaxPeriodDate()                                          => ExprType.TaxPeriod
+    case IsDate(_) | IsCalendarDate() | IsTaxPeriodDate()           => ExprType.Date
+    case IsAddress(_) | IsOverseasAddress(_) | IsPostcodeLookup(_)  => ExprType.Address
     case _                                                          => ExprType.String
   }
 
@@ -153,14 +153,21 @@ case class FormComponent(
 
   val staticTypeData: StaticTypeData = StaticTypeData(exprType, textConstraint)
 
-  def hideOnSummary(booleanExprResolver: BooleanExprResolver): Boolean =
+  def hideOnSummary(freeCalculator: FreeCalculator): Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) ||
       IsInformationMessage.unapply(this).fold(false)(info => info.summaryValue.isEmpty) ||
-      !displayInSummary.map(_.displayInSummary(booleanExprResolver)).getOrElse(true)
+      !displayInSummary.map(_.displayInSummary(freeCalculator)).getOrElse(true)
 
   def withIndex(index: Int) = copy(id = id.withIndex(index))
 
   val errorPlaceholder = errorShortName orElse shortName
+
+  val isEnterableFormComponent = this match {
+    case IsInformationMessage(_) => false
+    case IsMiniSummaryList(_)    => false
+    case IsTableComp(_)          => false
+    case _                       => true
+  }
 }
 
 object FormComponent {
@@ -281,6 +288,7 @@ object HasLookupRegister {
   def unapply(fc: FormComponent): Option[Register] =
     fc.`type` match {
       case Text(Lookup(register, _), _, _, _, _, _, _) => Some(register)
+      case _: OverseasAddress                          => Some(Register.Country)
       case _                                           => None
     }
 }
@@ -328,34 +336,5 @@ object AllValidIfs {
     case (None, Nil)     => None
     case (None, xs2)     => Some(xs2)
     case (Some(xs), xs2) => Some(xs :: xs2)
-  }
-}
-
-object AllChoiceIncludeIfs {
-  def unapply(fc: FormComponent): Option[List[IncludeIf]] = fc match {
-    case IsChoice(c) =>
-      Some(c.options.toList.flatMap {
-        case OptionData.IndexBased(_, _, includeIf, _, _)       => includeIf
-        case OptionData.ValueBased(_, _, includeIf, _, _, _, _) => includeIf
-      })
-    case IsRevealingChoice(rc) =>
-      Some(rc.options.map(_.choice).flatMap {
-        case OptionData.IndexBased(_, _, includeIf, _, _)       => includeIf
-        case OptionData.ValueBased(_, _, includeIf, _, _, _, _) => includeIf
-      })
-    case _ => None
-  }
-}
-
-object AllMiniSummaryListIncludeIfs {
-  def unapply(fc: FormComponent): Option[List[IncludeIf]] = fc match {
-    case IsMiniSummaryList(c) =>
-      Some(c.rows.flatMap {
-        case MiniSummaryRow.ValueRow(_, _, includeIf, _, _)       => includeIf
-        case MiniSummaryRow.SmartStringRow(_, _, includeIf, _, _) => includeIf
-        case MiniSummaryRow.HeaderRow(_)                          => None
-        case MiniSummaryRow.ATLRow(_, includeIf, _)               => includeIf
-      })
-    case _ => None
   }
 }

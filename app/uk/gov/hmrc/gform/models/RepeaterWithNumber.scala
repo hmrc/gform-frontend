@@ -18,10 +18,10 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
-case class RepeaterWithNumber[A <: PageMode](
-  repeater: Repeater[A],
+case class RepeaterWithNumber(
+  repeater: Repeater,
   sectionNumber: SectionNumber
 ) {
-  def map[B <: PageMode](f: Repeater[A] => Repeater[B]): RepeaterWithNumber[B] =
+  def map(f: Repeater => Repeater): RepeaterWithNumber =
     RepeaterWithNumber(f(repeater), sectionNumber)
 }

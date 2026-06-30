@@ -16,28 +16,28 @@
 
 package uk.gov.hmrc.gform.gform
 
-import uk.gov.hmrc.gform.models.PageMode
 import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import cats.data.NonEmptyList
 
-class PageUpdater[A <: PageMode](
-  page: Page[A],
+class PageUpdater(
+  page: Page,
   index: Int,
   baseIds: List[FormComponentId],
   dataRetrieveIds: List[DataRetrieveId]
 ) {
-
-  private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
+  private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr =
+    BooleanExprUpdater(booleanExpr, index, baseIds, dataRetrieveIds)
 
   private def expandIncludeIf(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))
 
   private def expandRemoveItemIf(removeItemIf: RemoveItemIf) = RemoveItemIf(expandBooleanExpr(removeItemIf.booleanExpr))
 
-  private def expandDataRetrieve(dataRetrieve: DataRetrieve) = DataRetrieveUpdater(dataRetrieve, index, baseIds)
+  private def expandDataRetrieve(dataRetrieve: DataRetrieve) =
+    DataRetrieveUpdater(dataRetrieve, index, baseIds, dataRetrieveIds)
 
-  private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
+  private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds, dataRetrieveIds)
 
   private def expandConfirmation(confirmation: Confirmation) = confirmation.copy(
     question = new FormComponentUpdater(confirmation.question, index, baseIds, dataRetrieveIds).updatedWithId,
@@ -49,11 +49,11 @@ class PageUpdater[A <: PageMode](
       formComponentId.withIndex(index)
     }),
     expressionsConfirmed = confirmation.expressionsConfirmed.map(_.map { expr =>
-      new ExprUpdater(index, baseIds).expandExpr(expr)
+      new ExprUpdater(index, baseIds, dataRetrieveIds).expandExpr(expr)
     })
   )
 
-  def updated: Page[A] =
+  def updated: Page =
     page.copy(
       title = expandSmartString(page.title),
       id = page.id.map(id => id.withIndex(index)),
@@ -74,11 +74,11 @@ class PageUpdater[A <: PageMode](
 }
 
 object PageUpdater {
-  def apply[A <: PageMode](
-    page: Page[A],
+  def apply(
+    page: Page,
     index: Int,
     baseIds: List[FormComponentId],
     dataRetrieveIds: List[DataRetrieveId]
-  ): Page[A] =
-    new PageUpdater[A](page, index, baseIds, dataRetrieveIds).updated
+  ): Page =
+    new PageUpdater(page, index, baseIds, dataRetrieveIds).updated
 }

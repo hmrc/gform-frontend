@@ -20,7 +20,6 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.lookup.LookupLabel
 import uk.gov.hmrc.gform.models.Atom
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -28,9 +27,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import ComponentChecker._
 import GformError._
 
-class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D] {
+class OverseasAddressChecker() extends ComponentChecker[Unit] {
 
-  override protected def checkProgram(context: CheckerDependency[D])(implicit
+  override protected def checkProgram(context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator
@@ -42,7 +41,7 @@ class OverseasAddressChecker[D <: DataOrigin]() extends ComponentChecker[Unit, D
     }
   }
 
-  private def checkOverseasAddress(overseasAddress: OverseasAddress, context: CheckerDependency[D])(implicit
+  private def checkOverseasAddress(overseasAddress: OverseasAddress, context: CheckerDependency)(implicit
     langADT: LangADT,
     messages: Messages,
     sse: SmartStringEvaluator

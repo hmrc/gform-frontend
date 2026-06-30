@@ -1,0 +1,61 @@
+{
+  "_id": "atl-page-depends-on-atl-page",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items you have added",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n. ${pageA}",
+      "summaryDescription": "${pageA}",
+      "addAnotherQuestion": {
+        "id": "anotherItem",
+        "type": "choice",
+        "label": "Do you want to add another pageA?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Page A",
+          "fields": [
+            {
+              "id": "pageA",
+              "type": "text",
+              "label": "Page A",
+              "format": "number"
+            }
+          ]
+        },
+        {
+          "title": "Page B",
+          "includeIf": "${pageA > 10}",
+          "fields": [
+            {
+              "id": "pageB",
+              "type": "text",
+              "label": "Page B",
+              "format": "number"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

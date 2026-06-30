@@ -23,9 +23,10 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 
 import java.time.LocalDate
-import uk.gov.hmrc.gform.eval.ExpressionResult.{ DateResult, Empty, Hidden, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
+import uk.gov.hmrc.gform.recalculation.{ Behaviour, DateResultFlag }
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus.{ DateResult, Empty, Hidden, ListResult, NumberResult, OptionResult, PeriodResult, StringResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ DateCtx, DateValueExpr, FormComponentId, FormCtx, TodayDateExprValue, WholeSterling }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, WholeSterling }
 
 class ExpressionResultSpec extends FunSuite {
 
@@ -41,9 +42,9 @@ class ExpressionResultSpec extends FunSuite {
   )
 
   test("stringRepresentation should format DateResult as 'dd MMMM yyyy'") {
-    val dateResult = DateResult(LocalDate.of(1970, 1, 1))
+    val dateResult = DateResult(LocalDate.of(1970, 1, 1), DateResultFlag.Date)
     val result = dateResult.stringRepresentation(
-      TypeInfo(DateCtx(DateValueExpr(TodayDateExprValue)), StaticTypeData(ExprType.dateString, None)),
+      StaticTypeData(ExprType.Date, None),
       messages
     )
 
@@ -58,8 +59,8 @@ class ExpressionResultSpec extends FunSuite {
     val numStr = numberResult.identical(stringResult)
 
     assertEquals(numberResult.value.toString, "222.0")
-    assert(strNum)
-    assert(numStr)
+    assertEquals(strNum, List(true))
+    assertEquals(numStr, List(true))
   }
 
   test("identical needs to return true for Hidden and Empty") {
@@ -67,28 +68,28 @@ class ExpressionResultSpec extends FunSuite {
     val hidEmp = Hidden.identical(Empty)
     val empHid = Empty.identical(Hidden)
 
-    assert(hidEmp)
-    assert(empHid)
+    assertEquals(hidEmp, List(true))
+    assertEquals(empHid, List(true))
   }
 
   test("identical needs to return true for Hidden and Hidden") {
 
     val hidHid = Hidden.identical(Hidden)
 
-    assertEquals(true, hidHid)
+    assertEquals(List(true), hidHid)
   }
 
   test("identical needs to return true for Empty and Empty") {
 
     val empEmp = Empty.identical(Empty)
 
-    assertEquals(true, empEmp)
+    assertEquals(List(true), empEmp)
   }
 
   test("StringResult and DateResult concatenation") {
     val stringResult = StringResult("Foo")
 
-    val dateResult = DateResult(LocalDate.of(2020, 5, 23))
+    val dateResult = DateResult(LocalDate.of(2020, 5, 23), DateResultFlag.Date)
 
     val stringDate = stringResult + dateResult
     val dateString = dateResult + stringResult
@@ -142,12 +143,12 @@ class ExpressionResultSpec extends FunSuite {
 
     val table = TableDrivenPropertyChecks.Table(
       ("listResult", "containsValue", "expected"),
-      (ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))), NumberResult(1), true),
-      (ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2")))), NumberResult(3), false)
+      (ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))), NumberResult(1), List(true)),
+      (ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2")))), NumberResult(3), List(false))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (listResult, containsValue, expected) =>
-      assertEquals(listResult.contains(containsValue), expected)
+      assertEquals(listResult.contains(containsValue, Behaviour.Default), expected)
     }
   }
 
@@ -158,20 +159,24 @@ class ExpressionResultSpec extends FunSuite {
       (
         ListResult(List(StringResult("A"), StringResult("B"))),
         ListResult(List(StringResult("A"), StringResult("B"))),
-        true
+        List(true, true)
       ),
-      (ListResult(List(StringResult("A"), StringResult("B"))), ListResult(List(StringResult("A"))), false),
-      (ListResult(List(NumberResult(1), NumberResult(2))), ListResult(List(NumberResult(1), NumberResult(2))), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false),
+      (ListResult(List(StringResult("A"), StringResult("B"))), ListResult(List(StringResult("A"))), List(true, false)),
+      (
+        ListResult(List(NumberResult(1), NumberResult(2))),
+        ListResult(List(NumberResult(1), NumberResult(2))),
+        List(true, true)
+      ),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), List(false, false)),
       (
         ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))),
         ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2", "3")))),
-        true
+        List(true, true)
       ),
       (
         ListResult(List(OptionResult(Seq("0", "1")), OptionResult(Seq("2")))),
         ListResult(List(OptionResult(Seq("0", "1")))),
-        false
+        List(true, false)
       )
     )
 
@@ -184,12 +189,12 @@ class ExpressionResultSpec extends FunSuite {
 
     val table = TableDrivenPropertyChecks.Table(
       ("lhs", "rhs", "expected"),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), false)
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), List(true, true)),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), List(false, false))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
-      assertEquals(lhs > rhs, expected)
+      assertEquals((lhs > rhs), expected)
     }
   }
 
@@ -197,8 +202,8 @@ class ExpressionResultSpec extends FunSuite {
 
     val table = TableDrivenPropertyChecks.Table(
       ("lhs", "rhs", "expected"),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), false)
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(2), List(false, true)),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), List(false, false))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
@@ -210,8 +215,8 @@ class ExpressionResultSpec extends FunSuite {
 
     val table = TableDrivenPropertyChecks.Table(
       ("lhs", "rhs", "expected"),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), false)
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(3), List(true, true)),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), List(false, false))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
@@ -223,8 +228,8 @@ class ExpressionResultSpec extends FunSuite {
 
     val table = TableDrivenPropertyChecks.Table(
       ("lhs", "rhs", "expected"),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(1), true),
-      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), false)
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(1), List(true, false)),
+      (ListResult(List(NumberResult(1), NumberResult(2))), NumberResult(0), List(false, false))
     )
 
     TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
@@ -237,14 +242,24 @@ class ExpressionResultSpec extends FunSuite {
     val table = TableDrivenPropertyChecks.Table(
       ("lhs", "rhs", "expected"),
       (
-        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
-        DateResult(LocalDate.of(2022, 1, 1)),
-        true
+        ListResult(
+          List(
+            DateResult(LocalDate.of(2020, 1, 1), DateResultFlag.Date),
+            DateResult(LocalDate.of(2021, 1, 1), DateResultFlag.Date)
+          )
+        ),
+        DateResult(LocalDate.of(2022, 1, 1), DateResultFlag.Date),
+        List(true, true)
       ),
       (
-        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
-        DateResult(LocalDate.of(2019, 1, 1)),
-        false
+        ListResult(
+          List(
+            DateResult(LocalDate.of(2020, 1, 1), DateResultFlag.Date),
+            DateResult(LocalDate.of(2021, 1, 1), DateResultFlag.Date)
+          )
+        ),
+        DateResult(LocalDate.of(2019, 1, 1), DateResultFlag.Date),
+        List(false, false)
       )
     )
 
@@ -258,19 +273,29 @@ class ExpressionResultSpec extends FunSuite {
     val table = TableDrivenPropertyChecks.Table(
       ("lhs", "rhs", "expected"),
       (
-        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
-        DateResult(LocalDate.of(2019, 1, 1)),
-        true
+        ListResult(
+          List(
+            DateResult(LocalDate.of(2020, 1, 1), DateResultFlag.Date),
+            DateResult(LocalDate.of(2021, 1, 1), DateResultFlag.Date)
+          )
+        ),
+        DateResult(LocalDate.of(2019, 1, 1), DateResultFlag.Date),
+        List(true, true)
       ),
       (
-        ListResult(List(DateResult(LocalDate.of(2020, 1, 1)), DateResult(LocalDate.of(2021, 1, 1)))),
-        DateResult(LocalDate.of(2022, 1, 1)),
-        false
+        ListResult(
+          List(
+            DateResult(LocalDate.of(2020, 1, 1), DateResultFlag.Date),
+            DateResult(LocalDate.of(2021, 1, 1), DateResultFlag.Date)
+          )
+        ),
+        DateResult(LocalDate.of(2022, 1, 1), DateResultFlag.Date),
+        List(false, false)
       )
     )
 
     TableDrivenPropertyChecks.forAll(table) { (lhs, rhs, expected) =>
-      assertEquals(lhs after rhs, expected)
+      assertEquals((lhs after rhs), expected)
     }
   }
 
@@ -290,13 +315,13 @@ class ExpressionResultSpec extends FunSuite {
 
     assertEquals(lr12 + Hidden, lr12)
     assertEquals(lr12 - Hidden, lr12)
-    assertEquals(lr12 * Hidden, ListResult(List(NumberResult(0), NumberResult(0))))
-    assertEquals(lr12 / Hidden, ListResult(List(NumberResult(0), NumberResult(0))))
+    assertEquals(lr12 * Hidden, NumberResult(0))
+    assertEquals(lr12 / Hidden, NumberResult(0))
 
     assertEquals(Hidden + lr12, lr12)
     assertEquals(Hidden - lr12, lr12)
-    assertEquals(Hidden * lr12, ListResult(List(NumberResult(0), NumberResult(0))))
-    assertEquals(Hidden / lr12, ListResult(List(NumberResult(0), NumberResult(0))))
+    assertEquals(Hidden * lr12, NumberResult(0))
+    assertEquals(Hidden / lr12, NumberResult(0))
   }
 
   test("ListResult and ListResult operations") {
@@ -319,7 +344,7 @@ class ExpressionResultSpec extends FunSuite {
     assertEquals(lr13 / lrH2, ListResult(List(NumberResult(0), NumberResult(1.5))))
 
     assertEquals(lrH3 + lr12, ListResult(List(NumberResult(1), NumberResult(5))))
-    assertEquals(lrH3 - lr12, ListResult(List(NumberResult(1), NumberResult(1))))
+    assertEquals(lrH3 - lr12, ListResult(List(NumberResult(-1), NumberResult(1))))
     assertEquals(lrH3 * lr12, ListResult(List(NumberResult(0), NumberResult(6))))
     assertEquals(lrH3 / lr12, ListResult(List(NumberResult(0), NumberResult(1.5))))
 
@@ -332,8 +357,8 @@ class ExpressionResultSpec extends FunSuite {
     val strOpt = stringResult.identical(optionResult)
     val optStr = optionResult.identical(stringResult)
 
-    assert(strOpt)
-    assert(optStr)
+    assertEquals(strOpt, List(true))
+    assertEquals(optStr, List(true))
   }
 
   test("identical should return false when comparing non-equal StringResult and OptionResult in both orders") {
@@ -343,8 +368,8 @@ class ExpressionResultSpec extends FunSuite {
     val strOpt = stringResult.identical(optionResult)
     val optStr = optionResult.identical(stringResult)
 
-    assert(!strOpt)
-    assert(!optStr)
+    assertEquals(strOpt, List(false))
+    assertEquals(optStr, List(false))
   }
 
   test(
@@ -356,7 +381,7 @@ class ExpressionResultSpec extends FunSuite {
     val strOpt = stringResult.identical(optionResult)
     val optStr = optionResult.identical(stringResult)
 
-    assert(!strOpt)
-    assert(!optStr)
+    assertEquals(strOpt, List(false))
+    assertEquals(optStr, List(false))
   }
 }

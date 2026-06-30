@@ -16,33 +16,26 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
+class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId], baseDataRetrieveIds: List[DataRetrieveId]) {
 
-  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
-  private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
+  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds, baseDataRetrieveIds)
+  private def expandFormCtx(formCtx: FormCtx): FormCtx =
+    ExprUpdater.formCtx(formCtx, index, baseIds, baseDataRetrieveIds)
   private def expandDateExpr(dateExpr: DateExpr): DateExpr = dateExpr match {
     case de @ DateValueExpr(value: DateExprValue)               => de
     case DateFormCtxVar(formCtx: FormCtx)                       => DateFormCtxVar(expandFormCtx(formCtx))
     case DateExprWithOffset(dExpr: DateExpr, offset: OffsetYMD) => DateExprWithOffset(expandDateExpr(dExpr), offset)
     case HmrcTaxPeriodCtx(formCtx: FormCtx, _)                  => DateFormCtxVar(expandFormCtx(formCtx))
-    case d @ DataRetrieveDateCtx(_, _)                          => d
-    case DateIfElse(cond, field1, field2)                       => DateIfElse(cond, expandDateExpr(field1), expandDateExpr(field2))
+    case DataRetrieveDateCtx(id, attribute)                     => DataRetrieveDateCtx(id.withIndex(index), attribute)
+    case DateIfElse(cond, field1, field2)                       => DateIfElse(apply(cond), expandDateExpr(field1), expandDateExpr(field2))
     case DateOrElse(field1, field2)                             => DateOrElse(expandDateExpr(field1), expandDateExpr(field2))
     case DateConstructExpr(dm, year)                            => DateConstructExpr(dm, expandExpr(year))
     case EarliestOf(exprs)                                      => EarliestOf(exprs.map(expandDateExpr))
     case LatestOf(exprs)                                        => LatestOf(exprs.map(expandDateExpr))
   }
-  private def expandAddLoListRef(addToListRef: AddToListRef): AddToListRef = addToListRef match {
-    case AddToListRef.Basic(atlFormCtx) =>
-      NonEmptyList
-        .fromList((1 to index).toList.map(idx => ExprUpdater.formCtx(atlFormCtx, idx, baseIds)))
-        .fold[AddToListRef](AddToListRef.Basic(atlFormCtx))(AddToListRef.Expanded(_))
-    case AddToListRef.Expanded(_) => addToListRef
-  }
-
   def apply(booleanExpr: BooleanExpr): BooleanExpr = booleanExpr match {
     case Equals(left, right)              => Equals(expandExpr(left), expandExpr(right))
     case GreaterThan(left, right)         => GreaterThan(expandExpr(left), expandExpr(right))
@@ -54,7 +47,7 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case And(left, right)                 => And(apply(left), apply(right))
     case Contains(formCtx, expr)          => Contains(expandFormCtx(formCtx), expandExpr(expr))
     case In(expr, dataSource)             => In(expandExpr(expr), dataSource)
-    case HasAnswer(formCtx, atlRef)       => HasAnswer(expandFormCtx(formCtx), expandAddLoListRef(atlRef))
+    case HasAnswer(left, right)           => HasAnswer(expandFormCtx(left), expandFormCtx(right))
     case MatchRegex(expr, regex)          => MatchRegex(expandExpr(expr), regex)
     case DateAfter(left, right)           => DateAfter(expandDateExpr(left), expandDateExpr(right))
     case DateBefore(left, right)          => DateBefore(expandDateExpr(left), expandDateExpr(right))
@@ -65,6 +58,11 @@ class BooleanExprUpdater(index: Int, baseIds: List[FormComponentId]) {
 }
 
 object BooleanExprUpdater {
-  def apply(booleanExpr: BooleanExpr, index: Int, baseIds: List[FormComponentId]): BooleanExpr =
-    new BooleanExprUpdater(index, baseIds)(booleanExpr)
+  def apply(
+    booleanExpr: BooleanExpr,
+    index: Int,
+    baseIds: List[FormComponentId],
+    baseDataRetrieveIds: List[DataRetrieveId]
+  ): BooleanExpr =
+    new BooleanExprUpdater(index, baseIds, baseDataRetrieveIds)(booleanExpr)
 }

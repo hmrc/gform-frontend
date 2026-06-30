@@ -1,0 +1,251 @@
+{
+  "_id": "sum-with-greater-than-less-than",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "offsetGreaterThan": "if offset > 100 then 10 else 20",
+    "offsetGreaterThanOrEquals": "if offset >= 100 then 10 else 20",
+    "offsetLessThan": "if offset < 100 then 10 else 20",
+    "offsetLessThanOrEquals": "if offset <= 100 then 10 else 20",
+    "calculationGreaterThan": "amount + offsetGreaterThan",
+    "calculationGreaterThanOrEquals": "amount + offsetGreaterThanOrEquals",
+    "calculationLessThan": "amount + offsetLessThan",
+    "calculationLessThanOrEquals": "amount + offsetLessThanOrEquals"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amount} : ${offset}.",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount",
+          "fields": [
+            {
+              "id": "amount",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "control",
+              "type": "choice",
+              "label": "Offset date",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "offset"
+                },
+                {
+                  "en": "No",
+                  "value": "keep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Offset",
+          "includeIf": "${control contains 'offset'}",
+          "fields": [
+            {
+              "id": "offset",
+              "type": "text",
+              "format": "number"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculationGreaterThan.sum = '80'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "calculationGreaterThan.sum = ${calculationGreaterThan.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationGreaterThan = ${calculationGreaterThan}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationGreaterThanOrEquals.sum = ${calculationGreaterThanOrEquals.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationGreaterThanOrEquals = ${calculationGreaterThanOrEquals}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLessThan.sum = ${calculationLessThan.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLessThan = ${calculationLessThan}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLessThanOrEquals.sum = ${calculationLessThanOrEquals.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculationLessThanOrEquals = ${calculationLessThanOrEquals}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offsetGreaterThan = ${offsetGreaterThan}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offsetGreaterThanOrEquals = ${offsetGreaterThanOrEquals}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offsetLessThan = ${offsetLessThan}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offsetLessThanOrEquals = ${offsetLessThanOrEquals}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amount: ${amount}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset: ${offset}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset > 100: ${if offset > 100 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset >= 100: ${if offset >= 100 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset < 100: ${if offset < 100 then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset <= 100: ${if offset <= 100 then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

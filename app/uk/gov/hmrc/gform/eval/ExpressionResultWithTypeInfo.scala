@@ -20,23 +20,38 @@ import cats.syntax.eq._
 import play.api.i18n.Messages
 
 import java.time.LocalDate
+import uk.gov.hmrc.gform.recalculation.EvaluationStatus
 
-case class ExpressionResultWithTypeInfo(expressionResult: ExpressionResult, typeInfo: TypeInfo) {
+final case class ExpressionResultWithTypeInfo(evaluationStatus: EvaluationStatus, staticTypeData: StaticTypeData) {
 
   def stringRepresentation(implicit messages: Messages): String =
-    expressionResult.stringRepresentation(typeInfo, messages)
+    evaluationStatus.stringRepresentation(staticTypeData, messages)
 
-  def addressRepresentation: List[String] = expressionResult.addressRepresentation(typeInfo)
+  def handlebarRepresentation(implicit messages: Messages): String =
+    evaluationStatus.handlebarRepresentation(staticTypeData, messages)
 
-  def numberRepresentation: Option[BigDecimal] = expressionResult.numberRepresentation
+  def addressRepresentation: List[String] =
+    evaluationStatus match {
+      case ar: EvaluationStatus.AddressResult => ar.lines
+      case EvaluationStatus.ListResult(results) =>
+        results.flatMap {
+          case ar: EvaluationStatus.AddressResult => ar.lines
+          case _                                  => List.empty[String]
+        }
+      case _ => List.empty[String]
+    }
 
-  def optionRepresentation: Option[Seq[String]] = expressionResult.optionRepresentation
+  def numberRepresentation: Option[BigDecimal] = evaluationStatus.numberRepresentation
 
-  def dateRepresentation: Option[LocalDate] = expressionResult.dateRepresentation(typeInfo)
+  def optionRepresentation: Option[Seq[String]] = evaluationStatus.optionRepresentation
 
-  def listRepresentation(implicit messages: Messages): List[String] =
-    expressionResult.listRepresentation(typeInfo, messages)
+  def dateRepresentation: Option[LocalDate] = evaluationStatus.dateRepresentation
 
-  def isEmpty = expressionResult === ExpressionResult.empty
+  def listRepresentation(implicit messages: Messages): List[String] = evaluationStatus match {
+    case EvaluationStatus.ListResult(xs) => xs.map(_.stringRepresentation(staticTypeData, messages))
+    case otherwise                       => List(otherwise.stringRepresentation(staticTypeData, messages))
+  }
+
+  def isEmpty = evaluationStatus === EvaluationStatus.Empty
 
 }

@@ -23,10 +23,9 @@ import play.api.i18n.Messages
 import play.api.test.Helpers
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormModelOptics }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FileUpload, FormComponentId, Section, SectionNumber, ShortText, TemplateSectionIndex, Text, Value }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
@@ -36,20 +35,8 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
   implicit val messages: Messages = Helpers.stubMessages(Helpers.stubMessagesApi(Map.empty))
 
   "GroupUtils.removeRecord" should "remove instance by its index" in {
-    val data: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
-      "regular" -> One("r"),
-      "1_a"     -> One("a_1"),
-      "1_f"     -> One("f_1"),
-      "2_a"     -> One("a_2"),
-      "2_f"     -> One("f_2"),
-      "3_a"     -> One("a_3"),
-      "3_f"     -> One("f_3"),
-      "1_group" -> One(""),
-      "2_group" -> One(""),
-      "3_group" -> One("")
-    )
 
-    val expectedData1: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData1: VariadicFormData = mkVariadicFormData(
       "regular" -> One("r"),
       "1_a"     -> One("a_2"),
       "1_f"     -> One("f_2"),
@@ -59,7 +46,7 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
       "2_group" -> One("")
     )
 
-    val expectedData2: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData2: VariadicFormData = mkVariadicFormData(
       "regular" -> One("r"),
       "1_a"     -> One("a_1"),
       "1_f"     -> One("f_1"),
@@ -69,7 +56,7 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
       "2_group" -> One("")
     )
 
-    val expectedData3: VariadicFormData[SourceOrigin.OutOfDate] = mkVariadicFormData(
+    val expectedData3: VariadicFormData = mkVariadicFormData(
       "regular" -> One("r"),
       "1_a"     -> One("a_1"),
       "1_f"     -> One("f_1"),
@@ -96,11 +83,7 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
             )
           ) :: Nil
         ) :: Nil
-
     val formTemplate = mkFormTemplate(sections)
-    val formModelOptics: FormModelOptics[DataOrigin.Browser] = mkFormModelOptics(formTemplate, data)
-
-    val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
 
     val fileComponentIds = Set("1_f", "2_f", "3_f", "regularFile").map(fcId => FileComponentId.fromString(fcId))
     val originalMapping = FormComponentIdToFileIdMapping(
@@ -119,6 +102,21 @@ class GroupUtilsSpec extends AnyFlatSpecLike with Matchers with FormModelSupport
     )
 
     forAll(variations) { case (index, (expectedVariadicData, expectedMapping, expectedFilesToDelete)) =>
+      val data: VariadicFormData = mkVariadicFormData(
+        "regular" -> One("r"),
+        "1_a"     -> One("a_1"),
+        "1_f"     -> One("f_1"),
+        "2_a"     -> One("a_2"),
+        "2_f"     -> One("f_2"),
+        "3_a"     -> One("a_3"),
+        "3_f"     -> One("f_3"),
+        "1_group" -> One(""),
+        "2_group" -> One(""),
+        "3_group" -> One("")
+      )
+      val formModelOptics: FormModelOptics = mkFormModelOptics(formTemplate, data)
+
+      val processData: ProcessData = mkProcessData(formTemplate, formModelOptics)
       val modelComponentId: ModelComponentId = FormComponentId(s"${index}_group").modelComponentId
       val (updatedVariadicData, updatedMapping, filesToDelete) =
         GroupUtils.removeRecord(

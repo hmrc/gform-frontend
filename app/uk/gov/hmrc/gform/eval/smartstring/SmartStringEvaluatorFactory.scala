@@ -20,7 +20,7 @@ import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.commons.MarkDownUtil.unescapeMarkdownHtml
 import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, TypeInfo }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -34,14 +34,16 @@ import java.text.MessageFormat
 
 trait SmartStringEvaluatorFactory {
   def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit messages: Messages, l: LangADT): SmartStringEvaluator
+
+  def noForm(evalExpr: Expr => String)(implicit l: LangADT): SmartStringEvaluator
 }
 
 class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartStringEvaluatorFactory {
 
   def apply(
-    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo]
+    formModelVisibilityOptics: FormModelVisibilityOptics
   )(implicit
     messages: Messages,
     l: LangADT
@@ -78,15 +80,15 @@ class RealSmartStringEvaluatorFactory(englishMessages: Messages) extends SmartSt
 }
 
 private class Executor(
-  formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+  formModelVisibilityOptics: FormModelVisibilityOptics,
   messages: Messages,
   l: LangADT
 ) {
   def apply(s: SmartString, markDown: Boolean): String = {
     val substitutions = ConcatFormatSubstitutions(concat => formatConcatExpr(concat, markDown))
-    new MessageFormat(s.rawValue(formModelVisibilityOptics.booleanExprResolver.resolve(_))(l))
+    new MessageFormat(s.rawValue(formModelVisibilityOptics.freeCalculator.evalBooleanExpr)(l))
       .format(
-        s.interpolations(formModelVisibilityOptics.booleanExprResolver.resolve(_))
+        s.interpolations(formModelVisibilityOptics.freeCalculator.evalBooleanExpr)
           .map(expr => implicitly[Substituter[ConcatFormatSubstitutions, Expr]].substitute(substitutions, expr))
           .map(formatExpr(_, markDown))
           .asJava
@@ -94,7 +96,10 @@ private class Executor(
       )
   }
 
-  private def getTypeInfo(expr: Expr): TypeInfo = formModelVisibilityOptics.formModel.toFirstOperandTypeInfo(expr)
+  private def getTypeInfo(expr: Expr): TypeInfo = {
+    val staticTypeData = formModelVisibilityOptics.freeCalculator.metadata.exprStaticType(expr)
+    TypeInfo(expr, staticTypeData)
+  }
 
   private def formatExpr(expr: Expr, markDown: Boolean): String = {
 
@@ -106,7 +111,7 @@ private class Executor(
           case FormCtx(formComponentId) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
             evalChoiceAsString(formComponentId, typeInfo, markDown)
           case IndexOf(formComponentId, index) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
-            evalChoiceAsString(formComponentId.withIndex(index.+(1)), typeInfo, false)
+            evalChoiceAsString(formComponentId.withIndex(index + 1), typeInfo, false)
           case _ => stringRepresentation(typeInfo)
         }
       case _ =>
@@ -140,7 +145,7 @@ private class Executor(
                     val label = apply(c.choice.label, markDown)
                     val revealingFieldsValue = c.revealingFields
                       .map(rf =>
-                        formModelVisibilityOptics.recData.variadicFormData
+                        formModelVisibilityOptics.freeCalculator.variadicFormData
                           .one(rf.id.modelComponentId)
                           .getOrElse("")
                       )
@@ -156,8 +161,7 @@ private class Executor(
               .collect { case IsText(text) =>
                 val prefix = text.prefix.map(p => apply(p, markDown))
                 val suffix = text.suffix.map(p => apply(p, markDown))
-                val intermediateValue: String =
-                  TextFormatter.componentTextReadonly(stringRepresentation(typeInfo), text.constraint)(l)
+                val intermediateValue: String = stringRepresentation(typeInfo)
                 List(prefix, Some(intermediateValue), suffix).flatten.mkString(" ")
               }
               .getOrElse(stringRepresentation(typeInfo))
@@ -175,7 +179,9 @@ private class Executor(
     }
 
     val formatted = typeInfo.staticTypeData.textConstraint.fold(interpolated) { textConstraint =>
-      val intermediateValue: String = TextFormatter.componentTextReadonly(interpolated, textConstraint)(l)
+      val intermediateValue: String = TextFormatter.componentTextReadonly(interpolated, textConstraint)(
+        l
+      ) // TODO JoVl componentTextReadonly call instead of here should be done in def stringRepresentation of EvaluationStatus as is done for list result
       expr match {
         case HideZeroDecimals(_) => TextFormatter.hideZeroDecimals(textConstraint, intermediateValue)
         case _                   => intermediateValue
@@ -188,7 +194,7 @@ private class Executor(
       case _ =>
         if (markDown) {
           typeInfo.staticTypeData.exprType match {
-            case ExprType.AddressString =>
+            case ExprType.Address =>
               addressRepresentation(typeInfo).map(HtmlFormat.escape).map(_.body).mkString("<br>")
             case _ => unescapeMarkdownHtml(formatted)
           }
@@ -251,10 +257,13 @@ private class Executor(
       .getOrElse(Nil)
       .toList
 
-  private def findComponentsByBaseId(fcId: FormComponentId): Iterable[(FormComponentId, FormComponent)] =
-    formModelVisibilityOptics.formModel.fcLookup.filter { case (formCompId, _) =>
-      formCompId.baseComponentId === fcId.baseComponentId
-    }
+  private def findComponentsByBaseId(fcId: FormComponentId): List[(FormComponentId, FormComponent)] =
+    formModelVisibilityOptics.formModel.fcLookup
+      .filter { case (formCompId, _) =>
+        formCompId.baseComponentId === fcId.baseComponentId
+      }
+      .toList
+      .sortBy { case (k, _) => k.modelComponentId.maybeIndex.getOrElse(0) }
 
   private def evalChoiceWithAtlContext(
     fcId: FormComponentId,

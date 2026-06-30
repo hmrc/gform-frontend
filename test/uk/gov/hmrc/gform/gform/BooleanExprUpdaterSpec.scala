@@ -18,11 +18,13 @@ package uk.gov.hmrc.gform.gform
 
 import munit.FunSuite
 import scala.util.matching.Regex
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, DateAfter, DateBefore, DateExpr, DateFormCtxVar, FormComponentId, FormCtx, MatchRegex }
 
 class BooleanExprUpdaterSpec extends FunSuite {
 
-  private val beUpdater = new BooleanExprUpdater(1, List(FormComponentId("foo"), FormComponentId("bar")))
+  private val beUpdater =
+    new BooleanExprUpdater(1, List(FormComponentId("foo"), FormComponentId("bar")), List.empty[DataRetrieveId])
 
   private def toBooleanExpr(foo: String, bar: String, g: (DateExpr, DateExpr) => BooleanExpr): BooleanExpr = {
     val left = DateFormCtxVar(FormCtx(FormComponentId(foo)))

@@ -1,0 +1,59 @@
+{
+  "_id": "atl-text-with-value",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "summaryName": "Name",
+      "shortName": "Name",
+      "title": "Name",
+      "description": "$n - ${name}",
+      "summaryDescription": "Name",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another name?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Name",
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "format": "text"
+            }
+          ]
+        },
+        {
+          "title": "Name info",
+          "fields": [
+            {
+              "type": "text",
+              "id": "nameToName",
+              "value": "${name + ' to ' + name}",
+              "format": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

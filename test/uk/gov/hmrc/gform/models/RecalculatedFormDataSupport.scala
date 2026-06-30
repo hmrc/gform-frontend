@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.instances.list._
 import cats.syntax.foldable._
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
@@ -26,16 +26,16 @@ trait VariadicFormDataSupport {
 
   private def mkModelComponentId(value: String) = FormComponentId(value).modelComponentId
 
-  def variadicFormDataWithSingleValue(value: String, ids: String*): VariadicFormData[SourceOrigin.OutOfDate] =
+  def variadicFormDataWithSingleValue(value: String, ids: String*): VariadicFormData =
     ids.toList.foldMap(id => VariadicFormData.one(mkModelComponentId(id), value))
 
-  def variadicFormData[S <: SourceOrigin](kv: (String, String)*): VariadicFormData[S] =
+  def variadicFormData(kv: (String, String)*): VariadicFormData =
     kv.toList.foldMap { case (id, v) => VariadicFormData.one(mkModelComponentId(id), v) }
 
-  def variadicFormDataMany(kv: (String, List[String])*): VariadicFormData[SourceOrigin.OutOfDate] =
+  def variadicFormDataMany(kv: (String, List[String])*): VariadicFormData =
     kv.toList.foldMap { case (id, v) => VariadicFormData.many(mkModelComponentId(id), v) }
 
-  def mkVariadicFormData[T <: SourceOrigin](data: (String, VariadicValue)*): VariadicFormData[T] = {
+  def mkVariadicFormData(data: (String, VariadicValue)*): VariadicFormData = {
     val fcData = data.map { case (k, v) => (mkModelComponentId(k), v) }
     VariadicFormData.create(fcData: _*)
   }
