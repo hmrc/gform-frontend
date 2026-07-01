@@ -38,7 +38,7 @@ object MiniSummaryListHelper {
     val exprStr = exprResult.typeInfo match {
       case TypeInfo(_, StaticTypeData(ExprType.address, _)) =>
         exprResult.addressRepresentation.map(HtmlFormat.escape).map(_.body).mkString("<br>")
-      case _ => exprResult.stringRepresentation
+      case _ => HtmlFormat.escape(exprResult.stringRepresentation).body
     }
     exprResult.typeInfo.staticTypeData.textConstraint.fold(exprStr) { textConstraint =>
       TextFormatter.componentTextReadonly(exprStr, textConstraint)

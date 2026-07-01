@@ -2938,13 +2938,13 @@ class SectionRenderingService(
 
   private def hintText(fc: FormComponent)(implicit messages: Messages, sse: SmartStringEvaluator) = {
     val maybeHelpText: Option[String] =
-      fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.value()))
+      fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.valueForMarkdown()))
     maybeHelpText.map(h => Hint(content = content.HtmlContent(markDownParser(h))))
   }
 
   private def hintTextForAutoSuggest(fc: FormComponent)(implicit messages: Messages, sse: SmartStringEvaluator) = {
     val maybeHelpText: Option[String] =
-      fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.value()))
+      fc.helpText.fold(fc.message.map(m => Messages(s"$m.default.helpText")))(h => Some(h.valueForMarkdown()))
     maybeHelpText.map(h =>
       Hint(id = Some(s"${fc.id.value}__assistiveHint"), content = content.HtmlContent(markDownParser(h)))
     )

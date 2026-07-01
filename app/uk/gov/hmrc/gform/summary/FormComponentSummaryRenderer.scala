@@ -398,7 +398,7 @@ object FormComponentSummaryRenderer {
             }
           case MiniSummaryRow.SmartStringRow(label, value, includeIf, _, _)
               if evaluateIncludeIf(includeIf, formModelVisibilityOptics) =>
-            label -> value.value()
+            label -> value.valueForMarkdown()
         }
         .map { case (label, value) =>
           summaryListRow(
