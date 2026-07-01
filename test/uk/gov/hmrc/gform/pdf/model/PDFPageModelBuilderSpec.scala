@@ -140,7 +140,7 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         Some("Section Name"),
         List(
           SimpleField(Some("name"), List(Html("name&amp;value"))),
-          SimpleField(Some("Key"), List(Html("name&value")))
+          SimpleField(Some("Key"), List(Html("name&amp;value")))
         ),
         "n0"
       )
