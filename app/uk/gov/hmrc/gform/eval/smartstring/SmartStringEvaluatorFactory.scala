@@ -156,12 +156,12 @@ private class Executor(
               .collect { case IsText(text) =>
                 val prefix = text.prefix.map(p => apply(p, markDown))
                 val suffix = text.suffix.map(p => apply(p, markDown))
-                val formatted: String =
+                val intermediateValue: String =
                   TextFormatter.componentTextReadonly(
                     stringRepresentation(typeInfo, escape = markDown),
                     text.constraint
                   )(l)
-                List(prefix, Some(formatted), suffix).flatten.mkString(" ")
+                List(prefix, Some(intermediateValue), suffix).flatten.mkString(" ")
               }
               .getOrElse(stringRepresentation(typeInfo, escape = markDown))
           case DisplayAsEntered(fcId) =>
