@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.graph.RecData
+import scala.collection.mutable
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormCtx, IsChoice, OptionData, OptionDataValue }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 
 class Propagator private (
   baseComponentIds: Set[BaseComponentId], // If some of these fields value changes...
@@ -60,13 +60,12 @@ class Propagator private (
     }
 
   def propagate(
-    variadicFormData: VariadicFormData[SourceOrigin.OutOfDate],
-    recData: RecData[SourceOrigin.Current]
-  ): VariadicFormData[SourceOrigin.OutOfDate] = {
+    variadicFormData: VariadicFormData,
+    oldVariadicFormData: VariadicFormData
+  ): VariadicFormData = {
     val updatedChoices: Iterable[Map[ModelComponentId, VariadicValue.Many]] = variadicFormData.data.collect {
       case (modelComponentId, newValue) =>
         if (needPropagation(modelComponentId)) {
-          val oldVariadicFormData = recData.variadicFormData
           val oldValue: Option[VariadicValue] = oldVariadicFormData.get(modelComponentId)
 
           val needToPropagate = ensurePropagateIsNeeded(modelComponentId.baseComponentId, oldValue, newValue)
@@ -104,7 +103,8 @@ class Propagator private (
         }
     }
 
-    variadicFormData ++ VariadicFormData(updatedChoices.toList.flatten.toMap)
+    variadicFormData ++ VariadicFormData(mutable.Map(updatedChoices.toList.flatten: _*))
+
   }
 }
 

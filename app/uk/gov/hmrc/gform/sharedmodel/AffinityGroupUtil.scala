@@ -16,15 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals }
-
 object AffinityGroupUtil {
-
-  def fromRetrievals(materialisedRetrievals: MaterialisedRetrievals): Option[AffinityGroup] =
-    materialisedRetrievals match {
-      case a: AuthenticatedRetrievals => Some(a.affinityGroup)
-      case _                          => None
-    }
 
   def localAffinityGroup(affinityGroup: uk.gov.hmrc.auth.core.AffinityGroup): AffinityGroup = affinityGroup match {
     case uk.gov.hmrc.auth.core.AffinityGroup.Agent        => AffinityGroup.Agent

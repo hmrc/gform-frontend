@@ -1,0 +1,57 @@
+{
+  "_id": "total-value",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "spbpAverageEarn90Percent": {
+      "value": "averageEarn * 0.9",
+      "type": "sterling",
+      "round": "Up"
+    },
+    "serAverageEarn90Percent": {
+      "value": "spbpAverageEarn90Percent * .03",
+      "type": "sterling",
+      "round": "Up"
+    },
+    "total": {
+      "value": "spbpAverageEarn90Percent + serAverageEarn90Percent",
+      "type": "sterling"
+    }
+  },
+  "sections": [
+    {
+      "title": "Total advance payment",
+      "fields": [
+        {
+          "id": "averageEarn",
+          "type": "text",
+          "format": "sterling",
+          "label": "Average weekly earnings",
+          "value": "${168.09}",
+          "presentationHint": "totalValue"
+        },
+        {
+          "id": "totSerAvEarnInf",
+          "type": "info",
+          "label": "",
+          "infoType": "standard",
+          "infoText": "Total claimable advance payment amount is **${spbpAverageEarn90Percent + serAverageEarn90Percent}**"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

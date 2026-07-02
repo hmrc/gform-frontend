@@ -1,0 +1,78 @@
+{
+  "_id": "form-template-ctx",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "fileSizeLimit": 123,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "submissionReference",
+              "value": "submissionReference: ${form.submissionReference}"
+            },
+            {
+              "key": "id",
+              "value": "id: ${form.id}"
+            },
+            {
+              "key": "fileSizeLimit",
+              "value": "fileSizeLimit: ${form.fileSizeLimit}"
+            },
+            {
+              "key": "lang",
+              "value": "lang: ${form.lang}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Under limit",
+      "includeIf": "${form.fileSizeLimit <= 100}",
+      "fields": [
+        {
+          "id": "underLimit",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Over Limit",
+      "includeIf": "${form.fileSizeLimit > 100}",
+      "fields": [
+        {
+          "id": "overLimit",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -1,0 +1,968 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S",
+    "includePrintPageButton": false
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "What to add"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "What to add"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "whatToAdd",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Vehicle"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Animal"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Vehicles"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "vehicle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "includeIf": {
+              "booleanExpr": {
+                "Contains": {
+                  "multiValueField": {
+                    "formComponentId": "whatToAdd"
+                  },
+                  "value": {
+                    "Constant": {
+                      "value": "0"
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Vehicle $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Vehicle $n"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "vehicle",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "ShortText": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "FormCtx": {
+                        "formComponentId": "vehicle"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Add another?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addVehicle",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Vehicle ATL"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Vehicles"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Animals"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "animal"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "includeIf": {
+              "booleanExpr": {
+                "Contains": {
+                  "multiValueField": {
+                    "formComponentId": "whatToAdd"
+                  },
+                  "value": {
+                    "Constant": {
+                      "value": "1"
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Animal $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Animal $n"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "animal",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "constraint": {
+                          "ShortText": {
+                            "min": 0,
+                            "max": 1000
+                          }
+                        },
+                        "value": {
+                          "Value": {}
+                        },
+                        "displayWidth": "DEFAULT",
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "FormCtx": {
+                        "formComponentId": "animal"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Add another?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addAnimal",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Animal ATL"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Animals"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Has your animal already arrived in the UK?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "includeIf": {
+                "booleanExpr": {
+                  "And": {
+                    "left": {
+                      "Equals": {
+                        "left": {
+                          "Count": {
+                            "formComponentId": "addAnimal"
+                          }
+                        },
+                        "right": {
+                          "Constant": {
+                            "value": "1"
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "Equals": {
+                        "left": {
+                          "Count": {
+                            "formComponentId": "addVehicle"
+                          }
+                        },
+                        "right": {
+                          "Constant": {
+                            "value": "0"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Has your animal already arrived in the UK?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "alreadyInUKAnimal",
+                  "submissible": true,
+                  "isPageHeading": true,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Yes"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "No"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Vertical": {}
+                      },
+                      "type": {
+                        "Radio": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Date your animal arrived"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "validators": [],
+                  "helpText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "For example, 24 1 2021"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "id": "shipmentDateAnimal",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "includeIf": {
+                    "booleanExpr": {
+                      "Contains": {
+                        "multiValueField": {
+                          "formComponentId": "alreadyInUKAnimal"
+                        },
+                        "value": {
+                          "Constant": {
+                            "value": "0"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Enter the date your animal arrived in the UK"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "type": {
+                    "Date": {
+                      "constraintType": {
+                        "DateConstraints": {
+                          "constraints": [
+                            {
+                              "beforeAfterPrecisely": {
+                                "Before": {}
+                              },
+                              "dateFormat": {
+                                "Today": {}
+                              },
+                              "offset": {
+                                "value": 1
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "offset": {
+                        "value": 0
+                      }
+                    }
+                  },
+                  "shortName": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Date animal arrived"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "info",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "addAnimal.count = {0}, addVehicle.count = {1}"
+                            },
+                            "interpolations": [
+                              {
+                                "Count": {
+                                  "formComponentId": "addAnimal"
+                                }
+                              },
+                              {
+                                "Count": {
+                                  "formComponentId": "addVehicle"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "atl-count-empty",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "atl-count-empty",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

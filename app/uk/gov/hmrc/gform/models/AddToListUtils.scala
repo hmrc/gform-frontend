@@ -16,22 +16,23 @@
 
 package uk.gov.hmrc.gform.models
 
+import scala.collection.mutable
 import uk.gov.hmrc.gform.eval.FileIdsWithMapping
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponentId, IsFileUpload, IsMultiFileUpload }
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.FormComponentIdToFileIdMapping
 
 object AddToListUtils {
 
   def removeRecord(
     processData: ProcessData,
-    bracket: Bracket.AddToList[DataExpanded],
+    bracket: Bracket.AddToList,
     idx: Int,
     fileIdsWithMapping: FileIdsWithMapping
-  ): (VariadicFormData[SourceOrigin.Current], FormComponentIdToFileIdMapping, Set[FileId]) = {
+  ): (VariadicFormData, FormComponentIdToFileIdMapping, Set[FileId]) = {
 
     val addToListFileUploadIds: Set[FormComponentId] = bracket.toPageModel.toList
       .flatMap(_.allFormComponents)
@@ -53,10 +54,10 @@ object AddToListUtils {
       addToListFileUploadIds(k.underlyingFormComponentId())
     }
 
-    def toModelComponentIds(iterations: List[Bracket.AddToListIteration[DataExpanded]]): Set[ModelComponentId] =
+    def toModelComponentIds(iterations: List[Bracket.AddToListIteration]): Set[ModelComponentId] =
       iterations.flatMap(_.toPageModel.toList).flatMap(_.allModelComponentIds).toSet
 
-    val iteration: Bracket.AddToListIteration[DataExpanded] = bracket.iterations.toList(idx)
+    val iteration: Bracket.AddToListIteration = bracket.iterations.toList(idx)
 
     val (iterationsToKeep, iterationsToReindex) = bracket.iterations.toList.splitAt(idx + 1)
 
@@ -74,7 +75,7 @@ object AddToListUtils {
     /* iteration is part of iterationsToKeep (due to how splitAt works),
      * and we don't want iteration's ids in toKeep Set.
      */
-    val variadicFormData = processData.formModelOptics.pageOpticsData
+    val variadicFormData = processData.formModelOptics.variadicFormData
 
     val toBeRemovedMultiFileIds: Set[ModelComponentId] =
       toReindex.toList.flatMap { modelComponentId =>
@@ -87,8 +88,8 @@ object AddToListUtils {
         }
       }.toSet
 
-    val toReindexMultiFile: VariadicFormData[SourceOrigin.Current] = VariadicFormData(
-      toReindex.toList.flatMap { modelComponentId =>
+    val toReindexMultiFile: VariadicFormData = {
+      val data = toReindex.toList.flatMap { modelComponentId =>
         if (multiFileUploads(modelComponentId)) {
           val res: List[(ModelComponentId, VariadicValue.One)] =
             variadicFormData.filesOfMultiFileComponent(modelComponentId).map { case (fileComponentId, fileName) =>
@@ -103,12 +104,13 @@ object AddToListUtils {
         } else {
           List.empty
         }
-      }.toMap
-    )
+      }
+      VariadicFormData(mutable.Map(data: _*))
+    }
 
     val toKeep: Set[ModelComponentId] = toModelComponentIds(iterationsToKeep) -- toBeRemovedIds
 
-    val variadicFormDataToModify: VariadicFormData[SourceOrigin.Current] = variadicFormData.subset(toReindex)
+    val variadicFormDataToModify: VariadicFormData = variadicFormData.subset(toReindex)
     val variadicFormDataToKeep = variadicFormData.subset(toKeep)
     val variadicFormDataToModified = variadicFormDataToModify.mapKeys(_.decrement)
 

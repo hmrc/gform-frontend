@@ -1,0 +1,56 @@
+{
+  "_id": "choice-checkbox-index-based",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Page A",
+      "fields": [
+        {
+          "id": "fooChoice",
+          "type": "choice",
+          "label": "Select an item",
+          "choices": [
+            {
+              "en": "Foo"
+            },
+            {
+              "en": "Bar"
+            },
+            {
+              "en": "Baz"
+            }
+          ],
+          "multivalue": true
+        }
+      ]
+    },
+    {
+      "title": "Page B",
+      "includeIf": "${fooChoice contains 1}",
+      "fields": [
+        {
+          "id": "pageB",
+          "type": "text",
+          "label": "Page B",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

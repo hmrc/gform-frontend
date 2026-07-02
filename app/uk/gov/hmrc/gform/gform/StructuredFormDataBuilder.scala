@@ -24,12 +24,12 @@ import scala.util.Try
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
-import uk.gov.hmrc.gform.eval.ExpressionResult.DateResult
 import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.models.{ Atom, Bracket, Visibility }
+import uk.gov.hmrc.gform.models.{ Atom, Bracket }
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId, MultiValueId }
-import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
+import uk.gov.hmrc.gform.recalculation.{ DateResultFlag, EvaluationStatus }
 import uk.gov.hmrc.gform.sharedmodel.{ RetrieveDataType, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
@@ -41,8 +41,8 @@ import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 import uk.gov.hmrc.gform.ops.FormComponentOps
 
 object StructuredFormDataBuilder {
-  def apply[D <: DataOrigin](
-    formModelVisibilityOptics: FormModelVisibilityOptics[D],
+  def apply(
+    formModelVisibilityOptics: FormModelVisibilityOptics,
     destinations: Destinations,
     expressionsOutput: Option[ExpressionOutput],
     lookupRegistry: LookupRegistry
@@ -68,7 +68,7 @@ object StructuredFormDataBuilder {
         expr match {
           case AuthCtx(AuthInfo.ItmpAddress) =>
             val maybeItmpRetrievals: Option[ItmpRetrievals] =
-              formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+              formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.itmpRetrievals
 
             val maybeItmpAddress: Option[ItmpAddress] = maybeItmpRetrievals.flatMap(_.itmpAddress)
 
@@ -97,7 +97,7 @@ object StructuredFormDataBuilder {
 
           case AuthCtx(AuthInfo.ItmpDateOfBirth) =>
             val maybeItmpRetrievals: Option[ItmpRetrievals] =
-              formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.itmpRetrievals
+              formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.itmpRetrievals
             maybeItmpRetrievals
               .flatMap(_.itmpDateOfBirth)
               .map(DateHelperFunctions.convertToDateExpr)
@@ -110,13 +110,13 @@ object StructuredFormDataBuilder {
             val expressionResultWithInfo: ExpressionResultWithTypeInfo =
               formModelVisibilityOptics.evalAndApplyTypeInfoFirst(expr)
 
-            expressionResultWithInfo.expressionResult match {
-              case DateResult(dateExpr) =>
+            expressionResultWithInfo.evaluationStatus match {
+              case EvaluationStatus.DateResult(dateExpr, DateResultFlag.Date) =>
                 List(
                   mkDate(expressionId, dateExpr.getDayOfMonth, dateExpr.getMonthValue, dateExpr.getYear)
                 )
               case _ =>
-                val result = expressionResultWithInfo.stringRepresentation
+                val result = expressionResultWithInfo.handlebarRepresentation
                 if (result.trim.isEmpty) {
                   Nil
                 } else {
@@ -127,7 +127,7 @@ object StructuredFormDataBuilder {
       }
     }
     StructuredFormValue.ObjectStructure(
-      new StructuredFormDataBuilder[D](
+      new StructuredFormDataBuilder(
         formModelVisibilityOptics,
         destinations,
         expressionsOutputFields,
@@ -139,8 +139,8 @@ object StructuredFormDataBuilder {
   }
 }
 
-class StructuredFormDataBuilder[D <: DataOrigin](
-  formModelVisibilityOptics: FormModelVisibilityOptics[D],
+class StructuredFormDataBuilder(
+  formModelVisibilityOptics: FormModelVisibilityOptics,
   destinations: Destinations,
   expressionsOutputFields: List[Field],
   lookupRegistry: LookupRegistry
@@ -480,7 +480,7 @@ class StructuredFormDataBuilder[D <: DataOrigin](
   private def dataRetrieveToObjectStructure(maybeDataRetrieveCtx: (Int, DataRetrieveCtx)): Option[ObjectStructure] = {
     val (selectedIndex, dataRetrieveCtx) = maybeDataRetrieveCtx
 
-    formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.dataRetrieve
+    formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.dataRetrieve
       .flatMap { dataRet =>
         dataRet.get(dataRetrieveCtx.id).map(_.data).flatMap {
           case RetrieveDataType.ListType(data) =>
@@ -636,14 +636,14 @@ class StructuredFormDataBuilder[D <: DataOrigin](
   ): StructuredFormValue = {
     val (selectedIndex, pointer) = data
 
-    val allAddToListBrackets: List[Bracket.AddToList[Visibility]] =
+    val allAddToListBrackets: List[Bracket.AddToList] =
       formModelVisibilityOptics.formModel.brackets.addToListBrackets
 
-    val maybeAllAddToListBracket: Option[Bracket.AddToList[Visibility]] = allAddToListBrackets.find { bracket =>
+    val maybeAllAddToListBracket: Option[Bracket.AddToList] = allAddToListBrackets.find { bracket =>
       bracket.source.allIds.map(_.baseComponentId).contains(pointer.baseComponentId)
     }
 
-    val maybeIteration: Option[(Bracket.AddToListIteration[Visibility], Int)] =
+    val maybeIteration: Option[(Bracket.AddToListIteration, Int)] =
       maybeAllAddToListBracket.flatMap { bracket =>
         bracket.iterations.zipWithIndex.find { case (bracket, index) =>
           index === selectedIndex - 1
@@ -655,7 +655,7 @@ class StructuredFormDataBuilder[D <: DataOrigin](
     }
 
     val answers: List[(BaseComponentId, VariadicValue)] = modelComponentIdsFromIteration.flatMap { modelComponentId =>
-      formModelVisibilityOptics.recData.variadicFormData
+      formModelVisibilityOptics.freeCalculator.variadicFormData
         .get(modelComponentId)
         .map(modelComponentId.baseComponentId -> _)
     }
@@ -747,7 +747,7 @@ class StructuredFormDataBuilder[D <: DataOrigin](
     val baseFcId = FormComponentId(indexedComponentId.baseComponentId.value)
     val fcId = indexedComponentId.fold(_ => baseFcId)(index => baseFcId.withIndex(index.index))
     val postcodeLookupAddress =
-      formModelVisibilityOptics.recalculationResult.evaluationContext.thirdPartyData.addressFor(fcId)
+      formModelVisibilityOptics.freeCalculator.evaluationContext.thirdPartyData.addressFor(fcId)
     postcodeLookupAddress match {
       case Some(Left(formData)) =>
         val lookup = formData.toData

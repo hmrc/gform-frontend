@@ -1,0 +1,60 @@
+{
+  "_id": "repeated-section-smartstrings",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Repeat count",
+      "fields": [
+        {
+          "id": "repeatCount",
+          "type": "text",
+          "format": "number",
+          "notPII": true
+        }
+      ]
+    },
+    {
+      "title": "Name $n out of ${repeatCount}",
+      "repeatsMax": "${repeatCount}",
+      "repeatsMin": "${repeatCount}",
+      "fields": [
+        {
+          "id": "whatDutyPaid",
+          "type": "text",
+          "format": "sterling"
+        }
+      ]
+    },
+    {
+      "title": "Sum test",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "info",
+          "type": "info",
+          "infoText": "whatDutyPaid: ${whatDutyPaid}\n\nwhatDutyPaid.sum: ${whatDutyPaid.sum}"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

@@ -27,11 +27,11 @@ class FormComponentUpdater(
   baseIds: List[FormComponentId],
   dataRetrieveIds: List[DataRetrieveId]
 ) {
+  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds, dataRetrieveIds)
+  private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds, dataRetrieveIds)
 
-  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
-  private def expandFormCtx(formCtx: FormCtx): FormCtx = ExprUpdater.formCtx(formCtx, index, baseIds)
-
-  private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
+  private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr =
+    BooleanExprUpdater(booleanExpr, index, baseIds, dataRetrieveIds)
 
   private def expandOptionData(optionData: OptionData): OptionData = optionData match {
     case o: OptionData.IndexBased =>
@@ -92,7 +92,7 @@ class FormComponentUpdater(
       errorMessage = expandSmartString(formComponentValidator.errorMessage)
     )
 
-  private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
+  private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds, dataRetrieveIds)
 
   private def expandText(text: Text): Text = {
     val scText = text match {
@@ -149,6 +149,13 @@ class FormComponentUpdater(
       enterAddressLabel = postcodeLookup.enterAddressLabel.map(expandSmartString)
     )
 
+  private def expandMultiFileUpload(multiFileUpload: MultiFileUpload): MultiFileUpload =
+    multiFileUpload.copy(
+      hint = multiFileUpload.hint.map(expandSmartString),
+      uploadAnotherLabel = multiFileUpload.uploadAnotherLabel.map(expandSmartString),
+      continueText = multiFileUpload.continueText.map(expandSmartString)
+    )
+
   private def expandTableHeaderCell(cell: TableHeadCell): TableHeadCell =
     cell.copy(label = expandSmartString(cell.label))
 
@@ -182,6 +189,7 @@ class FormComponentUpdater(
       case t: MiniSummaryList => expandSummaryList(t)
       case t: TableComp       => expandTableComp(t)
       case t: PostcodeLookup  => expandPostcodeLookup(t)
+      case t: MultiFileUpload => expandMultiFileUpload(t)
       case otherwise          => otherwise
     },
     label = expandSmartString(formComponent.label),

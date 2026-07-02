@@ -1,0 +1,158 @@
+{
+  "_id": "sum-with-and",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "offset": "if offset then 10 else 20",
+    "calculation": "amount + offset"
+  },
+  "booleanExpressions": {
+    "after2024": "date after 31122024",
+    "before2024": "date before 01012024",
+    "offset": "before2024 && after2024"
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "Items",
+      "summaryName": "Items",
+      "shortName": "Item $n",
+      "description": "$n - data: ${amount} : ${date} : ${offset} : ${calculation} : ${calculation.sum}",
+      "summaryDescription": "Items",
+      "addAnotherQuestion": {
+        "id": "addAnother",
+        "type": "choice",
+        "label": "Do you want to add another?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Amount",
+          "fields": [
+            {
+              "id": "amount",
+              "label": "Amount",
+              "type": "text",
+              "format": "number"
+            },
+            {
+              "id": "control",
+              "type": "choice",
+              "label": "Offset date",
+              "choices": [
+                {
+                  "en": "Yes",
+                  "value": "offset"
+                },
+                {
+                  "en": "No",
+                  "value": "keep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Date",
+          "includeIf": "${control contains 'offset'}",
+          "fields": [
+            {
+              "id": "date",
+              "type": "date"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${calculation.sum = '90'}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Found",
+              "value": "found"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "calculation.sum = ${calculation.sum}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "calculation = ${calculation}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "amount: ${amount}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "offset: ${offset}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "date: ${date}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

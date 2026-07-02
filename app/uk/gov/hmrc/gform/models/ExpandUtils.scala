@@ -21,8 +21,7 @@ import cats.syntax.eq._
 import uk.gov.hmrc.gform.gform.{ BooleanExprUpdater, ExprUpdater, FormComponentUpdater }
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
-import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -48,9 +47,17 @@ object ExpandUtils {
   def modelComponentIdFromFormComponentId(formComponentId: FormComponentId): ModelComponentId =
     toModelComponentId(formComponentId.value)
 
-  def expandSmartString(smartString: SmartString, index: Int, ids: List[FormComponentId]): SmartString =
+  def expandSmartString(
+    smartString: SmartString,
+    index: Int,
+    ids: List[FormComponentId],
+    dataRetrieveIds: List[DataRetrieveId]
+  ): SmartString =
     smartString
-      .updateInterpolations(expr => ExprUpdater(expr, index, ids), boolExpr => BooleanExprUpdater(boolExpr, index, ids))
+      .updateInterpolations(
+        expr => ExprUpdater(expr, index, ids, dataRetrieveIds),
+        boolExpr => BooleanExprUpdater(boolExpr, index, ids, dataRetrieveIds)
+      )
       .replace("$n", index.toString)
 
   def expandDataRetrieve(smartString: SmartString, index: Int): SmartString =
@@ -60,11 +67,11 @@ object ExpandUtils {
           case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, Constant(index.toString))
           case otherwise                   => otherwise
         },
-        boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId])
+        boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId], List.empty[DataRetrieveId])
       )
       .replace("$n", index.toString)
 
-  def expandGroup[S <: SourceOrigin](fc: FormComponent, group: Group, data: VariadicFormData[S]): List[FormComponent] =
+  def expandGroup(fc: FormComponent, group: Group, data: VariadicFormData): List[FormComponent] =
     (1 to group.repeatsMax.getOrElse(1)).toList.flatMap { index =>
       val allIds = fc.id :: group.fields.map(_.id)
       val fcUpdated = new FormComponentUpdater(fc, index, allIds, List.empty[DataRetrieveId]).updatedWithId
@@ -73,11 +80,11 @@ object ExpandUtils {
       if (toExpand || index === 1) List(fcUpdated) else Nil
     }
 
-  def submittedFCs[D <: DataOrigin](
-    formModelOptics: FormModelOptics[D],
+  def submittedFCs(
+    formModelOptics: FormModelOptics,
     formComponents: List[FormComponent]
   ): List[FormComponent] = {
-    val atomicFcIds: collection.Set[ModelComponentId] = formModelOptics.pageOpticsData.keySet()
+    val atomicFcIds: collection.Set[ModelComponentId] = formModelOptics.variadicFormData.keySet()
 
     formComponents.filter { fc =>
       fc.multiValueId.atomsModelComponentIds.forall(atomicFcIds)
@@ -85,7 +92,7 @@ object ExpandUtils {
   }
 
   def getAlwaysEmptyHidden(
-    pageModel: PageModel[DataExpanded],
+    pageModel: PageModel,
     lookupExtractors: LookupExtractors
   ): List[FormComponent] =
     pageModel.allFormComponents.filter {
@@ -95,7 +102,7 @@ object ExpandUtils {
       case _                                 => false
     }
 
-  def findFormComponent(targetFcId: FormComponentId, formModel: FormModel[DataExpanded]): Option[FormComponent] =
+  def findFormComponent(targetFcId: FormComponentId, formModel: FormModel): Option[FormComponent] =
     formModel.allFormComponents.find(_.id === targetFcId)
 
   private def addPrefixToString(n: Int, str: String): String =

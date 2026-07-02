@@ -1,0 +1,32 @@
+{
+  "_id": "text-field-ukeori",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "UK EORI",
+      "fields": [
+        {
+          "id": "ukEoriField",
+          "type": "text",
+          "format": "UkEORI"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

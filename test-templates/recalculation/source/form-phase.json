@@ -1,0 +1,65 @@
+{
+  "_id": "form-phase",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": [
+        {
+          "includeIf": "${form.phase.is.instructionPDF}",
+          "en": "Operator instruction"
+        },
+        {
+          "en": "User instruction"
+        }
+      ],
+      "fields": [
+        {
+          "id": "instruction",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "instructionPDF",
+          "includeIf": "${form.phase.is.instructionPDF}",
+          "label": "Instruction pdf",
+          "value": "${123}",
+          "type": "text",
+          "format": "text",
+          "submitMode": "readonly"
+        },
+        {
+          "id": "notInstructionPDF",
+          "includeIf": "${!form.phase.is.instructionPDF}",
+          "label": "Not instruction pdf",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page ",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "dms",
+      "type": "hmrcDms",
+      "dmsFormId": "id",
+      "customerId": "${'id'}",
+      "classificationType": "type",
+      "businessArea": "ba",
+      "instructionPdfFields": "all"
+    }
+  ]
+}

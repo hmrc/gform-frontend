@@ -18,15 +18,20 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.int._
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.InternalLink.PageLink
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
+class ExprUpdater(index: Int, baseIds: List[FormComponentId], baseDataRetrieveIds: List[DataRetrieveId]) {
 
-  val beUpdater = new BooleanExprUpdater(index, baseIds)
+  val beUpdater = new BooleanExprUpdater(index, baseIds, baseDataRetrieveIds)
 
   private def expandFcId(fcId: FormComponentId): FormComponentId =
     if (baseIds.contains(fcId) && index =!= 0) FormComponentId(s"${index}_${fcId.value}") else fcId
+
+  private def expandDataRetriveId(dataRetrieveId: DataRetrieveId): DataRetrieveId =
+    if (baseDataRetrieveIds.contains(dataRetrieveId) && index =!= 0) dataRetrieveId.withIndex(index)
+    else dataRetrieveId
 
   def expandExpr(expr: Expr): Expr = expr match {
     case Add(field1, field2)                  => Add(expandExpr(field1), expandExpr(field2))
@@ -42,8 +47,8 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case DateFunction(dateFunc)               => DateFunction(expandDateFunc(dateFunc))
     case AddressLens(formComponentId, detail) => AddressLens(expandFcId(formComponentId), detail)
     case LinkCtx(PageLink(id))                => LinkCtx(PageLink(id.withIndex(index)))
-    case DataRetrieveCtx(id, attribute)       => DataRetrieveCtx(id.withIndex(index), attribute)
-    case DataRetrieveCount(id)                => DataRetrieveCount(id.withIndex(index))
+    case DataRetrieveCtx(id, attribute)       => DataRetrieveCtx(expandDataRetriveId(id), attribute)
+    case DataRetrieveCount(id)                => DataRetrieveCount(expandDataRetriveId(id))
     case LookupColumn(fcId, c)                => LookupColumn(expandFcId(fcId), c)
     case CsvCountryCountCheck(fcId, c, v)     => CsvCountryCountCheck(expandFcId(fcId), c, v)
     case Size(formComponentId, index)         => Size(expandFcId(formComponentId), index)
@@ -59,8 +64,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
     case ParamCtx(_)                          => expr
     case LinkCtx(_)                           => expr
     case LangCtx                              => expr
-    case Period(_, _)                         => expr
-    case PeriodExt(_, _)                      => expr
+    case Period(_, _, _)                      => expr // TODO JoVl, why are we not expanding DateCtx like in Between ???
     case b @ Between(_, _, _) =>
       b match {
         case Between(DateCtx(dateExpr1), DateCtx(dateExpr2), m) =>
@@ -112,8 +116,14 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId]) {
 }
 
 object ExprUpdater {
-  def apply(expr: Expr, index: Int, baseIds: List[FormComponentId]) = new ExprUpdater(index, baseIds).expandExpr(expr)
+  def apply(expr: Expr, index: Int, baseIds: List[FormComponentId], dataRetrieveIds: List[DataRetrieveId]) =
+    new ExprUpdater(index, baseIds, dataRetrieveIds).expandExpr(expr)
 
-  def formCtx(formCtx: FormCtx, index: Int, baseIds: List[FormComponentId]): FormCtx =
-    new ExprUpdater(index, baseIds).expandFormCtx(formCtx)
+  def formCtx(
+    formCtx: FormCtx,
+    index: Int,
+    baseIds: List[FormComponentId],
+    dataRetrieveIds: List[DataRetrieveId]
+  ): FormCtx =
+    new ExprUpdater(index, baseIds, dataRetrieveIds).expandFormCtx(formCtx)
 }

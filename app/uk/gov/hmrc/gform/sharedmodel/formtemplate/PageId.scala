@@ -24,8 +24,6 @@ case class PageId(id: String) {
   val modelPageId: ModelPageId = ModelPageId.fromPageId(this)
 
   def withIndex(index: Int) = PageId(s"${index}_$id")
-
-  def withSuffix(suffix: String) = PageId(id + suffix)
 }
 
 object PageId {

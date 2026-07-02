@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.testonly
 
+import scala.collection.mutable
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.sharedmodel.SourceOrigin.OutOfDate
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ SourceOrigin, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 
 import java.time.LocalDate
 import scala.util.Try
@@ -31,8 +31,8 @@ import scala.util.Try
 trait ErrorValueProvider {
   def errorValues(
     fc: FormComponent,
-    existingData: VariadicFormData[SourceOrigin.Current]
-  ): List[VariadicFormData[SourceOrigin.OutOfDate]]
+    existingData: VariadicFormData
+  ): List[VariadicFormData]
 }
 
 class TextWithTimeConstraintErrorProvider extends ErrorValueProvider {
@@ -40,11 +40,11 @@ class TextWithTimeConstraintErrorProvider extends ErrorValueProvider {
 
   override def errorValues(
     fc: FormComponent,
-    existingData: VariadicFormData[SourceOrigin.Current]
-  ): List[VariadicFormData[OutOfDate]] =
+    existingData: VariadicFormData
+  ): List[VariadicFormData] =
     rawValues.map { time =>
-      VariadicFormData[OutOfDate](
-        Map(fc.id.modelComponentId -> VariadicValue.One(time))
+      VariadicFormData(
+        mutable.Map(fc.id.modelComponentId -> VariadicValue.One(time))
       )
     }
 }
@@ -66,8 +66,8 @@ class DateErrorProvider extends ErrorValueProvider {
 
   override def errorValues(
     fc: FormComponent,
-    existingData: VariadicFormData[SourceOrigin.Current]
-  ): List[VariadicFormData[SourceOrigin.OutOfDate]] = {
+    existingData: VariadicFormData
+  ): List[VariadicFormData] = {
     def atoms(fcId: FormComponentId): (ModelComponentId, ModelComponentId, ModelComponentId) =
       (
         FormComponentId(s"${fcId.baseComponentId.value}-day").modelComponentId,
@@ -122,13 +122,12 @@ class DateErrorProvider extends ErrorValueProvider {
 
     rawValues.map { case (dayValue, monthValue, yearValue) =>
       val (day, month, year) = atoms(fc.id)
-      VariadicFormData[OutOfDate](
-        Map(
-          day   -> VariadicValue.One(dayValue),
-          month -> VariadicValue.One(monthValue),
-          year  -> VariadicValue.One(yearValue)
-        ) ++ otherFieldValues
-      )
+      val data = Map(
+        day   -> VariadicValue.One(dayValue),
+        month -> VariadicValue.One(monthValue),
+        year  -> VariadicValue.One(yearValue)
+      ) ++ otherFieldValues
+      VariadicFormData(mutable.Map(data.toSeq: _*))
     }
   }
 }

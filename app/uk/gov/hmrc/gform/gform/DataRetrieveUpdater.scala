@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc.gform.gform
 
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieve
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf }
 
-class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]) {
+class DataRetrieveUpdater(
+  dataRetrieve: DataRetrieve,
+  index: Int,
+  baseIds: List[FormComponentId],
+  dataRetrieveIds: List[DataRetrieveId]
+) {
   def update: DataRetrieve = {
     val idUpdated = dataRetrieve.id.withIndex(index)
-    val exprUpdater = new ExprUpdater(index, baseIds)
-    val booleanExprUpdater = new BooleanExprUpdater(index, baseIds)
+    val exprUpdater = new ExprUpdater(index, baseIds, dataRetrieveIds)
+    val booleanExprUpdater = new BooleanExprUpdater(index, baseIds, dataRetrieveIds)
     val paramsUpdated = dataRetrieve.params.map { paramExpr =>
       paramExpr.copy(expr = exprUpdater.expandExpr(paramExpr.expr))
     }
@@ -37,6 +42,11 @@ class DataRetrieveUpdater(dataRetrieve: DataRetrieve, index: Int, baseIds: List[
 }
 
 object DataRetrieveUpdater {
-  def apply(dataRetrieve: DataRetrieve, index: Int, baseIds: List[FormComponentId]): DataRetrieve =
-    new DataRetrieveUpdater(dataRetrieve, index, baseIds).update
+  def apply(
+    dataRetrieve: DataRetrieve,
+    index: Int,
+    baseIds: List[FormComponentId],
+    dataRetrieveIds: List[DataRetrieveId]
+  ): DataRetrieve =
+    new DataRetrieveUpdater(dataRetrieve, index, baseIds, dataRetrieveIds).update
 }

@@ -22,10 +22,9 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.models.ids.BaseComponentId
 import uk.gov.hmrc.gform.objectStore.{ EnvelopeWithMapping, ObjectStoreAlgebra }
 import uk.gov.hmrc.gform.gform.SummaryPagePurpose
-import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.optics.DataOrigin
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.pdf.model.PDFModel.HeaderFooter
 import uk.gov.hmrc.gform.pdf.model.{ PDFCustomRender, PDFLayout, PDFModel, PDFPageModelBuilder, PDFType }
@@ -46,11 +45,11 @@ class PDFRenderService(
   validationService: ValidationService
 ) {
 
-  def createPDFContent[D <: DataOrigin, U <: SectionSelectorType: SectionSelector, T <: PDFType](
+  def createPDFContent[U <: SectionSelectorType: SectionSelector, T <: PDFType](
     title: String,
     maybePageTitle: Option[String],
     cache: AuthCacheWithForm,
-    formModelOptics: FormModelOptics[D],
+    formModelOptics: FormModelOptics,
     maybeHeaderFooter: Option[HeaderFooter],
     maybeSubmissionDetails: Option[SubmissionDetails],
     purpose: SummaryPagePurpose,

@@ -1,0 +1,85 @@
+{
+  "_id": "data-retrieve-company-representative",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "What is the new representative member’s company or UK establishment number?",
+      "fields": [
+        {
+          "id": "crnRepresentative",
+          "format": "companyRegistrationNumber",
+          "type": "text",
+          "toUpperCase": true
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "companyHouseProfile",
+          "id": "companyRepresentative",
+          "parameters": {
+            "companyNumber": "${crnRepresentative}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "CRNrepresentativeMiniSummary",
+          "type": "miniSummaryList",
+          "displayInSummary": true,
+          "label": {
+            "en": "",
+            "cy": ""
+          },
+          "rows": [
+            {
+              "key": "Company number",
+              "value": "${crnRepresentative}"
+            },
+            {
+              "key": "Company name",
+              "value": "${dataRetrieve.companyRepresentative.companyName}"
+            },
+            {
+              "key": "Registered office address",
+              "value": "${dataRetrieve.companyRepresentative.registeredOfficeAddress}"
+            },
+            {
+              "key": "Incorporated on",
+              "value": "${dataRetrieve.companyRepresentative.dateOfCreation}",
+              "includeIf": "${dataRetrieve.companyRepresentative.dateOfCreation != ''}"
+            },
+            {
+              "key": "Nature of business (SIC)",
+              "value": "${getSicDescription(dataRetrieve.companyRepresentative.sicCode1)}",
+              "includeIf": "${dataRetrieve.companyRepresentative.sicCode1 != ''}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

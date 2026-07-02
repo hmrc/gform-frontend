@@ -17,19 +17,18 @@
 package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
-import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, LangADT, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue.One
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport, SectionSelectorType, VariadicFormDataSupport, Visibility }
-import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelSupport, SectionSelectorType, VariadicFormDataSupport }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 
-import java.time.Instant
 class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSupport with GraphSpec {
 
   override val envelopeId: EnvelopeId = EnvelopeId("dummy")
@@ -79,25 +78,25 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
 
   implicit val lang: LangADT = LangADT.En
   implicit val messages: Messages = play.api.test.Helpers.stubMessages(play.api.test.Helpers.stubMessagesApi(Map.empty))
-  def getFormModel(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) = {
-    val formTemplate = mkFormTemplate(sectionsData)
+  def getFormModel(
+    formTemplate: FormTemplate,
+    formData: VariadicFormData
+  ): FormModel = {
     val fmb = mkFormModelBuilder(formTemplate)
     fmb
-      .visibilityModel[DataOrigin.Browser, SectionSelectorType.Normal](
-        formData,
-        None,
-        Instant.now,
-        BooleanExprCache.empty
-      )
+      .visibilityModel[SectionSelectorType.Normal](formData, None, Form.dummy(FormTemplateId("")))
+      .formModelVisibilityOptics
       .formModel
+
   }
-  def getNavigation(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =
+  def getNavigation(formTemplate: FormTemplate, formData: VariadicFormData) =
     new Navigation {
-      override def formModel: FormModel[Visibility] = getFormModel(sectionsData, formData)
+      override def formModel: FormModel =
+        getFormModel(formTemplate, formData)
     }
 
-  def getAvailableSectionNumbers(sectionsData: List[Section], formData: VariadicFormData[SourceOrigin.OutOfDate]) =
-    getNavigation(sectionsData, formData).availableSectionNumbers
+  def getAvailableSectionNumbers(formTemplate: FormTemplate, formData: VariadicFormData) =
+    getNavigation(formTemplate, formData).availableSectionNumbers
 
   def dependsOn(fcId: FormComponentId): Option[IncludeIf] = Some(IncludeIf(Equals(FormCtx(fcId), Constant("1"))))
 
@@ -125,27 +124,29 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   "Single page form" should "have section number 0 visible" in {
     val single = FormComponentId("single")
     val singleSection = makeSection(toSmartString("Single Page"), mkFormComponent(single))
-    val result = getAvailableSectionNumbers(singleSection :: Nil, mkVariadicFormData())
+    val formTemplate = mkFormTemplate(singleSection).copy(_id = FormTemplateId("single-section"))
+    val result = getAvailableSectionNumbers(formTemplate, mkVariadicFormData())
 
     result shouldBe List(Classic.NormalPage(TemplateSectionIndex(0)))
   }
 
   "Chain of section" should "hide all dependent section in the chain" in {
+    val formTemplate = mkFormTemplate(sections).copy(_id = FormTemplateId("chain-of-sections"))
     val result1 =
       getAvailableSectionNumbers(
-        sections,
+        formTemplate,
         mkVariadicFormData("fcId1" -> One("1"), "fcId2" -> One("1"), "fcId3" -> One("1"))
       )
     val result2 = getAvailableSectionNumbers(
-      sections,
+      formTemplate,
       mkVariadicFormData("fcId1" -> One("1"), "fcId2" -> One("1"), "fcId3" -> One("2"))
     )
     val result3 = getAvailableSectionNumbers(
-      sections,
+      formTemplate,
       mkVariadicFormData("fcId1" -> One("1"), "fcId2" -> One("2"), "fcId3" -> One("1"))
     )
     val result4 = getAvailableSectionNumbers(
-      sections,
+      formTemplate,
       mkVariadicFormData("fcId1" -> One("2"), "fcId2" -> One("1"), "fcId3" -> One("1"))
     )
 
@@ -171,9 +172,10 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   }
 
   "Navigator.nextSectionNumber" should "skip ATL non repeater section and jump to RepeaterSection" in {
+    val formTemplate = mkFormTemplate(section1 :: section2 :: sectionATL :: Nil)
     val formModel =
       getFormModel(
-        section1 :: section2 :: sectionATL :: Nil,
+        formTemplate,
         mkVariadicFormData("fcId1" -> One("1"), "fcId2" -> One("1"), "fcIdATL" -> One("1"))
       )
 

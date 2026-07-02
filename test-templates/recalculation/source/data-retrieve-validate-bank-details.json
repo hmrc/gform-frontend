@@ -1,0 +1,95 @@
+{
+  "_id": "data-retrieve-validate-bank-details",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Bank details",
+      "fields": [
+        {
+          "id": "accountNumber",
+          "type": "text",
+          "label": "Account number 96113600",
+          "format": "ukBankAccountNumber"
+        },
+        {
+          "id": "sortCode",
+          "type": "text",
+          "label": "Sort code 609593",
+          "format": "ukSortCode"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "validateBankDetails",
+          "id": "bankDetails",
+          "parameters": {
+            "sortCode": "${sortCode}",
+            "accountNumber": "${accountNumber}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Test",
+      "fields": [
+        {
+          "id": "dummy",
+          "label": "Dummy",
+          "type": "text",
+          "format": "text"
+        },
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "displayInSummary": true,
+          "label": "",
+          "rows": [
+            {
+              "key": "isValid",
+              "value": "isValid: ${dataRetrieve.bankDetails.isValid}"
+            },
+            {
+              "key": "sortCodeIsPresentOnEISCD",
+              "value": "sortCodeIsPresentOnEISCD: ${dataRetrieve.bankDetails.sortCodeIsPresentOnEISCD}"
+            },
+            {
+              "key": "sortCodeBankName",
+              "value": "sortCodeBankName: ${dataRetrieve.bankDetails.sortCodeBankName}"
+            },
+            {
+              "key": "nonStandardAccountDetailsRequiredForBacsX",
+              "value": "nonStandardAccountDetailsRequiredForBacs: ${dataRetrieve.bankDetails.nonStandardAccountDetailsRequiredForBacs}"
+            },
+            {
+              "key": "sortCodeSupportsDirectDebit",
+              "value": "sortCodeSupportsDirectDebit: ${dataRetrieve.bankDetails.sortCodeSupportsDirectDebit}"
+            },
+            {
+              "key": "sortCodeSupportsDirectCredit",
+              "value": "sortCodeSupportsDirectCredit: ${dataRetrieve.bankDetails.sortCodeSupportsDirectCredit}"
+            },
+            {
+              "key": "iban",
+              "value": "iban: ${dataRetrieve.bankDetails.iban}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

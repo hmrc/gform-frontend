@@ -1,0 +1,68 @@
+{
+  "_id": "choice-dynamic-data-retrieve-based",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Data",
+      "fields": [
+        {
+          "id": "date",
+          "label": "Date",
+          "type": "date"
+        },
+        {
+          "id": "nino",
+          "type": "text",
+          "label": "Nino",
+          "format": "nino"
+        }
+      ],
+      "dataRetrieve": [
+        {
+          "type": "employments",
+          "id": "employments",
+          "parameters": {
+            "nino": "${nino}",
+            "taxYear": "${taxYear(date)}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Which employer from year ${taxYear(date)} are you claiming pension tax relief for?",
+      "fields": [
+        {
+          "id": "employer",
+          "type": "choice",
+          "dividerPosition": "NONE",
+          "choices": [
+            {
+              "en": "${dataRetrieve.employments.employerName}",
+              "dynamic": "dataRetrieve.employments.employerName",
+              "value": "EMP"
+            },
+            {
+              "en": "Different employer",
+              "value": "NONE"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
