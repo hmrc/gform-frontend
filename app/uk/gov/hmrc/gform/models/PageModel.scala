@@ -69,8 +69,6 @@ sealed trait PageModel extends Product with Serializable {
 
   def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_ => None)
 
-  def getNotRequiredIf: Option[IncludeIf] = fold(_.page.notRequiredIf)(_ => None)(_.notRequiredIf)
-
   def allValidIfs: List[(List[ValidIf], FormComponent)] =
     fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
@@ -138,7 +136,6 @@ case class Repeater(
   repeatsUntil: Option[IncludeIf],
   repeatsWhile: Option[IncludeIf],
   expandedDescriptionTotal: Option[AtlDescription.KeyValueBased],
-  notRequiredIf: Option[IncludeIf],
   displayWidth: Option[LayoutDisplayWidth],
   expandedRemovePageContent: Option[SmartString]
 ) extends PageModel

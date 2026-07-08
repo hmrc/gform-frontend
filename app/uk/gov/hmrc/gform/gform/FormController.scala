@@ -201,7 +201,7 @@ class FormController(
                 validateSections(suppressErrors, sectionNumber)(
                   renderSingleton(bracket.singletonForSectionNumber(sectionNumber), sectionNumber, _)
                 )
-              case bracket @ Bracket.AddToList(_, iterations, _) =>
+              case bracket @ Bracket.AddToList(_, _, iterations, _) =>
                 val iteration: Bracket.AddToListIteration =
                   bracket.iterationForSectionNumber(sectionNumber)
                 val (repeater, repeaterSectionNumber) =
@@ -503,7 +503,7 @@ class FormController(
         bracket match {
           case Bracket.NonRepeatingPage(_, _) => goBack(toSectionNumber)
           case Bracket.RepeatingPage(_, _)    => goBack(toSectionNumber)
-          case bracket @ Bracket.AddToList(_, iterations, _) =>
+          case bracket @ Bracket.AddToList(_, _, iterations, _) =>
             val iteration: Bracket.AddToListIteration =
               bracket.iterationForSectionNumber(toSectionNumber)
             val lastIteration: Bracket.AddToListIteration = iterations.last
@@ -676,7 +676,7 @@ class FormController(
                     val bracket = formModel.bracket(sectionNumber)
 
                     bracket match {
-                      case bracket @ Bracket.AddToList(_, _, _) =>
+                      case bracket @ Bracket.AddToList(_, _, _, _) =>
                         val iteration = bracket.iterationForSectionNumber(sectionNumber)
                         val sectionNumbers = iteration.allSingletonSectionNumbers ++ iteration.checkYourAnswers
                           .map(_.sectionNumber)
@@ -754,7 +754,7 @@ class FormController(
                           val bracket = formModel.bracket(sectionNumber)
 
                           val isLastBracketIteration = bracket match {
-                            case bracket @ Bracket.AddToList(_, _, _) =>
+                            case bracket @ Bracket.AddToList(_, _, _, _) =>
                               val iteration = bracket.iterationForSectionNumber(sectionNumber)
                               sectionNumber === iteration.lastSectionNumber
                             case _ => false
