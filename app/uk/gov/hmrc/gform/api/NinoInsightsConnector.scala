@@ -27,7 +27,7 @@ trait NinoInsightsConnector[F[_]] {
   def insights(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
-  ): F[ServiceCallResponse[DataRetrieve.Response]]
+  )(implicit hc: HeaderCarrier): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
 class NinoInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String, authorizationToken: String)(implicit
@@ -39,9 +39,7 @@ class NinoInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String, auth
   override def insights(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-
-    implicit val hc = HeaderCarrier()
+  )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
 
     val header: Seq[(String, String)] = Seq(
       "Authorization" -> authorizationToken,
