@@ -27,7 +27,7 @@ trait BankAccountInsightsConnector[F[_]] {
   def insights(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
-  ): F[ServiceCallResponse[DataRetrieve.Response]]
+  )(implicit hc: HeaderCarrier): F[ServiceCallResponse[DataRetrieve.Response]]
 }
 
 class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit
@@ -39,9 +39,7 @@ class BankAccountInsightsAsyncConnector(httpClient: HttpClientV2, baseUrl: Strin
   override def insights(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-
-    implicit val hc = HeaderCarrier()
+  )(implicit hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] = {
 
     val header = Seq(
       "Content-Type" -> "application/json"
