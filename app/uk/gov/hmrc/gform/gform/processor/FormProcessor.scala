@@ -265,7 +265,7 @@ class FormProcessor(
       if (formComponentsUpdated.nonEmpty && sectionNumber.isAddToList && !sectionNumber.isAddToListTerminalPage) {
         val bracket = formModelOptics.formModelVisibilityOptics.formModel.bracket(sectionNumber)
         bracket match {
-          case bracket @ Bracket.AddToList(_, _, _) =>
+          case bracket @ Bracket.AddToList(_, _, _, _) =>
             val iteration = bracket.iterationForSectionNumber(sectionNumber)
             Set(iteration.checkYourAnswers.map(_.sectionNumber), iteration.declarationSection.map(_.sectionNumber))
           case _ => Set.empty[Option[SectionNumber]]

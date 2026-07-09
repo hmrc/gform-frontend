@@ -155,7 +155,10 @@ class FormModelBuilder(
     val isVisiblePage =
       singleton.singleton.page.includeIf
         .fold(true)(includeIf => freeCalculator.evalIncludeIf(includeIf))
-    if (isVisiblePage) {
+
+    val isNotRequired =
+      singleton.singleton.page.notRequiredIf.fold(false)(includeIf => freeCalculator.evalIncludeIf(includeIf))
+    if (isVisiblePage && !isNotRequired) {
       val visibleFields = hideFormComponents(singleton.singleton.page.fields, freeCalculator)
       Some(
         singleton.copy(
@@ -208,8 +211,9 @@ class FormModelBuilder(
             List(repeatingPage.copy(singletons = singletonsNel))
           }
       } { addToList =>
-        addToList.includeIf match {
-          case Some(includeIf) if !freeCalculator.evalIncludeIf(includeIf) => List.empty
+        (addToList.includeIf, addToList.notRequiredIf) match {
+          case (Some(includeIf), _) if !freeCalculator.evalIncludeIf(includeIf)        => List.empty
+          case (_, Some(notRequiredIf)) if freeCalculator.evalIncludeIf(notRequiredIf) => List.empty
           case _ =>
             val iterations: List[Bracket.AddToListIteration] = addToList.iterations.toList.flatMap { iteration =>
               val defaultPage =
@@ -348,7 +352,6 @@ class FormModelBuilder(
       s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
       s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
       expandAtlDescriptionTotal(s.descriptionTotal),
-      s.notRequiredIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
       s.displayWidth,
       s.removePageContent.map(expand)
     )
@@ -528,7 +531,7 @@ class FormModelBuilder(
             .fromList(maybeIterations.toList)
             .fold(
               Option.empty[Bracket]
-            )(iterations => Some(Bracket.AddToList(s.includeIf, iterations, s)))
+            )(iterations => Some(Bracket.AddToList(s.includeIf, s.notRequiredIf, iterations, s)))
       }
     }
 

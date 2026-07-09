@@ -93,7 +93,7 @@ class TaskListController(
               )
 
             formModel.bracket(firstAvailableSn) match {
-              case Bracket.AddToList(_, iterations, _) =>
+              case Bracket.AddToList(_, _, iterations, _) =>
                 val lastIteration: Bracket.AddToListIteration = iterations.last
 
                 if (lastIteration.isCommited(cache.form.visitsIndex)) {

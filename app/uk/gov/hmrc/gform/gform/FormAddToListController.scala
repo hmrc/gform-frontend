@@ -79,7 +79,7 @@ class FormAddToListController(
             .confirmRemoval(formTemplateId, maybeAccessCode, sectionNumber, index, addToListId, fastForward)
         val maybeBracket = formModel.bracket(sectionNumber)
         maybeBracket match {
-          case bracket @ Bracket.AddToList(_, iterations, source) =>
+          case bracket @ Bracket.AddToList(_, _, iterations, source) =>
             val (pageError, fieldErrors) = {
               val errorMessage =
                 source.errorMessage.fold(request.messages.messages("addToList.error.selectOption"))(error =>

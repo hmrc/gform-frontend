@@ -56,8 +56,8 @@ sealed trait Bracket extends Product with Serializable {
   }
 
   def isToListById(addToListId: AddToListId): Boolean = this match {
-    case Bracket.AddToList(_, _, source) => source.id === addToListId
-    case _                               => false
+    case Bracket.AddToList(_, _, _, source) => source.id === addToListId
+    case _                                  => false
   }
 
   def toPageModelWithNumber: NonEmptyList[(PageModel, SectionNumber)] =
@@ -199,6 +199,7 @@ object Bracket {
 
   case class AddToList(
     includeIf: Option[IncludeIf],
+    notRequiredIf: Option[IncludeIf],
     iterations: NonEmptyList[AddToListIteration], // There must be at least one iteration for Add-to-list to make sense
     source: Section.AddToList
   ) extends Bracket {
@@ -235,6 +236,7 @@ object Bracket {
       g: Repeater => Repeater
     ): AddToList = AddToList(
       includeIf,
+      notRequiredIf,
       iterations.map(_.map(e, f, g)),
       source
     )
