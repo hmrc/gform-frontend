@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.{ AuthCache, AuthCacheWithForm, CacheData }
-import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.{ FormModelRenderPageOptics, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.recalculation.CacheBuster
@@ -35,14 +35,6 @@ final class FormModelOptics(
   def clearModelComponentIds(
     modelComponentIds: List[ModelComponentId]
   ): Unit = formModelVisibilityOptics.cleared(modelComponentIds)
-
-  val dataLookup: Map[BaseComponentId, List[VariadicValue]] =
-    formModelVisibilityOptics.data.all
-      .groupBy { case (modelComponentId, _) =>
-        modelComponentId.baseComponentId
-      }
-      .map { case (k, v) => k -> v.map(_._2) }
-
 }
 
 object FormModelOptics {

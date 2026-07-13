@@ -20,13 +20,13 @@ import cats.syntax.all._
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
+import uk.gov.hmrc.gform.eval.{ ExpressionResultWithTypeInfo, TypeInfo }
 import uk.gov.hmrc.gform.gform.processor.FormProcessor
 import uk.gov.hmrc.gform.models.{ ConfirmationAction, ConfirmationPage, EnteredVariadicFormData, FastForward, FormModel, PageModel, ProcessData }
 import uk.gov.hmrc.gform.models.ids.ModelPageId
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Expr, FormComponentId, HasExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Confirmation, Expr, FormComponentId, FormCtx, HasExpr }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SuppressErrors }
@@ -98,11 +98,12 @@ object ConfirmationService {
     confirmation.fieldsConfirmed
       .fold(false) { formComponentIds =>
         formComponentIds.exists { formComponentId =>
-          val browserData: List[VariadicValue] =
-            browserFormModelOptics.dataLookup.getOrElse(formComponentId.baseComponentId, List.empty[VariadicValue])
+          val staticTypeInfo = mongoFormModelOptics.formModelVisibilityOptics.freeCalculator.metadata
+            .staticTypeInfo(formComponentId.baseComponentId)
 
-          val mongoData: List[VariadicValue] =
-            mongoFormModelOptics.dataLookup.getOrElse(formComponentId.baseComponentId, List.empty[VariadicValue])
+          val typeInfo = TypeInfo(FormCtx(formComponentId), staticTypeInfo)
+          val browserData = browserFormModelOptics.formModelVisibilityOptics.freeCalculator.evalTypeInfo(typeInfo)
+          val mongoData = mongoFormModelOptics.formModelVisibilityOptics.freeCalculator.evalTypeInfo(typeInfo)
 
           val dataChange = browserData != mongoData
 
