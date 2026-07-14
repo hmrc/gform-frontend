@@ -112,7 +112,7 @@ private class Executor(
             evalChoiceAsString(formComponentId, typeInfo, markDown)
           case IndexOf(formComponentId, index) if typeInfo.staticTypeData.exprType == ExprType.ChoiceSelection =>
             evalChoiceAsString(formComponentId.withIndex(index + 1), typeInfo, false)
-          case _ => stringRepresentation(typeInfo)
+          case _ => stringRepresentation(typeInfo, escape = false)
         }
       case _ =>
         expr match {
@@ -161,20 +161,20 @@ private class Executor(
               .collect { case IsText(text) =>
                 val prefix = text.prefix.map(p => apply(p, markDown))
                 val suffix = text.suffix.map(p => apply(p, markDown))
-                val intermediateValue: String = stringRepresentation(typeInfo)
+                val intermediateValue: String = stringRepresentation(typeInfo, escape = markDown)
                 List(prefix, Some(intermediateValue), suffix).flatten.mkString(" ")
               }
-              .getOrElse(stringRepresentation(typeInfo))
+              .getOrElse(stringRepresentation(typeInfo, escape = markDown))
           case DisplayAsEntered(fcId) =>
             formModelVisibilityOptics.formModel.fcLookup
               .get(fcId)
               .collect { case IsTextArea(textArea) =>
                 TextFormatter
-                  .componentTextReadonly(stringRepresentation(typeInfo), textArea.constraint)(l)
+                  .componentTextReadonly(stringRepresentation(typeInfo, escape = false), textArea.constraint)(l)
                   .replaceAll("\n", "<br>")
               }
-              .getOrElse(stringRepresentation(typeInfo))
-          case _ => stringRepresentation(typeInfo)
+              .getOrElse(stringRepresentation(typeInfo, escape = false))
+          case _ => stringRepresentation(typeInfo, escape = false)
         }
     }
 
@@ -311,7 +311,7 @@ private class Executor(
   ): List[String] = fc match {
     case IsChoice(choice)                   => evalStandardChoice(fcId, choice, typeInfo, markDown, maybeInsideAtl)
     case IsRevealingChoice(revealingChoice) => evalRevealingChoice(revealingChoice, markDown)
-    case _                                  => List(stringRepresentation(typeInfo))
+    case _                                  => List(stringRepresentation(typeInfo, escape = false))
   }
 
   private def evalChoiceForComponentNotInLookup(
@@ -402,8 +402,10 @@ private class Executor(
       .toList
       .toMap
 
-  private def stringRepresentation(typeInfo: TypeInfo): String =
-    formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation(messages)
+  private def stringRepresentation(typeInfo: TypeInfo, escape: Boolean): String = {
+    val str = formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).stringRepresentation(messages)
+    if (escape) HtmlFormat.escape(str).body else str
+  }
 
   private def addressRepresentation(typeInfo: TypeInfo): List[String] =
     formModelVisibilityOptics.evalAndApplyTypeInfo(typeInfo).addressRepresentation
