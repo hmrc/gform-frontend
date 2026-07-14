@@ -766,7 +766,11 @@ class AddressLookupController(
         .fold[FormKind](classic => classic.copy(sections = List(enterAddressSection)))(taskList =>
           taskList.copy(sections =
             taskList.sections.map(taskSection =>
-              taskSection.copy(tasks = taskSection.tasks.map(_.copy(sections = NonEmptyList.of(enterAddressSection))))
+              taskSection.copy(tasks =
+                taskSection.tasks.map(
+                  _.copy(sections = NonEmptyList.of(enterAddressSection), includeIf = None, notRequiredIf = None)
+                )
+              )
             )
           )
         )
