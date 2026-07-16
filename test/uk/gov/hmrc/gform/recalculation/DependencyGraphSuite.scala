@@ -369,6 +369,7 @@ trait DependencyGraphFixture {
             PostcodeLookupRetrieve.AddressRecord(
               id = id,
               uprn = None,
+              organisation = None,
               address = PostcodeLookupRetrieve.Address(
                 lines = lines,
                 town = town,
