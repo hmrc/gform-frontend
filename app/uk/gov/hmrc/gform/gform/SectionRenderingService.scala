@@ -472,9 +472,7 @@ class SectionRenderingService(
         id = Some(formComponent.id.value + index),
         value = Some(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
         content = content.Text(option.label.value()),
-        checked = isChecked(option.getValue(index, formModelOptics.formModelVisibilityOptics)),
-        attributes =
-          dataLabelAttribute(option.label, formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr)
+        checked = isChecked(option.getValue(index, formModelOptics.formModelVisibilityOptics))
       )
     }
 
@@ -1916,8 +1914,7 @@ class SectionRenderingService(
       id = Some(formComponent.id.value + index),
       value = Some(optionParams.value),
       content = content.Text(dateRangeLabel(optionParams)),
-      checked = optionParams.value === setValue,
-      attributes = dataLabelAttribute(dateRangeLabel(optionParams))
+      checked = optionParams.value === setValue
     )
 
     def renderOptions(optionParams: NonEmptyList[OptionParams]) = {
@@ -2760,10 +2757,6 @@ class SectionRenderingService(
             content = content.Text(option.label.value()),
             checked = isChecked(value),
             conditionalHtml = helpTextHtml(maybeHelpText),
-            attributes = dataLabelAttribute(
-              option.label,
-              ei.formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
-            ),
             hint = maybeHint
           )
         }
@@ -2817,10 +2810,6 @@ class SectionRenderingService(
             content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = helpTextHtml(maybeHelpText),
-            attributes = dataLabelAttribute(
-              option.label,
-              ei.formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
-            ),
             hint = maybeHint
           )
           if (
@@ -3058,10 +3047,6 @@ class SectionRenderingService(
             content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(
-              option.label,
-              formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
-            ),
             hint = maybeHint
           )
       }
@@ -3088,10 +3073,6 @@ class SectionRenderingService(
             content = content.Text(option.label.value()),
             checked = isChecked(option.getValue(index, extraInfo.formModelOptics.formModelVisibilityOptics)),
             conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml(formComponent.id)(index)),
-            attributes = dataLabelAttribute(
-              option.label,
-              formModelOptics.formModelVisibilityOptics.freeCalculator.evalBooleanExpr
-            ),
             hint = maybeHint
           )
       }
@@ -3182,8 +3163,7 @@ class SectionRenderingService(
           id = Some(formComponent.id.value + index),
           value = Some(lookupLabel.label),
           content = content.Text(lookupLabel.label),
-          checked = lookupLabel.label === selectedValue,
-          attributes = dataLabelAttribute(lookupLabel.label)
+          checked = lookupLabel.label === selectedValue
         )
 
         val lookupLabels: List[LookupLabel] = options.process(_.sortLookupByIdx)
@@ -4065,11 +4045,6 @@ class SectionRenderingService(
     singleton: Singleton
   ): Boolean =
     singleton.page.allFields.dropWhile(_.onlyShowOnSummary).headOption.exists(_.isPageHeading)
-
-  private def dataLabelAttribute(label: SmartString, resolver: BooleanExpr => Boolean): Map[String, String] =
-    dataLabelAttribute(label.localised(resolver).value(LangADT.En))
-  private def dataLabelAttribute(label: String): Map[String, String] =
-    Map("aria-label" -> label.replaceAll("''", "'")) // Unescape single-quote
 
   private def getSelectItemsForLookup(
     formComponent: FormComponent,
