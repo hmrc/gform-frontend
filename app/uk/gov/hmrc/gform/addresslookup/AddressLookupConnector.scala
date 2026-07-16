@@ -66,7 +66,7 @@ object AddressLookupConnector {
                       val resolveNoLines = valid.map { addressRecord =>
                         if (addressRecord.address.lines.isEmpty) {
                           addressRecord.organisation.fold(addressRecord) { organisation =>
-                            val updatedAddress = addressRecord.address.copy(lines = List(organisation))
+                            val updatedAddress = addressRecord.address.copy(lines = List(capitaliseAll(organisation)))
                             addressRecord.copy(address = updatedAddress)
                           }
                         } else {
@@ -88,6 +88,8 @@ object AddressLookupConnector {
             CannotRetrieveResponse
           }
     }
+
+  private def capitaliseAll(s: String): String = s.split("\\s+").map(_.toLowerCase.capitalize).mkString(" ")
 }
 
 object PostcodeLookupRetrieve {
