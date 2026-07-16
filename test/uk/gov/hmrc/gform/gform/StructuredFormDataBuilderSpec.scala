@@ -1520,6 +1520,7 @@ class StructuredFormDataBuilderSpec
             PostcodeLookupRetrieve.AddressRecord(
               addressId,
               None,
+              None,
               PostcodeLookupRetrieve.Address(
                 lines,
                 town,
