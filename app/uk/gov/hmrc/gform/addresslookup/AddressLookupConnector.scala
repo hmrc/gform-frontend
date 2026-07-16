@@ -63,7 +63,17 @@ object AddressLookupConnector {
                     },
                     valid => {
                       logger.info(s"Calling address lookup returned $status: Success.")
-                      ServiceResponse(NonEmptyList.fromList(valid))
+                      val resolveNoLines = valid.map { addressRecord =>
+                        if (addressRecord.address.lines.isEmpty) {
+                          addressRecord.organisation.fold(addressRecord) { organisation =>
+                            val updatedAddress = addressRecord.address.copy(lines = List(organisation))
+                            addressRecord.copy(address = updatedAddress)
+                          }
+                        } else {
+                          addressRecord
+                        }
+                      }
+                      ServiceResponse(NonEmptyList.fromList(resolveNoLines))
                     }
                   )
               case other =>
@@ -104,6 +114,7 @@ object PostcodeLookupRetrieve {
   final case class AddressRecord(
     id: String,
     uprn: Option[Long],
+    organisation: Option[String],
     address: Address,
     language: String,
     localCustodian: Option[LocalCustodian],
