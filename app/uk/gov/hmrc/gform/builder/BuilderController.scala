@@ -876,7 +876,7 @@ class BuilderController(
     maybeAccessCode: Option[AccessCode]
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => lang => cache => implicit sse => formModelOptics =>
+      implicit request => implicit lang => cache => implicit sse => formModelOptics =>
         import i18nSupport._
         val singleton =
           formModelOptics.formModelRenderPageOptics.formModel(sectionNumber).asInstanceOf[Singleton]
@@ -985,27 +985,28 @@ class BuilderController(
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode]
   ) =
-    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) { _ => implicit sse => repeater => bracket =>
-      val descriptions = bracket.repeaters.map(_.expandedDescription match {
-        case AtlDescription.SmartStringBased(ss) => Json.fromString(markDownParser(ss).toString())
-        case AtlDescription.KeyValueBased(k, v) =>
-          Json.obj("key" := markDownParser(k), "value" := markDownParser(v))
-      })
+    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) {
+      _ => implicit sse => implicit lang => repeater => bracket =>
+        val descriptions = bracket.repeaters.map(_.expandedDescription match {
+          case AtlDescription.SmartStringBased(ss) => Json.fromString(markDownParser(ss).toString())
+          case AtlDescription.KeyValueBased(k, v) =>
+            Json.obj("key" := markDownParser(k), "value" := markDownParser(v))
+        })
 
-      val descriptionTotals = bracket.repeaters.map(_.expandedDescriptionTotal match {
-        case Some(kvBased) =>
-          Some(Json.obj("key" := markDownParser(kvBased.key), "value" := markDownParser(kvBased.value)))
-        case None => None
-      })
+        val descriptionTotals = bracket.repeaters.map(_.expandedDescriptionTotal match {
+          case Some(kvBased) =>
+            Some(Json.obj("key" := markDownParser(kvBased.key), "value" := markDownParser(kvBased.value)))
+          case None => None
+        })
 
-      val pageHeading: Html = uk.gov.hmrc.gform.views.html
-        .page_heading(repeater.expandedTitle.value(), repeater.expandedCaption.map(_.value()))
+        val pageHeading: Html = uk.gov.hmrc.gform.views.html
+          .page_heading(repeater.expandedTitle.value(), repeater.expandedCaption.map(_.value()))
 
-      Json.obj(
-        "pageHeading" := pageHeading,
-        "descriptions" := descriptions,
-        "descriptionTotals" := descriptionTotals
-      )
+        Json.obj(
+          "pageHeading" := pageHeading,
+          "descriptions" := descriptions,
+          "descriptionTotals" := descriptionTotals
+        )
     }
 
   def fetchAtlRepeaterAddAnotherQuestionHtml(
@@ -1013,7 +1014,7 @@ class BuilderController(
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode]
   ) =
-    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) { _ => implicit sse => repeater => _ =>
+    fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) { _ => implicit sse => l => repeater => _ =>
       Json.obj(
         "label" := repeater.addAnotherQuestion.label.value()
       )
@@ -1047,7 +1048,7 @@ class BuilderController(
     maybeAccessCode: Option[AccessCode]
   ) =
     fetchAtlRepeater(formTemplateId, sectionNumber, maybeAccessCode) {
-      implicit messages => implicit sse => repeater => _ =>
+      implicit messages => implicit sse => lang => repeater => _ =>
         val infoHtml = repeater.fields.fold(HtmlFormat.empty) { fieldsNel =>
           fieldsNel.toList
             .collectFirst {
@@ -1066,7 +1067,7 @@ class BuilderController(
     sectionNumber: SectionNumber,
     maybeAccessCode: Option[AccessCode]
   )(
-    f: Messages => SmartStringEvaluator => Repeater => Bracket.AddToList => Json
+    f: Messages => SmartStringEvaluator => LangADT => Repeater => Bracket.AddToList => Json
   ) =
     auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => lang => cache => sse => formModelOptics =>
@@ -1085,7 +1086,7 @@ class BuilderController(
               .fold(singleton => badRequest("Invalid page model. Expected Repeater got Singleton"))(checkYourAnswers =>
                 badRequest("Invalid page model. Expected Repeater got CheckYourAnswers")
               ) { repeater =>
-                Ok(f(implicitly[Messages])(sse)(repeater)(bracket))
+                Ok(f(implicitly[Messages])(sse)(lang)(repeater)(bracket))
               }
               .pure[Future]
         }
