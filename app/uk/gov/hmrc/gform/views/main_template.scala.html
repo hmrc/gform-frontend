@@ -20,6 +20,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, WebChat}
 
 @(title: String,
+  caption: Option[String],
   formTemplate: FormTemplate,
   containsErrors: Boolean = false,
   frontendAppConfig: FrontendAppConfig,
@@ -54,9 +55,10 @@
 @errorPrefix = @{if (containsErrors) s"${messages("generic.error.title.prefix")} " else ""}
 
 @titlePrefix = @{if (title.nonEmpty) title + " - " else ""}
+@captionPrefix = @{caption.map(c => c + " - ").getOrElse("")}
 
 @headTitle = @{
-    errorPrefix + titlePrefix + serviceName + " - GOV.UK"
+    errorPrefix + titlePrefix + captionPrefix + serviceName + " - GOV.UK"
 }
 
 @webchatSidebar = {

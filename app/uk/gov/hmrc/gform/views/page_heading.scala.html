@@ -22,6 +22,8 @@
     caption: Option[String],
     maybeHeadingClasses: Option[String] = None,
     maybeCaptionClasses: Option[String] = None
+)(
+    implicit l: LangADT
 )
 
 @hmrcPageHeading = @{new HmrcPageHeading()}
@@ -44,5 +46,6 @@
     text = heading,
     headingClasses = Some(headingClasses),
     section = caption,
+    language = Some(l.langADTToString),
     captionClasses = Some(captionClasses)
 ))
