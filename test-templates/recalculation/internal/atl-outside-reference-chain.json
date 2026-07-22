@@ -333,16 +333,6 @@
                     "isPageHeading": false,
                     "type": {
                       "Text": {
-                        "suffix": {
-                          "SmartStringBase": {
-                            "internal": {
-                              "localised": {
-                                "en": "kg"
-                              },
-                              "interpolations": []
-                            }
-                          }
-                        },
                         "displayWidth": "DEFAULT",
                         "constraint": {
                           "PositiveNumber": {
@@ -356,7 +346,18 @@
                         },
                         "value": {
                           "Value": {}
-                        }
+                        },
+                        "suffix": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "kg"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        },
+                        "removeSpaces": false
                       }
                     },
                     "onlyShowOnSummary": false,
@@ -386,11 +387,16 @@
                     "isPageHeading": false,
                     "type": {
                       "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
                         "constraint": {
                           "Sterling": {
                             "roundingMode": "Down",
                             "positiveOnly": false
                           }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
                         },
                         "value": {
                           "Typed": {
@@ -449,10 +455,6 @@
                               }
                             }
                           }
-                        },
-                        "displayWidth": "DEFAULT",
-                        "toUpperCase": {
-                          "IsNotUpperCase": {}
                         }
                       }
                     },
@@ -613,18 +615,19 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

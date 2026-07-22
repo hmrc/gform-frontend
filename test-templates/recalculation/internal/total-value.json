@@ -99,20 +99,21 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "168.09"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },

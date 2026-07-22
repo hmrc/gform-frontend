@@ -99,6 +99,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -106,12 +108,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -195,20 +196,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "AAA"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -292,20 +294,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "BBB"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -389,20 +392,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "CCC"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -486,20 +490,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "DDD"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -583,20 +588,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "EEE"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -680,20 +686,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "FFF"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -777,20 +784,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "GGG"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -874,20 +882,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "HHH"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -971,20 +980,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "III"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -1068,20 +1078,21 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "JJJ"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -1130,18 +1141,19 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

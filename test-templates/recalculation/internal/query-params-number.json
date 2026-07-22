@@ -149,11 +149,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
                       },
                       "value": {
                         "ParamCtx": {
@@ -161,10 +166,6 @@
                             "value": "availAmt"
                           }
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -237,18 +238,19 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": true
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

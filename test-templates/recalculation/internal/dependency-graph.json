@@ -99,6 +99,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -106,12 +108,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -176,6 +177,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -183,14 +186,13 @@
                           "roundingMode": "Down"
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "111"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -255,6 +257,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -262,14 +266,13 @@
                           "roundingMode": "Down"
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "Constant": {
                           "value": "222"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -368,18 +371,19 @@
                     "isPageHeading": false,
                     "type": {
                       "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
                         "constraint": {
                           "Sterling": {
                             "roundingMode": "Down",
                             "positiveOnly": true
                           }
                         },
-                        "value": {
-                          "Value": {}
-                        },
-                        "displayWidth": "DEFAULT",
                         "toUpperCase": {
                           "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
                         }
                       }
                     },
@@ -575,6 +579,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -582,12 +588,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -652,6 +657,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -659,12 +666,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -729,6 +735,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -736,12 +744,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -824,6 +831,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -831,12 +840,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -867,6 +875,8 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Number": {
                           "maxWholeDigits": 11,
@@ -874,12 +884,11 @@
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
