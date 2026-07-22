@@ -60,7 +60,7 @@ class LookupController(
         val oFormComponent = aFormComponents.find(_.id.value === withoutCountryAtomFormComponentId.value)
 
         val sSelectionCriteria: Option[List[SimplifiedSelectionCriteria]] = oFormComponent flatMap {
-          case IsText(Text(Lookup(_, sc), _, _, _, _, _, _))         => sc
+          case IsText(Text(Lookup(_, sc), _, _, _, _, _, _, _))      => sc
           case IsOverseasAddress(OverseasAddress(_, _, _, _, _, sc)) => sc
           case _                                                     => None
         } map {
@@ -69,8 +69,8 @@ class LookupController(
         }
 
         val priority: Option[Priority] = oFormComponent flatMap {
-          case IsText(Text(_, _, _, _, _, _, priority)) => priority
-          case _                                        => None
+          case IsText(Text(_, _, _, _, _, _, _, priority)) => priority
+          case _                                           => None
         }
 
         val results = (lookupRegistry.get(register), lookupQuery, sSelectionCriteria) match {

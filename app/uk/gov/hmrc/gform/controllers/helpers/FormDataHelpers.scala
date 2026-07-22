@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.recalculation.Metadata
 import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Date, FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber, TimeFormat }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, Date, FormComponentId, Group, IsChoice, IsRevealingChoice, SectionNumber, Text, TimeFormat }
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.validation.{ PostcodeLookupValidation, TextChecker, TimeFormatter }
 
@@ -226,8 +226,9 @@ object FormDataHelpers {
     value: String,
     formComponentId: FormComponentId,
     formModel: FormModel
-  ): String =
-    formModel.fcLookup.get(formComponentId) match {
+  ): String = {
+    val fcOpt = formModel.fcLookup.get(formComponentId)
+    val result = fcOpt match {
       case Some(formComponent) if formComponent.isNumeric                              => value.replace("£", "")
       case Some(formComponent) if formComponent.isUkSortCode && isValidSortCode(value) => value.replaceAll("[^0-9]", "")
       case Some(formComponent)
@@ -260,6 +261,20 @@ object FormDataHelpers {
         PostcodeLookupValidation.normalisePostcode(value)
       case _ => value
     }
+
+    def handleRemoveSpacesParameter(result: String) =
+      fcOpt
+        .map { fc =>
+          fc.`type` match {
+            case text: Text if text.removeSpaces =>
+              result.replaceAll(" ", "")
+            case _ => result
+          }
+        }
+        .getOrElse(result)
+
+    handleRemoveSpacesParameter(result)
+  }
 
   private def normalizeMonth(
     value: String

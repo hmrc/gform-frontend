@@ -905,7 +905,8 @@ class StructuredFormDataBuilder(
     l: LangADT
   ): String =
     formModelVisibilityOptics.formModel.fcLookup.get(modelComponentId.toFormComponentId) match {
-      case Some(IsText(Text(Lookup(register, _), _, _, _, _, _, _))) => lookupIdFromLabel(LookupLabel(value), register)
+      case Some(IsText(Text(Lookup(register, _), _, _, _, _, _, _, _))) =>
+        lookupIdFromLabel(LookupLabel(value), register)
       case None =>
         throw new StructuredFormDataBuilderException(
           s"Cannot find component ${modelComponentId.toFormComponentId} in form model."

@@ -198,7 +198,7 @@ class ComponentsValidator(
           validIf(
             new EmailFieldIdChecker().runCheck(checkerDependency)
           )
-        case Text(constraint, _, _, _, _, _, _) =>
+        case Text(constraint, _, _, _, _, _, _, _) =>
           validIf(
             new TextChecker().runCheck(checkerDependency)
           )

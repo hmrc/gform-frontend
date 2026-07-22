@@ -76,7 +76,7 @@ object FormComponentSummaryRenderer {
     }
 
     formComponent match {
-      case IsText(Text(_, _, _, _, prefix, suffix, _)) =>
+      case IsText(Text(_, _, _, _, _, prefix, suffix, _)) =>
         getTextSummaryListRows(
           formComponent,
           formTemplateId,
