@@ -31,32 +31,31 @@
         </encoder>
     </appender>
 
-    <logger name="com.google.inject" level="WARN"/>
+    <logger name="com.google.inject" level="INFO"/>
 
-    <logger name="play.core.netty.utils.ServerCookieDecoder" level="WARN"/>
+    <logger name="play.core.netty.utils.ServerCookieDecoder" level="INFO"/>
 
-    <logger name="uk.gov" level="WARN"/>
+    <logger name="uk.gov" level="INFO"/>
 
-    <logger name="application" level="WARN"/>
+    <logger name="application" level="DEBUG"/>
 
-    <logger name="permissions" level="WARN"  additivity="false">
+    <logger name="permissions" level="INFO"  additivity="false">
         <appender-ref ref="PERMISSIONS_LOG_FILE" />
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="javax.management.mbeanserver" level="WARN"/>
+    <logger name="javax.management.mbeanserver" level="INFO"/>
 
     <logger name="org.asynchttpclient.netty.channel.DefaultChannelPool" level="WARN"/>
 
-    <logger name="org.mongodb.driver" level="WARN"/>
-    <logger name="org.apache.pekko" level="WARN"/>
+    <logger name="org.mongodb.driver" level="INFO"/>
+    <logger name="org.apache.pekko" level="INFO"/>
 
-    <logger name="connector" level="WARN">
+    <logger name="connector" level="INFO">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="uk.gov.hmrc.audit" level="ERROR"/>
 
-    <root level="WARN">
+    <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>
