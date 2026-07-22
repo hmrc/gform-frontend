@@ -171,7 +171,7 @@ class FormDataHelpersSuite extends FunSuite {
           purePure("textField") -> VariadicValue.One("1111111111")
         )
       ),
-      "text-field-removespaces.json remove spaces in text field ref"
+      "text-field-removespaces.json remove spaces in text field"
     )
   )
 
