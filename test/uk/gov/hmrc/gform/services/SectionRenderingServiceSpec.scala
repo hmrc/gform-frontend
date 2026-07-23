@@ -24,24 +24,25 @@ import org.mockito.scalatest.IdiomaticMockito
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
-import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
-import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
+import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, NotChecked }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
-import uk.gov.hmrc.gform.upscan.UpscanInitiate
+import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
 import uk.gov.hmrc.gform.validation.ValidationResult
+import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
@@ -87,6 +88,21 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
           cache.variadicFormData,
           cache
         )
+
+    lazy val extraInfo: ExtraInfo = ExtraInfo(
+      singleton = formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
+      maybeAccessCode = Some(accessCode),
+      sectionNumber = SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
+      formModelOptics = formModelOptics,
+      formTemplate = formTemplate,
+      envelopeId = envelopeId,
+      envelope = EnvelopeWithMapping.empty,
+      formMaxAttachmentSizeMB = 10,
+      retrievals = authContext,
+      formLevelHeading = false,
+      specialAttributes = Map.empty,
+      addressRecordLookup = AddressRecordLookup.from(ThirdPartyData.empty)
+    )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
@@ -326,6 +342,42 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     Jsoup
       .parse(generatedHtml.body)
       .title() shouldBe "Some noPII enrolment section title - AAA999 dev test template - GOV.UK"
+  }
+
+  "htmlFor" should "render correct HTML for form component with expected attributes" in new TestFixture {
+
+    val emailVerifierService = EmailVerifierService.digitalContact(EmailTemplateId("email-verification"), None)
+    val emailVerifiedBy = EmailVerifiedBy(mkFormComponent("code", Value).id, emailVerifierService)
+
+    val table = org.scalatest.prop.Tables.Table(
+      ("formComponent", "expected"),
+      (
+        mkFormComponent("phoneNumber", Text(TelephoneNumber, Value)),
+        "input[id=phoneNumber][type=tel][autocomplete=tel]"
+      ),
+      (
+        mkFormComponent("email", Text(Email, Value)),
+        "input[id=email][type=email][autocomplete=email][spellcheck=false]"
+      ),
+      (
+        mkFormComponent("email", Text(emailVerifiedBy, Value)),
+        "input[id=email][type=email][autocomplete=email][spellcheck=false]"
+      )
+    )
+
+    org.scalatest.prop.TableDrivenPropertyChecks.forAll(table) { (formComponent, expected) =>
+      val generatedHtml = testService.htmlFor(
+        RenderUnit.pure(formComponent),
+        formTemplateId,
+        extraInfo,
+        validationResult,
+        NotChecked,
+        UpscanInitiate.empty,
+        Map.empty[FormComponentId, UpscanData]
+      )
+
+      Jsoup.parse(generatedHtml.body).select(expected).first shouldNot be(null)
+    }
   }
 
   /* "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
