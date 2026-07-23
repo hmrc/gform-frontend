@@ -131,8 +131,7 @@ class LanguageSwitchController(
             val form = cache.form
             val formIdData: FormIdData = FormIdData.fromForm(form, maybeAccessCode)
 
-            val mergedFormData = form.formData ++ FormData(newFormData)
-            val updatedFormData = resetAllConfirmationPages(formModelOptics, mergedFormData)
+            val updatedFormData = form.formData ++ FormData(newFormData)
 
             val userData: UserData = UserData(
               formData = updatedFormData,
@@ -151,15 +150,6 @@ class LanguageSwitchController(
             switchToLanguage(language)(request)
           }
       }
-
-  private def resetAllConfirmationPages(
-    formModelOptics: FormModelOptics,
-    formData: FormData
-  ): FormData = {
-    val confirmationPages = formModelOptics.formModelRenderPageOptics.formModel.confirmationPageMap.map(_._2)
-    val modelComponentIds = confirmationPages.map(_.question.id.modelComponentId)
-    formData.copy(fields = formData.fields.filterNot(field => modelComponentIds.contains(field.id)))
-  }
 
   private def switchLookupLabelLanguage(
     register: Register,

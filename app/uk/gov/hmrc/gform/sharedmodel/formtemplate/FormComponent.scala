@@ -181,7 +181,8 @@ object IsText {
 object IsEmail {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
-      case Text(Email, _, _, _, _, _, _, _) => true
+      case Text(Email, _, _, _, _, _, _, _) => true     => true
+      case Text(EmailVerifiedBy(_, _), _, _, _, _, _, _, _) => true
       case _                                => false
     }
 }
