@@ -3387,14 +3387,19 @@ class SectionRenderingService(
           }
 
           val autocomplete = formComponent match {
-            case IsTelephone() => Some("tel")
-            case IsEmail()     => Some("email")
-            case _             => Option.empty[String]
+            case IsTelephone()                                         => Some("tel")
+            case IsEmail()                                             => Some("email")
+            case IsText(Text(_, _, _, _, _, _, _, Some(autocomplete))) => Some(autocomplete.toString)
+            case _                                                     => Option.empty[String]
           }
+
           val spellcheck = formComponent match {
-            case IsEmail() => Some(false)
-            case _         => None
+            case IsTelephone()                              => Some(false)
+            case IsEmail()                                  => Some(false)
+            case IsText(Text(_, _, _, _, _, _, _, Some(_))) => Some(false)
+            case _                                          => None
           }
+
           val input = Input(
             id = formComponent.id.value,
             inputType = inputType,

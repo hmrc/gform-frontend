@@ -77,7 +77,8 @@ case class Text(
   removeSpaces: Boolean = false,
   prefix: Option[SmartString] = None,
   suffix: Option[SmartString] = None,
-  priority: Option[Priority] = None
+  priority: Option[Priority] = None,
+  autoComplete: Option[AutoComplete] = None
 ) extends ComponentType
 
 sealed trait UpperCaseBoolean
@@ -89,6 +90,31 @@ object UpperCaseBoolean {
   implicit val format: OFormat[UpperCaseBoolean] = derived.oformat()
 }
 
+sealed trait AutoComplete {
+  import AutoComplete._
+
+  override def toString: String = this match {
+    case GivenName    => givenName
+    case FamilyName   => familyName
+    case Organization => organization
+  }
+}
+
+object AutoComplete {
+  case object GivenName extends AutoComplete
+  case object FamilyName extends AutoComplete
+  case object Organization extends AutoComplete
+
+  val givenName = "given-name"
+  val familyName = "family-name"
+  val organization = "organization"
+
+  implicit val format: Format[AutoComplete] = ADTFormat.formatEnumeration(
+    givenName    -> GivenName,
+    familyName   -> FamilyName,
+    organization -> Organization
+  )
+}
 case class TextArea(
   constraint: TextConstraint,
   value: Expr,
