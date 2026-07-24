@@ -196,18 +196,19 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": true
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -288,20 +289,21 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
                       },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
                       "value": {
                         "FormCtx": {
                           "formComponentId": "declaration"
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -361,18 +363,19 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

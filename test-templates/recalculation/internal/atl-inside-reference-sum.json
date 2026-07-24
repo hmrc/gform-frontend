@@ -139,18 +139,19 @@
                     "isPageHeading": true,
                     "type": {
                       "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
                         "constraint": {
                           "Sterling": {
                             "roundingMode": "Down",
                             "positiveOnly": false
                           }
                         },
-                        "value": {
-                          "Value": {}
-                        },
-                        "displayWidth": "DEFAULT",
                         "toUpperCase": {
                           "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
                         }
                       }
                     },

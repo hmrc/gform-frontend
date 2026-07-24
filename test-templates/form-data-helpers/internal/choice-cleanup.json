@@ -55,7 +55,8 @@
       }
     },
     "displayWidth": "M",
-    "keyDisplayWidth": "S"
+    "keyDisplayWidth": "S",
+    "includePrintPageButton": false
   },
   "formKind": {
     "Classic": {
@@ -218,18 +219,19 @@
                               "isPageHeading": false,
                               "type": {
                                 "Text": {
+                                  "removeSpaces": false,
+                                  "displayWidth": "DEFAULT",
                                   "constraint": {
                                     "TextWithRestrictions": {
                                       "min": 0,
                                       "max": 1000
                                     }
                                   },
-                                  "value": {
-                                    "Value": {}
-                                  },
-                                  "displayWidth": "DEFAULT",
                                   "toUpperCase": {
                                     "IsNotUpperCase": {}
+                                  },
+                                  "value": {
+                                    "Value": {}
                                   }
                                 }
                               },
@@ -279,18 +281,19 @@
                               "isPageHeading": false,
                               "type": {
                                 "Text": {
+                                  "removeSpaces": false,
+                                  "displayWidth": "DEFAULT",
                                   "constraint": {
                                     "TextWithRestrictions": {
                                       "min": 0,
                                       "max": 1000
                                     }
                                   },
-                                  "value": {
-                                    "Value": {}
-                                  },
-                                  "displayWidth": "DEFAULT",
                                   "toUpperCase": {
                                     "IsNotUpperCase": {}
+                                  },
+                                  "value": {
+                                    "Value": {}
                                   }
                                 }
                               },
@@ -313,6 +316,9 @@
         }
       ]
     }
+  },
+  "authConfig": {
+    "Anonymous": {}
   },
   "originalId": "choice-cleanup",
   "downloadPreviousSubmissionPdf": true,
@@ -383,9 +389,5 @@
       }
     ]
   },
-  "parentFormSubmissionRefs": [],
-  "authConfig": {
-    "Anonymous": {}
-  },
-  "serviceNavigationComponent": false
+  "parentFormSubmissionRefs": []
 }

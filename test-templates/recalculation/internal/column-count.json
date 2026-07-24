@@ -130,6 +130,8 @@
                     "isPageHeading": true,
                     "type": {
                       "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
                         "constraint": {
                           "Lookup": {
                             "register": {
@@ -137,12 +139,11 @@
                             }
                           }
                         },
-                        "value": {
-                          "Value": {}
-                        },
-                        "displayWidth": "DEFAULT",
                         "toUpperCase": {
                           "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
                         }
                       }
                     },

@@ -365,11 +365,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
                       },
                       "value": {
                         "FormTemplateCtx": {
@@ -377,10 +382,6 @@
                             "SubmissionReference": {}
                           }
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },

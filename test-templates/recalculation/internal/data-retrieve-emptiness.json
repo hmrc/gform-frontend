@@ -210,15 +210,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "CompanyRegistrationNumber": {}
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -774,15 +775,16 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TelephoneNumber": {}
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

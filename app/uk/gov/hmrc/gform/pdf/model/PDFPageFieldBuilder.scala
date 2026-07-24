@@ -49,7 +49,7 @@ object PDFPageFieldBuilder {
   ): List[PageField] = {
     import pdfFunctions._
     formComponent match {
-      case IsText(Text(_, _, _, _, prefix, suffix, _)) =>
+      case IsText(Text(_, _, _, _, _, prefix, suffix, _)) =>
         List(
           SimpleField(
             getFormComponentLabel(formComponent),

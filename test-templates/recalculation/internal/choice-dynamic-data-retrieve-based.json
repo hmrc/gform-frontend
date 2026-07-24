@@ -134,15 +134,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "NINO": {}
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

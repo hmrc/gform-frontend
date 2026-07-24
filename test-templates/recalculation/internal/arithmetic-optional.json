@@ -99,18 +99,19 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -141,18 +142,19 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -201,11 +203,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
                       },
                       "value": {
                         "Multiply": {
@@ -220,10 +227,6 @@
                             }
                           }
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -254,11 +257,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
                       },
                       "value": {
                         "Divide": {
@@ -273,10 +281,6 @@
                             }
                           }
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -307,11 +311,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
                       },
                       "value": {
                         "Add": {
@@ -326,10 +335,6 @@
                             }
                           }
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },
@@ -360,11 +365,16 @@
                   "isPageHeading": false,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "Sterling": {
                           "roundingMode": "Down",
                           "positiveOnly": false
                         }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
                       },
                       "value": {
                         "Subtraction": {
@@ -379,10 +389,6 @@
                             }
                           }
                         }
-                      },
-                      "displayWidth": "DEFAULT",
-                      "toUpperCase": {
-                        "IsNotUpperCase": {}
                       }
                     }
                   },

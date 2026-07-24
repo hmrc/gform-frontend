@@ -242,7 +242,7 @@ class TestOnlyErrorMessageController(
   ): List[FieldErrorReport] = {
     val res = formComponents
       .map {
-        case (fc @ IsText(Text(TimeFormat, _, _, _, _, _, _)), sectionId, seq) =>
+        case (fc @ IsText(Text(TimeFormat, _, _, _, _, _, _, _)), sectionId, seq) =>
           (
             validateWithDataProvider(fc, cache, formModelOptics, Some(new TextWithTimeConstraintErrorProvider())),
             sectionId,

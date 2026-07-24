@@ -416,18 +416,19 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -540,18 +541,19 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "TextWithRestrictions": {
                           "min": 0,
                           "max": 1000
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },

@@ -96,7 +96,7 @@ class FormComponentUpdater(
 
   private def expandText(text: Text): Text = {
     val scText = text match {
-      case txt @ Text(constraint @ Lookup(_, Some(scs)), _, _, _, _, _, _) =>
+      case txt @ Text(constraint @ Lookup(_, Some(scs)), _, _, _, _, _, _, _) =>
         val updatedSelectionCriteria = scs.map {
           case sc @ SelectionCriteria(_, SelectionCriteriaExpr(expr)) =>
             sc.copy(value = SelectionCriteriaExpr(expandFormCtx(expr)))

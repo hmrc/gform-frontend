@@ -55,7 +55,8 @@
       }
     },
     "displayWidth": "M",
-    "keyDisplayWidth": "S"
+    "keyDisplayWidth": "S",
+    "includePrintPageButton": false
   },
   "formKind": {
     "Classic": {
@@ -98,18 +99,19 @@
                   "isPageHeading": true,
                   "type": {
                     "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
                       "constraint": {
                         "WholeSterling": {
                           "positiveOnly": true,
                           "roundingMode": "Down"
                         }
                       },
-                      "value": {
-                        "Value": {}
-                      },
-                      "displayWidth": "DEFAULT",
                       "toUpperCase": {
                         "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
                       }
                     }
                   },
@@ -122,6 +124,9 @@
         }
       ]
     }
+  },
+  "authConfig": {
+    "Anonymous": {}
   },
   "originalId": "text-field-whole-sterling",
   "downloadPreviousSubmissionPdf": true,
@@ -192,9 +197,5 @@
       }
     ]
   },
-  "parentFormSubmissionRefs": [],
-  "authConfig": {
-    "Anonymous": {}
-  },
-  "serviceNavigationComponent": false
+  "parentFormSubmissionRefs": []
 }

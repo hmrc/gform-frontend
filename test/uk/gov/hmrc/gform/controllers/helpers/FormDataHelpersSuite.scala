@@ -160,6 +160,18 @@ class FormDataHelpersSuite extends FunSuite {
         )
       ),
       "choice-cleanup.json remove choice(Choice, RevealingChoice) fields from VariadicFormData, if missing in request"
+    ),
+    (
+      MongoUserData(),
+      Option.empty[SectionNumber],
+      Map("textField" -> Seq("11 11 11 11 11")),
+      RequestRelatedData.empty,
+      VariadicFormData(
+        mutable.Map(
+          purePure("textField") -> VariadicValue.One("1111111111")
+        )
+      ),
+      "text-field-removespaces.json remove spaces in text field"
     )
   )
 

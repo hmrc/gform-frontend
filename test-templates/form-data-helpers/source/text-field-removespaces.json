@@ -1,0 +1,33 @@
+{
+  "_id": "text-field-removespaces",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "remove spaces",
+      "fields": [
+        {
+          "id": "textField",
+          "type": "text",
+          "format": "text",
+          "removeSpaces": true
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

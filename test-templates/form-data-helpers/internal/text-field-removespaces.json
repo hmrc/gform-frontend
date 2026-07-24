@@ -68,7 +68,7 @@
                 "SmartStringBase": {
                   "internal": {
                     "localised": {
-                      "en": "SA UTR"
+                      "en": "remove spaces"
                     },
                     "interpolations": []
                   }
@@ -87,22 +87,25 @@
                     "SmartStringBase": {
                       "internal": {
                         "localised": {
-                          "en": "SA UTR"
+                          "en": "remove spaces"
                         },
                         "interpolations": []
                       }
                     }
                   },
                   "validators": [],
-                  "id": "utrField",
+                  "id": "textField",
                   "submissible": true,
                   "isPageHeading": true,
                   "type": {
                     "Text": {
-                      "removeSpaces": false,
+                      "removeSpaces": true,
                       "displayWidth": "DEFAULT",
                       "constraint": {
-                        "SaUTR": {}
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
                       },
                       "toUpperCase": {
                         "IsNotUpperCase": {}
@@ -125,7 +128,7 @@
   "authConfig": {
     "Anonymous": {}
   },
-  "originalId": "text-field-sautr",
+  "originalId": "text-field-removespaces",
   "downloadPreviousSubmissionPdf": true,
   "displayHMRCLogo": false,
   "destinations": {
@@ -172,7 +175,7 @@
       }
     }
   },
-  "_id": "text-field-sautr",
+  "_id": "text-field-removespaces",
   "formCategory": "default",
   "displayAccountHeader": false,
   "allowedFileTypes": {

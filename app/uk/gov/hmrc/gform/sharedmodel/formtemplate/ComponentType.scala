@@ -74,6 +74,7 @@ case class Text(
   value: Expr,
   displayWidth: DisplayWidth = DisplayWidth.DEFAULT,
   toUpperCase: UpperCaseBoolean = IsNotUpperCase,
+  removeSpaces: Boolean = false,
   prefix: Option[SmartString] = None,
   suffix: Option[SmartString] = None,
   priority: Option[Priority] = None
