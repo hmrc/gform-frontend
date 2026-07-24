@@ -2444,6 +2444,24 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
         "pageA: 1, 2, 101"
       ),
       "sum-with-date-after.json secret not found"
+    ),
+    (
+      MongoUserData(
+        "visibilityOptions" -> Many(List("showAll")),
+        "startDate-day"     -> One("letter")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "visibilityOptions" -> OptionResult(List("showAll")),
+        "startDate-day"     -> StringResult("letter"),
+        "startDate-month"   -> Empty,
+        "startDate-year"    -> Empty
+      ),
+      List.empty[String],
+      "date-invalid-day.json Generated"
     )
   )
 }
