@@ -1,0 +1,51 @@
+{
+  "_id": "date-invalid-day",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "Visibility options",
+      "fields": [
+        {
+          "id": "visibilityOptions",
+          "type": "choice",
+          "choices": [
+            {
+              "en": "Hide date",
+              "value": "hideDate"
+            },
+            {
+              "en": "Show all",
+              "value": "showAll"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Start date",
+      "includeIf": "${visibilityOptions contains 'showAll'}",
+      "fields": [
+        {
+          "id": "startDate",
+          "type": "date"
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

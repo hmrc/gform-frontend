@@ -108,7 +108,7 @@ class MongoUserData(
             if (variadicValue.isEmpty) {
               EvaluationStatus.Empty
             } else {
-              EvaluationStatus.NumberResult(BigDecimal(variadicValue.toOne.value.toInt))
+              BigDecimalUtil.toBigDecimalOrString(variadicValue.toOne.value)
             }
           case _ => EvaluationStatus.StringResult(variadicValue.toOne.value)
         }
