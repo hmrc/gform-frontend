@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.AutoComplete.{ FamilyName, GivenName, Organization }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, NotChecked }
@@ -344,7 +345,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       .title() shouldBe "Some noPII enrolment section title - AAA999 dev test template - GOV.UK"
   }
 
-  "htmlFor" should "render correct HTML for form component with expected attributes" in new TestFixture {
+  "htmlFor" should "render correct HTML for Text component with expected attributes" in new TestFixture {
 
     val emailVerifierService = EmailVerifierService.digitalContact(EmailTemplateId("email-verification"), None)
     val emailVerifiedBy = EmailVerifiedBy(mkFormComponent("code", Value).id, emailVerifierService)
@@ -362,6 +363,18 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       (
         mkFormComponent("email", Text(emailVerifiedBy, Value)),
         "input[id=email][type=email][autocomplete=email][spellcheck=false]"
+      ),
+      (
+        mkFormComponent("forename", Text(TextConstraint.default, Value, autoComplete = Some(GivenName))),
+        "input[id=forename][type=text][autocomplete=given-name][spellcheck=false]"
+      ),
+      (
+        mkFormComponent("surname", Text(TextConstraint.default, Value, autoComplete = Some(FamilyName))),
+        "input[id=surname][type=text][autocomplete=family-name][spellcheck=false]"
+      ),
+      (
+        mkFormComponent("org", Text(TextConstraint.default, Value, autoComplete = Some(Organization))),
+        "input[id=org][type=text][autocomplete=organization][spellcheck=false]"
       )
     )
 
