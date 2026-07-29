@@ -468,6 +468,15 @@ class GformModule(
       configModule.environment
     )
 
+  val deleteFormController: DeleteFormController =
+    new DeleteFormController(
+      playBuiltInsModule.i18nSupport,
+      configModule.frontendAppConfig,
+      controllersModule.authenticatedRequestActions,
+      fastForwardService,
+      controllersModule.messagesControllerComponents
+    )
+
   private val allowedHosts = configModule.typesafeConfig.getStringList("redirectAllowedHosts").asScala.toSet
   private val redirectUrlPolicy = AbsoluteWithHostnameFromAllowlist(allowedHosts)
   val redirectController: RedirectController =

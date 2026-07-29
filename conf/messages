@@ -719,3 +719,9 @@ uploadedFile.limitExceed.p2.li1=remove larger files
 uploadedFile.limitExceed.p2.li2=reduce their size
 uploadedFile.limitExceed.p2.li3=upload smaller files in their place
 uploadedFile.limitExceed.p3=Once you have uploaded files with a combined size of less than {0}MB, you can submit the form.
+
+#confirm delete saved form
+confirm.delete.title=Are you sure you want to delete this form?
+confirm.delete.body=You will lose all the answers you have entered. You cannot undo this.
+confirm.delete.button.confirm=Delete this form
+confirm.delete.button.cancel=Cancel
