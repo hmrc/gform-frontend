@@ -16,14 +16,18 @@
 
 @import play.api.mvc.Call
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.gform.routes.FormController
+@import uk.gov.hmrc.gform.gform.routes.DeleteFormController
 @import uk.gov.hmrc.gform.views.hardcoded.SaveAcknowledgement
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga
 
 @(
     saveAcknowledgement: SaveAcknowledgement,
     call: Call,
     frontendAppConfig: FrontendAppConfig,
-    maybeAccessCode: Option[AccessCode]
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: Option[SectionNumber],
+    sectionTitle4Ga: Option[SectionTitle4Ga]
 )(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -46,7 +50,7 @@
       <a href="@call" class="govuk-link">@messages("save4later.continue", saveAcknowledgement.formCat)</a>
    </li>
    @if(!saveAcknowledgement.isBlocked){<li>
-      <a href="@FormController.deleteOnExit(saveAcknowledgement.formTemplate._id)" class="govuk-link">
+      <a href="@DeleteFormController.deleteOnExit(saveAcknowledgement.formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga)" class="govuk-link">
         @messages("save4later.delete")
       </a>
    </li>}

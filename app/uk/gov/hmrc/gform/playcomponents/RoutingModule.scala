@@ -66,6 +66,7 @@ class RoutingModule(
     gformModule.compositeAuthController,
     gformModule.newFormController,
     gformModule.formController,
+    gformModule.deleteFormController,
     gformModule.addToListController,
     gformModule.summaryController,
     gformModule.declarationController,

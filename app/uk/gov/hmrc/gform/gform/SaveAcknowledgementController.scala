@@ -165,7 +165,16 @@ class SaveAcknowledgementController(
           }
           val saveAcknowledgement =
             new SaveAcknowledgement(formTemplate, envelopeExpiryDate, cache.form.status)
-          Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, accessCode))
+          Ok(
+            save_acknowledgement(
+              saveAcknowledgement,
+              call,
+              frontendAppConfig,
+              accessCode,
+              sectionNumber,
+              sectionTitle4Ga
+            )
+          )
         }
 
         val formTemplate = cache.formTemplate
@@ -260,7 +269,16 @@ class SaveAcknowledgementController(
                           cache.form.envelopeExpiryDate,
                           cache.form.status
                         )
-                      Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig, maybeAccessCode))
+                      Ok(
+                        save_acknowledgement(
+                          saveAcknowledgement,
+                          call,
+                          frontendAppConfig,
+                          maybeAccessCode,
+                          Option.empty[SectionNumber],
+                          Option.empty[SectionTitle4Ga]
+                        )
+                      )
                         .pure[Future]
                   }
               }
