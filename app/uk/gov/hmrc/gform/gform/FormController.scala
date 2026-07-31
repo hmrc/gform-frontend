@@ -71,8 +71,6 @@ class FormController(
 
   import i18nSupport._
 
-  private val noAccessCode = Option.empty[AccessCode]
-
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
 
   def keepAlive() = Action(_ => Ok)
@@ -321,12 +319,6 @@ class FormController(
                 }
             }
           }
-    }
-
-  def deleteOnExit(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm[SectionSelectorType.Normal](formTemplateId, noAccessCode, OperationWithForm.DeleteForm) {
-      implicit request => l => cache => sse => formModelOptics =>
-        fastForwardService.deleteForm(formTemplateId, cache, QueryParams.empty)
     }
 
   def formSection(

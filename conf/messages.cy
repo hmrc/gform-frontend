@@ -697,3 +697,9 @@ uploadedFile.limitExceed.p2.li1=tynnu’r ffeiliau sy’n fwy o faint
 uploadedFile.limitExceed.p2.li2=lleihau maint y ffeiliau hyn
 uploadedFile.limitExceed.p2.li3=uwchlwytho’r ffeiliau sy’n llai o faint
 uploadedFile.limitExceed.p3=Unwaith i chi uwchlwytho ffeiliau sydd â maint cyfunol o {0}MB neu lai, gallwch gyflwyno’r ffurflen.
+
+#confirm delete saved form
+confirm.delete.title=Ydych chi’n siŵr eich bod chi eisiau dileu’r ffurflen hon?
+confirm.delete.body=Byddwch yn colli’r holl atebion rydych chi wedi’u nodi. Ni allwch ddadwneud hyn.
+confirm.delete.button.confirm=Dileu’r ffurflen hon
+confirm.delete.button.cancel=Canslo
