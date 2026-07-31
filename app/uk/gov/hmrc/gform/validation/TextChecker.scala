@@ -99,6 +99,7 @@ object TextChecker {
   val genericErrorRequired                                   = "generic.error.required"
   val genericErrorParentSubmissionRefSameAsFormSubmissionRef = "generic.error.parentSubmissionRefSameAsFormSubmissionRef"
   val genericErrorExactNumbers                               = "generic.error.exactNumbers"
+  val genericErrorSortCodeRequired                           = "generic.error.sortCode.required"
   val genericErrorSortCode                                   = "generic.error.sortCode"
   val genericErrorSubmissionRef                              = "generic.error.submissionRef"
   val genericErrorMaxWhole                                   = "generic.error.maxWhole"
@@ -364,7 +365,7 @@ object TextChecker {
     )
 
     def ukSortCodeFormatCheck(): CheckProgram[Unit] = conditionalMandatoryCheck(
-      mandatoryFailure = validationFailure(fieldValue, genericErrorSortCode, None),
+      mandatoryFailure = validationFailure(fieldValue, genericErrorSortCodeRequired, None),
       nonEmptyCheck = validateSortCodeFormat(fieldValue, inputText)
     )
 
