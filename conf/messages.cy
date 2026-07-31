@@ -148,6 +148,7 @@ generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er eng
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
 generic.governmentId.not.exist=Nid yw’r {0} a nodoch yn bodoli
+generic.error.sortCode.required=Nodwch god didoli
 generic.error.sortCode=Nodwch god didoli dilys fel 123456
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 generic.error.lookup=Does dim cofnod yn cyfateb i "{1}" - dewiswch werth o’r rhestr.
