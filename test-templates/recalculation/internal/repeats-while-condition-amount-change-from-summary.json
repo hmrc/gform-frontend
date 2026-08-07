@@ -1,0 +1,483 @@
+{
+  "formName": {
+    "en": "Gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers",
+            "cy": "Gwiriwch eich atebion"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct.",
+            "cy": "Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "##Now send your form\n\nYou need to submit your form on the next screen.\n\nBefore you do this you can [print or save a PDF copy of your answers (opens in a new window or tab)]({0}).",
+            "cy": "##Nawr anfonwch eich ffurflen\n\nMae angen i chi gyflwyno’ch ffurflen ar y sgrin nesaf.\n\nCyn i chi wneud hyn gallwch [argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)]({1})."
+          },
+          "interpolations": [
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            },
+            {
+              "LinkCtx": {
+                "link": {
+                  "PrintSummaryPdf": {}
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S",
+    "includePrintPageButton": false
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Amount"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Amount $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": true,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Amount $n"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "amount",
+                    "submissible": true,
+                    "isPageHeading": true,
+                    "type": {
+                      "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": false
+                          }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "{0}"
+                  },
+                  "interpolations": [
+                    {
+                      "FormCtx": {
+                        "formComponentId": "amount"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another value?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "addOther",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n - {0}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "amount"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "repeatsWhileError": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "You still owe: {0}"
+                  },
+                  "interpolations": [
+                    {
+                      "Subtraction": {
+                        "field1": {
+                          "Sum": {
+                            "field1": {
+                              "FormCtx": {
+                                "formComponentId": "amount"
+                              }
+                            }
+                          }
+                        },
+                        "field2": {
+                          "Constant": {
+                            "value": "10000"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "repeatsWhile": {
+              "booleanExpr": {
+                "GreaterThan": {
+                  "left": {
+                    "Sum": {
+                      "field1": {
+                        "FormCtx": {
+                          "formComponentId": "amount"
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "Constant": {
+                      "value": "10000"
+                    }
+                  }
+                }
+              }
+            },
+            "fields": [
+              {
+                "mandatory": {
+                  "booleanExpr": {
+                    "IsTrue": {}
+                  }
+                },
+                "notPII": false,
+                "derived": false,
+                "validators": [],
+                "id": "totalAmountOwe",
+                "submissible": false,
+                "isPageHeading": false,
+                "type": {
+                  "InformationMessage": {
+                    "infoType": {
+                      "NoFormat": {}
+                    },
+                    "infoText": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "$n - You owe: {0}"
+                          },
+                          "interpolations": [
+                            {
+                              "Sum": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "amount"
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "includeIf": {
+                  "booleanExpr": {
+                    "GreaterThan": {
+                      "left": {
+                        "Sum": {
+                          "field1": {
+                            "FormCtx": {
+                              "formComponentId": "amount"
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "Constant": {
+                          "value": "10000"
+                        }
+                      }
+                    }
+                  }
+                },
+                "label": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": ""
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "onlyShowOnSummary": false,
+                "editable": false
+              }
+            ],
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Amounts you have added {0}"
+                  },
+                  "interpolations": [
+                    {
+                      "Sum": {
+                        "field1": {
+                          "FormCtx": {
+                            "formComponentId": "amount"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Amount"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "repeats-while-condition-amount-change-from-summary",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Confirmation page "
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "repeats-while-condition-amount-change-from-summary",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

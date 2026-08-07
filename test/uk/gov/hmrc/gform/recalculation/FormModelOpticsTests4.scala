@@ -2462,6 +2462,37 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
       ),
       List.empty[String],
       "date-invalid-day.json Generated"
+    ),
+    (
+      MongoUserData(
+        "1_addOther" -> Many(List("0")),
+        "1_amount"   -> One("11000"),
+        "2_addOther" -> Many(List("1")),
+        "2_amount"   -> One("-1000")
+      ),
+      List(
+        "ap0.1.0",
+        "ar0.1",
+        "ap0.2.0",
+        "ar0.2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(),
+      List(
+        "Amounts you have added £11,000.00",
+        "£11,000.00",
+        "You still owe: £1,000.00",
+        "1 - £11,000.00",
+        "<p>1 - £11,000.00</p>",
+        "1 - You owe: £11,000.00",
+        "<p>1 - You owe: £11,000.00</p>",
+        "Amounts you have added £10,000.00",
+        "-£1,000.00",
+        "You still owe: £0.00",
+        "2 - -£1,000.00",
+        "<p>2 - -£1,000.00</p>"
+      ),
+      "repeats-while-condition-amount-change-from-summary.json Generated"
     )
   )
 }

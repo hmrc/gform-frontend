@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.syntax.all._
 import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -229,6 +230,13 @@ class FormModelBuilder(
                 hideCheckYourAnswersWithNumber(checkYourAnswers, freeCalculator)
               }
 
+              val visibleFields =
+                hideFormComponents(iteration.repeater.repeater.fields.toList.flatMap(_.toList), freeCalculator)
+
+              val repeater = iteration.repeater.copy(
+                repeater = iteration.repeater.repeater.copy(fields = NonEmptyList.fromList(visibleFields))
+              )
+
               NonEmptyList
                 .fromList(singletons)
                 .map { singletonsNel =>
@@ -236,7 +244,8 @@ class FormModelBuilder(
                     defaultPage = defaultPage,
                     singletons = singletonsNel,
                     checkYourAnswers = checkYourAnswers,
-                    declarationSection = declarationSection
+                    declarationSection = declarationSection,
+                    repeater = repeater
                   )
                 }
             }
@@ -315,7 +324,7 @@ class FormModelBuilder(
     )
   }
 
-  private def mkRepeater(s: Section.AddToList, index: Int): Repeater = {
+  private def mkRepeater(s: Section.AddToList, index: Int, isLast: Boolean): Repeater = {
     val expand: SmartString => SmartString = _.expand(index, s.allIds, s.allDataRetriveIds)
     val fc = new FormComponentUpdater(s.addAnotherQuestion, index, s.allIds, s.allDataRetriveIds).updatedWithId
 
@@ -336,6 +345,16 @@ class FormModelBuilder(
         case None          => None
       }
 
+    def expandOnlyLast(maybeIncludeIf: Option[IncludeIf]): Option[IncludeIf] =
+      if (isLast)
+        maybeIncludeIf.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds)))
+      else {
+        Option.empty[IncludeIf]
+      }
+
+    val repeatsUntil: Option[IncludeIf] = expandOnlyLast(s.repeatsUntil)
+    val repeatsWhile: Option[IncludeIf] = expandOnlyLast(s.repeatsWhile)
+
     Repeater(
       expand(s.title),
       s.caption.map(expand),
@@ -349,8 +368,9 @@ class FormModelBuilder(
       index,
       s.instruction,
       expandedFields,
-      s.repeatsUntil.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
-      s.repeatsWhile.map(c => IncludeIf(BooleanExprUpdater(c.booleanExpr, index, s.allIds, s.allDataRetriveIds))),
+      repeatsUntil,
+      repeatsWhile,
+      s.repeatsWhileError.map(expand),
       expandAtlDescriptionTotal(s.descriptionTotal),
       s.displayWidth,
       s.removePageContent.map(expand)
@@ -509,7 +529,7 @@ class FormModelBuilder(
               SingletonWithNumber(Singleton.expand(pageUpdated, freeCalculator), sectionNumber)
             }
 
-            val repeater: Repeater = mkRepeater(s, iterationIndex)
+            val repeater: Repeater = mkRepeater(s, iterationIndex, iterationIndex === numberOfIterations + 1)
 
             Bracket.AddToListIteration(
               defaultPage = defaultPage,

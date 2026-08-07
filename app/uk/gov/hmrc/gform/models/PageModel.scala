@@ -135,6 +135,7 @@ case class Repeater(
   fields: Option[NonEmptyList[FormComponent]],
   repeatsUntil: Option[IncludeIf],
   repeatsWhile: Option[IncludeIf],
+  expandedRepeatsWhileError: Option[SmartString],
   expandedDescriptionTotal: Option[AtlDescription.KeyValueBased],
   displayWidth: Option[LayoutDisplayWidth],
   expandedRemovePageContent: Option[SmartString]

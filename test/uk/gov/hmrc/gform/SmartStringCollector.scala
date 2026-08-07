@@ -67,6 +67,7 @@ object SmartStringCollector {
       Some(repeater.expandedSummaryDescription -> false),
       Some(repeater.expandedShortName          -> false),
       Some(repeater.expandedSummaryName        -> false),
+      repeater.expandedRepeatsWhileError.map(_ -> false),
       repeater.expandedRemovePageContent.map(_ -> false)
     ).flatten ++
       smartStringForAtlDescription(repeater.expandedDescription) ++
