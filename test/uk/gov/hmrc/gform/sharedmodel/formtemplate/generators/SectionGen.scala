@@ -180,6 +180,7 @@ trait SectionGen {
         pages,
         repeatsUntil,
         repeatsWhile,
+        None,
         repeaterContinueLabel,
         formComponent.copy(`type` = choice),
         instruction,

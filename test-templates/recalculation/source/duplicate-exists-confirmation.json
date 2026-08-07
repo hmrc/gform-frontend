@@ -17,8 +17,9 @@
       "summaryDescription": "People",
       "summaryName": "People",
       "description": "$n: <strong>${personName}</strong> - nino: ${personNino}",
-      "repeatsWhile": "${addAnother.count < activeOfficers}",
       "repeatsUntil": "${addAnother.count >= activeOfficers}",
+      "repeatsWhile": "${addAnother.count < activeOfficers}",
+      "repeatsWhileError": "You needs to add more officers",
       "addAnotherQuestion": {
         "id": "addAnother",
         "type": "choice",

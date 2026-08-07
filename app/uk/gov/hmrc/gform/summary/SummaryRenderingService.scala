@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
-import uk.gov.hmrc.gform.validation.{ ValidationResult, ValidationService }
+import uk.gov.hmrc.gform.validation.{ ComponentField, HtmlFieldId, ValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.html.summary.submissionReceipt
@@ -595,6 +595,14 @@ object SummaryRenderingService {
       val repeater = lastRepeaterWithNumber.repeater
       val sectionNumber = lastRepeaterWithNumber.sectionNumber
 
+      val repeaterError: Option[HtmlFieldId] = validationResult.lookup.get(repeater.addAnotherQuestion.id) match {
+        case Some(cf @ ComponentField(formComponent, data)) if cf.isNotOk =>
+          data.toList.headOption.map(_._1)
+        case _ => Option.empty[HtmlFieldId]
+      }
+
+      val repeaterHasError: Boolean = repeaterError.isDefined
+
       val sectionTitle4Ga: SectionTitle4Ga = sectionTitle4GaFactory(repeater, sectionNumber)
 
       val ff = if (maybeCoordinates.isEmpty) {
@@ -614,7 +622,11 @@ object SummaryRenderingService {
 
       val addToListSummaryItems: List[Html] = addToListItemSummaries.map(ss => markDownParser(ss)).toList
 
-      val addToListSummary = ordered_list(addToListSummaryItems)
+      val addToListSummary =
+        ordered_list(
+          addToListSummaryItems,
+          repeaterError.fold(Map.empty[String, String])(htmlFieldId => Map("id" -> htmlFieldId.toHtmlId))
+        )
 
       val label = repeater.title.value()
 
@@ -622,7 +634,8 @@ object SummaryRenderingService {
         label, // This is weird to use, as it can have $n, but this list in shown only once. Should we have other property here?
         addToListSummary,
         Some(label),
-        SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth),
+        SummaryListRowHelper.getKeyDisplayWidthClass(keyDisplayWidth) + (if (repeaterHasError) " summary--error"
+                                                                         else ""),
         "",
         "",
         (

@@ -17,10 +17,12 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
+import cats.data.Validated.Invalid
 import cats.data._
 import cats.implicits._
 import org.typelevel.ci.CIString
 import play.api.i18n.Messages
+import scala.collection.mutable.LinkedHashSet
 import uk.gov.hmrc.gform.controllers.CacheData
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.objectStore._
@@ -173,7 +175,27 @@ class ValidationService(
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher,
     validateValidators: Boolean
   )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator): ValidatedType[Unit] = {
-    val res = pageModel.allFormComponents
+    val repeatsWhileRes =
+      pageModel.fold(_ => ValidationServiceHelper.validationSuccess)(_ => ValidationServiceHelper.validationSuccess) {
+        repeater =>
+          repeater.repeatsWhile.fold(ValidationServiceHelper.validationSuccess) { repeatsWhile =>
+            if (formModelVisibilityOptics.evalIncludeIfExpr(repeatsWhile, None)) {
+              // This serve double purpose:
+              // - user will be to stopped at repeater page
+              // - error will be displayed on summary page (when user uses multiple tabs)
+              Invalid(
+                Map(
+                  repeater.addAnotherQuestion.modelComponentId -> LinkedHashSet(
+                    repeater.expandedRepeatsWhileError.map(_.value()).getOrElse("")
+                  )
+                )
+              )
+            } else {
+              ValidationServiceHelper.validationSuccess
+            }
+          }
+      }
+    val formComponentsRes = pageModel.allFormComponents
       .filterNot(_.onlyShowOnSummary)
       .map(fv =>
         validateFormComponent(
@@ -185,7 +207,7 @@ class ValidationService(
           validateValidators
         )
       )
-    Monoid[ValidatedType[Unit]].combineAll(res)
+    Monoid[ValidatedType[Unit]].combineAll(repeatsWhileRes :: formComponentsRes)
   }
 
   def validateAllSections(
@@ -197,7 +219,7 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): ValidationResult = {
-    val res = formModelVisibilityOptics.formModel.allFormComponents
+    val formComponentsRes = formModelVisibilityOptics.formModel.allFormComponents
       .filterNot(_.onlyShowOnSummary)
       .map(fv =>
         validateFormComponent(
@@ -210,7 +232,7 @@ class ValidationService(
         )
       )
     val validatedType: ValidatedType[ValidatorsResult] =
-      Monoid[ValidatedType[Unit]].combineAll(res).map(_ => ValidatorsResult.empty)
+      Monoid[ValidatedType[Unit]].combineAll(formComponentsRes).map(_ => ValidatorsResult.empty)
     val allFields = formModelVisibilityOptics.allFormComponents
     ValidationUtil.evaluateValidationResult(allFields, validatedType, formModelVisibilityOptics, envelope)
   }

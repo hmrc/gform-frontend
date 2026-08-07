@@ -89,31 +89,6 @@
                 }
               }
             },
-            "description": {
-              "SmartStringBased": {
-                "value": {
-                  "SmartStringBase": {
-                    "internal": {
-                      "localised": {
-                        "en": "$n: <strong>{0}</strong> - nino: {1}"
-                      },
-                      "interpolations": [
-                        {
-                          "FormCtx": {
-                            "formComponentId": "personName"
-                          }
-                        },
-                        {
-                          "FormCtx": {
-                            "formComponentId": "personNino"
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            },
             "pages": [
               {
                 "title": {
@@ -582,6 +557,41 @@
               },
               "onlyShowOnSummary": false,
               "editable": true
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "$n: <strong>{0}</strong> - nino: {1}"
+                      },
+                      "interpolations": [
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personName"
+                          }
+                        },
+                        {
+                          "FormCtx": {
+                            "formComponentId": "personNino"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "repeatsWhileError": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "You needs to add more officers"
+                  },
+                  "interpolations": []
+                }
+              }
             },
             "repeatsWhile": {
               "booleanExpr": {
