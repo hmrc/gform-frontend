@@ -18,12 +18,12 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{AsyncHandlebarsHttpApi, HandlebarsHttpApi}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Expr, FormTemplate}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{ AsyncHandlebarsHttpApi, HandlebarsHttpApi }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithNrsOrchestrator, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithNrsOrchestrator, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{DestinationEvaluation, DestinationResult, HandlebarsHttpApiDestinationResult, HandlebarsHttpApiDestinationResultData, NRSOrchestratorDestinationResult, NRSOrchestratorDestinationResultData}
+import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult, HandlebarsHttpApiDestinationResult, HandlebarsHttpApiDestinationResultData, NRSOrchestratorDestinationResult, NRSOrchestratorDestinationResultData }
 
 object DestinationEvaluator {
 

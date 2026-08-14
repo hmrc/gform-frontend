@@ -91,7 +91,8 @@ class UploadableDestinationSpec extends Spec {
       convertSingleQuotes,
       destination.includeIf,
       Some(destination.failOnError),
-      Some(false)
+      Some(false),
+      None
     )
 
   private def replaceHandlebarValue(includeIf: DestinationIncludeIf) =
