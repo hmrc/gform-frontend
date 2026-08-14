@@ -18,11 +18,12 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{AsyncHandlebarsHttpApi, HandlebarsHttpApi}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Expr, FormTemplate}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationIncludeIf.IncludeIfValue
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithNrsOrchestrator, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{DestinationIncludeIf, DestinationWithCustomerCaseflow, DestinationWithCustomerId, DestinationWithNiRefundClaimBankDetails, DestinationWithNrsOrchestrator, DestinationWithPaymentReference, DestinationWithPegaCaseId, DestinationWithTaxpayerId}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ DestinationEvaluation, DestinationResult, NRSOrchestratorDestinationResult, NRSOrchestratorDestinationResultData }
+import uk.gov.hmrc.gform.sharedmodel.{DestinationEvaluation, DestinationResult, HandlebarsHttpApiDestinationResult, HandlebarsHttpApiDestinationResultData, NRSOrchestratorDestinationResult, NRSOrchestratorDestinationResultData}
 
 object DestinationEvaluator {
 
@@ -193,6 +194,28 @@ object DestinationEvaluator {
               NRSOrchestratorDestinationResultData(
                 d.searchKeys.map { case (key, value) => key -> evalString(value) }
               )
+            ).toDestinationResult
+          case handlebars: HandlebarsHttpApi =>
+            val includeIfEval = evalIncludeIf(handlebars.includeIf)
+            val evaluatedHeaders = handlebars.httpHeaders.map { case (key, value) =>
+              key -> formModelVisibilityOptics.evalAndApplyTypeInfoFirst(value).stringRepresentation
+            }
+
+            HandlebarsHttpApiDestinationResult(
+              handlebars.id,
+              includeIfEval,
+              HandlebarsHttpApiDestinationResultData(evaluatedHeaders)
+            ).toDestinationResult
+          case asyncHandlebars: AsyncHandlebarsHttpApi =>
+            val includeIfEval = evalIncludeIf(asyncHandlebars.includeIf)
+            val evaluatedHeaders = asyncHandlebars.httpHeaders.map { case (key, value) =>
+              key -> formModelVisibilityOptics.evalAndApplyTypeInfoFirst(value).stringRepresentation
+            }
+
+            HandlebarsHttpApiDestinationResult(
+              asyncHandlebars.id,
+              includeIfEval,
+              HandlebarsHttpApiDestinationResultData(evaluatedHeaders)
             ).toDestinationResult
           case others =>
             val includeIfEval = evalIncludeIf(others.includeIf)

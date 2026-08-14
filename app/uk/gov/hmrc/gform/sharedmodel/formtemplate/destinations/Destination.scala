@@ -151,7 +151,8 @@ object Destination {
     includeIf: DestinationIncludeIf,
     failOnError: Boolean,
     multiRequestPayload: Boolean,
-    convertSingleQuotes: Option[Boolean]
+    convertSingleQuotes: Option[Boolean],
+    httpHeaders: Map[String, Expr]
   ) extends Destination
 
   case class AsyncHandlebarsHttpApi(
@@ -163,7 +164,8 @@ object Destination {
     payloadType: TemplateType,
     includeIf: DestinationIncludeIf,
     failOnError: Boolean,
-    convertSingleQuotes: Option[Boolean]
+    convertSingleQuotes: Option[Boolean],
+    httpHeaders: Map[String, Expr]
   ) extends Destination
 
   case class StateTransition(
@@ -444,7 +446,8 @@ case class UploadableHandlebarsHttpApiDestination(
   convertSingleQuotes: Option[Boolean],
   includeIf: DestinationIncludeIf,
   failOnError: Option[Boolean],
-  multiRequestPayload: Option[Boolean]
+  multiRequestPayload: Option[Boolean],
+  `http-headers`: Option[Map[String, TextExpression]]
 ) {
   def toHandlebarsHttpApiDestination: Either[String, Destination.HandlebarsHttpApi] =
     for {
@@ -462,7 +465,8 @@ case class UploadableHandlebarsHttpApiDestination(
         cvii,
         failOnError.getOrElse(true),
         multiRequestPayload.getOrElse(false),
-        convertSingleQuotes
+        convertSingleQuotes,
+        `http-headers`.getOrElse(Map.empty).view.mapValues(_.expr).toMap
       )
 
   def toAsyncHandlebarsHttpApiDestination: Either[String, Destination.AsyncHandlebarsHttpApi] =
@@ -480,7 +484,8 @@ case class UploadableHandlebarsHttpApiDestination(
         payloadType.getOrElse(TemplateType.JSON),
         cvii,
         failOnError.getOrElse(true),
-        convertSingleQuotes
+        convertSingleQuotes,
+        `http-headers`.getOrElse(Map.empty).view.mapValues(_.expr).toMap
       )
 }
 
