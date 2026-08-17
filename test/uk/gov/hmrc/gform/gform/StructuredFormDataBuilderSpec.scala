@@ -1354,7 +1354,8 @@ class StructuredFormDataBuilderSpec
     val formModelOptics: FormModelOptics =
       FormModelOptics.mkFormModelOptics[SectionSelectorType.WithDeclaration](
         data,
-        mkAuthCacheWithForm(mkFormTemplate(sections, declarationSection))
+        mkAuthCacheWithForm(mkFormTemplate(sections, declarationSection)),
+        recomputeGraph = false
       )
 
     formModelOptics.formModelVisibilityOptics

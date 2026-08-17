@@ -84,7 +84,12 @@ class NavigationSpec extends Spec with FormModelSupport with VariadicFormDataSup
   ): FormModel = {
     val fmb = mkFormModelBuilder(formTemplate)
     fmb
-      .visibilityModel[SectionSelectorType.Normal](formData, None, Form.dummy(FormTemplateId("")))
+      .visibilityModel[SectionSelectorType.Normal](
+        formData,
+        None,
+        Form.dummy(FormTemplateId("")),
+        recomputeGraph = false
+      )
       .formModelVisibilityOptics
       .formModel
 

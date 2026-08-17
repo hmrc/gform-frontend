@@ -121,7 +121,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.WithDeclaration](
           cache.variadicFormData,
-          cache
+          cache,
+          recomputeGraph = false
         )
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)

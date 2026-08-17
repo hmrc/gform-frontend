@@ -101,7 +101,7 @@ class LanguageSwitchController(
             val messages = lang2Messages(lang)
 
             val formModelOpticsSwitchTo =
-              FormModelOptics.mkFormModelOptics(cache.variadicFormData, cache)(
+              FormModelOptics.mkFormModelOptics(cache.variadicFormData, cache, recomputeGraph = false)(
                 implicitly[SectionSelector[SectionSelectorType.Normal]],
                 languageToSwitchTo,
                 messages

@@ -538,10 +538,18 @@ object Recalculator {
     mongoUserData: MongoUserData,
     visitIndex: VisitIndex,
     evaluationContext: EvaluationContext,
-    cacheBuster: CacheBuster
+    cacheBuster: CacheBuster,
+    recomputeGraph: Boolean
   )(implicit messages: Messages): Recalculator = {
     val graph =
-      cache.get(formTemplate._id, ((_: FormTemplateId) => DependencyGraph.toGraph(formTemplate, metadata)).asJava)
+      if (recomputeGraph) {
+        DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph) // This is needed for synthetic formtemplates
+      } else {
+        cache.get(
+          formTemplate._id,
+          ((_: FormTemplateId) => DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph)).asJava
+        )
+      }
 
     val dependencyGraph = new DependencyGraph(graph)
     val runtime = Runtime(visitIndex, mongoUserData, metadata)
@@ -594,7 +602,12 @@ object DependencyGraph {
 
     }
 
-  def toGraph(formTemplate: FormTemplate, metadata: Metadata): Graph[FormComponentId, Relation] = {
+  def toGraph(
+    formTemplate: FormTemplate,
+    metadata: Metadata,
+    recomputeGraph: Boolean
+  ): Graph[FormComponentId, Relation] = {
+
     val sections: List[Section] = formTemplate.formKind.allSections.sections.map(_.section)
 
     val addToLists: List[Section.AddToList] = sections.flatMap { section =>

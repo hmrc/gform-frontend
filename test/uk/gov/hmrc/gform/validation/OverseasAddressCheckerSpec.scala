@@ -116,7 +116,8 @@ class OverseasAddressCheckerSpec
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
     val formModelOptics =
-      fmb.visibilityModel[SectionSelectorType.Normal](data, None, Form.dummy(FormTemplateId("")))
+      fmb
+        .visibilityModel[SectionSelectorType.Normal](data, None, Form.dummy(FormTemplateId("")), recomputeGraph = false)
 
     val cacheData = new CacheData(
       EnvelopeId(""),

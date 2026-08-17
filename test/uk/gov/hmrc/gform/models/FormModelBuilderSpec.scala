@@ -94,7 +94,8 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
           .visibilityModel[SectionSelectorType.Normal](
             data,
             None,
-            Form.dummy(FormTemplateId(""))
+            Form.dummy(FormTemplateId("")),
+            recomputeGraph = false
           )
 
       val expected: FormModel = fromPagesWithIndex(expectedPages)
@@ -123,7 +124,8 @@ class FormModelBuilderSpec extends AnyFlatSpecLike with Matchers with FormModelS
       fmb.visibilityModel[SectionSelectorType.Normal](
         variadicData,
         None,
-        Form.dummy(FormTemplateId(""))
+        Form.dummy(FormTemplateId("")),
+        recomputeGraph = false
       )
 
     formModelOptics.formModelRenderPageOptics.formModel.allFormComponentIds shouldBe List(

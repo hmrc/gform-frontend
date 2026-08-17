@@ -423,7 +423,7 @@ class AuthenticatedRequestActions(
                   lookupRegistry
                 )
 
-        formModelOptics = FormModelOptics.mkFormModelOptics[U](cache.variadicFormData, cache)
+        formModelOptics = FormModelOptics.mkFormModelOptics[U](cache.variadicFormData, cache, recomputeGraph = false)
 
         smartStringEvaluator = smartStringEvaluatorFactory.apply(formModelOptics.formModelVisibilityOptics)
         result <- f(cache)(smartStringEvaluator)(formModelOptics)
