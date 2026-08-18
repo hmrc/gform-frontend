@@ -897,12 +897,31 @@ class SectionRenderingService(
       hasGroupComponent
     )
 
+    // Without JS, the "multiFile" continue button must natively post to the upscan
+    // form (multipart) so the file is uploaded. JS will intercept the click.
+    val continueButtonAttributes: Map[String, String] =
+      ei.getButtonName(validationResult) match {
+        case Some("multiFile") =>
+          formComponents
+            .collectFirst { case fc @ IsMultiFileUpload(_) => fc.id }
+            .flatMap(upscanData.get)
+            .fold(Map.empty[String, String]) { ud =>
+              Map(
+                "form"        -> ud.formMetaData.htmlId,
+                "formaction"  -> ud.url,
+                "formenctype" -> "multipart/form-data"
+              )
+            }
+        case _ => Map.empty[String, String]
+      }
+
     val mainForm: Html = html.form.form_standard(
       renderingInfo,
       shouldDisplayContinue = !page.isTerminationPage(formModelOptics.formModelVisibilityOptics.freeCalculator),
       ei.saveAndComeBackLaterButton,
       ei.isFileUploadOnlyPage(validationResult).isDefined,
-      ei.getButtonName(validationResult)
+      ei.getButtonName(validationResult),
+      continueButtonAttributes
     )
 
     html.form.form(

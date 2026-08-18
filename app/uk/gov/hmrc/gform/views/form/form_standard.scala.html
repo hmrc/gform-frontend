@@ -24,7 +24,8 @@
   shouldDisplayContinue: Boolean,
   saveAndComeBackLaterButton: Button,
   isFileUploadOnlyPage: Boolean,
-  maybeButtonName: Option[String]
+  maybeButtonName: Option[String],
+  continueButtonAttributes: Map[String, String] = Map.empty
 )(
   implicit
   request: Request[_],
@@ -68,7 +69,7 @@
   @{renderingInfo.snippets}
 
   <div class="govuk-button-group">
-    @displaySaveContinueButton()
+    @displaySaveContinueButton(otherAttributes = continueButtonAttributes)
     @if(renderingInfo.renderComeBackLater) {
       @govukButton(saveAndComeBackLaterButton)
     }
