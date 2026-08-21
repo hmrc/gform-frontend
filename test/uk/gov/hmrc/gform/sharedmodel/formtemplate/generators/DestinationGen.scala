@@ -116,7 +116,10 @@ trait DestinationGen {
       failOnError,
       false,
       convertSingleQuotes,
-      Map.empty
+      Map.empty,
+      false,
+      None,
+      None
     )
 
   def handlebarsHttpApiGen(

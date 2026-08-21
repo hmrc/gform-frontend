@@ -119,7 +119,10 @@ object Destination {
     handlebarPayload: Boolean,
     formDataPayload: Boolean,
     convertSingleQuotes: Option[Boolean],
-    payload: Option[String]
+    payload: Option[String],
+    validateHandlebarPayload: Boolean,
+    jsonSchemaName: Option[String],
+    jsonSchema: Option[JsValue]
   ) extends Destination with DestinationWithTaxpayerId
 
   case class InfoArchive(
@@ -152,7 +155,10 @@ object Destination {
     failOnError: Boolean,
     multiRequestPayload: Boolean,
     convertSingleQuotes: Option[Boolean],
-    httpHeaders: Map[String, Expr]
+    httpHeaders: Map[String, Expr],
+    validateHandlebarPayload: Boolean,
+    jsonSchemaName: Option[String],
+    jsonSchema: Option[JsValue]
   ) extends Destination
 
   case class AsyncHandlebarsHttpApi(
@@ -165,7 +171,10 @@ object Destination {
     includeIf: DestinationIncludeIf,
     failOnError: Boolean,
     convertSingleQuotes: Option[Boolean],
-    httpHeaders: Map[String, Expr]
+    httpHeaders: Map[String, Expr],
+    validateHandlebarPayload: Boolean,
+    jsonSchemaName: Option[String],
+    jsonSchema: Option[JsValue]
   ) extends Destination
 
   case class StateTransition(
@@ -321,7 +330,10 @@ case class UploadableDataStoreDestination(
   convertSingleQuotes: Option[Boolean],
   handlebarPayload: Boolean,
   formDataPayload: Boolean,
-  routing: SdesDestination
+  routing: SdesDestination,
+  validateHandlebarPayload: Option[Boolean],
+  jsonSchemaName: Option[String],
+  jsonSchema: Option[JsValue]
 ) {
   def toDataStoreDestination: Either[String, Destination.DataStore] =
     for {
@@ -339,7 +351,10 @@ case class UploadableDataStoreDestination(
       handlebarPayload,
       formDataPayload,
       convertSingleQuotes,
-      None
+      None,
+      validateHandlebarPayload.getOrElse(false),
+      jsonSchemaName,
+      jsonSchema
     )
 }
 
@@ -447,7 +462,10 @@ case class UploadableHandlebarsHttpApiDestination(
   includeIf: DestinationIncludeIf,
   failOnError: Option[Boolean],
   multiRequestPayload: Option[Boolean],
-  `http-headers`: Option[Map[String, TextExpression]]
+  `http-headers`: Option[Map[String, TextExpression]],
+  validateHandlebarPayload: Option[Boolean],
+  jsonSchemaName: Option[String],
+  jsonSchema: Option[JsValue]
 ) {
   def toHandlebarsHttpApiDestination: Either[String, Destination.HandlebarsHttpApi] =
     for {
@@ -466,7 +484,10 @@ case class UploadableHandlebarsHttpApiDestination(
         failOnError.getOrElse(true),
         multiRequestPayload.getOrElse(false),
         convertSingleQuotes,
-        `http-headers`.getOrElse(Map.empty).view.mapValues(_.expr).toMap
+        `http-headers`.getOrElse(Map.empty).view.mapValues(_.expr).toMap,
+        validateHandlebarPayload.getOrElse(false),
+        jsonSchemaName,
+        jsonSchema
       )
 
   def toAsyncHandlebarsHttpApiDestination: Either[String, Destination.AsyncHandlebarsHttpApi] =
@@ -485,7 +506,10 @@ case class UploadableHandlebarsHttpApiDestination(
         cvii,
         failOnError.getOrElse(true),
         convertSingleQuotes,
-        `http-headers`.getOrElse(Map.empty).view.mapValues(_.expr).toMap
+        `http-headers`.getOrElse(Map.empty).view.mapValues(_.expr).toMap,
+        validateHandlebarPayload.getOrElse(false),
+        jsonSchemaName,
+        jsonSchema
       )
 }
 
