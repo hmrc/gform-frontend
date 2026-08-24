@@ -92,6 +92,9 @@ class UploadableDestinationSpec extends Spec {
       destination.includeIf,
       Some(destination.failOnError),
       Some(false),
+      None,
+      Some(false),
+      None,
       None
     )
 
