@@ -1,9 +1,9 @@
 {
   "formName": {
-    "en": "Name of the service"
+    "en": "gform"
   },
   "version": {
-    "version": 123
+    "version": 1
   },
   "summarySection": {
     "title": {
@@ -58,7 +58,6 @@
     "keyDisplayWidth": "S",
     "includePrintPageButton": false
   },
-  "developmentPhase": "alpha",
   "formKind": {
     "Classic": {
       "sections": [
@@ -605,7 +604,7 @@
   "authConfig": {
     "Anonymous": {}
   },
-  "originalId": "name-of-the-service-url",
+  "originalId": "utr-vrn",
   "downloadPreviousSubmissionPdf": true,
   "displayHMRCLogo": false,
   "destinations": {
@@ -770,9 +769,6 @@
       }
     }
   },
-  "emailTemplateId": {
-    "emailTemplateId": "eitt_submission_confirmation"
-  },
   "accessiblePdf": false,
   "draftRetrievalMethod": {
     "FormAccessCodeForAgents": {
@@ -781,7 +777,7 @@
       }
     }
   },
-  "_id": "name-of-the-service-url",
+  "_id": "utr-vrn",
   "formCategory": "default",
   "displayAccountHeader": false,
   "allowedFileTypes": {

@@ -48,7 +48,7 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
         "123 4567",
         "123 4567 89 012345"
       ),
-      "name-of-the-service-url.json Generated"
+      "utr-vrn.json Generated"
     ),
     (
       MongoUserData(

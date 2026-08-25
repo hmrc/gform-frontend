@@ -1,10 +1,8 @@
 {
-  "_id": "name-of-the-service-url",
-  "formName": "Name of the service",
+  "_id": "utr-vrn",
+  "formName": "gform",
   "description": "",
-  "version": 123,
-  "developmentPhase": "alpha",
-  "emailTemplateId": "eitt_submission_confirmation",
+  "version": 1,
   "authConfig": {
     "authModule": "anonymous"
   },
