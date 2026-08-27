@@ -465,8 +465,7 @@ class RealSmartStringEvaluatorFactorySpec
     lazy val formModelOptics: FormModelOptics = FormModelOptics
       .mkFormModelOptics[SectionSelectorType.WithDeclaration](
         cache.variadicFormData,
-        cache,
-        recomputeGraph = false
+        cache
       )
 
     lazy val factory = new RealSmartStringEvaluatorFactory(messages)

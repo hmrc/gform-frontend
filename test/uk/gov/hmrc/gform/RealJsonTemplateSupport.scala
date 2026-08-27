@@ -97,8 +97,7 @@ object RealJsonTemplateSupport {
       data = mongoUserData.lookup,
       cache = cache,
       phase = evaluationContext.formPhase,
-      cacheBuster = CacheBuster.static,
-      recomputeGraph = false
+      cacheBuster = CacheBuster.static
     )
 
   }

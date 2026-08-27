@@ -486,8 +486,7 @@ class NewFormControllerSpec
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.Normal](
           variadicFormData,
-          authCacheWithForm,
-          recomputeGraph = false
+          authCacheWithForm
         )
 
     lazy val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()

@@ -173,8 +173,7 @@ object PopulateAtlService {
       val updFormModelOptics = FormModelOptics
         .mkFormModelOptics[SectionSelectorType.Normal](
           variadicFormData,
-          authCacheWithFormUpd,
-          recomputeGraph = false
+          authCacheWithFormUpd
         )
       (authCacheWithFormUpd, Some(updFormModelOptics))
     }

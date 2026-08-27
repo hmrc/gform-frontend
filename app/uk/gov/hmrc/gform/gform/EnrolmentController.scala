@@ -439,8 +439,7 @@ class EnrolmentController(
                 cache.toCacheData,
                 None,
                 uk.gov.hmrc.gform.sharedmodel.form.Form.dummy(formTemplateId),
-                CacheBuster.random,
-                recomputeGraph = true
+                CacheBuster.random
               )
             def handleContinueWithData(formModelOptics: FormModelOptics) = {
               val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics

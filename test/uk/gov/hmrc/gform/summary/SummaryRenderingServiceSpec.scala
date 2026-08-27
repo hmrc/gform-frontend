@@ -121,8 +121,7 @@ class SummaryRenderingServiceSpec
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.WithDeclaration](
           cache.variadicFormData,
-          cache,
-          recomputeGraph = false
+          cache
         )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)

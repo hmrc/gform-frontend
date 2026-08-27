@@ -45,8 +45,7 @@ object FormModelOptics {
     cacheData: CacheData,
     phase: Option[FormPhase],
     form: Form,
-    cacheBuster: CacheBuster,
-    recomputeGraph: Boolean
+    cacheBuster: CacheBuster
   )(implicit
     lang: LangADT,
     messages: Messages
@@ -54,7 +53,7 @@ object FormModelOptics {
 
     val formModelBuilder =
       FormModelBuilder.fromCache(cache, cacheData, form.componentIdToFileId, form.taskIdTaskStatus, cacheBuster)
-    formModelBuilder.visibilityModel(data, phase, form, recomputeGraph)
+    formModelBuilder.visibilityModel(data, phase, form)
 
   }
 
@@ -62,11 +61,10 @@ object FormModelOptics {
     data: VariadicFormData,
     cache: AuthCacheWithForm,
     phase: Option[FormPhase] = None,
-    cacheBuster: CacheBuster = CacheBuster.random,
-    recomputeGraph: Boolean
+    cacheBuster: CacheBuster = CacheBuster.random
   )(implicit
     lang: LangADT,
     messages: Messages
   ): FormModelOptics =
-    mkFormModelOptics[U](data, cache, cache.toCacheData, phase, cache.form, cacheBuster, recomputeGraph)
+    mkFormModelOptics[U](data, cache, cache.toCacheData, phase, cache.form, cacheBuster)
 }

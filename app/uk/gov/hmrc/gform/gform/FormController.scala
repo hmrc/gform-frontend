@@ -916,8 +916,7 @@ class FormController(
             val updFormModelOptics = FormModelOptics
               .mkFormModelOptics[SectionSelectorType.Normal](
                 updatedVariadicFormData,
-                processData.cache,
-                recomputeGraph = false
+                processData.cache
               )
             handleGroup(
               processData.cache,
@@ -940,8 +939,7 @@ class FormController(
             val updFormModelOptics = FormModelOptics
               .mkFormModelOptics[SectionSelectorType.Normal](
                 updData,
-                processData.cache,
-                recomputeGraph = false
+                processData.cache
               )
             for {
               res <- handleGroup(cacheUpd, processData.copy(formModelOptics = updFormModelOptics), "")

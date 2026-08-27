@@ -110,8 +110,7 @@ class AddressCheckerSpec
     val fmb = mkFormModelFromSections(formTemplate.formKind.allSections.sections.map(_.section))
 
     val formModelOptics =
-      fmb
-        .visibilityModel[SectionSelectorType.Normal](data, None, Form.dummy(FormTemplateId("")), recomputeGraph = false)
+      fmb.visibilityModel[SectionSelectorType.Normal](data, None, Form.dummy(FormTemplateId("")))
 
     val cacheData = new CacheData(
       EnvelopeId(""),
