@@ -892,8 +892,7 @@ class NewFormController(
     val cacheWithForm = cache.toAuthCacheWithForm(form, accessCode)
     val formModelOptics = FormModelOptics.mkFormModelOptics[U](
       cacheWithForm.variadicFormData,
-      cacheWithForm,
-      recomputeGraph = false
+      cacheWithForm
     )
     val cacheWithFormUpd = removeConfirmations(cacheWithForm, formModelOptics)
     for {

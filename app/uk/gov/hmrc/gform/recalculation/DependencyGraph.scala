@@ -18,10 +18,8 @@ package uk.gov.hmrc.gform.recalculation
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import com.github.benmanes.caffeine.cache.Caffeine
 import play.api.i18n.Messages
 import scala.collection.mutable
-import scala.compat.java8.FunctionConverters._
 import scalax.collection.OneOrMore
 import scalax.collection.immutable.Graph
 import scalax.collection.hyperedges.multilabeled.LDiHyperEdge
@@ -526,30 +524,15 @@ object RefInfo {
 }
 
 object Recalculator {
-
-  val cache = Caffeine
-    .newBuilder()
-    .maximumSize(1000)
-    .build[FormTemplateId, Graph[FormComponentId, Relation]]()
-
   def from(
     formTemplate: FormTemplate,
     metadata: Metadata,
     mongoUserData: MongoUserData,
     visitIndex: VisitIndex,
     evaluationContext: EvaluationContext,
-    cacheBuster: CacheBuster,
-    recomputeGraph: Boolean
+    cacheBuster: CacheBuster
   )(implicit messages: Messages): Recalculator = {
-    val graph =
-      if (recomputeGraph) {
-        DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph) // This is needed for synthetic formtemplates
-      } else {
-        cache.get(
-          formTemplate._id,
-          ((_: FormTemplateId) => DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph)).asJava
-        )
-      }
+    val graph = DependencyGraph.toGraph(formTemplate, metadata)
 
     val dependencyGraph = new DependencyGraph(graph)
     val runtime = Runtime(visitIndex, mongoUserData, metadata)
@@ -602,12 +585,7 @@ object DependencyGraph {
 
     }
 
-  def toGraph(
-    formTemplate: FormTemplate,
-    metadata: Metadata,
-    recomputeGraph: Boolean
-  ): Graph[FormComponentId, Relation] = {
-
+  def toGraph(formTemplate: FormTemplate, metadata: Metadata): Graph[FormComponentId, Relation] = {
     val sections: List[Section] = formTemplate.formKind.allSections.sections.map(_.section)
 
     val addToLists: List[Section.AddToList] = sections.flatMap { section =>

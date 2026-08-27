@@ -270,8 +270,7 @@ class GformBackEndService(
     val formModelOpticsUpdated = FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
       formModelOptics.formModelVisibilityOptics.freeCalculator.variadicFormData,
       cache,
-      Some(FormPhase(InstructionPDF)),
-      recomputeGraph = false
+      Some(FormPhase(InstructionPDF))
     )
 
     implicit val smartStringEvaluator: SmartStringEvaluator = smartStringEvaluatorFactory

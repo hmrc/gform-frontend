@@ -204,8 +204,7 @@ class FormProcessor(
     val updFormModelOptics = FormModelOptics
       .mkFormModelOptics[SectionSelectorType.Normal](
         updData,
-        cache,
-        recomputeGraph = false
+        cache
       )
     for {
       redirect <-

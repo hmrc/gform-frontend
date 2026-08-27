@@ -87,8 +87,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.Normal](
           cache.variadicFormData,
-          cache,
-          recomputeGraph = false
+          cache
         )
 
     lazy val extraInfo: ExtraInfo = ExtraInfo(
@@ -281,8 +280,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.WithDeclaration](
           cache.variadicFormData,
-          cache,
-          recomputeGraph = false
+          cache
         )
 
     val generatedHtml = testService
@@ -316,8 +314,7 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.WithDeclaration](
           cache.variadicFormData,
-          cache,
-          recomputeGraph = false
+          cache
         )
 
     val generatedHtml = testService

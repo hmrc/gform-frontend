@@ -228,7 +228,7 @@ class TestOnlyErrorMessageController(
     lang: LangADT,
     messages: Messages
   ) =
-    FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](data, cache, recomputeGraph = false)
+    FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](data, cache)
 
   private def fieldErrorReportsF(
     formComponents: List[(FormComponent, String, Int)],
