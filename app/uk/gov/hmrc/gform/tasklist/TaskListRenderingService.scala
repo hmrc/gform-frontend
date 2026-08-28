@@ -64,7 +64,7 @@ class TaskListRenderingService(
     for {
       statusesLookup <-
         TaskListUtils
-          .evalStatusLookup(cache.toCacheData, envelope, formModelOptics, validationService, taskCoordinatesMap)
+          .evalStatusLookup(cache, envelope, formModelOptics, validationService, taskCoordinatesMap)
       taskIdTaskStatusMapping = if (TaskListUtils.hasTaskStatusExpr(cache, formModelOptics)) {
                                   TaskListUtils.evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesLookup)
                                 } else TaskIdTaskStatusMapping.empty

@@ -19,8 +19,9 @@ package uk.gov.hmrc.gform.tasklist
 import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.models.SectionSelectorType
 import uk.gov.hmrc.gform.models.Brackets
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormModelOptics, TaskIdTaskStatusMapping }
@@ -83,7 +84,7 @@ object TaskListUtils {
     )
 
   def evalStatusLookup(
-    cache: CacheData,
+    cache: AuthCacheWithForm,
     envelope: EnvelopeWithMapping,
     formModelOptics: FormModelOptics,
     validationService: ValidationService,
@@ -103,63 +104,72 @@ object TaskListUtils {
     } else {
       val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
 
-      val cannotStartYetResolver = CannotStartYetResolver.create(formModelOptics, taskCoordinatesMap)
       val notRequiredResolver = NotRequiredResolver.create(formModelVisibilityOptics, taskCoordinatesMap)
       for {
-        statusesLookup <- coordinates
-                            .traverse { coordinate =>
-                              val dataForCoordinate: Set[VariadicValue] =
-                                formModelVisibilityOptics.data
-                                  .forCoordinate(coordinate)
-                              val hasTerminationPage = formModel.taskList
-                                .availablePages(coordinate)
-                                .exists(
-                                  _.isTerminationPage(formModelVisibilityOptics.freeCalculator)
-                                )
+        initialStatuses <- coordinates.traverse { coordinate =>
+                             val dataForCoordinate: Set[VariadicValue] =
+                               formModelVisibilityOptics.data
+                                 .forCoordinate(coordinate)
+                             val hasTerminationPage = formModel.taskList
+                               .availablePages(coordinate)
+                               .exists(
+                                 _.isTerminationPage(formModelVisibilityOptics.freeCalculator)
+                               )
 
-                              for {
-                                formHandlerResult <-
-                                  validationService.validateFormModel(
-                                    cache,
-                                    envelope,
-                                    formModelVisibilityOptics,
-                                    Some(coordinate)
-                                  )
-                                validatedATLs =
-                                  validationService.validateATLs(
-                                    formModel.taskList.availablePages(
-                                      coordinate
-                                    ),
-                                    formModelVisibilityOptics
-                                  )
-                              } yield {
-                                val allPostcodeLookupsConfirmed = formModel.taskList
-                                  .allFormComponents(coordinate)
-                                  .collect { case fc @ IsPostcodeLookup(_) =>
-                                    fc.id
-                                  }
-                                  .map(fcId => cache.thirdPartyData.confirmedAddresses.fold(false)(_.contains(fcId)))
-                                  .forall(b => b === true)
+                             for {
+                               formHandlerResult <-
+                                 validationService.validateFormModel(
+                                   cache.toCacheData,
+                                   envelope,
+                                   formModelVisibilityOptics,
+                                   Some(coordinate)
+                                 )
+                               validatedATLs =
+                                 validationService.validateATLs(
+                                   formModel.taskList.availablePages(
+                                     coordinate
+                                   ),
+                                   formModelVisibilityOptics
+                                 )
+                             } yield {
+                               val allPostcodeLookupsConfirmed = formModel.taskList
+                                 .allFormComponents(coordinate)
+                                 .collect { case fc @ IsPostcodeLookup(_) =>
+                                   fc.id
+                                 }
+                                 .map(fcId =>
+                                   cache.form.thirdPartyData.confirmedAddresses.fold(false)(_.contains(fcId))
+                                 )
+                                 .forall(b => b === true)
 
-                                val taskStatus =
-                                  if (dataForCoordinate.isEmpty) {
-                                    TaskStatus.NotStarted
-                                  } else if (
-                                    formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid && allPostcodeLookupsConfirmed
-                                  ) {
-                                    TaskStatus.Completed
-                                  } else {
-                                    TaskStatus.InProgress
-                                  }
-                                coordinate -> taskStatus
-                              }
-                            }
-                            .map(notRequiredResolver.resolveNotRequired)
-                            .map(
-                              cannotStartYetResolver.resolveCannotStartYet
-                            )
-
-      } yield statusesLookup
+                               val taskStatus =
+                                 if (dataForCoordinate.isEmpty) {
+                                   TaskStatus.NotStarted
+                                 } else if (
+                                   formHandlerResult.isFormValid && !hasTerminationPage && validatedATLs.isValid && allPostcodeLookupsConfirmed
+                                 ) {
+                                   TaskStatus.Completed
+                                 } else {
+                                   TaskStatus.InProgress
+                                 }
+                               coordinate -> taskStatus
+                             }
+                           }
+        statusesWithNotRequired = notRequiredResolver.resolveNotRequired(initialStatuses)
+        // Rebuild visibility optics with in-request task statuses before evaluating startIf(taskStatus(...)).
+        statusesForStartIf = {
+          val taskIdTaskStatus = evalTaskIdTaskStatusMapping(taskCoordinatesMap, statusesWithNotRequired)
+          val cacheWithTaskStatuses = cache.copy(form = cache.form.copy(taskIdTaskStatus = taskIdTaskStatus))
+          val formModelOpticsWithTaskStatuses =
+            FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
+              cacheWithTaskStatuses.variadicFormData,
+              cacheWithTaskStatuses
+            )
+          val cannotStartYetResolver =
+            CannotStartYetResolver.create(formModelOpticsWithTaskStatuses, taskCoordinatesMap)
+          cannotStartYetResolver.resolveCannotStartYet(statusesWithNotRequired)
+        }
+      } yield statusesForStartIf
     }
   }
 
@@ -208,7 +218,7 @@ object TaskListUtils {
       for {
         statusesLookup <-
           evalStatusLookup(
-            cache.toCacheData,
+            cache,
             envelope,
             formModelOptics,
             validationService,
