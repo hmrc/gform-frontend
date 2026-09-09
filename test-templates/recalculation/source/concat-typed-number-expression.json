@@ -1,0 +1,162 @@
+{
+  "_id": "concat-typed-number-expression",
+  "version": 1,
+  "formName": "gform",
+  "description": "",
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "intensiveQEtotal": {
+      "value": "if (knowsCcInfo contains 0 && AddConnectedCompanies.count >= 1) then ccTotalQualifyingExpenditure.sum+intensiveQE else intensiveQE",
+      "type": "sterling"
+    },
+    "totalSpendForOrg": {
+      "value": "if (adjustForCapitalisedExpenditure contains 0) then orgOperatingExpense+orgS1308 else orgOperatingExpense",
+      "type": "sterling"
+    },
+    "intensiveTotalSpend": "if (hasConnectedCompanies contains 0) then totalCCSpend.sum+totalSpendForOrg else totalSpendForOrg",
+    "intensivePercentage": {
+      "value": "if intensiveTotalSpend = 0 then 0 else (intensiveQEtotal/intensiveTotalSpend)*100",
+      "type": "number",
+      "fractionalDigits": 1
+    },
+    "intensivePercentageConcat": "concat(intensivePercentage,'%')"
+  },
+  "sections": [
+    {
+      "title": "Your organisation",
+      "fields": [
+        {
+          "id": "hasConnectedCompanies",
+          "type": "choice",
+          "label": "Does your company have connected companies?",
+          "format": "yesno"
+        },
+        {
+          "id": "knowsCcInfo",
+          "type": "choice",
+          "label": "Do you know the expenditure of the connected companies?",
+          "format": "yesno"
+        },
+        {
+          "id": "adjustForCapitalisedExpenditure",
+          "type": "choice",
+          "label": "Do you need to adjust for capitalised expenditure?",
+          "format": "yesno"
+        },
+        {
+          "id": "orgOperatingExpense",
+          "type": "text",
+          "label": "Total operating expenditure",
+          "format": "positiveSterling"
+        },
+        {
+          "id": "orgS1308",
+          "type": "text",
+          "label": "Section 1308 adjustment",
+          "format": "positiveSterling"
+        },
+        {
+          "id": "intensiveQE",
+          "type": "text",
+          "label": "Qualifying R&D expenditure",
+          "format": "positiveSterling"
+        }
+      ]
+    },
+    {
+      "type": "addToList",
+      "title": "Connected companies you have added",
+      "summaryName": "Connected companies",
+      "shortName": "Connected company $n",
+      "description": "Connected company $n",
+      "summaryDescription": "Connected company $n",
+      "addAnotherQuestion": {
+        "id": "AddConnectedCompanies",
+        "type": "choice",
+        "label": "Do you want to add another connected company?",
+        "format": "yesno"
+      },
+      "pages": [
+        {
+          "title": "Connected company expenditure",
+          "fields": [
+            {
+              "id": "ccOperatingExpense",
+              "type": "text",
+              "label": "Operating expenditure of the connected company",
+              "format": "positiveSterling"
+            },
+            {
+              "id": "ccS1308",
+              "type": "text",
+              "label": "Section 1308 adjustment for the connected company",
+              "format": "positiveSterling"
+            },
+            {
+              "id": "ccTotalQualifyingExpenditure",
+              "type": "text",
+              "label": "Qualifying R&D expenditure of the connected company",
+              "format": "positiveSterling"
+            },
+            {
+              "id": "totalCCSpend",
+              "type": "text",
+              "label": "Total spend for connected company",
+              "value": "${if (hasConnectedCompanies contains 0) then ccOperatingExpense+ccS1308 else ccOperatingExpense}",
+              "format": "sterling",
+              "submitMode": "summaryinfoonly",
+              "presentationHint": "invisibleInSummary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tax credit rate based on expenditure",
+      "fields": [
+        {
+          "id": "resultTable",
+          "type": "info",
+          "label": "",
+          "infoType": "noformat",
+          "infoText": "intensiveQEtotal: ${intensiveQEtotal}<br/>intensiveTotalSpend: ${intensiveTotalSpend}<br/>intensivePercentage: ${intensivePercentage}<br/>intensivePercentageConcat: ${intensivePercentageConcat}"
+        },
+        {
+          "id": "hiddenPercentage",
+          "type": "text",
+          "includeIf": "${AddConnectedCompanies.count >= 1}",
+          "format": "text",
+          "label": "Percentage of total expenditure that is qualifying R&D expenditure",
+          "value": "${intensivePercentageConcat}",
+          "submitMode": "summaryinfoonly"
+        },
+        {
+          "id": "hiddenQualifies",
+          "type": "text",
+          "format": "text",
+          "label": "Qualifies for higher intensive rate",
+          "value": "${if (intensivePercentage >= 40) then 'Yes' else 'No'}",
+          "submitMode": "summaryinfoonly"
+        }
+      ]
+    }
+  ],
+  "summarySection": {
+    "title": "Check your answers",
+    "header": "Make sure the information you have given is correct.",
+    "footer": ""
+  },
+  "acknowledgementSection": {
+    "title": "Acknowledgement page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

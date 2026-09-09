@@ -2493,6 +2493,73 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
         "<p>2 - -£1,000.00</p>"
       ),
       "repeats-while-condition-amount-change-from-summary.json Generated"
+    ),
+    (
+      MongoUserData(
+        "hasConnectedCompanies"           -> Many(List("0")),
+        "knowsCcInfo"                     -> Many(List("0")),
+        "adjustForCapitalisedExpenditure" -> Many(List("0")),
+        "orgOperatingExpense"             -> One("1212"),
+        "orgS1308"                        -> One("20000"),
+        "intensiveQE"                     -> One("17193"),
+        "1_ccOperatingExpense"            -> One("123"),
+        "1_ccS1308"                       -> One(""),
+        "1_totalCCSpend"                  -> One("123"),
+        "1_AddConnectedCompanies"         -> Many(List("0")),
+        "2_ccOperatingExpense"            -> One("123"),
+        "2_ccS1308"                       -> One(""),
+        "2_totalCCSpend"                  -> One("123"),
+        "2_AddConnectedCompanies"         -> Many(List("0")),
+        "3_ccOperatingExpense"            -> One("1234"),
+        "3_ccS1308"                       -> One("123"),
+        "3_ccTotalQualifyingExpenditure"  -> One("123"),
+        "3_totalCCSpend"                  -> One("1357"),
+        "3_AddConnectedCompanies"         -> Many(List("1"))
+      ),
+      List(
+        "n0",
+        "ap1.1.0",
+        "ar1.1",
+        "ap1.2.0",
+        "ar1.2",
+        "ap1.3.0",
+        "ar1.3",
+        "n2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "adjustForCapitalisedExpenditure" -> OptionResult(List("0")),
+        "hasConnectedCompanies"           -> OptionResult(List("0")),
+        "knowsCcInfo"                     -> OptionResult(List("0")),
+        "orgOperatingExpense"             -> NumberResult(1212),
+        "orgS1308"                        -> NumberResult(20000),
+        "intensiveQE"                     -> NumberResult(17193),
+        "hiddenPercentage"                -> StringResult("75.8%"),
+        "hiddenQualifies"                 -> StringResult("Yes"),
+        "1_AddConnectedCompanies"         -> OptionResult(List("0")),
+        "1_ccOperatingExpense"            -> NumberResult(123),
+        "1_ccS1308"                       -> Empty,
+        "1_ccTotalQualifyingExpenditure"  -> Empty,
+        "1_totalCCSpend"                  -> NumberResult(BigDecimal("123.00")),
+        "2_AddConnectedCompanies"         -> OptionResult(List("0")),
+        "2_ccOperatingExpense"            -> NumberResult(123),
+        "2_ccS1308"                       -> Empty,
+        "2_ccTotalQualifyingExpenditure"  -> Empty,
+        "2_totalCCSpend"                  -> NumberResult(BigDecimal("123.00")),
+        "3_AddConnectedCompanies"         -> OptionResult(List("1")),
+        "3_ccOperatingExpense"            -> NumberResult(1234),
+        "3_ccS1308"                       -> NumberResult(123),
+        "3_ccTotalQualifyingExpenditure"  -> NumberResult(123),
+        "3_totalCCSpend"                  -> NumberResult(BigDecimal("1357.00"))
+      ),
+      List(
+        "intensiveQEtotal: \u00a317,316.00<br/>intensiveTotalSpend: \u00a322,815.00<br/>intensivePercentage: 75.8<br/>intensivePercentageConcat: 75.8%",
+        """|<p>intensiveQEtotal: £17,316.00<br>
+           | intensiveTotalSpend: £22,815.00<br>
+           | intensivePercentage: 75.8<br>
+           | intensivePercentageConcat: 75.8%</p>""".stripMargin
+      ),
+      "concat-typed-number-expression.json Generated"
     )
   )
 }

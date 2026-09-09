@@ -903,7 +903,7 @@ final class RealCalculator(
         val evaluationStatus = evalExpr(expr, staticTypeData, behaviour)
         getLookupLabelById(evaluationStatus, lookupFnc, evaluationContext, staticTypeData, messages)
       case Typed(expr, explicitExprType) =>
-        evalTyped(evalExpr(expr, staticTypeData, behaviour), explicitExprType)
+        evalTyped(evalExpr(expr, StaticTypeData.from(explicitExprType), behaviour), explicitExprType)
       case IndexOfDataRetrieveCtx(dataRetrieveCtx, expr) =>
         evalIndexOfDataRetrieveCtx(dataRetrieveCtx, expr, staticTypeData, behaviour)
       case Between(expr1, expr2, measurementType) =>
