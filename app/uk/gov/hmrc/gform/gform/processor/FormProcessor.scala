@@ -406,8 +406,7 @@ class FormProcessor(
     ] => Result
   )(implicit hc: HeaderCarrier, l: LangADT, sse: SmartStringEvaluator, messages: Messages): Future[Result] = {
 
-    val formModelOptics = processData.formModelOptics
-    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
+    val formModelVisibilityOptics = processData.formModelOptics.formModelVisibilityOptics
     val pageModel: PageModel = formModelVisibilityOptics.formModel(sectionNumber)
 
     val allDataRetrieves: List[(DataRetrieveId, DataRetrieve)] =
