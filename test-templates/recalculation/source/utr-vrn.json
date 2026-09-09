@@ -1,0 +1,128 @@
+{
+  "_id": "utr-vrn",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "showAsUtr & showAsVrn",
+      "shortName": "First page",
+      "fields": [
+        {
+          "id": "firstPage",
+          "type": "text",
+          "label": "showAsUtr",
+          "helpText": "",
+          "format": "text"
+        },
+        {
+          "id": "infoText",
+          "type": "info",
+          "label": "",
+          "infoText": "1: showAsUtr",
+          "infoType": "noformat"
+        },
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "For 10 digit 1234567890",
+              "value": "${showAsUtr('1234567890')}"
+            },
+            {
+              "key": "For 10 digit with whitespace 12 34 567 890",
+              "value": "${showAsUtr('12 34 567 890')}"
+            },
+            {
+              "key": "For 12 digit 123456789012",
+              "value": "${showAsUtr('123456789012')}"
+            },
+            {
+              "key": "showAsUtr for 7 digit 12 34 567",
+              "value": "${showAsUtr('1234567')}"
+            },
+            {
+              "key": "For invalid digit 12 3 45678 90 123 45",
+              "value": "${showAsUtr('12 3 45678 90 123 45')}"
+            }
+          ]
+        },
+        {
+          "id": "firstPage2",
+          "type": "info",
+          "label": "",
+          "infoText": "2: showAsVrn",
+          "infoType": "noformat"
+        },
+        {
+          "id": "miniSummary2",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "For 9 digit 12 34 56789",
+              "value": "${showAsVrn('12 34 56789')}"
+            },
+            {
+              "key": "For 9 digit with whitespace 12 34 567 890",
+              "value": "${showAsVrn('1 2 3 4 5 678 9')}"
+            },
+            {
+              "key": "For 12 digit 123456789012",
+              "value": "${showAsVrn('123456789012')}"
+            },
+            {
+              "key": "showAsUtr for 7 digit 1234567",
+              "value": "${showAsVrn('1234567')}"
+            },
+            {
+              "key": "For invalid digit 12 3 45678 90 123 45",
+              "value": "${showAsVrn('12 3 45678 90 123 45')}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "declarationSection": {
+    "title": "Declaration",
+    "shortName": "Declaration",
+    "fields": [
+      {
+        "id": "decText",
+        "type": "info",
+        "label": "",
+        "infoText": "Some info on declaration page if required"
+      }
+    ]
+  },
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": [
+      {
+        "id": "nextSteps",
+        "type": "info",
+        "label": "",
+        "infoText": "We have sent you a confirmation email.\n\n[Print or save a PDF copy of your form](${link.printAcknowledgementPdf})\n## What happens next",
+        "infoType": "noformat"
+      }
+    ]
+  },
+  "destinations": [
+    {
+      "id": "attendedDmsQueueDestination",
+      "type": "hmrcDms",
+      "failOnError": true,
+      "convertSingleQuotes": true,
+      "dmsFormId": "TBD",
+      "customerId": "${firstPage}",
+      "classificationType": "TBD",
+      "businessArea": "TBD"
+    }
+  ]
+}
