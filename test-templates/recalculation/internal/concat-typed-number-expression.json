@@ -1,0 +1,2624 @@
+{
+  "formName": {
+    "en": "gform"
+  },
+  "version": {
+    "version": 1
+  },
+  "summarySection": {
+    "title": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Check your answers"
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "header": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": "Make sure the information you have given is correct."
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "footer": {
+      "SmartStringBase": {
+        "internal": {
+          "localised": {
+            "en": ""
+          },
+          "interpolations": []
+        }
+      }
+    },
+    "displayWidth": "M",
+    "keyDisplayWidth": "S"
+  },
+  "formKind": {
+    "Classic": {
+      "sections": [
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Your organisation"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Does your company have connected companies?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "hasConnectedCompanies",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Yes",
+                                    "cy": "Iawn"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "No",
+                                    "cy": "Na"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Horizontal": {}
+                      },
+                      "type": {
+                        "YesNo": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Do you know the expenditure of the connected companies?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "knowsCcInfo",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Yes",
+                                    "cy": "Iawn"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "No",
+                                    "cy": "Na"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Horizontal": {}
+                      },
+                      "type": {
+                        "YesNo": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Do you need to adjust for capitalised expenditure?"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "adjustForCapitalisedExpenditure",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Choice": {
+                      "selections": [],
+                      "options": [
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "Yes",
+                                    "cy": "Iawn"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "IndexBased": {
+                            "label": {
+                              "SmartStringBase": {
+                                "internal": {
+                                  "localised": {
+                                    "en": "No",
+                                    "cy": "Na"
+                                  },
+                                  "interpolations": []
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "orientation": {
+                        "Horizontal": {}
+                      },
+                      "type": {
+                        "YesNo": {}
+                      },
+                      "dividerText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "or",
+                              "cy": "neu"
+                            },
+                            "interpolations": []
+                          }
+                        }
+                      },
+                      "noDuplicates": false,
+                      "hideChoicesSelected": false
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Total operating expenditure"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "orgOperatingExpense",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
+                      "constraint": {
+                        "Sterling": {
+                          "roundingMode": "Down",
+                          "positiveOnly": true
+                        }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Section 1308 adjustment"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "orgS1308",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
+                      "constraint": {
+                        "Sterling": {
+                          "roundingMode": "Down",
+                          "positiveOnly": true
+                        }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Qualifying R&D expenditure"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "intensiveQE",
+                  "submissible": true,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
+                      "constraint": {
+                        "Sterling": {
+                          "roundingMode": "Down",
+                          "positiveOnly": true
+                        }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Value": {}
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "AddToList": {
+            "summaryName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Connected companies"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "description": {
+              "SmartStringBased": {
+                "value": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Connected company $n"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                }
+              }
+            },
+            "pages": [
+              {
+                "title": {
+                  "SmartStringBase": {
+                    "internal": {
+                      "localised": {
+                        "en": "Connected company expenditure"
+                      },
+                      "interpolations": []
+                    }
+                  }
+                },
+                "fields": [
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Operating expenditure of the connected company"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "ccOperatingExpense",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": true
+                          }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Section 1308 adjustment for the connected company"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "ccS1308",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": true
+                          }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Qualifying R&D expenditure of the connected company"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "ccTotalQualifyingExpenditure",
+                    "submissible": true,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": true
+                          }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "Value": {}
+                        }
+                      }
+                    },
+                    "onlyShowOnSummary": false,
+                    "editable": true
+                  },
+                  {
+                    "mandatory": {
+                      "booleanExpr": {
+                        "IsTrue": {}
+                      }
+                    },
+                    "notPII": false,
+                    "derived": false,
+                    "label": {
+                      "SmartStringBase": {
+                        "internal": {
+                          "localised": {
+                            "en": "Total spend for connected company"
+                          },
+                          "interpolations": []
+                        }
+                      }
+                    },
+                    "validators": [],
+                    "id": "totalCCSpend",
+                    "submissible": false,
+                    "isPageHeading": false,
+                    "type": {
+                      "Text": {
+                        "removeSpaces": false,
+                        "displayWidth": "DEFAULT",
+                        "constraint": {
+                          "Sterling": {
+                            "roundingMode": "Down",
+                            "positiveOnly": false
+                          }
+                        },
+                        "toUpperCase": {
+                          "IsNotUpperCase": {}
+                        },
+                        "value": {
+                          "IfElse": {
+                            "cond": {
+                              "Contains": {
+                                "multiValueField": {
+                                  "formComponentId": "hasConnectedCompanies"
+                                },
+                                "value": {
+                                  "Constant": {
+                                    "value": "0"
+                                  }
+                                }
+                              }
+                            },
+                            "field1": {
+                              "Add": {
+                                "field1": {
+                                  "FormCtx": {
+                                    "formComponentId": "ccOperatingExpense"
+                                  }
+                                },
+                                "field2": {
+                                  "FormCtx": {
+                                    "formComponentId": "ccS1308"
+                                  }
+                                }
+                              }
+                            },
+                            "field2": {
+                              "FormCtx": {
+                                "formComponentId": "ccOperatingExpense"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "presentationHint": [
+                      {
+                        "InvisibleInSummary": {}
+                      }
+                    ],
+                    "onlyShowOnSummary": true,
+                    "editable": false
+                  }
+                ]
+              }
+            ],
+            "summaryDescription": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Connected company $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "addAnotherQuestion": {
+              "mandatory": {
+                "booleanExpr": {
+                  "IsTrue": {}
+                }
+              },
+              "notPII": false,
+              "derived": false,
+              "label": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Do you want to add another connected company?"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "validators": [],
+              "id": "AddConnectedCompanies",
+              "submissible": true,
+              "isPageHeading": false,
+              "type": {
+                "Choice": {
+                  "selections": [],
+                  "options": [
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "Yes",
+                                "cy": "Iawn"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "IndexBased": {
+                        "label": {
+                          "SmartStringBase": {
+                            "internal": {
+                              "localised": {
+                                "en": "No",
+                                "cy": "Na"
+                              },
+                              "interpolations": []
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "orientation": {
+                    "Horizontal": {}
+                  },
+                  "type": {
+                    "YesNo": {}
+                  },
+                  "dividerText": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "or",
+                          "cy": "neu"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "noDuplicates": false,
+                  "hideChoicesSelected": false
+                }
+              },
+              "onlyShowOnSummary": false,
+              "editable": true
+            },
+            "title": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Connected companies you have added"
+                  },
+                  "interpolations": []
+                }
+              }
+            },
+            "shortName": {
+              "SmartStringBase": {
+                "internal": {
+                  "localised": {
+                    "en": "Connected company $n"
+                  },
+                  "interpolations": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "NonRepeatingPage": {
+            "page": {
+              "title": {
+                "SmartStringBase": {
+                  "internal": {
+                    "localised": {
+                      "en": "Tax credit rate based on expenditure"
+                    },
+                    "interpolations": []
+                  }
+                }
+              },
+              "fields": [
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": ""
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "resultTable",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "InformationMessage": {
+                      "infoType": {
+                        "NoFormat": {}
+                      },
+                      "infoText": {
+                        "SmartStringBase": {
+                          "internal": {
+                            "localised": {
+                              "en": "intensiveQEtotal: {0}<br/>intensiveTotalSpend: {1}<br/>intensivePercentage: {2}<br/>intensivePercentageConcat: {3}"
+                            },
+                            "interpolations": [
+                              {
+                                "Typed": {
+                                  "expr": {
+                                    "IfElse": {
+                                      "cond": {
+                                        "And": {
+                                          "left": {
+                                            "Contains": {
+                                              "multiValueField": {
+                                                "formComponentId": "knowsCcInfo"
+                                              },
+                                              "value": {
+                                                "Constant": {
+                                                  "value": "0"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "GreaterThanOrEquals": {
+                                              "left": {
+                                                "Count": {
+                                                  "formComponentId": "AddConnectedCompanies"
+                                                }
+                                              },
+                                              "right": {
+                                                "Constant": {
+                                                  "value": "1"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "field1": {
+                                        "Add": {
+                                          "field1": {
+                                            "Sum": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "ccTotalQualifyingExpenditure"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field2": {
+                                            "FormCtx": {
+                                              "formComponentId": "intensiveQE"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "field2": {
+                                        "FormCtx": {
+                                          "formComponentId": "intensiveQE"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "tpe": {
+                                    "Sterling": {
+                                      "roundingMode": "Down"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "IfElse": {
+                                  "cond": {
+                                    "Contains": {
+                                      "multiValueField": {
+                                        "formComponentId": "hasConnectedCompanies"
+                                      },
+                                      "value": {
+                                        "Constant": {
+                                          "value": "0"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field1": {
+                                    "Add": {
+                                      "field1": {
+                                        "Sum": {
+                                          "field1": {
+                                            "FormCtx": {
+                                              "formComponentId": "totalCCSpend"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "field2": {
+                                        "Typed": {
+                                          "expr": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Contains": {
+                                                  "multiValueField": {
+                                                    "formComponentId": "adjustForCapitalisedExpenditure"
+                                                  },
+                                                  "value": {
+                                                    "Constant": {
+                                                      "value": "0"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Add": {
+                                                  "field1": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "orgOperatingExpense"
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "FormCtx": {
+                                                      "formComponentId": "orgS1308"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "FormCtx": {
+                                                  "formComponentId": "orgOperatingExpense"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "tpe": {
+                                            "Sterling": {
+                                              "roundingMode": "Down"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "field2": {
+                                    "Typed": {
+                                      "expr": {
+                                        "IfElse": {
+                                          "cond": {
+                                            "Contains": {
+                                              "multiValueField": {
+                                                "formComponentId": "adjustForCapitalisedExpenditure"
+                                              },
+                                              "value": {
+                                                "Constant": {
+                                                  "value": "0"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field1": {
+                                            "Add": {
+                                              "field1": {
+                                                "FormCtx": {
+                                                  "formComponentId": "orgOperatingExpense"
+                                                }
+                                              },
+                                              "field2": {
+                                                "FormCtx": {
+                                                  "formComponentId": "orgS1308"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field2": {
+                                            "FormCtx": {
+                                              "formComponentId": "orgOperatingExpense"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "tpe": {
+                                        "Sterling": {
+                                          "roundingMode": "Down"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Typed": {
+                                  "expr": {
+                                    "IfElse": {
+                                      "cond": {
+                                        "Equals": {
+                                          "left": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Contains": {
+                                                  "multiValueField": {
+                                                    "formComponentId": "hasConnectedCompanies"
+                                                  },
+                                                  "value": {
+                                                    "Constant": {
+                                                      "value": "0"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Add": {
+                                                  "field1": {
+                                                    "Sum": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "totalCCSpend"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Typed": {
+                                                      "expr": {
+                                                        "IfElse": {
+                                                          "cond": {
+                                                            "Contains": {
+                                                              "multiValueField": {
+                                                                "formComponentId": "adjustForCapitalisedExpenditure"
+                                                              },
+                                                              "value": {
+                                                                "Constant": {
+                                                                  "value": "0"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field1": {
+                                                            "Add": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgOperatingExpense"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgS1308"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgOperatingExpense"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "tpe": {
+                                                        "Sterling": {
+                                                          "roundingMode": "Down"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "Contains": {
+                                                          "multiValueField": {
+                                                            "formComponentId": "adjustForCapitalisedExpenditure"
+                                                          },
+                                                          "value": {
+                                                            "Constant": {
+                                                              "value": "0"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Add": {
+                                                          "field1": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgOperatingExpense"
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgS1308"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "orgOperatingExpense"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "field1": {
+                                        "Constant": {
+                                          "value": "0"
+                                        }
+                                      },
+                                      "field2": {
+                                        "Multiply": {
+                                          "field1": {
+                                            "Divide": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "And": {
+                                                          "left": {
+                                                            "Contains": {
+                                                              "multiValueField": {
+                                                                "formComponentId": "knowsCcInfo"
+                                                              },
+                                                              "value": {
+                                                                "Constant": {
+                                                                  "value": "0"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "GreaterThanOrEquals": {
+                                                              "left": {
+                                                                "Count": {
+                                                                  "formComponentId": "AddConnectedCompanies"
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "Constant": {
+                                                                  "value": "1"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Add": {
+                                                          "field1": {
+                                                            "Sum": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "ccTotalQualifyingExpenditure"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "intensiveQE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "intensiveQE"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Contains": {
+                                                      "multiValueField": {
+                                                        "formComponentId": "hasConnectedCompanies"
+                                                      },
+                                                      "value": {
+                                                        "Constant": {
+                                                          "value": "0"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Add": {
+                                                      "field1": {
+                                                        "Sum": {
+                                                          "field1": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "totalCCSpend"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "IfElse": {
+                                                              "cond": {
+                                                                "Contains": {
+                                                                  "multiValueField": {
+                                                                    "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                  },
+                                                                  "value": {
+                                                                    "Constant": {
+                                                                      "value": "0"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "field1": {
+                                                                "Add": {
+                                                                  "field1": {
+                                                                    "FormCtx": {
+                                                                      "formComponentId": "orgOperatingExpense"
+                                                                    }
+                                                                  },
+                                                                  "field2": {
+                                                                    "FormCtx": {
+                                                                      "formComponentId": "orgS1308"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgOperatingExpense"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Typed": {
+                                                      "expr": {
+                                                        "IfElse": {
+                                                          "cond": {
+                                                            "Contains": {
+                                                              "multiValueField": {
+                                                                "formComponentId": "adjustForCapitalisedExpenditure"
+                                                              },
+                                                              "value": {
+                                                                "Constant": {
+                                                                  "value": "0"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field1": {
+                                                            "Add": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgOperatingExpense"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgS1308"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgOperatingExpense"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "tpe": {
+                                                        "Sterling": {
+                                                          "roundingMode": "Down"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "100"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "tpe": {
+                                    "Number": {
+                                      "fractionalDigits": 1,
+                                      "roundingMode": "Down"
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "Concat": {
+                                  "exprs": [
+                                    {
+                                      "Typed": {
+                                        "expr": {
+                                          "IfElse": {
+                                            "cond": {
+                                              "Equals": {
+                                                "left": {
+                                                  "IfElse": {
+                                                    "cond": {
+                                                      "Contains": {
+                                                        "multiValueField": {
+                                                          "formComponentId": "hasConnectedCompanies"
+                                                        },
+                                                        "value": {
+                                                          "Constant": {
+                                                            "value": "0"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field1": {
+                                                      "Add": {
+                                                        "field1": {
+                                                          "Sum": {
+                                                            "field1": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "totalCCSpend"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field2": {
+                                                          "Typed": {
+                                                            "expr": {
+                                                              "IfElse": {
+                                                                "cond": {
+                                                                  "Contains": {
+                                                                    "multiValueField": {
+                                                                      "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                    },
+                                                                    "value": {
+                                                                      "Constant": {
+                                                                        "value": "0"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "field1": {
+                                                                  "Add": {
+                                                                    "field1": {
+                                                                      "FormCtx": {
+                                                                        "formComponentId": "orgOperatingExpense"
+                                                                      }
+                                                                    },
+                                                                    "field2": {
+                                                                      "FormCtx": {
+                                                                        "formComponentId": "orgS1308"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "field2": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "orgOperatingExpense"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "tpe": {
+                                                              "Sterling": {
+                                                                "roundingMode": "Down"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field2": {
+                                                      "Typed": {
+                                                        "expr": {
+                                                          "IfElse": {
+                                                            "cond": {
+                                                              "Contains": {
+                                                                "multiValueField": {
+                                                                  "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                },
+                                                                "value": {
+                                                                  "Constant": {
+                                                                    "value": "0"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field1": {
+                                                              "Add": {
+                                                                "field1": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "orgOperatingExpense"
+                                                                  }
+                                                                },
+                                                                "field2": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "orgS1308"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field2": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "orgOperatingExpense"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "tpe": {
+                                                          "Sterling": {
+                                                            "roundingMode": "Down"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "right": {
+                                                  "Constant": {
+                                                    "value": "0"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "field1": {
+                                              "Constant": {
+                                                "value": "0"
+                                              }
+                                            },
+                                            "field2": {
+                                              "Multiply": {
+                                                "field1": {
+                                                  "Divide": {
+                                                    "field1": {
+                                                      "Typed": {
+                                                        "expr": {
+                                                          "IfElse": {
+                                                            "cond": {
+                                                              "And": {
+                                                                "left": {
+                                                                  "Contains": {
+                                                                    "multiValueField": {
+                                                                      "formComponentId": "knowsCcInfo"
+                                                                    },
+                                                                    "value": {
+                                                                      "Constant": {
+                                                                        "value": "0"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "right": {
+                                                                  "GreaterThanOrEquals": {
+                                                                    "left": {
+                                                                      "Count": {
+                                                                        "formComponentId": "AddConnectedCompanies"
+                                                                      }
+                                                                    },
+                                                                    "right": {
+                                                                      "Constant": {
+                                                                        "value": "1"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field1": {
+                                                              "Add": {
+                                                                "field1": {
+                                                                  "Sum": {
+                                                                    "field1": {
+                                                                      "FormCtx": {
+                                                                        "formComponentId": "ccTotalQualifyingExpenditure"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "field2": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "intensiveQE"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field2": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "intensiveQE"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "tpe": {
+                                                          "Sterling": {
+                                                            "roundingMode": "Down"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field2": {
+                                                      "IfElse": {
+                                                        "cond": {
+                                                          "Contains": {
+                                                            "multiValueField": {
+                                                              "formComponentId": "hasConnectedCompanies"
+                                                            },
+                                                            "value": {
+                                                              "Constant": {
+                                                                "value": "0"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field1": {
+                                                          "Add": {
+                                                            "field1": {
+                                                              "Sum": {
+                                                                "field1": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "totalCCSpend"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field2": {
+                                                              "Typed": {
+                                                                "expr": {
+                                                                  "IfElse": {
+                                                                    "cond": {
+                                                                      "Contains": {
+                                                                        "multiValueField": {
+                                                                          "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                        },
+                                                                        "value": {
+                                                                          "Constant": {
+                                                                            "value": "0"
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "field1": {
+                                                                      "Add": {
+                                                                        "field1": {
+                                                                          "FormCtx": {
+                                                                            "formComponentId": "orgOperatingExpense"
+                                                                          }
+                                                                        },
+                                                                        "field2": {
+                                                                          "FormCtx": {
+                                                                            "formComponentId": "orgS1308"
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "field2": {
+                                                                      "FormCtx": {
+                                                                        "formComponentId": "orgOperatingExpense"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "tpe": {
+                                                                  "Sterling": {
+                                                                    "roundingMode": "Down"
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field2": {
+                                                          "Typed": {
+                                                            "expr": {
+                                                              "IfElse": {
+                                                                "cond": {
+                                                                  "Contains": {
+                                                                    "multiValueField": {
+                                                                      "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                    },
+                                                                    "value": {
+                                                                      "Constant": {
+                                                                        "value": "0"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "field1": {
+                                                                  "Add": {
+                                                                    "field1": {
+                                                                      "FormCtx": {
+                                                                        "formComponentId": "orgOperatingExpense"
+                                                                      }
+                                                                    },
+                                                                    "field2": {
+                                                                      "FormCtx": {
+                                                                        "formComponentId": "orgS1308"
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "field2": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "orgOperatingExpense"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "tpe": {
+                                                              "Sterling": {
+                                                                "roundingMode": "Down"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "Constant": {
+                                                    "value": "100"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "tpe": {
+                                          "Number": {
+                                            "fractionalDigits": 1,
+                                            "roundingMode": "Down"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Constant": {
+                                        "value": "%"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": false,
+                  "editable": false
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "validators": [],
+                  "id": "hiddenPercentage",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "Concat": {
+                          "exprs": [
+                            {
+                              "Typed": {
+                                "expr": {
+                                  "IfElse": {
+                                    "cond": {
+                                      "Equals": {
+                                        "left": {
+                                          "IfElse": {
+                                            "cond": {
+                                              "Contains": {
+                                                "multiValueField": {
+                                                  "formComponentId": "hasConnectedCompanies"
+                                                },
+                                                "value": {
+                                                  "Constant": {
+                                                    "value": "0"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "field1": {
+                                              "Add": {
+                                                "field1": {
+                                                  "Sum": {
+                                                    "field1": {
+                                                      "FormCtx": {
+                                                        "formComponentId": "totalCCSpend"
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "Typed": {
+                                                    "expr": {
+                                                      "IfElse": {
+                                                        "cond": {
+                                                          "Contains": {
+                                                            "multiValueField": {
+                                                              "formComponentId": "adjustForCapitalisedExpenditure"
+                                                            },
+                                                            "value": {
+                                                              "Constant": {
+                                                                "value": "0"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field1": {
+                                                          "Add": {
+                                                            "field1": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "orgOperatingExpense"
+                                                              }
+                                                            },
+                                                            "field2": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "orgS1308"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field2": {
+                                                          "FormCtx": {
+                                                            "formComponentId": "orgOperatingExpense"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "tpe": {
+                                                      "Sterling": {
+                                                        "roundingMode": "Down"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "field2": {
+                                              "Typed": {
+                                                "expr": {
+                                                  "IfElse": {
+                                                    "cond": {
+                                                      "Contains": {
+                                                        "multiValueField": {
+                                                          "formComponentId": "adjustForCapitalisedExpenditure"
+                                                        },
+                                                        "value": {
+                                                          "Constant": {
+                                                            "value": "0"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field1": {
+                                                      "Add": {
+                                                        "field1": {
+                                                          "FormCtx": {
+                                                            "formComponentId": "orgOperatingExpense"
+                                                          }
+                                                        },
+                                                        "field2": {
+                                                          "FormCtx": {
+                                                            "formComponentId": "orgS1308"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field2": {
+                                                      "FormCtx": {
+                                                        "formComponentId": "orgOperatingExpense"
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "tpe": {
+                                                  "Sterling": {
+                                                    "roundingMode": "Down"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "Constant": {
+                                            "value": "0"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "field1": {
+                                      "Constant": {
+                                        "value": "0"
+                                      }
+                                    },
+                                    "field2": {
+                                      "Multiply": {
+                                        "field1": {
+                                          "Divide": {
+                                            "field1": {
+                                              "Typed": {
+                                                "expr": {
+                                                  "IfElse": {
+                                                    "cond": {
+                                                      "And": {
+                                                        "left": {
+                                                          "Contains": {
+                                                            "multiValueField": {
+                                                              "formComponentId": "knowsCcInfo"
+                                                            },
+                                                            "value": {
+                                                              "Constant": {
+                                                                "value": "0"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "right": {
+                                                          "GreaterThanOrEquals": {
+                                                            "left": {
+                                                              "Count": {
+                                                                "formComponentId": "AddConnectedCompanies"
+                                                              }
+                                                            },
+                                                            "right": {
+                                                              "Constant": {
+                                                                "value": "1"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field1": {
+                                                      "Add": {
+                                                        "field1": {
+                                                          "Sum": {
+                                                            "field1": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "ccTotalQualifyingExpenditure"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field2": {
+                                                          "FormCtx": {
+                                                            "formComponentId": "intensiveQE"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field2": {
+                                                      "FormCtx": {
+                                                        "formComponentId": "intensiveQE"
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "tpe": {
+                                                  "Sterling": {
+                                                    "roundingMode": "Down"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "field2": {
+                                              "IfElse": {
+                                                "cond": {
+                                                  "Contains": {
+                                                    "multiValueField": {
+                                                      "formComponentId": "hasConnectedCompanies"
+                                                    },
+                                                    "value": {
+                                                      "Constant": {
+                                                        "value": "0"
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "field1": {
+                                                  "Add": {
+                                                    "field1": {
+                                                      "Sum": {
+                                                        "field1": {
+                                                          "FormCtx": {
+                                                            "formComponentId": "totalCCSpend"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "field2": {
+                                                      "Typed": {
+                                                        "expr": {
+                                                          "IfElse": {
+                                                            "cond": {
+                                                              "Contains": {
+                                                                "multiValueField": {
+                                                                  "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                },
+                                                                "value": {
+                                                                  "Constant": {
+                                                                    "value": "0"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field1": {
+                                                              "Add": {
+                                                                "field1": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "orgOperatingExpense"
+                                                                  }
+                                                                },
+                                                                "field2": {
+                                                                  "FormCtx": {
+                                                                    "formComponentId": "orgS1308"
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "field2": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "orgOperatingExpense"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "tpe": {
+                                                          "Sterling": {
+                                                            "roundingMode": "Down"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                "field2": {
+                                                  "Typed": {
+                                                    "expr": {
+                                                      "IfElse": {
+                                                        "cond": {
+                                                          "Contains": {
+                                                            "multiValueField": {
+                                                              "formComponentId": "adjustForCapitalisedExpenditure"
+                                                            },
+                                                            "value": {
+                                                              "Constant": {
+                                                                "value": "0"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field1": {
+                                                          "Add": {
+                                                            "field1": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "orgOperatingExpense"
+                                                              }
+                                                            },
+                                                            "field2": {
+                                                              "FormCtx": {
+                                                                "formComponentId": "orgS1308"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "field2": {
+                                                          "FormCtx": {
+                                                            "formComponentId": "orgOperatingExpense"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "tpe": {
+                                                      "Sterling": {
+                                                        "roundingMode": "Down"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "field2": {
+                                          "Constant": {
+                                            "value": "100"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "tpe": {
+                                  "Number": {
+                                    "fractionalDigits": 1,
+                                    "roundingMode": "Down"
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "Constant": {
+                                "value": "%"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "includeIf": {
+                    "booleanExpr": {
+                      "GreaterThanOrEquals": {
+                        "left": {
+                          "Count": {
+                            "formComponentId": "AddConnectedCompanies"
+                          }
+                        },
+                        "right": {
+                          "Constant": {
+                            "value": "1"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Percentage of total expenditure that is qualifying R&D expenditure"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": true,
+                  "editable": false
+                },
+                {
+                  "mandatory": {
+                    "booleanExpr": {
+                      "IsTrue": {}
+                    }
+                  },
+                  "notPII": false,
+                  "derived": false,
+                  "label": {
+                    "SmartStringBase": {
+                      "internal": {
+                        "localised": {
+                          "en": "Qualifies for higher intensive rate"
+                        },
+                        "interpolations": []
+                      }
+                    }
+                  },
+                  "validators": [],
+                  "id": "hiddenQualifies",
+                  "submissible": false,
+                  "isPageHeading": false,
+                  "type": {
+                    "Text": {
+                      "removeSpaces": false,
+                      "displayWidth": "DEFAULT",
+                      "constraint": {
+                        "TextWithRestrictions": {
+                          "min": 0,
+                          "max": 1000
+                        }
+                      },
+                      "toUpperCase": {
+                        "IsNotUpperCase": {}
+                      },
+                      "value": {
+                        "IfElse": {
+                          "cond": {
+                            "GreaterThanOrEquals": {
+                              "left": {
+                                "Typed": {
+                                  "expr": {
+                                    "IfElse": {
+                                      "cond": {
+                                        "Equals": {
+                                          "left": {
+                                            "IfElse": {
+                                              "cond": {
+                                                "Contains": {
+                                                  "multiValueField": {
+                                                    "formComponentId": "hasConnectedCompanies"
+                                                  },
+                                                  "value": {
+                                                    "Constant": {
+                                                      "value": "0"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field1": {
+                                                "Add": {
+                                                  "field1": {
+                                                    "Sum": {
+                                                      "field1": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "totalCCSpend"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Typed": {
+                                                      "expr": {
+                                                        "IfElse": {
+                                                          "cond": {
+                                                            "Contains": {
+                                                              "multiValueField": {
+                                                                "formComponentId": "adjustForCapitalisedExpenditure"
+                                                              },
+                                                              "value": {
+                                                                "Constant": {
+                                                                  "value": "0"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field1": {
+                                                            "Add": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgOperatingExpense"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgS1308"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgOperatingExpense"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "tpe": {
+                                                        "Sterling": {
+                                                          "roundingMode": "Down"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "Contains": {
+                                                          "multiValueField": {
+                                                            "formComponentId": "adjustForCapitalisedExpenditure"
+                                                          },
+                                                          "value": {
+                                                            "Constant": {
+                                                              "value": "0"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Add": {
+                                                          "field1": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgOperatingExpense"
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgS1308"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "orgOperatingExpense"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "Constant": {
+                                              "value": "0"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "field1": {
+                                        "Constant": {
+                                          "value": "0"
+                                        }
+                                      },
+                                      "field2": {
+                                        "Multiply": {
+                                          "field1": {
+                                            "Divide": {
+                                              "field1": {
+                                                "Typed": {
+                                                  "expr": {
+                                                    "IfElse": {
+                                                      "cond": {
+                                                        "And": {
+                                                          "left": {
+                                                            "Contains": {
+                                                              "multiValueField": {
+                                                                "formComponentId": "knowsCcInfo"
+                                                              },
+                                                              "value": {
+                                                                "Constant": {
+                                                                  "value": "0"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "GreaterThanOrEquals": {
+                                                              "left": {
+                                                                "Count": {
+                                                                  "formComponentId": "AddConnectedCompanies"
+                                                                }
+                                                              },
+                                                              "right": {
+                                                                "Constant": {
+                                                                  "value": "1"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field1": {
+                                                        "Add": {
+                                                          "field1": {
+                                                            "Sum": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "ccTotalQualifyingExpenditure"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "intensiveQE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "FormCtx": {
+                                                          "formComponentId": "intensiveQE"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "tpe": {
+                                                    "Sterling": {
+                                                      "roundingMode": "Down"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "field2": {
+                                                "IfElse": {
+                                                  "cond": {
+                                                    "Contains": {
+                                                      "multiValueField": {
+                                                        "formComponentId": "hasConnectedCompanies"
+                                                      },
+                                                      "value": {
+                                                        "Constant": {
+                                                          "value": "0"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field1": {
+                                                    "Add": {
+                                                      "field1": {
+                                                        "Sum": {
+                                                          "field1": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "totalCCSpend"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Typed": {
+                                                          "expr": {
+                                                            "IfElse": {
+                                                              "cond": {
+                                                                "Contains": {
+                                                                  "multiValueField": {
+                                                                    "formComponentId": "adjustForCapitalisedExpenditure"
+                                                                  },
+                                                                  "value": {
+                                                                    "Constant": {
+                                                                      "value": "0"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "field1": {
+                                                                "Add": {
+                                                                  "field1": {
+                                                                    "FormCtx": {
+                                                                      "formComponentId": "orgOperatingExpense"
+                                                                    }
+                                                                  },
+                                                                  "field2": {
+                                                                    "FormCtx": {
+                                                                      "formComponentId": "orgS1308"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgOperatingExpense"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "tpe": {
+                                                            "Sterling": {
+                                                              "roundingMode": "Down"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "field2": {
+                                                    "Typed": {
+                                                      "expr": {
+                                                        "IfElse": {
+                                                          "cond": {
+                                                            "Contains": {
+                                                              "multiValueField": {
+                                                                "formComponentId": "adjustForCapitalisedExpenditure"
+                                                              },
+                                                              "value": {
+                                                                "Constant": {
+                                                                  "value": "0"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field1": {
+                                                            "Add": {
+                                                              "field1": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgOperatingExpense"
+                                                                }
+                                                              },
+                                                              "field2": {
+                                                                "FormCtx": {
+                                                                  "formComponentId": "orgS1308"
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "field2": {
+                                                            "FormCtx": {
+                                                              "formComponentId": "orgOperatingExpense"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "tpe": {
+                                                        "Sterling": {
+                                                          "roundingMode": "Down"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "field2": {
+                                            "Constant": {
+                                              "value": "100"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "tpe": {
+                                    "Number": {
+                                      "fractionalDigits": 1,
+                                      "roundingMode": "Down"
+                                    }
+                                  }
+                                }
+                              },
+                              "right": {
+                                "Constant": {
+                                  "value": "40"
+                                }
+                              }
+                            }
+                          },
+                          "field1": {
+                            "Constant": {
+                              "value": "Yes"
+                            }
+                          },
+                          "field2": {
+                            "Constant": {
+                              "value": "No"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "onlyShowOnSummary": true,
+                  "editable": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "authConfig": {
+    "Anonymous": {}
+  },
+  "originalId": "concat-typed-number-expression",
+  "downloadPreviousSubmissionPdf": true,
+  "displayHMRCLogo": false,
+  "destinations": {
+    "DestinationList": {
+      "destinations": [
+        {
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
+          }
+        }
+      ],
+      "acknowledgementSection": {
+        "showBanner": true,
+        "fields": [],
+        "title": {
+          "SmartStringBase": {
+            "internal": {
+              "localised": {
+                "en": "Acknowledgement page"
+              },
+              "interpolations": []
+            }
+          }
+        },
+        "showReference": true,
+        "displayFeedbackLink": true
+      }
+    }
+  },
+  "accessiblePdf": false,
+  "draftRetrievalMethod": {
+    "FormAccessCodeForAgents": {
+      "continueOrDeletePage": {
+        "Show": {}
+      }
+    }
+  },
+  "_id": "concat-typed-number-expression",
+  "formCategory": "default",
+  "displayAccountHeader": false,
+  "allowedFileTypes": {
+    "fileExtensions": [
+      "pdf",
+      "jpg",
+      "xlsx",
+      "ods",
+      "docx",
+      "odt",
+      "pptx",
+      "odp"
+    ]
+  },
+  "languages": {
+    "languages": [
+      {
+        "En": {}
+      }
+    ]
+  },
+  "parentFormSubmissionRefs": []
+}

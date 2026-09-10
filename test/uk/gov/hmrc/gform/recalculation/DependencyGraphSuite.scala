@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, Sma
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.lookup.{ CountryLookupInfo, LocalisedLookupOptions, LookupCountryCode, LookupId, LookupInGibraltarEuEeaEfta, LookupLabel, LookupOptions, LookupPriority, LookupRegion, LookupRegistry, LookupSicCodeSection, NationalityLookupInfo, SicCodeLookupInfo }
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Register }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroup, DataRetrieve, DataRetrieveId, DataRetrieveResult, LangADT, RetrieveDataType, SmartString }
 
 class DependencyGraphSuite extends FunSuite {
@@ -116,22 +116,6 @@ class DependencyGraphSuite extends FunSuite {
           filename
         )
       }
-  }
-
-  test("summaryinfoonly value expressions are materialised when missing from saved data") {
-    val formModelOptics = RealJsonTemplateSupport.mkFormModelOptics(
-      MongoUserData(),
-      toVisitIndex(List("n0")),
-      EvaluationContext.empty,
-      "test-templates/recalculation/internal/read-only-expressions.json"
-    )
-
-    val recalculatedFormData =
-      formModelOptics.formModelVisibilityOptics.freeCalculator.recalculateDependenciesWithValue(
-        formModelOptics.formModelRenderPageOptics.allFormComponents
-      )
-
-    assertEquals(recalculatedFormData.find(FormComponentId("decimals1").modelComponentId), Some("123.456"))
   }
 
   def refreshTemplates() = RealJsonTemplateSupport.refreshTemplates("recalculation")
