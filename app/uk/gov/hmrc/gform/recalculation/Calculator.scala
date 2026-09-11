@@ -627,12 +627,13 @@ final class RealCalculator(
   private def evalLookupColumnCount(evaluationStatus: EvaluationStatus, value: String, staticTypeData: StaticTypeData)(
     implicit messages: Messages
   ): EvaluationStatus =
-    evaluationStatus match {
-      case EvaluationStatus.ListResult(list) =>
-        val count = list.count(_.stringRepresentation(staticTypeData, messages) === value)
-        EvaluationStatus.NumberResult(count)
-      case _ => EvaluationStatus.Empty
-    }
+    EvaluationStatus.NumberResult(
+      (evaluationStatus match {
+        case EvaluationStatus.ListResult(list) => list
+        case EvaluationStatus.Empty            => Nil
+        case status                            => status :: Nil
+      }).count(_.stringRepresentation(staticTypeData, messages) === value)
+    )
 
   private def evalHideZeroDecimals(evaluationStatus: EvaluationStatus, staticTypeData: StaticTypeData)(implicit
     messages: Messages
