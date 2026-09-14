@@ -41,6 +41,16 @@ trait Calculator {
   def allModelComponentIds(modelComponentId: ModelComponentId): List[(ModelComponentId, EvaluationStatus)]
 }
 
+private[recalculation] object ScalarBooleanExprEvaluator {
+  def evaluate(booleanExpr: BooleanExpr)(evaluateLeaf: BooleanExpr => Boolean): Boolean =
+    booleanExpr match {
+      case Or(lhs, rhs)  => evaluate(lhs)(evaluateLeaf) || evaluate(rhs)(evaluateLeaf)
+      case And(lhs, rhs) => evaluate(lhs)(evaluateLeaf) && evaluate(rhs)(evaluateLeaf)
+      case Not(expr)     => !evaluate(expr)(evaluateLeaf)
+      case leaf          => evaluateLeaf(leaf)
+    }
+}
+
 final class RealCalculator(
   metadata: Metadata,
   evaluationContext: EvaluationContext,
@@ -56,7 +66,9 @@ final class RealCalculator(
   override def evalBooleanExpr(booleanExpr: BooleanExpr): Boolean = {
     val staticTypeData = metadata.booleanExprStaticType(booleanExpr)
 
-    evalBooleanExpr(booleanExpr, staticTypeData, Behaviour.Default).exists(_ == true)
+    ScalarBooleanExprEvaluator.evaluate(booleanExpr) { leaf =>
+      evalBooleanExpr(leaf, staticTypeData, Behaviour.Default).exists(_ == true)
+    }
   }
 
   override def evalBooleanExprList(booleanExpr: BooleanExpr, behaviour: Behaviour): List[Boolean] = {
