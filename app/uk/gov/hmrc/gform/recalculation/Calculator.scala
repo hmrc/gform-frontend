@@ -777,8 +777,11 @@ final class RealCalculator(
     expr match {
       case Add(lhs, rhs) =>
         // When we are outside ATL, but rhs is referenceing ATL we need change behaviour on List producing.
+        // Inside an ATL iteration the operands must stay scoped to that iteration, otherwise a condition
+        // like ${totalPayable >= 0} would hold whenever *any* iteration satisfies it. Use .sum for list semantics.
         // TODO JoVl investigate ATL reference on the left, but not on the right
-        val finalBehaviour = behaviour(metadata, rhs)
+        val insideAtlIteration = rhs.allFormCtxIds().exists(fcId => dataBridge.insideAtl(FormCtx(fcId)))
+        val finalBehaviour = if (insideAtlIteration) behaviour else behaviour(metadata, rhs)
         val l = evalExpr(lhs, staticTypeData, finalBehaviour)
         val r = evalExpr(rhs, staticTypeData, finalBehaviour)
         l + r
