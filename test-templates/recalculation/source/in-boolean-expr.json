@@ -69,7 +69,7 @@
             {
               "values": [
                 {
-                  "value": "Tax year: ${yearToDate('0504', if vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo then '2012' else '2025')}"
+                  "value": "Tax year: ${yearToDate('0504', if vatNumber in user.enrolments.HMCE-VATDEC-ORG.VatRegNo then '2012' else 2026 - 1)}"
                 }
               ]
             }
