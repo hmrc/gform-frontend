@@ -491,8 +491,17 @@
                                                     }
                                                   },
                                                   "field2": {
-                                                    "Constant": {
-                                                      "value": "2025"
+                                                    "Subtraction": {
+                                                      "field1": {
+                                                        "Constant": {
+                                                          "value": "2026"
+                                                        }
+                                                      },
+                                                      "field2": {
+                                                        "Constant": {
+                                                          "value": "1"
+                                                        }
+                                                      }
                                                     }
                                                   }
                                                 }

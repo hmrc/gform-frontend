@@ -1089,7 +1089,7 @@ final class RealCalculator(
         }
       case DateConstructExpr(dateExpr, expr) =>
         val der: EvaluationStatus = evalDateExpr(dateExpr, staticTypeData, behaviour)
-        val er: EvaluationStatus = evalExpr(expr, staticTypeData, behaviour)
+        val er: EvaluationStatus = evalExpr(expr, behaviour)
         DateExprEval.evalDateConstructExpr(der, er)
       case EarliestOf(exprs) =>
         val evaluationStatuses = exprs.map(expr => evalDateExpr(expr, staticTypeData, behaviour))
