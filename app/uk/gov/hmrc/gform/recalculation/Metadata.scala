@@ -17,14 +17,13 @@
 package uk.gov.hmrc.gform.recalculation
 
 import cats.data.NonEmptyList
-import scala.util.Try
 import uk.gov.hmrc.gform.eval.{ ExprType, StaticTypeData, StaticTypeInfo }
 import uk.gov.hmrc.gform.models.DataRetrieveAll
-import uk.gov.hmrc.gform.models.ids.BaseComponentId
-import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthInfo, _ }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+import scala.util.Try
 
 class Metadata(
   val lookup: Map[BaseComponentId, RefInfo],
@@ -136,16 +135,23 @@ object Metadata {
       }
     }
 
-  def fromEnrolmentSection(enrolmentSection: EnrolmentSection): Metadata =
+  def fromEnrolmentSection(enrolmentSection: EnrolmentSection): Metadata = {
+    val staticTypeInfo: Map[BaseComponentId, StaticTypeData] =
+      enrolmentSection.fields
+        .map(fc => fc.id.baseComponentId -> fc.staticTypeData)
+        .toMap
+
+    val refInfos: Map[BaseComponentId, RefInfo] = formComponentsToRefInfo(List(enrolmentSection.toSection), None).toMap
+
     new Metadata(
-      lookup = Map.empty[BaseComponentId, RefInfo],
+      lookup = refInfos,
       groups = Set.empty[BaseComponentId],
       groupComponents = Set.empty[FormComponentId],
       atomicFields = Set.empty[BaseComponentId],
       atomicsLookup = Map.empty[FormComponentId, IndexedComponentId => NonEmptyList[ModelComponentId.Atomic]],
       componentTypeLookup = Map.empty[BaseComponentId, ComponentType],
       dataRetrieveAll = DataRetrieveAll.empty,
-      staticTypeInfo = StaticTypeInfo.empty,
+      staticTypeInfo = StaticTypeInfo(staticTypeInfo),
       lookupRegister = Map.empty[BaseComponentId, Register],
       addToListDataRetrieveIds = Set.empty[DataRetrieveId],
       addToListComponentIds = Set.empty[BaseComponentId],
@@ -156,8 +162,16 @@ object Metadata {
       allFileUploads = Set.empty[BaseComponentId],
       allMultiFileUploads = Set.empty[BaseComponentId]
     )
+  }
 
   def from(formTemplate: FormTemplate): Metadata = {
+
+    val (enrolmentSectionFields: List[FormComponent], enrolmentSectionRefInfos: Map[BaseComponentId, RefInfo]) =
+      formTemplate.authConfig match {
+        case HasEnrolmentSection((_, enrolmentSection, _, _, _)) =>
+          (enrolmentSection.fields, formComponentsToRefInfo(List(enrolmentSection.toSection), None).toMap)
+        case _ => (List.empty[FormComponent], Map.empty[BaseComponentId, RefInfo])
+      }
 
     val declarationSectionFields: List[FormComponent] =
       formTemplate.destinations.fold(destinationList =>
@@ -182,7 +196,7 @@ object Metadata {
 
       }
       sections.toMap
-    } ++ declarationSectionRefInfos
+    } ++ declarationSectionRefInfos ++ enrolmentSectionRefInfos
 
     val groups: Set[BaseComponentId] = formKind.fold { classic =>
       classic.sections.flatMap { section =>
@@ -216,7 +230,7 @@ object Metadata {
         fc.id -> multi.fields _
       }.toMap
 
-    val allEnterableFields =
+    val allEnterableFields = enrolmentSectionFields ++
       formKind.allEnterableFields ++ formKind.allAddAnotherQuestions ++ formKind.allGroups ++ declarationSectionFields
 
     val componentTypeLookup: Map[BaseComponentId, ComponentType] =
