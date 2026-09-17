@@ -30,6 +30,28 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+      ),
+      List(
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+      ),
+      List(
+        "12345 67890",
+        "12345 67890",
+        "12345 67890 12",
+        "12345 67",
+        "12345 67890 12345",
+        "123 4567 89",
+        "123 4567 89",
+        "123 4567 89 012",
+        "123 4567",
+        "123 4567 89 012345"
+      ),
+      "utr-vrn.json Generated"
+    ),
+    (
+      MongoUserData(
         "EORI"   -> One("3333333"),
         "1_name" -> One("AAA")
       ),

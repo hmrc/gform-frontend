@@ -239,10 +239,39 @@ sealed trait StringFnc {
     case StringFnc.CapitalizeAll  => s.split(' ').map(_.capitalize).mkString(" ")
     case StringFnc.LowerCase      => s.toLowerCase
     case StringFnc.UpperCase      => s.toUpperCase
+    case StringFnc.ShowAsVrn      => toVRN(s)
+    case StringFnc.ShowAsUtr      => toUTR(s)
     case StringFnc.RemoveSpaces   => s.replaceAll(" ", "")
     case StringFnc.LowerCaseFirst => s.headOption.map(c => s"${c.toLower}${s.tail}").getOrElse("")
     case StringFnc.SubString(beginIndex, endIndex) =>
       s.substring(Math.min(beginIndex, s.length), Math.min(endIndex, s.length))
+  }
+
+  private def toUTR(value: String): String = {
+    val valueWithoutSpace = value.replaceAll(" ", "")
+    var result = valueWithoutSpace.substring(0, Math.min(5, valueWithoutSpace.length))
+    if (valueWithoutSpace.length > 5) {
+      result += " " + valueWithoutSpace.substring(5, Math.min(10, valueWithoutSpace.length))
+    }
+    if (valueWithoutSpace.length > 10) {
+      result += " " + valueWithoutSpace.substring(10, valueWithoutSpace.length)
+    }
+    result
+  }
+
+  private def toVRN(value: String): String = {
+    val valueWithoutSpace = value.replaceAll(" ", "")
+    var result = valueWithoutSpace.substring(0, Math.min(3, valueWithoutSpace.length))
+    if (valueWithoutSpace.length > 3) {
+      result += " " + valueWithoutSpace.substring(3, Math.min(7, valueWithoutSpace.length))
+    }
+    if (valueWithoutSpace.length > 7) {
+      result += " " + valueWithoutSpace.substring(7, Math.min(9, valueWithoutSpace.length))
+    }
+    if (valueWithoutSpace.length > 9) {
+      result += " " + valueWithoutSpace.substring(9, valueWithoutSpace.length)
+    }
+    result
   }
 }
 
@@ -251,6 +280,8 @@ object StringFnc {
   case object CapitalizeAll extends StringFnc
   case object UpperCase extends StringFnc
   case object LowerCase extends StringFnc
+  case object ShowAsVrn extends StringFnc
+  case object ShowAsUtr extends StringFnc
   case object RemoveSpaces extends StringFnc
   case object LowerCaseFirst extends StringFnc
   case class SubString(beginIndex: Int, endIndex: Int) extends StringFnc
