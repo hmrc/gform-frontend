@@ -192,15 +192,16 @@ final class FormModel(
     allFormComponents.filterNot(fc => pageIds.contains(fc.id))
   }
 
+  def maybeVisibleSectionNumber(sectionNumber: SectionNumber): Option[SectionNumber] =
+    if (availableSectionNumbers.contains(sectionNumber)) Some(sectionNumber)
+    else
+      availableSectionNumbers
+        .findLast(_ < sectionNumber)
+        .orElse(availableSectionNumbers.headOption)
+
   def visibleSectionNumber(sectionNumber: SectionNumber): SectionNumber =
-    if (availableSectionNumbers.contains(sectionNumber)) {
-      sectionNumber
-    } else {
-      // User is trying to see invisible page, so we need to send him to appropriate SectionNumber instead
-      availableSectionNumbers match {
-        case Nil       => throw new IllegalArgumentException(s"Cannot find valid sectionNumber for $sectionNumber.")
-        case head :: _ => availableSectionNumbers.findLast(_ < sectionNumber).getOrElse(head)
-      }
+    maybeVisibleSectionNumber(sectionNumber).getOrElse {
+      throw new IllegalArgumentException(s"Cannot find valid sectionNumber for $sectionNumber.")
     }
 
   val sectionNumberLookup: Map[FormComponentId, SectionNumber] =
