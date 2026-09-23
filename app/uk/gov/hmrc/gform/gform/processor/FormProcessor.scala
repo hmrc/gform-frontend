@@ -503,7 +503,13 @@ class FormProcessor(
             processData.formModelOptics.formModelRenderPageOptics.allFormComponents
           )
 
-        val formDataU: FormData = oldData.toFormData ++ formData ++ recalculatedDependencies
+        val synthesizedChoiceData = synthesizeHiddenChoiceData(
+          sectionNumber,
+          oldData,
+          enteredVariadicFormData,
+          formModelVisibilityOptics
+        )
+        val formDataU: FormData = oldData.toFormData ++ formData ++ recalculatedDependencies ++ synthesizedChoiceData
 
         val redirectUrl = if (isValid && pageModel.redirects.nonEmpty) {
           pageModel.redirects.collectFirst {
@@ -565,6 +571,60 @@ class FormProcessor(
         } yield res
       }
     } yield res
+  }
+
+  private[processor] def synthesizeHiddenChoiceData(
+    sectionNumber: SectionNumber,
+    existingData: VariadicFormData,
+    enteredData: EnteredVariadicFormData,
+    formModelVisibilityOptics: FormModelVisibilityOptics
+  )(implicit sse: SmartStringEvaluator, messages: Messages): FormData = {
+    val formModel = formModelVisibilityOptics.formModel
+    val freeCalculator = formModelVisibilityOptics.freeCalculator
+
+    formModel.bracket(sectionNumber) match {
+      case bracket: Bracket.AddToList =>
+        val iterationIndex = bracket.iterations.toList.indexWhere(_.hasSectionNumber(sectionNumber))
+        val iterationNumber = iterationIndex + 1
+
+        val synthesizedFields = bracket.source.pages.toList.flatMap { page =>
+          page.allFields.collect {
+            case formComponent @ IsChoice(choice) if choice.hideChoicesSelected =>
+              val modelComponentId = formComponent.modelComponentId.expandWithPrefix(iterationNumber)
+              val pageIsHidden = page.includeIf.exists(includeIf => !freeCalculator.evalIncludeIf(includeIf))
+              val componentIsHidden =
+                formComponent.includeIf.exists(includeIf => !freeCalculator.evalIncludeIf(includeIf))
+              val hasSubmittedValue = enteredData.userData.contains(modelComponentId)
+              val hasExistingValue = existingData.contains(modelComponentId)
+
+              if (
+                iterationIndex >= 0 && (pageIsHidden || componentIsHidden) && !hasSubmittedValue && !hasExistingValue
+              ) {
+                val expandedChoice = OptionDataUtils.expand(formComponent, choice, freeCalculator.calc)
+                val expandedOptions = expandedChoice match {
+                  case IsChoice(expanded) => expanded.options
+                  case _                  => Nil
+                }
+                val remainingOptions = ChoiceOptions.visible(
+                  expandedOptions,
+                  modelComponentId,
+                  formModelVisibilityOptics,
+                  hideChoicesSelected = true,
+                  choice.noDuplicates
+                )
+
+                remainingOptions match {
+                  case (valueBased: OptionData.ValueBased, index) :: Nil =>
+                    List(FormField(modelComponentId, valueBased.getValue(index, formModelVisibilityOptics)))
+                  case _ => Nil
+                }
+              } else Nil
+          }.flatten
+        }
+
+        FormData(synthesizedFields)
+      case _ => FormData(Nil)
+    }
   }
 
   private def updateCacheFromValidatorsResult(cache: AuthCacheWithForm, validatorsResult: Option[ValidatorsResult]) = {

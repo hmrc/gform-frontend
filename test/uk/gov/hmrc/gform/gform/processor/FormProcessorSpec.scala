@@ -30,13 +30,14 @@ import uk.gov.hmrc.gform.eval.smartstring.RealSmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gform.{ FastForwardService, FileSystemConnector }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.FormTemplateBuilder.ls
+import uk.gov.hmrc.gform.Helpers.toSmartString
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.objectStore.ObjectStoreService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormModelOptics, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, Mandatory, PageId, ShortText, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId, IncludeIf, IsFalse, Mandatory, OptionData, OptionDataValue, PageId, Radio, ShortText, TemplateSectionIndex, Text, Value, Vertical }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.validation.ValidationService
 
@@ -210,6 +211,67 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
 
       expected shouldBe actual
     }
+  }
+
+  "synthesizeHiddenChoiceData" should "store the sole remaining value on the current ATL iteration" in {
+    val choiceField = mkFormComponent(
+      "vdsType",
+      Choice(
+        Radio,
+        List("Yes", "No").map(value =>
+          OptionData.ValueBased(toSmartString(value), None, None, None, OptionDataValue.StringBased(value), None, None)
+        ),
+        Vertical,
+        Nil,
+        None,
+        None,
+        toSmartString("or"),
+        None,
+        None,
+        hideChoicesSelected = true,
+        noDuplicates = false
+      )
+    )
+    val idField = mkFormComponent("vdsId", Text(ShortText.default, Value))
+    val addToList = mkAddToListSection(
+      page(List(idField)),
+      page(List(choiceField)).copy(includeIf = Some(IncludeIf(IsFalse)))
+    )
+    val formTemplate = mkFormTemplate(List(addToList))
+    val existingData = VariadicFormData.empty.addOne(
+      FormComponentId("vdsType").modelComponentId.expandWithPrefix(2) -> "Yes"
+    )
+    val formModelOptics = mkFormModelOptics(formTemplate, existingData)
+    val formModel = formModelOptics.formModelVisibilityOptics.formModel
+    val currentSectionNumber = formModel.availableSectionNumbers.find { sectionNumber =>
+      formModel(sectionNumber).allFormComponentIds.exists(_.baseComponentId.value == "vdsId")
+    }.value
+    val iterationIndex = formModel
+      .bracket(currentSectionNumber)
+      .asInstanceOf[Bracket.AddToList]
+      .iterations
+      .toList
+      .indexWhere(_.hasSectionNumber(currentSectionNumber))
+    val expectedId = FormComponentId("vdsType").modelComponentId.expandWithPrefix(iterationIndex + 1)
+
+    val synthesizedData = formProcessor.synthesizeHiddenChoiceData(
+      currentSectionNumber,
+      existingData,
+      EnteredVariadicFormData.empty,
+      formModelOptics.formModelVisibilityOptics
+    )
+
+    synthesizedData.find(expectedId) shouldBe Some("No")
+  }
+
+  "maybeVisibleSectionNumber" should "resolve a stale section number against the post-update model" in {
+    val formTemplate = mkFormTemplate(
+      List(mkSection(mkFormComponent("field", Text(ShortText.default, Value))))
+    )
+    val formModel = mkFormModelOptics(formTemplate, VariadicFormData.empty).formModelVisibilityOptics.formModel
+    val missingSectionNumber = Classic.NormalPage(TemplateSectionIndex(99))
+
+    formModel.maybeVisibleSectionNumber(missingSectionNumber) shouldBe formModel.availableSectionNumbers.lastOption
   }
 
 }

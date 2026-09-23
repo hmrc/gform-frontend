@@ -69,6 +69,9 @@ class FormController(
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
+  private def postUpdateSectionNumber(formModel: FormModel, sectionNumber: SectionNumber): SectionNumber =
+    formModel.maybeVisibleSectionNumber(sectionNumber).getOrElse(sectionNumber)
+
   import i18nSupport._
 
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
@@ -640,6 +643,11 @@ class FormController(
             processData: ProcessData
           ): Future[Result] = {
 
+            val sectionNumberForUpdate = postUpdateSectionNumber(
+              processData.formModelOptics.formModelVisibilityOptics.formModel,
+              sectionNumber
+            )
+
             confirmationService.processConfirmation(
               sectionNumber,
               processData,
@@ -656,7 +664,7 @@ class FormController(
                 formProcessor.validateAndUpdateData(
                   processData.cache,
                   processDataUpd,
-                  sectionNumber,
+                  sectionNumberForUpdate,
                   maybeAccessCode,
                   fastForward,
                   formModelOptics,
@@ -831,13 +839,18 @@ class FormController(
 
           def processSaveAndExit(processData: ProcessData): Future[Result] = {
 
+            val sectionNumberForUpdate = postUpdateSectionNumber(
+              processData.formModelOptics.formModelVisibilityOptics.formModel,
+              sectionNumber
+            )
+
             val purgeConfirmationData: PurgeConfirmationData =
               confirmationService.purgeConfirmationData(sectionNumber, processData, enteredVariadicFormData)
 
             formProcessor.validateAndUpdateData(
               processData.cache,
               purgeConfirmationData.f(processData),
-              sectionNumber,
+              sectionNumberForUpdate,
               maybeAccessCode,
               fastForward,
               formModelOptics,
