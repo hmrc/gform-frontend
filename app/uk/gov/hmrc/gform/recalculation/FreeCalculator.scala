@@ -42,6 +42,9 @@ final class FreeCalculator(
   def updateThirdPartyData(thirdPartyData: ThirdPartyData): Unit =
     recalculator.updateThirdPartyData(thirdPartyData)
 
+  def updateTaskIdTaskStatusMapping(taskId: TaskId, taskStatus: uk.gov.hmrc.gform.tasklist.TaskStatus): Unit =
+    recalculator.updateTaskIdTaskStatusMapping(taskId, taskStatus)
+
   def addDataRetrieveResult(dataRetrieveResult: DataRetrieveResult): Unit = {
     val thirdPartyData = evaluationContext.thirdPartyData.updateDataRetrieve(List(dataRetrieveResult))
     updateThirdPartyData(thirdPartyData)

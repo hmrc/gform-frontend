@@ -20,7 +20,10 @@ import play.api.libs.json.Format
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ JsonUtils, TaskId }
 import uk.gov.hmrc.gform.tasklist.TaskStatus
 
-case class TaskIdTaskStatusMapping(mapping: Map[TaskId, TaskStatus])
+case class TaskIdTaskStatusMapping(mapping: Map[TaskId, TaskStatus]) {
+  def append(taskId: TaskId, taskStatus: TaskStatus): TaskIdTaskStatusMapping =
+    TaskIdTaskStatusMapping(mapping + (taskId -> taskStatus))
+}
 
 object TaskIdTaskStatusMapping {
   val empty = TaskIdTaskStatusMapping(Map.empty)

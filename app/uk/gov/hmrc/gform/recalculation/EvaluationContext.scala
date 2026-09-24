@@ -39,7 +39,7 @@ final case class EvaluationContext(
   authConfig: AuthConfig,
   retrievals: MaterialisedRetrievals,
   var thirdPartyData: ThirdPartyData,
-  taskIdTaskStatus: TaskIdTaskStatusMapping,
+  var taskIdTaskStatus: TaskIdTaskStatusMapping,
   formStartDate: LocalDate,
   lookupRegistry: LookupRegistry,
   lookupRegister: Map[BaseComponentId, Register],
