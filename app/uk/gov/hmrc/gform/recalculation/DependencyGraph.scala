@@ -289,6 +289,11 @@ class Recalculator(
   def updateThirdPartyData(thirdPartyData: ThirdPartyData): Unit =
     evaluationContext.thirdPartyData = thirdPartyData
 
+  def updateTaskIdTaskStatusMapping(taskId: TaskId, taskStatus: uk.gov.hmrc.gform.tasklist.TaskStatus): Unit = {
+    val updTaskIdTaskStatus = evaluationContext.taskIdTaskStatus.append(taskId, taskStatus)
+    evaluationContext.taskIdTaskStatus = updTaskIdTaskStatus
+  }
+
   def markForRecalculation(modelComponentIds: List[ModelComponentId]): Unit =
     answerMap.markForRecalculation(modelComponentIds)
 
