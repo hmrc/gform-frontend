@@ -30,25 +30,20 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
   val data = List(
     (
       MongoUserData(
+        "saUtr" -> One("1234567895"),
+        "ukVrn" -> One("123456782")
       ),
       List(
+        "n0",
+        "n1"
       ),
       EvaluationContext.empty,
-      AnswerMap(
-      ),
+      AnswerMap(),
       List(
-        "12345 67890",
-        "12345 67890",
-        "12345 67890 12",
-        "12345 67",
-        "12345 67890 12345",
-        "123 4567 89",
-        "123 4567 89",
-        "123 4567 89 012",
-        "123 4567",
-        "123 4567 89 012345"
+        "12345 67895",
+        "123 4567 82"
       ),
-      "utr-vrn.json Generated"
+      "show-as-utr-show-as-vrn.json Generated"
     ),
     (
       MongoUserData(
@@ -2582,6 +2577,52 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
            | intensivePercentageConcat: 75.8%</p>""".stripMargin
       ),
       "concat-typed-number-expression.json Generated"
+    ),
+    (
+      MongoUserData(
+        "shareValue"     -> One("0.000000001"),
+        "shareValueText" -> One("0.000000001")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "secret"         -> Empty,
+        "shareValue"     -> NumberResult(BigDecimal("1E-9")),
+        "shareValueText" -> StringResult("0.000000001")
+      ),
+      List(
+        "shareValue = 0.000000001",
+        "shareValueText = 0.000000001",
+        "shareValue + '!' = 0.000000001!",
+        "shareValue = shareValueText : Yes",
+        "shareValueText = shareValue : Yes"
+      ),
+      "text-number-rendering.json - scientific notation"
+    ),
+    (
+      MongoUserData(
+        "shareValue"     -> One("1"),
+        "shareValueText" -> One("1.000")
+      ),
+      List(
+        "n0"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "secret"         -> Empty,
+        "shareValue"     -> NumberResult(1),
+        "shareValueText" -> StringResult("1.000")
+      ),
+      List(
+        "shareValue = 1",
+        "shareValueText = 1.000",
+        "shareValue + '!' = 1!",
+        "shareValue = shareValueText : Yes",
+        "shareValueText = shareValue : Yes"
+      ),
+      "text-number-rendering.json - trailing spaces"
     )
   )
 }

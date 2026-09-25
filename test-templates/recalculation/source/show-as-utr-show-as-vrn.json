@@ -1,0 +1,59 @@
+{
+  "_id": "show-as-utr-show-as-vrn",
+  "formName": "gform",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "sections": [
+    {
+      "title": "showAsUtr & showAsVrn",
+      "fields": [
+        {
+          "id": "saUtr",
+          "type": "text",
+          "format": "saUtr",
+          "label": "SA UTR"
+        },
+        {
+          "id": "ukVrn",
+          "type": "text",
+          "format": "ukVrn",
+          "label": "UK VRN"
+        }
+      ]
+    },
+    {
+      "title": "showAsUtr & showAsVrn",
+      "fields": [
+        {
+          "id": "miniSummary",
+          "type": "miniSummaryList",
+          "label": "",
+          "rows": [
+            {
+              "key": "SA UTR",
+              "value": "${showAsUtr(saUtr)}"
+            },
+            {
+              "key": "UK VRN",
+              "value": "${showAsVrn(ukVrn)}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "title": "Acknowledgement Page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}

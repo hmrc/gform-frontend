@@ -55,8 +55,9 @@
   },
   "destinations": [
     {
-      "id": "logit",
-      "type": "log"
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
     }
   ]
 }
