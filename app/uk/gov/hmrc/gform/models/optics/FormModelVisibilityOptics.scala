@@ -87,7 +87,7 @@ final class FormModelVisibilityOptics(
     //   "submitMode": "summaryinfoonly"
     freeCalculator.answerMapWithFallback.toStringResultOrOptionResult(modelComponentId) match {
       case EvaluationStatus.StringResult(value) => Some(value)
-      case EvaluationStatus.NumberResult(value) => Some(value.toString)
+      case EvaluationStatus.NumberResult(value) => Some(value.bigDecimal.toPlainString)
       case dr: EvaluationStatus.DateResult      => Some(dr.asString)
       case _                                    => None
     }

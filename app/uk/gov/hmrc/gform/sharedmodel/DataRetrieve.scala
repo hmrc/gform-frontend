@@ -210,8 +210,9 @@ case class DataRetrieve(
             validateAttribute(attributeValue, JsStringType)
             attributeValue
           case JsSuccess(JsNumber(attributeValue), _) =>
-            validateAttribute(attributeValue.toString, JsNumberType)
-            TextFormatter.stripTrailingZeros(attributeValue.toString)
+            val attributeValueStr = attributeValue.bigDecimal.toPlainString
+            validateAttribute(attributeValueStr, JsNumberType)
+            TextFormatter.stripTrailingZeros(attributeValueStr)
           case JsSuccess(JsBoolean(attributeValue), _) =>
             validateAttribute(attributeValue.toString, JsBooleanType)
             attributeValue.toString

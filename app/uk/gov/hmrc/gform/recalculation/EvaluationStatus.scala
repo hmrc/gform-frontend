@@ -24,6 +24,7 @@ import java.util.Locale
 import play.api.i18n.Messages
 import scala.util.Try
 import scala.util.matching.Regex
+import uk.gov.hmrc.gform.commons.BigDecimalUtil
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.NumberSetScale
 import uk.gov.hmrc.gform.eval.{ StaticTypeData, TypeInfo }
@@ -179,7 +180,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case r: StringResult =>
       this match {
         case Hidden | Empty  => r
-        case l: NumberResult => StringResult(l.value.toString + r.value)
+        case l: NumberResult => StringResult(l.value.bigDecimal.toPlainString + r.value)
         case l: StringResult => l + r
         case l: DateResult   => StringResult(l.asString + r.value)
         case l: ListResult   => l.map(_ + r)
@@ -304,8 +305,11 @@ sealed trait EvaluationStatus extends Product with Serializable {
       that match {
         case NumberResult(bd) => (bd === t.value) :: Nil
         case StringResult(value) =>
-          (value === t.value.toString ||
-            value === t.value.underlying.stripTrailingZeros.toPlainString) :: Nil
+          ((BigDecimalUtil.toBigDecimalNormalized(value) match {
+            case None     => false
+            case Some(bd) => bd === t.value
+          }) ||
+            value === t.value.bigDecimal.stripTrailingZeros.toPlainString) :: Nil
         case ListResult(_) => that.identical(t)
         case _             => false :: Nil
       }
@@ -370,7 +374,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
   def matchRegex(regex: Regex): List[Boolean] = this match {
     case t: Hidden.type   => false :: Nil
     case t: Empty.type    => false :: Nil
-    case t: NumberResult  => regex.findFirstIn(t.value.toString).isDefined :: Nil
+    case t: NumberResult  => regex.findFirstIn(t.value.bigDecimal.toPlainString).isDefined :: Nil
     case t: StringResult  => regex.findFirstIn(t.value.toString).isDefined :: Nil
     case t: OptionResult  => false :: Nil
     case t: DateResult    => false :: Nil

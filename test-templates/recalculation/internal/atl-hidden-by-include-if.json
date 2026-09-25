@@ -399,8 +399,17 @@
     "DestinationList": {
       "destinations": [
         {
-          "Log": {
-            "id": "logit"
+          "StateTransition": {
+            "id": "transitionToSubmitted",
+            "requiredState": {
+              "Submitted": {}
+            },
+            "includeIf": {
+              "HandlebarValue": {
+                "value": "true"
+              }
+            },
+            "failOnError": true
           }
         }
       ],

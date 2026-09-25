@@ -1,0 +1,124 @@
+{
+  "_id": "text-number-rendering",
+  "formName": "Text number rendering",
+  "version": 1,
+  "description": "",
+  "sections": [
+    {
+      "title": "Share value",
+      "fields": [
+        {
+          "id": "shareValue",
+          "type": "text",
+          "label": "Amount in this currency",
+          "format": "number(9,10)",
+          "round": "Up"
+        },
+        {
+          "id": "shareValueText",
+          "label": "Amount in this currency",
+          "type": "text",
+          "format": "text"
+        }
+      ]
+    },
+    {
+      "title": "Secret",
+      "includeIf": "${shareValueText = shareValue}",
+      "fields": [
+        {
+          "id": "secret",
+          "type": "choice",
+          "label": "Secret",
+          "choices": [
+            {
+              "en": "Reveal",
+              "value": "reveal"
+            },
+            {
+              "en": "Keep hidden",
+              "value": "keepHidden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Result",
+      "fields": [
+        {
+          "id": "dummy",
+          "type": "text",
+          "label": "Dummy",
+          "format": "text"
+        },
+        {
+          "id": "table",
+          "type": "table",
+          "summaryValue": "Calculations",
+          "label": "Calculations",
+          "header": [
+            {
+              "en": "Test"
+            }
+          ],
+          "rows": [
+            {
+              "values": [
+                {
+                  "value": "shareValue = ${shareValue}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "shareValueText = ${shareValueText}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "shareValue + '!' = ${shareValue + '!'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "shareValue = shareValueText : ${if shareValue = shareValueText then 'Yes' else 'No'}"
+                }
+              ]
+            },
+            {
+              "values": [
+                {
+                  "value": "shareValueText = shareValue : ${if shareValueText = shareValue then 'Yes' else 'No'}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "declarationSection": {
+    "title": "Declaration",
+    "fields": []
+  },
+  "acknowledgementSection": {
+    "title": "Confirmation page",
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
