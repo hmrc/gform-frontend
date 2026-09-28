@@ -71,10 +71,11 @@ class FormModelBuilder(
   def visibilityModel[U <: SectionSelectorType: SectionSelector](
     data: VariadicFormData,
     phase: Option[FormPhase],
-    form: Form
+    form: Form,
+    recomputeGraph: Boolean
   )(implicit lang: LangADT, messages: Messages): FormModelOptics = {
 
-    val (formModel, freeCalculator): (FormModel, FreeCalculator) = fastModel(data, form, phase)
+    val (formModel, freeCalculator): (FormModel, FreeCalculator) = fastModel(data, form, phase, recomputeGraph)
 
     val formModelVisibilityOptics: FormModelVisibilityOptics =
       buildFormModelVisibilityOptics(formModel, freeCalculator)
@@ -385,7 +386,8 @@ class FormModelBuilder(
   def fastModel[U <: SectionSelectorType](
     variadiFormData: VariadicFormData,
     form: Form,
-    phase: Option[FormPhase]
+    phase: Option[FormPhase],
+    recomputeGraph: Boolean
   )(implicit
     lang: LangADT,
     messages: Messages,
@@ -426,7 +428,8 @@ class FormModelBuilder(
         mongoUserData,
         visitIndex,
         evaluationContext,
-        cacheBuster
+        cacheBuster,
+        recomputeGraph
       )
 
     val freeCalculator: FreeCalculator = recalculator.mkFreeCalculator()

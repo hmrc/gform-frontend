@@ -100,7 +100,7 @@ class ProcessDataService[F[_]: Monad](
         )
 
         val browserFormModelOptics =
-          FormModelOptics.mkFormModelOptics[U](dataRaw, cacheUpd)
+          FormModelOptics.mkFormModelOptics[U](dataRaw, cacheUpd, recomputeGraph = false)
 
         taxPeriodStateChecker
           .callDesIfNeeded(
