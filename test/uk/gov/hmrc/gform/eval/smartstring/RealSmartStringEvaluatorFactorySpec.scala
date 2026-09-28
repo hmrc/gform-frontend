@@ -27,7 +27,7 @@ import play.api.test.Helpers
 import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, Role }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.recalculation.EvaluationStatus
+import uk.gov.hmrc.gform.recalculation.{ EvaluationStatus, Recalculator }
 import uk.gov.hmrc.gform.recalculation.EvaluationStatus._
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -48,6 +48,8 @@ class RealSmartStringEvaluatorFactorySpec
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(5000, Millis)), interval = scaled(Span(15, Millis)))
+
+  override protected def afterEach(): Unit = Recalculator.cache.invalidateAll()
 
   private def toOptionData(
     xs: List[String],
@@ -463,7 +465,8 @@ class RealSmartStringEvaluatorFactorySpec
     lazy val formModelOptics: FormModelOptics = FormModelOptics
       .mkFormModelOptics[SectionSelectorType.WithDeclaration](
         cache.variadicFormData,
-        cache
+        cache,
+        recomputeGraph = false
       )
 
     lazy val factory = new RealSmartStringEvaluatorFactory(messages)

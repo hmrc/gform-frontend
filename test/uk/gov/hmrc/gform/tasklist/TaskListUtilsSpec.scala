@@ -77,7 +77,11 @@ class TaskListUtilsSpec extends AnyWordSpecLike with Matchers with FormModelSupp
       val taskCoordinatesMap = TaskListUtils.toTaskCoordinatesMap(formTemplate)
 
       val staleOptics: FormModelOptics =
-        FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](cacheStale.variadicFormData, cacheStale)
+        FormModelOptics.mkFormModelOptics[SectionSelectorType.WithDeclaration](
+          cacheStale.variadicFormData,
+          cacheStale,
+          recomputeGraph = false
+        )
       val staleResolver = CannotStartYetResolver.create(staleOptics, taskCoordinatesMap)
 
       val cacheWithFreshStatuses = cacheStale.copy(
@@ -86,9 +90,10 @@ class TaskListUtilsSpec extends AnyWordSpecLike with Matchers with FormModelSupp
         )
       )
       val refreshedOptics: FormModelOptics =
-        FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
+        FormModelOptics.mkFormModelOptics[SectionSelectorType.WithDeclaration](
           cacheWithFreshStatuses.variadicFormData,
-          cacheWithFreshStatuses
+          cacheWithFreshStatuses,
+          recomputeGraph = false
         )
       val refreshedResolver = CannotStartYetResolver.create(refreshedOptics, taskCoordinatesMap)
 

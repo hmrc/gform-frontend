@@ -344,7 +344,8 @@ class LookupControllerSpec
       FormModelOptics
         .mkFormModelOptics[SectionSelectorType.Normal](
           variadicFormData,
-          authCacheWithForm
+          authCacheWithForm,
+          recomputeGraph = false
         )
 
     val messagesControllerComponents: MessagesControllerComponents = stubMessagesControllerComponents()

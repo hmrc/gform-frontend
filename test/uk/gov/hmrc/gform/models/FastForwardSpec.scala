@@ -90,7 +90,8 @@ class FastForwardSpec extends AnyFreeSpecLike with FormModelSupport with Variadi
             .visibilityModel[SectionSelectorType.Normal](
               variadicData,
               None,
-              Form.dummy(FormTemplateId(""))
+              Form.dummy(FormTemplateId("")),
+              recomputeGraph = false
             )
 
           StopAt(stopAt).next(fmvo.formModelVisibilityOptics.formModel, stopAt) shouldBe StopAt(expectedStopAt)

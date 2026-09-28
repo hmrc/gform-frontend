@@ -136,7 +136,8 @@ class FormProcessorSpec extends Spec with FormModelSupport with VariadicFormData
         .visibilityModel[SectionSelectorType.Normal](
           existingData,
           None,
-          Form.dummy(FormTemplateId(""))
+          Form.dummy(FormTemplateId("")),
+          recomputeGraph = false
         )
     val visibilityFormModelVisibility: FormModel = formModelOptics.formModelVisibilityOptics.formModel
     val initialVisitsIndex = VisitIndex.Classic(

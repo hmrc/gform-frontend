@@ -655,7 +655,8 @@ class AddressLookupController(
                 val browserFormModelOptics = FormModelOptics
                   .mkFormModelOptics[SectionSelectorType.Normal](
                     variadicFormData,
-                    syntheticCache
+                    syntheticCache,
+                    recomputeGraph = true
                   )
 
                 val envelopeWithMapping: EnvelopeWithMapping = EnvelopeWithMapping(Envelope.empty, syntheticCache.form)
@@ -821,7 +822,8 @@ class AddressLookupController(
         .visibilityModel[SectionSelectorType.Normal](
           data,
           None,
-          cache.form
+          cache.form,
+          recomputeGraph = true
         )
 
     f(syntheticFormComponent)(syntheticCache)(formModelOpticsUpd)

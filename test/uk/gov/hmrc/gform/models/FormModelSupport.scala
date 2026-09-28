@@ -117,7 +117,7 @@ trait FormModelSupport extends GraphSpec {
     val authCache: AuthCacheWithForm = mkAuthCacheWithForm(formTemplate, thirdPartyData)
 
     FormModelOptics
-      .mkFormModelOptics[SectionSelectorType.Normal](data, authCache)
+      .mkFormModelOptics[SectionSelectorType.Normal](data, authCache, recomputeGraph = false)
   }
 
   def mkFormModelOpticsMongo(
@@ -127,7 +127,8 @@ trait FormModelSupport extends GraphSpec {
     FormModelOptics
       .mkFormModelOptics[SectionSelectorType.WithDeclaration](
         data,
-        mkAuthCacheWithForm(formTemplate)
+        mkAuthCacheWithForm(formTemplate),
+        recomputeGraph = false
       )
       .formModelVisibilityOptics
 
