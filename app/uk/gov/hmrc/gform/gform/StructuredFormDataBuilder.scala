@@ -294,7 +294,7 @@ class StructuredFormDataBuilder(
         ObjectStructure(fields.map(field => field.copy(value = sanitiseStructuredFormValue(field))))
       case t @ TextNode(_) =>
         if (t.value.nonEmpty && sanitiseRequiredIds(FormComponentId(field.name.name).baseComponentId)) {
-          val cleanedValue = t.value.replace("£", "")
+          val cleanedValue = t.value.replace("£", "").trim
           toBigDecimalSafe(cleanedValue)
             .map(value => TextNode(value.toString))
             .getOrElse(throw new NumberFormatException(s"Unable to convert value '${t.value}' to a number."))

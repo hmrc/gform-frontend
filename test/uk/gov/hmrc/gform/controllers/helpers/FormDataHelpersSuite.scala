@@ -63,6 +63,18 @@ class FormDataHelpersSuite extends FunSuite {
     (
       MongoUserData(),
       Option.empty[SectionNumber],
+      Map("amountField" -> Seq("£ 111,222.33")),
+      RequestRelatedData.empty,
+      VariadicFormData(
+        mutable.Map(
+          purePure("amountField") -> VariadicValue.One("111,222.33")
+        )
+      ),
+      "text-field-sterling.json remove currency symbol in value for formComponent with type Text(Sterling) and trim the result"
+    ),
+    (
+      MongoUserData(),
+      Option.empty[SectionNumber],
       Map("amountField" -> Seq("£111")),
       RequestRelatedData.empty,
       VariadicFormData(
