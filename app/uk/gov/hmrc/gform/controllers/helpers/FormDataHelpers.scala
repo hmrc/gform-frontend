@@ -229,14 +229,10 @@ object FormDataHelpers {
   ): String = {
     val fcOpt = formModel.fcLookup.get(formComponentId)
     val result = fcOpt match {
-      case Some(formComponent) if formComponent.isNumeric                              => value.replace("£", "")
+      case Some(formComponent) if formComponent.isNumeric                              => value.replace("£", "").trim
       case Some(formComponent) if formComponent.isUkSortCode && isValidSortCode(value) => value.replaceAll("[^0-9]", "")
-      case Some(formComponent)
-          if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
-        val poundOrComma = "[£,]".r
-        poundOrComma.replaceAllIn(value, "")
-      case Some(formComponent) if formComponent.isReferenceNumber => value.replace(" ", "")
-      case Some(formComponent) if formComponent.isPayeReference   => value.replace(" ", "")
+      case Some(formComponent) if formComponent.isReferenceNumber                      => value.replace(" ", "")
+      case Some(formComponent) if formComponent.isPayeReference                        => value.replace(" ", "")
       case Some(formComponent)
           if formComponent.isUTR || formComponent.isUkBankAccountNumber || formComponent.isCompanyRegistrationNumber =>
         value.replaceAll(" ", "")
