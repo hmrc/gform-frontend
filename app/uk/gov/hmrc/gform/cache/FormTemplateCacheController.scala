@@ -33,7 +33,7 @@ class FormTemplateCacheController(
 
   def save(formTemplateId: FormTemplateId): Action[AnyContent] =
     messagesControllerComponents.actionBuilder.async { _ =>
-      Recalculator.cache.invalidate(formTemplateId) // Side effect
+      Recalculator.modifyCache.invalidate(formTemplateId) // Side effect
       formTemplateCacheService
         .save(FormTemplateCache(formTemplateId, Instant.now))
         .fold(
@@ -44,7 +44,7 @@ class FormTemplateCacheController(
 
   def delete(formTemplateId: FormTemplateId): Action[AnyContent] =
     messagesControllerComponents.actionBuilder.async { _ =>
-      Recalculator.cache.invalidate(formTemplateId) // Side effect
+      Recalculator.modifyCache.invalidate(formTemplateId) // Side effect
       formTemplateCacheService
         .delete(formTemplateId)
         .fold(
