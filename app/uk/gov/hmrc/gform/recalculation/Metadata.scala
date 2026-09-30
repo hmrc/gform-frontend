@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, DataRetrieveId }
 
 import scala.util.Try
 
-class Metadata(
+case class Metadata(
   val lookup: Map[BaseComponentId, RefInfo],
   groups: Set[BaseComponentId],
   groupComponents: Set[FormComponentId],

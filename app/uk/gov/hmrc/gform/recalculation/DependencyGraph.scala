@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.recalculation
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import com.github.benmanes.caffeine.cache.Caffeine
+import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.Messages
+import play.api.libs.json.Json
 import scala.collection.mutable
-import scala.compat.java8.FunctionConverters._
 import scalax.collection.OneOrMore
 import scalax.collection.immutable.Graph
 import scalax.collection.hyperedges.multilabeled.LDiHyperEdge
@@ -66,7 +67,7 @@ class DependencyGraph(val graph: Graph[FormComponentId, Relation]) {
     val edges = graph.edges.toList.map(_.toString).sorted
 
     List(
-      List(s"graph : $graph"),
+      //List(s"graph : $graph"),
       List(s"nodes (${nodes.size}):"),
       nodes.map("  " + _),
       List(s"edges (${edges.size}):"),
@@ -532,10 +533,23 @@ object RefInfo {
 
 object Recalculator {
 
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
   val cache = Caffeine
     .newBuilder()
     .maximumSize(1000)
+    .recordStats()
+    .removalListener[FormTemplateId, Graph[FormComponentId, Relation]] { (key, value, cause) =>
+      logger.info(s"Cache entry removed: key=${key.value}, cause=$cause")
+    }
     .build[FormTemplateId, Graph[FormComponentId, Relation]]()
+
+  object modifyCache {
+    def invalidate(formTemplateId: FormTemplateId): Unit = {
+      logger.info(s"Invalidating cache record of '${formTemplateId.value}'")
+      cache.invalidate(formTemplateId)
+    }
+  }
 
   def from(
     formTemplate: FormTemplate,
@@ -550,10 +564,38 @@ object Recalculator {
       if (recomputeGraph) {
         DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph) // This is needed for synthetic formtemplates
       } else {
-        cache.get(
-          formTemplate._id,
-          ((_: FormTemplateId) => DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph)).asJava
-        )
+
+        val computed: Graph[FormComponentId, Relation] =
+          DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph)
+
+        val cached: Graph[FormComponentId, Relation] =
+          cache.get(
+            formTemplate._id,
+            ((formTemplateId: FormTemplateId) => {
+              logger.info(s"""|Adding to the cache for '${formTemplateId.value}'
+                              |Inspect Computed: ${new DependencyGraph(computed).pretty()}""".stripMargin)
+              computed
+            })
+          )
+
+        if (cached != computed) {
+          val stats = cache.stats()
+          logger.info(s"""|Computed graph and cached graphs are not same for '${formTemplate._id.value}'
+                          |Cache:
+                          |  size       = ${cache.estimatedSize()}
+                          |  hits       = ${stats.hitCount()}
+                          |  misses     = ${stats.missCount()}
+                          |  hit rate   = ${stats.hitRate()}
+                          |  evictions  = ${stats.evictionCount()}
+                          |recomputeGraph: $recomputeGraph
+                          |Inspect Cached: ${new DependencyGraph(cached).pretty()}
+                          |Inspect Computed: ${new DependencyGraph(computed).pretty()}
+                          |formTemplate: ${Json.prettyPrint(Json.toJson(formTemplate))}
+                          |metadata: $metadata
+          """.stripMargin)
+        }
+
+        computed //cached Do not return cached version for now
       }
 
     val dependencyGraph = new DependencyGraph(graph)
