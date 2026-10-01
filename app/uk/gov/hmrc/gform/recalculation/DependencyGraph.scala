@@ -69,7 +69,8 @@ class DependencyGraph(val graph: Graph[FormComponentId, Relation]) {
       //List(s"graph : $graph"),
       List(s"nodes (${nodes.size}):"),
       nodes.map("  " + _),
-      List(s"edges (${edges.size})")
+      List(s"edges (${edges.size})"),
+      edges.map("  " + _)
     ).flatten.mkString("\n")
   }
 }
@@ -576,7 +577,9 @@ object Recalculator {
             })
           )
 
-        if (cached != computed) {
+        val cachedDG = new DependencyGraph(cached).pretty()
+        val computedDG = new DependencyGraph(computed).pretty()
+        if (cachedDG != computedDG) {
           val stats = cache.stats()
           logger.info(s"""|Computed graph and cached graphs are not same for '${formTemplate._id.value}'
                           |Cache:
@@ -586,8 +589,8 @@ object Recalculator {
                           |  hit rate   = ${stats.hitRate()}
                           |  evictions  = ${stats.evictionCount()}
                           |recomputeGraph: $recomputeGraph
-                          |Inspect Cached: ${new DependencyGraph(cached).pretty()}
-                          |Inspect Computed: ${new DependencyGraph(computed).pretty()}
+                          |Inspect Cached: $cachedDG
+                          |Inspect Computed: $computedDG
           """.stripMargin)
         }
 
