@@ -21,7 +21,6 @@ import cats.syntax.all._
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.Messages
-import play.api.libs.json.Json
 import scala.collection.mutable
 import scalax.collection.OneOrMore
 import scalax.collection.immutable.Graph
@@ -70,8 +69,7 @@ class DependencyGraph(val graph: Graph[FormComponentId, Relation]) {
       //List(s"graph : $graph"),
       List(s"nodes (${nodes.size}):"),
       nodes.map("  " + _),
-      List(s"edges (${edges.size}):"),
-      edges.map("  " + _)
+      List(s"edges (${edges.size})")
     ).flatten.mkString("\n")
   }
 }
@@ -590,8 +588,6 @@ object Recalculator {
                           |recomputeGraph: $recomputeGraph
                           |Inspect Cached: ${new DependencyGraph(cached).pretty()}
                           |Inspect Computed: ${new DependencyGraph(computed).pretty()}
-                          |formTemplate: ${Json.prettyPrint(Json.toJson(formTemplate))}
-                          |metadata: $metadata
           """.stripMargin)
         }
 
