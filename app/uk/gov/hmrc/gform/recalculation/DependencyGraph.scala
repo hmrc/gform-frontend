@@ -562,35 +562,7 @@ object Recalculator {
       if (recomputeGraph) {
         DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph) // This is needed for synthetic formtemplates
       } else {
-
-        val computed: Graph[FormComponentId, Relation] =
-          DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph)
-
-        val cached: Graph[FormComponentId, Relation] =
-          cache.get(
-            formTemplate._id,
-            ((formTemplateId: FormTemplateId) => {
-              logger.info(s"""|Adding to the cache for '${formTemplateId.value}'
-                              |Inspect Computed: ${new DependencyGraph(computed).pretty()}""".stripMargin)
-              computed
-            })
-          )
-
-        if (cached != computed) {
-          val stats = cache.stats()
-          logger.info(s"""|Computed graph and cached graphs are not same for '${formTemplate._id.value}'
-                          |Cache:
-                          |  size       = ${cache.estimatedSize()}
-                          |  hits       = ${stats.hitCount()}
-                          |  misses     = ${stats.missCount()}
-                          |  hit rate   = ${stats.hitRate()}
-                          |  evictions  = ${stats.evictionCount()}
-                          |recomputeGraph: $recomputeGraph
-                          |Inspect Cached: ${new DependencyGraph(cached).pretty()}
-                          |Inspect Computed: ${new DependencyGraph(computed).pretty()}
-          """.stripMargin)
-        }
-
+        val computed: Graph[FormComponentId, Relation] = DependencyGraph.toGraph(formTemplate, metadata, recomputeGraph)
         computed //cached Do not return cached version for now
       }
 
