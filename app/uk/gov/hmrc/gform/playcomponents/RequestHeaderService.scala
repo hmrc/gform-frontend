@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.cache.FormTemplateCacheService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.recalculation.Recalculator
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateBehavior, FormTemplateCache, FormTemplateContext, FormTemplateContextCacheManager, FormTemplateId }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -60,6 +61,7 @@ final class RequestHeaderService(
     cachedContext match {
       case Some(cachedContext) => Future.successful(Some(cachedContext))
       case _ =>
+        Recalculator.modifyCache.invalidate(formTemplateId) // Side effect
         for {
           formTemplateContext <- gformConnector.getFormTemplateContext(formTemplateId)
           _ <-
