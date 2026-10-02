@@ -61,7 +61,7 @@ final class RequestHeaderService(
     cachedContext match {
       case Some(cachedContext) => Future.successful(Some(cachedContext))
       case _ =>
-        Recalculator.modifyCache.invalidate(formTemplateId) // Side effect
+        Recalculator.invalidateCache(formTemplateId) // Side effect
         for {
           formTemplateContext <- gformConnector.getFormTemplateContext(formTemplateId)
           _ <-
