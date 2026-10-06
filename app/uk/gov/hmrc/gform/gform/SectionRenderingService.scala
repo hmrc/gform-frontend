@@ -30,7 +30,7 @@ import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Bracket, CheckYourAnswers, DateExpr, FastForward, FileUploadUtils, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
+import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Bracket, CheckYourAnswers, ChoiceOptions, DateExpr, FastForward, FileUploadUtils, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.monoidHtml
 import uk.gov.hmrc.gform.recalculation.EvaluationStatus
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroup.Individual
@@ -2609,56 +2609,6 @@ class SectionRenderingService(
     }
   }
 
-  private def hasNotBeenSelectedYet(
-    hideChoicesSelected: Boolean,
-    optionData: OptionData,
-    modelComponentId: ModelComponentId,
-    formModelOptics: FormModelOptics,
-    noDuplicates: Boolean,
-    optionsValueLabel: List[(String, String)]
-  )(implicit
-    m: Messages,
-    sse: SmartStringEvaluator
-  ): Boolean = if (!hideChoicesSelected) true
-  else {
-    val formModelVisibilityOptics = formModelOptics.formModelVisibilityOptics
-    val allValues: Iterable[(ModelComponentId, VariadicValue)] =
-      formModelVisibilityOptics.freeCalculator.variadicFormData
-        .forBaseComponentId(modelComponentId.baseComponentId)
-        .filter { case (mcId, _) =>
-          mcId =!= modelComponentId // Ignore itself, so user can edit it
-        }
-    val selectedValues: Set[String] = allValues.flatMap { case (_, vv) => vv.toSeq }.toSet
-    optionData match {
-      case OptionData.ValueBased(_, _, _, _, _, _, _) =>
-        if (noDuplicates) {
-          val values = optionsValueLabel.filter(item => item._2 == optionData.label.value()).map(_._1)
-          !values.exists(selectedValues.contains)
-        } else {
-          val value = optionData.getValue(-1, formModelVisibilityOptics)
-          !selectedValues(value)
-        }
-      case OptionData.IndexBased(_, _, _, _, _) =>
-        true // Do not hide index based options
-    }
-  }
-
-  private def isVisibleOption(
-    optionData: OptionData,
-    formModelOptics: FormModelOptics
-  ): Boolean =
-    optionData match {
-      case OptionData.ValueBased(_, _, includeIf, _, value, _, _) =>
-        includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
-      case OptionData.IndexBased(_, _, includeIf, _, _) =>
-        includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
-    }
-
-  private def optionHasContent(
-    optionData: OptionData
-  )(implicit sse: SmartStringEvaluator): Boolean =
-    optionData.label.value().trim().nonEmpty
-
   private def isVisibleMiniSummaryListRow(
     row: MiniSummaryRow,
     formModelOptics: FormModelOptics
@@ -2671,6 +2621,15 @@ class SectionRenderingService(
     case v: ATLRow =>
       v.includeIf.fold(true)(includeIf => formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(includeIf, None))
   }
+
+  private def isVisibleOption(
+    optionData: OptionData,
+    formModelOptics: FormModelOptics
+  ): Boolean =
+    optionData.includeIf.forall(formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(_, None))
+
+  private def optionHasContent(optionData: OptionData)(implicit sse: SmartStringEvaluator): Boolean =
+    optionData.label.value().trim.nonEmpty
 
   private def htmlForChoice(
     formComponent: FormComponent,
@@ -2696,22 +2655,13 @@ class SectionRenderingService(
         Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
-    val optionsValueLabel =
-      options.collect(o => o.getValue(-1, ei.formModelOptics.formModelVisibilityOptics) -> o.label.value())
-
-    val visibleOptionsWithIndex: List[(OptionData, Int)] = options.zipWithIndex
-      .filter { case (o, _) =>
-        hasNotBeenSelectedYet(
-          hideChoicesSelected,
-          o,
-          formComponent.modelComponentId,
-          ei.formModelOptics,
-          noDuplicates,
-          optionsValueLabel
-        ) &&
-          isVisibleOption(o, ei.formModelOptics) &&
-          optionHasContent(o)
-      }
+    val visibleOptionsWithIndex: List[(OptionData, Int)] = ChoiceOptions.visible(
+      options,
+      formComponent.modelComponentId,
+      ei.formModelOptics.formModelVisibilityOptics,
+      hideChoicesSelected,
+      noDuplicates
+    )
 
     if (visibleOptionsWithIndex.isEmpty)
       throw new IllegalArgumentException("All options of the choice component are invisible")

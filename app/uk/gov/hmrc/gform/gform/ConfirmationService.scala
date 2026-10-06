@@ -152,6 +152,14 @@ class ConfirmationService(
   formProcessor: FormProcessor
 ) {
 
+  private def maybePageModel(
+    formModel: FormModel,
+    sectionNumber: SectionNumber
+  ): Option[(SectionNumber, PageModel)] =
+    formModel
+      .maybeVisibleSectionNumber(sectionNumber)
+      .flatMap(sn => formModel.maybePageModel(sn).map(sn -> _))
+
   def processConfirmation(
     sectionNumber: SectionNumber,
     processData: ProcessData,
@@ -166,78 +174,80 @@ class ConfirmationService(
       ConfirmationService.processConfirmation(formModelOptics, processData.formModelOptics, form)
 
     val formModel: FormModel = processData.formModelOptics.formModelVisibilityOptics.formModel
-    val pageModel: PageModel = formModel(sectionNumber)
+    maybePageModel(formModel, sectionNumber) match {
+      case None => ConfirmationAction.noop
+      case Some((visibleSectionNumber, pageModel)) =>
+        val confirmationPage: ConfirmationPage = pageModel.confirmationPage
 
-    val confirmationPage: ConfirmationPage = pageModel.confirmationPage
-
-    confirmationPage match {
-      case ConfirmationPage.Not =>
-        if (confirmationsToReset.nonEmpty) {
-          // We need to remove confirmation answer
-          ConfirmationAction
-            .UpdateConfirmation(processData =>
-              processData
-                .copy(confirmations = Some(currentConfirmations))
-                .removeConfirmation(confirmationsToReset)
-            )
-        } else {
-          ConfirmationAction.noop
-        }
-
-      case ConfirmationPage.Confirmator(confirmation) =>
-        processData.formModelOptics.formModelVisibilityOptics.data
-          .many(confirmation.question.id.modelComponentId)
-          .toList
-          .flatten match {
-          case Nil =>
-            val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sectionNumber)
-            ConfirmationAction
-              .NotConfirmed(
-                Redirect(
-                  routes.FormController
-                    .form(
-                      formTemplateId,
-                      maybeAccessCode,
-                      sectionNumber,
-                      sectionTitle4Ga,
-                      SuppressErrors.No,
-                      fastForward
-                    )
-                )
-              )
-          case _ =>
-            val maybeRedirect = confirmation.redirects.toList
-              .flatMap(_.toList)
-              .find(r => processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None))
-            maybeRedirect.fold[ConfirmationAction](
-              // This is needed to store confirmed expressions when confirmation is very first page in the journey
+        confirmationPage match {
+          case ConfirmationPage.Not =>
+            if (confirmationsToReset.nonEmpty) {
+              // We need to remove confirmation answer
               ConfirmationAction
                 .UpdateConfirmation(processData =>
                   processData
                     .copy(confirmations = Some(currentConfirmations))
+                    .removeConfirmation(confirmationsToReset)
                 )
-            ) { redirect =>
-              // Page is not confirmed
-              val modelPageId: ModelPageId = redirect.pageId.modelPageId
+            } else {
+              ConfirmationAction.noop
+            }
 
-              val sn: SectionNumber = formModel.metadata.pageIdSectionNumberMap
-                .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
-
-              val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
-              ConfirmationAction
-                .NotConfirmed(
-                  Redirect(
-                    routes.FormController
-                      .form(
-                        formTemplateId,
-                        maybeAccessCode,
-                        sn,
-                        sectionTitle4Ga,
-                        SuppressErrors.Yes,
-                        fastForward
-                      )
+          case ConfirmationPage.Confirmator(confirmation) =>
+            processData.formModelOptics.formModelVisibilityOptics.data
+              .many(confirmation.question.id.modelComponentId)
+              .toList
+              .flatten match {
+              case Nil =>
+                val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, visibleSectionNumber)
+                ConfirmationAction
+                  .NotConfirmed(
+                    Redirect(
+                      routes.FormController
+                        .form(
+                          formTemplateId,
+                          maybeAccessCode,
+                          visibleSectionNumber,
+                          sectionTitle4Ga,
+                          SuppressErrors.No,
+                          fastForward
+                        )
+                    )
                   )
-                )
+              case _ =>
+                val maybeRedirect = confirmation.redirects.toList
+                  .flatMap(_.toList)
+                  .find(r => processData.formModelOptics.formModelVisibilityOptics.evalIncludeIfExpr(r.`if`, None))
+                maybeRedirect.fold[ConfirmationAction](
+                  // This is needed to store confirmed expressions when confirmation is very first page in the journey
+                  ConfirmationAction
+                    .UpdateConfirmation(processData =>
+                      processData
+                        .copy(confirmations = Some(currentConfirmations))
+                    )
+                ) { redirect =>
+                  // Page is not confirmed
+                  val modelPageId: ModelPageId = redirect.pageId.modelPageId
+
+                  val sn: SectionNumber = formModel.metadata.pageIdSectionNumberMap
+                    .getOrElse(modelPageId, throw new Exception(s"No section number found for pageId $modelPageId"))
+
+                  val sectionTitle4Ga = formProcessor.getSectionTitle4Ga(processData, sn)
+                  ConfirmationAction
+                    .NotConfirmed(
+                      Redirect(
+                        routes.FormController
+                          .form(
+                            formTemplateId,
+                            maybeAccessCode,
+                            sn,
+                            sectionTitle4Ga,
+                            SuppressErrors.Yes,
+                            fastForward
+                          )
+                      )
+                    )
+                }
             }
         }
     }
@@ -250,9 +260,7 @@ class ConfirmationService(
   ): PurgeConfirmationData = {
 
     val formModel: FormModel = processData.formModelOptics.formModelVisibilityOptics.formModel
-    val pageModel: PageModel = formModel(sectionNumber)
-
-    pageModel.maybeConfirmation match {
+    formModel.maybePageModel(sectionNumber).flatMap(_.maybeConfirmation) match {
 
       // We do not want to keep confirmation data on exit from confirmation page (or when back link is clicked)
       // But only remove data when answer is "1" ie. not confirmed
