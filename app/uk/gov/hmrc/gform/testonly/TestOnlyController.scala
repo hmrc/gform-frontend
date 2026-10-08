@@ -26,6 +26,7 @@ import play.api.i18n.{ I18nSupport, Messages }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.twirl.api.{ Html, HtmlFormat }
+
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2._
@@ -50,7 +51,6 @@ import uk.gov.hmrc.gform.recalculation.{ Behaviour, DateResultFlag, EvaluationSt
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Page, _ }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.SdesDestination.{ Caseflow, DataLakehouse, DataStore, DataStoreLegacy, Dms, HmrcIlluminate, InfoArchive }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId, DestinationIncludeIf, Destinations, SdesDestination }
 import uk.gov.hmrc.gform.testonly.snapshot.SnapshotForms._
 import uk.gov.hmrc.gform.testonly.snapshot._
@@ -60,7 +60,7 @@ import uk.gov.hmrc.gform.views.html.formatInstant
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{ DataStore, HmrcDms, InfoArchive }
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
 import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukAccordion, GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
@@ -337,7 +337,7 @@ class TestOnlyController(
       val queryParams = submissionPrefix.fold("")(p => s"?prefix=$p")
       val msg = submissionPrefix.fold("")(p => s" (submission prefix: $p)")
 
-      destination -> uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
         s"Download files for ${destination.description}$msg",
         uk.gov.hmrc.gform.testonly.routes.TestOnlyController
           .proxyToGform(
@@ -345,19 +345,6 @@ class TestOnlyController(
           )
       )
     }
-
-    val allDmsLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
-      s"Download all files in object store DMS directory",
-      uk.gov.hmrc.gform.testonly.routes.TestOnlyController
-        .proxyToGform(
-          s"gform/object-store/dms/envelopes/${envelopeId.value}"
-        )
-    )
-
-    val startingLinks =
-      List(Dms, DataStore, DataStoreLegacy, HmrcIlluminate, InfoArchive, Caseflow, DataLakehouse).map(
-        createDownloadContent(_, None)
-      )
 
     val dataStoreWorkItemLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View data-store-work-item entry",
@@ -389,19 +376,19 @@ class TestOnlyController(
         .proxyToGform("gform/sdes/envelopeId/" + envelopeId.value)
     )
 
-    val dmsSubs: List[String] = formTemplate.destinations match {
+    val dmsSubs: List[(SdesDestination, Option[String])] = formTemplate.destinations match {
       case Destinations.DestinationList(destinations, _, _) =>
         destinations.collect {
-          case HmrcDms(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, Some(submissionPrefix), _) =>
-            submissionPrefix
+          case HmrcDms(_, dest, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, maybeSubmissionPrefix, _) =>
+            dest -> maybeSubmissionPrefix
+          case DataStore(_, dest, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => dest                        -> None
+          case _: InfoArchive                                               => SdesDestination.InfoArchive -> None
         }
-      case _ => List.empty[String]
+      case _ => List.empty[(SdesDestination, Option[String])]
     }
 
-    val destinationLinks = startingLinks.flatMap {
-      case (Dms, _) if dmsSubs.nonEmpty =>
-        allDmsLink +: dmsSubs.map(prefix => createDownloadContent(Dms, Some(prefix))._2)
-      case (_, link) => List(link)
+    val destinationLinks = dmsSubs.map { case (dest, subPref) =>
+      createDownloadContent(dest, subPref)
     }
 
     bulleted_list(

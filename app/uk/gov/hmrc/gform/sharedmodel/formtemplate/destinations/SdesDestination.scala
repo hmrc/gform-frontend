@@ -24,7 +24,9 @@ sealed trait SdesDestination extends Product with Serializable {
   def downloadPath: String = this match {
     case SdesDestination.HmrcIlluminate                              => "hmrc-illuminate"
     case SdesDestination.DataStore | SdesDestination.DataStoreLegacy => "data-store"
-    case SdesDestination.Dms | SdesDestination.Caseflow              => "dms"
+    case SdesDestination.Dms                                         => "dms"
+    case SdesDestination.Caseflow                                    => "caseflow"
+    case SdesDestination.Pega                                        => "pega"
     case SdesDestination.InfoArchive                                 => "info-archive"
     case SdesDestination.DataLakehouse                               => "data-lakehouse"
   }
@@ -36,6 +38,7 @@ sealed trait SdesDestination extends Product with Serializable {
     case SdesDestination.Dms             => "DMS"
     case SdesDestination.InfoArchive     => "InfoArchive"
     case SdesDestination.Caseflow        => "Caseflow"
+    case SdesDestination.Pega            => "Pega"
     case SdesDestination.DataLakehouse   => "Data Lakehouse"
   }
 }
@@ -53,6 +56,8 @@ object SdesDestination {
 
   case object Caseflow extends SdesDestination
 
+  case object Pega extends SdesDestination
+
   case object DataLakehouse extends SdesDestination
 
   implicit val equal: Eq[SdesDestination] = Eq.fromUniversalEquals
@@ -65,6 +70,7 @@ object SdesDestination {
       "DataStore"       -> DataStore,
       "InfoArchive"     -> InfoArchive,
       "Caseflow"        -> Caseflow,
+      "Pega"            -> Pega,
       "DataLakehouse"   -> DataLakehouse
     )
 }
