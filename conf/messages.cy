@@ -703,3 +703,9 @@ confirm.delete.title=Ydych chi’n siŵr eich bod chi eisiau dileu’r ffurflen 
 confirm.delete.body=Byddwch yn colli’r holl atebion rydych chi wedi’u nodi. Ni allwch ddadwneud hyn.
 confirm.delete.button.confirm=Dileu’r ffurflen hon
 confirm.delete.button.cancel=Canslo
+
+# This is taken from https://github.com/hmrc/sca-wrapper/blob/main/sca-wrapper-play-30/src/main/resources/messages.cy
+sca-wrapper.fallback.menu.home = Hafan y cyfrif
+sca-wrapper.fallback.menu.messages = Negeseuon
+sca-wrapper.fallback.menu.progress = Gwirio cynnydd
+sca-wrapper.fallback.menu.profile = Proffil a gosodiadau

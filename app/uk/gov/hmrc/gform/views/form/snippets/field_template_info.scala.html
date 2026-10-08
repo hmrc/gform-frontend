@@ -71,7 +71,8 @@
     case BannerInfo => {
       @{
         val panel = Panel(1, classes, Map.empty, HtmlContent(sse(fieldValue.label, markDown = true)), HtmlContent(text))
-        new GovukPanel()(panel)
+        val govukButton = new GovukButton()
+        new GovukPanel(govukButton)(panel)
       }
     }
 
