@@ -6,16 +6,6 @@ $govuk-new-typography-scale: true;
 @import "lib/govuk-frontend/dist/govuk/index";
 @import "lib/hmrc-frontend/hmrc/all";
 
-.app-reference-number {
-  display: block;
-  font-weight: bold;
-}
-
-.gform-warning-text__icon_adjustment {
-    top: 50%;
-    margin-top: -17px;;
-}
-
 // accessible-autocomplete doesn't support class customization.
 .gform-lookup-error .autocomplete__input {
     // Copied from .govuk-input--error in _input.scss
@@ -37,27 +27,6 @@ $govuk-new-typography-scale: true;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAASAgMAAAAvVbb5AAAACVBMVEX///////8KDAwmYEUdAAAAAXRSTlMAQObYZgAAADBJREFUCFtjYOBa1cDAoBkKJFYCCSYwEYpCrAICZCI0FEhkrURmQRRnrYRpW7WqAQAlGR86Ip1rwwAAAABJRU5ErkJggg==");
   padding: 0.5em 0 0.5em 28px;
   zoom: 1;
-}
-
-.hmrc-banner {
-    padding-bottom: 0px;
-}
-
-.hmrc-language-select__list {
-    margin-top: 0em;
-    margin-bottom: 0em;
-}
-
-//extra whitespaces after 'English' in lang select header
-.hmrc-language-select__list-item {
-  &:first-child{
-    border-right: 0.09375em solid black;
-    line-height: 0.9em;
-    padding-right: 0.22em;
-  }
-  &:first-child::after {
-    display:none !important;
-  }
 }
 
 .hmrc-page-heading {

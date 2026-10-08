@@ -36,7 +36,8 @@
   messages: Messages,
   l: LangADT)
 
-@govukPanel = @{new GovukPanel()}
+@govukButton = @{new GovukButton()}
+@govukPanel = @{new GovukPanel(govukButton)}
 @formWithoutCSRF = @{new FormWithoutCSRF()}
 
 @uk.gov.hmrc.gform.views.html.main_template(

@@ -19,7 +19,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BetaBanner, FormTemplate }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.summary.FullMainContent
-@import uk.gov.hmrc.gform.views.html.custom.{ CustomUserResearchBanner, CustomHmrcHeader }
+@import uk.gov.hmrc.gform.views.html.custom. CustomUserResearchBanner
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcUserResearchBanner
 @import uk.gov.hmrc.govukfrontend.views.Aliases.ServiceNavigation
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
@@ -36,13 +37,9 @@
 @import uk.gov.hmrc.gform.controllers.CookieNames
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.testOnlyAdditionalFooterItems
-@import uk.gov.hmrc.hmrcfrontend.config.{TudorCrownConfig, RebrandConfig}
 @import uk.gov.hmrc.hmrcfrontend.config.AccountMenuConfig
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.implicits.RichAccountMenu
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcAccountMenu
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcNotificationBadge
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.GovukLogo
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accountmenu._
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.LanguageToggle
 @import uk.gov.hmrc.hmrcfrontend.controllers.routes.Assets
 @import scala.collection.immutable.SortedMap
@@ -193,26 +190,25 @@
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@tudorCrownConfig = @{new TudorCrownConfig(appConfig.configuration)}
-@rebrandConfig = @{new RebrandConfig(appConfig.configuration)}
 @govukLogo = @{new GovukLogo()}
-@govukHeader = @{new GovukHeader(tudorCrownConfig, rebrandConfig, govukLogo)}
-@govukFooter = @{new GovukFooter(rebrandConfig, govukLogo)}
+@govukHeader = @{new GovukHeader(govukLogo)}
+@govukFooter = @{new GovukFooter(govukLogo)}
 @govukBackLink = @{new GovukBackLink()}
 @govukSkipLink = @{new GovukSkipLink()}
-@hmrcBanner = @{new components.HmrcBanner(tudorCrownConfig)}
-@hmrcUserResearchBanner = @{new CustomUserResearchBanner()}
+@hmrcBanner = @{new components.HmrcBanner()}
+@hmrcUserResearchBanner = @{new components.HmrcUserResearchBanner()}
 @govukPhaseBanner = @{new GovukPhaseBanner(govukTag = new GovukTag())}
 @govukServiceNavigation = @{new GovukServiceNavigation()}
-@hmrcHeader = @{new CustomHmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, tudorCrownConfig, rebrandConfig, govukLogo, govukServiceNavigation)}
+@hmrcHeader = @{new components.HmrcHeader(hmrcBanner, hmrcUserResearchBanner, govukPhaseBanner, govukLogo, govukServiceNavigation)}
 @hmrcFooter = @{new components.HmrcFooter(govukFooter)}
 @fixedWidthPageLayout = @{new FixedWidthPageLayout()}
-@govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout, rebrandConfig)}
+@govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
+@customHmrcUserResearchBanner = @{new CustomUserResearchBanner()}
 
-@govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink, twoThirdsMainContent, fixedWidthPageLayout)}
-@hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue(appConfig.serviceNavigationUsage)}
+@govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukServiceNavigation, govukFooter, govukBackLink, twoThirdsMainContent, fixedWidthPageLayout)}
+@hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue()}
 
 @language = @{l.toLanguage}
 
@@ -228,51 +224,48 @@
   }
 }
 
-@hmrcAccountMenu = @{new HmrcAccountMenu(new HmrcNotificationBadge)}
-@ptaNav = {
-        <div class="govuk-width-container">
-            @hmrcAccountMenu(AccountMenu(
-            accountHome = AccountHome(
-                href = "/personal-account"
-            ),
-            messages = AccountMessages(
-                href = "/personal-account/messages",
-                messageCount = None
-            ),
-            checkProgress = CheckProgress(
-                href = "/track"
-            ),
-            yourProfile = YourProfile("/personal-account/your-profile"),
-            signOut = if(displaySignOut && timeoutDialog.flatMap(_.signOutUrl)) SignOut(timeoutDialog.flatMap(_.signOutUrl).get) else SignOut("/"),
-            language = if(messages.lang.code == "cy") Cy else En
-            ))
-        </div>
-}
 @serviceNavigation = @{
-    val serviceNavTemp = ServiceNavigation(serviceName = Some(serviceTitle), serviceUrl = if (serviceLink.isEmpty) None else Some(serviceLink))
+    val serviceNavTemp = ServiceNavigation(
+      serviceName = Some(serviceTitle),
+      serviceUrl = if (serviceLink.isEmpty) None else Some(serviceLink),
+      navigation = if(displayAccountMenu) Seq(
+        ServiceNavigationItem(
+          href = "/personal-account",
+          content = Text(messages("sca-wrapper.fallback.menu.home"))
+        ),
+        ServiceNavigationItem(
+          href = "/personal-account/messages",
+          content = Text(messages("sca-wrapper.fallback.menu.messages"))
+       ),
+        ServiceNavigationItem(
+            href = "/track",
+            content = Text(messages("sca-wrapper.fallback.menu.progress"))
+        ),
+        ServiceNavigationItem(
+            href = "/personal-account/your-profile",
+            content = Text(messages("sca-wrapper.fallback.menu.profile"))
+        )
+      ) else Seq()
+    )
+
     if(formSupportsLanguages) withLanguageToggle(serviceNavTemp, appConfig, maybeFormTemplate, accessCode) else serviceNavTemp
 }
 
 @headerBlock = {
   @hmrcHeader(HeaderParams(
-    headerUrls = HeaderUrls(serviceUrl = serviceLink, assetsPath = Assets.at("govuk/images").url, signOutHref = if(!displayAccountMenu) timeoutDialog.flatMap(_.signOutUrl) else None),
+    headerUrls = HeaderUrls(assetsPath = Assets.at("govuk/images").url, signOutHref = timeoutDialog.flatMap(_.signOutUrl)),
     banners = Banners(
       displayHmrcBanner = displayHMRCLogo,
       phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
-      userResearchBanner = userResearchUrl.map(url => UserResearchBanner(language, url)),
-      additionalBannersBlock = if(displaySignOut && displayAccountMenu) Some(ptaNav) else None,
-      useDeprecatedPositionForHmrcBanner = true
+      userResearchBanner = None,
+      additionalBannersBlock = userResearchUrl.map(url => customHmrcUserResearchBanner(UserResearchBanner(language, url)))
     ),
     serviceNavigation = Some(serviceNavigation),
-    language = if(messages.lang.code == "cy") Cy else En,
-    inputLanguageToggle = None
+    language = if(messages.lang.code == "cy") Cy else En
   ))
 }
 
 @beforeContentBlock = {
-  @if(!displayHMRCLogo){
-    <br/>
-  }
   @backLink.map(govukBackLink.apply)
 }
 
@@ -286,7 +279,7 @@
     )
 }
 
-@hmrcFooterItems = @{new HmrcFooterItems(appConfig.accessibilityStatementConfig, appConfig.serviceNavigationUsage)}
+@hmrcFooterItems = @{new HmrcFooterItems(appConfig.accessibilityStatementConfig)}
 @hmrcStandardFooter = @{new helpers.HmrcStandardFooter(hmrcFooter, hmrcFooterItems)}
 @accessibilityUrl = @{
     maybeFormTemplate

@@ -22,7 +22,7 @@ addSbtPlugin("org.lyranthe.sbt" % "partial-unification" % "1.1.2")
 
 addDependencyTreePlugin
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-sass-compiler" % "0.12.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-sass-compiler" % "0.13.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-concat" % "1.0.0")
 

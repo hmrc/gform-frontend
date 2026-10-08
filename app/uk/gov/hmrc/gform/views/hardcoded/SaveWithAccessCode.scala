@@ -42,7 +42,8 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode,
     )
   )
 
-  val panelHtml: Html = new GovukPanel()(panel)
+  val govukButton = new GovukButton()
+  val panelHtml: Html = new GovukPanel(govukButton)(panel)
 
   private val insetText =
     InsetText(

@@ -726,3 +726,9 @@ confirm.delete.title=Are you sure you want to delete this form?
 confirm.delete.body=You will lose all the answers you have entered. You cannot undo this.
 confirm.delete.button.confirm=Delete this form
 confirm.delete.button.cancel=Cancel
+
+#this is taken from https://github.com/hmrc/sca-wrapper/blob/main/sca-wrapper-play-30/src/main/resources/messages.en
+sca-wrapper.fallback.menu.home = Account home
+sca-wrapper.fallback.menu.messages = Messages
+sca-wrapper.fallback.menu.progress = Check progress
+sca-wrapper.fallback.menu.profile = Profile and settings

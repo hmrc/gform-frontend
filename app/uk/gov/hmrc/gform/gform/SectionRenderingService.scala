@@ -1481,7 +1481,8 @@ class SectionRenderingService(
   )(implicit
     messages: Messages
   ): Html = {
-    val govukPanel = new GovukPanel()
+    val govukButton = new components.GovukButton()
+    val govukPanel = new GovukPanel(govukButton)
     val htmlContent: Content =
       if (showReference) {
         HtmlContent(

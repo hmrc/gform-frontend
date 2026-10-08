@@ -27,7 +27,7 @@ import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, ServiceNavigationCanBeControlledByConfig, ServiceNavigationConfig, SupportedLanguagesConfig, TrackingConsentConfig }
+import uk.gov.hmrc.hmrcfrontend.config.{ AccessibilityStatementConfig, SupportedLanguagesConfig, TrackingConsentConfig }
 import uk.gov.hmrc.hmrcfrontend.views.html.helpers.HmrcTrackingConsentSnippet
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfig, ControllerConfigs, ServicesConfig }
@@ -54,12 +54,10 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     //val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
 
-  private val serviceNavigationUsage: ServiceNavigationConfig = new ServiceNavigationCanBeControlledByConfig(
-    playConfiguration
-  )
-  val hmrcTrackingConsentSnippet =
-    new HmrcTrackingConsentSnippet(new TrackingConsentConfig(playConfiguration), serviceNavigationUsage)
-  val accessibilityStatementConfig = new AccessibilityStatementConfig(playConfiguration, serviceNavigationUsage)
+  private val trackingConsentConfig: TrackingConsentConfig = new TrackingConsentConfig(playConfiguration)
+  val hmrcTrackingConsentSnippet = new HmrcTrackingConsentSnippet(trackingConsentConfig)
+
+  val accessibilityStatementConfig = new AccessibilityStatementConfig(playConfiguration)
 
   val auditingConfig: AuditingConfig = AuditingConfig.fromConfig(playConfiguration)
 
@@ -106,7 +104,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       emailAuthStaticCodeEmails =
         getOptionalNonEmptyCIStringList(playConfiguration.getOptional[String]("emailAuth.staticCodeEmails")),
       accessibilityStatementConfig = accessibilityStatementConfig,
-      serviceNavigationUsage = serviceNavigationUsage,
       refreshSessionUrl = typesafeConfig.getString("refresh-session-url"),
       isProd = isProd,
       configuration = playConfiguration,
