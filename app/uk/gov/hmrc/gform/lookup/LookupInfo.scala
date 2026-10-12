@@ -82,3 +82,9 @@ final case class FiveColumnLookupInfo(
   priority: LookupPriority,
   columns: Map[String, String]
 ) extends LookupInfo
+
+final case class GoodCodeLookupInfo(
+  id: LookupId,
+  index: Int,
+  columns: Map[String, String]
+) extends LookupInfo

@@ -341,6 +341,36 @@ class LookupLoader(indexPath: String) {
     mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
   }
 
+  private def readGoodCode(
+    filename: String,
+    idColumnName: String,
+    englishLabel: String,
+    mkLookupType: LocalisedLookupOptions => LookupType
+  ): LookupType = {
+
+    type ColumnData = (LookupId, LookupLabel)
+
+    val headerDecoder: HeaderDecoder[ColumnData] =
+      HeaderDecoder.decoder(idColumnName, englishLabel)(
+        (
+          _: LookupId,
+          _: LookupLabel
+        )
+      )
+
+    val csvWithColumns = CsvUtils.readCsvWithColumns(filename)
+
+    def processData(columnData: ColumnData)(index: Int): (LookupDetails, LookupDetails) = {
+      val (id, enLabel) = columnData
+
+      val columns = csvWithColumns.find(_.get(idColumnName).get == id.id).get
+      val li = GoodCodeLookupInfo(id, index, columns)
+      ((enLabel, li), (enLabel, li))
+    }
+
+    mkLookupType(getLocalisedLookupOptions(filename, headerDecoder, processData))
+  }
+
   private def readAgentComplaintCategories(
     filename: String,
     idColumnName: String,
@@ -414,6 +444,7 @@ class LookupLoader(indexPath: String) {
   private val currency                 = readCurrencies("BCD-Currency.csv",       "CurrencyCode",  "Name", "Name-cy", "Priority", "CountryCode", mkAjaxLookup(ShowAll.Disabled, "currency"))
   private val port                     = readPorts("BCD-Port.csv",                "PortCode",      "Name", "Name-cy", "Priority", "Region", "PortType", "CountryCode", "PortCode", mkAjaxLookup(ShowAll.Disabled, "port"))
   private val sicCode                  = readSicCode("SicCode.csv",               "SicCode",       "Name", "Name-cy", "Section", mkAjaxLookup(ShowAll.Disabled, "sic-code"))
+  private val goodsCode                = readGoodCode("GoodsCode.csv",            "Code",          "Name",                       mkAjaxLookup(ShowAll.Enabled, "goods-code"))
   private val sdltReliefType           = readFiveColumnFormat("SDLT-TypeOfRelief.csv",   "Code", "ReliefType",     "ReliefType-cy",     "Priority", mkAjaxLookup(ShowAll.Enabled, "type-of-relief"))
   private val localAuthority           = readFiveColumnFormat("BCD-LocalAuthority.csv",  "Code", "LocalAuthority", "LocalAuthority-cy", "Priority", mkAjaxLookup(ShowAll.Enabled, "local-authority"))
   private val vfrsTradeSector          = readFiveColumnFormat("BCD-VfrsTradeSector.csv", "Code", "TradeSector",    "TradeSector-cy",    "Priority", mkAjaxLookup(ShowAll.Enabled, "vfrs-trade-sector"))
@@ -441,6 +472,7 @@ class LookupLoader(indexPath: String) {
       Register.IntentLivingCostsAndFees -> intentLivingCostsAndFees,
       Register.IntentOther              -> intentOther,
       Register.SicCode                  -> sicCode,
+      Register.GoodsCode                -> goodsCode,
       Register.SdltReliefType           -> sdltReliefType,
       Register.LocalAuthority           -> localAuthority,
       Register.VfrsTradeSector          -> vfrsTradeSector
