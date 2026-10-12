@@ -2570,7 +2570,7 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
         "3_totalCCSpend"                  -> NumberResult(BigDecimal("1357.00"))
       ),
       List(
-        "intensiveQEtotal: \u00a317,316.00<br/>intensiveTotalSpend: \u00a322,815.00<br/>intensivePercentage: 75.8<br/>intensivePercentageConcat: 75.8%",
+        "intensiveQEtotal: £17,316.00<br/>intensiveTotalSpend: £22,815.00<br/>intensivePercentage: 75.8<br/>intensivePercentageConcat: 75.8%",
         """|<p>intensiveQEtotal: £17,316.00<br>
            | intensiveTotalSpend: £22,815.00<br>
            | intensivePercentage: 75.8<br>
@@ -2623,6 +2623,54 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
         "shareValueText = shareValue : Yes"
       ),
       "text-number-rendering.json - trailing spaces"
+    ),
+    (
+      MongoUserData(
+        "1_addNotification"  -> Many(List("0")),
+        "1_box1"             -> One("1000"),
+        "1_box1corrected"    -> One("1100"),
+        "1_box4"             -> One("1000"),
+        "1_box4corrected"    -> One("1100"),
+        "1_totalPayableHmrc" -> One("0.00"),
+        "1_totalPayableYou"  -> One("0.00"),
+        "2_addNotification"  -> Many(List("1")),
+        "2_box1"             -> One("1000"),
+        "2_box1corrected"    -> One("800"),
+        "2_box4"             -> One("1000"),
+        "2_box4corrected"    -> One("1200"),
+        "2_totalPayableHmrc" -> One("400.00"),
+        "2_totalPayableYou"  -> One("-400.00")
+      ),
+      List(
+        "ap0.1.0",
+        "ap0.1.1",
+        "ac0.1",
+        "ar0.1",
+        "ap0.2.0",
+        "ap0.2.1",
+        "ac0.2",
+        "ar0.2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(
+        "1_box1"             -> NumberResult(1000),
+        "1_box1corrected"    -> NumberResult(1100),
+        "1_box4"             -> NumberResult(1000),
+        "1_box4corrected"    -> NumberResult(1100),
+        "1_totalPayableHmrc" -> Hidden,
+        "1_totalPayableYou"  -> NumberResult(BigDecimal("0.00")),
+        "2_box1"             -> NumberResult(1000),
+        "2_box1corrected"    -> NumberResult(800),
+        "2_box4"             -> NumberResult(1000),
+        "2_box4corrected"    -> NumberResult(1200),
+        "2_totalPayableHmrc" -> NumberResult(BigDecimal("400.00")),
+        "2_totalPayableYou"  -> Hidden
+      ),
+      List(
+        "Amount you owe HMRC (£0.00)",
+        "Amount HMRC owes you (-£400.00)"
+      ),
+      "atl-cya-page-summary-info-only.json Generated"
     )
   )
 }

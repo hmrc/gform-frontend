@@ -778,7 +778,7 @@ final class RealCalculator(
       case Add(lhs, rhs) =>
         // When we are outside ATL, but rhs is referenceing ATL we need change behaviour on List producing.
         // TODO JoVl investigate ATL reference on the left, but not on the right
-        val finalBehaviour = behaviour(metadata, rhs)
+        val finalBehaviour = behaviour(metadata, rhs, dataBridge)
         val l = evalExpr(lhs, staticTypeData, finalBehaviour)
         val r = evalExpr(rhs, staticTypeData, finalBehaviour)
         l + r

@@ -19,13 +19,13 @@ package uk.gov.hmrc.gform.recalculation
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 sealed trait Behaviour {
-  def apply(metadata: Metadata, expr: Expr): Behaviour = {
+  def apply(metadata: Metadata, expr: Expr, dataBridge: DataBridge): Behaviour = {
     val formComponentIds: List[FormComponentId] = expr.allFormCtxIds()
     val hasAtlReference =
       formComponentIds.exists(formComponentId =>
         metadata.addToListComponentIds(
           formComponentId.baseComponentId
-        ) && formComponentId.modelComponentId.maybeIndex.isEmpty
+        ) && dataBridge.maybeIndex(formComponentId).isEmpty
       )
     if (hasAtlReference) {
       Behaviour.LessThanCurrent
