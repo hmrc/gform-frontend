@@ -261,9 +261,10 @@ final class RealCalculator(
           uk.gov.hmrc.gform.gform.routes.RedirectController.redirect(RedirectUrl(url)).url
         case InternalLink.PrintSectionPdf =>
           uk.gov.hmrc.gform.gform.routes.PrintSectionController
-            .downloadNotificationPDF(
+            .downloadPDF(
               evaluationContext.formTemplateId,
               evaluationContext.maybeAccessCode,
+              None,
               cacheBuster.generateValue()
             )
             .url
