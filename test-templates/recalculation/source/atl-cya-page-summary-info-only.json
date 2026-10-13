@@ -1,0 +1,103 @@
+{
+  "_id": "atl-cya-page-summary-info-only",
+  "formName": "Summary info info on ATL cya page",
+  "description": "",
+  "version": 1,
+  "authConfig": {
+    "authModule": "anonymous"
+  },
+  "expressions": {
+    "totalPayable": {
+      "value": "(box1corrected - box1) + (box4 - box4corrected)",
+      "type": "sterling"
+    }
+  },
+  "sections": [
+    {
+      "type": "addToList",
+      "title": "You have added $n items",
+      "summaryName": "Boxes",
+      "shortName": "Box $n",
+      "description": "Description",
+      "summaryDescription": "Sumary description",
+      "addAnotherQuestion": {
+        "id": "addNotification",
+        "type": "choice",
+        "label": "Do you want to add another item?",
+        "format": "yesno"
+      },
+      "cyaPage": {
+        "title": "Check your answers",
+        "updateTitle": "Check your answers"
+      },
+      "pages": [
+        {
+          "title": "What are the original and revised amounts for box 1: Output tax?",
+          "fields": [
+            {
+              "id": "box1",
+              "type": "text",
+              "label": "Original amount submitted on your VAT return",
+              "labelSize": "s",
+              "format": "sterling"
+            },
+            {
+              "id": "box1corrected",
+              "type": "text",
+              "label": "Revised amount",
+              "labelSize": "s",
+              "format": "sterling"
+            }
+          ]
+        },
+        {
+          "title": "What are the original and revised amounts for box 4: Input tax?",
+          "fields": [
+            {
+              "id": "box4",
+              "type": "text",
+              "label": "Original amount submitted on your VAT return",
+              "labelSize": "s",
+              "format": "sterling"
+            },
+            {
+              "id": "box4corrected",
+              "type": "text",
+              "label": "Revised amount",
+              "labelSize": "s",
+              "format": "sterling"
+            },
+            {
+              "type": "text",
+              "id": "totalPayableHmrc",
+              "includeIf": "${totalPayable < 0}",
+              "label": "Amount HMRC owes you (${totalPayable})",
+              "format": "sterling",
+              "value": "${totalPayable * -1}",
+              "submitMode": "summaryinfoonly"
+            },
+            {
+              "type": "text",
+              "id": "totalPayableYou",
+              "includeIf": "${totalPayable >= 0}",
+              "label": "Amount you owe HMRC (${totalPayable})",
+              "format": "sterling",
+              "value": "${totalPayable}",
+              "submitMode": "summaryinfoonly"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
