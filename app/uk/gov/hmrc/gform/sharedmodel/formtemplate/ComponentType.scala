@@ -223,10 +223,16 @@ object Address {
       .of(street1, street2, street3, street4, postcode, country)
       .map(ModelComponentId.atomicCurry(indexedComponentId))
 
-  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult): List[String] =
-    summaryPageFields(formComponent.modelComponentId.indexedComponentId)
+  def renderToString(
+    formComponent: FormComponent,
+    formFieldValidationResult: FormFieldValidationResult
+  ): List[String] = {
+    val renderList = summaryPageFields(formComponent.modelComponentId.indexedComponentId)
       .map(modelComponentId => formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
       .filter(_.trim.nonEmpty)
+
+    if (renderList.isEmpty) List("") else renderList
+  }
 
   object Configurable {
     sealed trait Mandatory {
@@ -319,10 +325,16 @@ object OverseasAddress {
   private val summaryPageFields: IndexedComponentId => NonEmptyList[ModelComponentId.Atomic] = indexedComponentId =>
     allAtoms.map(ModelComponentId.atomicCurry(indexedComponentId))
 
-  def renderToString(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult): List[String] =
-    summaryPageFields(formComponent.modelComponentId.indexedComponentId)
+  def renderToString(
+    formComponent: FormComponent,
+    formFieldValidationResult: FormFieldValidationResult
+  ): List[String] = {
+    val renderList = summaryPageFields(formComponent.modelComponentId.indexedComponentId)
       .map(modelComponentId => formFieldValidationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
       .filter(_.trim.nonEmpty)
+
+    if (renderList.isEmpty) List("") else renderList
+  }
 
 }
 
