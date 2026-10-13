@@ -396,6 +396,7 @@ sealed trait Register {
     case Register.IntentLivingCostsAndFees => "intentLivingCostsAndFees"
     case Register.IntentOther              => "intentOther"
     case Register.SicCode                  => "sicCode"
+    case Register.GoodsCode                => "goodsCode"
     case Register.SdltReliefType           => "sdltReliefType"
     case Register.LocalAuthority           => "localAuthority"
     case Register.VfrsTradeSector          => "vfrsTradeSector"
@@ -424,6 +425,7 @@ object Register {
   case object IntentOther extends Register
   case object IntentLivingCostsAndFees extends Register
   case object SicCode extends Register
+  case object GoodsCode extends Register
   case object SdltReliefType extends Register
   case object LocalAuthority extends Register
   case object VfrsTradeSector extends Register
@@ -452,6 +454,7 @@ object Register {
     case "intentOther"              => Some(Register.IntentOther)
     case "intentBigPurchase"        => Some(Register.IntentBigPurchase)
     case "sicCode"                  => Some(Register.SicCode)
+    case "goodsCode"                => Some(Register.GoodsCode)
     case "sdltReliefType"           => Some(Register.SdltReliefType)
     case "localAuthority"           => Some(Register.LocalAuthority)
     case "vfrsTradeSector"          => Some(Register.VfrsTradeSector)

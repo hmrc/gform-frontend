@@ -46,6 +46,7 @@ object LuceneIndexCreator {
       CsvDefinition("BCD-Currency.csv",                 "Name",           "Name-cy",           Some("KeyWords"), Some("KeyWords-cy"), "currency"),
       CsvDefinition("BCD-Nationality.csv",              "Name",           "Name-cy",           Some("Keywords"), Some("Keywords-cy"), "nationality"),
       CsvDefinition("SicCode.csv",                      "Name",           "Name-cy",           None,             None,                "sic-code"),
+      CsvDefinition("GoodsCode.csv",                    "Name",           "Name",              None,             None,                "goods-code"),
       CsvDefinition("BCD-Port.csv",                     "Name",           "Name-cy",           Some("KeyWords"), Some("KeyWords"),    "port"),
       CsvDefinition("SDLT-TypeOfRelief.csv",            "ReliefType",     "ReliefType-cy",     Some("Keywords"), Some("Keywords"),    "type-of-relief"),
       CsvDefinition("BCD-LocalAuthority.csv",           "LocalAuthority", "LocalAuthority-cy", None,             None,                "local-authority"),
