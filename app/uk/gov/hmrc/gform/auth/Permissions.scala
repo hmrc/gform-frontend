@@ -82,7 +82,7 @@ object Permissions {
       case (ViewSummary, _, Summary | Validated | Signed | InProgress)     => valid(operation, role, status)
       case (ForceUpdateFormStatus, Reviewer, _)                            => valid(operation, role, status)
       case (ViewPrintSection, _, Validated)                                => valid(operation, role, status)
-      case (DownloadPrintSectionPdf, _, Validated)                         => valid(operation, role, status)
+      case (DownloadPrintSectionPdf, _, Validated | Summary)               => valid(operation, role, status)
       case (AuditSessionEnd, _, _)                                         => valid(operation, role, status)
       case (ViewImageByInternalLink, _, _)                                 => valid(operation, role, status)
       case _                                                               => mostLikelyInvalid(operation, role, status)
