@@ -227,7 +227,7 @@ class OverseasAddressChecker() extends ComponentChecker[Unit] {
     val postcodeAtomicModelComponentId = context.atomicFcId(OverseasAddress.postcode)
     def postcodeMaxLengthOp() =
       ifProgram(
-        cond = context.isAtomicValueExceedMaxLength(postcodeAtomicModelComponentId, ValidationValues.postcodeLimit),
+        cond = context.isAtomicValueExceedMaxLength(postcodeAtomicModelComponentId, ValidationValues.overseasPostcodeLimit),
         thenProgram = errorProgram[Unit](
           gformError(
             postcodeAtomicModelComponentId,
@@ -237,7 +237,7 @@ class OverseasAddressChecker() extends ComponentChecker[Unit] {
               context.formComponent.errorShortNameStart
                 .map(s => messages("generic.error.overseas.postcode", s.value()))
                 .getOrElse(messages("generic.error.overseas.Postcode"))
-                :: ValidationValues.postcodeLimit.toString
+                :: ValidationValues.overseasPostcodeLimit.toString
                 :: Nil
             )
           )

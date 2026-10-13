@@ -717,7 +717,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -747,7 +747,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -1409,7 +1409,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -1439,7 +1439,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
