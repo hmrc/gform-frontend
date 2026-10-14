@@ -707,7 +707,7 @@ class OverseasAddressCheckerSpec
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, AC21" in {
+  it should "return invalid when enter 17 chars in postcode, AC21" in {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
@@ -735,7 +735,7 @@ class OverseasAddressCheckerSpec
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, AC22" in {
+  it should "return invalid when enter 17 chars in postcode, AC22" in {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
@@ -1399,7 +1399,7 @@ class OverseasAddressCheckerSpec
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, Welsh AC36/AC21" in new WithWelsh {
+  it should "return invalid when enter 17 chars in postcode, Welsh AC36/AC21" in new WithWelsh {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
@@ -1427,7 +1427,7 @@ class OverseasAddressCheckerSpec
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, Welsh AC36/AC22" in new WithWelsh {
+  it should "return invalid when enter 17 chars in postcode, Welsh AC36/AC22" in new WithWelsh {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
