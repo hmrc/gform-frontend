@@ -728,7 +728,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Postcode must be 8 characters or less"
+            "Postcode must be 16 characters or less"
           )
         )
       )
@@ -758,7 +758,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Business address postcode must be 8 characters or less"
+            "Business address postcode must be 16 characters or less"
           )
         )
       )
