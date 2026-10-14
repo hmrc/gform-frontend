@@ -1420,7 +1420,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Mae’n rhaid i’r cod post fod yn 8 o gymeriadau neu lai"
+            "Mae’n rhaid i’r cod post fod yn 16 o gymeriadau neu lai"
           )
         )
       )
@@ -1450,7 +1450,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Mae’n rhaid i’r cod post fod yn 8 o gymeriadau neu lai"
+            "Mae’n rhaid i’r cod post fod yn 16 o gymeriadau neu lai"
           )
         )
       )
