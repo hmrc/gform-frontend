@@ -18,8 +18,45 @@ package uk.gov.hmrc.gform.gform
 
 import munit.ScalaCheckSuite
 import uk.gov.hmrc.gform.models.{ FormModelSupport, VariadicFormDataSupport }
+import uk.gov.hmrc.gform.Helpers.{ toSmartString, toSmartStringExpression }
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponentId, InformationMessage, LastOption, OptionData, OptionDataValue, Radio, StandardInfo, Vertical }
 
 class ExprUpdaterSpec extends ScalaCheckSuite with FormModelSupport with VariadicFormDataSupport {
+
+  test("lastOption expands references to the current repeated item") {
+    val choiceId = FormComponentId("approvalType")
+    val updated = new ExprUpdater(2, List(choiceId), Nil).expandExpr(LastOption(choiceId))
+    assertEquals(updated, LastOption(FormComponentId("2_approvalType")))
+    assertEquals(new ExprUpdater(2, Nil, Nil).expandExpr(LastOption(choiceId)), LastOption(choiceId))
+  }
+
+  test("choice expansion updates the replacement info's lastOption reference") {
+    val choiceId = FormComponentId("approvalType")
+    val info = mkFormComponent(
+      "lastInfo",
+      InformationMessage(StandardInfo, toSmartStringExpression("Tell us about {0}", LastOption(choiceId)))
+    )
+    val option = OptionData.ValueBased(
+      toSmartString("Importer"),
+      None,
+      None,
+      None,
+      OptionDataValue.StringBased("importer"),
+      None,
+      None
+    )
+    val choice =
+      Choice(Radio, List(option), Vertical, Nil, None, None, toSmartString("or"), None, None, true, false, Some(info))
+    val component = mkFormComponent("approvalType", choice)
+    val updated = new FormComponentUpdater(component, 2, List(choiceId), Nil).updatedWithId
+    val replacement = updated.`type`.asInstanceOf[Choice].whenOnlyOneChoiceRemains.get
+    assertEquals(replacement.id, FormComponentId("2_lastInfo"))
+    assertEquals(
+      replacement.`type`.asInstanceOf[InformationMessage].infoText.allInterpolations,
+      List(LastOption(FormComponentId("2_approvalType")))
+    )
+  }
 
   // val formModel = mkFormModelFromSections(List(mkSection(mkFormComponent("a", Value))))
   //   .expand[Interim, SectionSelectorType.Normal](VariadicFormData.empty)
