@@ -311,6 +311,6 @@ object ValidationValues {
   val addressLine4 = 27
   val overseasCity = 27
   val emailLimit = 241
-  val postcodeLimit = 8
+  val overseasPostcodeLimit = 16
   val countryLimit = 50
 }

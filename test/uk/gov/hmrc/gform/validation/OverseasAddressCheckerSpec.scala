@@ -707,7 +707,7 @@ class OverseasAddressCheckerSpec
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, AC21" in {
+  it should "return invalid when enter 17 chars in postcode, AC21" in {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
@@ -717,7 +717,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -728,14 +728,14 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Postcode must be 8 characters or less"
+            "Postcode must be 16 characters or less"
           )
         )
       )
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, AC22" in {
+  it should "return invalid when enter 17 chars in postcode, AC22" in {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
@@ -747,7 +747,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -758,7 +758,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Business address postcode must be 8 characters or less"
+            "Business address postcode must be 16 characters or less"
           )
         )
       )
@@ -1399,7 +1399,7 @@ class OverseasAddressCheckerSpec
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, Welsh AC36/AC21" in new WithWelsh {
+  it should "return invalid when enter 17 chars in postcode, Welsh AC36/AC21" in new WithWelsh {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent.copy(`type` = speccedAddress)
 
@@ -1409,7 +1409,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -1420,14 +1420,14 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Mae’n rhaid i’r cod post fod yn 8 o gymeriadau neu lai"
+            "Mae’n rhaid i’r cod post fod yn 16 o gymeriadau neu lai"
           )
         )
       )
     )
   }
 
-  it should "return invalid when enter 9 chars in postcode, Welsh AC36/AC22" in new WithWelsh {
+  it should "return invalid when enter 17 chars in postcode, Welsh AC36/AC22" in new WithWelsh {
     val speccedAddress = baseAddress
     val speccedFormComponent = baseFormComponent
       .copy(`type` = speccedAddress)
@@ -1439,7 +1439,7 @@ class OverseasAddressCheckerSpec
       "x-line3"    -> "S3",
       "x-country"  -> "Slovakia",
       "x-city"     -> "City",
-      "x-postcode" -> List.fill(ValidationValues.postcodeLimit + 1)("a").mkString
+      "x-postcode" -> List.fill(ValidationValues.overseasPostcodeLimit + 1)("a").mkString
     )
     val result: ValidatedType[Unit] =
       componentsValidator(mkFormTemplate(mkSection(speccedFormComponent)), speccedFormComponent, data)
@@ -1450,7 +1450,7 @@ class OverseasAddressCheckerSpec
         Map(
           ModelComponentId
             .Atomic(IndexedComponentId.Pure(speccedFormComponent.id.baseComponentId), Atom("postcode")) -> Set(
-            "Mae’n rhaid i’r cod post fod yn 8 o gymeriadau neu lai"
+            "Mae’n rhaid i’r cod post fod yn 16 o gymeriadau neu lai"
           )
         )
       )
