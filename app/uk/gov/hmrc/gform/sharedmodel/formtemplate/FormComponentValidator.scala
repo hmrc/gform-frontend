@@ -28,3 +28,12 @@ object FormComponentValidator {
     OFormat(derived.reads[FormComponentValidator](), derived.owrites[FormComponentValidator]())
 
 }
+
+case class PageComponentValidator(validIf: ValidIf, fieldIds: List[SmartString], errorMessage: SmartString)
+
+object PageComponentValidator {
+
+  implicit val format: OFormat[PageComponentValidator] =
+    OFormat(derived.reads[PageComponentValidator](), derived.owrites[PageComponentValidator]())
+
+}

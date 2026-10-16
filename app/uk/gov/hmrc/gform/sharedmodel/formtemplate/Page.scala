@@ -48,7 +48,8 @@ case class Page(
   removeItemIf: Option[RemoveItemIf],
   displayWidth: Option[LayoutDisplayWidth],
   notRequiredIf: Option[IncludeIf],
-  specimenNote: Option[String]
+  specimenNote: Option[String],
+  validators: Option[List[PageComponentValidator]] = None
 ) {
 
   def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(
