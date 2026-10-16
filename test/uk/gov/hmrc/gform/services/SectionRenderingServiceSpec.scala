@@ -24,12 +24,14 @@ import org.mockito.scalatest.IdiomaticMockito
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
-import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
+import uk.gov.hmrc.gform.gform.{ ExtraInfo, PageUpdater, RenderUnit, SectionRenderingService }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models._
@@ -42,9 +44,13 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.Dest
 import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, NotChecked }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
-import uk.gov.hmrc.gform.validation.ValidationResult
+import uk.gov.hmrc.gform.validation.{ ComponentChecker, ComponentField, FieldOk, FormFieldValidationResult, GetEmailCodeFieldMatcher, HtmlFieldId, PageError, ValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
+import scala.util.matching.Regex
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
@@ -106,8 +112,41 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       addressRecordLookup = AddressRecordLookup.from(ThirdPartyData.empty)
     )
 
-    implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
+    implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
+  }
+
+  def formWithValidator(fcId: String, ct: ComponentType): FormComponent = {
+    val validators =
+      List(
+        FormComponentValidator(
+          ValidIf(
+            Or(
+              MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{2,8}$")),
+              MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{4,8}$"))
+            )
+          ),
+          toSmartString("error message")
+        )
+      )
+    FormComponent(
+      FormComponentId(fcId),
+      ct,
+      ls,
+      false,
+      None,
+      None,
+      None,
+      None,
+      Mandatory.True,
+      false,
+      true,
+      false,
+      false,
+      None,
+      None,
+      validators
+    )
   }
 
   private val remainingChoiceCases = List(
@@ -342,6 +381,293 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       )
 
     Jsoup.parse(generatedHtml.body).title() shouldBe "Some title without PII - AAA999 dev test template - GOV.UK"
+  }
+
+  private val gformConnector: GformConnector = mock[GformConnector]
+  private val lookupRegistry: LookupRegistry = mock[LookupRegistry]
+
+  private val validationService: ValidationService = new ValidationService(
+    gformConnector,
+    lookupRegistry,
+    ComponentChecker.NonShortCircuitInterpreter
+  )
+
+  trait SharedValidatorFixture extends TestFixture {
+    def firstId: String = "first"
+    def secondId: String = "second"
+    def values: List[String] = List("one", "two", "other")
+    def constraints: List[TextConstraint] = List.fill(3)(TextConstraint.default)
+    def includeValidators: Boolean = true
+    def disableValidIfs: Boolean = false
+    def hideSecond: Boolean = false
+    def extraValidators: List[PageValidator] = Nil
+
+    lazy val fields: List[FormComponent] =
+      List(firstId, secondId, "unrelated").zip(constraints).map { case (id, constraint) =>
+        mkFormComponent(id, Text(constraint, Value)).copy(
+          mandatory = Mandatory.True,
+          includeIf = if (hideSecond && id == secondId) Some(IncludeIf(IsFalse)) else None
+        )
+      }
+    override lazy val form: Form = buildForm(
+      FormData(fields.zip(values).map { case (field, value) => FormField(field.modelComponentId, value) })
+    )
+    override lazy val formTemplate: FormTemplate = buildFormTemplate(
+      destinationList,
+      List(
+        nonRepeatingPageSection(
+          title = "Shared validation",
+          fields = fields,
+          validators =
+            if (includeValidators)
+              Some(
+                NonEmptyList(
+                  PageValidator(
+                    ValidIf(Equals(FormCtx(FormComponentId(firstId)), FormCtx(FormComponentId(secondId)))),
+                    NonEmptyList.of(FormComponentId(secondId), FormComponentId(firstId)),
+                    toSmartString("The values must match", "Rhaid cyfateb")
+                  ),
+                  extraValidators
+                )
+              )
+            else None
+        )
+      )
+    ).copy(overrides = Some(Overrides.empty.copy(disableValidIfs = Some(disableValidIfs))))
+
+    lazy val checked: ValidationResult = {
+      val optics = formModelOptics.formModelVisibilityOptics
+      val page = optics.formModel.pages.head
+      val result = Await.result(
+        validationService.validatePageModel(
+          page,
+          cache.toCacheData,
+          EnvelopeWithMapping.empty,
+          optics,
+          GetEmailCodeFieldMatcher(optics.formModel)
+        ),
+        Duration("10s")
+      )
+      ValidationUtil.evaluateValidationResult(page.allFormComponents, result, optics, EnvelopeWithMapping.empty)
+    }
+
+    def render(result: ValidationResult): org.jsoup.nodes.Document =
+      Jsoup.parse(
+        testService
+          .renderSection(
+            Some(accessCode),
+            SectionNumber.classicZero,
+            FormHandlerResult(result, EnvelopeWithMapping.empty),
+            formTemplate.copy(draftRetrievalMethod = NotPermitted),
+            None,
+            envelopeId,
+            formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
+            0,
+            FileInfoConfig.allAllowedFileTypes,
+            Nil,
+            authContext,
+            NotChecked,
+            List(FastForward.Yes),
+            formModelOptics,
+            UpscanInitiate.empty,
+            AddressRecordLookup.from(ThirdPartyData.empty)
+          )
+          .body
+      )
+  }
+
+  it should "show no error before validation, including pages without validators" in new SharedValidatorFixture {
+    render(ValidationResult.empty).select(".govuk-error-summary, .govuk-form-group--error").size shouldBe 0
+  }
+
+  it should "skip shared validators during data-retrieve preflight" in new SharedValidatorFixture {
+    val optics = formModelOptics.formModelVisibilityOptics
+    val page = optics.formModel.pages.head
+    val result = Await.result(
+      validationService.validatePageModelWithoutCustomValidators(
+        page,
+        cache.toCacheData,
+        EnvelopeWithMapping.empty,
+        optics,
+        GetEmailCodeFieldMatcher(optics.formModel)
+      ),
+      Duration("10s")
+    )
+    result.componentResult.isValid shouldBe true
+    result.pageErrors shouldBe empty
+  }
+
+  it should "run shared validation even when component validIfs are disabled" in new SharedValidatorFixture {
+    override def disableValidIfs: Boolean = true
+    checked.isFormValid shouldBe false
+    checked.pageErrors.map(_.error) shouldBe List("The values must match")
+    render(checked).select(".gform-error-group").size shouldBe 1
+  }
+
+  it should "skip shared validation when a member is hidden" in new SharedValidatorFixture {
+    override def hideSecond: Boolean = true
+    checked.isFormValid shouldBe true
+    checked.pageErrors shouldBe empty
+  }
+
+  it should "expand shared validator member IDs and expressions on repeated pages" in new SharedValidatorFixture {
+    val page = formTemplate.formKind.allSections.sections.head.section match {
+      case Section.NonRepeatingPage(page) => page
+      case _                              => fail("Expected a non-repeating page")
+    }
+    val updated = PageUpdater(page, 2, fields.map(_.id), Nil)
+    val validator = updated.validators.get.head
+    validator.fieldIds shouldBe NonEmptyList.of(secondId, firstId).map(id => FormComponentId(id).withIndex(2))
+    validator.validIf shouldBe ValidIf(
+      Equals(FormCtx(FormComponentId(firstId).withIndex(2)), FormCtx(FormComponentId(secondId).withIndex(2)))
+    )
+  }
+
+  it should "render separate failed shared checks without merging their groups" in new SharedValidatorFixture {
+    override def values: List[String] = List("one", "two", "three", "four")
+    override lazy val fields: List[FormComponent] =
+      List(firstId, secondId, "unrelated", "fourth").map(id =>
+        mkFormComponent(id, Text(TextConstraint.default, Value)).copy(mandatory = Mandatory.True)
+      )
+    override def extraValidators: List[PageValidator] = List(
+      PageValidator(
+        ValidIf(Equals(FormCtx(FormComponentId("unrelated")), FormCtx(FormComponentId("fourth")))),
+        NonEmptyList.of(FormComponentId("unrelated"), FormComponentId("fourth")),
+        toSmartString("The other values must match")
+      )
+    )
+    checked.pageErrors.size shouldBe 2
+    val html = render(checked)
+    html.select(".govuk-error-summary a").size shouldBe 2
+    html.select(".gform-error-group").size shouldBe 2
+    html.select(".gform-error-group .govuk-error-message").size shouldBe 2
+  }
+
+  it should "block progress with one summary link, message and wrapper for a failed shared check" in new SharedValidatorFixture {
+    checked.isFormValid shouldBe false
+    checked.errorsFieldIds.toSet shouldBe Set(fields.head.id, fields(1).id)
+    val document = render(checked)
+    document.select(".govuk-error-summary a").size shouldBe 1
+    document.select(".govuk-error-summary a").attr("href") shouldBe "#first"
+    document.select(".govuk-error-summary a").text shouldBe "The values must match"
+    document.select(".govuk-form-group--error").size shouldBe 1
+    document.select(".gform-error-group input").size shouldBe 2
+    document.select(".gform-error-group .govuk-error-message").size shouldBe 1
+    document.select(".gform-error-group").attr("aria-describedby") shouldBe "first-group-error"
+    document.select("#first-group-error").text should include("The values must match")
+    document.select(".gform-error-group #unrelated").size shouldBe 0
+    checked.forgetErrors.isFormValid shouldBe true
+    checked.toFormValidationOutcome(EnteredVariadicFormData.empty).isValid shouldBe false
+    checked.toFormValidationOutcome(EnteredVariadicFormData.empty).formData shouldBe form.formData
+  }
+
+  List(0, 1, 2).foreach { invalidIndex =>
+    it should s"suppress shared errors when component $invalidIndex on the page is empty" in new SharedValidatorFixture {
+      override def values: List[String] = List("one", "two", "other").updated(invalidIndex, "")
+      checked.pageErrors shouldBe empty
+      checked.isFormValid shouldBe false
+      val document = render(checked)
+      document.select(".gform-error-group").size shouldBe 0
+      document.select(".govuk-error-summary a").size shouldBe 1
+      document.select(".govuk-error-summary a").attr("href") shouldBe "#" + fields(invalidIndex).id.value
+      document.select(".govuk-input--error").size shouldBe 1
+    }
+  }
+
+  List(0, 1).foreach { invalidIndex =>
+    it should s"suppress shared errors when component $invalidIndex has a format error" in new SharedValidatorFixture {
+      override def constraints: List[TextConstraint] = List.fill(3)(UkBankAccountNumber)
+      override def values: List[String] = List("96113600", "12345678", "12345678").updated(invalidIndex, "abc")
+      checked.pageErrors shouldBe empty
+      render(checked).select(".govuk-input--error").size shouldBe 1
+    }
+  }
+
+  it should "show no errors when both component and shared checks pass" in new SharedValidatorFixture {
+    override def values: List[String] = List("one", "one", "other")
+    checked.isFormValid shouldBe true
+    render(checked).select(".govuk-error-summary, .govuk-form-group--error").size shouldBe 0
+  }
+
+  it should "preserve per-component behaviour on pages without shared validators" in new SharedValidatorFixture {
+    override def includeValidators: Boolean = false
+    checked.isFormValid shouldBe true
+    render(checked).select(".govuk-error-summary, .gform-error-group").size shouldBe 0
+  }
+
+  it should "render the shared message in Welsh" in new SharedValidatorFixture {
+    override implicit val langADT: LangADT = LangADT.Cy
+    render(checked).select(".govuk-error-summary a").text shouldBe "Rhaid cyfateb"
+    render(checked).select(".gform-error-group input").size shouldBe 2
+  }
+
+  it should "group sort code and account number without hard-coding their IDs" in new SharedValidatorFixture {
+    override def firstId: String = "accountNumber"
+    override def secondId: String = "sortCode"
+    override def constraints: List[TextConstraint] = List(UkBankAccountNumber, UkSortCodeFormat, TextConstraint.default)
+    override def values: List[String] = List("96113600", "609593", "other")
+    val document = render(checked)
+    document.select(".gform-error-group input").size shouldBe 2
+    document.select(".govuk-error-summary a").attr("href") shouldBe "#accountNumber"
+  }
+
+  it should "retain shared errors through whole-form validation and check-your-answers rendering" in new SharedValidatorFixture {
+    val result = Await.result(
+      validationService.validateFormModel(
+        cache.toCacheData,
+        EnvelopeWithMapping.empty,
+        formModelOptics.formModelVisibilityOptics,
+        None
+      ),
+      Duration("10s")
+    )
+    result.isFormValid shouldBe false
+    result.pageErrors.size shouldBe 1
+    result.forSummary(fields.head).fieldErrors.toList shouldBe List("The values must match")
+    result.forSummary(fields(1)).fieldErrors shouldBe empty
+    val summary = uk.gov.hmrc.gform.gform.PageLevelErrorHtml.generateSummaryLevelErrorHtml(
+      fields.map(result.apply),
+      Nil,
+      result.pageErrors
+    )
+    summary match {
+      case uk.gov.hmrc.gform.gform.Errors(html) =>
+        val document = Jsoup.parse(html.body)
+        document.select("a").size shouldBe 1
+        document.select("a").attr("href") shouldBe "#first-error-message"
+      case _ => fail("Expected a summary error")
+    }
+  }
+
+  it should "preserve compound values and use the summary row as the shared error target" in new TestFixture {
+    val address = mkFormComponent("address", Address(false, Nil, false, None))
+    val second = mkFormComponent("reference", Value)
+    val data: Map[HtmlFieldId, FormFieldValidationResult] =
+      Address
+        .fields(address.modelComponentId.indexedComponentId)
+        .toList
+        .map(id => HtmlFieldId.pure(id) -> FieldOk(address, "saved"))
+        .toMap
+    val result = ValidationResult(
+      Map(address.id -> ComponentField(address, data)),
+      None,
+      List(PageError("Check both answers", NonEmptyList.of(address, second)))
+    )
+    result.forSummary(address) match {
+      case ComponentField(_, fields) =>
+        fields.values.flatMap(_.getCurrentValue).toList should contain only "saved"
+        fields.values.flatMap(_.fieldErrors).toList shouldBe List("Check both answers")
+      case _ => fail("Expected the compound validation result to be preserved")
+    }
+    uk.gov.hmrc.gform.gform.PageLevelErrorHtml.generateSummaryLevelErrorHtml(
+      result.formFieldValidationResults,
+      Nil,
+      result.pageErrors
+    ) match {
+      case uk.gov.hmrc.gform.gform.Errors(html) =>
+        Jsoup.parse(html.body).select("a").attr("href") shouldBe "#address-error-message"
+      case _ => fail("Expected a shared summary error")
+    }
   }
 
   "renderDeclarationSection" should "render Declaration page with Button with text 'ContinueLabel'" in new TestFixture {

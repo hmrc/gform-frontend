@@ -6,6 +6,19 @@ $govuk-new-typography-scale: true;
 @import "lib/govuk-frontend/dist/govuk/index";
 @import "lib/hmrc-frontend/hmrc/all";
 
+.gform-error-group {
+  .govuk-input,
+  .govuk-textarea,
+  .govuk-select,
+  .autocomplete__input {
+    border-color: $govuk-error-colour;
+
+    &:focus {
+      border-color: $govuk-input-border-colour;
+    }
+  }
+}
+
 // accessible-autocomplete doesn't support class customization.
 .gform-lookup-error .autocomplete__input {
     // Copied from .govuk-input--error in _input.scss

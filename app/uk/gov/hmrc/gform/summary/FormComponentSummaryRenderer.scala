@@ -65,7 +65,7 @@ object FormComponentSummaryRenderer {
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] = {
 
-    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+    val formFieldValidationResult: FormFieldValidationResult = validationResult.forSummary(formComponent)
     val currentFastForward =
       fastForward0.getOrElse(List(FastForward.CYA(SectionOrSummary.FormSummary)))
 
@@ -75,7 +75,7 @@ object FormComponentSummaryRenderer {
       case value => value :+ FastForward.BackUntil(sectionNumber)
     }
 
-    formComponent match {
+    val rows = formComponent match {
       case IsText(Text(_, _, _, _, _, prefix, suffix, _, _)) =>
         getTextSummaryListRows(
           formComponent,
@@ -351,6 +351,14 @@ object FormComponentSummaryRenderer {
 
       case otherFormComponent => throw new Exception(s"$otherFormComponent is not supported in summary list row")
     }
+
+    val hasSharedError = validationResult.pageErrors.exists(_.fields.exists(_.id == formComponent.id))
+    if (hasSharedError)
+      rows.map { row =>
+        val classes = (row.key.classes.split(" ").filter(_.nonEmpty).toList :+ "summary--error").distinct.mkString(" ")
+        row.copy(key = row.key.copy(classes = classes))
+      }
+    else rows
   }
 
   private def checkErrors(fieldValue: FormComponent, formFieldValidationResult: FormFieldValidationResult)(implicit

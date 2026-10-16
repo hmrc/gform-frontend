@@ -135,7 +135,8 @@ trait SectionGen {
       removeItemIf,
       None,
       None,
-      None
+      None,
+      validators = None
     )
 
   def nonRepeatingPageSectionGen: Gen[Section.NonRepeatingPage] = pageGen.map(Section.NonRepeatingPage)

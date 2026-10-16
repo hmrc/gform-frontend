@@ -40,7 +40,8 @@ class FormServiceSpec extends Spec {
   private def headValue(formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult): String =
     new ValidationResult(
       Map(formComponent.id -> formFieldValidationResult),
-      None
+      None,
+      Nil
     ).toFormValidationOutcome(EnteredVariadicFormData.empty).formData.fields.head.value
 
   it should "not remove any commas from the FormFieldValidationResult when FormFieldValidationResult is not equal to FieldOk" in {

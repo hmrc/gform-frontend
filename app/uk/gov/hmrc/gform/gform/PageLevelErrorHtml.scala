@@ -21,7 +21,7 @@ import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, IsAddress, IsChoice, IsOverseasAddress, IsRevealingChoice, OverseasAddress }
-import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult, HtmlFieldId }
+import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult, HtmlFieldId, PageError }
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
@@ -85,6 +85,28 @@ object PageLevelErrorHtml {
       NoErrors
   }
 
+  def pageValidatorErrors(pageErrors: List[PageError])(implicit messages: Messages): HasErrors = {
+    val errorsHtml = pageErrors.map { error =>
+      val firstField = error.fields.head
+      val target = firstField match {
+        case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(firstField.id, "0").toHtmlId
+        case _ =>
+          firstField.multiValueId.fold(pure => HtmlFieldId.pure(pure.modelComponentId).toHtmlId)(multiple =>
+            HtmlFieldId.pure(multiple.atoms.head).toHtmlId
+          )
+      }
+      ErrorLink(href = Some("#" + target), content = content.Text(error.error))
+    }
+    val errorSummary = ErrorSummary(
+      errorList = errorsHtml,
+      title = content.Text(messages("error.summary.heading"))
+    )
+
+    val errorHtml: Html = new components.GovukErrorSummary()(errorSummary)
+
+    Errors(errorHtml)
+  }
+
   def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
     globalErrors: List[ErrorLink]
@@ -93,9 +115,24 @@ object PageLevelErrorHtml {
 
   def generateSummaryLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
-    globalErrors: List[ErrorLink]
+    globalErrors: List[ErrorLink],
+    pageErrors: List[PageError] = Nil
   )(implicit messages: Messages): HasErrors =
-    generateErrorHtml(listValidation, globalErrors, summaryLevel = true)
+    generateErrorHtml(
+      listValidation,
+      globalErrors ++ pageErrors.map { error =>
+        val firstField = error.fields.head
+        val htmlFieldId = firstField match {
+          case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(firstField.id, "0")
+          case _                                  => HtmlFieldId.pure(firstField.modelComponentId)
+        }
+        ErrorLink(
+          href = Some(s"#${htmlFieldId.toHtmlId}-error-message"),
+          content = content.Text(error.error)
+        )
+      },
+      summaryLevel = true
+    )
 
   def noJSFileUploadError(message: String, fileId: Option[String])(implicit messages: Messages): HasErrors = {
     val errorSummary = ErrorSummary(

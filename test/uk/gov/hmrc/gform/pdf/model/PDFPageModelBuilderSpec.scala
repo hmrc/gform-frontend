@@ -104,7 +104,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       Map(
         fcName.id -> FieldOk(fcName, "name&value")
       ),
-      None
+      None,
+      Nil
     )
 
     lazy val formTemplate: FormTemplate = mkFormTemplate(sections)
@@ -178,7 +179,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         fcName.id.withIndex(1) -> FieldOk(fcName.copy(id = fcName.id.withIndex(1)), "name-value1"),
         fcName.id.withIndex(2) -> FieldOk(fcName.copy(id = fcName.id.withIndex(2)), "name-value2")
       ),
-      None
+      None,
+      Nil
     )
 
     makeModel[PDFType.Summary](
@@ -228,7 +230,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
           "1"
         )
       ),
-      None
+      None,
+      Nil
     )
 
     makeModel[PDFType.Summary](
@@ -300,7 +303,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
       Map(
         fcName.id -> FieldOk(fcName, "name-value")
       ),
-      None
+      None,
+      Nil
     )
 
     makeModel[PDFType.Summary](
@@ -343,7 +347,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
           fcEmail.id  -> FieldOk(fcEmail, "somename@test.com"),
           fcAmount.id -> FieldOk(fcAmount, "111")
         ),
-        None
+        None,
+        Nil
       )
 
       makeModel[PDFType.Instruction](
@@ -405,7 +410,8 @@ class PDFPageModelBuilderSpec extends AnyFlatSpec with Matchers with FormModelSu
         fcAge.id   -> FieldOk(fcAge, "1"),
         fcEmail.id -> FieldOk(fcEmail, "somename@test.com")
       ),
-      None
+      None,
+      Nil
     )
 
     makeModel[PDFType.Instruction](

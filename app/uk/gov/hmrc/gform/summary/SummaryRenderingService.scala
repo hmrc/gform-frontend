@@ -301,7 +301,11 @@ object SummaryRenderingService {
       )
 
     val pageLevelErrorHtml =
-      PageLevelErrorHtml.generateSummaryLevelErrorHtml(validationResult.formFieldValidationResults, List.empty)
+      PageLevelErrorHtml.generateSummaryLevelErrorHtml(
+        validationResult.formFieldValidationResults,
+        List.empty,
+        validationResult.pageErrors
+      )
 
     val sfr =
       summaryRowsForRender(
