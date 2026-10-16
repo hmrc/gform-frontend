@@ -90,6 +90,7 @@ class ExprUpdater(index: Int, baseIds: List[FormComponentId], baseDataRetrieveId
     case ChoicesRevealedField(formComponentId)        => ChoicesRevealedField(expandFcId(formComponentId))
     case ChoicesSelected(formComponentId)             => ChoicesSelected(expandFcId(formComponentId))
     case ChoicesAvailable(formComponentId, insideAtl) => ChoicesAvailable(expandFcId(formComponentId), insideAtl)
+    case LastOption(formComponentId)                  => LastOption(expandFcId(formComponentId))
     case CountSelectedChoices(formComponentId)        => CountSelectedChoices(expandFcId(formComponentId))
     case ChoicesCount(formComponentId)                => ChoicesCount(expandFcId(formComponentId))
     case TaskStatus(_)                                => expr

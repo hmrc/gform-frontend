@@ -110,6 +110,75 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       .apply(formModelOptics.formModelVisibilityOptics)
   }
 
+  private val remainingChoiceCases = List(
+    ("replace a single remaining option", 1, true, true),
+    ("keep radios when two options remain", 2, true, false),
+    ("keep legacy single-option radios", 1, false, false),
+    ("replace one visible option after includeIf filtering", 3, true, true)
+  )
+
+  remainingChoiceCases.foreach { case (description, optionCount, withReplacement, expectInfo) =>
+    "htmlFor last remaining choice" should description in new TestFixture {
+      lazy val remainingInfo = mkFormComponent(
+        "lastOptionInfo",
+        InformationMessage(
+          StandardInfo,
+          uk.gov.hmrc.gform.Helpers
+            .toSmartStringExpression("You need to tell us about {0}.", LastOption(FormComponentId("approvalType")))
+        )
+      )
+      lazy val options = (1 to optionCount).toList.map { optionNumber =>
+        OptionData.ValueBased(
+          uk.gov.hmrc.gform.Helpers.toSmartString(s"Approval type $optionNumber"),
+          None,
+          if (optionCount == 3 && optionNumber > 1) Some(IncludeIf(IsFalse)) else None,
+          None,
+          OptionDataValue.StringBased(s"type$optionNumber"),
+          None,
+          None
+        )
+      }
+      lazy val approvalChoice = mkFormComponent(
+        "approvalType",
+        Choice(
+          Radio,
+          options,
+          Vertical,
+          Nil,
+          None,
+          None,
+          uk.gov.hmrc.gform.Helpers.toSmartString("or"),
+          None,
+          None,
+          hideChoicesSelected = true,
+          noDuplicates = false,
+          whenOnlyOneChoiceRemains = if (withReplacement) Some(remainingInfo) else None
+        )
+      )
+      override lazy val formTemplate =
+        buildFormTemplate(destinationList, List(nonRepeatingPageSection(fields = List(approvalChoice))))
+
+      val generatedHtml = testService.htmlFor(
+        RenderUnit.pure(approvalChoice),
+        formTemplateId,
+        extraInfo,
+        validationResult,
+        NotChecked,
+        UpscanInitiate.empty,
+        Map.empty[FormComponentId, UpscanData]
+      )
+      val document = Jsoup.parse(generatedHtml.body)
+      if (expectInfo) {
+        document.select("input[type=radio]").size shouldBe 0
+        document.select("input[type=hidden][name=approvalType]").attr("value") shouldBe "type1"
+        document.text() should include("You need to tell us about Approval type 1.")
+      } else {
+        document.select("input[type=radio]").size shouldBe optionCount
+        document.select("input[type=hidden][name=approvalType]").size shouldBe 0
+      }
+    }
+  }
+
   "renderSection" should "render text field with TelephoneNumber constraint as input field with type='tel'" in new TestFixture {
 
     lazy val phoneNumberField = mkFormComponent("phoneNumber", Text(TelephoneNumber, Value))

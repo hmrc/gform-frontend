@@ -933,6 +933,22 @@ final class RealCalculator(
       case ChoicesCount(formComponentId) => getChoicesTotalCount(formComponentId, metadata)
       case ChoicesAvailable(formComponentId, insideAtl) =>
         getChoicesAvailable(formComponentId, metadata, insideAtl.getOrElse(false))
+      case LastOption(formComponentId) =>
+        def renderLabel(label: SmartString): String = {
+          import scala.jdk.CollectionConverters._
+          val values = label.interpolations(evalBooleanExpr).map(expr => evalExpr(expr).stringRepresentation(messages))
+          new java.text.MessageFormat(label.rawValue(evalBooleanExpr)(evaluationContext.lang))
+            .format(values.asJava.toArray)
+        }
+        metadata.choiceLookup.get(formComponentId.baseComponentId).fold[EvaluationStatus](EvaluationStatus.Empty) {
+          case (component, choice) =>
+            val currentComponent = component.copy(id = formComponentId)
+            val expanded = OptionDataUtils.expand(currentComponent, choice, this).`type`.asInstanceOf[Choice]
+            OptionDataUtils.remainingOptions(currentComponent, expanded, this, renderLabel) match {
+              case (option, _) :: Nil => EvaluationStatus.StringResult(renderLabel(option.label))
+              case _                  => EvaluationStatus.Empty
+            }
+        }
       case BulletedList(formComponentId) => evalExpr(FormCtx(formComponentId), staticTypeData, behaviour)
       case NumberedList(formComponentId) => evalExpr(FormCtx(formComponentId), staticTypeData, behaviour)
       case BulletedListChoicesSelected(formComponentId, _) =>

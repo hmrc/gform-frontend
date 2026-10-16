@@ -456,7 +456,8 @@ case class Choice(
   noneChoice: Option[NoneChoice],
   noneChoiceError: Option[LocalisedString],
   hideChoicesSelected: Boolean,
-  noDuplicates: Boolean
+  noDuplicates: Boolean,
+  whenOnlyOneChoiceRemains: Option[FormComponent] = None
 ) extends ComponentType {
   def renderToString(
     formComponent: FormComponent,

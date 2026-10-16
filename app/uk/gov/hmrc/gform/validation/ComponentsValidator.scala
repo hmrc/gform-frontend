@@ -215,7 +215,7 @@ class ComponentsValidator(
           validIf(
             new OverseasAddressChecker().runCheck(checkerDependency)
           )
-        case Choice(_, _, _, _, _, _, _, _, _, _, _) =>
+        case _: Choice =>
           validIf(new ChoiceChecker().runCheck(checkerDependency))
         case _: RevealingChoice =>
           validIf(new ChoiceChecker().runCheck(checkerDependency))

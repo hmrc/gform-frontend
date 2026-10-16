@@ -19,8 +19,55 @@ package uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Dynamic, IncludeIf, IsFalse, IsTrue, TableComp, TableHeadCell, TableValue, TableValueRow }
 import munit.FunSuite
+import org.mockito.Mockito.{ mock, when }
+import play.api.test.Helpers.stubMessages
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormComponent
+import uk.gov.hmrc.gform.models.OptionDataUtils
+import uk.gov.hmrc.gform.recalculation.{ Calculator, EvaluationStatus }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponentId, OptionData, OptionDataValue, Radio, Vertical }
 
 class SectionRenderingServiceSuite extends FunSuite {
+  test("remaining choices exclude other items but retain the current item's stored value") {
+    implicit val messages: play.api.i18n.Messages = stubMessages()
+    val calculator = mock(classOf[Calculator])
+    val options = List("warehousekeeper", "manufacturer", "importer").map { value =>
+      OptionData.ValueBased(toSmartString(value), None, None, None, OptionDataValue.StringBased(value), None, None)
+    }
+    val choice = Choice(Radio, options, Vertical, Nil, None, None, toSmartString("or"), None, None, true, false)
+    val component = mkFormComponent("3_approvalType", choice)
+    when(calculator.allModelComponentIds(component.modelComponentId)).thenReturn(
+      List(
+        FormComponentId("1_approvalType").modelComponentId -> EvaluationStatus.OptionResult(List("warehousekeeper")),
+        FormComponentId("2_approvalType").modelComponentId -> EvaluationStatus.OptionResult(List("manufacturer")),
+        component.modelComponentId                         -> EvaluationStatus.OptionResult(List("importer"))
+      )
+    )
+    val remaining = OptionDataUtils.remainingOptions(component, choice, calculator, _.rawDefaultValue(LangADT.En))
+    assertEquals(remaining.map(_._1), List(options(2)))
+  }
+
+  test("remaining choices collapse duplicate labels before determining the last option") {
+    implicit val messages: play.api.i18n.Messages = stubMessages()
+    val calculator = mock(classOf[Calculator])
+    val options = List("first", "second").map { value =>
+      OptionData.ValueBased(
+        toSmartString("Remaining approval"),
+        None,
+        None,
+        None,
+        OptionDataValue.StringBased(value),
+        None,
+        None
+      )
+    }
+    val choice = Choice(Radio, options, Vertical, Nil, None, None, toSmartString("or"), None, None, true, true)
+    val component = mkFormComponent("approvalType", choice)
+    when(calculator.allModelComponentIds(component.modelComponentId)).thenReturn(Nil)
+    val remaining = OptionDataUtils.remainingOptions(component, choice, calculator, _.rawDefaultValue(LangADT.En))
+    assertEquals(remaining.map(_._1), List(options.head))
+  }
+
   private def isVisibleValueRow(
     row: TableValueRow
   ): Boolean = row.includeIf.fold(true)(includeIf => includeIf === IncludeIf(IsTrue))
