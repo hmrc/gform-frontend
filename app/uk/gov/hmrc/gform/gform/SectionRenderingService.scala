@@ -819,8 +819,8 @@ class SectionRenderingService(
     val pageLevelErrorHtml = (request.flash.get(GformFlashKeys.FileUploadError), pageCustomResult) match {
       case (Some(message), _) =>
         PageLevelErrorHtml.noJSFileUploadError(message, request.flash.get(GformFlashKeys.FileUploadFileId))
-      case (_, Some(pageErr)) => PageLevelErrorHtml.pageCustomValidatorError(pageErr)
-      case (None, _)          => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
+      case (_, errors) if errors.nonEmpty => PageLevelErrorHtml.pageCustomValidatorErrors(errors)
+      case (None, _)                      => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     }
 
     val originSection = Origin(formModelOptics.formModelVisibilityOptics.formModel).minSectionNumber
@@ -848,10 +848,21 @@ class SectionRenderingService(
         )
       }.toMap
 
-    val snippetsForFields = renderUnits
-      .map(renderUnit =>
-        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
-      )
+    val snippetsForFields = renderUnits.flatMap { renderUnit =>
+      val componentId = renderUnit.fold(_.formComponent.id)(_.formComponent.id)
+      pageCustomResult.find(_.fields.exists(_.id == componentId)) match {
+        case Some(error) if error.fields.head.id == componentId =>
+          val members =
+            renderUnits.filter(unit => error.fields.exists(_.id == unit.fold(_.formComponent.id)(_.formComponent.id)))
+          val snippets = members.map(unit =>
+            htmlFor(unit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
+          )
+          List(html.form.snippets.group_error(error, snippets))
+        case Some(_) => Nil
+        case None =>
+          List(htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData))
+      }
+    }
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       !_.isTerminationPage(formModelOptics.formModelVisibilityOptics.freeCalculator)
     ) && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals) && !singleton.page.isHideSaveAndComeBackButton

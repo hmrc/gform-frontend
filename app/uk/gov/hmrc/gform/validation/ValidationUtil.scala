@@ -88,6 +88,19 @@ object ValidationUtil {
 
   def evaluateValidationResult(
     atomicFields: List[FormComponent],
+    validationResult: PageValidationResult,
+    formModelVisibilityOptics: FormModelVisibilityOptics,
+    envelope: EnvelopeWithMapping
+  ): ValidationResult =
+    evaluateValidationResult(
+      atomicFields,
+      validationResult.componentResult,
+      formModelVisibilityOptics,
+      envelope
+    ).copy(pageErrors = validationResult.pageErrors)
+
+  def evaluateValidationResult(
+    atomicFields: List[FormComponent],
     validationResult: ValidatedType[ValidatorsResult],
     formModelVisibilityOptics: FormModelVisibilityOptics,
     envelope: EnvelopeWithMapping

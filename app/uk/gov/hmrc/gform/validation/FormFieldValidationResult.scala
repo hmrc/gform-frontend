@@ -36,7 +36,9 @@ case class ComponentField(
 ) // Used by multivalue fields ie. date, address but also choice and revealingChoice
     extends FormFieldValidationResult
 
-case class PageError(error: String, fields: List[FormComponent])
+case class PageError(error: String, fields: cats.data.NonEmptyList[FormComponent]) {
+  val errorId: String = fields.head.id.value + "-group-error"
+}
 
 trait FormFieldValidationResult {
 

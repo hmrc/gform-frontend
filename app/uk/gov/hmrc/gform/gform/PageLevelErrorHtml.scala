@@ -65,7 +65,7 @@ object PageLevelErrorHtml {
                   }
                 ErrorLink(
                   href = Some("#" + multiFieldId.toHtmlId + (if (summaryLevel) "-error-message" else "")),
-                  content = content.Text(errorMessage + "BOB" + listValidation.size + "," + globalErrors.size)
+                  content = content.Text(errorMessage)
                 )
               }
         }
@@ -85,13 +85,20 @@ object PageLevelErrorHtml {
       NoErrors
   }
 
-  def pageCustomValidatorError(pageError: PageError)(implicit messages: Messages): HasErrors = {
-    val errorsHtml = ErrorLink(
-      href = Some("#" + "1234.toHtmlId + -error-message"),
-      content = content.Text(pageError.error + " BOB")
-    )
+  def pageCustomValidatorErrors(pageErrors: List[PageError])(implicit messages: Messages): HasErrors = {
+    val errorsHtml = pageErrors.map { error =>
+      val firstField = error.fields.head
+      val target = firstField match {
+        case IsChoice(_) | IsRevealingChoice(_) => HtmlFieldId.indexed(firstField.id, "0").toHtmlId
+        case _ =>
+          firstField.multiValueId.fold(pure => HtmlFieldId.pure(pure.modelComponentId).toHtmlId)(multiple =>
+            HtmlFieldId.pure(multiple.atoms.head).toHtmlId
+          )
+      }
+      ErrorLink(href = Some("#" + target), content = content.Text(error.error))
+    }
     val errorSummary = ErrorSummary(
-      errorList = Seq(errorsHtml),
+      errorList = errorsHtml,
       title = content.Text(messages("error.summary.heading"))
     )
 
@@ -108,9 +115,19 @@ object PageLevelErrorHtml {
 
   def generateSummaryLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
-    globalErrors: List[ErrorLink]
+    globalErrors: List[ErrorLink],
+    pageErrors: List[PageError] = Nil
   )(implicit messages: Messages): HasErrors =
-    generateErrorHtml(listValidation, globalErrors, summaryLevel = true)
+    generateErrorHtml(
+      listValidation,
+      globalErrors ++ pageErrors.map(error =>
+        ErrorLink(
+          href = Some(s"#${error.fields.head.id.value}-error-message"),
+          content = content.Text(error.error)
+        )
+      ),
+      summaryLevel = true
+    )
 
   def noJSFileUploadError(message: String, fileId: Option[String])(implicit messages: Messages): HasErrors = {
     val errorSummary = ErrorSummary(

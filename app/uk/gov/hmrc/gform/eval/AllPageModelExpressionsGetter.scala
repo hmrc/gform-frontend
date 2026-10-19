@@ -55,7 +55,9 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
     val booleanExprsExprs: List[Expr] =
       (includeIfBooleanExprs ++ includeIfsBooleanExprs ++ validIfsBooleanExprs).flatMap(_.allExpressions)
 
-    componentsExprs ++ booleanExprsExprs
+    componentsExprs ++ booleanExprsExprs ++ singleton.page.validators.toList.flatten.flatMap { validator =>
+      validator.validIf.booleanExpr.allExpressions ++ validator.errorMessage.allInterpolations
+    }
   }
 
   def fromCheckYourAnswerPage(cyap: CheckYourAnswersPage): List[Expr] =
@@ -74,6 +76,8 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
     page.allFields.flatMap {
       case AllFormComponentExpressions(exprs) => exprs.map(_.expr)
       case _                                  => List.empty[Expr]
+    } ++ page.validators.toList.flatten.flatMap { validator =>
+      validator.validIf.booleanExpr.allExpressions ++ validator.errorMessage.allInterpolations
     } ++
       fromSmartStrings(page.title) ++
       fromOption(

@@ -302,7 +302,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
       formTemplate
     )
 
-    val resultF: Future[ValidatedType[ValidatorsResult]] = validationService.validatePageModel(
+    val resultF: Future[PageValidationResult] = validationService.validatePageModel(
       visibilityPageModel,
       cacheData,
       envelopeWithMapping,
@@ -310,6 +310,6 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
       GetEmailCodeFieldMatcher(visibilityFormModel)
     )
 
-    Await.result(resultF, Duration.Inf)
+    Await.result(resultF, Duration.Inf).componentResult
   }
 }

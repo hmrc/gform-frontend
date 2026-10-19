@@ -65,6 +65,19 @@ Upload eeitt test data for legacy eeitt auth if assigned in template:
 
 ## Development
 
+### Shared validation errors
+
+Pages can declare shared validators using `validIf`, `fieldIds` and a localized
+`errorMessage`. Each validator must reference at least two adjacent input fields
+on that page. The order of `fieldIds` does not change the display order, and groups
+must not overlap.
+
+Component errors take precedence across the page: shared validators are only
+evaluated once all component checks pass. A failed shared check blocks progression
+and displays one summary link, one message and one red-line wrapper around its
+member fields. Hidden/incomplete groups are not evaluated. Pages without shared
+validators retain their existing behaviour.
+
 ### Running on Apple Silicon
 
 Error: `node_modules/term-size/vendor/macos/term-size: Bad CPU type in executable`

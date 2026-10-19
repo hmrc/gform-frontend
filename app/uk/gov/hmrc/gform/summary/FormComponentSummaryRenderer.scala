@@ -65,7 +65,7 @@ object FormComponentSummaryRenderer {
     fcrd: FormComponentRenderDetails[T]
   ): List[SummaryListRow] = {
 
-    val formFieldValidationResult: FormFieldValidationResult = validationResult(formComponent)
+    val formFieldValidationResult: FormFieldValidationResult = validationResult.forSummary(formComponent)
     val currentFastForward =
       fastForward0.getOrElse(List(FastForward.CYA(SectionOrSummary.FormSummary)))
 

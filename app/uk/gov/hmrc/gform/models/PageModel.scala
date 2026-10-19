@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.recalculation.FreeCalculator
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, AtlDescription, BooleanExpr, Confirmation, FormComponent, FormComponentId, /*FormComponentValidator,*/ IncludeIf, Instruction, IsChoice, IsFileUpload, IsGroup, IsMultiFileUpload, IsPostcodeLookup, IsTableComp, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, AtlDescription, BooleanExpr, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsChoice, IsFileUpload, IsGroup, IsMultiFileUpload, IsPostcodeLookup, IsTableComp, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
@@ -46,14 +46,12 @@ sealed trait PageModel extends Product with Serializable {
 
     pageLevelIncludeIf.map(_.booleanExpr) ++
       allComponentIncludeIfs.map(_._1).map(_.booleanExpr) ++
-      allValidIfs.flatMap(_._1).map(_.booleanExpr)
+      allValidIfs.flatMap(_._1).map(_.booleanExpr) ++
+      fold(_.page.validators.toList.flatten.map(_.validIf.booleanExpr))(_ => Nil)(_ => Nil)
   }
 
   private def nestedFields(formComponent: FormComponent): List[FormComponent] =
     formComponent :: formComponent.childrenFormComponents
-
-  /* def customValidators: List[FormComponentValidator] =
-    fold(_.page.validators)(_ => Some(List.empty))(_ => Some(List.empty))*/
 
   def allFormComponents: List[FormComponent] =
     fold(_.page.allFields.flatMap(nestedFields))(_.fields.toList.flatMap(_.toList))(_.addAnotherQuestion :: Nil)

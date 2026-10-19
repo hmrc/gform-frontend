@@ -69,7 +69,14 @@ class PageUpdater(
       dataRetrieve = NonEmptyList.fromList(page.dataRetrieves().map(expandDataRetrieve)),
       confirmation = page.confirmation.map(expandConfirmation),
       removeItemIf = page.removeItemIf.map(expandRemoveItemIf),
-      notRequiredIf = page.notRequiredIf.map(expandIncludeIf)
+      notRequiredIf = page.notRequiredIf.map(expandIncludeIf),
+      validators = page.validators.map(_.map { validator =>
+        validator.copy(
+          validIf = ValidIf(expandBooleanExpr(validator.validIf.booleanExpr)),
+          fieldIds = validator.fieldIds.map(id => FormComponentId(id).withIndex(index).value),
+          errorMessage = expandSmartString(validator.errorMessage)
+        )
+      })
     )
 }
 
