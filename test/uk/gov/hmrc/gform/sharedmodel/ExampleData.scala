@@ -496,7 +496,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
       None,
       None,
       false,
-      false
+      false,
+      None
     ),
     toSmartString("sample label"),
     false,
@@ -594,7 +595,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       ls,
       false,

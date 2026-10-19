@@ -153,7 +153,8 @@ class FormComponentUpdaterSpec extends Spec {
       None,
       None,
       false,
-      false
+      false,
+      None
     )
 
   private def mkChoiceOptions(dataRetrieveId: String) =

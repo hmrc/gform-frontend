@@ -34,7 +34,7 @@ class SectionRenderingServiceSuite extends FunSuite {
     val options = List("warehousekeeper", "manufacturer", "importer").map { value =>
       OptionData.ValueBased(toSmartString(value), None, None, None, OptionDataValue.StringBased(value), None, None)
     }
-    val choice = Choice(Radio, options, Vertical, Nil, None, None, toSmartString("or"), None, None, true, false)
+    val choice = Choice(Radio, options, Vertical, Nil, None, None, toSmartString("or"), None, None, true, false, None)
     val component = mkFormComponent("3_approvalType", choice)
     when(calculator.allModelComponentIds(component.modelComponentId)).thenReturn(
       List(
@@ -61,7 +61,7 @@ class SectionRenderingServiceSuite extends FunSuite {
         None
       )
     }
-    val choice = Choice(Radio, options, Vertical, Nil, None, None, toSmartString("or"), None, None, true, true)
+    val choice = Choice(Radio, options, Vertical, Nil, None, None, toSmartString("or"), None, None, true, true, None)
     val component = mkFormComponent("approvalType", choice)
     when(calculator.allModelComponentIds(component.modelComponentId)).thenReturn(Nil)
     val remaining = OptionDataUtils.remainingOptions(component, choice, calculator, _.rawDefaultValue(LangADT.En))
