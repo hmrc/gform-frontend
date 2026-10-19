@@ -29,7 +29,7 @@ object FormComponentValidator {
 
 }
 
-case class PageCustomValidator(validIf: ValidIf, fieldIds: List[String], errorMessage: SmartString)
+case class PageCustomValidator(validIf: ValidIf, fieldIds: List[SmartString], errorMessage: SmartString)
 
 object PageCustomValidator {
 

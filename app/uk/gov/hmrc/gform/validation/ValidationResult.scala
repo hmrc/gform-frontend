@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
-import cats.data.Validated.{ Invalid, Valid }
+import cats.data.Validated.Valid
 import uk.gov.hmrc.gform.models.EnteredVariadicFormData
 import uk.gov.hmrc.gform.models.Singleton
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
@@ -65,9 +65,9 @@ case class ValidationResult(
   def pageLevelValidationResults(singleton: Singleton): Option[PageError] = {
     val formComponent = singleton.page.allFields.head
     val res = customValidatorsResult match {
-      case Some(Valid(()))  => None
-      case Some(Invalid(e)) => Some(PageError("Page level error", List(formComponent)))
-      case _                => Some(PageError("Page level error", List(formComponent)))
+      case Some(Valid(())) => None
+      //  case Some(Invalid(e)) => Some(PageError("Page level error", List(formComponent)))
+      case _ => Some(PageError("Page level error", List(formComponent)))
       //  case None      => None
     }
     //    lookup.getOrElse(formComponent.id, FieldOk(formComponent, ""))

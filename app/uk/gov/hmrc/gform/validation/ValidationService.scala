@@ -119,7 +119,7 @@ class ValidationService(
       formModelOptics.formModelVisibilityOptics,
       cacheData
     )
-    vResult4.customValidatorsResult = Some(customValidatorsResult) // Bob*/
+    eT.customValidatorsResult = Some(customValidatorsResult) // Bob*/
   }
 
   def validateFormModel(

@@ -356,7 +356,7 @@ class PageValidator(
   ): List[(Boolean, (ValidIf, SmartString, List[String]))] =
     page.validators.getOrElse(List.empty).map { pageValidator => // BOB
       val fb: Boolean = formModelVisibilityOptics.freeCalculator.evalValidIf(pageValidator.validIf)
-      (fb, (pageValidator.validIf, pageValidator.errorMessage, pageValidator.fieldIds))
+      (fb, (pageValidator.validIf, pageValidator.errorMessage, List.empty /*pageValidator.fieldIds*/ ))
     }
 
   private def produceValidationError(
