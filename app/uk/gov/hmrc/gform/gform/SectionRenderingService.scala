@@ -2779,18 +2779,22 @@ class SectionRenderingService(
     def helpTextHtml(maybeHelpText: Option[Html]): Option[Html] =
       maybeHelpText.map(helpText => html.form.snippets.markdown_wrapper(helpText))
 
-    choice match {
-      case _ if hideChoicesSelected && visibleOptionsWithIndex.size == 1 && remainingInfo.isDefined =>
-        val info = remainingInfo.get
-        val InformationMessage(infoType, infoText, _) = info.`type`: @unchecked
-        val (option, index) = visibleOptionsWithIndex.head
-        val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
-        HtmlFormat.fill(
-          List(
-            htmlForInformationMessage(info, infoType, infoText),
-            html.form.snippets.hidden(formComponent.id.value, value)
-          )
+    def renderChoiceAsInfo(
+      infoComponent: FormComponent,
+      info: InformationMessage,
+      option: OptionData,
+      index: Int
+    ): Html = {
+      val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
+      HtmlFormat.fill(
+        List(
+          htmlForInformationMessage(infoComponent, info.infoType, info.infoText),
+          html.form.snippets.hidden(formComponent.id.value, value)
         )
+      )
+    }
+
+    def renderChoice(): Html = choice match {
       case Radio | YesNo =>
         val allItems = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
           val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
@@ -2968,6 +2972,16 @@ class SectionRenderingService(
           displayWidth = DisplayWidth.DEFAULT,
           indexKey = Some(indexKey)
         )
+    }
+
+    visibleOptionsWithIndex match {
+      case List((option, index)) if hideChoicesSelected =>
+        remainingInfo match {
+          case Some(infoComponent @ IsInformationMessage(info)) =>
+            renderChoiceAsInfo(infoComponent, info, option, index)
+          case _ => renderChoice()
+        }
+      case _ => renderChoice()
     }
   }
 
