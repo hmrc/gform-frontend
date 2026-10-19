@@ -29,11 +29,11 @@ object FormComponentValidator {
 
 }
 
-case class PageComponentValidator(validIf: ValidIf, fieldIds: List[SmartString], errorMessage: SmartString)
+case class PageCustomValidator(validIf: ValidIf, fieldIds: List[String], errorMessage: SmartString)
 
-object PageComponentValidator {
+object PageCustomValidator {
 
-  implicit val format: OFormat[PageComponentValidator] =
-    OFormat(derived.reads[PageComponentValidator](), derived.owrites[PageComponentValidator]())
+  implicit val format: OFormat[PageCustomValidator] =
+    OFormat(derived.reads[PageCustomValidator](), derived.owrites[PageCustomValidator]())
 
 }

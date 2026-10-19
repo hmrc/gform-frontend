@@ -24,12 +24,14 @@ import org.mockito.scalatest.IdiomaticMockito
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.config.FileInfoConfig
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, CacheData }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
 import uk.gov.hmrc.gform.gform.handlers.FormHandlerResult
 import uk.gov.hmrc.gform.gform.{ ExtraInfo, RenderUnit, SectionRenderingService }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models._
@@ -37,14 +39,20 @@ import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
 import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AutoComplete.{ FamilyName, GivenName, Organization }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.RoundingMode.HalfUp
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
-import uk.gov.hmrc.gform.sharedmodel.{ EmailVerifierService, LangADT, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ BooleanExprCache, EmailVerifierService, LangADT, NotChecked }
 import uk.gov.hmrc.gform.summary.AddressRecordLookup
 import uk.gov.hmrc.gform.upscan.{ UpscanData, UpscanInitiate }
-import uk.gov.hmrc.gform.validation.ValidationResult
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.{ ComponentChecker, GetEmailCodeFieldMatcher, ValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
+import scala.util.matching.Regex
 
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
@@ -108,6 +116,39 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
     implicit val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
+  }
+
+  def formWithValidator(fcId: String, ct: ComponentType): FormComponent = {
+    val validators =
+      List(
+        FormComponentValidator(
+          ValidIf(
+            Or(
+              MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{2,8}$")),
+              MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{4,8}$"))
+            )
+          ),
+          toSmartString("error message")
+        )
+      )
+    FormComponent(
+      FormComponentId(fcId),
+      ct,
+      ls,
+      false,
+      None,
+      None,
+      None,
+      None,
+      Mandatory.True,
+      false,
+      true,
+      false,
+      false,
+      None,
+      None,
+      validators
+    )
   }
 
   "renderSection" should "render text field with TelephoneNumber constraint as input field with type='tel'" in new TestFixture {
@@ -257,6 +298,123 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         Some(accessCode),
         SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
         FormHandlerResult(ValidationResult.empty, EnvelopeWithMapping.empty),
+        formTemplate.copy(draftRetrievalMethod = NotPermitted),
+        None,
+        envelopeId,
+        formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton],
+        0,
+        FileInfoConfig.allAllowedFileTypes,
+        Nil,
+        authContext,
+        NotChecked,
+        List(FastForward.Yes),
+        formModelOptics,
+        UpscanInitiate.empty,
+        AddressRecordLookup.from(ThirdPartyData.empty)
+      )
+
+    Jsoup.parse(generatedHtml.body).title() shouldBe "Some title without PII - AAA999 dev test template - GOV.UK"
+  }
+
+  private val gformConnector: GformConnector = mock[GformConnector]
+  private val lookupRegistry: LookupRegistry = mock[LookupRegistry]
+
+  private val validationService: ValidationService = new ValidationService(
+    gformConnector,
+    lookupRegistry,
+    ComponentChecker.NonShortCircuitInterpreter
+  )
+
+  it should "render page with validators BOB if defined in template" in new TestFixture {
+
+    lazy val textField = mkFormComponent("field_1", Value)
+    lazy val textField2 = formWithValidator("accountNumber", Text(TextConstraint.default, Constant("123454")))
+    lazy val textField3 = formWithValidator("accountNumber2", Text(WholeSterling(false, HalfUp), Constant("123454")))
+    override lazy val form: Form =
+      buildForm(
+        FormData(
+          List.empty
+        )
+      )
+
+    override lazy val formTemplate = buildFormTemplate(
+      destinationList,
+      List(
+        nonRepeatingPageSection(
+          title = "Some title",
+          noPIITitle = Some("Some title without PII"),
+          fields = List(textField, textField2, textField3),
+          validators = Some(
+            List(
+              PageCustomValidator(
+                ValidIf(
+                  Or(
+                    MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{0,8}$")),
+                    MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{0,8}$"))
+                  )
+                ),
+                List("accountNumber", "accountNumber2"),
+                toSmartString("error message")
+              )
+            )
+          )
+        )
+      )
+    )
+
+    val cacheData: CacheData = new CacheData(
+      envelopeId,
+      ThirdPartyData(
+        NotChecked,
+        Map.empty,
+        QueryParams.empty,
+        None,
+        BooleanExprCache.empty,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+      ),
+      formTemplate
+    )
+
+    val singleton = formModelOptics.formModelRenderPageOptics.formModel.pages.head.asInstanceOf[Singleton]
+    val visibilityFormModel: FormModel = formModelOptics.formModelVisibilityOptics.formModel
+    val visibilityPageModel: PageModel = visibilityFormModel.pages.head
+
+    def envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
+
+    // def envelopeWithMapping = EnvelopeWithMapping.empty
+    val vResult: Future[ValidatedType[ValidatorsResult]] = validationService.validatePageModel(
+      visibilityPageModel,
+      cacheData,
+      envelopeWithMapping,
+      formModelOptics.formModelVisibilityOptics,
+      GetEmailCodeFieldMatcher(visibilityFormModel)
+    )
+    val vResult2 = Await.result(vResult, Duration.Inf)
+
+    val vResult4 = ValidationUtil.evaluateValidationResult(
+      visibilityPageModel.allFormComponents,
+      vResult2,
+      formModelOptics.formModelVisibilityOptics,
+      envelopeWithMapping
+    )
+    val customValidatorsResult = validationService.validatePageCustomValidators(
+      singleton.page,
+      formModelOptics.formModelVisibilityOptics,
+      cacheData
+    )
+    vResult4.customValidatorsResult = Some(customValidatorsResult) // Bob
+
+    val generatedHtml = testService
+      .renderSection(
+        Some(accessCode),
+        SectionNumber.Classic.NormalPage(TemplateSectionIndex(0)),
+        FormHandlerResult(vResult4, EnvelopeWithMapping.empty),
         formTemplate.copy(draftRetrievalMethod = NotPermitted),
         None,
         envelopeId,

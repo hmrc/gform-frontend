@@ -17,19 +17,22 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
+import cats.data.Validated.{ Invalid, Valid }
 import uk.gov.hmrc.gform.models.EnteredVariadicFormData
 import uk.gov.hmrc.gform.models.Singleton
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.sharedmodel.form.FormData
 import uk.gov.hmrc.gform.sharedmodel.form.ValidatorsResult
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, IsChoice, IsRevealingChoice }
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.annotation.nowarn
 import scala.collection.mutable.LinkedHashSet
 
 case class ValidationResult(
   lookup: Map[FormComponentId, FormFieldValidationResult],
-  validatorsResult: Option[ValidatorsResult]
+  validatorsResult: Option[ValidatorsResult],
+  var customValidatorsResult: Option[ValidatedType[Unit]] = None
 ) {
 
   val isFormValid: Boolean = lookup.values.view.forall(_.isOk)
@@ -58,6 +61,18 @@ case class ValidationResult(
 
   def formFieldValidationResults(singleton: Singleton): List[FormFieldValidationResult] =
     singleton.allFormComponents.map(apply)
+
+  def pageLevelValidationResults(singleton: Singleton): Option[PageError] = {
+    val formComponent = singleton.page.allFields.head
+    val res = customValidatorsResult match {
+      case Some(Valid(()))  => None
+      case Some(Invalid(e)) => Some(PageError("Page level error", List(formComponent)))
+      case _                => Some(PageError("Page level error", List(formComponent)))
+      //  case None      => None
+    }
+    //    lookup.getOrElse(formComponent.id, FieldOk(formComponent, ""))
+    res
+  }
 
   def toFormValidationOutcome(
     enteredVariadicFormData: EnteredVariadicFormData

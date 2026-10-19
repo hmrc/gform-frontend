@@ -36,6 +36,8 @@ case class ComponentField(
 ) // Used by multivalue fields ie. date, address but also choice and revealingChoice
     extends FormFieldValidationResult
 
+case class PageError(error: String, fields: List[FormComponent])
+
 trait FormFieldValidationResult {
 
   def forgetErrors: FormFieldValidationResult = this match {

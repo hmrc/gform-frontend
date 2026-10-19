@@ -58,8 +58,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentRenderDetails, FormComponentSummaryRenderer, SummaryRender }
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
-import uk.gov.hmrc.gform.validation.HtmlFieldId
-import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, _ }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.html.specimen
@@ -812,13 +811,16 @@ class SectionRenderingService(
 
     val listResult = validationResult.formFieldValidationResults(singleton)
 
+    val pageCustomResult = validationResult.pageLevelValidationResults(singleton)
+
     val javascript =
       JavascriptMaker.generateJs(sectionNumber, formModelOptics)
 
-    val pageLevelErrorHtml = request.flash.get(GformFlashKeys.FileUploadError) match {
-      case Some(message) =>
+    val pageLevelErrorHtml = (request.flash.get(GformFlashKeys.FileUploadError), pageCustomResult) match {
+      case (Some(message), _) =>
         PageLevelErrorHtml.noJSFileUploadError(message, request.flash.get(GformFlashKeys.FileUploadFileId))
-      case None => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
+      case (_, Some(pageErr)) => PageLevelErrorHtml.pageCustomValidatorError(pageErr)
+      case (None, _)          => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     }
 
     val originSection = Origin(formModelOptics.formModelVisibilityOptics.formModel).minSectionNumber

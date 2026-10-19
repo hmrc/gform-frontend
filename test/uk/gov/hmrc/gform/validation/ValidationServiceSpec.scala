@@ -42,7 +42,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, Mandatory, ShortText, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
@@ -99,9 +98,35 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     None,
     None
   )
+
+  private val accountField: FormComponent = FormComponent(
+    FormComponentId("account"),
+    Text(
+      EmailVerifiedBy(
+        FormComponentId("code"),
+        EmailVerifierService.digitalContact(EmailTemplateId("code_template"), None)
+      ),
+      Value
+    ),
+    toSmartString("Account"),
+    false,
+    None,
+    None,
+    None,
+    None,
+    Mandatory.True,
+    true,
+    true,
+    false,
+    false,
+    None,
+    None
+  )
+
   private val emailStr: String = "user@test.com"
   private val confirmationCode: String = "ABCD"
-  private val formTemplate: FormTemplate = mkFormTemplate(
+
+  private lazy val formTemplate: FormTemplate = mkFormTemplate(
     ExampleData.nonRepeatingPageSection(fields = List(emailField)),
     ExampleData.nonRepeatingPageSection(fields = List(verifyField))
   )
@@ -152,6 +177,40 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     val variadicFormData: VariadicFormData =
       VariadicFormData.create(
         (emailField.modelComponentId, VariadicValue.One(emailStr)),
+        (verifyField.modelComponentId, VariadicValue.One("WXYZ"))
+      )
+
+    val validationResult: ValidationResult = setupAndRunWithEvaluation(variadicFormData, true, 1)
+
+    verify(gformConnector, never())
+      .sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
+    validationResult.isFormValid shouldBe false
+    validationResult.errorsFieldIds.contains(verifyField.id) shouldBe true
+  }
+
+  it should "fail validation for validators BOB value on second page" in {
+
+    /*override lazy val formTemplate = mkFormTemplate(
+      ExampleData.nonRepeatingPageSection(fields = List(emailField), validators =
+        Some(
+          List(
+            PageComponentValidator(
+              ValidIf(
+                Or(
+                  MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{0,8}$")),
+                  MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{0,8}$"))
+                )
+              ),
+              List.empty,
+              toSmartString("someTextField")
+            )
+          )
+        )),
+      ExampleData.nonRepeatingPageSection(fields = List(verifyField))
+    )*/
+    val variadicFormData: VariadicFormData =
+      VariadicFormData.create(
+        (accountField.modelComponentId, VariadicValue.One(emailStr)),
         (verifyField.modelComponentId, VariadicValue.One("WXYZ"))
       )
 

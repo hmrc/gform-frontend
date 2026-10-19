@@ -624,7 +624,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     instruction: Option[Instruction] = None,
     presentationHint: Option[PresentationHint] = None,
     confirmation: Option[Confirmation] = None,
-    pageId: Option[PageId] = None
+    pageId: Option[PageId] = None,
+    validators: Option[List[PageCustomValidator]] = None
   ) =
     Section.NonRepeatingPage(
       Page(
@@ -647,7 +648,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         None,
         None,
         None,
-        None
+        None,
+        validators
       )
     )
 

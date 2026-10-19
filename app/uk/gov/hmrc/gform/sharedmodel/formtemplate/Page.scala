@@ -49,7 +49,7 @@ case class Page(
   displayWidth: Option[LayoutDisplayWidth],
   notRequiredIf: Option[IncludeIf],
   specimenNote: Option[String],
-  validators: Option[List[PageComponentValidator]] = None
+  validators: Option[List[PageCustomValidator]] = None
 ) {
 
   def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(

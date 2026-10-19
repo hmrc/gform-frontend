@@ -328,3 +328,57 @@ object ComponentsValidatorHelper {
     LinkedHashSet(errorMsg)
   }
 }
+
+class PageValidator(
+  formModelVisibilityOptics: FormModelVisibilityOptics,
+  page: Page,
+  cache: CacheData
+)(implicit
+  sse: SmartStringEvaluator
+) { self =>
+
+  val formComponent: FormComponent = page.fields.head // BOB
+
+  private def produceCustomValidationError(
+    customValidationError: Option[(ValidIf, SmartString, List[String])]
+  ): ValidatedType[Unit] =
+    customValidationError
+      .map { case (validIf, message, fieldIds) => produceValidationError(validIf, message, fieldIds) }
+      .getOrElse(().valid)
+
+  private def findFirstCustomValidationError: Option[(ValidIf, SmartString, List[String])] = {
+    val customResult = evaluateCustomValidators(page)
+    customResult.find(listItem => !listItem._1).map(_._2)
+  }
+
+  private def evaluateCustomValidators(
+    page: Page
+  ): List[(Boolean, (ValidIf, SmartString, List[String]))] =
+    page.validators.getOrElse(List.empty).map { pageValidator => // BOB
+      val fb: Boolean = formModelVisibilityOptics.freeCalculator.evalValidIf(pageValidator.validIf)
+      (fb, (pageValidator.validIf, pageValidator.errorMessage, pageValidator.fieldIds))
+    }
+
+  private def produceValidationError(
+    validIf: ValidIf,
+    message: SmartString,
+    fieldIds: List[String]
+  ): ValidatedType[Unit] =
+    Map[ModelComponentId, LinkedHashSet[String]](
+      formComponent.modelComponentId -> LinkedHashSet(message.value())
+    ).invalid
+
+  def validate(
+  ): ValidatedType[Unit] = {
+
+    val overrideValidIfs = self.cache.formTemplate.overrides.fold(false)(o => o.disableValidIfs.getOrElse(false))
+
+    if (overrideValidIfs)
+      validationSuccess
+    else {
+      val firstCustomValidationError = findFirstCustomValidationError
+      val error = produceCustomValidationError(firstCustomValidationError)
+      error
+    }
+  }
+}

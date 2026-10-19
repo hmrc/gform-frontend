@@ -21,7 +21,7 @@ import play.api.i18n.Messages
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, IsAddress, IsChoice, IsOverseasAddress, IsRevealingChoice, OverseasAddress }
-import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult, HtmlFieldId }
+import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult, HtmlFieldId, PageError }
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
@@ -65,7 +65,7 @@ object PageLevelErrorHtml {
                   }
                 ErrorLink(
                   href = Some("#" + multiFieldId.toHtmlId + (if (summaryLevel) "-error-message" else "")),
-                  content = content.Text(errorMessage)
+                  content = content.Text(errorMessage + "BOB" + listValidation.size + "," + globalErrors.size)
                 )
               }
         }
@@ -83,6 +83,21 @@ object PageLevelErrorHtml {
       Errors(errorHtml)
     } else
       NoErrors
+  }
+
+  def pageCustomValidatorError(pageError: PageError)(implicit messages: Messages): HasErrors = {
+    val errorsHtml = ErrorLink(
+      href = Some("#" + "1234.toHtmlId + -error-message"),
+      content = content.Text(pageError.error + " BOB")
+    )
+    val errorSummary = ErrorSummary(
+      errorList = Seq(errorsHtml),
+      title = content.Text(messages("error.summary.heading"))
+    )
+
+    val errorHtml: Html = new components.GovukErrorSummary()(errorSummary)
+
+    Errors(errorHtml)
   }
 
   def generatePageLevelErrorHtml(

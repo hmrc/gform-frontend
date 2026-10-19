@@ -111,7 +111,15 @@ class ValidationService(
         lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
     } yield ValidatorsResult(emailVerification = emailsForVerification)
 
+    //BOB please add custom validators here
     eT.value.map(Validated.fromEither)
+
+    /* val customValidatorsResult = validationService.validatePageCustomValidators(
+      singleton.page,
+      formModelOptics.formModelVisibilityOptics,
+      cacheData
+    )
+    vResult4.customValidatorsResult = Some(customValidatorsResult) // Bob*/
   }
 
   def validateFormModel(
@@ -207,8 +215,22 @@ class ValidationService(
           validateValidators
         )
       )
+
     Monoid[ValidatedType[Unit]].combineAll(repeatsWhileRes :: formComponentsRes)
   }
+
+  def validatePageCustomValidators(
+    page: Page,
+    formModelVisibilityOptics: FormModelVisibilityOptics,
+    cache: CacheData
+  )(implicit
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    new PageValidator(
+      formModelVisibilityOptics,
+      page,
+      cache
+    ).validate()
 
   def validateAllSections(
     cache: CacheData,
