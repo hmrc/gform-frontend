@@ -103,6 +103,7 @@ sealed trait Expr extends Product with Serializable {
     case ChoicesRevealedField(formComponentId)           => formComponentId
     case ChoicesSelected(formComponentId)                => formComponentId
     case ChoicesAvailable(formComponentId, _)            => formComponentId
+    case LastOption(formComponentId)                     => formComponentId
     case CountSelectedChoices(formComponentId)           => formComponentId
     case ChoicesCount(formComponentId)                   => formComponentId
     case DisplayAsEntered(formComponentId)               => formComponentId
@@ -158,6 +159,7 @@ final case object CountryOfItmpAddress extends Expr
 final case class ChoicesRevealedField(formComponentId: FormComponentId) extends Expr
 final case class ChoicesSelected(formComponentId: FormComponentId) extends Expr
 final case class ChoicesAvailable(formComponentId: FormComponentId, insideAtl: Option[Boolean]) extends Expr
+final case class LastOption(formComponentId: FormComponentId) extends Expr
 final case class CountSelectedChoices(formComponentId: FormComponentId) extends Expr
 final case class ChoicesCount(formComponentId: FormComponentId) extends Expr
 final case class TaskStatus(taskId: TaskId) extends Expr

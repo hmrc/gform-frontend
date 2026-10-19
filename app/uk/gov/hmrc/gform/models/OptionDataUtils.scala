@@ -21,10 +21,47 @@ import uk.gov.hmrc.gform.eval.ExpressionResultWithTypeInfo
 import uk.gov.hmrc.gform.gform.ExprUpdater
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.recalculation.{ Calculator, EvaluationStatus }
-import uk.gov.hmrc.gform.sharedmodel.DataRetrieveId
+import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, Dynamic, FormComponent, FormComponentId, FormCtx, OptionData, OptionDataValue }
 
 object OptionDataUtils {
+
+  def remainingOptions(
+    formComponent: FormComponent,
+    choice: Choice,
+    calculator: Calculator,
+    renderLabel: SmartString => String
+  )(implicit messages: Messages): List[(OptionData, Int)] = {
+    val selectedValues = calculator
+      .allModelComponentIds(formComponent.modelComponentId)
+      .collect {
+        case (componentId, EvaluationStatus.OptionResult(values)) if componentId != formComponent.modelComponentId =>
+          values
+      }
+      .flatten
+      .toSet
+    def value(option: OptionData, index: Int): String = option match {
+      case OptionData.ValueBased(_, _, _, _, OptionDataValue.StringBased(value), _, _) => value
+      case OptionData.ValueBased(_, _, _, _, OptionDataValue.ExprBased(expr), _, _) =>
+        calculator.evalExpr(expr).stringRepresentation(messages)
+      case _: OptionData.IndexBased => index.toString
+    }
+    val usedLabels = choice.options.zipWithIndex.collect {
+      case (option, index) if selectedValues(value(option, index)) => renderLabel(option.label)
+    }.toSet
+    val available = choice.options.zipWithIndex.filter { case (option, index) =>
+      option.includeIf.forall(includeIf => calculator.evalBooleanExpr(includeIf.booleanExpr)) &&
+        renderLabel(option.label).trim.nonEmpty &&
+        (!choice.hideChoicesSelected || (option match {
+          case _: OptionData.IndexBased => true
+          case _: OptionData.ValueBased =>
+            if (choice.noDuplicates) !usedLabels(renderLabel(option.label))
+            else !selectedValues(value(option, index))
+        }))
+    }
+    if (choice.noDuplicates) available.distinctBy { case (option, _) => renderLabel(option.label) }
+    else available
+  }
 
   def expand(formComponent: FormComponent, choice: Choice, calculator: Calculator)(implicit
     messages: Messages

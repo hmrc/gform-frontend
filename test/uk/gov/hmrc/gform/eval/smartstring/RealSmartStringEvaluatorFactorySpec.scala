@@ -174,7 +174,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           false,
-          false
+          false,
+          None
         ),
         None
       )
@@ -221,7 +222,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           false,
-          false
+          false,
+          None
         ),
         None
       )
@@ -260,7 +262,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           false,
-          false
+          false,
+          None
         ),
         None
       )
@@ -298,7 +301,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           false,
-          false
+          false,
+          None
         ),
         None
       )
@@ -336,7 +340,8 @@ class RealSmartStringEvaluatorFactorySpec
           None,
           None,
           false,
-          false
+          false,
+          None
         ),
         None
       )
@@ -641,7 +646,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )
@@ -684,7 +690,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )
@@ -767,7 +774,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )
@@ -819,7 +827,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )
@@ -871,7 +880,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )
@@ -923,7 +933,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )
@@ -975,7 +986,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         true,
-        false
+        false,
+        None
       ),
       None
     )
@@ -993,7 +1005,8 @@ class RealSmartStringEvaluatorFactorySpec
         None,
         None,
         false,
-        false
+        false,
+        None
       ),
       None
     )

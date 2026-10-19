@@ -1676,7 +1676,8 @@ class SectionRenderingService(
                 noneChoice,
                 _,
                 hideChoicesSelected,
-                noDuplicates
+                noDuplicates,
+                remainingInfo
               ) =>
             htmlForChoice(
               formComponent,
@@ -1691,7 +1692,8 @@ class SectionRenderingService(
               dividerText,
               noneChoice,
               hideChoicesSelected,
-              noDuplicates
+              noDuplicates,
+              remainingInfo
             )
           case RevealingChoice(options, multiValue) =>
             htmlForRevealingChoice(
@@ -2686,7 +2688,8 @@ class SectionRenderingService(
     dividerText: SmartString,
     maybeNoneChoice: Option[NoneChoice],
     hideChoicesSelected: Boolean,
-    noDuplicates: Boolean
+    noDuplicates: Boolean,
+    remainingInfo: Option[FormComponent]
   )(implicit
     l: LangADT,
     m: Messages,
@@ -2700,19 +2703,28 @@ class SectionRenderingService(
     val optionsValueLabel =
       options.collect(o => o.getValue(-1, ei.formModelOptics.formModelVisibilityOptics) -> o.label.value())
 
-    val visibleOptionsWithIndex: List[(OptionData, Int)] = options.zipWithIndex
-      .filter { case (o, _) =>
-        hasNotBeenSelectedYet(
-          hideChoicesSelected,
-          o,
-          formComponent.modelComponentId,
-          ei.formModelOptics,
-          noDuplicates,
-          optionsValueLabel
-        ) &&
-          isVisibleOption(o, ei.formModelOptics) &&
-          optionHasContent(o)
-      }
+    val visibleOptionsWithIndex: List[(OptionData, Int)] = if (remainingInfo.isDefined) {
+      val currentChoice = formComponent.`type`.asInstanceOf[Choice]
+      uk.gov.hmrc.gform.models.OptionDataUtils.remainingOptions(
+        formComponent,
+        currentChoice,
+        ei.formModelOptics.formModelVisibilityOptics.freeCalculator.calc,
+        label => label.value()
+      )
+    } else
+      options.zipWithIndex
+        .filter { case (o, _) =>
+          hasNotBeenSelectedYet(
+            hideChoicesSelected,
+            o,
+            formComponent.modelComponentId,
+            ei.formModelOptics,
+            noDuplicates,
+            optionsValueLabel
+          ) &&
+            isVisibleOption(o, ei.formModelOptics) &&
+            optionHasContent(o)
+        }
 
     if (visibleOptionsWithIndex.isEmpty)
       throw new IllegalArgumentException("All options of the choice component are invisible")
@@ -2767,7 +2779,22 @@ class SectionRenderingService(
     def helpTextHtml(maybeHelpText: Option[Html]): Option[Html] =
       maybeHelpText.map(helpText => html.form.snippets.markdown_wrapper(helpText))
 
-    choice match {
+    def renderChoiceAsInfo(
+      infoComponent: FormComponent,
+      info: InformationMessage,
+      option: OptionData,
+      index: Int
+    ): Html = {
+      val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
+      HtmlFormat.fill(
+        List(
+          htmlForInformationMessage(infoComponent, info.infoType, info.infoText),
+          html.form.snippets.hidden(formComponent.id.value, value)
+        )
+      )
+    }
+
+    def renderChoice(): Html = choice match {
       case Radio | YesNo =>
         val allItems = optionsWithHintAndHelpText.zipWithIndex.map { case ((option, maybeHint, maybeHelpText), index) =>
           val value = option.getValue(index, ei.formModelOptics.formModelVisibilityOptics)
@@ -2945,6 +2972,16 @@ class SectionRenderingService(
           displayWidth = DisplayWidth.DEFAULT,
           indexKey = Some(indexKey)
         )
+    }
+
+    visibleOptionsWithIndex match {
+      case List((option, index)) if hideChoicesSelected =>
+        remainingInfo match {
+          case Some(infoComponent @ IsInformationMessage(info)) =>
+            renderChoiceAsInfo(infoComponent, info, option, index)
+          case _ => renderChoice()
+        }
+      case _ => renderChoice()
     }
   }
 

@@ -91,7 +91,8 @@ class PropagatorSuite extends FunSuite {
       None,
       None,
       false,
-      false
+      false,
+      None
     )
 
   private def mkChoiceOptions() =

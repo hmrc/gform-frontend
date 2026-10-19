@@ -78,6 +78,7 @@ object ConcatFormatSubstituter {
         case e: ChoicesRevealedField        => e
         case e: ChoicesSelected             => e
         case e: ChoicesAvailable            => e
+        case e: LastOption                  => e
         case e: CountSelectedChoices        => e
         case e: ChoicesCount                => e
         case e: TaskStatus                  => e

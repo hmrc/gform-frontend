@@ -98,6 +98,7 @@ object ExprPrettyPrint {
     case ChoicesRevealedField(_)           => "ChoicesRevealedField"
     case ChoicesSelected(_)                => "ChoicesSelected"
     case ChoicesAvailable(_, _)            => "ChoicesAvailable"
+    case LastOption(_)                     => "LastOption"
     case CountSelectedChoices(_)           => "ChoicesSelectedSum"
     case ChoicesCount(_)                   => "ChoicesCount"
     case TaskStatus(id)                    => s"TaskStatus of ${id.id}"

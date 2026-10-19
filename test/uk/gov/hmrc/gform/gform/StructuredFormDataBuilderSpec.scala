@@ -1467,7 +1467,8 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         false,
-        false
+        false,
+        None
       )
     )
 
@@ -1485,7 +1486,8 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         false,
-        false
+        false,
+        None
       )
     )
 

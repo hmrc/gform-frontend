@@ -80,7 +80,10 @@ class FormComponentUpdater(
   private def expandChoice(choice: Choice): Choice = choice.copy(
     options = choice.options.map(expandOptionData),
     optionHelpText = choice.optionHelpText.map(_.map(expandSmartString)),
-    dividerText = expandSmartString(choice.dividerText)
+    dividerText = expandSmartString(choice.dividerText),
+    whenOnlyOneChoiceRemains = choice.whenOnlyOneChoiceRemains.map(component =>
+      new FormComponentUpdater(component, index, baseIds, dataRetrieveIds).updatedWithId
+    )
   )
 
   private def expandIncludeIf(includeIf: IncludeIf) = IncludeIf(expandBooleanExpr(includeIf.booleanExpr))

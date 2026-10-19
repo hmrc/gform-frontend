@@ -80,6 +80,7 @@ object FormComponentIdSubstituter {
         case ChoicesRevealedField(fcId)        => ChoicesRevealedField(substitutions.updateFormComponentId(fcId))
         case ChoicesSelected(fcId)             => ChoicesSelected(substitutions.updateFormComponentId(fcId))
         case ChoicesAvailable(fcId, insideAtl) => ChoicesAvailable(substitutions.updateFormComponentId(fcId), insideAtl)
+        case LastOption(fcId)                  => LastOption(substitutions.updateFormComponentId(fcId))
         case CountSelectedChoices(fcId)        => CountSelectedChoices(substitutions.updateFormComponentId(fcId))
         case ChoicesCount(fcId)                => ChoicesCount(substitutions.updateFormComponentId(fcId))
         case e: TaskStatus                     => e
