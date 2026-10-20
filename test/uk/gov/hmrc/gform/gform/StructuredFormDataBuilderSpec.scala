@@ -729,6 +729,30 @@ class StructuredFormDataBuilderSpec
     )
   }
 
+  it must "create the correct JSON for multifile upload component in non-repeating sections/groups" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createNonRepeatingSection(
+          createMultiFileUpload("multiFileUploadId")
+        ) :: Nil,
+        variadicFormData(
+          "multiFileUploadId"    -> "1,2",
+          "m2_multiFileUploadId" -> "m2_multiFileUploadId_test-file copy.jpg",
+          "m1_multiFileUploadId" -> "m1_multiFileUploadId_test-file.jpg"
+        )
+      ),
+      objectStructure(
+        field(
+          "multiFileUploadId",
+          arrayNode(
+            textNode("m1_multiFileUploadId_test-file.jpg"),
+            textNode("m2_multiFileUploadId_test-file copy.jpg")
+          )
+        )
+      )
+    )
+  }
+
   it must "create the correct JSON for simple fields in groups in non-repeating sections" in {
     validate(
       createFormModelVisibilityOptics(
@@ -1077,6 +1101,63 @@ class StructuredFormDataBuilderSpec
                   )
                 )
               )
+            )
+          )
+        )
+      )
+    )
+  }
+
+  it must "create the correct JSON for multifile upload components inside add-to-list sections" in {
+    validate(
+      createFormModelVisibilityOptics(
+        createAddToListSection(
+          "addToListAnotherQuestion",
+          List(
+            createNonGroupField("cakeName"),
+            createMultiFileUpload("uploadedFileAtl")
+          )
+        ) :: Nil,
+        variadicFormDataMany(
+          "1_cake"                     -> List("0", "1"),
+          "2_cake"                     -> List("0", "1"),
+          "1_addToListAnotherQuestion" -> List("0"),
+          "2_addToListAnotherQuestion" -> List("1")
+        ) ++
+          variadicFormData(
+            "1_cakeName"           -> "lemonCake",
+            "2_cakeName"           -> "chocolateCake",
+            "1_uploadedFileAtl"    -> "1,2",
+            "2_uploadedFileAtl"    -> "1",
+            "m2_1_uploadedFileAtl" -> "m2_1_uploadedFileAtl_8UL0-68B4-SYBP-Test.pdf",
+            "m1_2_uploadedFileAtl" -> "m1_2_uploadedFileAtl_change_by_post_ChV1.pdf",
+            "m1_1_uploadedFileAtl" -> "m1_1_uploadedFileAtl_test-file copy.jpg"
+          )
+      ),
+      objectStructure(
+        field(
+          "addToListAnotherQuestion",
+          arrayNode(
+            objectStructure(
+              field("cakeName", textNode("lemonCake")),
+              field(
+                "uploadedFileAtl",
+                arrayNode(
+                  textNode("m1_1_uploadedFileAtl_test-file copy.jpg"),
+                  textNode("m2_1_uploadedFileAtl_8UL0-68B4-SYBP-Test.pdf")
+                )
+              ),
+              field("addToListAnotherQuestion", textNode("0"))
+            ),
+            objectStructure(
+              field("cakeName", textNode("chocolateCake")),
+              field(
+                "uploadedFileAtl",
+                arrayNode(
+                  textNode("m1_2_uploadedFileAtl_change_by_post_ChV1.pdf")
+                )
+              ),
+              field("addToListAnotherQuestion", textNode("1"))
             )
           )
         )
@@ -1493,6 +1574,9 @@ class StructuredFormDataBuilderSpec
 
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))
+
+  def createMultiFileUpload(id: String): FormComponent =
+    createFormComponent(id, MultiFileUpload(None, None, None, None, None, None, None))
 
   def createRevealingChoice(
     id: String,
