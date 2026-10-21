@@ -269,9 +269,9 @@ class SummaryRenderingServiceSpec
             )
             .futureValue
 
-          generatedHtml.body.contains("""<h3 class="govuk-heading-m">
+          generatedHtml.body.contains("""<h2 class="govuk-heading-m">
                                         |  submission.details
-                                        |</h3>""".stripMargin) shouldBe true
+                                        |</h2>""".stripMargin) shouldBe true
         }
       }
 
