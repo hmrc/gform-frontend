@@ -46,9 +46,9 @@ trait PdfRenderServiceExpectations {
        |      <h1>Page title</h1>
        |      <p>Some PDF header</p>
        |      $summaryRows
-       |      <h3 class="govuk-heading-m">
+       |      <h2 class="govuk-heading-m">
        |        Submission Details
-       |      </h3>
+       |      </h2>
        |      <dl class="govuk-summary-list govuk-!-margin-bottom-9">
        |        <div class = "govuk-summary-list__row">
        |          <dt class="govuk-summary-list__key">
