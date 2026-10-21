@@ -147,7 +147,7 @@ class StructuredFormDataBuilder(
 ) {
 
   private val isMultiSelectionIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allMultiSelectionIds
-
+  private val isMultiFileUploadIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allMultiFileIds
   private val isStrictlyMultiSelectionIds: Set[ModelComponentId] = formModelVisibilityOptics.formModel.allFormComponents
     .collect {
       case fc @ IsChoice(Choice(Checkbox, _, _, _, _, _, _, _, _, _, _, _)) => fc.id
@@ -502,7 +502,14 @@ class StructuredFormDataBuilder(
     m: Messages
   ): List[Field] =
     xs.map { case (modelComponentId, pure) =>
-      if (isMultiSelectionIds(modelComponentId)) {
+      if (isMultiFileUploadIds(modelComponentId)) {
+        val uploadList = formModelVisibilityOptics.freeCalculator.variadicFormData
+          .filesOfMultiFileComponent(modelComponentId)
+          .map(_._2.value)
+
+        val arrayNode = ArrayNode(uploadList.map(_.trim).filterNot(_.isEmpty).map(TextNode))
+        Some(Field(FieldName(pure.baseComponentId.value), arrayNode, Map.empty))
+      } else if (isMultiSelectionIds(modelComponentId)) {
         formModelVisibilityOptics.data
           .many(modelComponentId)
           .map(sortMany)
@@ -515,7 +522,6 @@ class StructuredFormDataBuilder(
               Field(FieldName(pure.baseComponentId.value), fieldValue, Map.empty)
             }
           }
-
       } else {
         formModelVisibilityOptics.data
           .one(modelComponentId)
@@ -678,7 +684,13 @@ class StructuredFormDataBuilder(
     xs.map { case (baseComponentId, xss) =>
       val textNodes: List[StructuredFormValue] = xss
         .map { case (modelComponentId, indexed) =>
-          if (isMultiSelectionIds(modelComponentId)) {
+          if (isMultiFileUploadIds(modelComponentId)) {
+            val uploadList = formModelVisibilityOptics.freeCalculator.variadicFormData
+              .filesOfMultiFileComponent(modelComponentId)
+              .map(_._2.value)
+
+            Some(ArrayNode(uploadList.map(_.trim).filterNot(_.isEmpty).map(TextNode)))
+          } else if (isMultiSelectionIds(modelComponentId)) {
             formModelVisibilityOptics.data
               .many(modelComponentId)
               .map(sortMany)
