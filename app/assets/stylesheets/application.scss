@@ -17,6 +17,10 @@ $govuk-new-typography-scale: true;
     }
 }
 
+.js-hidden {
+    display: none;
+}
+
 .gforms-inset-text--important {
     border-color: $govuk-brand-colour;
     background: #f3f2f1;
