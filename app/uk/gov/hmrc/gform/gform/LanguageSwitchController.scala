@@ -133,11 +133,20 @@ class LanguageSwitchController(
 
             val updatedFormData = form.formData ++ FormData(newFormData)
 
+            val currentConfirmations = ConfirmationService.mkCurrentConfirmations(
+              formModelOpticsSwitchTo.formModelVisibilityOptics.formModel.allConfirmations,
+              formModelOpticsSwitchTo
+            )(messages)
+            val updatedConfirmations = ConfirmationService.updateConfirmationsForLanguageSwitch(
+              form.thirdPartyData.confirmations,
+              currentConfirmations
+            )
+
             val userData: UserData = UserData(
               formData = updatedFormData,
               formStatus = form.status,
               visitsIndex = form.visitsIndex,
-              thirdPartyData = form.thirdPartyData,
+              thirdPartyData = form.thirdPartyData.updateConfirmations(updatedConfirmations),
               componentIdToFileId = form.componentIdToFileId,
               taskIdTaskStatus = form.taskIdTaskStatus
             )
