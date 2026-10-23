@@ -146,6 +146,16 @@ object ConfirmationService {
 
       results.map(rs => confirmation.question.id -> rs.toList)
     }.toMap
+
+  def updateConfirmationsForLanguageSwitch(
+    existingConfirmations: Option[Map[FormComponentId, List[String]]],
+    currentConfirmations: Map[FormComponentId, List[String]]
+  ): Option[Map[FormComponentId, List[String]]] =
+    existingConfirmations.map { existing =>
+      existing ++ currentConfirmations.filter { case (formComponentId, _) =>
+        existing.contains(formComponentId)
+      }
+    }
 }
 
 class ConfirmationService(
