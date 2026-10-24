@@ -48,7 +48,8 @@ case class Page(
   removeItemIf: Option[RemoveItemIf],
   displayWidth: Option[LayoutDisplayWidth],
   notRequiredIf: Option[IncludeIf],
-  specimenNote: Option[String]
+  specimenNote: Option[String],
+  validators: Option[NonEmptyList[PageValidator]]
 ) {
 
   def sectionHeader()(implicit sse: SmartStringEvaluator) = SectionHeader(
@@ -86,6 +87,8 @@ case class Page(
         }
       }
 
+  val pageValidators: List[PageValidator] = validators.toList.flatMap(_.toList)
+
   def renderUnits: List[RenderUnit] =
     allFields.foldRight(List.empty[RenderUnit]) {
       case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
@@ -113,5 +116,5 @@ case class Page(
 
 object Page {
   import JsonUtils._
-  implicit val pageFormat: OFormat[Page] = derived.oformat()
+  implicit val format: OFormat[Page] = derived.oformat()
 }

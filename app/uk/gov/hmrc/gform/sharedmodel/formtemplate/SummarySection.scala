@@ -56,7 +56,8 @@ case class SummarySection(
       removeItemIf = None,
       displayWidth = None,
       notRequiredIf = None,
-      specimenNote = None
+      specimenNote = None,
+      validators = None
     )
 
   def excludeFieldsFromPDF: SummarySection = copy(

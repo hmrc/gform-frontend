@@ -105,7 +105,8 @@ trait FormTemplateSample {
               removeItemIf = None,
               displayWidth = None,
               notRequiredIf = None,
-              specimenNote = None
+              specimenNote = None,
+              validators = None
             )
           )
         )

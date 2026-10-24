@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.data.Validated.Valid
+import cats.data.NonEmptyList
 import org.junit.Assert.assertTrue
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
@@ -39,10 +39,8 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.email.{ ConfirmationCodeWithEmailService, EmailConfirmationCode, EmailTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, Mandatory, ShortText, TemplateSectionIndex, Text, Value }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailVerifiedBy, FormComponent, FormComponentId, FormTemplate, IsFalse, Mandatory, PageValidator, ShortText, TemplateSectionIndex, Text, ValidIf, Value }
 import uk.gov.hmrc.http.HeaderCarrier
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
@@ -99,9 +97,11 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     None,
     None
   )
+
   private val emailStr: String = "user@test.com"
   private val confirmationCode: String = "ABCD"
-  private val formTemplate: FormTemplate = mkFormTemplate(
+
+  private lazy val formTemplate: FormTemplate = mkFormTemplate(
     ExampleData.nonRepeatingPageSection(fields = List(emailField)),
     ExampleData.nonRepeatingPageSection(fields = List(verifyField))
   )
@@ -119,13 +119,13 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     val variadicFormData: VariadicFormData =
       VariadicFormData.create((emailField.modelComponentId, VariadicValue.One(emailStr)))
 
-    val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, false, 0)
+    val result: PageValidationResult = setupAndRun(variadicFormData, false, 0)
 
     verify(gformConnector, times(1))
       .sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
 
-    result match {
-      case Valid(ValidatorsResult(map)) =>
+    result.validatorsResult match {
+      case Some(ValidatorsResult(map)) =>
         val eac: Option[EmailAndCode] = map.get(emailFieldId(emailField.id))
         eac.isDefined shouldBe true
         eac.get.email shouldBe CIString(emailStr)
@@ -137,15 +137,60 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     val variadicFormData: VariadicFormData =
       VariadicFormData.create((emailField.modelComponentId, VariadicValue.One(emailStr)))
 
-    val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, true, 0)
+    val result: PageValidationResult = setupAndRun(variadicFormData, true, 0)
 
     verify(gformConnector, never())
       .sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
 
-    result match {
-      case Valid(ValidatorsResult(map)) => map.size shouldBe 0
-      case _                            => assertTrue(false)
+    result.validatorsResult match {
+      case Some(ValidatorsResult(map)) => map.size shouldBe 0
+      case _                           => assertTrue(false)
     }
+  }
+
+  it should "skip verification emails when page validators fail and retain their errors" in {
+    val formTemplateWithPageValidator = mkFormTemplate(
+      ExampleData.nonRepeatingPageSection(
+        fields = List(emailField),
+        validators = Some(
+          NonEmptyList.one(
+            PageValidator(
+              ValidIf(IsFalse),
+              NonEmptyList.one(emailField.id),
+              toSmartString("Check the email")
+            )
+          )
+        )
+      ),
+      ExampleData.nonRepeatingPageSection(fields = List(verifyField))
+    )
+    val connector = mock[GformConnector]
+    val optics = mkFormModelOptics(
+      formTemplateWithPageValidator,
+      VariadicFormData.create((emailField.modelComponentId, VariadicValue.One(emailStr)))
+    ).formModelVisibilityOptics
+    val page = optics.formModel(Classic.NormalPage(TemplateSectionIndex(0)))
+    val pageErrors = List(PageError("Check the email", NonEmptyList.one(emailField)))
+    val service = new ValidationService(connector, lookupRegistry, ComponentChecker.NonShortCircuitInterpreter)
+    when(
+      connector.sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
+    ).thenReturn(Future.successful(()))
+
+    val result = Await.result(
+      service.validatePageModel(
+        page,
+        new CacheData(envelopeId, ThirdPartyData.empty, formTemplateWithPageValidator),
+        envelopeWithMapping,
+        optics,
+        GetEmailCodeFieldMatcher(optics.formModel)
+      ),
+      Duration.Inf
+    )
+
+    result.componentResult.isValid shouldBe true
+    result.pageErrors shouldBe pageErrors
+    verify(connector, never())
+      .sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
   }
 
   it should "fail validation for invalid verification code on second page" in {
@@ -188,7 +233,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     val visibilityPageModel: PageModel = visibilityFormModel(
       Classic.NormalPage(TemplateSectionIndex(pageToValidate))
     )
-    val result: ValidatedType[ValidatorsResult] = setupAndRun(variadicFormData, icludeEmailAndCodeMap, pageToValidate)
+    val result: PageValidationResult = setupAndRun(variadicFormData, icludeEmailAndCodeMap, pageToValidate)
 
     ValidationUtil.evaluateValidationResult(
       visibilityPageModel.allFormComponents,
@@ -202,7 +247,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
     variadicFormData: VariadicFormData,
     includeEmailAndCodeMap: Boolean,
     pageToValidate: Int
-  ): ValidatedType[ValidatorsResult] = {
+  ): PageValidationResult = {
     Mockito.clearInvocations(gformConnector)
     when(
       gformConnector.sendEmail(any[ConfirmationCodeWithEmailService]())(any[HeaderCarrier](), any[ExecutionContext]())
@@ -243,7 +288,7 @@ class ValidationServiceSpec extends Spec with FormModelSupport with VariadicForm
       formTemplate
     )
 
-    val resultF: Future[ValidatedType[ValidatorsResult]] = validationService.validatePageModel(
+    val resultF: Future[PageValidationResult] = validationService.validatePageModel(
       visibilityPageModel,
       cacheData,
       envelopeWithMapping,

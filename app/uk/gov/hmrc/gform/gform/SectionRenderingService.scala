@@ -58,8 +58,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.summary.{ AddToListCYARender, AddressRecordLookup, FormComponentRenderDetails, FormComponentSummaryRenderer, SummaryRender }
 import uk.gov.hmrc.gform.tasklist.TaskListUtils
 import uk.gov.hmrc.gform.upscan.{ FormMetaData, UpscanData, UpscanInitiate }
-import uk.gov.hmrc.gform.validation.HtmlFieldId
-import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId, _ }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.html.specimen
@@ -190,7 +189,8 @@ class SectionRenderingService(
                   removeItemIf = None,
                   displayWidth = None,
                   notRequiredIf = None,
-                  specimenNote = None
+                  specimenNote = None,
+                  validators = None
                 )
 
               val singleton = Singleton(repeaterPage)
@@ -532,7 +532,8 @@ class SectionRenderingService(
                   removeItemIf = None,
                   displayWidth = None,
                   notRequiredIf = None,
-                  specimenNote = None
+                  specimenNote = None,
+                  validators = None
                 )
               val singleton = Singleton(repeaterPage)
 
@@ -812,13 +813,16 @@ class SectionRenderingService(
 
     val listResult = validationResult.formFieldValidationResults(singleton)
 
+    val pageValidatorResults = validationResult.pageLevelValidationResults(singleton)
+
     val javascript =
       JavascriptMaker.generateJs(sectionNumber, formModelOptics)
 
-    val pageLevelErrorHtml = request.flash.get(GformFlashKeys.FileUploadError) match {
-      case Some(message) =>
+    val pageLevelErrorHtml = (request.flash.get(GformFlashKeys.FileUploadError), pageValidatorResults) match {
+      case (Some(message), _) =>
         PageLevelErrorHtml.noJSFileUploadError(message, request.flash.get(GformFlashKeys.FileUploadFileId))
-      case None => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
+      case (_, errors) if errors.nonEmpty => PageLevelErrorHtml.pageValidatorErrors(errors)
+      case (None, _)                      => PageLevelErrorHtml.generatePageLevelErrorHtml(listResult, List.empty)
     }
 
     val originSection = Origin(formModelOptics.formModelVisibilityOptics.formModel).minSectionNumber
@@ -846,10 +850,21 @@ class SectionRenderingService(
         )
       }.toMap
 
-    val snippetsForFields = renderUnits
-      .map(renderUnit =>
-        htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
-      )
+    val snippetsForFields = renderUnits.flatMap { renderUnit =>
+      val componentId = renderUnit.fold(_.formComponent.id)(_.formComponent.id)
+      pageValidatorResults.find(_.fields.exists(_.id === componentId)) match {
+        case Some(error) if error.fields.head.id === componentId =>
+          val members =
+            renderUnits.filter(unit => error.fields.exists(_.id === unit.fold(_.formComponent.id)(_.formComponent.id)))
+          val snippets = members.map(unit =>
+            htmlFor(unit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData)
+          )
+          List(html.form.snippets.group_error(error, snippets))
+        case Some(_) => Nil
+        case None =>
+          List(htmlFor(renderUnit, formTemplate._id, ei, validationResult, obligations, upscanInitiate, upscanData))
+      }
+    }
     val renderComeBackLater = retrievals.renderSaveAndComeBackLater && page.continueIf.fold(true)(
       !_.isTerminationPage(formModelOptics.formModelVisibilityOptics.freeCalculator)
     ) && !DraftRetrievalHelper.isNotPermitted(formTemplate, retrievals) && !singleton.page.isHideSaveAndComeBackButton

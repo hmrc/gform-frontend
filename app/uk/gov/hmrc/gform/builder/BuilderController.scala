@@ -657,7 +657,7 @@ class BuilderController(
             FieldOk(formComponent, currentValue.getOrElse(""))
         }
 
-        val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None)
+        val validationResult = ValidationResult(Map(formComponent.id -> formFieldValidationResult), None, Nil)
 
         val formLevelHeading = renderer.shouldDisplayHeading(singleton)
 

@@ -102,7 +102,8 @@ class PDFRenderServiceSpec
       Map(
         fcName.id -> FieldOk(fcName, "name-value")
       ),
-      None
+      None,
+      Nil
     )
 
     lazy val form: Form =

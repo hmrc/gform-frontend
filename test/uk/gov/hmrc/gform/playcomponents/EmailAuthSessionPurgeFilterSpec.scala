@@ -150,7 +150,8 @@ class EmailAuthSessionPurgeFilterSpec extends Spec {
               removeItemIf = None,
               displayWidth = None,
               notRequiredIf = None,
-              specimenNote = None
+              specimenNote = None,
+              validators = None
             )
           )
         )
