@@ -48,10 +48,6 @@ import uk.gov.hmrc.gform.validation.{ ComponentChecker, ComponentField, FieldOk,
 import uk.gov.hmrc.gform.{ FormTemplateKey, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.Await
-import scala.util.matching.Regex
-
 class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with IdiomaticMockito {
 
   val choiceRuntimeIndexService: ChoiceRuntimeIndexService = new ChoiceRuntimeIndexService()
@@ -114,39 +110,6 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
       .apply(formModelOptics.formModelVisibilityOptics)
-  }
-
-  def formWithValidator(fcId: String, ct: ComponentType): FormComponent = {
-    val validators =
-      List(
-        FormComponentValidator(
-          ValidIf(
-            Or(
-              MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{2,8}$")),
-              MatchRegex(FormCtx(FormComponentId("accountNumber")), new Regex("^[A-Z0-9]{4,8}$"))
-            )
-          ),
-          toSmartString("error message")
-        )
-      )
-    FormComponent(
-      FormComponentId(fcId),
-      ct,
-      ls,
-      false,
-      None,
-      None,
-      None,
-      None,
-      Mandatory.True,
-      false,
-      true,
-      false,
-      false,
-      None,
-      None,
-      validators
-    )
   }
 
   private val remainingChoiceCases = List(
@@ -438,16 +401,16 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     lazy val checked: ValidationResult = {
       val optics = formModelOptics.formModelVisibilityOptics
       val page = optics.formModel.pages.head
-      val result = Await.result(
-        validationService.validatePageModel(
-          page,
-          cache.toCacheData,
-          EnvelopeWithMapping.empty,
-          optics,
-          GetEmailCodeFieldMatcher(optics.formModel)
-        ),
-        Duration("10s")
-      )
+      val result =
+        validationService
+          .validatePageModel(
+            page,
+            cache.toCacheData,
+            EnvelopeWithMapping.empty,
+            optics,
+            GetEmailCodeFieldMatcher(optics.formModel)
+          )
+          .futureValue
       ValidationUtil.evaluateValidationResult(page.allFormComponents, result, optics, EnvelopeWithMapping.empty)
     }
 
@@ -483,16 +446,16 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   it should "skip shared validators during data-retrieve preflight" in new SharedValidatorFixture {
     val optics = formModelOptics.formModelVisibilityOptics
     val page = optics.formModel.pages.head
-    val result = Await.result(
-      validationService.validatePageModelWithoutCustomValidators(
-        page,
-        cache.toCacheData,
-        EnvelopeWithMapping.empty,
-        optics,
-        GetEmailCodeFieldMatcher(optics.formModel)
-      ),
-      Duration("10s")
-    )
+    val result =
+      validationService
+        .validatePageModelWithoutCustomValidators(
+          page,
+          cache.toCacheData,
+          EnvelopeWithMapping.empty,
+          optics,
+          GetEmailCodeFieldMatcher(optics.formModel)
+        )
+        .futureValue
     result.componentResult.isValid shouldBe true
     result.pageErrors shouldBe empty
   }
@@ -612,15 +575,15 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
   }
 
   it should "retain shared errors through whole-form validation and check-your-answers rendering" in new SharedValidatorFixture {
-    val result = Await.result(
-      validationService.validateFormModel(
-        cache.toCacheData,
-        EnvelopeWithMapping.empty,
-        formModelOptics.formModelVisibilityOptics,
-        None
-      ),
-      Duration("10s")
-    )
+    val result =
+      validationService
+        .validateFormModel(
+          cache.toCacheData,
+          EnvelopeWithMapping.empty,
+          formModelOptics.formModelVisibilityOptics,
+          None
+        )
+        .futureValue
     result.isFormValid shouldBe false
     result.pageErrors.size shouldBe 1
     result.forSummary(fields.head).fieldErrors.toList shouldBe List("The values must match")
