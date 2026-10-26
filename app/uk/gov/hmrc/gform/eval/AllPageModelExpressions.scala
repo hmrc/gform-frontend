@@ -40,7 +40,7 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         dataRetrieve.params.map(_.expr) ++ acc
       }
 
-      val validatorExpressions = page.validators.toList.flatMap(_.toList).flatMap { validator =>
+      val validatorExpressions = page.pageValidators.flatMap { validator =>
         validator.validIf.booleanExpr.allExpressions ++ validator.errorMessage.allInterpolations
       }
       pageExprs ++ dataRetrieveExpressions ++ validatorExpressions
