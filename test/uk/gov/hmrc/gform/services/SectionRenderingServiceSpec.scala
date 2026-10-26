@@ -35,7 +35,9 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.objectStore.EnvelopeWithMapping
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.email.EmailTemplateId
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AutoComplete.{ FamilyName, GivenName, Organization }
@@ -510,6 +512,12 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     checked.isFormValid shouldBe false
     checked.errorsFieldIds.toSet shouldBe Set(fields.head.id, fields(1).id)
     val document = render(checked)
+    val enteredVariadicFormData = EnteredVariadicFormData(
+      VariadicFormData.one(
+        ModelComponentId.pure(IndexedComponentId.pure(BaseComponentId("first"))),
+        "one"
+      )
+    )
     document.select(".govuk-error-summary a").size shouldBe 1
     document.select(".govuk-error-summary a").attr("href") shouldBe "#first"
     document.select(".govuk-error-summary a").text shouldBe "The values must match"
@@ -520,8 +528,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
     document.select("#first-group-error").text should include("The values must match")
     document.select(".gform-error-group #unrelated").size shouldBe 0
     checked.forgetErrors.isFormValid shouldBe true
-    checked.toFormValidationOutcome(EnteredVariadicFormData.empty).isValid shouldBe false
-    checked.toFormValidationOutcome(EnteredVariadicFormData.empty).formData shouldBe form.formData
+    checked.toFormValidationOutcome(enteredVariadicFormData).isValid shouldBe false
+    checked.toFormValidationOutcome(enteredVariadicFormData).formData shouldBe FormData(List.empty[FormField])
   }
 
   List(0, 1, 2).foreach { invalidIndex =>

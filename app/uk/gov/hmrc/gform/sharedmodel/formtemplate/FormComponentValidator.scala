@@ -35,7 +35,6 @@ case class PageValidator(validIf: ValidIf, fieldIds: NonEmptyList[FormComponentI
 object PageValidator {
   import JsonUtils.nelFormat
 
-  implicit val format: OFormat[PageValidator] =
-    OFormat(derived.reads[PageValidator](), derived.owrites[PageValidator]())
+  implicit val format: OFormat[PageValidator] = derived.oformat()
 
 }

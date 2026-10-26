@@ -94,11 +94,7 @@ case class ValidationResult(
     }
 
     val formComponentValidations =
-      if (isFormValid) formFieldValidationResults
-      else if (pageErrors.nonEmpty) {
-        val enteredErrors = enteredFormFieldValidationResults.map(result => result.formComponent.id -> result).toMap
-        formFieldValidationResults.map(result => enteredErrors.getOrElse(result.formComponent.id, result))
-      } else enteredFormFieldValidationResults
+      if (isFormValid) formFieldValidationResults else enteredFormFieldValidationResults
 
     FormValidationOutcome(
       isFormValid,
