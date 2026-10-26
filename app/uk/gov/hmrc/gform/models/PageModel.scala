@@ -46,7 +46,7 @@ sealed trait PageModel extends Product with Serializable {
 
     pageLevelIncludeIf.map(_.booleanExpr) ++
       allComponentIncludeIfs.map(_._1).map(_.booleanExpr) ++
-      allValidIfs.flatMap(_._1).map(_.booleanExpr) ++
+      allComponentValidIfs.flatMap(_._1).map(_.booleanExpr) ++
       fold(_.page.validators.toList.flatMap(_.toList.map(_.validIf.booleanExpr)))(_ => Nil)(_ => Nil)
   }
 
@@ -69,7 +69,7 @@ sealed trait PageModel extends Product with Serializable {
 
   def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_ => None)
 
-  def allValidIfs: List[(List[ValidIf], FormComponent)] =
+  def allComponentValidIfs: List[(List[ValidIf], FormComponent)] =
     fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =

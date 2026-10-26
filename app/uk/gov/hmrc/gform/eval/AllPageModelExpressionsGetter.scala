@@ -32,7 +32,7 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
     bracketExprs ++ formComponentsExprs(bracket)
   }
 
-  def fromSingleton(singleton: Singleton): List[Expr] = {
+  private def fromSingleton(singleton: Singleton): List[Expr] = {
     val componentsExprs: List[Expr] = singleton.allFormComponents
       .flatMap {
         case AllFormComponentExpressions(exprs) => exprs.map(_.expr)
@@ -48,16 +48,14 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
         .map(_.booleanExpr)
 
     val validIfsBooleanExprs: List[BooleanExpr] =
-      singleton.allValidIfs
+      singleton.allComponentValidIfs
         .flatMap(_._1)
         .map(_.booleanExpr)
 
     val booleanExprsExprs: List[Expr] =
       (includeIfBooleanExprs ++ includeIfsBooleanExprs ++ validIfsBooleanExprs).flatMap(_.allExpressions)
 
-    componentsExprs ++ booleanExprsExprs ++ singleton.page.pageValidators.flatMap { validator =>
-      validator.validIf.booleanExpr.allExpressions ++ validator.errorMessage.allInterpolations
-    }
+    componentsExprs ++ booleanExprsExprs
   }
 
   def fromCheckYourAnswerPage(cyap: CheckYourAnswersPage): List[Expr] =
