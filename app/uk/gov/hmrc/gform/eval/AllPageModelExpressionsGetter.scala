@@ -70,12 +70,10 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
         cyap.continueLabel
       )
 
-  private def fromPage(page: Page) =
+  private def fromDefaultPage(page: Page) =
     page.allFields.flatMap {
       case AllFormComponentExpressions(exprs) => exprs.map(_.expr)
       case _                                  => List.empty[Expr]
-    } ++ page.pageValidators.flatMap { validator =>
-      validator.validIf.booleanExpr.allExpressions ++ validator.errorMessage.allInterpolations
     } ++
       fromSmartStrings(page.title) ++
       fromOption(
@@ -95,7 +93,7 @@ object AllPageModelExpressionsGetter extends ExprExtractorHelpers {
           iteration.defaultPage.map(_.singleton).toList.flatMap(fromSingleton) ++
             iteration.singletons.map(_.singleton).toList.flatMap(fromSingleton) ++
             addToList.source.cyaPage.map(fromCheckYourAnswerPage).getOrElse(Nil) ++
-            addToList.source.defaultPage.map(fromPage).getOrElse(Nil)
+            addToList.source.defaultPage.map(fromDefaultPage).getOrElse(Nil)
         }
     }
 
