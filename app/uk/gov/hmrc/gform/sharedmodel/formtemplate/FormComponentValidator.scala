@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.SmartString
@@ -26,5 +27,14 @@ object FormComponentValidator {
 
   implicit val format: OFormat[FormComponentValidator] =
     OFormat(derived.reads[FormComponentValidator](), derived.owrites[FormComponentValidator]())
+
+}
+
+case class PageValidator(validIf: ValidIf, fieldIds: NonEmptyList[FormComponentId], errorMessage: SmartString)
+
+object PageValidator {
+  import JsonUtils.nelFormat
+
+  implicit val format: OFormat[PageValidator] = derived.oformat()
 
 }

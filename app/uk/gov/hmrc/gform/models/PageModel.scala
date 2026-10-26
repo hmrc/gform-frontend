@@ -20,10 +20,9 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.recalculation.FreeCalculator
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExpr, IsChoice, IsGroup, IsTableComp }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, AtlDescription, BooleanExpr, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsChoice, IsFileUpload, IsGroup, IsMultiFileUpload, IsPostcodeLookup, IsTableComp, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, AtlDescription, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsFileUpload, IsMultiFileUpload, IsPostcodeLookup, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
 
 sealed trait PageModel extends Product with Serializable {
@@ -47,7 +46,8 @@ sealed trait PageModel extends Product with Serializable {
 
     pageLevelIncludeIf.map(_.booleanExpr) ++
       allComponentIncludeIfs.map(_._1).map(_.booleanExpr) ++
-      allValidIfs.flatMap(_._1).map(_.booleanExpr)
+      allComponentValidIfs.flatMap(_._1).map(_.booleanExpr) ++
+      fold(_.page.validators.toList.flatMap(_.toList.map(_.validIf.booleanExpr)))(_ => Nil)(_ => Nil)
   }
 
   private def nestedFields(formComponent: FormComponent): List[FormComponent] =
@@ -69,7 +69,7 @@ sealed trait PageModel extends Product with Serializable {
 
   def getIncludeIf: Option[IncludeIf] = fold(_.page.includeIf)(_ => None)(_ => None)
 
-  def allValidIfs: List[(List[ValidIf], FormComponent)] =
+  def allComponentValidIfs: List[(List[ValidIf], FormComponent)] =
     fold(_.page.allFields.collect { case fc @ AllValidIfs(validIfs) => (validIfs, fc) })(_ => Nil)(_ => Nil)
 
   def allComponentIncludeIfs: List[(IncludeIf, FormComponent)] =

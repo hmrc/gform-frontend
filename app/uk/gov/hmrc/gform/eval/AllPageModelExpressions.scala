@@ -40,7 +40,10 @@ object AllPageModelExpressions extends ExprExtractorHelpers {
         dataRetrieve.params.map(_.expr) ++ acc
       }
 
-      pageExprs ++ dataRetrieveExpressions
+      val validatorExpressions = page.pageValidators.flatMap { validator =>
+        validator.validIf.booleanExpr.allExpressions ++ validator.errorMessage.allInterpolations
+      }
+      pageExprs ++ dataRetrieveExpressions ++ validatorExpressions
     }
 
     def fromRepeater(repeater: Repeater): List[Expr] =

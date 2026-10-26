@@ -67,7 +67,8 @@ object FormTemplateBuilder {
     None,
     None,
     None,
-    None
+    None,
+    validators = None
   )
 
   def mkAddToListSection(pages: Page*): Section.AddToList = Section.AddToList(
@@ -165,7 +166,8 @@ object FormTemplateBuilder {
         None,
         None,
         None,
-        None
+        None,
+        validators = None
       )
     )
 
@@ -384,7 +386,8 @@ object FormTemplateBuilder {
     None,
     None,
     None,
-    None
+    None,
+    validators = None
   )
 
   def mkPageIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf): Page =
@@ -408,7 +411,8 @@ object FormTemplateBuilder {
       None,
       None,
       None,
-      None
+      None,
+      validators = None
     )
 
   def fromPagesWithIndex(brackets: NonEmptyList[Bracket]): FormModel = new FormModel(Brackets.Classic(brackets))

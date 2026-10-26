@@ -88,10 +88,14 @@ object ValidationUtil {
 
   def evaluateValidationResult(
     atomicFields: List[FormComponent],
-    validationResult: ValidatedType[ValidatorsResult],
+    pageValidationResult: PageValidationResult,
     formModelVisibilityOptics: FormModelVisibilityOptics,
     envelope: EnvelopeWithMapping
   ): ValidationResult = {
+
+    val validationResult = pageValidationResult.componentResult
+    val pageErrors = pageValidationResult.pageErrors
+    val validatorsResult: Option[ValidatorsResult] = pageValidationResult.validatorsResult
 
     // ToDo: This should be removed and replaced with data.data.one or data.data.many as appropriate
     val dataGetter: ModelComponentId => Seq[String] = fId =>
@@ -333,8 +337,7 @@ object ValidationUtil {
       matchComponentType(formComponent)
     }
 
-    val validatorsResult: Option[ValidatorsResult] = validationResult.toOption
-    new ValidationResult(resultErrors.map(ffvr => ffvr.formComponent.id -> ffvr).toMap, validatorsResult)
+    new ValidationResult(resultErrors.map(ffvr => ffvr.formComponent.id -> ffvr).toMap, validatorsResult, pageErrors)
   }
 
   private final object IsTextOrTextArea {

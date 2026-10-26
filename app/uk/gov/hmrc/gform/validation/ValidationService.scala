@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
 import cats.data.Validated.Invalid
-import cats.data._
 import cats.implicits._
 import org.typelevel.ci.CIString
 import play.api.i18n.Messages
@@ -53,7 +52,6 @@ class ValidationService(
   checkInterpreter: CheckInterpreter = ComponentChecker.NonShortCircuitInterpreter
 )(implicit ec: ExecutionContext) {
 
-  private def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
   def validatePageModel(
     pageModel: PageModel,
     cache: CacheData,
@@ -65,7 +63,7 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[ValidatedType[ValidatorsResult]] =
+  ): Future[PageValidationResult] =
     validatePageModelBase(pageModel, cache, envelope, formModelVisibilityOptics, getEmailCodeFieldMatcher, true)
 
   def validatePageModelWithoutCustomValidators(
@@ -79,7 +77,7 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[ValidatedType[ValidatorsResult]] =
+  ): Future[PageValidationResult] =
     validatePageModelBase(pageModel, cache, envelope, formModelVisibilityOptics, getEmailCodeFieldMatcher, false)
 
   private def validatePageModelBase(
@@ -94,24 +92,29 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator
-  ): Future[ValidatedType[ValidatorsResult]] = {
-    val eT = for {
-      _ <- lift(
-             validatePageModelComponents(
-               pageModel,
-               formModelVisibilityOptics,
-               cache,
-               envelope,
-               getEmailCodeFieldMatcher,
-               validateCustomValidators
-             ).pure[Future]
-           )
-      formTemplateId = cache.formTemplate._id
-      emailsForVerification <-
-        lift(sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, formTemplateId))
-    } yield ValidatorsResult(emailVerification = emailsForVerification)
+  ): Future[PageValidationResult] = {
 
-    eT.value.map(Validated.fromEither)
+    val components: ValidatedType[Unit] = validatePageModelComponents(
+      pageModel,
+      formModelVisibilityOptics,
+      cache,
+      envelope,
+      getEmailCodeFieldMatcher,
+      validateCustomValidators
+    )
+    val pageErrors =
+      if (components.isValid && validateCustomValidators)
+        pageModel.fold(singleton => PageValidatorHelper.validate(formModelVisibilityOptics, singleton.page))(_ => Nil)(
+          _ => Nil
+        )
+      else Nil
+
+    val maybeSendEmail: Future[Map[EmailFieldId, EmailAndCode]] = if (components.isValid && pageErrors.isEmpty) {
+      sendVerificationEmails(pageModel, formModelVisibilityOptics, cache.thirdPartyData, cache.formTemplate._id)
+    } else {
+      Map.empty[EmailFieldId, EmailAndCode].pure[Future]
+    }
+    maybeSendEmail.map(result => PageValidationResult(components, pageErrors, Some(ValidatorsResult(result))))
   }
 
   def validateFormModel(
@@ -127,25 +130,36 @@ class ValidationService(
   ): Future[ValidationResult] = {
 
     val formModel = formModelVisibilityOptics.formModel
-    val allFields = maybeCoordinates.fold(formModelVisibilityOptics.allFormComponents)(
-      formModelVisibilityOptics.allFormComponentsForCoordinates
-    )
+
+    val (allFields, allPages) = maybeCoordinates match {
+      case None => (formModelVisibilityOptics.allFormComponents, formModel.pages)
+      case Some(coordinates) =>
+        (
+          formModelVisibilityOptics.allFormComponentsForCoordinates(coordinates),
+          formModel.taskList.availablePages(coordinates)
+        )
+    }
 
     val emailCodeMatcher = GetEmailCodeFieldMatcher(formModel)
 
-    for {
-      v <- formModel.pages
-             .traverse(pageModel =>
-               validatePageModel(
-                 pageModel,
-                 cache,
-                 envelope,
-                 formModelVisibilityOptics,
-                 emailCodeMatcher
-               )
-             )
-             .map(Monoid[ValidatedType[ValidatorsResult]].combineAll)
-    } yield ValidationUtil.evaluateValidationResult(allFields, v, formModelVisibilityOptics, envelope)
+    allPages
+      .traverse { pageModel =>
+        validatePageModel(
+          pageModel,
+          cache,
+          envelope,
+          formModelVisibilityOptics,
+          emailCodeMatcher
+        ).map(result =>
+          ValidationUtil.evaluateValidationResult(
+            pageModel.allFormComponents,
+            result,
+            formModelVisibilityOptics,
+            envelope
+          )
+        )
+      }
+      .map(Monoid[ValidationResult].combineAll)
   }
 
   def validateATLs(
@@ -207,6 +221,7 @@ class ValidationService(
           validateValidators
         )
       )
+
     Monoid[ValidatedType[Unit]].combineAll(repeatsWhileRes :: formComponentsRes)
   }
 
@@ -219,22 +234,29 @@ class ValidationService(
     l: LangADT,
     sse: SmartStringEvaluator
   ): ValidationResult = {
-    val formComponentsRes = formModelVisibilityOptics.formModel.allFormComponents
-      .filterNot(_.onlyShowOnSummary)
-      .map(fv =>
-        validateFormComponent(
-          fv,
-          formModelVisibilityOptics,
-          cache,
-          envelope,
-          GetEmailCodeFieldMatcher.noop,
-          true
-        )
+    val results = formModelVisibilityOptics.formModel.pages.map { pageModel =>
+      val components = validatePageModelComponents(
+        pageModel,
+        formModelVisibilityOptics,
+        cache,
+        envelope,
+        GetEmailCodeFieldMatcher.noop,
+        true
       )
-    val validatedType: ValidatedType[ValidatorsResult] =
-      Monoid[ValidatedType[Unit]].combineAll(formComponentsRes).map(_ => ValidatorsResult.empty)
-    val allFields = formModelVisibilityOptics.allFormComponents
-    ValidationUtil.evaluateValidationResult(allFields, validatedType, formModelVisibilityOptics, envelope)
+      val pageErrors =
+        if (components.isValid)
+          pageModel.fold(singleton => PageValidatorHelper.validate(formModelVisibilityOptics, singleton.page))(_ =>
+            Nil
+          )(_ => Nil)
+        else Nil
+      ValidationUtil.evaluateValidationResult(
+        pageModel.allFormComponents,
+        PageValidationResult(components, pageErrors, None),
+        formModelVisibilityOptics,
+        envelope
+      )
+    }
+    Monoid[ValidationResult].combineAll(results)
   }
 
   private def validateFormComponent(
@@ -267,7 +289,7 @@ class ValidationService(
   )(implicit
     hc: HeaderCarrier,
     l: LangADT
-  ): Future[ValidatedType[Map[EmailFieldId, EmailAndCode]]] = {
+  ): Future[Map[EmailFieldId, EmailAndCode]] = {
 
     val emailFields: List[(EmailFieldId, EmailVerifierService)] = pageModel.allFormComponents.collect {
       case IsEmailVerifier(fcId, emailVerifiedBy) => (fcId, emailVerifiedBy.emailVerifierService)
@@ -299,7 +321,7 @@ class ValidationService(
           )
           .map(_ => (emailFieldId, eac))
       }
-      .map(_.toMap.valid)
+      .map(_.toMap)
   }
 }
 

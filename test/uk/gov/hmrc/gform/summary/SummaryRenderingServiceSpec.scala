@@ -199,7 +199,8 @@ class SummaryRenderingServiceSpec
               Map(
                 page1Field.id -> FieldOk(page1Field, "page1Field-value")
               ),
-              None
+              None,
+              Nil
             )
           }
 
@@ -245,7 +246,8 @@ class SummaryRenderingServiceSpec
               Map(
                 page1Field.id -> FieldOk(page1Field, "page1Field-value")
               ),
-              None
+              None,
+              Nil
             )
           }
 
@@ -326,7 +328,8 @@ class SummaryRenderingServiceSpec
                 Map(
                   page1Field.id -> FieldOk(page1Field, "page1Field-value")
                 ),
-                None
+                None,
+                Nil
               )
             }
             import testFixture._
@@ -418,7 +421,8 @@ class SummaryRenderingServiceSpec
                   page1Field.id -> FieldOk(page1Field, "page1Field-value"),
                   page3Field.id -> FieldOk(page3Field, "page3Field-value")
                 ),
-                None
+                None,
+                Nil
               )
             }
             import testFixture._
@@ -492,7 +496,8 @@ class SummaryRenderingServiceSpec
                 Map(
                   page1Field.withIndex(1).id -> FieldOk(page1Field.withIndex(1), "page1Field-value")
                 ),
-                None
+                None,
+                Nil
               )
             }
             import testFixture._
@@ -575,7 +580,8 @@ class SummaryRenderingServiceSpec
                 )
               )
             ),
-            None
+            None,
+            Nil
           )
 
           val html: Html =
@@ -669,7 +675,8 @@ class SummaryRenderingServiceSpec
                 )
               )
             ),
-            None
+            None,
+            Nil
           )
 
           val html: Html =

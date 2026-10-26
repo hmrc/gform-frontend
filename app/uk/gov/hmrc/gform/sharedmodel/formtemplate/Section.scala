@@ -147,7 +147,8 @@ case class DeclarationSection(
       removeItemIf = None,
       displayWidth = None,
       notRequiredIf = None,
-      specimenNote = None
+      specimenNote = None,
+      validators = None
     )
 }
 
@@ -191,7 +192,8 @@ case class AcknowledgementSection(
       removeItemIf = None,
       displayWidth = None,
       notRequiredIf = None,
-      specimenNote = None
+      specimenNote = None,
+      validators = None
     )
 }
 
@@ -231,7 +233,8 @@ case class EnrolmentSection(
       removeItemIf = None,
       displayWidth = None,
       notRequiredIf = None,
-      specimenNote = None
+      specimenNote = None,
+      validators = None
     )
 }
 

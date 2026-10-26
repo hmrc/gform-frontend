@@ -1470,7 +1470,8 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
-        None
+        None,
+        validators = None
       )
     )
 
@@ -1496,7 +1497,8 @@ class StructuredFormDataBuilderSpec
         None,
         None,
         None,
-        None
+        None,
+        validators = None
       ),
       Constant(repeats.toString)
     )

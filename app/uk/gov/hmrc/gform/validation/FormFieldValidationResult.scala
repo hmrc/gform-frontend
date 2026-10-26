@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 
+import cats.data.NonEmptyList
 import cats.implicits._
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -35,6 +36,10 @@ case class ComponentField(
   data: Map[HtmlFieldId, FormFieldValidationResult]
 ) // Used by multivalue fields ie. date, address but also choice and revealingChoice
     extends FormFieldValidationResult
+
+case class PageError(error: String, fields: NonEmptyList[FormComponent]) {
+  val errorId: String = fields.head.id.value + "-group-error"
+}
 
 trait FormFieldValidationResult {
 

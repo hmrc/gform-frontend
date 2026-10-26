@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.Monoid
+import cats.data.NonEmptyList
 import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.controllers.CacheData
@@ -327,4 +328,24 @@ object ComponentsValidatorHelper {
 
     LinkedHashSet(errorMsg)
   }
+}
+
+object PageValidatorHelper {
+  def validate(
+    formModelVisibilityOptics: FormModelVisibilityOptics,
+    page: Page
+  )(implicit
+    sse: SmartStringEvaluator
+  ): List[PageError] =
+    page.pageValidators.flatMap { validator =>
+      val fieldIds = validator.fieldIds.toList.toSet
+      val membersInPageOrder = page.fields.filter(field => fieldIds(field.id))
+      // Visibility can remove field; do not run a page validator check on an incomplete group.
+      if (membersInPageOrder.size =!= fieldIds.size) Nil
+      else if (formModelVisibilityOptics.freeCalculator.evalValidIf(validator.validIf)) Nil
+      else
+        NonEmptyList
+          .fromList(membersInPageOrder)
+          .map(fields => PageError(validator.errorMessage.value(), fields))
+    }
 }
