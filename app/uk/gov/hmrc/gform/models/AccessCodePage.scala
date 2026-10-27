@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.data.Forms.{ mapping, nonEmptyText, single }
-import play.api.data.validation.Constraints
+import play.api.data.validation.{ Constraint, Constraints, Valid }
 import play.api.data.{ Form, Mapping }
 import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, DraftRetrievalMethod }
@@ -53,10 +53,12 @@ object AccessCodePage {
     )
   }
 
-  private def verificationFor(i: Int): Mapping[String] =
-    nonEmptyText.verifying(
-      Constraints.pattern(("^[A-Z0-9]{" + i + "}-[A-Z0-9]{4}-[A-Z0-9]{" + i + "}$").r)
-    )
+  private def verificationFor(i: Int): Mapping[String] = {
+    val pattern = Constraints.pattern(("^[A-Z0-9]{" + i + "}-[A-Z0-9]{4}-[A-Z0-9]{" + i + "}$").r)
+    nonEmptyText.verifying(Constraint[String] { (value: String) =>
+      if (value.trim.isEmpty) Valid else pattern(value)
+    })
+  }
 
   private val accessCodeAgent = 3
   private val accessCodeSubmissionRef = 4
