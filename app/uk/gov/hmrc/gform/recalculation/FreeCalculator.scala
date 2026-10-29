@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.models.Bracket
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -94,12 +93,10 @@ final class FreeCalculator(
             .map(_.id.modelComponentId)
             .toSet
         )
-        sn match {
-          case SectionNumber.Classic.AddToListPage.Page(_, _, _) if !visitIndex.contains(sn) => iterationFieldsIds
-          case SectionNumber.Classic.AddToListPage.TerminalPage(_, _, TerminalPageKind.RepeaterPage) =>
-            iterationFieldsIds.map(_.increment) // We need to ignore next iteration
-          case _ => Set.empty[ModelComponentId]
-        }
+
+        if (sn.isAddToListPage && !visitIndex.contains(sn)) iterationFieldsIds
+        else if (sn.isAddToListRepeaterPage) iterationFieldsIds.map(_.increment) // We need to ignore next iteration
+        else Set.empty[ModelComponentId]
 
       case _ => Set.empty[ModelComponentId]
     }

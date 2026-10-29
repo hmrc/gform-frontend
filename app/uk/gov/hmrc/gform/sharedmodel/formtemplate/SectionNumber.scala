@@ -41,6 +41,12 @@ sealed trait SectionNumber extends Ordered[SectionNumber] with Product with Seri
     case _                                                                  => false
   }
 
+  def isAddToListPage: Boolean = this match {
+    case SectionNumber.Classic.AddToListPage.Page(_, _, _) => true
+    case SectionNumber.TaskList(_, sectionNumber)          => sectionNumber.isAddToListPage
+    case _                                                 => false
+  }
+
   def isAddToListRepeaterPage: Boolean = isAddToListTerminalSpecific(TerminalPageKind.RepeaterPage)
 
   def isAddToListDeclarationPage: Boolean = isAddToListTerminalSpecific(TerminalPageKind.DeclarationPage)
