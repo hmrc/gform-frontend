@@ -18,7 +18,11 @@ package uk.gov.hmrc.gform.recalculation
 
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.{ ExpressionResultWithTypeInfo, StaticTypeData, TypeInfo }
+import uk.gov.hmrc.gform.models.Bracket
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
+import uk.gov.hmrc.gform.models.optics.FormModelRenderPageOptics
+import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber.Classic.AddToListPage.TerminalPageKind
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieveId, DataRetrieveResult, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -66,10 +70,42 @@ final class FreeCalculator(
   def cleared(modelComponentIds: List[ModelComponentId]): Unit =
     answerMapWithFallback.cleared(modelComponentIds)
 
-  def recalculateDependenciesWithValue(formComponents: List[FormComponent])(implicit messages: Messages): FormData = {
+  def recalculateDependenciesWithValue(
+    formModelRenderPageOptics: FormModelRenderPageOptics,
+    visitIndex: VisitIndex,
+    maybeSectionNumber: Option[SectionNumber]
+  )(implicit
+    messages: Messages
+  ): FormData = {
+
+    val formComponents: List[FormComponent] = formModelRenderPageOptics.allFormComponents
+
+    // We need to postpode recalculatation of fields in ATL when we do not have
+    // given sectionNumber in visitsIndex yet (this is expectation in recalculation logic. See: RefInfo.getVisitIndex)
+    val postponeRecalculation: Set[ModelComponentId] = maybeSectionNumber match {
+      case Some(sn) if sn.isAddToList =>
+        val bracket: Bracket = formModelRenderPageOptics.formModel.brackets.withSectionNumber(sn)
+        val iterationFieldsIds: Set[ModelComponentId] = bracket.withAddToListBracket(addToList =>
+          addToList
+            .iterationForSectionNumber(sn)
+            .toPageModel
+            .toList
+            .flatMap(_.allFormComponents)
+            .map(_.id.modelComponentId)
+            .toSet
+        )
+        sn match {
+          case SectionNumber.Classic.AddToListPage.Page(_, _, _) if !visitIndex.contains(sn) => iterationFieldsIds
+          case SectionNumber.Classic.AddToListPage.TerminalPage(_, _, TerminalPageKind.RepeaterPage) =>
+            iterationFieldsIds.map(_.increment) // We need to ignore next iteration
+          case _ => Set.empty[ModelComponentId]
+        }
+
+      case _ => Set.empty[ModelComponentId]
+    }
 
     val fcToRecalculate: List[(FormComponent, Expr)] = formComponents.collect {
-      case fc @ HasValueExpr(expr) if !fc.editable =>
+      case fc @ HasValueExpr(expr) if !fc.editable && !postponeRecalculation(fc.id.modelComponentId) =>
         fc -> expr
     }
 

@@ -501,7 +501,9 @@ class FormProcessor(
         formModelVisibilityOptics.freeCalculator.updateThirdPartyData(updatedThirdPartyData) // Side effect !!!
         val recalculatedDependencies =
           formModelVisibilityOptics.freeCalculator.recalculateDependenciesWithValue(
-            processData.formModelOptics.formModelRenderPageOptics.allFormComponents
+            processData.formModelOptics.formModelRenderPageOptics,
+            processData.visitsIndex,
+            Some(sectionNumber)
           )
 
         val formDataU: FormData = oldData.toFormData ++ formData ++ recalculatedDependencies

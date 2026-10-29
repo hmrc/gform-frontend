@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.lookup.{ LookupLabel, LookupRegistry }
 import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, FormIdData, FormModelOptics, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IsOverseasAddress, IsText, Lookup, OverseasAddress, Register, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, IsOverseasAddress, IsText, Lookup, OverseasAddress, Register, SectionNumber, Text }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendHeaderCarrierProvider
 import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
@@ -109,7 +109,9 @@ class LanguageSwitchController(
 
             val exprsSwitchedTo: FormData =
               formModelOpticsSwitchTo.formModelVisibilityOptics.freeCalculator.recalculateDependenciesWithValue(
-                formModelOpticsSwitchTo.formModelRenderPageOptics.allFormComponents
+                formModelOpticsSwitchTo.formModelRenderPageOptics,
+                cache.form.visitsIndex,
+                Option.empty[SectionNumber]
               )
 
             val switchedLabel: List[(ModelComponentId, LookupLabel)] =
