@@ -50,12 +50,6 @@ sealed trait EvaluationStatus extends Product with Serializable {
   private def invalidDiv(left: EvaluationStatus, right: EvaluationStatus): EvaluationStatus =
     Invalid(s"Unsupported operation, cannot divide $left and $right")
 
-  private def errorInCalculation[T](op: String): T =
-    throw new Exception(s"Dirty cannot be part of evaluation $op. This: $this")
-
-  private def errorInCalculation[T](op: String, that: EvaluationStatus): T =
-    throw new Exception(s"Dirty cannot be part of evaluation $op. This: $this, that: $that")
-
   def >(that: EvaluationStatus): List[Boolean] = this match {
     case Hidden          => false :: Nil
     case Empty           => false :: Nil
@@ -81,7 +75,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => that.ifPeriodResult(t.value.toTotalMonths > _.toTotalMonths) :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation(">", that)
+    case Dirty            => false :: Nil
   }
 
   def <(that: EvaluationStatus): List[Boolean] = this match {
@@ -108,7 +102,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => that.ifPeriodResult(t.value.toTotalMonths < _.toTotalMonths) :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("<", that)
+    case Dirty            => false :: Nil
   }
 
   def <=(that: EvaluationStatus): List[Boolean] = this match {
@@ -135,7 +129,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => that.ifPeriodResult(t.value.toTotalMonths <= _.toTotalMonths) :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("<=", that)
+    case Dirty            => false :: Nil
   }
 
   def >=(that: EvaluationStatus): List[Boolean] = this match {
@@ -163,7 +157,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => that.ifPeriodResult(t.value.toTotalMonths >= _.toTotalMonths) :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation(">=", that)
+    case Dirty            => false :: Nil
   }
 
   def +(that: EvaluationStatus)(implicit messages: Messages): EvaluationStatus = that match {
@@ -295,7 +289,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => false :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("+", that)
+    case Dirty            => false :: Nil
   }
 
   def identical(that: EvaluationStatus): List[Boolean] = this match {
@@ -340,7 +334,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => that.ifPeriodResult(t.value.toTotalMonths == _.toTotalMonths) :: Nil
     case t: AddressResult => (that.isEmpty && this.isEmpty) :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("identical", that)
+    case Dirty            => false :: Nil
   }
 
   def before(that: EvaluationStatus): List[Boolean] = this match {
@@ -354,7 +348,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => false :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("before", that)
+    case Dirty            => false :: Nil
   }
 
   def after(that: EvaluationStatus): List[Boolean] = this match {
@@ -368,7 +362,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => false :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("after", that)
+    case Dirty            => false :: Nil
   }
 
   def matchRegex(regex: Regex): List[Boolean] = this match {
@@ -382,7 +376,7 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => false :: Nil
     case t: AddressResult => false :: Nil
     case t: Invalid       => false :: Nil
-    case Dirty            => errorInCalculation("matchRegex")
+    case Dirty            => false :: Nil
   }
 
   private def compareNumberWithOption(
@@ -559,13 +553,18 @@ sealed trait EvaluationStatus extends Product with Serializable {
     case t: PeriodResult  => h(t)
     case t: AddressResult => i(t)
     case t: Invalid       => j(t)
-    case t: Dirty.type    => errorInCalculation("fold", t)
+    case t: Dirty.type    => j(Invalid(s"Dirty cannot be part of evaluation"))
   }
 }
 
 object EvaluationStatus {
   implicit val equal: Eq[EvaluationStatus] = Eq.fromUniversalEquals
 
+  // Dirty flag serves as marker that expr needs to be recalculated,
+  // but even after recalculation the Dirty flag can stay in the
+  // AnswerMap, due to expr being on a page which has not yet been
+  // visited, for example when starting new ATL iteration from
+  // repeater page
   case object Dirty extends EvaluationStatus
   case object Empty extends EvaluationStatus
   case object Hidden extends EvaluationStatus
