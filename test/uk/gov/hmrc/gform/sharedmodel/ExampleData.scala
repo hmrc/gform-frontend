@@ -882,7 +882,7 @@ trait ExampleFormTemplate {
       FormTemplateVersion(1),
       legacyFormIds,
       formName,
-      Some(ResearchBanner),
+      Some(DiscoveryBanner),
       Default,
       OnePerUser(ContinueOrDeletePage.Show),
       None,
