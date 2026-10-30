@@ -517,6 +517,11 @@ class TestOnlyController(
       uk.gov.hmrc.gform.testonly.routes.ObjectStoreAdminController.objectStoreContent(envelopeId)
     )
 
+    val viewObjectStoreFilesLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+      "View object store files",
+      uk.gov.hmrc.gform.testonly.routes.TestOnlyController.proxyToGform("gform/sdes/verify/" + envelopeId.value)
+    )
+
     val viewTranslationLink = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       "View translation source",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController
@@ -557,6 +562,7 @@ class TestOnlyController(
       viewInternalTemplateLink,
       viewEnvelopeFilesLink,
       viewUploadedFilesLink,
+      viewObjectStoreFilesLink,
       viewTranslationLink,
       viewExpressionsLink,
       viewAllExpressionsLink,
