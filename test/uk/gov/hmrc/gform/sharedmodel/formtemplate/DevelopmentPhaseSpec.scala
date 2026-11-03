@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.json.JsString
-import uk.gov.hmrc.gform.Spec
+import munit.FunSuite
+import play.api.libs.json.{ JsString, JsSuccess }
 
-class DevelopmentPhaseSpec extends Spec {
-  "DevelopmentPhase" should "read and write discovery" in {
-    DevelopmentPhase.format.reads(JsString("discovery")) shouldBe play.api.libs.json.JsSuccess(DiscoveryBanner)
-    DevelopmentPhase.format.writes(DiscoveryBanner) shouldBe JsString("discovery")
+class DevelopmentPhaseSpec extends FunSuite {
+  test("DevelopmentPhase should read and write discovery") {
+    assertEquals(DevelopmentPhase.format.reads(JsString("discovery")), JsSuccess[DevelopmentPhase](DiscoveryBanner))
+    assertEquals(DevelopmentPhase.format.writes(DiscoveryBanner), JsString("discovery"))
   }
 
-  it should "reject research" in {
-    DevelopmentPhase.format.reads(JsString("research")).isError shouldBe true
+  test("DevelopmentPhase should reject research") {
+    assertEquals(DevelopmentPhase.format.reads(JsString("research")).isError, true)
   }
 }

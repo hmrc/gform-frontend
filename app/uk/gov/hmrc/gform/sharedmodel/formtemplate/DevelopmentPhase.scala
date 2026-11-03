@@ -33,16 +33,16 @@ sealed trait DevelopmentPhase {
 
 }
 case object AlphaBanner extends DevelopmentPhase {
-  override val banner: String = "ALPHA"
+  override val banner: String = "Alpha"
 }
 case object BetaBanner extends DevelopmentPhase {
-  override val banner: String = "BETA"
+  override val banner: String = "Beta"
 }
 case object DiscoveryBanner extends DevelopmentPhase {
-  override val banner: String = "DISCOVERY"
+  override val banner: String = "Discovery"
 }
 case object LiveBanner extends DevelopmentPhase {
-  override val banner: String = "LIVE"
+  override val banner: String = "Live"
 }
 object DevelopmentPhase {
   implicit val format: Format[DevelopmentPhase] = new Format[DevelopmentPhase] {
