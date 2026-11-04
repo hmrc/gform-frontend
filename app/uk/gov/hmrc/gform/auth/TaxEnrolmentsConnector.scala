@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.auth
 
+import cats.implicits.catsSyntaxEq
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -30,6 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 case class TaxEnrolment(identifiers: List[Identifier], verifiers: List[Verifier])
 case class TaxEnrolmentPayload(verifiers: List[Verifier], `type`: String, userId: String, friendlyName: String)
+case class TaxEnrolmentErrorResponse(code: String, message: String, errors: Option[List[TaxEnrolmentErrorResponse]])
 
 object TaxEnrolmentPayload {
   implicit val format: OFormat[TaxEnrolmentPayload] = Json.format[TaxEnrolmentPayload]
@@ -37,6 +39,10 @@ object TaxEnrolmentPayload {
 
 object TaxEnrolment {
   implicit val format: OFormat[TaxEnrolment] = Json.format[TaxEnrolment]
+}
+
+object TaxEnrolmentErrorResponse {
+  implicit val format: OFormat[TaxEnrolmentErrorResponse] = Json.format[TaxEnrolmentErrorResponse]
 }
 
 class TaxEnrolmentsConnector(baseUrl: String, httpClient: HttpClientV2) {
@@ -62,21 +68,39 @@ class TaxEnrolmentsConnector(baseUrl: String, httpClient: HttpClientV2) {
       .execute[HttpResponse]
       .map { httpResponse =>
         val status = httpResponse.status
+        val body = httpResponse.body
+        val errorCodes = Json
+          .parse(body)
+          .validate[TaxEnrolmentErrorResponse]
+          .fold(
+            _ => {
+              if (!body.isBlank && status =!= 201) {
+                logger.error(
+                  s"Calling tax enrolment; problem parsing non-blank error response. Http status: $status, body: $body"
+                )
+              }
+              Option.empty[List[String]]
+            },
+            valid => Some(List(valid.code) ++ valid.errors.map(_.map(_.code)).getOrElse(Nil))
+          )
+          .map(_.mkString(", "))
+          .fold("")(codes => s"; error code(s): $codes")
+
         status match {
           case 201 =>
             logger.info(s"Calling tax enrolment returned $status: Success.")
             ServiceResponse(TaxEnrolmentsResponse.Success)
           case 400 =>
-            logger.info(s"Calling tax enrolment returned $status: InvalidIdentifiers.")
+            logger.info(s"Calling tax enrolment returned $status: InvalidIdentifiers$errorCodes")
             ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers)
           case 403 =>
-            logger.info(s"Calling tax enrolment returned $status: InvalidCredentials.")
+            logger.info(s"Calling tax enrolment returned $status: InvalidCredentials$errorCodes")
             ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials)
           case 409 =>
-            logger.info(s"Calling tax enrolment returned $status: Conflict.")
+            logger.info(s"Calling tax enrolment returned $status: Conflict$errorCodes")
             ServiceResponse(TaxEnrolmentsResponse.Conflict)
           case other =>
-            logger.error(s"Problem when calling tax enrolment. Http status: $other, body: ${httpResponse.body}")
+            logger.error(s"Problem when calling tax enrolment. Http status: $other, body: $body")
             CannotRetrieveResponse
         }
       }
