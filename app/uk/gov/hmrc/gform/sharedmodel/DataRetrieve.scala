@@ -163,7 +163,8 @@ case class DataRetrieve(
   callOnNoChange: Boolean,
   populateATL: Option[PopulateATL],
   urlFrontend: UrlDescriptor,
-  urlBackend: Option[UrlDescriptor]
+  urlBackend: Option[UrlDescriptor],
+  manualFallbackIsDesigned: Boolean = false
 ) {
 
   def prepareRequest(
@@ -396,6 +397,7 @@ object DataRetrieve {
   val failureIsBlockedAttribute: Attribute = Attribute("isBlocked")
   val failureResetTimeAttribute: Attribute = Attribute("unblockTime")
   val failureResetDateAttribute: Attribute = Attribute("unblockDate")
+  val hasFailedAttribute: Attribute = Attribute("hasFailed")
 
   object Attribute {
 
@@ -420,7 +422,15 @@ object DataRetrieve {
   implicit val format: OFormat[DataRetrieve] = {
     implicit val attrTypeMappingFormat: Format[Map[DataRetrieve.Attribute, DataRetrieve.AttrType]] =
       JsonUtils.formatMap[DataRetrieve.Attribute, DataRetrieve.AttrType](DataRetrieve.Attribute.apply, _.name)
-    derived.oformat()
+    val format: OFormat[DataRetrieve] = derived.oformat()
+    OFormat(
+      Reads {
+        case obj: JsObject if !obj.keys.contains("manualFallbackIsDesigned") =>
+          format.reads(obj + ("manualFallbackIsDesigned" -> JsBoolean(false)))
+        case json => format.reads(json)
+      },
+      format
+    )
   }
 }
 
@@ -442,7 +452,8 @@ case class DataRetrieveResult(
   requestParams: JsValue, // Request data used to decide if new call to the API is need when input data are changing
   failureCount: Option[Int],
   failureMaxAttempts: Option[Int],
-  failureCountResetTime: Option[LocalDateTime]
+  failureCountResetTime: Option[LocalDateTime],
+  hasFailed: Boolean = false
 ) {
   def isBlocked(implicit now: Now[LocalDateTime]) =
     (failureMaxAttempts, failureCount, failureCountResetTime) match {
@@ -479,5 +490,15 @@ object DataRetrieveResult {
 
     Format[RetrieveDataType](reads, writes)
   }
-  implicit val format: Format[DataRetrieveResult] = derived.oformat()
+  implicit val format: OFormat[DataRetrieveResult] = {
+    val format: OFormat[DataRetrieveResult] = derived.oformat()
+    OFormat(
+      Reads {
+        case obj: JsObject if !obj.keys.contains("hasFailed") =>
+          format.reads(obj + ("hasFailed" -> JsBoolean(false)))
+        case json => format.reads(json)
+      },
+      format
+    )
+  }
 }

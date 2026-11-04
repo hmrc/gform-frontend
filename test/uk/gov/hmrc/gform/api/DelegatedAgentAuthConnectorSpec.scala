@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.api
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.http.Fault
 import org.apache.pekko.actor.ActorSystem
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
@@ -88,7 +89,7 @@ class DelegatedAgentAuthConnectorSpec
     }
   }
 
-  it should "return false when NOT authorised for HMRC MTD VAT" in new TestFixture {
+  it should "return cannot retrieve when unauthorised for HMRC MTD VAT" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -99,11 +100,11 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
 
     whenReady(future) { response =>
-      response shouldBe unauthorisedResponse
+      response shouldBe CannotRetrieveResponse
     }
   }
 
-  it should "return false when forbidden for HMRC MTD VAT" in new TestFixture {
+  it should "return cannot retrieve when forbidden for HMRC MTD VAT" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -114,7 +115,7 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
 
     whenReady(future) { response =>
-      response shouldBe unauthorisedResponse
+      response shouldBe CannotRetrieveResponse
     }
   }
 
@@ -133,7 +134,7 @@ class DelegatedAgentAuthConnectorSpec
     }
   }
 
-  it should "return false when NOT authorised for IR-PAYE" in new TestFixture {
+  it should "return cannot retrieve when unauthorised for IR-PAYE" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -144,11 +145,11 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.payeAuth(authPayeDataRetrieve, validPayeRequest)
 
     whenReady(future) { response =>
-      response shouldBe unauthorisedResponse
+      response shouldBe CannotRetrieveResponse
     }
   }
 
-  it should "return false when forbidden for IR-PAYE" in new TestFixture {
+  it should "return cannot retrieve when forbidden for IR-PAYE" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -159,7 +160,7 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.payeAuth(authPayeDataRetrieve, validPayeRequest)
 
     whenReady(future) { response =>
-      response shouldBe unauthorisedResponse
+      response shouldBe CannotRetrieveResponse
     }
   }
 
@@ -170,6 +171,35 @@ class DelegatedAgentAuthConnectorSpec
     whenReady(future) { response =>
       response shouldBe unauthorisedResponse
     }
+  }
+
+  List(201, 204, 302, 404, 500, 503).foreach { status =>
+    it should s"return cannot retrieve for an auth upstream HTTP $status" in new TestFixture {
+      stubFor(WireMock.post("/auth/authorise").willReturn(aResponse().withStatus(status)))
+
+      delegatadAgentAuthConnector
+        .mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
+        .futureValue shouldBe CannotRetrieveResponse
+      delegatadAgentAuthConnector
+        .payeAuth(authPayeDataRetrieve, validPayeRequest)
+        .futureValue shouldBe CannotRetrieveResponse
+    }
+  }
+
+  it should "return cannot retrieve for malformed successful auth JSON" in new TestFixture {
+    stubFor(WireMock.post("/auth/authorise").willReturn(ok("not json")))
+
+    delegatadAgentAuthConnector
+      .mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
+      .futureValue shouldBe CannotRetrieveResponse
+  }
+
+  it should "return cannot retrieve when the auth upstream connection fails" in new TestFixture {
+    stubFor(WireMock.post("/auth/authorise").willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)))
+
+    delegatadAgentAuthConnector
+      .mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
+      .futureValue shouldBe CannotRetrieveResponse
   }
 
   trait TestFixture {

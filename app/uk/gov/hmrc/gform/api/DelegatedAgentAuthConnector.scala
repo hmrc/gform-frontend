@@ -96,8 +96,9 @@ class DelegatedAgentAuthAsyncConnector(
     authCheck: Future[Boolean]
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = authCheck
     .flatMap(authorised => Future.successful(processResponse(dataRetrieve, identifier, authorised)))
-    .recover { case _ =>
-      processResponse(dataRetrieve, identifier, authorised = false)
+    .recover { case otherEx =>
+      logger.error(s"Problem when fetching agent access control ($identifier)", otherEx)
+      CannotRetrieveResponse
     }
 
   private def processResponse(

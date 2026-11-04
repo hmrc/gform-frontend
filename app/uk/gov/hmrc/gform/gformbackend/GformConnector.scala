@@ -30,7 +30,7 @@ import org.typelevel.ci.CIString
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.auth.models.{ EmailRetrievals, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint, ExceptionalResponse }
+import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
@@ -501,34 +501,24 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    claimValidationB.getEmptyIfNotFound(
+    claimValidationB.get(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
     )
 
-  private val caseflowExceptionalResponses = Some(
-    List(
-      ExceptionalResponse(
-        400,
-        "path.caseId failed validation",
-        """{"error":"CASE_ID_VALIDATION_ERROR"}"""
-      )
-    )
-  )
   private val caseflowCaseDetailsB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "caseflow case details",
-      caseflowExceptionalResponses
+      "caseflow case details"
     )
 
   def getCaseflowCaseDetails(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    caseflowCaseDetailsB.getEmptyIfNotFound(
+    caseflowCaseDetailsB.get(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
@@ -548,27 +538,13 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "fta manage emails",
-      Some(
-        List(
-          ExceptionalResponse(
-            500,
-            "with statusCode: 400", // Bad request from a GET?
-            """[{"primaryEmail": "","secondaryEmails": []}]"""
-          ),
-          ExceptionalResponse(
-            500,
-            "with statusCode: 404", // Not found should be the usual response from PDS
-            """[{"primaryEmail": "","secondaryEmails": []}]"""
-          )
-        )
-      )
+      "fta manage emails"
     )
 
   def ftaManageEmails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaManageEmailsB.getEmptyIfNotFound(
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaManageEmailsB.get(
     dataRetrieve,
     request,
     request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
@@ -592,7 +568,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    employmentsProfileB.getEmptyIfNotFound(
+    employmentsProfileB.get(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))

@@ -49,6 +49,65 @@ class CompanyInformationConnectorSpec
     configureFor("localhost", wiremockPort)
   }
 
+  behavior of "Company information response handling"
+
+  it should "preserve a successful empty insolvency response" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(urlMatching("/companieshouse/.*"))
+        .willReturn(okJson("""{"cases":[]}"""))
+    )
+
+    companyInformationAsyncConnector
+      .companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
+      .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
+  }
+
+  it should "preserve successful officers with no active officers" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(urlMatching("/companieshouse/.*"))
+        .willReturn(okJson("""{"items":[]}"""))
+    )
+
+    companyInformationAsyncConnector
+      .companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
+      .futureValue shouldBe ServiceResponse(
+      DataRetrieve.Response.Object(
+        Map(
+          DataRetrieve.Attribute("activeDirectors")   -> "0",
+          DataRetrieve.Attribute("activeSecretaries") -> "0",
+          DataRetrieve.Attribute("activeLlpMembers")  -> "0"
+        )
+      )
+    )
+  }
+
+  List("not json", """{"unexpected":"shape"}""").foreach { body =>
+    it should s"return cannot retrieve for malformed insolvency data: $body" in new TestFixture {
+      stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(ok(body)))
+
+      companyInformationAsyncConnector
+        .companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
+        .futureValue shouldBe CannotRetrieveResponse
+    }
+
+    it should s"return cannot retrieve for malformed officers data: $body" in new TestFixture {
+      stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(ok(body)))
+
+      companyInformationAsyncConnector
+        .companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
+        .futureValue shouldBe CannotRetrieveResponse
+    }
+  }
+
+  it should "return cannot retrieve for malformed profile JSON" in new TestFixture {
+    stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(ok("not json")))
+
+    companyInformationAsyncConnector
+      .companyProfile(dataRetrieveCompanyHouseProfile, request)
+      .futureValue shouldBe CannotRetrieveResponse
+  }
   override protected def beforeEach(): Unit =
     wireMockServer.resetAll()
 
@@ -425,7 +484,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "call the gform companies house endpoint and return empty company details when the company is not found from the API" in new TestFixture {
+  it should "return cannot retrieve when the company profile API returns not found" in new TestFixture {
     stubFor(
       WireMock
         .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
@@ -437,9 +496,7 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyHouseProfile, request)
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(
-        DataRetrieve.Response.Object(Map.empty)
-      )
+      response shouldBe CannotRetrieveResponse
     }
   }
 
@@ -515,7 +572,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "call the gform companies house endpoint and return empty company active officers details when the company active officers is not found from the API" in new TestFixture {
+  it should "return cannot retrieve when the company officers API returns not found" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -529,9 +586,7 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(
-        DataRetrieve.Response.Object(Map.empty)
-      )
+      response shouldBe CannotRetrieveResponse
     }
   }
 
@@ -725,7 +780,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "call the gform companies house endpoint and return empty company insolvency details when the company insolvency detais are not found from the API" in new TestFixture {
+  it should "return cannot retrieve when the company insolvency API returns not found" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -739,9 +794,7 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(
-        DataRetrieve.Response.Array(List.empty)
-      )
+      response shouldBe CannotRetrieveResponse
     }
   }
 

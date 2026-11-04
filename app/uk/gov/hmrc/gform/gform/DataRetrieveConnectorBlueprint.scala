@@ -17,20 +17,19 @@
 package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
-import play.api.http.Status.{ NOT_FOUND, OK }
-import play.api.libs.json.{ JsValue, Json }
+import play.api.http.Status.OK
+import play.api.libs.json.Json
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
 
 class DataRetrieveConnectorBlueprint(
   httpClient: HttpClientV2,
   baseUrl: String,
-  identifier: String,
-  exceptionalResponses: Option[List[ExceptionalResponse]] = None
+  identifier: String
 ) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -45,55 +44,12 @@ class DataRetrieveConnectorBlueprint(
     httpClient
       .get(url"$url")
       .setHeader(header: _*)
-      .execute[JsValue]
-      .map { response =>
-        dataRetrieve
-          .processResponse(response)
-          .fold(
-            invalid => {
-              logger.error(
-                s"Calling $identifier returned successfully, but marshalling of data failed with: $invalid"
-              )
-              CannotRetrieveResponse
-            },
-            valid => {
-              logger.info(s"Calling $identifier returned Success.")
-              ServiceResponse(valid)
-            }
-          )
-      }
-      .recover {
-        case drResponseEx: DataRetrieveResponseValidationException =>
-          logger.error(s"Response validation errors when calling $identifier: ${drResponseEx.getMessage}")
-          CannotRetrieveResponse
-        case otherEx =>
-          logger.error(s"Unknown problem when calling $identifier", otherEx)
-          CannotRetrieveResponse
-      }
-  }
-
-  def getEmptyIfNotFound(
-    dataRetrieve: DataRetrieve,
-    request: DataRetrieve.Request,
-    header: Seq[(String, String)] = Seq.empty
-  )(implicit
-    ex: ExecutionContext,
-    hc: HeaderCarrier
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
-
-    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
-
-    httpClient
-      .get(url"$url")
-      .setHeader(header: _*)
       .execute[HttpResponse]
       .map { response =>
-        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponse(response)
-        (maybeExceptionalResponse, response.status) match {
-          case (Some(_), _) | (_, OK) =>
-            val responseJson = maybeExceptionalResponse.fold(response.json)(ex => Json.parse(ex.response))
+        response.status match {
+          case OK =>
             dataRetrieve
-              .processResponse(responseJson)
+              .processResponse(response.json)
               .fold(
                 invalid => {
                   logger.error(
@@ -106,8 +62,7 @@ class DataRetrieveConnectorBlueprint(
                   ServiceResponse(valid)
                 }
               )
-          case (_, NOT_FOUND) => dataRetrieve.emptyValidResponse()
-          case (_, other) =>
+          case other =>
             logger.error(s"Unexpected status $other received when calling $identifier")
             CannotRetrieveResponse
         }
@@ -121,10 +76,6 @@ class DataRetrieveConnectorBlueprint(
           CannotRetrieveResponse
       }
   }
-
-  private def exceptionalResponse(httpResponse: HttpResponse) = exceptionalResponses.flatMap(_.find { ex =>
-    httpResponse.status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
-  })
 
   def post(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(
     implicit
@@ -141,14 +92,10 @@ class DataRetrieveConnectorBlueprint(
       .execute[HttpResponse]
       .map { httpResponse =>
         val status: Int = httpResponse.status
-        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponse(httpResponse)
-
-        (maybeExceptionalResponse, status) match {
-          case (Some(_), _) | (_, 200) =>
-            val responseJson = maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response))
-
+        status match {
+          case OK =>
             dataRetrieve
-              .processResponse(responseJson)
+              .processResponse(httpResponse.json)
               .fold(
                 invalid => {
                   logger.error(
@@ -161,7 +108,7 @@ class DataRetrieveConnectorBlueprint(
                   ServiceResponse(valid)
                 }
               )
-          case (_, other) =>
+          case other =>
             logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
         }
@@ -176,5 +123,3 @@ class DataRetrieveConnectorBlueprint(
       }
   }
 }
-
-case class ExceptionalResponse(statusMatch: Int, responseMatch: String, response: String)

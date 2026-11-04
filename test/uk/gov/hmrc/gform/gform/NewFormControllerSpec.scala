@@ -25,6 +25,7 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import play.api.http.{ HttpConfiguration, Status }
 import play.api.i18n._
+import play.api.libs.json.Json
 import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.api.test.FakeRequest
@@ -37,6 +38,7 @@ import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.eval.InitFormEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.gformstats.GformStatsConnector
@@ -46,7 +48,7 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate, FormTemplateId, FormTemplateVersion, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DataRetrieveCtx, Equals, FormComponentId, FormTemplate, FormTemplateId, FormTemplateVersion, IncludeIf, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -60,6 +62,98 @@ class NewFormControllerSpec
   implicit val sys: ActorSystem = ActorSystem("NewFormControllerSpec")
 
   val newFormUrl: String = "/form/tst1/?n=n1&se=f"
+
+  "Resuming a manual fallback" should "preserve the saved decision and manual answers after a top-level API recovers" in new TestFixture {
+    val id = DataRetrieveId("agencyInfo")
+    val failure = DataRetrieveResult(
+      id,
+      RetrieveDataType.ObjectType(Map.empty),
+      Json.obj(),
+      None,
+      None,
+      None,
+      hasFailed = true
+    )
+    val savedForm = authCacheWithForm.form.copy(
+      thirdPartyData = authCacheWithForm.form.thirdPartyData.updateDataRetrieve(List(failure)),
+      formData = FormData(List(FormField(FormComponentId("manualAgencyName").modelComponentId, "Manual agency")))
+    )
+    val recovered = failure.copy(
+      hasFailed = false,
+      data = RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("agencyName") -> "Recovered agency"))
+    )
+    val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> recovered)))
+    val resumed = cache.toAuthCacheWithForm(savedForm, None)
+    resumed.form.thirdPartyData.dataRetrieve shouldBe savedForm.thirdPartyData.dataRetrieve
+    resumed.form.formData shouldBe savedForm.formData
+    val optics = FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
+      resumed.variadicFormData,
+      resumed,
+      recomputeGraph = false
+    )
+    val fallbackCondition = IncludeIf(
+      Equals(DataRetrieveCtx(id, DataRetrieve.hasFailedAttribute), Constant("true"))
+    )
+    optics.formModelVisibilityOptics.evalIncludeIfExpr(fallbackCondition, None) shouldBe true
+  }
+
+  "Initial retrieval evaluation" should "read hasFailed metadata from an empty list result" in new TestFixture {
+    val id = DataRetrieveId("agencyInfo")
+    val failure = DataRetrieveResult(
+      id,
+      RetrieveDataType.ListType(List.empty),
+      Json.obj(),
+      None,
+      None,
+      None,
+      hasFailed = true
+    )
+    val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> failure)))
+    val evaluator = InitFormEvaluator(cache, cache.formTemplate.authConfig, None)
+    val ctx = DataRetrieveCtx(id, DataRetrieve.hasFailedAttribute)
+    evaluator.evalExpr(ctx) shouldBe "true"
+    evaluator.evalIncludeIf(IncludeIf(Equals(ctx, Constant("true")))) shouldBe true
+  }
+
+  it should "keep an already selected fallback when initialization runs again" in new TestFixture {
+    val id = DataRetrieveId("agencyInfo")
+    val failure = DataRetrieveResult(
+      id,
+      RetrieveDataType.ObjectType(Map.empty),
+      Json.obj(),
+      None,
+      None,
+      None,
+      hasFailed = true
+    )
+    val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> failure)))
+    val retrieval = DataRetrieve(
+      DataRetrieve.Type("agentDetails"),
+      id,
+      Attr.FromObject(List.empty),
+      Map.empty,
+      List.empty,
+      None,
+      None,
+      None,
+      true,
+      None,
+      UrlDescriptor("/agent-details", UrlDestination.GForm),
+      None,
+      manualFallbackIsDesigned = true
+    )
+    val updated = play.api.test.Helpers.await(
+      InitFormEvaluator.makeCacheWithDataRetrieve(
+        cache,
+        cache.formTemplate.authConfig,
+        None,
+        Some(NonEmptyList.one(retrieval)),
+        mockGformConnector,
+        mockNinoInsightsConnector
+      )
+    )
+    updated.dataRetrieve shouldBe cache.dataRetrieve
+  }
 
   "downloadOldOrNewForm" should "start a fresh form when no previous form detected" in new TestFixture {
     initCommonMocks()

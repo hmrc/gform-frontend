@@ -153,9 +153,16 @@ object InitFormEvaluator {
     for {
       results <- dataRetrieve.fold(Future.successful(List.empty[DataRetrieveResult])) { r =>
                    r.toList.foldLeft(Future.successful(List.empty[DataRetrieveResult])) { case (acc, r) =>
-                     val initFormEvaluator = InitFormEvaluator(cache, authConfig, itmpRetrievals)
-                     acc.flatMap {
-                       case results if r.`if`.forall(initFormEvaluator.evalIncludeIf) =>
+                     acc.flatMap { results =>
+                       val currentCache = cache.copy(dataRetrieve =
+                         Some(
+                           cache.dataRetrieve.getOrElse(Map.empty) ++ results.map(result => result.id -> result)
+                         )
+                       )
+                       val initFormEvaluator = InitFormEvaluator(currentCache, authConfig, itmpRetrievals)
+                       val previousFailure = currentCache.dataRetrieve.flatMap(_.get(r.id)).filter(_.hasFailed)
+                       if (previousFailure.isDefined) Future.successful(results ++ previousFailure)
+                       else if (r.`if`.forall(initFormEvaluator.evalIncludeIf)) {
                          val request = initFormEvaluator.prepareRequest(r)
                          DataRetrieveService
                            .retrieveDataResult(
@@ -174,8 +181,7 @@ object InitFormEvaluator {
                              case Some(result) => results :+ result
                              case None         => results
                            }
-                       case results =>
-                         Future.successful(results)
+                       } else Future.successful(results)
                      }
                    }
                  }

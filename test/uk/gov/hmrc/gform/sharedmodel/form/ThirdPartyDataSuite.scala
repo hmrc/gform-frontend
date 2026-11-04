@@ -75,7 +75,8 @@ class ThirdPartyDataSuite extends FunSuite {
          |        "accountNumber": "86473611",
          |        "sortCode": "206705"
          |      },
-         |      "failureCountResetTime": "2025-10-14T17:25:00"
+         |      "failureCountResetTime": "2025-10-14T17:25:00",
+         |      "hasFailed": false
          |    }
          |  }
          |}""".stripMargin
@@ -152,7 +153,8 @@ class ThirdPartyDataSuite extends FunSuite {
          |      ],
          |      "requestParams": {
          |        "nino": "CC111111C"
-         |      }
+         |      },
+         |      "hasFailed": false
          |    }
          |  },
          |  "confirmations": {
@@ -172,6 +174,29 @@ class ThirdPartyDataSuite extends FunSuite {
 
     assertEquals(asJson, Json.parse(expected))
     assertEquals(asCaseClass, thirdPartyData)
+  }
+
+  test("A saved fallback cannot be replaced by a later successful result") {
+    val failure = getDrResultWithIndex(id = "bankDetails").copy(hasFailed = true)
+    val original = ThirdPartyData.empty.updateDataRetrieve(List(failure))
+    val updated = original.updateDataRetrieve(List(failure.copy(hasFailed = false)))
+    assertEquals(updated.dataRetrieve, original.dataRetrieve)
+  }
+
+  test("Conditional retrieval invalidation preserves fallback but removes successful results") {
+    val failure = getDrResultWithIndex(id = "failed").copy(hasFailed = true)
+    val success = getDrResultWithIndex(id = "successful")
+    val original = ThirdPartyData.empty.updateDataRetrieve(List(failure, success))
+    val updated = original.removeDataRetrieves(List(failure.id, success.id))
+    assertEquals(updated.dataRetrieve, Some(Map(failure.id -> failure)))
+  }
+
+  test("Deleting an add-to-list item removes its fallback and keeps other item decisions") {
+    val first = getDrResultWithIndex(Some(1), "agencyInfo").copy(hasFailed = true)
+    val second = getDrResultWithIndex(Some(2), "agencyInfo").copy(hasFailed = true)
+    val thirdPartyData = ThirdPartyData.empty.updateDataRetrieve(List(first, second))
+    val updated = thirdPartyData.removeDataRetrieveData(0, Set(first.id))
+    assertEquals(updated.dataRetrieve, Some(Map(first.id -> second.copy(id = first.id))))
   }
 
   test("removeDataRetrieve ATL data and re-key whilst ignoring other data retrieves") {
