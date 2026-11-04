@@ -159,7 +159,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
   }
 
-  it should "fail the journey on a not-found response by default" in new TestFixture {
+  it should "fail the journey on an unclassified not-found response by default" in new TestFixture {
     mockUpstreamResponse(NotFound)
     val result = callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(None), mkRequest(None, None))
     whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
@@ -206,6 +206,24 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
         Map(dataRetrieve.id -> result.value),
         DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
       ) shouldBe Some(List("false"))
+    }
+  }
+
+  List(false, true).foreach { manualFallback =>
+    it should s"keep a connector-classified no-record result on the normal path with fallback $manualFallback" in new TestFixture {
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = manualFallback)
+      val emptyResponse = DataRetrieve.Response.Object(
+        Map(DataRetrieve.Attribute("isValid") -> "")
+      )
+      mockUpstreamResponse(ServiceResponse(emptyResponse))
+      whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
+        result.value.hasFailed shouldBe false
+        result.value.data shouldBe emptyResponse.toRetrieveDataType()
+        DataRetrieveEval.getDataRetrieveAttribute(
+          Map(dataRetrieve.id -> result.value),
+          DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
+        ) shouldBe Some(List("false"))
+      }
     }
   }
 

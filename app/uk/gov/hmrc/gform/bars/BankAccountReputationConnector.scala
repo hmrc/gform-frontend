@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.bars
 
 import cats.implicits.catsSyntaxEq
-import uk.gov.hmrc.gform.gform.DataRetrieveConnectorBlueprint
+import uk.gov.hmrc.gform.gform.{ DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.sharedmodel.RetrieveDataType.{ ListType, ObjectType }
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, ServiceCallResponse }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -44,23 +44,46 @@ trait BankAccountReputationConnector[F[_]] {
 class BankAccountReputationAsyncConnector(httpClient: HttpClientV2, baseUrl: String)(implicit ex: ExecutionContext)
     extends BankAccountReputationConnector[Future] {
 
+  val validateBankDetailsExceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "SORT_CODE_ON_DENY_LIST",
+        """{"accountNumberIsWellFormatted":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"inapplicable","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"no","sortCodeSupportsDirectCredit":"no","iban":""}"""
+      )
+    )
+  )
+
+  val businessAndPersonalExceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "SORT_CODE_ON_DENY_LIST",
+        """{"accountNumberIsWellFormatted":"indeterminate","accountExists":"indeterminate","nameMatches":"indeterminate","nonStandardAccountDetailsRequiredForBacs":"inapplicable","sortCodeIsPresentOnEISCD":"no","sortCodeBankName":"","sortCodeSupportsDirectDebit":"no","sortCodeSupportsDirectCredit":"no","iban":""}"""
+      )
+    )
+  )
+
   val validateBankDetailsB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "validate bank details"
+      "validate bank details",
+      validateBankDetailsExceptionalResponses
     )
   val businessBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "business bank account existence"
+      "business bank account existence",
+      businessAndPersonalExceptionalResponses
     )
   val personalBankAccountExistenceB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "personal bank account existence"
+      "personal bank account existence",
+      businessAndPersonalExceptionalResponses
     )
 
   override def validateBankDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit

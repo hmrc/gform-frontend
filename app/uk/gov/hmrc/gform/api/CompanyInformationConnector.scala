@@ -89,6 +89,9 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
                       }
                     )
               )
+          case Status.NOT_FOUND =>
+            logger.info(s"Calling $insolvencyIdentifier returned successfully, but none were found: $httpResponse")
+            ServiceResponse[DataRetrieve.Response](DataRetrieve.Response.Array(List.empty))
           case other =>
             logger.error(s"Problem when calling $insolvencyIdentifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
@@ -149,6 +152,9 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
                   ServiceResponse(valid)
                 }
               )
+          case Status.NOT_FOUND =>
+            logger.info(s"Calling $profileIdentifier returned successfully, but no company was found: $httpResponse")
+            ServiceResponse[DataRetrieve.Response](DataRetrieve.Response.Object(Map.empty))
           case other =>
             logger.error(s"Problem when calling $profileIdentifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
@@ -195,6 +201,9 @@ class CompanyInformationAsyncConnector(httpClient: HttpClientV2, baseUrl: String
                       }
                     )
               )
+          case Status.NOT_FOUND =>
+            logger.info(s"Calling $officersIdentifier returned successfully, but no company was found: $httpResponse")
+            ServiceResponse[DataRetrieve.Response](DataRetrieve.Response.Object(Map.empty))
           case other =>
             logger.error(s"Problem when calling $officersIdentifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse

@@ -89,7 +89,7 @@ class DelegatedAgentAuthConnectorSpec
     }
   }
 
-  it should "return cannot retrieve when unauthorised for HMRC MTD VAT" in new TestFixture {
+  it should "return false when unauthorised for HMRC MTD VAT" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -100,11 +100,11 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe unauthorisedResponse
     }
   }
 
-  it should "return cannot retrieve when forbidden for HMRC MTD VAT" in new TestFixture {
+  it should "return false when forbidden for HMRC MTD VAT" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -115,7 +115,7 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe unauthorisedResponse
     }
   }
 
@@ -134,7 +134,7 @@ class DelegatedAgentAuthConnectorSpec
     }
   }
 
-  it should "return cannot retrieve when unauthorised for IR-PAYE" in new TestFixture {
+  it should "return false when unauthorised for IR-PAYE" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -145,11 +145,11 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.payeAuth(authPayeDataRetrieve, validPayeRequest)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe unauthorisedResponse
     }
   }
 
-  it should "return cannot retrieve when forbidden for IR-PAYE" in new TestFixture {
+  it should "return false when forbidden for IR-PAYE" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -160,7 +160,7 @@ class DelegatedAgentAuthConnectorSpec
       delegatadAgentAuthConnector.payeAuth(authPayeDataRetrieve, validPayeRequest)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe unauthorisedResponse
     }
   }
 

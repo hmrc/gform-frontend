@@ -323,7 +323,7 @@ class BankAccountReputationAsyncConnectorSpec
     exception.getMessage should include("required field 'sortCodeSupportsDirectCredit' cannot be empty")
   }
 
-  it should "return cannot retrieve for a sort code deny list bad request" in new TestFixture {
+  it should "return the business validation result for a sort code deny list bad request" in new TestFixture {
     stubFor(
       WireMock
         .post(s"/validate/bank-details")
@@ -344,7 +344,19 @@ class BankAccountReputationAsyncConnectorSpec
     )
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(
+          Map(
+            DataRetrieve.Attribute("isValid")                                  -> "indeterminate",
+            DataRetrieve.Attribute("sortCodeIsPresentOnEISCD")                 -> "no",
+            DataRetrieve.Attribute("sortCodeBankName")                         -> "",
+            DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs") -> "inapplicable",
+            DataRetrieve.Attribute("sortCodeSupportsDirectDebit")              -> "no",
+            DataRetrieve.Attribute("sortCodeSupportsDirectCredit")             -> "no",
+            DataRetrieve.Attribute("iban")                                     -> ""
+          )
+        )
+      )
     }
   }
 

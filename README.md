@@ -8,6 +8,22 @@ This frontend presents those forms based on templates fetched from the backend. 
 either eeitt authorisation or government gateway, when required it can also manage enrolment for government gateway.
 Data values entered on the forms are persisted by the backend and ultimately submitted to DMS by the backend.
 
+### Data retrieve failure classification
+
+Expected record-not-found responses remain successful empty data, irrespective of
+`manualFallbackIsDesigned`. This includes HTTP 404 from Companies House profile,
+officers and insolvency; NI claim validation; caseflow case details; FTA manage emails;
+employments; HIP agent details; and DES organisation. HIP/DES now return HTTP 404
+with `{"NotFound":{}}` instead of HTTP 200; their empty attribute results are unchanged.
+Generic data retrieve GET/POST calls do not treat HTTP 404 as success.
+
+Existing business outcomes are also preserved: BARS HTTP 400 `SORT_CODE_ON_DENY_LIST`,
+delegated-auth denial (401/403), caseflow's HTTP 400 case-ID validation error, and
+FTA's legacy HTTP 500 envelopes explicitly wrapping PDS HTTP 400/404.
+Other HTTP 500/503 responses, network failures and invalid successful JSON remain
+`CannotRetrieveResponse`: manual fallback is selected only when designed; otherwise
+the journey fails. Successful empty results never set `hasFailed`.
+
 ### Running Gform Locally with Service Manager
 
 When running locally:

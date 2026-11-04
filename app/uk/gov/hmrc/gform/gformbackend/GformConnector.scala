@@ -30,7 +30,7 @@ import org.typelevel.ci.CIString
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.auth.models.{ EmailRetrievals, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint }
+import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
@@ -479,7 +479,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    organisationB.post(dataRetrieve, request)
+    organisationB.postEmptyIfNotFound(dataRetrieve, request)
 
   private val hipAgentDetailsB =
     new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "hip-agent-details")
@@ -488,7 +488,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    hipAgentDetailsB.get(
+    hipAgentDetailsB.getEmptyIfNotFound(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
@@ -501,7 +501,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    claimValidationB.get(
+    claimValidationB.getEmptyIfNotFound(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
@@ -511,14 +511,23 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "caseflow case details"
+      "caseflow case details",
+      Some(
+        List(
+          ExceptionalResponse(
+            400,
+            "path.caseId failed validation",
+            """{"error":"CASE_ID_VALIDATION_ERROR"}"""
+          )
+        )
+      )
     )
 
   def getCaseflowCaseDetails(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    caseflowCaseDetailsB.get(
+    caseflowCaseDetailsB.getEmptyIfNotFound(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
@@ -538,13 +547,20 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
-      "fta manage emails"
+      "fta manage emails",
+      Some(
+        List(
+          // PDS business responses are historically wrapped as backend HTTP 500 errors.
+          ExceptionalResponse(500, "with statusCode: 400", """[{"primaryEmail": "","secondaryEmails": []}]"""),
+          ExceptionalResponse(500, "with statusCode: 404", """[{"primaryEmail": "","secondaryEmails": []}]""")
+        )
+      )
     )
 
   def ftaManageEmails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaManageEmailsB.get(
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaManageEmailsB.getEmptyIfNotFound(
     dataRetrieve,
     request,
     request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
@@ -568,7 +584,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    employmentsProfileB.get(
+    employmentsProfileB.getEmptyIfNotFound(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))

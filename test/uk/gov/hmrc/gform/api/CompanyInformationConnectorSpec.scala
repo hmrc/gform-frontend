@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.api
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.http.Fault
 import org.apache.pekko.actor.ActorSystem
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
@@ -50,6 +51,67 @@ class CompanyInformationConnectorSpec
   }
 
   behavior of "Company information response handling"
+
+  List(false, true).foreach { manualFallback =>
+    it should s"preserve company not found responses with manual fallback $manualFallback" in new TestFixture {
+      stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(notFound()))
+
+      companyInformationAsyncConnector
+        .companyProfile(dataRetrieveCompanyHouseProfile.copy(manualFallbackIsDesigned = manualFallback), request)
+        .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
+      companyInformationAsyncConnector
+        .companyOfficers(
+          dataRetrieveCompanyHouseActiveOfficers.copy(manualFallbackIsDesigned = manualFallback),
+          request
+        )
+        .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
+      companyInformationAsyncConnector
+        .companyInsolvency(dataRetrieveCompanyHouseInsolvency.copy(manualFallbackIsDesigned = manualFallback), request)
+        .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
+    }
+
+    List(500, 503).foreach { status =>
+      it should s"return cannot retrieve for company HTTP $status with manual fallback $manualFallback" in new TestFixture {
+        stubFor(
+          WireMock.get(urlMatching("/companieshouse/.*")).willReturn(aResponse().withStatus(status).withBody("{}"))
+        )
+
+        companyInformationAsyncConnector
+          .companyProfile(dataRetrieveCompanyHouseProfile.copy(manualFallbackIsDesigned = manualFallback), request)
+          .futureValue shouldBe CannotRetrieveResponse
+        companyInformationAsyncConnector
+          .companyOfficers(
+            dataRetrieveCompanyHouseActiveOfficers.copy(manualFallbackIsDesigned = manualFallback),
+            request
+          )
+          .futureValue shouldBe CannotRetrieveResponse
+        companyInformationAsyncConnector
+          .companyInsolvency(
+            dataRetrieveCompanyHouseInsolvency.copy(manualFallbackIsDesigned = manualFallback),
+            request
+          )
+          .futureValue shouldBe CannotRetrieveResponse
+      }
+    }
+  }
+
+  it should "return cannot retrieve when the company connection fails" in new TestFixture {
+    stubFor(
+      WireMock
+        .get(urlMatching("/companieshouse/.*"))
+        .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
+    )
+
+    companyInformationAsyncConnector
+      .companyProfile(dataRetrieveCompanyHouseProfile, request)
+      .futureValue shouldBe CannotRetrieveResponse
+    companyInformationAsyncConnector
+      .companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
+      .futureValue shouldBe CannotRetrieveResponse
+    companyInformationAsyncConnector
+      .companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
+      .futureValue shouldBe CannotRetrieveResponse
+  }
 
   it should "preserve a successful empty insolvency response" in new TestFixture {
     stubFor(
@@ -484,7 +546,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "return cannot retrieve when the company profile API returns not found" in new TestFixture {
+  it should "return an empty object when the company profile API returns not found" in new TestFixture {
     stubFor(
       WireMock
         .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
@@ -496,7 +558,7 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyHouseProfile, request)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
     }
   }
 
@@ -572,7 +634,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "return cannot retrieve when the company officers API returns not found" in new TestFixture {
+  it should "return an empty object when the company officers API returns not found" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -586,7 +648,7 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
     }
   }
 
@@ -780,7 +842,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "return cannot retrieve when the company insolvency API returns not found" in new TestFixture {
+  it should "return an empty array when the company insolvency API returns not found" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -794,7 +856,7 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
 
     whenReady(future) { response =>
-      response shouldBe CannotRetrieveResponse
+      response shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
     }
   }
 
