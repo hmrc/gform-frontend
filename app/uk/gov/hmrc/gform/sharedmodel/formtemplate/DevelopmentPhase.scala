@@ -25,10 +25,10 @@ sealed trait DevelopmentPhase {
   val banner: String
 
   def toPhaseBanner(feedbackContent: Html): Option[PhaseBanner] = this match {
-    case AlphaBanner    => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
-    case BetaBanner     => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
-    case ResearchBanner => Some(SiteBanner(Some(banner)))
-    case LiveBanner     => None
+    case AlphaBanner     => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
+    case BetaBanner      => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
+    case DiscoveryBanner => Some(SiteBanner(Some(banner)))
+    case LiveBanner      => None
   }
 
 }
@@ -38,8 +38,8 @@ case object AlphaBanner extends DevelopmentPhase {
 case object BetaBanner extends DevelopmentPhase {
   override val banner: String = "Beta"
 }
-case object ResearchBanner extends DevelopmentPhase {
-  override val banner: String = "Research"
+case object DiscoveryBanner extends DevelopmentPhase {
+  override val banner: String = "Discovery"
 }
 case object LiveBanner extends DevelopmentPhase {
   override val banner: String = "Live"
@@ -47,20 +47,20 @@ case object LiveBanner extends DevelopmentPhase {
 object DevelopmentPhase {
   implicit val format: Format[DevelopmentPhase] = new Format[DevelopmentPhase] {
     override def writes(o: DevelopmentPhase): JsValue = o match {
-      case AlphaBanner    => JsString(AlphaBanner.banner.toLowerCase)
-      case BetaBanner     => JsString(BetaBanner.banner.toLowerCase)
-      case ResearchBanner => JsString(ResearchBanner.banner.toLowerCase)
-      case LiveBanner     => JsString(LiveBanner.banner.toLowerCase)
+      case AlphaBanner     => JsString(AlphaBanner.banner.toLowerCase)
+      case BetaBanner      => JsString(BetaBanner.banner.toLowerCase)
+      case DiscoveryBanner => JsString(DiscoveryBanner.banner.toLowerCase)
+      case LiveBanner      => JsString(LiveBanner.banner.toLowerCase)
     }
 
     override def reads(json: JsValue): JsResult[DevelopmentPhase] =
       json match {
-        case JsString("alpha")    => JsSuccess(AlphaBanner)
-        case JsString("beta")     => JsSuccess(BetaBanner)
-        case JsString("research") => JsSuccess(ResearchBanner)
-        case JsString("live")     => JsSuccess(LiveBanner)
+        case JsString("alpha")     => JsSuccess(AlphaBanner)
+        case JsString("beta")      => JsSuccess(BetaBanner)
+        case JsString("discovery") => JsSuccess(DiscoveryBanner)
+        case JsString("live")      => JsSuccess(LiveBanner)
         case JsString(err) =>
-          JsError(s"only folr valid DevelopmentPhase, alpha, beta, research or live.$err is not allowed")
+          JsError(s"only valid DevelopmentPhase values are alpha, beta, discovery or live. $err is not allowed")
         case _ => JsError("Failure")
       }
   }
